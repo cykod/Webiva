@@ -1,0 +1,36 @@
+<% can_edit = @content_model.can_edit?(myself) %>
+
+<% active_table_for @content_model.table_name + '_table', @active_table_output,
+                    :refresh_url => url_for(:action => 'active_table', :path => @content_model.id),
+                    :class => 'active_table',
+                    :style => 'width:100%',
+                    :actions => @content_model.show_tags? ? [ ['Add Tags','js','ContentEditor.addTags();'],
+                                   ['Remove Tags','js','ContentEditor.removeTags();']
+                                ] : nil,
+                    :more_actions => [ [ 'Delete', 'delete','Are you sure you want to delete the selected entries?'],
+                                  [ 'Duplicate', 'copy', 'Duplicate the selected entires? (Entries will be assigned new ID\'s)'] ],
+                    :update => 'content_table' do |entry| %>
+<tr <%= highlight_row "entry", entry.id %> >
+  <td align='left' nowrap='1'><%= entry_checkbox "entry", entry.id %></td>
+  <td align='right'><a href='<%= url_for :action => 'entry', :path => [ @content_model.id, entry.id ] %>'><%= entry.id %></a></td> 
+  <td align='center'>
+      <% if can_edit -%>
+      <a href='<%= url_for :action => 'edit_entry', :path => [ @content_model.id, entry.id ] %>'><%= theme_image_tag 'icons/table_actions/edit.gif' %></a>
+      <% end -%>
+  </td>
+<% @content_model.content_model_fields.each do |fld| -%>
+  <% if fld.show_main_table? -%>
+    <td><% if fld == @content_model.content_model_fields.first -%>
+    <a href='<%= url_for :action => 'entry', :path => [ @content_model.id, entry.id ] %>'>
+      <%= fld.content_display(entry,:excerpt) %></a>
+    <% else -%>  <%= fld.content_display(entry,:excerpt) %><% end -%></td>
+  <% end -%>
+<% end -%>
+<% if @content_model.show_tags? %>
+<td>
+  <%= entry.tag_names %>
+</td>
+<% end -%>
+
+</tr>
+<% end -%>

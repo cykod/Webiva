@@ -1,0 +1,6 @@
+
+if @field_errors
+  page.replace_html "model_fields", :partial => 'edit_fields', :locals => { :fields => @fields }
+else
+  page << "document.location='#{url_for :action => 'view', :path => @content_model.id}';"
+end

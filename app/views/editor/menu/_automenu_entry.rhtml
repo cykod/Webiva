@@ -1,0 +1,11 @@
+<a href='javascript:void(0);' id='cms_automenu_node_<%= page[:node_id] %>' onclick='cmsAutoMenuEdit.toggleExcluded(<%= page[:node_id] %>)' style='<%= "text-decoration:line-through;" if page[:excluded] %>'><%= page[:title] %></a><br/>
+<% if page[:children] && page[:children].length > 0 %>
+<div id='cms_automenu_children_<%= page[:node_id] %>' style='padding-left:10px; <%= "display:none;" if page[:excluded] %>'>
+<% page[:children].each do |pg| -%>
+    
+    <%= render :partial => 'automenu_entry', :locals => {:page => pg} %>
+
+<% end -%>
+</div>
+<% end -%>
+    

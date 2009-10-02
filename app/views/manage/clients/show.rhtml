@@ -1,0 +1,11 @@
+<div class='admin_content'>
+
+<% for column in Client.content_columns %>
+<p>
+  <b><%= column.human_name %>:</b> <%=h @client.send(column.name) %>
+</p>
+<% end %>
+
+<%= link_to 'Edit', :action => 'edit', :path => @client %> |
+<%= link_to 'Back', :action => 'list' %>
+</div>

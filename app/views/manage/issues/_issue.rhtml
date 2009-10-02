@@ -1,0 +1,11 @@
+    <div <% if ['closed','completed'].include?(issue.status) %>style='text-decoration:line-through;'<% end -%> id='issue_title_<%= issue.id %>' >
+          <input type='checkbox' class='issue_checkbox' name='issue_checkbox[]' value='<%= issue.id %>' id='issue_checkbox_<%= issue.id %>'/>
+          <label for='issue_checkbox_<%= issue.id %>'>
+            <%= issue.reported_at.localize("%m/%d/%Y %H:%M".t) %>,
+	  </label>
+          (<%= issue.reported_type.humanize %>) 
+          <a href='javascript:void(0);' onclick='IssueEditor.toggleIssue(<%= issue.id %>);'> <b><%= issue.behavior_title %></b><a/>
+    </div>
+    <div id='issue_<%= issue.id %>' style='display:none; margin-left:10px; padding:5px; border:1px solid #000000;'>
+          Loading Issue Information
+    </div>

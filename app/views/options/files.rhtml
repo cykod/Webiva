@@ -1,0 +1,17 @@
+<% action_panel do |p| -%>
+  <%= p.link 'Move All Files to Default Processor', :icon => 'download.gif', :action => 'move_all' %>
+<% end -%>
+<hr/>
+<div class='admin_content'>
+<% cms_form_for :options, @options, :html => {:class => 'admin_form' } do |f| -%>
+  <%= f.check_boxes :processors, @available_processors,:vertical => true -%>
+  <%= f.select :default, @available_processors,:vertical => true -%>
+  <% @available_processors.each do |processor| -%>
+    <% cms_subfields_for "options[options]", DefaultsHashObject.new(@options.options) do |sf| -%>
+      <%= sf.text_area processor[1], :label => "#{processor[0]} Override",:description => 'Enter file types - one per line - which should always use this format (e.g. gif)',:vertical => true,:rows => 10 %>
+    <% end -%>
+  <% end -%>
+  <%= f.submit_tag 'Update' -%>
+<% end -%>
+
+</div>

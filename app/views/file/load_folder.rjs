@@ -1,0 +1,16 @@
+
+page.replace_html 'file_manager', :partial => 'folder_details',:locals => { :folder => @folder }
+
+page.replace_html 'folder_title', :partial =>  'folder_title', :locals => { :folder => @folder  } 
+
+if @file 
+
+  if @file.folder?
+    page.replace_html :file_manager_body, :partial => '/file/details/folder_details', :locals => {:file => @file }
+  else
+    page.replace_html :file_manager_body, :partial => '/file/details/file_details', :locals => {:file => @file }
+    
+  end
+  page << "FileEditor.markSelection(#{@file.id});"
+  page << 'FileEditor.showDetails();'
+end

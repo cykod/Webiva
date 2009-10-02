@@ -1,0 +1,8 @@
+require File.dirname(__FILE__) + '/../server/lib/backgroundrb/backgroundrb_worker'
+require File.dirname(__FILE__) + '/../server/lib/backgroundrb/middleman'
+require File.dirname(__FILE__) + '/../server/lib/backgroundrb/thread_pool'
+require File.dirname(__FILE__) + '/../server/lib/backgroundrb/scheduler'
+require File.dirname(__FILE__) + '/../server/lib/backgroundrb/cron_trigger'
+require 'rubygems'
+require 'active_support'
+require 'test/unit'

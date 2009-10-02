@@ -1,0 +1,26 @@
+<div class='admin_content'>
+
+  <div class='action_panel'>
+  <ul>
+    <li><a href='<%= url_for :action => 'new' %>'><%= theme_icon("action","icons/actions/add.gif",:align => 'absmiddle' ) %><%= "Create a New Custom Content Model".t %></a></li>
+  </ul>
+  </div>
+
+  <div class='clear'></div>
+</div>
+<hr/>
+
+<div class='admin_content'>
+
+<% table_for @content_models, ['Name','Entries','Description','Publications' ,'Fields'], :class => 'active_table', :style=>'width:100%;' do |mdl| %>
+<tr <%= highlight_row "tools",mdl.id %>>
+  <td><%= link_to mdl.name, :action => 'view',:path => mdl.id %></td>
+  <td align='center' style='width:30px;'><%= mdl.content_model.count %></td>
+  <td><%= mdl.description %></td>
+  <td style='width:60px;' align='center'><a href='<%=  url_for :action => 'publications',:path => mdl.id %>'><%= theme_image_tag 'icons/table_actions/publications.gif' %></a></td>
+  <td style='width:60px;' align='center'><a href='<%=  url_for :action => 'edit',:path => mdl.id %>'><%= theme_image_tag 'icons/table_actions/edit.gif' %></a></td>
+  
+<% end -%>
+</table>
+
+</div>

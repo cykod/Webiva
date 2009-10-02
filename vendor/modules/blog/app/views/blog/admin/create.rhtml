@@ -1,0 +1,9 @@
+<div class='admin_content'>
+<% cms_form_for :blog, @blog, :html => { :class => 'admin_form' } do |f| -%>
+
+<%= f.header 'Blog Information' %>
+<%= f.text_field :name, :vertical => true, :required => true %>
+<%= f.text_area :description, :vertical => true %>
+<%= f.submit_tag 'Create Blog', :vertical => true%>
+<% end -%>
+</div>

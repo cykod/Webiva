@@ -1,0 +1,69 @@
+<div id='issue_details_<%= issue.id %>'>      
+      <b>Issue #<%= issue.id %></b> - <%= issue.status %><br/>
+      <b>Reported By: 
+      <% if issue.reporter_user  %>
+        <%= issue.reporter_user.identifier_name %>
+      <% else %>
+        [ Anonymous ]
+      <% end -%>
+      </b><Br/>
+      <% form_for :issue, issue, :url => { :action => 'update_issue', :path => issue.id } do |f| %>
+        Location:<%= f.text_field :location %><input type='submit' value='Submit'>
+      <% end -%>
+      <h3>Behavior</h3>
+      <div style='height:300px; overflow:scroll; border:1px solid #000000; padding:10px;'>
+      <%= simple_format issue.behavior %>
+      </div>
+      <h3>Notes</h3>
+      
+      <% if issue.system_issue_notes.length > 0 %>
+      <table width='100%'>
+        <tr>
+          <th>When</th>
+          <th>Who</th>
+          <th>Action</th>
+          <th align='left'>Note</th>
+        </tr>
+        <% issue.system_issue_notes.each do |note| %>
+        <tr>
+          <td nowrap='1'>
+             <%= (note.entered_at || Time.now()).localize("%m/%d/%Y %H:%M".t) %>
+          </td> 
+          <td nowrap='1'>
+            <%= note.entered_user ? note.entered_user.name : "[Unknown]" %>
+          </td>
+          <td nowrap='1'>
+            <%= note.action %>
+          </td>
+          <td nowrap='1'>
+            <%= sprintf("%0.2f",note.work_time) %>
+          </td>
+          <td width='100%' valign='baseline'>
+            <% if note.domain_file %>
+              <a href='<%= note.domain_file.url %>'><%= note.domain_file.name %></a><br/>
+            <% end -%>
+            <%= h(note.note).gsub("\n","<br/>") %>
+          </td>
+        </tr>
+        <% end -%>
+      
+      </table>
+      
+      <% end -%>
+      
+      <h3>Add Note</h3>
+      <% remote_cms_form_for :note, @issue_note, :update => "issue_details_#{issue.id}", :url => {:action => 'add_note', :path =>  issue.id } do |f| %>
+        <%= f.radio_buttons :action, [ 'note','closed','complete' ] %>
+        <%= f.text_field :work_time %>
+        <%= f.text_area :note, :cols => 50,:rows => 5 %>
+        <%= f.filemanager_file :domain_file_id , :type => 'file' %>
+        <%= f.submit_tag 'Submit' %>
+      <% end -%>
+</div>
+
+<% if issue.status == 'closed' || issue.status == 'complete' %>
+<script>
+  $('issue_title_<%= issue.id %>').style.textDecoration = 'line-through';
+   Element.hide('issue_<%= issue.id %>');
+</script>
+<% end -%>

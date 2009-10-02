@@ -1,0 +1,14 @@
+if @invalid_worker
+  page.replace_html 'completed_percentage', "Invalid Worker".t
+else
+  if @initialized
+    page.replace_html 'import_calculation', "#{@imported}/#{@entries}"
+    page << "$('completed_bar').style.width ='#{@percentage * 4}px';"
+    page.replace_html 'completed_percentage', "#{@percentage}%"
+    if !@completed
+      page << 'setTimeout(ImportStatus.monitor,1000);'
+    else
+      page << '$("wizard_next").disabled = false;'
+    end
+  end
+end

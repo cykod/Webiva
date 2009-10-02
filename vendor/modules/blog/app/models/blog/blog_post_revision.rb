@@ -1,0 +1,80 @@
+# Copyright (C) 2009 Pascal Rettig.
+
+require 'hpricot'
+
+class Blog::BlogPostRevision < DomainModel
+
+  validates_presence_of :title, :body
+
+  belongs_to :blog_post, :class_name => 'Blog::BlogPost', :foreign_key => 'blog_post_id'
+  belongs_to :domain_file
+  belongs_to :media_file, :class_name => 'DomainFile'
+  
+  def before_save
+    if self.blog_post.blog_blog.is_user_blog?
+        self.preview_html = ae_some_html(Hpricot(self.preview.to_s).to_html)
+        self.body_html = ae_some_html(Hpricot(self.body.to_s).to_html)
+    else
+      self.body_html = Hpricot(self.body.to_s).to_html
+      self.preview_html = self.preview
+    end
+  end
+  
+  def body_content
+    self.body_html.blank? ? self.body : self.body_html
+  end
+  
+  def preview_content
+    if self.preview.blank?
+      body_content
+    else
+      self.preview_html.blank? ? self.preview : self.preview_html
+    end
+  end
+  
+ # Generate text from HTML
+ def text_generator(html)
+   link_sanitizer = HTML::LinkSanitizer.new
+   link_sanitizer.sanitize(CGI::unescapeHTML(html.to_s.gsub(/\<\/(p|br|div)\>/," </\\1>\n ").gsub(/\<(h1|h2|h3|h4)\>(.*?)<\/(h1|h2|h3|h4)\>/) do |mtch|
+        "\n#{$2}\n#{'=' * $2.length}\n\n"
+    end.gsub("<br/>","\n")).gsub("&nbsp;"," "))
+ end
+   
+
+
+ def ae_some_html(s)
+    return if s.blank?
+    
+    s = strip_word(s)
+    sanitizer = HTML::WhiteListSanitizer.new
+    sanitizer.sanitize(s)
+  end
+  
+  def strip_word(txt)
+     cleanMso = Proc.new { |b| b = b.replace(/\bMso[\w\:\-]+\b/m, '') ? ' class="' + b + '"' : '' }
+     
+     regx = [  /^\s*( )+/m,                                              # nbsp entities at the start of contents
+              /( |<br[^>]*>)+\s*$/m,                                     # nbsp entities at the end of contents
+              /<!--\[(end|if)([\s\S]*?)-->|<style>[\s\S]*?<\/style>/mi,  # Word comments
+              /<\/?(font|meta|link)[^>]*>/mi,                            # Fonts, meta and link
+              /<\\?\?xml[^>]*>/mi,                                       # XML islands
+              /<\/?o:[^>]*>/mi,                                          # MS namespaced elements <o:tag>
+              /<\/?w:[^>]*>/mi,                                          # MS namespaced elements <o:tag>
+              [/ class=\"([^\"]+)\"/mi, ''],                       # All classes like MsoNormal
+              [/ class=([\w\:\-]+)/mi, ''],                        # All classes like MsoNormal
+              / style=\"([^\"]+)\"| style=[\w\:\-]+/mi,                  # All style attributes
+              [/<(\/?)s>/i, '<$1strike>']                              # Convert <s> into <strike> for line-though
+                        ]
+                        
+      regx.each do |reg|
+        if(reg.is_a?(Array))
+          txt.gsub!(reg[0],reg[1])
+        else
+          txt.gsub!(reg,'')
+        end
+      end  
+      
+      
+      txt                      
+  end
+end

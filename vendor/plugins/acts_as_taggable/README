@@ -1,0 +1,103 @@
+= The Acts As Taggable Mixin
+
+== Installation
+
+To install or update the gem, simply execute:
+
+gem install acts_as_taggable
+
+To use the 'acts_as_taggable' library in your Rails application after installing
+the gem, add this line at the end of your 'config/environment.rb' file:
+
+require_gem 'acts_as_taggable'
+
+== Usage Instructions
+
+To use the acts_as_taggable mixin with your ActiveRecord objects, you must use
+a normalized database schema for tagging (also know as folksnomies).
+
+This means that you must have a table solely for holding tag names. Usually, 
+this table is named 'tags' having at least 2 columns: primary key (usually
+an autoincrement integer called 'id' - the AR standard for PKs) and a 'name'
+columns, usually a varchar. You must also have a defined ActiveRecord model 
+class that relates to this table, by default called 'Tag'.
+
+For associating tags to your objects you also must have join tables that are
+composed of at least 2 columns: the tags table foreign key (by default 'tag_id')
+and your taggable object table foreign key.
+
+If youre using the simple has_and_belongs_to_many model, you must NOT have a 
+primary key (usually an 'id' column) defined on the join table. If youre using 
+a full join model, you must add a primary key column to the join table. Please 
+see the RDoc documentation on acts_as_taggable macro and the :join_class_name 
+option for the differences between these two approaches.
+
+For example, suppose you are tagging photos and you hold your photo data thru
+the Photo model and on the 'photos' table. Your database schema would look
+something like this (example suited for MySQL):
+
+CREATE TABLE `tags` (                    
+          `id` int(11) NOT NULL auto_increment,  
+          `name` varchar(255) default NULL,      
+          PRIMARY KEY  (`id`)                    
+        )
+
+CREATE TABLE `photos_tags` (                    
+          `tag_id` int(11) NOT NULL,  
+          `photo_id` int(11) NOT NULL      
+        )
+
+CREATE TABLE `photos` (                              
+          `id` int(11) NOT NULL auto_increment,              
+          `title` varchar(255) default NULL,                 
+          `author_name` varchar(255) default NULL,           
+          `image_path` varchar(255) default NULL,                   
+          PRIMARY KEY  (`id`)                                
+        )                
+
+You would normally define 2 models to relate to these tables:
+
+class Tag < ActiveRecord::Base
+end
+
+class Photo < ActiveRecord::Base
+  acts_as_taggable
+end
+
+Now you can easily apply and search for tags on photos in your Rails application.
+
+This assumes youre using only default naming conventions. For using the mix-in
+with non-standard naming conventions, please see the proper RDoc documentation.
+
+== Upgrading to 2.0
+
+The new version now uses the Rails standard join table names. In the past it was always prefixed by tags, 
+independent of the alphabetical order.
+
+If you would like to upgrade without changing your table names, or if you prefer the other style - modify 
+your models as follows
+
+
+class Photo < ActiveRecord::Base
+  acts_as_taggable
+end
+
+becomes
+
+class Photo < ActiveRecord::Base
+  acts_as_taggable :join_table => "tags_photos"
+end
+
+== Testing
+
+I'm currently working on overhauling the testing system. You now can point the plugin at a database of your choosing by copying config.yml.sample to the main directory and pointing it at a database that exists. I'll be working on making it easier to switch between MySQL & PostgreSQL to simplify testing.
+
+The tests are still pretty weak. If you really want to help the project - submit tests that show how you are actually using the software so I can confirm that new versions don't break anything.
+
+== Bugs/Patches
+
+This plugin has a site at http://rubyforge.org/projects/taggable/.  Please go there to submit patches or bug reports. This is also the best place to find the latest version of the software.
+
+== Authors
+
+Demetrius Nunes <demetriusnunes@ NoSPAM @gmail.com> is the original creator of acts_as_taggable (originally announced http://dema.ruby.com.br/articles/2005/08/27/easy-tagging-with-rails).  He has since moved on to bigger and better things, but the project owes its existance to him.  Since 2.0.0, acts_as_taggable has been maintained by Dirk Elmendorf (ruby@ NoSPAM @economysizegeek.com).  

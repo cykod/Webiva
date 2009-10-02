@@ -1,0 +1,54 @@
+<div class='admin_content'>
+<br/>
+
+<table class='action_icon_table'>
+<tr>
+	<td>
+		<a href='<%= url_for :controller => '/manage/translate' %>' onmouseover='SCMS.show_hide("system_translation","no_mouseover");' onmouseout='SCMS.show_hide("no_mouseover","system_translation");'>
+		<%= theme_image_tag 'actions/system_translation.gif' %><br/>
+		<%= "Translation".t %></a>
+	</td>
+<% if @client_user.system_admin? %>	
+  <td>
+    <a href='<%= url_for :controller => '/manage/clients' %>' onmouseover='SCMS.show_hide("system_clients","no_mouseover");' onmouseout='SCMS.show_hide("no_mouseover","system_clients");'>
+    <%= theme_image_tag 'actions/system_clients.gif' %><br/>
+    <%= "Clients".t %></a>
+  </td>
+  <td>
+    <a href='<%= url_for :controller => '/manage/users' %>' onmouseover='SCMS.show_hide("system_client_users","no_mouseover");' onmouseout='SCMS.show_hide("no_mouseover","system_client_users");'>
+    <%= theme_image_tag 'actions/system_client_users.gif' %><br/>
+    <%= "Client Users".t %></a>
+  </td>
+  <td>
+    <a href='<%= url_for :controller => '/manage/domains' %>' onmouseover='SCMS.show_hide("system_domains","no_mouseover");' onmouseout='SCMS.show_hide("no_mouseover","system_domains");'>
+    <%= theme_image_tag 'actions/system_domains.gif' %><br/>
+    <%= "Domains".t %></a>
+  </td>
+  <td>
+    <a href='<%= url_for :controller => '/manage/issues' %>' onmouseover='SCMS.show_hide("system_issues","no_mouseover");' onmouseout='SCMS.show_hide("no_mouseover","system_issues");'>
+    <%= theme_image_tag 'actions/system_issues.gif' %><br/>
+    <%= "Issue Tracker".t %></a>
+  </td>
+<% end -%>
+</table>
+
+<div class='action_icon_mouseover' id='system_translation' style='display:none;'>
+ <%= h "Translate the CMS software ".t %>
+</div>
+<% if permit?('system_admin') %>	
+<div class='action_icon_mouseover' id='system_clients' style='display:none;'>
+ <%= h "View and Edit the various clients on the system modify ".t %>
+</div>
+<div class='action_icon_mouseover' id='system_client_users' style='display:none;'>
+ <%= h "View and Edit client level users who can access all features in a specific client's domain".t %>
+</div>
+<div class='action_icon_mouseover' id='system_domains' style='display:none;'>
+ <%= h "View all the domains on the system and edit options and components".t %>
+</div>
+<div class='action_icon_mouseover' id='system_issues' style='display:none;'>
+ <%= h "View issues that have been reported with the system".t %>
+</div>
+<% end -%> 
+<div class='action_icon_mouseover' id='no_mouseover'>
+</div>
+</div>

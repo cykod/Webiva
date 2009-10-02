@@ -1,0 +1,22 @@
+#cms_mail_header {
+ margin:0px;
+ padding: 0px 0px;
+ height:50px;
+ width:100%;
+ position:absolute;
+ top:0px;
+ left:0px;
+ z-index:500;
+ background-color:#FFFFFF;
+ text-align:center;
+}
+
+  body > div#cms_mail_header {
+    position:fixed;
+  }
+  
+  
+#cms_mail_body {
+  margin-top:50px;
+
+}

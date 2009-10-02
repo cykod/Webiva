@@ -1,0 +1,16 @@
+<html>
+<head>
+<link href="<%= url_for :action=>'preview_css', :path => [ @site_template.id, @lang ] %>" media="screen" rel="Stylesheet" type="text/css" />
+</head>
+<body>
+  <% @site_template.render_html(@lang) do |part| -%>
+    <%= part.body %>
+    <% if part.zone_position == 1 %>
+      Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec sem lorem, rutrum varius, hendrerit non, rutrum posuere, neque. Vestibulum pretium leo vitae eros. Donec pretium mattis dolor. Aliquam erat volutpat. Aliquam sodales, mauris sed cursus aliquam, ipsum ipsum porttitor enim, non sollicitudin lectus nunc consectetuer diam. Aliquam erat volutpat. Fusce ligula velit, pulvinar eget, vulputate eget, ullamcorper in, diam. Nullam diam velit, porttitor non, cursus quis, interdum a, lectus. Nunc nunc. Nulla quis mi sit amet leo rhoncus ullamcorper. Aenean nonummy gravida ligula. Curabitur accumsan aliquet nunc. Vivamus sed ante. Suspendisse sed ligula. Proin vitae nulla quis nibh consectetuer sollicitudin. Donec purus dolor, condimentum eget, pellentesque tincidunt, eleifend id, nulla. Nunc ultrices mollis felis. Mauris euismod fermentum lorem.
+    <% end -%>
+  
+  <% end -%>
+</body>
+
+</html>
+

@@ -1,0 +1,1 @@
+page << "$('user_options_vip_number').value = '#{ jh @vip_number }'; $('user_options_vip_number').disabled = false;"

@@ -1,0 +1,12 @@
+<div class='cms_form'>
+
+  <% admin_form_for :tag_note, @tag_note,
+    :html =>
+         { :onsubmit => "SCMS.updateOverlay('#{url_for :action =>'tag_details',:path => @tag_note.id }',Form.serialize(this)); return false;" } do |f| -%>
+  <%= f.custom_field :tag_name, :value => @tag_note.tag.name %>
+  
+  <%= f.text_area :description,:rows => 5  %>
+  <%= f.text_area :notes, :rows => 10,:label => 'Additional Notes' %>
+      <%= f.cancel_submit_buttons 'Cancel','Submit', { :onclick => 'RedBox.close();' }, {} %>
+<% end -%>
+</div>

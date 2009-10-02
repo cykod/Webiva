@@ -1,0 +1,1 @@
+ page.replace_html 'styles_display',:partial => 'style_selector', :locals => { :styles => @style_details, :default_styles => display_style(@default_struct_styles) } 

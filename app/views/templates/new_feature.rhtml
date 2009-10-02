@@ -1,0 +1,10 @@
+<div class='admin_content'>
+<% admin_form_for :feature, @feature do |f| -%>
+  <%= f.text_field :name %>
+  <%= f.text_field :category %>
+  <%= f.text_field :description %>
+  <%= f.select :feature_type, @feature_options %>
+  <%= f.select :site_template_id, [['--Available in all templates--',nil]] + SiteTemplate.site_template_options %>
+  <%= f.submit_tag 'Create' %>
+<% end -%>
+</div>

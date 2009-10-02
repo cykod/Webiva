@@ -1,0 +1,26 @@
+<script>
+  <%= active_table_javascript %>
+  
+  BlogGenerator = {
+    addPost: function(post_id) {
+      new Ajax.Request("<%= url_for :action => 'generate_mail_generate' %>", 
+              { parameters: "post_id=" + post_id + "&" + Form.serialize('options_form') });
+    }
+  
+  };
+
+</script>
+<div style='padding:10px;' class='admin_form' style='height:600px; width:800px; overflow:auto;'>
+<div id='generate_post_table'>
+  <%= render :partial => 'generate_post_table' %>
+</div><br/>
+<div align='left'>
+<% cms_unstyled_form_for :opts, HashObject.new(:align => 'left',:header => 'above'), :html => { :id => 'options_form' } do |of| -%>
+<b>Image:</b> <%= of.radio_buttons :align, [ ['Left','left'],['Right','right'],['No Image','none']], :default => 'left' %>
+<b>Title:</b> <%= of.radio_buttons :header, [ ['Above Image','above'],['Next to Image','next_to']], :default => 'above' %>
+<% end -%>
+</div>
+<div align='right'>
+  <input type='submit' value='Close' class='submit_button'  onclick='RedBox.close(); return false;'/>
+</div>
+</div>

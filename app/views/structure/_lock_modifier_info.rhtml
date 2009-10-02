@@ -1,0 +1,113 @@
+<script>
+LockEditor= {};
+LockEditor = {
+
+  showEdit: function() {
+    Element.hide('lock_view');
+    Element.show('lock_edit');
+  
+  },
+  
+  hideEdit: function() {
+    Element.show('lock_view');
+    Element.hide('lock_edit');
+  
+  },
+  
+  submitForm: function() {
+    var params = Form.serialize('lock_form');
+    params += "&node_type=mod&node_id=<%= @mod.id %>";
+    new Ajax.Updater('element_info',
+                     "<%= url_for :action => 'element_info' %>",
+                     { parameters: params,
+                        evalScripts: true,
+                        method: 'post' }
+                     );
+  
+  }
+  
+
+}
+
+
+</script>
+<b><%= "Lock Information".t %></b>
+<br/>
+<br/>
+<div id='lock_view'>
+<table>
+  <tr>
+    <td><%= 'Access Control:'.t %></td>
+    <td>
+    <a class='ajax_link' href='javascript:void(0);' onclick='LockEditor.showEdit();'> 
+<% if @lock_options.access_control == 'lock' %>
+  <%= "ONLY selected profiles may access this page".t %>
+<% elsif @lock_options.access_control == 'unlock' -%>
+   <%= "All users EXCEPT those with selected profiles may access this page".t %>
+<% else -%>
+  <%= "[Access Control Not Set]".t %>
+<% end -%>
+
+  <% if @lock_options.options.include?('override') %>
+    ( <%= "Overrides Previous Locks" %> )
+  <% end -%>
+  </a>
+  </td>
+ </tr>
+  <tr>
+    <td valign='baseline'><%= 'Affected Users:'.t %></td>
+    <td>
+<% if @mod.user_roles('access').length == 0 %>
+  <a class='ajax_link'  href='javascript:void(0);' onclick='LockEditor.showEdit();'>[<%= 'No Selected Profiles'.t %>]</a>
+<% else -%>
+  <% @mod.user_roles('access').each do |cls| %>
+    <a class='ajax_link'  href='javascript:void(0);' onclick='LockEditor.showEdit();'><%= cls.name %></a><br/>
+  <% end -%>
+<% end -%>
+  </td>
+</tr>
+<tr>
+  <td><%= "Lockout Redirect:".t %></td>
+  <td>
+    <a class='ajax_link'  href='javascript:void(0);' onclick='LockEditor.showEdit();'><%= @redirect_page ? @redirect_page.node_path : "[No Page Selected]".t %></a><br/>
+</table>
+
+
+</div>
+
+
+<div id='lock_edit' style='display:none;'>
+
+<% cms_form_for :lock, @lock_options, :html => {:id => 'lock_form', :onsubmit => 'LockEditor.submitForm(); return false;' }  do  |f| -%>
+<%= f.radio_buttons :access_control, [ [  'Only Allow Selected', 'lock'], ['Allow All except Selected','unlock' ] ],:vertical => true, :label => 'Lock Type' %>
+
+  <% cms_subfields_for :mod,@mod do |sf| -%>
+    <%= sf.ordered_selection_list('access_authorized',UserClass,:id_field => 'identifier',:options =>  Role.authorized_options(:all), :sortable => false, :vertical => true, :label => 'Affected Users') %>
+  <% end -%>
+
+ <%= f.page_selector :redirect, :label => 'On Lockout Redirect Users To:', :vertical => true %>
+<%= f.check_boxes :options, [ [ 'Override Previous Locks','override' ] ], :label => '' %>
+
+<% end -%>
+
+<div align='right'>
+    <input type='submit' value='<%= "Update".t %>' onclick='LockEditor.submitForm();'/>
+    <input type='submit' value='<%= "Cancel".t %>' onclick='LockEditor.hideEdit();' />
+</div>
+
+<script>
+  Sortable.create('affected_profiles', {
+                    tag: 'div',
+                    containment: [ 'affected_profiles','available_profiles'],
+                    constraint: false,
+                    dropOnEmpty: true
+                  });
+  Sortable.create('available_profiles', {
+                    tag: 'div',
+                    constraint: false,
+                    containment: [ 'affected_profiles','available_profiles'],
+                    dropOnEmpty: true
+                  });
+</script>
+
+</div>

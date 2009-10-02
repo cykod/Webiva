@@ -1,0 +1,14 @@
+<div class='cms_form'>
+<h3><%= sprintf("%s Options".t,@publication.name) %></h3>
+
+<% tabled_form_for :pub, @options, 
+          :html => { :id => 'edit_entry',
+                     :onsubmit => "cmsEdit.submitParagraphData(this,'#{url_for :action => 'edit'}',#{@paragraph.id},#{@paragraph_index}); return false;"
+                   }  do |f| -%>
+<%= f.select :return_page, @pages, :label => 'Return Page' %>
+<%= f.check_boxes :allow_entry_creation, [ ['Allow creation',true ]], :single => true %>
+<% end -%>
+<hr/>
+<a class='cms_ajax_link' href='javascript:void(0);' onclick="$('edit_entry').onsubmit();"><%= "Update &amp; Close".t %></a>
+<a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.closeBox();'><%= "Cancel".t %></a>
+</div>

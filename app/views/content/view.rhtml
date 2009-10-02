@@ -1,0 +1,92 @@
+<script>
+  ContentEditor = {
+     addTags: function() {
+      SCMS.remoteOverlay("<%= url_for :action => 'add_tags_form', :path => @content_model %>");
+    },
+
+    removeTags: function() {
+      var entry_ids = [];
+      var elements = $('<%= @content_model.table_name + '_table' %>_update_form').getInputs();
+      elements.each(function(elem) {
+        if(elem.type == 'checkbox' && elem.className == 'entry_checkbox') {
+          if(elem.checked)
+              entry_ids.push("entry_ids[]=" + encodeURIComponent(elem.value));
+        }
+      });
+
+      SCMS.remoteOverlay("<%= url_for :action => 'remove_tags_form', :path => @content_model %>?" + entry_ids.join("&") );
+    },  
+    
+   addTagInPopup: function(tag_name) {
+    var cur_tags =  $('tags_field').value;
+    
+    tag_name = tag_name.strip();
+    
+    var tag_arr = cur_tags.split(",");
+    var tag_exists = false;
+    var cur_tags = []
+    
+    tag_arr.each(function(tag) {
+      tag = tag.strip();
+      if(tag != '') {
+	    if(tag_name == tag)
+	      tag_exists = true;
+	    cur_tags.push(tag);
+          }
+      });
+      
+      if(!tag_exists) {
+        cur_tags.push(tag_name);
+      }
+      else {
+        alert(tag_name + ' <%= jh "tag already present".t %>');
+      }
+      
+      $('tags_field').value = cur_tags.join(", ");
+    },
+      
+    addTagsSubmit: function(tags_to_add) {
+      this.tableAction('add_tags',"added_tags=" + encodeURIComponent(tags_to_add));
+    },
+
+    removeTagsSubmit: function(tags_to_remove) {
+      this.tableAction('remove_tags',"removed_tags=" + encodeURIComponent(tags_to_remove));
+    },
+    
+    tableAction: function(action,params) {
+      ActiveTable.action(action,null,'<%= @content_model.table_name + '_table' %>',"<%= url_for :action => 'active_table', :path => @content_model %>","content_table",params);
+    }
+    
+    
+  
+  }
+
+</script>
+
+<% action_panel do |p| -%>
+  <%= p.link 'Add Entry',:icon => 'add.gif', :action => 'edit_entry',:path => @content_model.id if @content_model.can_edit?(myself) %> 
+  <%= p.link 'Import',:icon => 'upload.gif', :controller => '/content_import',:path => @content_model.id if @content_model.can_edit?(myself) %>  
+  <%= p.link 'Download',:icon => 'download.gif', :controller => '/content_export',:path => @content_model.id %>  
+  <%= p.link 'Configure',:icon => 'configure.gif', :action => 'configure',:path => @content_model.id if myself.has_role?(:editor_content_configure) %>  
+  <%= p.link 'Edit Fields',:icon => 'edit.gif', :action => 'edit',:path => @content_model.id if myself.has_role?(:editor_content_configure)   %>  
+  <%= p.link 'Publications',:icon => 'publications.gif', :action => 'publications',:path => @content_model.id if myself.has_role?(:editor_content_configure)   %>  
+  <%= p.link 'Publish',:icon => 'publish.gif', :action => 'publish',:path => @content_model.id if myself.has_role?(:editor_content_configure)  %>  
+
+<% end -%>
+
+<hr />
+
+<script>
+
+     <%= active_table_javascript %>
+</script> 
+
+<div class='admin_content'>
+<div id='content_table'>
+
+  <%= render :partial => 'content_table' %>
+
+</div>
+</div>
+
+</div>

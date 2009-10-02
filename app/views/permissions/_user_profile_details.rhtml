@@ -1,0 +1,24 @@
+<table class='editor_table' cellspacing ='0' cellpadding='5'>
+<tr>
+  <th></th>
+  <th><%= "Name".t %></th>
+  <th><%= "Description".t %></th>
+  <th><%= "Type".t %></th>
+</tr>
+<% @all_user_classes.each do |cls| -%>
+  <%= render :partial => 'user_profile', :locals => { :cls => cls } %>
+<% end -%>
+<tr id='new_class'>
+</tr>
+<tbody>
+<%= form_tag('',:id => 'create_form' ,:onsubmit=>'UserClassEditor.createNew(); return false;') %>
+<tr id='create_class'>
+  <td></td>
+  <td><input type='text' size='20' id='create_new_name' name='name' /></td>
+  <td><input type='text' size='40' id='create_new_desc'  name='description' /></td>
+  <td><input type='checkbox' id='create_new_editor' name='editor' value='1' /><%= "Editor Profile".t %></td>
+  <td><input type='submit' value='<%= "Create New Class" %>'/> </td>
+</tr>
+</form>
+</tbody>
+</table>

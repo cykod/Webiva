@@ -1,0 +1,10 @@
+page.insert_html :bottom, "file_manager", :partial => 'file_item', :locals => { :file => @folder }
+page.insert_html :bottom, "children_#{@parent_id}", :partial => 'file_tree', :locals => { :folders => [ @folder ] }
+
+page.replace_html :file_manager_body, :partial => '/file/details/folder_details', :locals => {:file => @folder }
+page << 'FileEditor.showDetails();'
+
+page << "setTimeout('FileEditor.refreshUploadedFolder(#{@folder.id},#{@parent_id})',10);"
+page << "FileEditor.recreateDragAndDroppables();"
+
+page << "setTimeout('FileEditor.nameChange(#{@folder.id});',20); "

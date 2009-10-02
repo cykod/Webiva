@@ -1,0 +1,9 @@
+<% active_table_for :galleries_table, @active_table_output,
+    :actions => [['Delete','delete','Are you sure you want to delete the selected galleries?']] do |t| -%>
+<tr <%= highlight_row 'gallery',t.id %>>
+  <td><%= entry_checkbox 'gallery',t.id %></td>
+  <td><%= link_to image_tag((t.first_image && t.first_image.domain_file) ? t.first_image.domain_file.url(:thumb) : '/images/no_image.gif'), :action => 'gallery', :path => t %></td>
+  <td><%= link_to t.name,  :action => 'gallery', :path => t %></td>
+  <td align='center'><%= t.image_count %></td>
+</tr>
+<% end -%>

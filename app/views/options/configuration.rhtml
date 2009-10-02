@@ -1,0 +1,51 @@
+<div class='admin_content'>
+<br/>
+
+<table class='action_icon_table'>
+<tr>
+	<td>
+		<a href='<%= url_for :action => 'domain_options' %>'  onmouseover='SCMS.show_hide("domain_options","no_mouseover");' onmouseout='SCMS.show_hide("no_mouseover","domain_options");' >
+		<%= theme_image_tag 'actions/website_configuration.gif' %><br/>
+		<%= "Domain Options".t %></a>
+	</td>
+	<td>
+		<a href='<%= url_for :action => 'languages' %>'  onmouseover='SCMS.show_hide("languages","no_mouseover");' onmouseout='SCMS.show_hide("no_mouseover","languages");' >
+		<%= theme_image_tag 'actions/website_configuration.gif' %><br/>
+		<%= "Site Languages".t %></a>
+	</td>
+
+	<td>
+		<a href='<%= url_for :action => 'files' %>'  onmouseover='SCMS.show_hide("files","no_mouseover");' onmouseout='SCMS.show_hide("no_mouseover","files");' >
+		<%= theme_image_tag 'actions/website_configuration.gif' %><br/>
+		<%= "Files".t %></a>
+	</td>
+
+
+	<td>
+		<a href='<%= url_for :action => 'image_sizes' %>' onmouseover='SCMS.show_hide("images","no_mouseover");' onmouseout='SCMS.show_hide("no_mouseover","images");'>
+		<%= theme_image_tag 'actions/website_configuration.gif' %><br/>
+		<%= "Image Sizes".t %></a>
+	</td>
+
+</tr>
+</table>
+<div class='action_icon_mouseover' id='languages' style='display:none;'>
+ <%= "Administer which langauges are available on the system".t %>
+</div>
+<div class='action_icon_mouseover' id='domain_options' style='display:none;'>
+ <%= "Manage domain level options".t %>
+</div>
+
+<div class='action_icon_mouseover' id='images' style='display:none;'>
+ <%= "Control the various image sizes available on the system".t %>
+</div>
+
+<div class='action_icon_mouseover' id='files' style='display:none;'>
+ <%= "Controls how various file types are handled".t %>
+</div>
+
+
+<div class='action_icon_mouseover' id='no_mouseover'>
+</div>
+  
+</div>

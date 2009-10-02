@@ -1,0 +1,12 @@
+<% active_table_for :user_actions_table, @tbl,
+    :refresh_url => url_for(:action => 'display_user_actions_table',:path => [ @user.id ]) do |t| -%>
+<tr <%= highlight_row 'action',t.id %>>
+  <td><%= t.description %></td>
+  <td align='center'><%= t.level %></td>
+  <td><%= t.identifier %></td>
+  <td><%= t.renderer %></td>
+  <td><%= t.action %></td>
+  <td><%= t.action_at.strftime(DEFAULT_DATETIME_FORMAT.t) %></td>
+  <td><%= t.admin_user ? t.admin_user.name : '' %></td>
+</tr>
+<% end -%>

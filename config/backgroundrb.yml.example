@@ -1,0 +1,10 @@
+--- 
+:rails_env: development
+:worker_dir: lib/workers
+:host: localhost
+:port: 2000
+:pool_size: 15
+:acl:
+    :deny: all
+    :allow: localhost 127.0.0.1
+    :order: deny allow

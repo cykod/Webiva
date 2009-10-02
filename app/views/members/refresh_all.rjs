@@ -1,0 +1,9 @@
+page.replace_html :target_options, :partial => 'target_options'
+page.replace_html :member_table, :partial => 'member_table'
+page.replace_html :user_cloud, :partial => 'user_cloud'
+page << "Element.hide('updating_table');"
+page << "Element.hide('saving_segmentation');"
+page <<  "Element.hide('add_tags_submitting');  $('add_tags_submit').disabled = false; $('remove_tags_submit').disabled = false;"
+page << 'MemberEditor.updating = false;'
+page << "MemberEditor.updateTagging();"
+page << "$('search').value='#{vh @search}';"

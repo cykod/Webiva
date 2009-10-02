@@ -1,0 +1,13 @@
+<% active_table_for :features_table, @tbl,
+  :actions => [ ['Duplicate','duplicate' ],
+                ['Delete','delete','Delete the selected features?' ]] do |t| -%>
+<tr <%= highlight_row 'feature', t.id %>>
+  <td><%= entry_checkbox 'feature',t.id %></td>
+  <td><%= link_to v(t.name), :action => 'feature', :path => [ t.id ] %></td>
+  <td><%= v t.category %></td>
+  <td><%= v t.feature_type %></td>
+  <td><%= t.site_template ? link_to(v(t.site_template.name), :action => 'edit',:path => [ t.id] ) : '-' %></td>
+  <td><%= t.updated_at.localize(DEFAULT_DATETIME_FORMAT.t) if t.updated_at %></td>
+</tr>
+
+<% end -%>

@@ -1,0 +1,10 @@
+<div class='cms_form'>
+  <% paragraph_options_form_for "RSS Feed Options",:view_rss ,@options do |f| -%>
+    <%= f.text_field :rss_url, :description => 'url of feed to pull form', :required => true %>
+    <%= f.text_field :read_more, :description => 'Read more text'%>
+    <%= f.text_field :items, :description => 'number of items to display (0 displays all)' %>
+    <%= f.radio_buttons :sanitize, [['Yes','yes'],['No','no']], :description => 'Sanitize the html',:label => 'Sanitize HTML' %>
+    <%= f.text_field :category, :description => 'only show items from the listed category' %>
+    <%= f.text_field :cache_minutes, :description => 'how many minutes to cache the data feed' %>
+  <% end -%>
+</div>

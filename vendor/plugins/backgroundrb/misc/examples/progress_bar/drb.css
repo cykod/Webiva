@@ -1,0 +1,9 @@
+.progress{
+  width: 1px;
+  height: 16px;
+  color: white;
+  font-size: 12px;
+  overflow: hidden;
+  background-color: #287B7E;
+  padding-left: 5px;
+}

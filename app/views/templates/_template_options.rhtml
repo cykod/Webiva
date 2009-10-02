@@ -1,0 +1,13 @@
+<% tabled_fields_for :site_template, @site_template do |f| -%>
+	<%= f.text_field :name %>
+	<%= f.text_area :description, :cols => 40, :rows => 3 %>
+<% end -%>
+
+<% unless @site_template.parent_template %>
+<h3><%= "Customizable Fields".t %></h3>
+<div id='custom_fields'>
+
+	<%= render :partial => 'template_custom_fields' %>
+
+</div>
+<% end -%>

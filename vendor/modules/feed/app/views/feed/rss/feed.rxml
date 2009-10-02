@@ -1,0 +1,27 @@
+xml.instruct!
+
+xml.rss "version" => "2.0", "xmlns:atom" => "http://www.w3.org/2005/Atom" do
+
+xml.channel do 
+  xml.title(data[:title])
+  xml.link(data[:link])
+  xml.description(data[:description])
+  xml.tag!('atom:link', :href => item[:link], :rel => 'self', :type='application/rss+xml')
+  
+  data[:items].each do |item|
+    xml.item do
+      xml.title item[:title]
+      xml.link item[:link]
+      xml.guid item[:guid]
+      if item[:categories]
+        item[:categories].each do |cat|
+          xml.category cat
+        end
+      end
+      xml.pubDate item[:published_at] if item[:published_at]
+      xml.description item[:description]
+    end
+  end
+end
+
+end

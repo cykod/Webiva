@@ -1,0 +1,38 @@
+<script>
+  PublicationList = {
+    deleteEntry: function(entry_id) {
+      if(confirm("<%= jh 'Are you sure you want to permanently delete this publication?' %>")) {
+	var row = $('elem_pub_' + entry_id + '_row');
+	row.className = 'deleted_row';
+	
+	new Ajax.Request('<%= url_for :action => "delete_publication", :path =>  @content_model.id %>/' + entry_id,
+			{ 
+			onSuccess: function(req) {
+			  $('publication_table').deleteRow(row.rowIndex);
+			}
+			});
+      }
+    }
+  
+  
+  }
+
+</script>
+<div class='admin_content'>
+<div class='action_panel'>
+  <ul>
+    <li><a href='<%= url_for :action => 'publish', :path => @content_model.id %>'><%= theme_icon('action','icons/actions/add.gif') %><%= h "Publish".t %></a></li>
+  </ul>
+</div>
+</div>
+<hr/>
+<div class='admin_content'>
+<% table_for @publications, [ 'Name','Type','Description','Delete' ], :class=>'active_table', :cellspacing => 0, :id => 'publication_table' do |pub| %>
+  <tr <%= highlight_row "pub",pub.id %>  >
+    <td><a href='<%= url_for :action => 'publication', :path => [ @content_model.id, pub.id ] %>' > <%= pub.name %></td>
+    <td><%= h pub.publication_type_display %></td>
+    <td><%= h truncate(pub.description,40) %></td>
+    <td><a href='javascript:void(0);' onclick='PublicationList.deleteEntry(<%= pub.id %>);'><%= h "Delete".t %></a></td>
+  </tr>
+<% end -%>
+</div>

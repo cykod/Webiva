@@ -1,0 +1,5 @@
+
+page << render(:partial => 'set_template_features')
+
+page.replace_html 'structural_styles', "<style>#{SiteTemplate.render_template_css(@output.css_site_template_id,@revision.language,'struct')}</style>"
+page.replace_html 'design_styles', "<style>#{SiteTemplate.render_template_css(@output.css_site_template_id,@revision.language,false)}</style>"

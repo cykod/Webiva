@@ -1,0 +1,59 @@
+
+<% folders.each do |fld| %>
+
+<% if fld.parent_id.nil? -%>
+ <div id='node_element_<%= fld.id %>' class='node_root'>
+<% elsif fld != folders.last -%> 
+ <div id='node_element_<%= fld.id %>' class='node' style="background-image:url(<%= theme_src("icons/menu/line.gif") %>); background-repeat:repeat-y;">
+<% else -%>
+ <div id='node_element_<%= fld.id %>' class='node' style="background-image:url(<%= theme_src("icons/menu/last_top.gif") %>); background-repeat:no-repeat;">
+<% end -%>
+
+<% if fld.parent_id.nil? %>
+	<%= theme_image_tag("icons/menu/white.gif") -%>  
+<% elsif fld.subfolders.length > 0 -%>
+	<%= theme_image_tag "icons/menu/last_closed.gif", :class => "line_icon", :id => "toggle_#{fld.id}", :onclick => "FileEditor.toggleVisible(this);"  -%>
+<% else -%>
+	<%= theme_image_tag "icons/menu/last.gif", :id => "toggle_#{fld.id}",  :class => "line_icon" -%>
+<% end -%>
+
+
+<span class='node_line' id='node_line_<%= fld.id %>'>
+
+<% if fld.parent_id.nil? %>
+<span class="mod_node" >
+	<%= theme_image_tag 'icons/domain.gif', :class => "node_handle_icon", :id => "node_handle_#{fld.id}" , :onclick => "FileEditor.selectTreeNode(#{fld.id});" %>
+    <%= "Domain Root".t %>
+</span>
+<% else -%>
+	<%= image_tag theme_src(fld.mini_icon), :class => "node_handle_icon", :id => "node_handle_#{fld.id}" , :onclick => "FileEditor.selectTreeNode(#{fld.id});" %>
+    <a href='javascript:void(0);' class='node_title'  id='node_title_<%= fld.id %>' onclick="FileEditor.selectTreeNode(<%= fld.id %>);"><%= fld.name %></a>
+<% end -%>
+
+<span class='node_title_edit' id='node_title_edit_<%= fld.id %>' style='display:none;'></span>
+
+</span>
+
+<script>
+	$('node_element_<%= fld.id %>').node_id = '<%= fld.id %>';
+<% unless fld.parent_id.nil?-%>
+	FileEditor.createTreeFolderDraggable($('node_element_<%= fld.id %>'));
+<% end -%>
+	FileEditor.createTreeFolderDroppable($('node_element_<%= fld.id %>'));
+	
+<% if fld.id == @selectedFolder %>
+	FileEditor.nodeSelected = <%= fld.id %>;
+	FileEditor.highlightTreeFolder(<%= fld.id %>);
+<% end -%>
+</script>
+
+
+	<br/>
+	<div id='children_<%= fld.id %>' class='node_children' <%= "style='display:none;'" unless fld.parent_id.nil? %>>
+		<% if fld.subfolders.length > 0 -%>
+		<%= render :partial => "file_tree",  :locals => { :folders => fld.subfolders } %>
+		<% end -%>
+	</div>
+	
+</div>
+<% end -%>

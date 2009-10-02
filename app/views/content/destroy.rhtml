@@ -1,0 +1,24 @@
+<div class='admin_content'>
+<div width='200'>
+<p>
+<b><%= "WARNING: Removing a Content Model will PERMANENTLY and IRREVERSIBLY destroy all the data stored in this model.".t %></b>
+</p>
+<p>
+<%= "If you have any questions click on cancel and contact your system administrator.".t %>
+</p>
+<%="Are you sure you want to continue?".t %><br/><br/>
+</div>
+<table>
+  <tr>
+    <td>
+<%= form_tag('',:onsubmit => "return confirm('#{ jvh 'Continue with permanent destruction of content model?'.t}');" %>
+<input type='hidden' name='destroy' value='<%= @destroy_content_hash %>'/>
+<input type='submit' value='<%= "Destroy Content Model".t %>' />
+</form>
+    </td>
+    <td>
+      <input type='submit' value='<%= "Cancel".t %>' onclick='document.location="<%= url_for :action => 'index' %>";' />
+    </td>
+  </tr>
+</table>
+</div>

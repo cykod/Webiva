@@ -1,0 +1,16 @@
+<script>
+ <%= active_table_javascript %>
+</script> 
+
+<div class='admin_content'>
+<ul class='action_panel'>
+<li><a href='<%= url_for :action => 'create' %>'><%= theme_icon("action","icons/actions/add.gif") %><%= "Add an Editor".t %></a>
+</ul>
+</div>
+<hr/>
+<div class='admin_content'>
+<div id='member_table'>
+<%= render :partial => 'editor_table' %>
+</div>
+
+</div>

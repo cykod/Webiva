@@ -1,0 +1,6 @@
+<%= f.text_field :width, :unit => 'px',:size => 5 %>
+<%= f.text_field :height, :unit => 'px',:size => 5 %>
+<%= f.text_field :offset_x, :unit => 'px',:size => 5 %>
+<%= f.text_field :offset_y, :unit => 'px',:size => 5 %>
+<%= f.select :anchor, DomainFileSize::WindowOperation.anchor_select_options %>
+

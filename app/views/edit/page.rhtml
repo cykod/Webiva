@@ -1,0 +1,255 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+    <html>
+    <head>
+      <title><%= "Webiva Page Editor".t %></title>
+     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <script> var AUTH_TOKEN = "<%= form_authenticity_token.to_s %>";</script>
+    <%= stylesheet_link_tag 'common' %>
+    <%= @output.head %>
+    
+    <%= theme_stylesheet_link_tag  "main" %>
+    <%= javascript_include_tag :defaults %>
+    <%= javascript_include_tag "builder" %>
+    <%= javascript_include_tag "overlib/overlib" %>
+    <%= javascript_include_tag "menu_editor" %>
+    <%= javascript_include_tag "tiny_mce/tiny_mce" %>
+    <%= javascript_include_tag "edit" %>
+    <%= javascript_include_tag "page_info" %>
+    <%= javascript_include_tag "swfobject.js" %>
+    <%= stylesheet_link_tag "redbox" %>
+    <%= javascript_include_tag "redbox" %>
+    <%= javascript_include_tag "menu.js" %>
+
+<script type="text/javascript">
+
+cmsEdit.setText({ deleteText: "<%= jh('Are you sure you want to delete this paragraph?'.t) %>",
+                  deactivateText: "<%= jh('Deactivating this version will make this page unaccessible, continue?'.t) %>",
+                  invalidVersionText: "<%= jh('Please enter a valid version number of the form N.NN'.t) %>",
+                  deleteParagraphText: "<%= jh 'Delete Paragraph'.t %>",
+                  editParagraphText: "<%= jh 'Edit Paragraph'.t %>",
+                  deleteFeatureText: "<%= jh 'Delete Feature.t' %>",
+                  selectStyleText: "<%= jh 'Select Style:'.t %> ",
+                  defaultStyleText: "<%= jh 'Default Style'.t %>",
+                  currentStyleText: "<%= jh 'Current Style:'.t %>",
+                  createStyleText: '<%= jh "+ Create new style".t %>',
+                  editStyleText: '<%= jh "Edit".t %>'                   
+                   });
+
+
+tinyMCE.init({
+          theme : "advanced",
+          theme_advanced_layout_manager: "SimpleLayout",
+          auto_reset_designmode : true,
+          mode : "none",
+          valid_elements: "*[*]",
+          plugins: 'table,filemanager,advimage,advlink,paste',
+          extend_valid_elements: 'a[name|href|target|title|onclick]',
+          theme_advanced_buttons1 : "bold,italic,underline,separator,strikethrough,justifyleft,justifycenter,justifyright,justifyfull,bullist,numlist,undo,redo,pastetext,pasteword,anchor,link,unlink,image,<%= 'filemanager,' if  myself.has_role?('editor_files') %>hr,forecolor,backcolor,formatselect,styleselect,tablecontrols,code",
+          theme_advanced_blockformats: "p,div,h1,h2,h3,h4,h5,h6,blockquote,dt,dd,code,samp",
+          theme_advanced_styles : "<%= @design_styles.collect { |style| "#{style.humanize.capitalize}=#{style}" }.join(";") %>", 
+          theme_advanced_buttons2 : "",
+          theme_advanced_buttons3 : "",
+          theme_advanced_toolbar_location : "external",
+          external_link_list_url: "/website/edit/links",
+          theme_advanced_toolbar_align: 'left',
+          content_css: "<%= url_for :controller => 'public', :action => 'stylesheet', :path => [ @output.css_site_template_id, @output.language ], :editor => 1 %>",
+          debug : false,
+          relative_urls : false,
+	  remove_script_host : true,
+          setupcontent_callback: "mceSetupContent",
+          handle_event_callback: "mceEventCallback",
+          execcommand_callback: "mceExecCallback",
+          width: "100%",
+          image_insert_url: "<%= url_for :controller => 'file', :action => 'manage' %>",
+          auto_resize:true,
+          language: '<%= Locale.language_code.downcase %>',
+          init_instance_callback : 'mceInitInstance'
+       });        
+	
+        SCMS.setKeyHandler(cmsEdit.moveKey);
+</script>
+
+</head>
+<body>
+<div style='position:absolute;'>
+<div id='structural_styles'><style><%=  SiteTemplate.render_template_css(@output.css_site_template_id,@revision.language,'struct') %></style></div>
+<div id='design_styles'><style><%=  SiteTemplate.render_template_css(@output.css_site_template_id,@revision.language,false) %></style></div>
+</div>
+
+<div style='text-align:left'>
+  <div id="RB_redbox" align="center"><div id="RB_window" style="display: none;"></div><div id="RB_overlay" style="display: none;"></div></div>
+</div>
+<div id="overDiv" style="position: absolute;  left:0px;  top: 0px;  z-index:2001;"></div>
+<div id='cms_save_changes_dialog' class='cms_form' style='display:none;'>
+  <h3><%= "Save Changes".t %>?</h3>
+  <%= "Warning, you have unsaved changes on this page. Would you like to save before continuing".t %>?<br/>
+  <div align='right'>
+  <input class='cms_button' type='button' value='<%= vh "Yes".t %>' onclick='cmsEdit.saveFirst();' />
+  <input class='cms_button' type='button' value='<%= vh "No".t %>' onclick='cmsEdit.finishAction();' />
+  <input class='cms_button' type='button' value='<%= vh "Cancel".t %>' onclick='cmsEdit.cancelAction();' />
+  </div>
+</div>
+<div id='cms_save_as_specific' class='cms_form' style='display:none;'>
+  <h3><%= "Save as a custom version".t %></h3>
+  <form onsubmit='cmsEdit.saveAsSpecificSubmit(this); return false;'>
+    <%= "New Version Number: ".t %><input type='text' size='30' value='' />
+    <input type='submit' value='<%= "Save".t %>'/>
+    <input type='submit' value='<%= "Cancel".t %>' onclick='cmsEdit.closeBox(); return false;'/>
+  </form>
+</div>
+
+<div id="cms_header">
+    <div id='cms_info_line'>
+    	<div id='cms_page_info'>
+			<%= "Title:".t %> <div style='display:none;' id='page_info_div'></div>   
+      <a id='cms_info_page_title' class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.pageInfo();'><%= @revision.title.to_s.empty? ?  "[No Title]".t : truncate(@revision.title.to_s,30) %></a> &nbsp;&nbsp;
+      <span style='position:relative;'>   
+			<%= "Version:".t %> 
+      <a id='cms_info_version'  class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.showVersions();'><%= dec(@revision.revision) %></a> &nbsp; &nbsp;
+      <div id='cms_version_list' class='cms_popup' style='display:none;  top:15px; left:10px;'>
+          <%= "Loading Versions...".t %>
+      </div>
+      </span>
+      <span style='position:relative;'>   
+			<%= "Language:".t %> <a id='cms_info_language' class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.showTranslations();'><%= @revision.language.upcase %> </a> &nbsp; &nbsp;
+      <div id='cms_revisions_languages' class='cms_popup' style='display:none;  top:15px; left:0px;'>
+          <%= render :partial => 'revision_languages', :locals => { :revision => @revision } %>
+      </div>
+      </span>
+      <span style='position:relative;'>   
+			<%= "Page:".t %> <a id='cms_info_url'  class='cms_ajax_link' href='javascript:void(0);' onclick='SCMS.popupDiv("cms_select_page");'>&nbsp;
+          <img src='<%= @page.page_type == 'page' ? theme_src('icons/page.gif') : theme_src('icons/framework.gif') %>' align='absmiddle' />
+      <%= @site_node.node_path %>&nbsp;</a> 
+      <div id='cms_select_page' class='cms_popup' style='display:none; top:15px; left:10px;'>
+        <% @pages.each do |page| -%>
+          <% if myself.has_role?('editor_structure') || page[0].page_type == 'page' -%>
+          <a href='javascript:void(0);' class='cms_ajax_link<%= '_selected' if @site_node.id == page[0].id %>' onclick='cmsEdit.reloadPage("<%= page[0].page_type %>",<%= page[0].id %>,"<%= page[1] %>");'  id='page_selector_<%= page[0].page_type %>_<%= page[0].id %>'>
+          <img src='<%= page[0].page_type == 'page' ? theme_src('/images/icons/page.gif') : theme_src('/images/icons/framework.gif') %>' align='absmiddle' />
+            <%= page[0].node_path %> 
+         </a>
+         <br/>
+         <% end -%>
+        <% end -%>
+      </div> 
+      </span>
+      &nbsp;&nbsp;<%= "Status:".t %> <a id='cms_info_active'  class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.activateVersion();'>&nbsp;<%= @revision.active ? theme_image_tag('icons/pageeditor/active.gif') + ' ' + 'Active'.t : theme_image_tag('icons/pageeditor/inactive.gif') +  ' ' + 'Inactive'.t %>&nbsp;</a> 
+		</div>
+    	<div id='cms_modification_info' style='position:relative;'>
+        <a id='cms_modification_link' href='javascript:void(0);' onclick='cmsEdit.showModificationHistory();' class='cms_ajax_link'><%= render :partial => 'saved_by', :locals => {:revision => @real_revision } %> </a>
+        <div id='cms_select_modification' class='cms_popup' style='display:none; right:0px; '>
+          <%= "Loading History...".t %>
+        </div>
+
+    	</div>
+    </div>
+	
+	<div id='cms_icon_line'> 
+    <div style='float:left' >
+      <div id='cms_add_paragraph' class='cms_popup' style='display:none; top:25px; left:10px; padding:10px;'>
+      <% @paragraph_types.each do |para| -%>
+        <% if para.is_a?(Array) -%>
+            <% if para[0] != 'hidden' %>
+              <a class='cms_ajax_link'  href='javascript:void(0);' onclick='cmsEdit.addParagraph("<%= para[3].to_s.gsub("/","_") %>_<%= para[1] %>",<%= para[5] || 0 %>);'><%= "+Add".t %> <%= para[5] ? para[2] : para[2].t  %></a><br/>
+            <% end -%>
+        <% else %>
+          <%= para.t %><br/>
+        <% end -%>
+      <% end -%>
+      </div>
+      <script>
+          if(Element.getHeight('cms_add_paragraph') > 400) {
+            $('cms_add_paragraph').style.height = '400px';
+            $('cms_add_paragraph').style.overflow = 'auto';
+          
+          }
+      </script>
+      <a href='<%= url_for :controller => '/structure', :action => 'index' %>' id='cms_structure_icon' onclick="return cmsEdit.leavePage('<%= url_for :controller => '/structure', :action => 'index' %>'); " title='<%= "Return to Website".t %>' ><%= theme_image_tag '/images/icons/pageeditor/structure.gif',:align=>'absmiddle' %></a>
+      &nbsp;|&nbsp;
+      <% if myself.has_role?('editor_files') %>
+      <%= link_to image_tag(theme_src("/images/icons/pageeditor/files_and_images.gif"),:align=>'absmiddle', :title => "Show File Manager".t ) , { :controller => 'file', :action => 'popup' , :popup_type => 'select', :path => 0 }, :popup => ['file_manager', 'height=400,width=800,scrollbars,resizeable' ] %>
+      &nbsp;|&nbsp;
+      <% end -%>
+      <a href='javascript:void(0);' id='cms_add_paragraph_icon' title='<%= "Add a new Paragraph".t %>' onclick='cmsEdit.addSelectParagraph();'><%= theme_image_tag '/images/icons/pageeditor/add_paragraph.gif', :align=>'absmiddle' %></a>
+      <a href='javascript:void(0);' id='cms_cancel_add_paragraph_icon' style='display:none;' title='<%= "Cancel Add Paragraph".t %>' onclick='cmsEdit.cancelAddParagraph();'><%= theme_image_tag '/images/icons/pageeditor/cancel_add_paragraph.gif', :align=>'absmiddle' %></a>
+      <span id='cms_add_framework_elements_icons' style='position:relative; <%= "display:none;" if @container_arg=='page' %>'>
+        <a href='javascript:void(0);' id='cms_add_framework_element_icon' title='<%= "Add a new Framework Feature".t %>' onclick='cmsEdit.addSelectFrameworkElement();'><%= theme_image_tag '/images/icons/pageeditor/add_framework.gif', :align=>'absmiddle' %></a>
+        <a href='javascript:void(0);' id='cms_cancel_add_framework_element_icon' style='display:none;' title='<%= "Cancel Add Paragraph".t %>' onclick='cmsEdit.cancelAddFrameworkElement();'><%= theme_image_tag '/images/icons/pageeditor/cancel_add_framework.gif', :align=>'absmiddle' %></a>
+        <div id='cms_add_framework_element' class='cms_popup' style='display:none; top:15px; left:0px;'>
+            <a class='cms_ajax_link'  href='javascript:void(0);' onclick='cmsEdit.selectFrameworkElement("_lock");'><%= "Add a Zone Lock".t %></a><br/>
+            <a class='cms_ajax_link'  href='javascript:void(0);' onclick='cmsEdit.selectFrameworkElement("_clear");'><%= "Clear a Zone".t %></a><br/>
+        </div>
+      </span>
+      
+      <a href='javascript:void(0);' id='cms_preview_icon' onclick='cmsEdit.previewPage();' title='<%= vh "Preview Page".t %>' ><%= theme_image_tag '/images/icons/pageeditor/preview.gif',:align=>'absmiddle' %></a>
+      <a href='javascript:void(0);' id='cms_cancel_preview_icon' onclick='cmsEdit.cancelPreview();' title='<%= vh "Cancel Preview Page".t %>' style='display:none;' ><%= theme_image_tag '/images/icons/pageeditor/preview_return.gif',:align=>'absmiddle' %></a>
+      <a href='javascript:void(0);' id='cms_connection_icon' onclick='cmsEdit.pageConnections();' title='<%= vh "View Page Connnections".t %>'><%= theme_image_tag '/images/icons/pageeditor/connections.gif',:align=>'absmiddle' %></a>
+      <a href='javascript:void(0);' id='cms_variables_icon' onclick='cmsEdit.pageVariables();' title='<%= vh "View Page Variables".t %>'><%= theme_image_tag '/images/icons/pageeditor/variables.gif',:align=>'absmiddle' %></a>
+      <a href='javascript:void(0);' id='cms_refresh_icon' onclick='cmsEdit.refreshInfo();' title='<%= vh "Refresh Info".t %>'><%= theme_image_tag '/images/icons/pageeditor/refresh.gif',:align=>'absmiddle' %></a>
+      
+    </div>
+    <div style='float:right; padding-top:3px; position:relative;' >
+      <a id='cms_goto_page' href='<%= @page.node_path %>'  onclick='return cmsEdit.gotoPage();' ><%= "Goto Page".t %></a>
+      |      
+      <input type='submit' id='cms_save_changes' value='<%= vh "Save Changes".t %>' disabled='true' onclick='cmsEdit.saveChanges(); return false;' />    
+      <input type='submit' id='cms_save_as_button' value='<%= vh "Save As...".t %>' onclick='cmsEdit.saveAs(); return false;' />
+      <div id='cms_save_as' onmouseover='delayedHideShow(this)' onmouseout='delayedHide(this);' class='cms_popup' style='display:none; right:1px; top:25px; <%= Locale.language_code == 'fr' ? 'width:450px;' : 'width:200px;' %> '>
+        <a class='cms_ajax_link'  href='javascript:void(0);' onclick='cmsEdit.saveAsSend("minor")'><%= "Save As a New Minor Version".t %></a><br/>
+        <a class='cms_ajax_link'  href='javascript:void(0);' onclick='cmsEdit.saveAsSend("major")'><%= "Save As a New Major Version".t %></a><br/>
+        <a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.saveAsSpecific()'><%= "Save As a Custom Version".t %></a><br/>
+      </div>    
+        <a href='javascript:void(0);' onclick='cmsEdit.pageMenu();'>
+      <img src='<%= theme_src("framework/page_title_menu_icon.gif") %>' width='24' height='24' align='absmiddle'/>
+      <div id='cms_page_menu' class='cms_popup' style='display:none; right:0px; '>
+          <a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.deletePopup("edit");' ><%= "Delete this Edit".t %></a><br/>
+          <a class='cms_ajax_link'  href='javascript:void(0);' onclick='cmsEdit.deletePopup("revision");'><%= "Delete this Version".t %></a><br/>
+          <a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.deletePopup("version");'><%= "Delete this Version (All Languages)".t %></a>
+      </div>
+      </a>
+
+    </div>
+    <div style='float:right; padding-top:2px;'>
+      <img id='cms_saving_icon' src='<%= theme_src "loading_small.gif" %>' width='24' height='24' align='middle' style='visibility:hidden;'/>
+    </div>
+    
+	</div>
+ <div id='cms_toolbars'> 
+ <div id='cms_html_toolbar'>
+  
+  </div>
+  </div>
+
+</div>
+
+<script>
+
+
+cmsEdit.setEditURL("<%= url_for :controller => 'edit', :action => '' %>");
+cmsEdit.setPageInfo("<%= @container_arg %>","<%= @page.id %>","<%= @revision.id %>","<%= @revision.language %>",<%= @revision.active %>,<%= @output.css_site_template_id %>,"<%= @page.node_path %>");
+
+cmsEdit.setParagraphs({
+      <% @available_paragraph_types.each do |para| -%>
+      <% if para.is_a?(Array) && para.length != 2 -%>
+      <%= "#{para[3].to_s.gsub("/","_")}_#{para[1]}" + (para[5] ? "_#{para[5]}" : '') +  ": [ '#{para[0]}', '#{para[1]}', '#{jh para[2]}', '#{para[3]}', '#{url_for(:controller => para[3], :action => para[1] ) unless ['builtin','hidden'].include?(para[0]) }', new Array('#{para[4].join("','")}'), #{para[5] || 0}  ]," %>
+      <% end -%>
+      <% end -%>
+      last: null  
+  });
+
+<%= render :partial => 'set_template_features' %> 
+
+</script>
+
+<div id='cms_page_content'>
+
+<%= render :partial => 'paragraph_zones' %>
+
+
+</div>
+<div id='tester'>
+
+</div>
+
+</body>
+</html>
+
+

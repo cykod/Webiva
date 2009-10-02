@@ -1,0 +1,23 @@
+<% if gallery.id %>
+<% form_for :gallery, gallery, :url => '', :html => { :onsubmit => "return confirm('#{jh 'Are you sure you want to delete this gallery?'.t }');" }  do |f| %>
+<div align='right'>
+  <input type='hidden' name='delete' value='<%= gallery.id %>' />
+  <input type='image' title='<%= vh 'Delete Gallery'.t %>' src='/images/site/delete.gif' value='<%= "Delete".t %>' style='border:0px;'>
+</div>
+<% end -%>
+<% end -%>
+
+<h1><%= "Edit Gallery".t %></h1>
+<% if saved_gallery %>
+<b>
+  <%= "Saved Gallery".t %>
+</b>
+<br/><br/>
+<% end -%>
+<% cms_form_for :gallery, gallery, :url => '' do |f| %>
+  <%= f.text_field :name %>
+  <%= f.date_field :occurred_at %>
+  <%= f.text_area :description, :cols => 50, :rows => 8 %>
+  <%= f.submit_tag gallery.id ? "Edit" : "Create" %>
+
+<% end -%>

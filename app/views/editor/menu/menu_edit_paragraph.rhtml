@@ -1,0 +1,114 @@
+<html>
+    <%= stylesheet_link_tag "main" %>
+    <%= javascript_include_tag :defaults %>
+
+<body onload="createSortables();" style="padding:0px; background-color:#FFFFFF; border:0px;">
+<a href='javascript:void(0);' onclick='createEntry();'><%= "+ Add Entry".t %></a>
+<script type="text/javascript">
+  menuEntries = new Array();
+  
+  
+</script>
+<% @index = 0 # used by menu_entry to create entries -%>
+<div id="menu_container">
+  <% @data[:section].each do |entry| -%>
+    <%= render :partial => 'menu_entry',  :locals => { :menu_entry => entry, :level => 1 } %>  
+  <% end -%>
+</div>
+
+<script type="text/javascript">
+
+function createSortables() {
+
+    Sortable.create("menu_container",
+       {
+           dropOnEmpty:true,
+           handle:'menu_handle',
+           tag:'div',
+           constraint:true
+       });
+}
+
+selectedItem = null;
+
+function selectEntry(entry_id) {
+    if (selectedItem != null) {
+        Element.removeClassName('item_' + selectedItem,'menu_selected');
+    }
+    selectedItem = entry_id;
+
+    Element.addClassName('item_' + entry_id,'menu_selected');
+
+    parent.activeEditor.updateToolbar(menuEntries[entry_id]);
+}
+
+function updateEntry(element) {
+    entry_id = element["idx"];
+
+    menuEntries[entry_id] = element;
+
+    $('item_title_' + entry_id).innerHTML =  element["title"];
+
+}
+
+function deleteEntry(entry_id) {
+    selectedItem = null;
+    
+    Element.remove($('item_' + entry_id));
+    
+    menuEntries.splice(entry_id,1);
+    
+
+}
+
+function updateLevel(element_idx,level) {
+
+    current_level = menuEntries[element_idx]["level"];
+    menuEntries[element_idx]["level"] = level;
+
+    //alert('Updating level of ' + menuEntries[element_idx]["title"] + ' from ' +  current_level + ' to ' + level);
+
+    Element.removeClassName('item_' + element_idx,'menu_' + current_level);
+    Element.addClassName('item_' + element_idx,'menu_' + level);
+
+
+}
+
+function createEntry() {
+
+    var idx = menuEntries.length;
+
+    menuEntries.push({
+        "idx" : idx,
+        "title" : "[ Enter Title ]",
+        "level" : 1,
+        "link" : ''
+    });
+
+    var entry = menuEntries[idx];
+
+    var str =  '<div id="item_' +  idx + '" class="menu_1">' +
+                '<span class="menu_handle">X</span>' +
+                '<span id="item_title_' + idx + '" onclick="selectEntry(' + idx + ')">' +
+                ' [ Enter Title ] </span>';
+
+    new Insertion.Top("menu_container",str);
+
+    createSortables();
+    selectEntry(idx);
+}
+
+function getEntries() {
+
+    var entries = new Array();
+
+    Sortable.sequence("menu_container").each(function(elem) {
+        entries.push(menuEntries[elem]);
+    });
+
+    return entries;
+}
+</script>
+
+</body>
+</html>

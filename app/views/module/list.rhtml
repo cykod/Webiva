@@ -1,0 +1,31 @@
+<script>
+
+function rowUpdater(src,dest) {
+
+}
+
+function moduleAction(id,action,args) {
+  
+  
+  var url = null;
+  if(action == 'module_activate') 
+    url = "<%= url_for :controller => 'module', :action => 'activate_module' %>";
+  else if(action == 'module_deactivate') 
+    url = "<%= url_for :controller => 'module', :action => 'deactivate_module' %>";
+
+  if(url) {
+    new Ajax.Updater("module_table", //module_row_" + args,
+                url,
+                { 
+                  parameters: 'module=' + args,
+                  evalScripts: true
+                });
+  }
+                
+}
+</script>
+
+<h1><%= "Modules".t %></h1>
+<div id='module_table'>
+<%= render :partial => 'module_table', :locals => { :mods => @modules } %>
+</div>

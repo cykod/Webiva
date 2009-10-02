@@ -1,0 +1,17 @@
+<div class='admin_content'>
+<% cms_form_for :user_options, @user, :html => {:class => 'admin_form' } do |f| %>
+
+<%= f.text_field :email %>
+<%= f.text_field :first_name %>
+<%= f.text_field :last_name %>
+<%= f.select :language, Configuration.languages.collect { |lang| [ lang.upcase, lang ] } %>
+<%= f.select :user_class_id, UserClass.options(true), :label => 'User Profile' %>
+<%= f.ordered_selection_list :tokens, AccessToken, :sortable => false, :label => 'Access Tokens', :options => AccessToken.editor_token_options %>
+<%= f.filemanager_image :domain_file_id, :label => 'Image' %>
+<%= f.header @editing ? 'Reset Password' : 'Create Password'  %>
+<%= f.password_field :password %>
+<%= f.password_field :password_confirmation, :label => 'Confirm' %>
+
+<%= f.submit_cancel_tags 'Submit','Cancel', {}, { :onclick => "document.location='#{url_for :action => 'index' }'; return false;" } %>
+<% end -%>
+</div>

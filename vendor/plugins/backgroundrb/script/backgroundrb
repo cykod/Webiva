@@ -1,0 +1,29 @@
+#!/usr/bin/env ruby
+require 'pathname'
+
+script_dir = Pathname.new(File.dirname(__FILE__)).realpath
+
+rails_script = script_dir + '../vendor/plugins/backgroundrb/script'
+plugin_script = script_dir + '../../../../vendor/plugins/backgroundrb/script'
+
+if rails_script.directory?
+  rails_root = script_dir + '../'
+elsif plugin_script.directory?
+  rails_root = script_dir + '../../../..'
+end
+
+if rails_root
+  BACKGROUNDRB_STANDALONE = false
+  BACKGROUNDRB_ROOT = rails_root.to_s
+  BACKGROUNDRB_CODE = (rails_root + 'vendor/plugins/backgroundrb').to_s
+else
+  BACKGROUNDRB_STANDALONE = true
+  BACKGROUNDRB_ROOT = BACKGROUNDRB_CODE = (script_dir + '..').to_s
+end
+
+$LOAD_PATH << File.join(BACKGROUNDRB_CODE + '/lib')
+$LOAD_PATH << File.join(BACKGROUNDRB_CODE + '/server/lib')
+
+require 'backgroundrb_server'
+
+BackgrounDRb::Server.new.run

@@ -1,0 +1,18 @@
+<div style='padding-top:4px'>
+<a href='<%= site_map_elem[:link] %>'><%= site_map_elem[:title] %></a>
+WTF?
+<% if site_map_elem[:languages] %>
+  (
+   <% site_map_elem[:languages].each do |lang| %>
+      <a href='/view/<%=lang %><%= site_map_elem[:link] %>'><%= lang.capitalize %></a> &nbsp;
+   <% end -%>
+  )
+<% end -%>
+</div>
+<% if site_map_elem[:children].length > 0 %>
+<div style='padding-left:10px'>
+<% site_map_elem[:children].each do |elem| %>
+<%= render :partial => 'site_map_elem', :locals => { :site_map_elem => elem } %>
+<% end -%>
+</div>
+<% end -%>

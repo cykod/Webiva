@@ -1,0 +1,1 @@
+<%= @last_revision ? 'Created'.t : 'Saved'.t %> <%= revision.created_at.localize("%m/%d %H:%M".t) %> <%= "by".t %> <%= revision.created_by ? revision.created_by.name : 'Unknown'.t  %>

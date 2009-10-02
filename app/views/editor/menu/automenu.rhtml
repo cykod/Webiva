@@ -1,0 +1,87 @@
+<script>
+cmsAutoMenuEdit = null;
+cmsAutoMenuEdit = {
+  excluded: new Array(),
+  setupPage: function() {
+      $('menu_root_page').onchange = cmsAutoMenuEdit.updatePreview;
+      $('menu_levels').onchange = cmsAutoMenuEdit.updatePreview;
+  },
+
+  getParams: function() {
+    
+    var root_page = $('menu_root_page').value;
+    var levels = $('menu_levels').value;
+    if(root_page && levels) {
+      var excluded = cmsAutoMenuEdit.excluded.collect(function(elem,idx) { return "menu[excluded][]=" + elem; });
+      return Form.serialize('automenu_form') + '&' + excluded.join("&");
+    }
+    else {
+      return false;
+    }
+  },
+
+  updatePreview: function() {
+    var params = cmsAutoMenuEdit.getParams();
+    if(params) {
+      new Ajax.Updater('cms_auto_menu_preview',
+                        cmsEdit.paragraphUrl("<%= url_for :action => 'automenu_preview' %>",<%= @paragraph.id %>,<%= @paragraph_index %>),
+                        { parameters: params });
+    }
+  }, 
+  
+  saveMenu: function() {
+    var params = cmsAutoMenuEdit.getParams();
+    if(params) {
+
+      new Ajax.Request(cmsEdit.paragraphUrl("<%= url_for :action => 'automenu' %>",<%= @paragraph.id %>,<%= @paragraph_index %>),
+                        { parameters: params,
+                          onComplete: function(req) {
+                            cmsEdit.closeBox();
+                          }});
+    }
+  
+  },
+  
+  toggleExcluded: function(node_id) {
+    if($('cms_automenu_node_' + node_id).style.textDecoration == 'line-through') {
+      $('cms_automenu_node_' + node_id).style.textDecoration = 'none';
+      if($('cms_automenu_children_' + node_id)) {
+        $('cms_automenu_children_' + node_id).style.display='';
+      }
+      var idx = cmsAutoMenuEdit.excluded.indexOf(node_id);
+      if(idx != -1) {
+        cmsAutoMenuEdit.excluded.splice(idx,1);
+      }
+      
+    }
+    else {
+      $('cms_automenu_node_' + node_id).style.textDecoration = 'line-through';
+      if($('cms_automenu_children_' + node_id)) {
+        $('cms_automenu_children_' + node_id).style.display='none';
+      }
+      cmsAutoMenuEdit.excluded.push(node_id);
+    }
+     
+  }
+  
+};
+
+</script>
+<div class='cms_form' style='width:500px;'>
+<h3><%= "Edit Automatic Menu".t %></h3>
+<% tabled_form_for :menu, @menu, :html => { :id => 'automenu_form', :onsubmit => 'cmsAutoMenuEdit.saveMenu(); return false;' } do |f| -%>
+<%= f.select :root_page, @pages, :label => 'Root Page' %>
+<%= f.select :lock_level, [['Unlocked','no'],['1st Level Lock','one'],['2nd Level Lock','two'],['Completly Locked','yes']], :label => 'Menu Locking', :description => 'Locking the menu will prevent new items from showing up automatically' %>
+<%= f.select :levels, @levels, :label => 'Levels Deep' %>
+<%= f.check_box :include_path %>
+<% end -%>
+<div id='cms_auto_menu_preview' style='height:250px; overflow:auto; margin:10px;' >
+<%= render :partial => 'automenu_preview' %>
+</div>
+<hr/>
+<a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsAutoMenuEdit.saveMenu();'><%= "Update &amp; Close".t %></a>
+<a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.closeBox();'><%= "Cancel".t %></a>
+</div>
+<script>
+setTimeout(cmsAutoMenuEdit.setupPage,20);
+</script>

@@ -1,0 +1,1 @@
+page.replace_html 'triggered_actions', :partial => 'triggered_actions'

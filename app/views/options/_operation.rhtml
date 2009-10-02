@@ -1,0 +1,14 @@
+<div class='operation' id='operation_<%= idx %>' style='border:1px solid #DDDDDD; margin:5px; padding:10px;'>
+<div style='float:left;'>
+  <a href='#'>Drag</a> | <a href='javascript:void(0);' onclick='ImageSizeEditor.deleteOperation(<%= idx %>);'>Delete</a>
+</div>
+<div style='float:left; padding-left:10px;'>
+  <b><%= DomainFileSize.operation_options_hash[operation.type] %> Operation</b><br/>
+  <% cms_fields_for "operation[#{idx}]", operation do |f| -%>
+    <%= f.hidden_field :type  %>
+    <%= render :partial => "/options/image_size_operations/#{operation.type}", :locals => { :f => f, :operation => operation, :idx => idx } %>
+  <% end -%>
+</div>
+<div style='clear:both;'></div>
+
+</div>

@@ -1,0 +1,22 @@
+<div class='admin_content'>
+
+
+<% cms_form_for :issue, @issue do |f| %>
+
+
+<%= f.select :reporting_domain, Domain.find(:all).collect { |dmn| [ dmn.name,dmn.name ] } %>
+<%= f.text_field :estimate %>
+<%= f.radio_buttons :reproducible, [ ['Yes','yes'], ['No','no']] %>
+<%= f.text_field :location %>
+<%= f.header 'Location Example: cms:/website/structure, site:/about, task:/development/stage1' %>
+<%= f.text_area :behavior, :cols => 80, :rows => 15 %>
+<%= f.text_area :expected_behavior, :cols => 80, :rows => 15 %>
+
+<%= f.submit_tag 'Create' %>
+
+
+
+
+<% end -%>
+
+</div>

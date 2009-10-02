@@ -1,0 +1,10 @@
+
+page.replace_html :file_manager_body, :partial => '/file/details/file_details', :locals => {:file => @file }
+
+page.insert_html :bottom, "file_manager", :partial => 'file_item', :locals => { :file => @file}
+page << "setTimeout('FileEditor.refreshUploadedFile(#{@file.id},#{@file.parent_id})',10);"
+	
+page << "FileEditor.recreateDragAndDroppables();"
+
+page << "FileEditor.markSelection(#{@file.id});"
+

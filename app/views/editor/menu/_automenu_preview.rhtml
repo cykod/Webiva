@@ -1,0 +1,13 @@
+<% if @preview.is_a?(Array) %>
+  <p><%= "Click to exclude an item from the menu.".t %></p>
+  <b><%= "Menu Preview:".t %></b><br/>
+  <% @preview.each do |page| %>
+    <%= render :partial => 'automenu_entry', :locals => {:page => page } %>
+  <% end -%>
+  <script>
+    cmsAutoMenuEdit.excluded =[<%= @excluded.join(",") if @excluded.is_a?(Array) %>];
+    
+  </script>
+<% else -%>
+  <p><%= "Select Root page and Levels for preview".t %></p>
+<% end -%>

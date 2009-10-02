@@ -1,0 +1,12 @@
+<div class='admin_content'>
+
+<% cms_form_for :blog, @blog, :html => { :class => 'admin_form' } do |f| -%>
+<%= f.text_field :name %>
+<%= f.select :site_template_id, @site_templates %>
+<%= f.text_field :html_class, :description => 'HTML Class to wrap blog posts in WYSIWYG Editor (optional)' %>
+  <%= f.access_control :edit_permission, 'Limit which admins can edit this blog',  :description => 'User must also have Blog Writer permission' %>
+<%= f.submit_tag 'Update' %>
+<% end -%>
+
+
+</div>

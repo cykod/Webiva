@@ -1,0 +1,66 @@
+<form onsubmit='PermissionEditor.submitPermissions("<%= category[0] %>",this); return false; '/>
+<div style='padding:5px; margin-bottom:20px;'>
+  <%= h category[2].t %>
+</div>
+
+<table class='permission_grid' cellpadding='2' cellspacing='0'>
+<% permissions.each_with_index do |perm,idx| %>
+<tr>
+  <th/>
+  <% if idx > 0 %>
+    <% (1..idx).each do |col| %>
+      <th style=''  <%= column_color(col-1) %>>&nbsp;</th>
+    <% end -%>
+  <% end -%>  
+  <td id='permission_<%= perm[0] %>' colspan='<%= permissions.length - idx + 1 %> ' align='left' nowrap='1'  <%= column_color(idx) %>   style='padding-left:5px;'>
+      <b><%= h perm[1].t %></b> <% if perm[2] %>- <%= h perm[2].t %><% end -%>
+  </td>
+</tr>
+<% end -%>
+<tr>
+  <th><%= "User Profiles".t %></th>
+    <% (0..permissions.length-1).each do |col| %>
+      <th style='' <%= column_color(col) %>>&nbsp;</th>
+    <% end -%>
+  <th></th>
+</tr>
+<% @user_classes.each do |cls| %>
+<tr onmouseover='getChildElements(this).each(function(elem) { $(elem).addClassName("highlighted_col"); });' onmouseout='getChildElements(this).each(function(elem) { $(elem).removeClassName("highlighted_col"); });' >
+  <td><%= cls.name %></td>
+  <% permissions.each_with_index do |perm,idx| %>
+    <td onmouseover='$("permission_<%= perm[0] %>").addClassName("highlighted_text");' onmouseout='$("permission_<%= perm[0] %>").removeClassName("highlighted_text");' width='15' style=''  <%= column_color(idx) %> >
+      <input name='permissions[<%= "#{category[0]}_#{perm[0]}" %>][<%= cls.id %>]' type='checkbox' <% if cls.has_role?("#{category[0]}_#{perm[0]}") %>checked='checked'<% end -%> />
+    </td>
+  <% end -%>
+  <td>&nbsp;</td>
+</tr>
+<% end -%>
+
+<% if @access_tokens.length > 0 -%>
+  
+<tr>
+  <th><%= "Access Tokens".t %></th>
+    <% (0..permissions.length-1).each do |col| %>
+      <th style='' <%= column_color(col) %>>&nbsp;</th>
+    <% end -%>
+  <th></th>
+</tr>
+<% @access_tokens.each do |token| %>
+<tr onmouseover='getChildElements(this).each(function(elem) { $(elem).addClassName("highlighted_col"); });' onmouseout='getChildElements(this).each(function(elem) { $(elem).removeClassName("highlighted_col"); });' >
+  <td><%= token.token_name %></td>
+  <% permissions.each_with_index do |perm,idx| %>
+    <td onmouseover='$("permission_<%= perm[0] %>").addClassName("highlighted_text");' onmouseout='$("permission_<%= perm[0] %>").removeClassName("highlighted_text");' width='15' style=''  <%= column_color(idx) %> >
+      <input name='permissions[<%= "#{category[0]}_#{perm[0]}" %>][token_<%= token.id %>]' type='checkbox' <% if token.has_role?("#{category[0]}_#{perm[0]}") %>checked='checked'<% end -%> />
+    </td>
+  <% end -%>
+  <td>&nbsp;</td>
+</tr>
+<% end -%>
+
+<% end -%>
+
+</table>
+  <br/><br/>
+  <input type='submit' value='<%= vh sprintf("Update %s Permissions".t,category[1].t) %>'/> <span id='updated_<%= category[0] %>' style='display:none;'><%= "Updated Permissions".t %></span>
+
+</form>

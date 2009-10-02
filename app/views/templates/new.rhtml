@@ -1,0 +1,9 @@
+<div class='admin_content'>
+<% tabled_form_for :site_template, @site_template, :html => {:class => 'admin_form'}  do |f| -%>
+
+  <%= f.text_field :name, :label => 'Template Name'  %>
+  <%= f.radio_buttons :template_type, SiteTemplate.template_type_select_options %>
+  <%= f.text_area :description %>
+  <%= f.submit_cancel_tags 'Create','Cancel',{}, :onclick => "document.location='#{ url_for :action => "index"}'; return false;" %>
+<% end -%>
+</div>

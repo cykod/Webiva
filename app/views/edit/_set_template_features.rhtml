@@ -1,0 +1,8 @@
+cmsEdit.clearTemplateFeatures();
+<% @available_features.each do |template_id,feature_types| %>
+  <% feature_types.each do |feature_type,features| %>
+  cmsEdit.setTemplateFeatures(<%= template_id.to_i %>,"<%= feature_type %>",
+        new Array( <%= features.collect { |f| "['#{h(f[0])}',#{f[1]}]" }.join(",") %> )
+        );
+  <% end -%>
+<% end -%>

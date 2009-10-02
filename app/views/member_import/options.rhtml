@@ -1,0 +1,16 @@
+<h2><%=h "Import Options".t %></h2>
+
+<% cms_form_for :options, @options, :html => { :id => 'wizard_form' } do |f| %>
+<%= f.radio_buttons :import_mode, [ ['Create and Update - create new targets and update existing ones', 'normal'],
+                                    ['Create only - do not effect existing targets', 'create' ],
+                                    ['Update only -  do not create new targets', 'update']
+                                  ], :vertical => true,
+                                  :separator => '<br/>' %>
+<%= f.select :user_class_id, UserClass.options, :vertical => true, :label => 'User profile for new targets' %>
+<%= f.text_field :all_tags, :vertical => true, :label => 'Tags to add to all imported targets' %>
+<%= f.text_field :create_tags, :vertical => true, :label => 'Tags to new imported targets' %>
+<%= f.check_boxes :user_options, [ ['Create VIP Numbers for imported users', 'vip'] ], :vertical => true, :separator => '<br/>' %>
+
+
+
+<% end -%>

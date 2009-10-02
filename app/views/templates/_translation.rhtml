@@ -1,0 +1,15 @@
+<div style='padding:10px 0px;'>
+<b><%= "Select Language:".t %>
+    <span id='language_links'>
+	<% @languages.each do |lang| -%>
+		<a class='ajax_link' id='language_link_<%= lang %>' onclick='TranslationEdit.editLanguage("<%= lang %>");' href='javascript:void(0);'><%= lang.upcase %></a> <%= "|" unless lang==@languages.last %>
+	<% end -%>
+ </span> 
+</b>
+</div>
+<input type='hidden' id='selected_language' name='selected_language' value='' />
+<div id='language_loading' align='center' style='display:none;'>
+  <%= "Loading Language Information...".t %>
+</div>
+<div id='translations'>
+</div>

@@ -1,0 +1,38 @@
+<script>
+  CategoryEditor = {
+      createCategory: function() {
+        params = { name: $('new_category').value };
+        if($('new_category').value != '') {
+          $('new_category').value = '';
+          
+          new Ajax.Updater('category_table',
+                          '<%= url_for :action => "create_category", :path => @blog.id %>',
+                          { parameters: params, evalScripts: true  } );
+  
+        }
+      },
+
+      updateStatus: function() {
+          $('entry_update_published_at').disabled = !$('entry_status_post_date').checked;
+      }
+
+  };
+
+<%= active_table_javascript %>
+</script>
+
+<div class='admin_content'>
+<div class='action_panel'>
+<form action='' onsubmit='CategoryEditor.createCategory(); return false;'>
+<b>New Category:</b> <input type='text' id='new_category' name='category_name' value='' /><input type='submit' value='Create'/>
+</form>
+</div>
+</div>
+
+<hr/>
+
+<div class='admin_content'>
+<div id='category_table'>
+<%= render :partial => 'category_table' %>
+</div>
+</div>

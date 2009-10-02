@@ -1,0 +1,10 @@
+<div class='admin_content'>
+<% cms_form_for :gallery, @gallery, :html => {:class => 'admin_form' } do |f| -%>
+  <%= f.text_field :name, :required => true %>
+  <%= f.text_area :description, :rows => 5 %>
+  <%= f.radio_buttons :private_gallery, [['Public',false],['Private',true]], :label => 'Access', :description => 'Private Galleries Disable XML and other data feeds' %>
+  <%= f.datetime_field :occurred_at, :label => 'Gallery Date' %>
+  <%= f.content_selector :owner_id, EndUser, :label => 'Gallery Owner', :content_name => 'Gallery Owner' %>
+  <%= f.submit_tag @gallery.id ? 'Edit Gallery' : 'Create Gallery' %>
+<% end -%>
+</div>

@@ -1,0 +1,11 @@
+<div class='cms_form'>
+<h3><%= h(@email.from_name) %> - Sent <%= @email.sent_at.strftime(DEFAULT_DATETIME_FORMAT.t) %></h3>
+<div style='width:600px; height:500px; overflow:auto;'>
+<%= simple_format(h(@email.message)) %>
+</div>
+  <div align='right'>
+  <button onclick='RedBox.close(); return false;'>Close Email</button>
+  </div>
+
+
+</div>

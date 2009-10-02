@@ -1,0 +1,1276 @@
+<script>
+
+var FileEditor = {
+	minIconSize: 32,
+	maxIconSize: 224,
+	iconSize: <%= @icon_size %>,
+  iconSizeName: "<%= @image_size %>", 
+	textSize: 20,
+  selectType: "<%= @select %>",
+  themeSrc: "<%= theme_src %>",
+  thumbSize: "<%= @thumb_size %>",
+  
+  display: 'icon',
+  
+  popup: "<%= @popup ? '1' : '' %>",
+  mce: "<%= @mce ? '1' : '' %>",
+  select: "<%= @select %>",
+  order: "<%= @order %>",
+   
+  
+  imageSizes: [<%= @image_sizes.collect() { |size| "{ name: '#{size[0]}', size: #{size[1]} }"  }.join(", ") %>],
+	
+	nodeSelected: null,
+	loadRequest:0,
+  iconLoadRequest:0,
+  
+  view: function(view_type) {
+    if(view_type == 'list') {
+        $('view_icon').className = 'ajax_link';
+        $('view_list').className = 'ajax_link_selected';
+        FileEditor.display = 'list';
+        $('file_manager').className = 'file_manager_list';
+        FileEditor.updateIconSizes();
+    }
+    else if(view_type == 'icon') {
+        $('view_icon').className = 'ajax_link_selected';
+        $('view_list').className = 'ajax_link';
+        FileEditor.display = 'icon';
+        $('file_manager').className = 'file_manager_icon';
+        FileEditor.updateIconSizes();
+    }
+  },
+  
+	// Slider / Icon Size Functions 
+	
+	adjustIconSize: function(value,release) {
+//		value = (value/32).toFixed() * 32;
+    
+		
+		if(FileEditor.iconSize != Number(value)) {
+      FileEditor.iconSize = Number(value);
+      FileEditor.updateIconSizes();
+    }
+		
+    if(release) {
+      var selectedSize = null;
+      for(var i=0;i<FileEditor.imageSizes.length;i++) {
+        var size = FileEditor.imageSizes[i];
+        selectedSize = size.name
+        if(value <= size.size) 
+          break;
+      }
+      if(selectedSize != FileEditor.iconSizeName) {
+        FileEditor.reloadThumbImages(selectedSize);
+      }
+    }
+    
+    
+	},
+  
+  reloadThumbImages: function(size) {
+    FileEditor.iconSizeName = size;
+    FileEditor.iconLoadRequest++;
+    
+    if(FileEditor.nodeSelected) {
+      var params = $H({
+                      folder_id: FileEditor.nodeSelected,
+                      load_request: FileEditor.iconLoadRequest
+                      });
+      new Ajax.Request("<%= url_for :action => 'update_icon_sizes' %>",
+                      { parameters: params.toQueryString()  + FileEditor.sizeParameters() });
+    }
+  },
+	
+	updateIconSizes: function() {
+		var elems =getChildElements($('file_manager'));
+      
+		elems.each(function(elem) {
+			FileEditor.adjustElementSize($(elem),FileEditor.iconSize);
+		});
+	
+	},
+	
+	first:true,
+	
+	
+	adjustElementSize: function(elem,size,origWidth,origHeight) {
+			var itemSize = (80-64) + Number(size);
+			var iconSize = Number(size);
+			
+      if(FileEditor.display != 'list') {
+			  elem.style.width = itemSize + "px";
+			  elem.style.height = (itemSize + FileEditor.textSize) + "px";
+			}
+			else {
+			  elem.style.width = "auto";
+			  elem.style.height = itemSize + "px";
+      }
+			
+			var file_id = SCMS.getElemNum(elem);
+			
+			
+			var img = $("thumb_image_" + file_id);
+      var handle = $('handle_item_' + file_id);
+      var title = $('name_item_' + file_id);
+      
+      if(FileEditor.display == 'list') {
+        title.style.top = ((iconSize-10)/3) + "px";
+        title.style.width = '';
+      }
+      else {
+        title.style.width = itemSize + "px";
+        title.style.top = "0px";
+      }
+			
+      handle.style.height = iconSize + "px"; 
+      handle.style.width = itemSize + "px";
+			if(handle.className.indexOf('fm_image_fld') != -1 || handle.className.indexOf('fm_image_doc') != -1)  {
+        img.style.height =iconSize + "px";
+        img.style.width = iconSize + "px";			
+			}
+			else {
+			
+			  if(!img.origWidth) {
+			    img.origWidth=origWidth;
+          img.origHeight=origHeight;
+			  }
+			
+        var scale_x = iconSize / img.origWidth;
+        var scale_y = iconSize / img.origHeight;
+        var scale_factor = scale_x < scale_y ? scale_x : scale_y
+        var adjustedWidth = img.origWidth * scale_factor;
+        var adjustedHeight= img.origHeight * scale_factor;
+        adjustedWidth = new Number(adjustedWidth).toFixed();
+        adjustedHeight = new Number(adjustedHeight).toFixed();
+        if(!isNaN(adjustedWidth) && !isNaN(adjustedHeight)) {
+          img.width = adjustedWidth;
+          img.height =adjustedHeight;
+          img.style.width = "" + adjustedWidth + "px";
+          img.style.height ="" + adjustedHeight + "px";
+          img.style.left = '0px';
+          img.style.top = '0px';
+          
+        }
+			}
+			
+			
+			this.first = false;
+			
+			return;
+			
+			var divs = getChildElements(elem);
+      var first_div = $(divs[0]); 
+      if(first_div) {
+          
+        var first_div_cls = first_div.className;
+        if(first_div_cls.indexOf('fm_image') == -1) {
+            first_div.style.width = iconSize + "px";
+            first_div.style.height =iconSize + "px";
+            divs[1].style.width = itemSize + "px";
+        }
+        else {
+            first_div.style.width = iconSize + "px";
+            first_div.style.height =iconSize + "px";
+            
+            var cnt = getChildElements(first_div);
+            cnt[0].style.width = iconSize + "px";
+            cnt[0].style.height =iconSize + "px";
+            
+            var img = getChildElements(cnt[0]);
+            img[0] = $(img[0]);
+            
+            if(!img[0].origWidth) {
+              img[0].origWidth=origWidth;
+              img[0].origHeight=origHeight;
+            }
+            var scale_x = iconSize / img[0].origWidth;
+            var scale_y = iconSize / img[0].origHeight;
+            var scale_factor = scale_x < scale_y ? scale_x : scale_y
+            var adjustedWidth = img[0].origWidth * scale_factor;
+            var adjustedHeight= img[0].origHeight* scale_factor;
+            adjustedWidth = new Number(adjustedWidth).toFixed();
+            adjustedHeight = new Number(adjustedHeight).toFixed();
+            if(!isNaN(adjustedWidth) && !isNaN(adjustedHeight)) {
+              img[0].width = adjustedWidth;
+              img[0].height =adjustedHeight;
+              img[0].style.width = "" + adjustedWidth + "px";
+              img[0].style.height ="" + adjustedHeight + "px";
+            }
+            
+            if(FileEditor.display != 'list') {
+              divs[1].style.width = itemSize + "px";
+            }
+        
+        }
+      }
+				
+		
+	
+	},
+	
+	resetElementSize: function(elem) {
+			var size=64;
+			var itemSize = (80-64) + Number(size);
+			var iconSize = Number(size);
+			
+			elem.style.width = itemSize + "px";
+			
+      if(FileEditor.display != 'list') {
+  			elem.style.height = (itemSize + FileEditor.textSize) + "px";
+  		}
+  		else {
+  			elem.style.height = itemSize + "px";
+  		}
+			
+			var divs = getChildElements(elem);
+				divs[0].style.width = '';
+				divs[0].style.height ='';
+				
+      if(FileEditor.display != 'list') {
+				divs[1].style.width = itemSize + "px";
+			}
+		
+	
+	},
+	
+	createSizeSlider:function() {
+
+		var slider = new Control.Slider('size_slider', 'size_slider_container', 
+												{ 
+												increment:16,
+												range:$R(FileEditor.minIconSize,FileEditor.maxIconSize),
+												alignX: 0, 
+												alignY: -5,
+												sliderValue: FileEditor.iconSize,
+												values: FileEditor.iconSizes,
+												onChange: function(v) {  FileEditor.adjustIconSize(v.toFixed(),true); } ,
+												onSlide:  function(v) {  FileEditor.adjustIconSize(v.toFixed(),false); } 
+												});	
+	
+	
+	},
+	
+	// Draggable & Droppable Functions 
+	
+	fmCreateDraggable: function (elem) {
+    if(elem && elem.id != '') { 
+      var draggable = new Draggable(elem.id,
+      { handle: 'handle_' + elem.id,
+        revert:true,
+        scroll: window,
+        starteffect: FileEditor.iconStartDrag,
+        endeffect: FileEditor.iconStopDrag,
+        zindex:500
+      });
+      elem.draggable = draggable;
+    }
+	},
+    
+  recreateElementDraggables:function() {
+  
+    var fm = $('file_manager');
+    if(fm) {
+      var docs = fm.select('.fm_element');
+      
+      if(docs)  {
+        for(var i=0;i<docs.length;i++) {
+          FileEditor.fmCreateDraggable(docs[i]);
+        }
+      }
+    }
+  
+  },	
+  
+  iconStartDrag: function(elem) {
+    var elem_id = SCMS.getElemNum(elem);
+    
+    if(FileEditor.selectedItems.indexOf(elem_id)==-1) {
+      FileEditor.clearHighlight();
+  		new Effect.Opacity('handle_item_' + elem_id,{duration:0.25,from:1.0,to:0.50});
+    } else if(FileEditor.selectedItems.length > 1)  {
+      FileEditor.selectedItems.each(function(elm) {
+        new Effect.Opacity('handle_item_' + elm,{duration:0.25,from:1.0,to:0.20});
+        Droppables.remove('item_' + elm);
+      });
+      var cnt = elem.select('.fm_item_count')[0];
+      cnt.innerHTML = FileEditor.selectedItems.length + " Items";
+      cnt.show();
+    } else {
+        new Effect.Opacity('handle_item_' + elem_id,{duration:0.25,from:1.0,to:0.50});
+    }
+    
+	},
+	
+	iconStopDrag: function(elem) {
+	 var elem_id = SCMS.getElemNum(elem);
+   FileEditor.cancelSelect = true; 
+   
+    if(FileEditor.selectedItems.indexOf(elem_id)==-1) {
+      if($('handle_item_' + elem_id))
+    		new Effect.Opacity('handle_item_' + elem_id,{duration:0.25,from:0.50,to:1.0});
+    } else if(FileEditor.selectedItems.length > 1)  {
+      FileEditor.selectedItems.each(function(elm) {
+        if($('handle_item_' + elm))
+      		new Effect.Opacity('handle_item_' + elm,{duration:0.25,from:0.20,to:1.0});
+      });
+      FileEditor.recreateFolderDroppables();
+    } 
+    else {
+      if($('handle_item_' + elem_id))
+    		new Effect.Opacity('handle_item_' + elem_id,{duration:0.25,from:0.50,to:1.0});
+    }
+    var cnt = elem.select('.fm_item_count')[0];
+    if(cnt) cnt.hide();
+	},
+	
+  fmCreateDroppable: function (elem) {
+    return Droppables.add(elem.id, { 
+      hoverclass:'fm_accept',
+      onDrop: FileEditor.dropAction
+    });
+  },
+  
+  createDetailsDroppable: function(elem) {
+    return Droppables.add(elem.id, { 
+      hoverclass:'fm_accept',
+      onDrop: FileEditor.replaceFile
+    });
+    alert(elem.id);
+  },
+  
+  deleteRevision: function(revision_id) {
+    if(confirm('<%= jh "Delete this revision?".t %>')) {
+      var req = $H({ revision_id: revision_id });
+  		new Ajax.Request('<%= url_for :controller => "file", :action => "delete_revision" %>',
+				{ parameters : req.toQueryString() + FileEditor.sizeParameters() });                 
+		}
+  },
+  
+  extractRevision: function(revision_id) {
+    if(confirm('<%= jh "Extract this revision into it's own file?".t %>')) {
+      var req = $H({ revision_id: revision_id });
+		  new Ajax.Request('<%= url_for :controller => "file", :action => "extract_revision" %>',
+			  { parameters : req.toQueryString() + FileEditor.sizeParameters() });                 
+		}
+  }, 
+  
+  copyFile: function(file_id) {
+    var req = $H({ file_id: file_id });
+		new Ajax.Request('<%= url_for :controller => "file", :action => "copy_file" %>',
+			{ parameters : req.toQueryString() + FileEditor.sizeParameters() });                 
+  },
+  
+  
+  replaceFile: function(drag,drop) {
+    var drag_details = drag.file_info;
+    var drop_details = drop.file_info;
+    
+    if(drag_details.id == drop_details.id) return false;
+    if(confirm("Replace '" + drop_details.name + "' with the file '" + drag_details.name + "' ?")) {
+      	var req = $H({ file_id: drop_details.id, replace_id: drag_details.id });
+    		new Ajax.Request('<%= url_for :controller => "file", :action => "replace_file" %>',
+					{ parameters : req.toQueryString() + FileEditor.sizeParameters() });               
+    }
+  },
+	
+	recreateFolderDroppables: function() {
+		var fm = $('file_manager');
+		var folders = fm.select('.fm_folder');
+		folders.each(FileEditor.fmCreateDroppable);
+	},
+  
+  destroyFolderDroppables: function() {
+  
+    var fm = $('file_manager');
+    
+    var folders = getChildElementsByClass(fm,'fm_folder');
+  
+    folders.each(function(folder) {
+        Droppables.remove(folder);
+    });
+  },
+  
+	
+	createTreeFolderDroppable: function(elem) {
+		var dropTitle = getChild(elem,'node_line');
+		
+		return Droppables.add(dropTitle.id, { 
+			hoverclass:'node_accept',
+			onDrop: FileEditor.dropAction
+		});
+	
+	},
+	
+	createTreeFolderDraggable: function(elem) {
+		var draggable = new Draggable(elem.id,
+		{ handle:'node_handle_' + elem.node_id, 
+			revert:true, 
+			zindex:1000,
+			starteffect: FileEditor.treeDraggableStartEffect,
+			endeffect: FileEditor.treeDraggableEndEffect
+		});
+		elem.draggable = draggable;
+	},
+	
+	treeDraggableStartEffect: function (elem) {
+		FileEditor.closeChildren(elem);
+		FileEditor.selectTreeNode(null);
+		elem.saved_bg = elem.style.backgroundImage;
+		elem.style.backgroundImage = 'none';
+		var droppable = getChild(elem,'node_line');
+		Droppables.remove(droppable.id);
+	},
+	
+	treeDraggableEndEffect: function (elem) {
+		if(elem.saved_bg)
+			elem.style.backgroundImage = elem.saved_bg;
+		FileEditor.createTreeFolderDroppable(elem);
+	
+	},
+	
+	// Tree Related Functions
+	refreshNodeView: function(nodeDiv) {
+		var updateDiv = getChild(nodeDiv,'node_children');
+	
+		var elems = getChildElementsByClass(updateDiv,'node');
+		
+		for(var i=0;i<elems.length;i++) {
+			// Need to update the saved bg for the end effect
+			elems[i].saved_bg = null;
+			if(i == elems.length - 1)  {
+				elems[i].saved_bg = 'none';
+				Element.setStyle(elems[i],
+										{ backgroundImage: 'url(<%= theme_src("icons/menu/last_top.gif") %>)', 
+										backgroundRepeat: 'no-repeat' });
+			}
+			else {
+				Element.setStyle(elems[i],
+									{ backgroundImage: 'url(<%= theme_src("icons/menu/line.gif") %>)',
+									backgroundRepeat: 'repeat-y'});
+			}
+		}
+		// Now need to update the 'plus' / 'minus' image for showing the children
+		// div
+		var update_node_id = updateDiv.parentNode.node_id;
+		
+		if($('toggle_' + update_node_id)) {
+			if(elems.length > 0) {
+				Element.show('children_' + update_node_id);
+				$('toggle_' + update_node_id).src = FileEditor.themeSrc + 'icons/menu/last_open.gif';
+				$('toggle_' + update_node_id).onclick = function() {
+					FileEditor.toggleVisible($('toggle_' + update_node_id));
+				}
+			}
+			else {
+				$('toggle_' + update_node_id).src = FileEditor.themeSrc + 'icons/menu/last.gif';
+				$('toggle_' + update_node_id).onclick = null;
+			}
+		}
+	
+	},
+	
+	moveNode: function(moved_folder_id,dest_folder_id) {
+	
+	  var moved_folder = $('node_element_' + moved_folder_id);
+	  var dest_folder = $('node_element_' + dest_folder_id);
+	  
+	  var dest_children = getChild(dest_folder,'node_children');
+	  
+	  var moved_folder_parent_children = moved_folder.parentNode;
+	  var moved_folder_parent = moved_folder_parent_children.parentNode;
+	  
+      moved_folder_parent_children.removeChild(moved_folder);
+      
+      dest_children.appendChild(moved_folder);
+      
+      setTimeout(function() {
+		FileEditor.refreshNodeView(moved_folder_parent);
+      	FileEditor.refreshNodeView(dest_folder);      
+      	},10);
+	},
+	
+	
+	closeChildren: function(node) {
+		var node_id = node.node_id;
+		if(getChildElementsByClass($('children_' + node_id),'node').length > 0) {
+			Element.hide('children_' + node_id);
+			$('toggle_' + node_id).src = (Element.getStyle('children_' + node_id,'display') == 'block')?FileEditor.themeSrc + 'icons/menu/last_open.gif':FileEditor.themeSrc + 'icons/menu/last_closed.gif';
+		}
+	},
+	
+	toggleVisible: function(elem) {
+		var node_id = elem.parentNode.node_id;
+		Element.toggle('children_' + node_id);
+		$('toggle_' + node_id).src = (Element.getStyle('children_' + node_id,'display') == 'block')?FileEditor.themeSrc + 'icons/menu/last_open.gif':FileEditor.themeSrc + 'icons/menu/last_closed.gif';
+	},
+	
+	selectTreeNode: function(folder_id) {
+		FileEditor.gotoFolder(folder_id);
+	
+	},
+	
+	highlightTreeFolder:function(folder_id) {
+		
+	
+		if(FileEditor.nodeSelected) {
+			Element.removeClassName('node_line_' + FileEditor.nodeSelected,'node_selected');
+		}
+		
+		var title_elem = $('node_line_' + folder_id);
+		if(title_elem) {
+			Element.addClassName(title_elem,'node_selected')
+		}
+		
+		FileEditor.nodeSelected = folder_id;
+	
+	},
+	
+	reorder: function(order) {
+	  FileEditor.order = order;
+	  FileEditor.gotoFolder($('upload_file_parent_id').value);
+	},
+	
+	
+	// Folder Refresh Functions
+ 	gotoFolder:function(folder_id,file_id) {
+ 	  FileEditor.selecting = null;
+		FileEditor.highlightTreeFolder(folder_id);
+ 	
+		$('upload_file_parent_id').value = folder_id;
+		if(!folder_id) {
+			$('folder_action_area').style.visibility='hidden';
+		}
+		else {
+			$('folder_action_area').style.visibility='visible';
+		
+		}
+ 	
+		if(folder_id) {
+			FileEditor.loadFolder(folder_id,file_id);
+		}
+		else {
+			$('file_manager').innerHTML = '';
+		}
+ 	
+ 	
+ 	
+ 	},
+	
+	
+	loadFolder: function(folder_id,file_id) {
+    FileEditor.hideDetails();
+    
+    FileEditor.destroyFolderDroppables();
+		//$('file_manager').style.visibility='hidden';
+		FileEditor.loadRequest++;
+		var loadRequest=FileEditor.loadRequest;
+		
+		var params = { field: '<%= @field %>',
+						  select: '<%= @select %>',
+						  callback: '<%= @callback %>',
+						};
+		if(file_id) params['file_id'] = file_id;
+		  
+		new Ajax.Request("<%= url_for :action => 'load_folder' %>" + "/" + folder_id,
+						{ 
+							parameters: $H(params).toQueryString() + FileEditor.sizeParameters(),
+							onComplete: function(req) {
+								if(loadRequest == FileEditor.loadRequest) {
+									FileEditor.updateIconSizes();
+									$('file_manager').style.visibility='visible';
+									setTimeout("FileEditor.recreateElementDraggables();",50);
+									setTimeout("FileEditor.recreateFolderDroppables();",50);
+								}
+							}
+						});
+						
+	
+	},
+	
+	dropAction: function(drag,drop) {
+	  FileEditor.hideDetails();
+	  if(!drag) return;
+	  // if we're going side tree to side tree - just move the individual file
+    if(drag.className.indexOf('node') != -1) {
+			if(drop.parentNode.className.indexOf('node') != -1) {
+				FileEditor.moveFiles([drag.node_id],
+									drop.parentNode.node_id);
+				FileEditor.moveNode(drag.node_id,
+									drop.parentNode.node_id);
+			}	
+		}
+		else {
+		  // Get ID where we are dropping (could be sidebar or main content
+		  var drop_id = drop.parentNode.className.indexOf('node') != -1 ? drop.parentNode.node_id : drop.file_info.id;
+		  
+		  var dragged_ids = [];
+		  if(FileEditor.selectedItems.length > 1) {
+        FileEditor.selectedItems.each(function(elm_id) {
+          var elm = FileEditor.fileDrop($('item_' + elm_id),drop_id);
+          if(elm) dragged_ids.push(elm);
+        });
+		  } else {
+        var elm = FileEditor.fileDrop(drag,drop_id);
+        if(elm) dragged_ids.push(elm);
+		  }
+		  
+		  if(dragged_ids.length > 0) {
+		    FileEditor.moveFiles(dragged_ids,drop_id);
+		  }
+		}
+	},
+  
+
+    // Drag and Drop Functionality
+    // Need to handle all the different drag / drop combos
+	fileDrop: function(drag,drop_id) {
+		if(drag.className.indexOf('fm_item') != -1) {
+			Element.remove(drag);			
+			return drag.file_info.id;
+		}
+		else if(drag.className.indexOf('fm_folder') != -1) {
+			if(!FileEditor.isDecendant(drop_id,drag.file_info.id)) {
+				Element.remove(drag);	
+				FileEditor.moveNode(drag.file_info.id,drop_id);
+				return drag.file_info.id;
+			}
+			
+		}
+		return null;
+	},
+	
+	// Server Side Update Functions
+	moveFiles: function(file_ids,folder_id) {
+	
+		var req = $H({'file_id[]': file_ids,folder_id: folder_id });
+		new Ajax.Request('<%= url_for :controller => "file", :action => "move_files" %>',
+					{
+						parameters : req.toQueryString() + FileEditor.sizeParameters()
+					}
+					);               
+					
+		FileEditor.clearHighlight();
+	
+	},
+	
+	
+  createFolder: function() {
+  		
+      
+      if(FileEditor.nodeSelected) {
+		var req = $H({
+			folder_id: FileEditor.nodeSelected,
+      icon_size: FileEditor.iconSize   
+		});
+		new Ajax.Request( '<%= url_for :controller => "file", :action => "create_folder" %>',
+					{
+                 
+						parameters : req.toQueryString() + FileEditor.sizeParameters()
+					}
+					);
+	  }
+  	},
+  	
+  	
+  	
+  	deleteSelected: function() {
+  	  if(confirm('<%= jh "Are you sure you want to delete the selected item(s)?" %>')) {
+  	      var itms = FileEditor.selectedItems;
+  	      var req = $H({ 'file_id[]' : itms });
+		      new Ajax.Request('<%= url_for :controller => "file", :action => "delete_files" %>',
+					      {  parameters : req.toQueryString()  + FileEditor.sizeParameters(),
+					         onComplete: function(response) {
+					            FileEditor.clearHighlight();  
+					            itms.each(function(item_id) { FileEditor.removeItem(item_id); });
+					            FileEditor.hideDetails();
+					         } });               
+			}
+  	},
+	
+	
+    
+    // File Upload Functions
+    selectedChange: function() {
+    	var filename = $('file_column').value;
+    	$('upload_extra').checked='false';
+    	Element.hide('upload_status_area');
+      Element.hide('upload_processing_area'); 
+    	var compressed_extensions = ['.gz','.zip','.tar'];
+    	if(compressed_extensions.indexOf(SCMS.get_file_extension(filename)) != -1) {
+	    	new Effect.Appear('upload_extra');
+    	}
+    	else {
+    		Element.hide('upload_extra');
+    	}
+    	$('upload_button').disabled = false;
+
+    },
+    
+    startUpload:function() {
+    	Element.show('upload_status_area');
+    	$('upload_button').disabled = true;
+    },
+
+    manageUploads: function(errors) {
+      $('file_column').value = '';
+      Element.hide('upload_extra');
+      if(errors) {
+      	alert(errors);
+      }
+      else {
+	      $('upload_processing_area').innerHTML = '<%= jh "Processing Upload".t %>';
+	      Element.show('upload_processing_area');
+	      setTimeout("FileEditor.updateProcessing();",1000);      
+       }
+     },
+  
+    updateProcessing: function() {
+    
+  
+    var params = $H({ field: '<%= @field %>',
+              select: '<%= @select %>',
+              callback: '<%= @callback %>',
+            });    
+      new Ajax.Request( '<%= url_for :controller => "file", :action => "file_manager_update" %>',
+                        { parameters: params.toQueryString()  + FileEditor.sizeParameters() }   );
+    },
+    // Utility Functions
+    
+    isDecendant:function(target_node_id,parent_node_id) {
+    
+    	var parentFolder = $('node_element_' + target_node_id);
+    	while(parentFolder.className.indexOf('node') != -1) {
+			if(parent_node_id == parentFolder.node_id) {
+				return true;
+			}
+    		parentFolder = parentFolder.parentNode.parentNode
+    	}
+    	return false;
+    
+    },
+    
+    highlightNewFile:function(file_id) {
+		  $('item_' + file_id).style.backgroundColor = '#FF0000';
+		  $('item_' + file_id).morph('background-color:#FFFFFF;', {duration: 1.0});    
+    },
+    
+    refreshUploadedFile:function(file_id) {
+		  if($('item_' + file_id)) {
+			  FileEditor.adjustElementSize($('item_' + file_id),FileEditor.iconSize);
+			  Element.show('item_' + file_id);
+		  }
+    	FileEditor.highlightNewFile(file_id);
+    
+    },
+    
+    refreshUploadedFolder:function(file_id,parent_id) {
+    	FileEditor.refreshUploadedFile(file_id,parent_id);
+		  if($('node_element_' + parent_id))
+			  FileEditor.refreshNodeView($('node_element_' + parent_id));
+    },
+    
+    refreshCreatedFolder:function(file_id,parent_id) {
+    	FileEditor.refreshUploadedFolder(file_id,parent_id);
+			
+		  FileEditor.recreateDragAndDroppables();
+    },
+    
+    
+    recreateDragAndDroppables:function() {
+		  FileEditor.recreateElementDraggables();
+		  FileEditor.recreateFolderDroppables();
+    },
+    
+    clearSelection:function() {
+      FileEditor.callbackFile('');
+    },
+    
+    
+    // File Actions
+    
+    nameChange: function(file_id) {
+      Element.hide('fm_file_name_display');
+      Element.show('fm_file_name_form');
+      $('file_name').focus();
+      $('file_name').select();
+    },
+    
+    nameChangeApply: function(file_id) {
+      
+      var params = Form.serialize('fm_file_name_form_form') + "&file_id=" + file_id + FileEditor.sizeParameters();
+      new Ajax.Request("<%= url_for :action => 'rename_file' %>",{ parameters: params });
+    },
+    
+    
+    nameChangeCancel: function(file_id) {
+      Element.show('fm_file_name_display');
+      Element.hide('fm_file_name_form');
+    },
+    
+    sizeParameters: function() {
+      var opts = { icon_size: FileEditor.iconSize,  
+                   thumb_size: FileEditor.thumbSize,
+                   select: FileEditor.select,
+                   order: FileEditor.order
+                };
+      if(FileEditor.mce) opts['mce'] = 1;
+      if(FileEditor.popup) opts['popup'] = 1;
+
+      return "&" + $H(opts).toQueryString();
+    },
+    
+    makeFilePublic: function(file_id) {
+    if(confirm("<%= 'Are you sure you want to make this file freely accessible via the web?'.t %>")) {
+        var file_info = $('item_' + file_id).file_info;
+        new Ajax.Request('<%= url_for :action => "make_public" %>',
+                        { parameters: "file_id=" + file_id + FileEditor.sizeParameters()  }
+                         );
+
+      }
+    },
+
+    makeFilePrivate: function(file_id) {
+      if(confirm("<%= jh 'Are you sure you want to make this file private? It will not be accessible via the web unless a file element is created.'.t %>")) {
+        var file_info = $('item_' + file_id).file_info;
+        new Ajax.Request('<%= url_for :action => "make_private" %>',
+                        { parameters: "file_id=" + file_id + FileEditor.sizeParameters()  }
+                         );
+      }
+    },
+    
+    callbackFileCustom:function(file_id) {
+      var align = $('insert_align').value;
+      var url = $('insert_size').value;
+    
+    
+      var info = FileEditor.fileInfo(file_id);
+      
+      if(!url) { url = info.editor_url };
+      
+      var opts = { 'align' : align };
+      
+      
+    
+       <%= @callback || 'callback'%>('<%= @field %>',info.file_type,file_id,info.name,url,info.thumb_url,info.name,opts);
+       setTimeout('window.close();',20);    
+    },
+    
+    
+    removeItem: function(item_id) {
+    
+      if($('node_element_' + item_id)) {
+          var parent = $('node_element_' + item_id).parentNode.parentNode;
+
+          Element.remove('node_element_' + item_id);
+          FileEditor.refreshNodeView(parent);
+
+          if(FileEditor.nodeSelected == item_id) {
+                  FileEditor.selectTreeNode(null);
+          }
+      }
+     if($('item_' + item_id))
+            Element.remove('item_' + item_id);
+
+    
+    },
+
+
+    // File Selection Functions
+    callbackFile:function(file_id) {
+      FileEditor.selecting = false;
+      <% if @full_page %>
+        var info = FileEditor.fileInfo(file_id);
+        
+        if(info.file_type == 'fld') 
+          FileEditor.gotoFolder(file_id);
+        else
+          SCMS.remoteOverlay("<%= url_for :action => 'file_display' %>/" + file_id);
+          
+      <% else -%>
+        <% if @mce %>
+          if(file_id) {
+            var info = FileEditor.fileInfo(file_id);
+            
+            if(info.private_file) {
+              alert('<%= "Private files cannot be added to pages. Use the File Element from the page structure instead.".t %>');
+            }
+            else {
+              <%= @callback || 'callback'%>('<%= @field %>',info.file_type,file_id,info.name,info.editor_url,info.thumb_url,info.name);
+              setTimeout('window.close();',20);
+            }
+          }
+          else {
+              <%= @callback || 'callback'%>('<%= @field %>','img','','','','/images/spacer.gif','',false);
+          } 
+        <% else -%>
+          if(file_id) {
+            var info = FileEditor.fileInfo(file_id);
+            window.opener.<%= @callback || 'callback'%>('<%= @field %>',info.file_type,file_id,info.name,info.editor_url,info.thumb_url,info.name);
+          }
+          else {
+            window.opener.<%= @callback || 'callback'%>('<%= @field %>','img','','','','/images/spacer.gif','',false);
+          
+          }
+    	    setTimeout('window.close();',20);
+        <% end -%>
+      <% end -%>
+        
+    },
+    
+    fileInfo: function(file_id) {
+      if($('item_' + file_id))
+        return $('item_' + file_id).file_info;
+      else
+        return {};
+    },
+    
+    init:function() {
+      <% if @popup %>
+      var dim = SCMS.getCookie("fm_dim");
+      if(dim) {
+        var dims = dim.split(",");
+        setTimeout("window.resizeTo(" + dims[0] + "," + dims[1] + ");",20);
+      }
+      <% end -%>
+      FileEditor.createSizeSlider();
+      FileEditor.recreateDragAndDroppables();
+
+    },
+
+    onResize: function() {
+        var dim = document.viewport.getDimensions();
+        SCMS.setCookie("fm_dim",dim.width + "," + dim.height);
+    },
+    
+    dragX:0,
+    dragY:0,
+    dragging:false,
+    
+    selectedItems: [],
+    
+    loadDetails:function(file_id) {
+	      var params = $H({ file_id: file_id });
+	      
+      	new Ajax.Request("<%= url_for :action => 'load_details' %>",
+					    { parameters: params.toQueryString() + FileEditor.sizeParameters() }
+				    );
+				    
+				FileEditor.selecting = null;
+	    },
+    
+    
+    showDetails: function() { $('file_manager_details').style.visibility='visible'; },
+    showDetailsLoading: function() {
+      $('file_manager_body').innerHTML = 'Loading Details...';
+      FileEditor.showDetails();
+    },
+    hideDetails: function() { $('file_manager_details').style.visibility='hidden'; },
+    
+    selecting: null,
+    
+    fileClick:function(event) {
+      if(FileEditor.cancelSelect) {
+        FileEditor.cancelSelect = false;
+        return;
+      }
+      var elem_id = SCMS.getElemNum(event.target);
+      if(event.shiftKey || event.ctrlKey) {
+        FileEditor.highlightItem(elem_id);
+        FileEditor.finalizeSelection([elem_id]);
+      } else {
+        FileEditor.selectFile(elem_id);
+      }
+    },
+    
+    fileDblclick: function(event) {
+      FileEditor.selecting = null;
+      var elem_id = SCMS.getElemNum(event.target);
+      
+      var info = FileEditor.fileInfo(elem_id);
+      if(info.file_type == 'fld') {
+        FileEditor.gotoFolder(elem_id);
+      } 
+      else if(info.selectable && FileEditor.popup) {
+        FileEditor.callbackFile(elem_id);
+      }
+    },
+    
+    
+    showSelection:function(elements,finalized) {
+      if(elements.length > 0) {
+        FileEditor.showDetails();
+        $('file_manager_body').innerHTML = "<b>" + elements.length + " <%= jh 'Files & Folders Selected'.t %>:</b><br/>";
+        $('file_manager_body').innerHTML += elements.map(function(elm) { 
+          var txt =  $('item_' + elm).file_info.short_name;
+          if($('item_' + elm).file_info.file_type == 'fld')
+            txt = "<i>" + txt + " (Folder)</i>"
+          return txt;
+          }).join(",<br/>");
+        if(finalized) {
+          $('file_manager_body').innerHTML += "<br/><br/><button onclick='FileEditor.deleteSelected(); return false;'>Delete Selected Files</button>";
+        }
+      }
+      else {
+        FileEditor.hideDetails();
+      }
+    },
+    
+    editFile: function(file_id) {
+      FileEditor.disableDragbox();
+      SCMS.remoteOverlay("<%= url_for :action=>'edit_file' %>?file_id=" + file_id);
+    },
+    
+    saveFile: function(file_id,contents) {
+      var params = $H({file_id: file_id,
+                      contents: contents});
+      new Ajax.Request("<%= url_for :action=>'edit_file' %>",
+                        { parameters: params.toQueryString() });
+    },
+    
+    selectFile:function(file_id) {
+      if(FileEditor.selecting != file_id) {
+        FileEditor.selecting = file_id;
+        setTimeout(function() { FileEditor.selectExecute(); },250);
+      }
+    },
+    
+    selectExecute:function() {
+      if(FileEditor.selecting) {
+        FileEditor.clearHighlight();
+        FileEditor.highlightItem(FileEditor.selecting);
+        FileEditor.selectedItems = [ FileEditor.selecting ];
+        FileEditor.showDetailsLoading();
+        FileEditor.loadDetails(FileEditor.selecting);
+      }
+    
+    },
+    
+    markSelection:function(elem_id) {
+      if($("item_" + elem_id)) {
+        FileEditor.clearHighlight();
+        FileEditor.highlightItem(elem_id);
+        FileEditor.selectedItems = [ elem_id ];
+      }
+    },
+    
+    finalizeSelection: function(file_ids) {
+      FileEditor.selectedItems = FileEditor.selectedItems.concat(file_ids);
+      FileEditor.selectedItems = FileEditor.selectedItems.uniq();
+      if(FileEditor.selectedItems.length == 1) {
+        FileEditor.selectFile(FileEditor.selectedItems[0]);
+      } 
+      else {
+        FileEditor.showSelection(FileEditor.selectedItems,true);
+      }
+    },
+    
+    dragDisabled: false,
+    
+    startDrag: function(event) {
+      if(FileEditor.dragDisabled) return true;
+      
+      FileEditor.dragX = event.pointerX();
+      FileEditor.dragY = event.pointerY();
+      
+      
+      var pos = $('element_info').cumulativeOffset();
+      var dim = $('element_info').getDimensions();
+      if(FileEditor.dragX > pos[0] && FileEditor.dragY > pos[1] &&
+         FileEditor.dragX < (pos[0] + dim.width) &&  FileEditor.dragY < (pos[1] + dim.height) ) {
+        // If we don't have a control key held down
+        
+        if(event.shiftKey || event.ctrlKey) {
+          FileEditor.clearSelectingHighlight();
+        
+        } else {
+          FileEditor.clearHighlight();
+        }
+        
+        // clear the current list of selected items
+      
+      
+        $('file_manager').makePositioned();
+        
+        FileEditor.itemCache = null;
+      
+      
+        FileEditor.dragging = true;
+        return false;
+      }
+      else {
+        return true;
+      }
+      
+    },
+    
+    dragBox: function(event) {
+      if(FileEditor.dragDisabled) return true;
+      if(FileEditor.dragging) {
+        var mx = event.pointerX();
+        var my = event.pointerY();
+        
+        var pos = $('element_info').cumulativeOffset();
+        var dim = $('element_info').getDimensions();
+        
+        if(mx < pos[0]) mx = pos[0];
+        if(mx > pos[0] + dim.width) mx = pos[0] + dim.width;
+        if(my < pos[1]) my = pos[1];
+        if(my > pos[1] + dim.height) my = pos[1] + dim.height;
+        
+        mx -= 4;
+        my -= 4;
+        
+        var left = mx <= FileEditor.dragX ? mx : FileEditor.dragX;
+        var top =  my <= FileEditor.dragY ? my : FileEditor.dragY;
+      
+        $('fm_dragbox').style.left = left + 'px';
+        $('fm_dragbox').style.top = top + 'px';
+        
+        var width = Math.abs(mx - FileEditor.dragX) + 5;
+        var height = Math.abs(my - FileEditor.dragY) + 5;
+        
+        var container = { 'x1' : left, 'y1' : top, 'x2' : left + width, 'y2' : top + height };
+        
+        FileEditor.highlightBoundingBox(container);
+        
+        $('fm_dragbox').style.width = width + 'px';
+        $('fm_dragbox').style.height = height + 'px';
+        
+        $('fm_dragbox').show();
+        return false;
+      }
+      else { return true; }
+    },
+    
+    endDrag: function(event) {
+      if(FileEditor.dragDisabled) return true;
+      if(FileEditor.dragging) {
+        FileEditor.dragging = false;
+        $('fm_dragbox').hide();
+        
+        FileEditor.finalizeSelection(FileEditor.selectingItems);
+        
+        return false;
+      } 
+      else { return true; }
+    },
+    
+    
+    highlightItem: function(file_id) {
+      FileEditor.selectingItems.push(file_id);
+      $('item_' + file_id).addClassName('fm_highlight');
+    },
+    
+ 
+    clearHighlight: function() {
+      FileEditor.selectingItems = [];
+      FileEditor.selectedItems = [];
+      var itms = $('file_manager').select(".fm_element");
+      var len = itms.length;
+      for(var i=0;i<len;i++) {
+        itms[i].removeClassName('fm_highlight');
+      }
+     },
+     
+    clearSelectingHighlight: function() {
+      FileEditor.selectingItems = [];
+      var itms = $('file_manager').select(".fm_element");
+      var len = itms.length;
+      for(var i=0;i<len;i++) {
+        var elem_id = SCMS.getElemNum(itms[i]);
+        if(FileEditor.selectedItems.indexOf(elem_id) == -1) {
+          itms[i].removeClassName('fm_highlight');
+        }
+      }
+     },
+     
+     
+     selectingItems: [],
+     itemCache: null,
+     
+     highlightBoundingBox: function(container) {
+        var len = 0; 
+        
+        /* cumulativeOffset is a little expensive, so cache those results 
+          as opposed to doing the math each time
+           */
+        if(!FileEditor.itemCache) {
+          var items = $('file_manager').select(".fm_element");
+          len  = items.length;
+          FileEditor.itemCache = [];
+          var dim = items[0].getDimensions();
+          for(var k=0;k<len;k++) {
+            var pos = items[k].cumulativeOffset();
+            FileEditor.itemCache.push([items[k].file_info.id,
+                { 'x1' : pos[0], 'y1' : pos[1], 'x2' : pos[0] + dim.width, 'y2' : pos[1] + dim.height } 
+                                      ]);
+          }
+        }
+        
+        
+        /* don't rehighlight items that are already highlighted,
+           and don't unhighlight items that are already unhighlighted */
+        
+        len = FileEditor.itemCache.length;
+        
+        var current = FileEditor.selectingItems;
+        FileEditor.selectingItems = [];
+
+        for(var i=0;i<len;i++) {
+            if(FileEditor.contains(container,FileEditor.itemCache[i][1])) {
+              if(current.indexOf(FileEditor.itemCache[i][0]) == -1) {
+                FileEditor.highlightItem(FileEditor.itemCache[i][0]);
+              }
+              else {
+                FileEditor.selectingItems.push(FileEditor.itemCache[i][0]);
+              }
+            }
+        }
+        
+        var allHighlight = FileEditor.selectingItems.concat(FileEditor.selectedItems).uniq();
+        var remove = current.without.apply(current,allHighlight);
+        var rem_length = remove.length;
+        for(var j=0;j<rem_length;j++) {
+          $('item_' + remove[j]).removeClassName('fm_highlight');
+        }
+     
+     },
+     
+     // http://tekpool.wordpress.com/2006/10/11/rectangle-intersection-determine-if-two-given-rectangles-intersect-each-other-or-not/
+     contains: function(c,c2) {
+       return ! ( (c.x1 > c2.x2) || (c.x2 < c2.x1) || (c.y1 > c2.y2) || (c.y2 < c2.y1) );
+     
+     },
+     
+     
+     // Search Functions
+     
+     runSearch: function(frm) {
+      var params = Form.serialize(frm);
+      $('search_results').innerHTML = 'Running Search...';
+      $('search_results').show();
+      new Ajax.Updater('search_results','<%= url_for :action => 'search' %>', { parameters: params + FileEditor.sizeParameters() });
+     
+     },
+     
+     closeOverlay: function() {
+       FileEditor.dragDisabled = false;
+       RedBox.close();
+     },
+     
+     disableDragbox: function() {
+       FileEditor.dragDisabled = true;
+     }
+     
+
+  
+};
+
+//if the browser is IE4+
+document.onselectstart=new Function ("return false")
+
+
+
+
+</script>

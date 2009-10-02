@@ -1,0 +1,68 @@
+= XSendFile
+
+The XSendFile plugin provides a simple interface for sending files via the X-Sendfile HTTP header.  This enables your web server to serve the file directly from disk, instead of streaming it through your Rails process.  This is faster and saves a lot of memory if you're using Mongrel.  Not every web server supports this header.  YMMV.
+
+The interface is as close as possible to Rails' ActionController::Streaming#send_file method.
+
+
+== Installation
+
+First, you need to install the plugin.  From the root of your Rails app run:
+
+  ruby script/plugin install http://john.guen.in/svn/plugins/x_send_file
+
+=== Set up your web server
+
+If you have not already installed/enabled/configured X-Sendfile support for your web server, now's the time.
+
+* Apache users should look into mod_xsendfile
+
+  http://celebnamer.celebworld.ws/stuff/mod_xsendfile
+  
+* Lighttpd users may need to configure mod_fastcgi or mod_proxy_core (depending on your version).
+
+  http://blog.lighttpd.net/articles/2006/07/02/x-sendfile
+  
+  http://blog.lighttpd.net/articles/2006/07/22/mod_proxy_core-got-x-sendfile-support 
+  
+* If you are using something else, I'm sure you're smart enough to figure it out :)
+
+
+== Usage
+
+The x_send_file method takes the same options as Rails' send_file method.
+
+  x_send_file('/path/to/file')
+  
+  x_send_file('/path/to/image.jpg', :type => 'image/jpeg', :disposition => 'inline')
+
+It also has a few new options.  You can overwrite the HTTP header it uses (the default is 'X-Sendfile').
+
+  x_send_file('/path/to/file/', :header => 'X-LIGHTTPD-SEND-FILE')
+
+== Configuration
+
+You can easily set any of the options you would pass to the method, as global defaults for the plugin.  This is particularly useful if your server requires a HTTP header other than 'X-Sendfile' and you like to keep your code DRY.  Just place the following in your environment.rb.
+
+  XSendFile::Plugin.options[:header] = 'X-LIGHTTPD-SEND-FILE'
+  
+Though you probably won't need to, you can change the default for any other option the same way:
+
+  XSendFile::Plugin.options[:disposition] = 'inline'
+  
+Now, if you're feeling really adventurous, you can have x_send_file take over any time send_file is called.
+
+  XSendFile::Plugin.replace_send_file!
+  
+This is a little scary, but it lends itself nicely to neat tricks like:
+
+  XSendFile::Plugin.replace_send_file! unless ENV['RAILS_ENV'] = 'development'
+
+
+== Warning
+
+Never, *never* do anything remotely like this:
+
+  x_send_file(params[:path])
+
+Most X-Sendfile configurations allow the web server to send any file it can read.  Sanitize the path before sending or j00 = h4x0r3d!

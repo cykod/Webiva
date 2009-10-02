@@ -1,0 +1,189 @@
+
+<script>
+FeatureEditor = {
+  
+  activateCss: function() {
+     editAreaLoader.init({
+			  id: "feature_css"	// id of the textarea to transform		
+			  ,start_highlight: true	// if start with highlight
+			  ,allow_toggle: false
+  	    ,allow_resize: "y"
+			  ,language: "en"
+			  ,syntax: "css"	
+			  ,change_callback: "FeatureEditor.fileChange"
+		  });
+    FeatureEditor.activateCss = function() {};
+  },
+		
+	fileChange: function(id) {
+    FeatureEditor.saveData();
+	  var params = Form.serialize('feature_form');
+	  new Ajax.Request("<%= url_for :action => 'feature_styles', :path => @feature.id ?  [ @feature.id ] : [] %>",{ parameters: params });
+	},  
+		
+	saveData: function() {
+    $("feature_body").value = editAreaLoader.getValue("feature_body");
+    $("feature_css").value = editAreaLoader.getValue("feature_css");
+	},
+
+versionWarning: <%= @feature.current_version_id ? true : false %>,
+
+  saveChanges: function(extra_params) {
+    $('save_notice').hide();
+    
+    if(FeatureEditor.versionWarning && 
+       !confirm("<%= jh "You are currently editing a previous version of this feature, saving these changes will make them live, continue?".t %>")) {
+     return false;
+    }
+    
+  
+    FeatureEditor.saveData();
+    var params = Form.serialize('feature_form');
+    if(extra_params) { params += "&" + extra_params };
+    $('saving').innerHTML = "<%= jh "Saving Changes...".t %>";
+    $('saving').appear();
+   
+    new Ajax.Request(FeatureEditor.featureUrl,{ parameters: params });
+  },
+  
+  featureUrl: "<%= url_for :action => 'save_feature' , :path => @feature.id ?  [ @feature.id ] : [] %>",
+  
+  saveAndReturn: function(extra_params) {
+    FeatureEditor.saveChanges("return=1&" + extra_params);
+  },
+  
+	loadVersion: function(version_id) {
+		  if(confirm('<%= jh "Load a previous version of this feature?".t %>')) {
+  		  document.location = '<%= @reload_url %>version=' + version_id;
+  		}
+		}  
+
+}
+
+
+TemplateEdit = {
+	selectStyle: function(line) {
+      editAreaLoader.execCommand('feature_css','go_to_line',"" + line);
+	}
+  
+}
+
+hljs.initHighlightingOnLoad();
+
+
+</script>
+
+<div align='right' id='feature_versions'>
+  <%= render :partial => 'feature_versions' %>
+</div>
+
+<form action='' onsubmit='FeatureEditor.saveChanges(); return false;' method='post' id='feature_form'>
+<input type='hidden' name='feature[feature_type]' value='<%= @feature.feature_type %>' />
+<div id='save_notice' class='flash_notice' style='display:none;'>
+</div>
+<div id='ignore_xml' style='display:none; text-align:center;'>
+<label for='ignore_xml_errors'>
+  <input type='checkbox' name='ignore_xml_errors' id='ignore_xml_errors' value='1'  /> <%= "Ignore XML Validation Errors (This is necessary for some advanced features)".t %>
+</label>
+</div>
+<% ajax_tabs ['Options','Feature',['CSS','FeatureEditor.activateCss();']],  'Feature' do |t| -%>
+  <% t.tab do  -%>
+   <div class='admin_content' id='feature_options'>
+      <% admin_fields_for :feature, @feature do |f| -%>
+         <%= f.text_field :name, :size => 30 %>
+         <%= f.text_field :category, :size => 30 %>
+         <%= f.text_field :description,:size => 80 %>
+         <%= f.custom_field :feature_type, :value => @feature.feature_type %>
+         <%= f.select :site_template_id, [['--Available in all Site Templates--',nil]] + SiteTemplate.site_template_options %>
+         <%= f.filemanager_folder :image_folder_id,:description => 'Overrides site template folder (if a site template is selected)' %>
+      <% end -%>
+   </div>
+  <% end -%>
+
+  <% t.tab do  -%>
+      <div id='show_default_feature'>
+        <a href='javascript:void(0);' onclick='SCMS.showHide("default_feature","show_default_feature");'><%= "Show Default Feature".t %></a>
+        <% if @doc -%>
+          | <a href='javascript:void(0);' onclick="Element.toggle('feature_documentation');"><%= "Toggle Available Tags".t %></a>
+        <% else -%>
+          | No Automatic Feature Documentation
+        <% end -%>
+      </div>
+      <div id='default_feature' style='display:none;'>
+        <a href='javascript:void(0);' onclick='SCMS.showHide("default_feature","show_default_feature",true);'><%= "Hide Default Feature".t %></a>
+        <% if @doc -%>
+          | <a href='javascript:void(0);' onclick="Element.toggle('feature_documentation');"><%= "Toggle Available Tags".t %></a>
+        <% else -%>
+          | No Automatic Feature Documentation
+        <% end -%>
+ <div class='admin_content' >
+<pre><code>
+<%= h @default_feature %>
+</code></pre>
+      </div>
+      </div>  
+      <table width='100%'>
+      <tr>
+        <td width='100%'>
+            <textarea id='feature_body' style='height:450px; width:100%;' name='feature[body]'><%= h @feature.body %></textarea>
+            <script>
+              editAreaLoader.init({
+			          id: "feature_body"	// id of the textarea to transform		
+			          ,start_highlight: true	// if start with highlight
+			          ,allow_resize: "no"
+			          ,min_height: 450
+			          ,allow_toggle: true
+			          ,language: "en"
+			          ,syntax: "html"	
+			          ,show_line_colors: false
+		          });
+
+            </script>
+        </td>
+        <td nowrap='1'>
+          <% if @doc -%>
+          <div id='feature_documentation' class='style_display' style='display:none; width:400px;'>
+          <% @doc.each do |tg| -%>          
+          <div class='template_style'>
+            <%= "&nbsp;&nbsp;" * (tg[1].split(":").length) %>&lt;cms:<%= tg[1] %>&gt; - <%= tg[0].humanize %><br/>
+          </div>
+          <% end -%>
+          </div>
+          <% end -%>
+        </td>
+      </tr>
+      </table>
+     
+  <% end -%>
+  
+  <% t.tab do -%>
+      <table width='100%'>
+      <tr>
+        <td width='100%'>
+          <textarea id='feature_css' style='height:450px; width:100%;' name='feature[css]'><%= h @feature.css %></textarea>
+        </td>
+        <td>    
+          <div class='style_display' id='styles_display'>
+            <%= render :partial => 'style_selector', :locals => { :styles => @style_details, :default_styles => display_style(@default_design_styles) } %>
+          </div>
+        </td>
+      </tr>
+      </table>
+  <% end -%>
+
+
+<% end -%>
+
+<br/>
+<div style='width:400px; text-align:right;'>
+  <span id='saving' style='display:none;'>Saving Changes...</span>
+<% if @paragraph_index -%>  
+  <button class="submit_button" onclick='FeatureEditor.saveChanges("para_index=<%= @paragraph_index %>"); return false;'><%= "Update Paragraph".t %></button>
+  <button class="submit_button" onclick='window.close();  return false;'><%= "Close Feature".t %></button>
+<% else -%>
+  <button class="submit_button" onclick='FeatureEditor.saveChanges();  return false;'><%= "Save Changes".t %></button>
+  <button class="submit_button" onclick='FeatureEditor.saveAndReturn(); return false;'><%= "Save &amp; Return".t %></button>
+<% end -%>
+</div>
+
+</form>

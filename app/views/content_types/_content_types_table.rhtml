@@ -1,0 +1,14 @@
+<% active_table_for :content_types_table, @tbl do |t| -%>
+<tr <%= highlight_row 'content_type',t.id %>>
+  <td><%= entry_checkbox 'content_type',t.id %></td>
+  <td><%= link_to v(t.content_name), :action => 'edit', :path => [ t.id ] %></td>
+  <% if t.editable? -%>
+    <td><%= link_to v(t.list_site_node.node_path), t.list_site_node.node_path if t.list_site_node %></td>
+    <td><%= v(t.detail_site_node.node_path) if t.detail_site_node %></td>
+  <% else -%>
+    <td align='center' colspan='2'><%= "System Content Type".t %></td>
+  <% end -%>
+  <td><%= t.search_results? ? 'Yes' : 'No' %>
+  <td><%= v t.created_at.localize(DEFAULT_DATETIME_FORMAT.t) %></td>
+</tr>
+<% end -%>

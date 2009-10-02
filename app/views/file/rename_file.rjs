@@ -1,0 +1,20 @@
+
+
+if @df 
+  page.replace_html :file_manager_body, :partial => details_partial(@df), :locals => {:file => @df }
+
+  if !@invalid_filename
+    page << "if($('item_#{@df.id}')) {"
+      page.replace "item_#{@df.id}", :partial => '/file/file_item', :locals => { :file => @df }
+    page << "}" 
+    
+    page << <<-EOF
+     if($('node_title_#{@df.id}'))
+              $('node_title_#{@df.id}').innerHTML =  "#{jh @df.name}";
+EOF
+
+    page << 'FileEditor.recreateDragAndDroppables();'
+  end  
+else
+  page.replace_html :file_manager_body, :inline => 'File Not Found'
+end

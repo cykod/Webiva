@@ -1,0 +1,51 @@
+<div class='cms_form'>
+<h3><%= "Page Connections".t %></h3>
+<p>
+<%= h "Use the select boxes below to connect the inputs of paragraphs to the outputs of other paragraphs.".t %>
+</p>
+<br/>
+<form method='post' id='cms_page_connections' onsubmit='cmsEdit.updatePageConnections(); return false;'>
+<table>
+<% @inputs.each do |para| %>
+<tr>
+  <td><%= para[:info][:name].t %>: <%= (para[:input][0]||[])[1].to_s %> </td>
+  <td>
+        <% select_options = capture do %>
+          <% para[:input].each do |inp| %>
+            <% if @outputs[inp[2]] %>
+              <% options = capture do %>
+                <% @outputs[inp[2]].each do |output| %>
+                  <% if output[0] != para[:paragraph_id] %>
+                    <option <%= "selected='selected'" if para[:selected] == "#{output[0]}_#{output[2]}" %> value='<%= "#{output[0]}|#{output[2]}|#{inp[0]}" %>'><%= inp[1].t %> - <%= output[1].t %> - <%= output[3].t %></option>
+                  <% end -%>                
+                <% end -%>
+              <% end -%>
+              <% if !options.strip.empty? %>
+                <optgroup label='<%= vh inp[1].t %>'>
+                  <%= options %>
+                </optgroup>
+              <% end -%>
+            
+            <% end -%>
+          <% end -%>
+        <% end -%>
+      <% if !select_options.strip.empty? %>
+      <select name='inputs[<%= para[:paragraph_id] %>][<%= para[:input_key] %>]'>
+        <option <%= "selected='selected'" if para[:selected].blank? %> value=''><%= "--Select Page Connection--".t %></option>
+        <%= select_options %>
+      </select>
+     <% else %>
+      <%= "No Compatible Outputs".t %>
+     <% end -%>
+      
+   </tr>
+</tr>
+<% end -%>
+</table>
+</form>
+<div align='left'>
+  <a href='javascript:void(0);' class='cms_ajax_link' onclick='cmsEdit.closePageConnections();'><%= "Update &amp; Close".t %></a>
+  <a href='javascript:void(0);' class='cms_ajax_link' onclick='cmsEdit.closeBox();'><%= "Cancel".t %></a>
+</div>
+
+</div>

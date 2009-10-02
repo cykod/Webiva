@@ -1,0 +1,69 @@
+<div class='cms_form'>
+<h3><%= "Edit Registration Options".t %></h3>
+
+
+<% cms_form_for :register, @options, 
+          :html => { :id => 'register_form',
+                     :style => 'height:450px; width:650px; overflow:auto;',
+                     :onsubmit => "cmsEdit.submitParagraphData(this,'#{url_for :action => 'register'}',#{@paragraph.id},#{@paragraph_index}); return false;"
+                   }  do |f| -%>
+<tr>
+  <td colspan='2'>                  
+<% ajax_tabs ['Configuration','Fields','Site Policy','Display','Actions'], 'Configuration' do |t| %>
+<% t.tab do %>
+<table>
+  <%= f.select :user_class_id, UserClass.options, :label => 'User Profile after Registration' %>
+  <%= f.select :modify_profile, [ ['Modify Profile of Existing Users'.t,'modify' ], ['Do not change profile of existing users'.t,'keep' ]] %>
+  <%= f.radio_buttons :registration_type, [ ['Member Registration (Password)'.t, 'login' ], ['Information Registration  (No Password)'.t, 'info' ] ], :separator => '<br/>' %>
+  <%= f.radio_buttons :clear_info, [['No','n'],['Yes','y']], :label => 'Clear Existing Info' %>
+  <%= f.select :success_page, @pages %>
+  <%= f.select :already_registered_redirect, @pages %>
+  <%= f.text_field :add_tags, :label => 'Add Tags on Registration' %>
+  <%= f.select :content_publication, @content_publications, :label => 'Include Publication' %>
+  <%= f.select :registration_template, [['Do not send an email'.t, nil ]] + MailTemplate.find_select_options(:all,:order => 'name'), :label => 'Registration Email Template' %>
+  <%= f.select :include_subscriptions, @subscriptions,{},:multiple => true, :size => 5, :valign => 'top' %>
+
+</table>
+<% end -%>
+<% t.tab do -%>
+<table>
+    <%= f.radio_buttons :address_type, [ ['United States','us' ] ,[ 'European','european' ], ] %>
+    <%= f.select :country, [['Show Country Selection'.t,'']] + f.translated_countries_for_select( [ 'United States' ] ) %>
+
+  <% @fields.each do |fld| %>
+
+    <%= f.radio_buttons fld, @field_options, :label => fld.humanize %>
+  <% end -%>  
+</table>
+<% end -%>
+<% t.tab do -%>
+<table>
+  <%= f.radio_buttons :site_policy, [ ['Display', 'display' ], ['Do not Display', 'off' ]], :onclick => '$("register_policy_text").disabled =
+ $("register_site_policy_off").checked;' %>
+  <%= f.text_area :policy_text, :cols => 50, :rows => 25, :disabled => @options.site_policy == 'display' ? false : true %>
+</table>
+<% end -%>
+<% t.tab do -%>
+<table>
+  <%= f.text_field :registration_button, :label => 'Registration Button Label' %>
+  <%= f.radio_buttons :form_display, [ [ 'Standard', 'normal' ], ['Vertical', 'vertical']]  %>
+</table>
+<% end -%>
+<% t.tab do -%>
+<div id='cms_triggered_actions'>
+  <%= render :partial => '/editor/includes/actions' %>
+</div>
+<% end -%>
+
+<% end -%>
+
+<% end -%>
+
+</td>
+</tr>
+</table>
+
+<hr/>
+<a class='cms_ajax_link' href='javascript:void(0);' onclick="$('register_form').onsubmit();"><%= "Update &amp; Close".t %></a>
+<a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.closeBox();'><%= "Cancel".t %></a>
+</div>

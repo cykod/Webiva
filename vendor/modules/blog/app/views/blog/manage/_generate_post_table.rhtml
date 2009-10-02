@@ -1,0 +1,9 @@
+<% active_table_for :generate_post_table, @tbl do |t| -%>
+<tr <%= highlight_row 'post',t.id %> >
+  <td><button onclick='BlogGenerator.addPost(<%= t.id %>); return false;'>Add Post</button></td>
+  <td><%= t.blog_blog ? v(t.blog_blog.name) : '' %></td>
+  <td><%= t.active_revision.title %></td>
+  <td align='center'><%= t.published_at ? t.published_at.localize(DEFAULT_DATETIME_FORMAT.t) : '-' %></td>
+  <td align='center'><%= t.updated_at ? t.updated_at.localize(DEFAULT_DATETIME_FORMAT.t) : '-' %></td>
+</tr>
+<% end -%>

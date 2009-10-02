@@ -1,0 +1,136 @@
+<script>
+  PostEditor = {
+      createCategory: function() {
+        params = { name: $('new_category').value };
+        if($('new_category').value != '') {
+          $('new_category').value = '';
+          
+          new Ajax.Updater('post_categories',
+                          '<%= url_for :action => "add_category", :path => @blog.id %>',
+                          { parameters: params, insertion: Insertion.Bottom, evalScripts: true  } );
+  
+        }
+      },
+
+      updateStatus: function() {
+          $('entry_update_published_at').disabled = !$('entry_status_post_date').checked;
+      },
+      
+      selectTags: function() {
+        SCMS.remoteOverlay("<%= url_for :action => 'add_tags' %>", { existing_tags: $('entry_tags').value } );
+      },
+      
+     addTagInPopup: function(tag_name) {
+        var cur_tags =  $('tags_field').value;
+        
+        tag_name = tag_name.strip();
+        
+        var tag_arr = cur_tags.split(",");
+        var tag_exists = false;
+        var cur_tags = [];
+        
+        tag_arr.each(function(tag) {
+          tag = tag.strip();
+          if(tag != '') {
+            if(tag_name == tag)
+              tag_exists = true;
+            cur_tags.push(tag);
+          }
+        });
+        
+        if(!tag_exists) {
+          cur_tags.push(tag_name);
+        }
+        else {
+          alert(tag_name + ' <%= jh "tag already present".t %>');
+        }
+        
+        $('tags_field').value = cur_tags.join(", ");
+      },
+
+      addTagsSubmit: function(tags) {
+        
+        var tag_arr = (tags + "," + $('entry_tags').value).split(",");
+        var cur_tags = [];
+        
+        tag_arr.each(function(tag) {
+          tag = tag.strip();
+          if(tag != '') {
+            if(cur_tags.indexOf(tag) == -1)
+              cur_tags.push(tag);
+          }
+        
+        });
+        
+        $('entry_tags').value = cur_tags.join(", ");
+      
+      }
+
+  };
+</script>
+<div class='admin_content'>
+<%= form_tag('',:method => 'post', :class => 'admin_form full_page_form') %>
+<table width='100%'>
+<tr>
+  <td valign='top'>
+  <table width='100%'>
+  <% cms_subfields_for :revision, @revision do |f| %>
+    <%= f.text_field :title, :vertical => true, :required => true, :style=>'width:100%' %>
+    <% cms_subfields_for :entry, @entry do |t| %>
+      <%= f.filemanager_image :domain_file_id, :vertical => true, :label => 'Post Image (Optional)' %>
+      <%= t.text_field :permalink, :label => 'Permalink (Leave blank to have one created for you)', :vertical => true, :style => 'width:100%;', :noun => 'Permalink' %>
+    <% end -%>
+    <%= f.text_field :author, :vertical => true, :required => true, :style=>'width:100%' %>
+    <%= f.editor_area :body, :vertical => true, :required => true, :rows => 35, :style=>'width:100%'%>
+    <%= f.header "Additional Fields" %>
+    <%= f.text_field :preview_title, :vertical => true, :size => 80, :label => 'Preview Title (Optional)' %>
+    <%= f.editor_area :preview, :vertical => true, :rows => 12, :label => 'Preview (Optional)' %>
+    <%= f.text_field :keywords, :vertical => true, :style=>'width:100%' %>
+    <%= f.filemanager_file :media_file_id, :vertical => true, :label => 'Local Media (.mp3 or .flv file)' %>
+    <%= f.text_field :embedded_media, :vertical => true, :label => 'Embedded Media (Paste entire <object ...> block)', :style => 'width:100%' %>
+    <%= f.submit_tag @entry.id ? 'Update Entry' : 'Create Entry' %>
+  <% end -%>
+  </table>
+  </td>
+  <td nowrap='1' width='200' valign='top' style='padding-left:20px;'>
+
+    <div class='sidebar_header'>
+      Categories
+    </div>
+    <div class='sidebar_group'>
+      <input type='text' name='new_category' id='new_category' onkeypress='if(SCMS.isEnter(event)) { PostEditor.createCategory(); return false; } else { return true; }' size='15'><input type='button' value='New' onclick='PostEditor.createCategory();' />
+      <hr/>
+    <div id='post_categories'>
+        <% @categories.each do |category| -%>
+<label for='category_<%= category.id %>'><input type='checkbox' id='category_<%= category.id %>' name='categories[]' value='<%= category.id %>' <%= 'checked="checked"' if @selected_category_ids.include?(category.id)  %> /><%= h category.name %></label><br/>
+       <% end -%>
+    </div>
+   </div>
+
+    <div class='sidebar_header'>
+        Tags
+    </div>
+    <div class='sidebar_group'>
+      <textarea name='entry[tag_names]' id='entry_tags' style='width:200px; height:100px;'><%= h @entry.tag_names %></textarea><br/>
+      <button onclick='PostEditor.selectTags(); return false;'>Select Tags</button>
+
+    </div>
+    
+    <div class='sidebar_header'>
+        Publication Status
+    </div>
+    <div class='sidebar_group'>
+    <label for='entry_status_draft'><input onclick='PostEditor.updateStatus();' id='entry_status_draft' name='update_entry[status]' value='draft' <%= "checked='checked'" if @entry.status == 'draft' %> type='radio'><%= "Draft".t %><br/>
+    <label for='entry_status_published'><input onclick='PostEditor.updateStatus();' id='entry_status_published' name='update_entry[status]' value='publish_now' <%= "checked='checked'" if @entry.status == 'published' && @entry.published_at  && @entry.published_at < Time.now %> type='radio'><%= "Published".t  %><br/>
+    <label for='entry_status_post_date'><input onclick='PostEditor.updateStatus();' id='entry_status_post_date' name='update_entry[status]' value='post_date' type='radio'  <%= "checked='checked'" if @entry.status == 'published' && ( !@entry.published_at  || @entry.published_at > Time.now ) %> type='radio'><%= "Post Date".t  %><br/>
+    <% cms_subfields_for :entry_update, @entry do |t| %>
+     <table><%= t.datetime_field :published_at, :label => '', :blank => true, :disabled => !(@entry.status == 'published' && ( !@entry.published_at  || @entry.published_at > Time.now ) ) %></table>
+    <% end -%>
+    </div>
+
+  </td>
+</table>
+
+
+
+</div>

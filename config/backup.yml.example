@@ -1,0 +1,7 @@
+server:
+  type: ftp
+  host: full.hostname.com
+  username: user
+  password: password
+  directory: /webiva
+  limit: 10

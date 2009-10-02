@@ -1,0 +1,43 @@
+<div   id='elem_field_<%= field_index %>' onmouseover='SCMS.highlightRow(this);'  onmouseout='SCMS.lowlightRow(this);'  style='padding:5px;'>
+<a href='javascript:void(0);' onmousedown='PublicationEditor.closeOptions(<%= field_index %>);' class='handle' id='handle_<%= field_index %>' style='cursor:move;'><%= "Drag".t %></a> |
+<a href='javascript:void(0);' onclick='PublicationEditor.toggleOptions(<%= field_index %>);'><%= "Options".t %></a> |
+<a href='javascript:void(0);' onclick='PublicationEditor.deleteField(<%= field_index %>,"<%= fld.id %>");'><%= "Del".t %></a>
+ &nbsp;&nbsp; <%= h fld.content_model_field_id < 0 ? @extra_fields[fld.content_model_field_id]  : fld.content_model_field.name %> (<span id='field_type_<%= field_index %>'><%= fld.field_type_display %></span>)
+ <div id='options_<%= field_index %>' style='<%= "display:none;" if fld.id %> border:1px solid #000000; padding:10px; margin-top:5px;' >
+ <form class='field_form' id='field_options_<%= field_index %>' onsubmit='PublicationEditor.closeOptions(<%= field_index %>); return false;'>
+    <input type='hidden' name='field[<%= field_index %>][content_field_id]' value='<%= fld.content_model_field_id %>' />
+    <input type='hidden' name='field[<%= field_index %>][id]' id='field_id_<%= field_index %>'  value='<%= fld.id %>' />
+  <% cms_fields_for "field[#{field_index}]", fld do |f| %>
+    <tbody>
+    <%= f.select :field_type, @publication.field_type_options, {}, { :onchange => "PublicationEditor.changeFieldType(#{field_index})" } %>
+    </tbody>
+    <tbody id='label_<%= field_index %>' <%= "style='display:none;'" unless %w(input value format).include?(fld.field_type) %> >
+      <%= f.text_field :label %>
+    </tbody>
+    <% cms_subfields_for "field[#{field_index}]", fld.field_options do |sf| %>
+      <% @publication.custom_field_types.each do |cust_field| -%>
+      <tbody id='<%= cust_field[0] %>_<%= field_index %>' <%= "style='display:none;'" unless fld.field_type == cust_field[0] %> >
+        <%= render :partial => cust_field[1], :locals => { :f => sf, :field_index => field_index, :field => fld } %>
+      </tbody>
+      <% end -%>
+    
+      <tbody id='format_<%= field_index %>' <%= "style='display:none;'" unless %w(format).include?(fld.field_type) %> >
+          <%= sf.text_field :field_format %>
+      </tbody>
+      <% if fld.content_model_field_id > 0 %>
+      <tbody id='preset_<%= field_index %>' <%= "style='display:none;'" unless %w(preset).include?(fld.field_type) %> >
+            <%= fld.content_model_field.form_field(sf, :label => 'Preset', :field => :preset, :editor => true ) %>
+      </tbody>
+      <tbody id='dynamic_<%= field_index %>' <%= "style='display:none;'" unless %w(dynamic).include?(fld.field_type) %> > 
+            <%= sf.select :dynamic, [ [ '--Select a Dynamic Value--'.t,'' ]] + fld.available_dynamic_field_options %>
+      </tbody>
+      <tbody>
+        <%= fld.field_options_form_elements(sf) %>
+      </tbody>
+      <% end -%>
+        
+    <% end -%>
+  <% end -%>
+  </form>
+ </div>
+</div>

@@ -1,0 +1,134 @@
+<script>
+
+  MemberEditor = {
+    
+    
+    viewTag: function(tag_name) {
+      MemberEditor.updateSegment('tag=' + encodeURIComponent(tag_name));
+    },
+    
+    clearTag: function(tag_name) {
+      MemberEditor.updateSegment('remove_tag=' + encodeURIComponent(tag_name));
+    },
+
+    addTags: function() {
+      SCMS.remoteOverlay("<%= url_for :action => 'add_tags_form' %>");
+    },
+
+    removeTags: function() {
+      var user_ids = [];
+      var elements = $('email_targets_table_update_form').getInputs();
+      elements.each(function(elem) {
+        if(elem.type == 'checkbox' && elem.className == 'entry_checkbox') {
+          if(elem.checked)
+              user_ids.push("user_ids[]=" + encodeURIComponent(elem.value));
+        }
+      });
+
+      SCMS.remoteOverlay("<%= url_for :action => 'remove_tags_form' %>?" + user_ids.join("&") );
+    },
+
+   addTagInPopup: function(tag_name) {
+    var cur_tags =  $('tags_field').value;
+    
+    tag_name = tag_name.strip();
+    
+    var tag_arr = cur_tags.split(",");
+    var tag_exists = false;
+    var cur_tags = []
+    
+    tag_arr.each(function(tag) {
+      tag = tag.strip();
+      if(tag != '') {
+	if(tag_name == tag)
+	  tag_exists = true;
+	cur_tags.push(tag);
+      }
+    });
+    
+    if(!tag_exists) {
+      cur_tags.push(tag_name);
+    }
+    else {
+      alert(tag_name + ' <%= jh "tag already present".t %>');
+    }
+    
+    $('tags_field').value = cur_tags.join(", ");
+  },
+    addTagsSubmit: function(tags_to_add) {
+      this.tableAction('add_tags',"added_tags=" + encodeURIComponent(tags_to_add));
+    },
+
+    removeTagsSubmit: function(tags_to_remove) {
+      this.tableAction('remove_tags',"removed_tags=" + encodeURIComponent(tags_to_remove));
+    },
+
+
+    loadSegmentation: function(segment_id) {
+      $('save_segment_name').disabled = true;
+      $('submit_segment_butt').disabled = true;
+      this.updateSegment('segment_action=1&load_segment=' + segment_id)
+    },
+    
+    saveSegmentation: function(save_as) {
+      $('save_segment_name').disabled = true;
+      $('submit_segment_butt').disabled = true;
+      this.updateSegment("segment_action=1&save_segment=" + encodeURIComponent(save_as));
+    },
+    
+    deleteSegmentation: function(segment_id) {
+      if(confirm("<%= jh 'Are you sure you want to delete this segmentation?' %>")) {
+        MemberEditor.updateSegment('segment_action=1&delete_segment=' + segment_id);
+      }
+      
+    },
+
+    updateSegment: function(params) {
+
+      ActiveTable.refresh("email_targets_table","<%= url_for :action => 'display_targets_table' %>",'targets_table',params);
+    },
+
+    tableAction: function(action,params) {
+      ActiveTable.action(action,null,"email_targets_table","<%= url_for :action => 'display_targets_table' %>",'targets_table',params);
+    }
+    
+  
+  }
+</script>
+
+<% action_panel :handler => 'members' do |p| -%>
+  <%= p.link "Add a user",:icon => 'add.gif', :action => 'create' %>
+  <%= p.link "Import Email Targets",:icon => 'upload.gif', :controller => :member_import %>
+  <%= p.link "Download Visible Targets",:icon => 'download.gif', :controller => :member_export %>
+  <%= p.link "Tag List", :icon => 'show.gif', :action => 'tags' %>
+  <%= p.link "Access Tokens", :icon => 'access.gif', :controller => '/access_token' if myself.has_role?('editor_access_tokens') %>
+<% end -%>
+
+<hr/>
+
+<div style='height:auto !important; height:70px; min-height:70px;'>
+<% ajax_tabs [ 'Tags','Segmentations'], 'Tags' do |t| %>
+  <% t.tab do -%>
+    <div id='tags_list'>
+    <%= render :partial => 'tags' %>
+    </div>
+  <% end -%>
+  <% t.tab do  -%>
+    <div id='segmentations_tab'>
+    <%= render :partial => 'segmentations' %>
+    </div>
+  <% end -%>
+<% end -%>
+</div>
+<hr/>
+<div class='admin_content'>
+
+<script>
+  <%= active_table_javascript %>
+</script>
+<div id='targets_table'>
+  <%= render :partial => 'targets_table' %>
+</div>  
+
+
+</div>

@@ -1,0 +1,26 @@
+<% @branch_idx += 1 %>
+
+<a href='javascript:void(0);' onclick='IssueEditor.toggleBranch(<%= @branch_idx %>);'>- 
+<% if level == 0 %>
+  <b><%= branch[0] %> </b>
+<% else %>
+  /<%= branch[0] %> 
+<% end -%>
+</a>[ <%= branch[1][:issue_cnt] %> ]<br/>
+<div id='branch_<%= @branch_idx %>' style='padding-left:10px;' class='branch'>
+
+<% if branch[1][:issues].length > 0 %>
+<div style='padding-left:10px;'>
+  <% branch[1][:issues].each do |issue| %>
+    <%= render :partial => 'issue', :locals => { :issue => issue } %>
+  <% end -%>
+
+</div>
+<% end -%>
+<div >
+  <% branch[1][:branches].to_a.sort.each do |subbranch| %>
+    <%= render :partial => 'branch', :locals => { :branch => subbranch, :level => level + 1 } %>
+  <% end -%>
+</div>
+
+</div>

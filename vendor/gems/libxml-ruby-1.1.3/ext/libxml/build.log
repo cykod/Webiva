@@ -1,0 +1,4 @@
+rake aborted!
+No Rakefile found (looking for: build.rake)
+c:/Development/ruby/lib/ruby/gems/1.8/gems/rake-0.8.3/lib/rake.rb:2343:in `raw_load_rakefile'
+(See full trace by running task with --trace)

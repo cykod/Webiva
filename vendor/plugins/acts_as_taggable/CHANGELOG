@@ -1,0 +1,24 @@
+2.0.2
+    Updated README
+    First release with PostgreSQL compatability (Need feedback)
+    FEATURE: added tagged_with_all? tagged_with_any?
+    FEATURE: added :sort_list option to the tags_counts method - allows you to pass a Proc and get back an ordered list
+    FEATURE: Overhauled the Unit Test suite to make it easier to run
+    BUGFIX: Fixed escaping in find_related_tags
+    BUGFIX: Fixed problem with :limit and find_related_tags being off by 1
+    BUGFIX: Fixed table alias in find_related_tagged
+2.0.1
+    FEATURE: Source code now available via Subversion
+    BUGFIX: Typo fix in find_related_tags
+    SECURITY BUGFIX: Added sanitizer to all tag searching to prevent SQL injection
+    
+2.0
+    FEATURE:Added in count_uniq_tagged with - (Patch by Lon Baker)
+    BUGFIX: Fixed typos - (Patch Blair Zajac)
+    FEATURE: clear_tags - clears all tags
+    FEATURE: remove_tag - removes 1 or more tags
+    FEATURE: replace_tag - replaces 1 or more tags with one or more tags
+    BUGFIX: join table now follows the rails convention
+    FEATURE: :tag_class_column_name - allows overriding of the tag name column (Patch Sam Joseph)
+    FEATURE: find_related_tagged now supports :conditions
+    FEATURE: :normalizer - allows the system to standardize the case for all tags - controlled by a Proc you provide

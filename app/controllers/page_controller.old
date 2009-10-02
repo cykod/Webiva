@@ -1,0 +1,186 @@
+require 'singleton' 
+
+class PageController < ModuleAppController
+  skip_before_filter :context_translate_before
+  skip_after_filter :context_translate_after
+  skip_before_filter :check_ssl
+  
+  skip_before_filter :validate_module
+  
+  helper :paragraph
+  helper :content
+
+  layout nil
+  
+  class PageMissingException < RuntimeError
+    def initialize(path)
+      @path = path
+    end
+  
+  end
+  
+  def view
+    session[:cms_language] = params[:language] if Configuration.languages.include?(params[:language])
+    index
+  end
+  
+  def get_error_page
+    
+  end
+  
+  include SiteNodeEngine::Controller
+  def paragraph
+    
+    revision = PageRevision.find(params[:page_revision],:conditions => ['active=1 AND revision_type="real" AND revision_container_id=?',params[:site_node]])
+    container = revision.revision_container
+    para = revision.page_paragraphs.find(params[:paragraph])
+    
+    engine = SiteNodeEngine.new(container,:display => session[:cms_language], :path => [])
+    
+    @result = engine.run_paragraph(para,self,myself)
+    
+    if @result
+      render :text => render_paragraph(container.is_a?(SiteNode) ? container : container.site_node, revision, @result)
+    else
+      render :nothing => true
+    end
+  end
+  
+  def index
+  
+  
+  
+    if params[:path][0] == 'system' 
+      redirect_to "/images/spacer.gif"
+      return 
+    else
+      @page,path_args = find_page_from_path(params[:path])
+      @path =  params[:path].join("/")
+    end
+    
+    
+    set_language
+    
+    
+    @page = get_error_page unless @page
+    
+    params[:full_path] = params[:path]
+    params[:path] = path_args
+    
+    
+    @partial_page = params[:cms_partial_page]
+    
+    # if we made it here - need to jump over to the application
+    get_handlers(:page,:before_request).each do |req|
+      cls = req[0].constantize.new(self)
+      return if(!cls.before_request)
+    end
+    
+    engine = SiteNodeEngine.new(@page,:display => session[:cms_language], :path => path_args)
+    begin 
+      @output = engine.run(self,myself)
+    rescue SiteNodeEngine::NoActiveVersionException => e
+      display_missing_page
+      return 
+    end
+    
+    @google_analytics = Configuration.google_analytics
+    
+    if Configuration.logging
+        # log the paragraph action if there is one
+        if @output.paction
+          paction = @output.paction
+          paction_data = @output.paction_data
+      	end
+      	
+#      	if !session[:user_agent]
+#          user_agent = request.user_agent.downcase
+#      	  # find or create a user agent record
+#      	  session[:user_agent_bot] = ['msnbot','yahoo! slurp','googlebot'].detect { |b| user_agent.include?(b) }
+
+#        	if session[:user_agent_bot]
+#        	  DomainLogBot.find_by_name(request.env['HTTP_USER_AGENT'])
+#        	end
+
+#      	end
+      	
+        user_agent = request.user_agent.to_s.downcase
+	      unless ['msnbot','yahoo! slurp','googlebot','bot','spider','crawler'].detect { |b| user_agent.include?(b) }
+          DomainLogEntry.create_entry(myself,@page,@path,request.remote_ip,session.session_id,@output.status,paction,paction_data)
+        end
+    end
+    # If it's a redirect, just redirect
+    if @output.redirect?
+        headers["Status"] = "301 Moved Permanently"
+        redirect_to(@output.redirect)
+        return 
+    # Else it's something that we have access to,
+    # need to display it
+    elsif @output.document?
+        handle_document_node(@output,@page)
+    elsif @output.page?
+    
+        set_robots!
+    
+        render :action => 'display'
+    end
+    
+  end
+  
+  hide_action :set_robots
+  def set_robots!
+    @robots = []
+    if @page.follow_links == 0
+      @robots << 'NOFOLLOW'
+    elsif @page.follow_links == 2
+      @robots << 'FOLLOW'
+    end
+      
+    if @page.index_page == 0
+      @robots << 'NOINDEX'
+    elsif @page.index_page == 2
+      @robots << 'INDEX'
+    end
+    
+    unless @page.cache_page?
+      @robots << 'NOARCHIVE'
+    end
+  end
+  
+  def display_missing_page
+    render :text => 'Missing Page', :status => 404
+  
+  end
+  
+  def set_language
+    # Setup language handling
+    domain_languages = Configuration.languages
+    
+    client_accept_language = nil
+    # Check if there is a user requested language
+    if(!session[:cms_language] && request.env['HTTP_ACCEPT_LANGUAGE']) 
+      # Check languages by order of importance
+      langs = request.env['HTTP_ACCEPT_LANGUAGE'].split(",")
+      langs.each do |lang|
+        # get just the language, ignore the locale
+        lang = lang[0..1]
+        if domain_languages.include?(lang)
+          client_accept_language = lang
+          break
+        end
+      end
+    
+    end
+    
+    
+    session[:cms_language] ||= client_accept_language || domain_languages[0]
+    
+    if(params[:set_language] && domain_languages.include?(params[:set_language]))
+      session[:cms_language] = params[:set_language]
+    end
+    
+    Locale.set(session[:cms_language])
+    
+  end
+  
+end

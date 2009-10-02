@@ -1,0 +1,45 @@
+<h1>Create Translation</h1>
+<% form_for :translation, @translation, :html => { :onsubmit =>  'cmsEditor.createTranslation(this); return false;' } do |t| -%>
+
+  <table width="90%">
+    <tr><td colspan="2">
+      <%= 'Would you like to translate this version of the page from a copy of and existing revision or from a blank page?'.t %>
+    </td></tr>
+    <tr>
+    <td>
+        <input type='radio' name='translation[trans]' id='translation_trans_copy' value='copy' checked='checked'>
+    </td>
+    <td>
+        <label for='translation_trans_copy'>
+        <%= "Create from existing revision".t %>
+        </label>
+     </td>
+     </tr>
+     <tr>
+      <td/>
+      <td align='left'><%= t.select :revision_id, @available_revisions.collect { |rev| [sprintf("%s - V %02.2f ",rev.language.capitalize,rev.revision), rev.id]  } %>
+      </td>
+     </tr>
+     <tr>
+     <td> 
+        <input type='radio' name='translation[trans]' id='translation_trans_blank' value='blank'>
+     </td>
+     <td>
+        <label for='translation_trans_blank'>
+        <%= "Create from a blank page".t %>
+        </label>
+     </td>
+     </tr>
+     <tr>
+      <td/>
+      <td align='right'>
+        <%= submit_tag 'Create' %> <%= submit_tag 'Cancel'.t, :onclick=>'hideBox(); return false;' %>
+      </td>
+     </tr>
+  </table>
+ 
+  <%= t.hidden_field :revision %>
+  <%= t.hidden_field :page_id %>
+  <%= t.hidden_field :language %>
+
+<% end -%>

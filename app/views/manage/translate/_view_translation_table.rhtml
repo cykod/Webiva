@@ -1,0 +1,32 @@
+<% active_table_for :view_translation_table, @active_table_output,
+                    :refresh_url => url_for(:action => 'view_translation_table'),
+                    :class => 'active_table',
+                    :width => '750',
+                    :actions => [ ['Update All','update'],
+                                  ['Delete','delete','Are you sure you want to delete the selected entries?' ]
+                                   ],
+                    :update => 'view_translation_table' do |tr| %>
+
+<tr <%= highlight_row 'trans',tr.id %>>
+  <td align='center'>
+      <%= entry_checkbox 'trans',tr.id %>
+  </td>
+  <td><%= tr.id %></td>
+  <td style='width:300px;'>
+    <%= tr.tr_key%>
+  </td>
+  <td align='center'>
+    <%= tr.text.blank? ? 'N'.t : 'Y'.t %>
+  </td>
+  <td>
+      <input type='hidden' name='translation_orig[<%= tr.id %>]' value='<%= h tr.text %>' />
+      <% if tr.tr_key.length > 40 || tr.text.to_s.length > 40 %>
+        <textarea   name='translation[<%= tr.id %>]' cols='40' rows='3'><%= h tr.text %></textarea>
+      <% else -%>
+        <input type='text' size='40' name='translation[<%= tr.id %>]' <%= "style='text-align:center;'" if tr.text.blank? %> value='<%= vh tr.text || @no_translation_text  %>' onclick='if(this.value == "<%= jvh @no_translation_text %>") this.value=""; this.style.textAlign="left";' onkeydown='this.style.textAlign="left";' />
+      <% end -%>
+  </td>
+  <td nowrap='1'>
+    <%= tr.updated_at.blank? ? "-" : tr.updated_at.localize(DEFAULT_DATETIME_FORMAT.t) %>
+  </td>
+<% end -%>

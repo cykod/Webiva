@@ -1,0 +1,33 @@
+page.replace_html :zone_display, :partial => 'zone_ordering'
+
+
+page << 'TemplateEdit.createZonesSortables();'
+
+unless @site_template.parent_template
+  page.replace_html :custom_fields, :partial => 'template_custom_fields'
+end
+
+if !@selected_language.empty?
+  page.replace_html :translations, :partial => 'language_translation'
+end
+
+page << "$('save_changes').disabled = false;";
+if @parsing_errors.length > 0
+  page << <<-EOF
+          
+          $('changes_saved_tag').style.color='#000000';
+          $('changes_saved_tag').innerHTML = '<b>#{jh @parsing_errors.join(", ") }. Please correct and resave.</b>';
+        EOF
+else 
+  page << <<-EOF
+          $('changes_saved_tag').style.color='#000000';
+          $('changes_saved_tag').innerHTML = '#{jh "Changes Saved".t}';
+          new Effect.Opacity('changes_saved_tag',
+                    { duration: 2.0, 
+                          from: 1.0, to: 0.0 });                
+        EOF
+
+end
+
+page.replace_html 'template_versions', :partial => 'template_versions'
+

@@ -1,0 +1,21 @@
+<div id='cms_revision_history_<%= @revision.id  %>'>
+<% @revisions.each do |rev| -%>
+<a href='javascript:void(0);' <%= (@revision.revision == rev.revision && @revision.language == rev.language)  ? "class='cms_ajax_link_selected'" : "class='cms_ajax_link'" %> onclick='cmsEdit.loadVersion(<%= rev.id %>);'><%= dec(rev.revision) %> <%= rev.language.upcase %> - <%= render :partial => 'saved_by', :locals => {:revision => rev} %> 
+<% if rev.active %> - <%= "Active".t %> <% end -%>
+</a><br/>
+<% end -%>
+<% if @version_pages > 1 %>
+<table width='100%'>
+<tr>
+  <td align='left'>
+  <% if @version_page > 0 %><a href='javascript:void(0);' onclick='new Ajax.Updater("cms_revision_history_<%= @revision.id  %>",cmsEdit.url("version_history") + "?page=<%= @version_page-1 %>");'><%= "Newer Versions".t %></a> <% end -%>
+  &nbsp;
+  </td>
+  <td align='right'>
+  &nbsp;
+  <% if @version_page < (@version_pages - 1) %><a href='javascript:void(0);' onclick='new Ajax.Updater("cms_revision_history_<%= @revision.id  %>",cmsEdit.url("version_history") + "?page=<%= @version_page+1 %>");'><%= "Older Versions".t %></a> <% end -%>
+  
+  </td>
+</table>
+<% end -%>
+</div>

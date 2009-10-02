@@ -1,0 +1,16 @@
+page.replace_html 'upload_processing_area', "Processing Finished".t
+page << "Element.show('upload_processing_area');"
+
+@files.each do |file|
+  page << "FileEditor.removeItem(#{file.id});"
+	page.insert_html :bottom, "file_manager", :partial => 'file_item', :locals => { :file => file}
+	if file.file_type == 'fld'
+		page << "setTimeout('FileEditor.refreshUploadedFolder(#{file.id},#{file.parent_id})',50);"
+		page.insert_html :bottom, "children_#{file.parent_id}", :partial => 'file_tree', :locals => { :folders => [ file ] }
+	else
+		page << "setTimeout('FileEditor.refreshUploadedFile(#{file.id},#{file.parent_id})',50);"
+	end
+	
+end
+
+page << "FileEditor.recreateDragAndDroppables();"

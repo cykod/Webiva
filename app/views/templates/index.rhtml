@@ -1,0 +1,37 @@
+<script>
+<%= active_table_javascript %>
+TemplateList = {
+	popup: function(tid,parent_id) {
+    var opts =  new Array();
+    if(!parent_id) {
+          opts.push(['Create Child Template','<%= url_for :action => "new" %>/' + tid ]);
+    }
+    opts.push(['Delete Template','js','TemplateList.deleteTemplate(' + tid + ')']);
+
+		SCMS.popup(opts);
+	},
+	
+	deleteTemplate: function(tid) {
+		if(confirm('Are you sure you want to delete this template? This template will be removed from and pages it is on.')) {
+			new Ajax.Updater('templates_table',
+							"<%= url_for :action => 'delete_template' %>/" + tid);
+		}
+	
+	}
+
+
+}
+</script>
+<% action_panel do |p| -%>
+  <%= p.link 'Add a Blank Template', :action => 'new', :icon => 'add.gif' %>
+  <%= p.link 'View Site Features',:action => 'features', :icon => 'view.gif' %>
+<% end -%>
+
+<hr/>
+
+<div class='admin_content'>
+<div id='templates_table'>
+<%= render :partial => 'templates_table' %>
+</div>
+
+</div>

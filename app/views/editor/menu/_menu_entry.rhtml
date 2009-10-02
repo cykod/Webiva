@@ -1,0 +1,20 @@
+<div class='cms_menu_item' id='cms_menu_item_<%= @item_index %>' style='padding-left: <%= level * 10 %>px' >
+
+                
+    <span class="cms_menu_handle"><img src='<%= theme_src("/images/icons/menu_entry.gif") %>' onclick='cmsMenuEdit.selectEntry(<%= @item_index %>)' align='absmiddle' /></span>
+    <span id="cms_item_title_<%= @item_index %>" class='cms_ajax_link' onclick="cmsMenuEdit.entryMenu(<%= @item_index %>)">
+        <%= item[:title] %>
+    </span>
+</div>
+<script>
+  cmsMenuEntries.push([ <%= "'#{jh(item[:title].to_s)}','#{jh(item[:dest].to_s)}','#{jh item[:url].to_s}', #{level}" %> ] );
+</script>
+<% @item_index += 1 %>
+<% if item[:menu] && item[:menu].is_a?(Array) %>
+  <% item[:menu].each do |subitem| %>
+    <%= render :partial => 'menu_entry', :locals => { :item => subitem, :level => level + 1} %>
+  <% end -%>
+<% end -%>
+
+
+

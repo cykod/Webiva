@@ -1,0 +1,13 @@
+<script>
+  <%= active_table_javascript %>
+</script>
+<% action_panel do |p| -%>
+  <%= p.link 'Add New Size', :action => 'image_size', :icon => 'add.gif' %>
+<% end -%>
+<hr/>
+<div class='admin_content'>
+  <div id='image_sizes_table'>
+    <%= render :partial => 'image_sizes_table' %>
+  </div>
+
+</div>

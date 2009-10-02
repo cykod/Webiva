@@ -1,0 +1,12 @@
+<div class='admin_content'>
+<b><%= @create_user ? 'Creating Client User'. t : 'Editing Client User'.t %></b>
+
+<% cms_form_for :client_user,@client_user, :url => { :action =>myself.has_role?('system_admin') ? 'edit_all':'edit', :path => @client_user } do |f| %>
+  <%= render :partial => 'form', :locals => { :f => f }  %>
+  <%= f.submit_tag 'Edit' %>
+<% end %>
+
+<%= link_to 'Show', :action => 'show', :path => @client_user %> |
+<%= link_to 'Back', :action => 'list' %>
+
+</div>

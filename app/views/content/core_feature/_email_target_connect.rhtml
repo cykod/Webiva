@@ -1,0 +1,19 @@
+<%= f.radio_buttons :override_content_node_user, [['Always'.t,'always'],['Only if anonymous'.t,'anonymous'],['Never'.t,'never']], 
+      :description => 'Should the user created or updated override the user for the content node?' %>
+<%= f.text_field :add_target_tags, :description => 'Tags to add on target creation', :label => 'New Target Tags' %>
+<%= f.text_field :update_target_tags, :description => 'Tags to add to all affected targets', :label => 'Target Tags' %>
+<%= f.text_field :add_target_source, :label => 'Target Source Label' %>
+
+<% @matching_fields = ContentModel.matching_fields_select_options -%>
+<%= f.custom_field :matched_fields, :value => '' %>
+<% @content_model.content_model_fields.each do |fld| -%>
+
+<tr>
+  <td class='label'><%= fld.name %></td>
+  <td class='data'>
+    <select name='<%= "#{prefix}[matched_fields][#{fld.id}]" %>'>
+      <%= options_for_select @matching_fields, options.matched_fields[fld.id] %>
+    </select>
+  </td>
+</tr>
+<% end -%>

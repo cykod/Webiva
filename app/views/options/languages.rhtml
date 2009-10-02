@@ -1,0 +1,111 @@
+<script>
+ConfigurationEditor = {
+
+	addSelectedLanguage: function() {
+	    var idx= $('add_language').selectedIndex;
+	    
+	    if(idx != 0) {
+			var option = $('add_language').options[idx];
+      
+      $('add_language').selectedIndex = 0;
+			
+      new Ajax.Updater("selected_languages",
+                       "<%= url_for :action=>'add_language' %>",
+                      { parameters: { language: option.value },
+                        onComplete: function(req) {
+                          ConfigurationEditor.createLanguageSortables();
+                          ConfigurationEditor.enableSaveChanges();
+                          ConfigurationEditor.setDisabledLanguageOption(option.value,true);
+                        },
+                        insertion: Insertion.Bottom
+                         })
+			
+		}
+	
+	},
+	
+	createLanguageSortables:function() {
+		 Sortable.create('selected_languages', 
+		 					{ 
+                tag: 'div',      
+		 						constraint: 'vertical', 
+                handle: 'handle',       
+		 						dropOnEmpty:true,
+		 						onUpdate: ConfigurationEditor.updateSortable });
+	},
+	
+	removeLanguage:function(lang) {
+    if(confirm("<%= jh 'Are you sure you want to remove this language? All translations in this language will be permanently removed.'.t %>")) { 
+      Element.remove('elem_language_' + lang);
+      ConfigurationEditor.createLanguageSortables();
+      ConfigurationEditor.enableSaveChanges();
+    }
+	},
+	
+	updateSortable:function() {
+		ConfigurationEditor.enableSaveChanges();
+	
+	},
+	
+	enableSaveChanges:function() {
+		$('save_changes').disabled = false;
+		$('save_changes').morph('color:#FFFFFF; background-color:#005acf;', {duration: 0.5});
+		$('saving_changes').style.visibility='hidden';
+	
+	},
+	
+	setDisabledLanguageOption:function(lang,disabled) {
+		$('language_option_' + lang).disabled = disabled;
+	
+	},
+	
+	saveChanges:function() {
+		$('save_changes').disabled = true;
+		$('save_changes').morph('color:#BBBBBB; background-color:#e2e2de;', {duration: 0.5});
+		$('saving_changes').innerHTML = 'Saving Changes...';
+		$('saving_changes').style.visibility='visible';
+		new Ajax.Updater('saving_changes',
+						"<%= url_for :action => 'save_language_configuration' %>",
+						{ parameters:Sortable.serialize('selected_languages') }
+						);
+						
+						
+	}
+	
+
+
+}
+
+</script>
+<div class='admin_content'>
+
+<p><%= "Please select the languages that you wish to work with. The higher a language is in the stack, the higher priority it has.".t %>
+<%= "The top language is the default language of the site.".t %> </p><br/>
+<input type='submit' id='save_changes' value='<%= "Save Changes".t %>'  disabled='true' onclick='ConfigurationEditor.saveChanges(); return false;' style='color:#BBBBBB; background-color:#e2e2de;'/>
+<span id='saving_changes' style='visibility:hidden;'>
+ <%= "Saving Changes...".t %>
+</span>
+</div>
+<hr/>
+<div class='admin_content'>
+<select id='add_language' onchange='ConfigurationEditor.addSelectedLanguage();' style='width:210px;'>
+  <option value='' selected='true'><%= "--Add Language--".t %></option>
+  <% @languages.each do |lang| -%>
+    <option <%= "disabled='true'" if @language_list.include?(lang[0]) %> id='language_option_<%= lang[0] %>' value='<%= lang[0] %>'><%= lang[1] %> - <%= lang[0].upcase %></option>
+  <% end -%>
+</select>
+<br/>
+<div id='selected_languages' style='width:250px; padding:5px;'>
+<% @selected_languages.each do |lang| -%>
+  <%= render :partial => 'language', :locals => { :lang => lang } %>
+<% end -%>
+</div>
+
+
+<script>
+
+ConfigurationEditor.createLanguageSortables();
+
+</script>
+</div>
+

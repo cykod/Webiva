@@ -1,0 +1,20 @@
+<% active_table_for :site_templates_table, @active_table_output,
+                    :refresh_url => url_for(:action => 'templates_table'),
+                    :class => 'active_table',
+                    :update => 'templates_table' do |t| %>
+<tr <%= highlight_row 'template',t.id %>>
+  <td>
+  <% if t.parent_template -%>
+      &nbsp;&nbsp;&nbsp;
+  <% end -%>
+  <a href='<%= url_for :action => 'edit', :path => t.id %>'><%= t.name || '-'%></td>
+  <td><%= t.template_type_display %></td>
+  <td >
+    <%= t.parent_template ? t.parent_template.name : 'None'.t %>
+  </td>
+  <td><%= t.description %></td> 
+  <td> <a href='javascript:void(0);' onclick='TemplateList.popup("<%= t.id %>",<%= t.parent_id || 0 %>);' ><%= theme_icon 'ball', '/images/icons/wheel.gif' %></a></td>
+</tr>
+
+
+<% end -%>

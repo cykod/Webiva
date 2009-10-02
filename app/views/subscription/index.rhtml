@@ -1,0 +1,14 @@
+<script>
+
+  <%= active_table_javascript %>
+</script>
+<% action_panel do |p| -%>
+  <%= p.link 'Create Subscription',:icon => 'add.gif', :action => 'edit' %>
+<% end -%>
+<hr/>
+
+<div class='admin_content'>
+<div id='subscription_table'>
+<%= render :partial => 'subscription_table' %>
+</div>
+</div>

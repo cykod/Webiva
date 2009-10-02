@@ -1,0 +1,18 @@
+<div class='admin_content'>
+
+<b>Are you sure you want to delete this entire blog, along with all entries and comments?</b><br/>
+<table cellspacing='10' cellpadding='10'>
+<tr>
+  <td>
+<%= form_tag('') %>
+  <input type='hidden' name='destroy' value='yes'/>
+  <input type='submit' name='kill' onclick='return confirm("<%= jvh 'Are you sure you want to PERMANTENTLY delete this blog and all associated content?' %>");'  value='<%= vh "Destroy Blog".t %>'/>
+</form>
+  </td>
+  <td>
+  <input type='button' value='<%= "Cancel".t %>' name='cancel' onclick="document.location='<%= url_for :action => 'index',:path => @blog.id %>';"/>
+
+  </td>
+</tr>
+</table>
+</div> 

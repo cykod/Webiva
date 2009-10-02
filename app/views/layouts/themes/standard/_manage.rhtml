@@ -1,0 +1,84 @@
+
+<div id='cms_container'> 
+
+<div id='cms_header'>
+  <% if myself.id %>
+
+    <% if false %>
+  <div id='cms_webiva_search'>
+    <input type='text' name='search' size='20' value='Search Webiva' onclick='this.value="";'/>
+  </div>
+    <% end -%>
+  <div id='cms_header_tools'>
+      
+      <a href='<%= url_for :controller => "/account" %>'><%= "my account".t %></a> | <a href='<%= url_for :controller => '/manage/access', :action => 'logout' %>'><%= "logout".t %></a>
+      
+  </div>
+  <% end -%>
+  <div id='cms_logo'><a href='/website'><img src='<%= WEBIVA_LOGO_FILE || theme_src("framework/logo.gif") %>'></a></div>
+  <div id='cms_menu'>
+<%  # Foreground, Background
+    @menu_colors = { 'website' => [ '#29974e', '#add4b8' ],
+                    'files_and_images' => [ '#df5323', "#d4a451" ],
+                    'content' => [ '#539424', "#c1d0a1" ],
+                    'e_marketing' => [ '#5299c4', "#d3e8ec" ],
+                    'options' => [ '#be8806', "#f3e380" ],
+                    'system' => [ '#5a514f', "#c9ccce" ],
+                    'people' => [ '#8d796a', "#d0c5a3"  ]
+                    }
+    %>
+
+      <ul class='cms_menu_list'>
+          <% @menu.each do |mnu| -%>
+              <li><a href='<%= mnu[3] %>' style='background-image:url(<%= theme_src("framework/menu_icon/#{mnu[1]}#{@cms_page_info[:section] == mnu[0] ? '_selected' : ''}.gif")  %>); color:<%= @menu_colors[mnu[0]][0] %>'><%= mnu[2].t %></a></li>
+          <% end -%>
+
+      </ul>
+  </div>
+</div>
+<div style='clear:both;'></div>
+<div id='cms_title_bar' style=' <%= "background-color:#{@menu_colors[@cms_page_info[:section]][1]}; color:#{@menu_colors[@cms_page_info[:section]][0]}" if @menu_colors[@cms_page_info[:section]] %>'>
+     <% if  @cms_page_info[:title].is_a?(Array) %>
+          <% @cms_page_info[:title].each do |item| %>
+            <% if item.is_a?(Array) && item[1] %>
+              <a style='<%= "color:#{@menu_colors[@cms_page_info[:section]][0]}" if @menu_colors[@cms_page_info[:section]] %>'  href='<%= item[1] %>'><%= h( item.length > 2 ? sprintf(item[0].t,*item[2..-1]) : item[0].t) %></a> 
+            <% else -%>
+              <% if item.is_a?(Array) %>  
+                <%= h(sprintf(item[0].t,*item[2..-1])) %>
+              <% else -%>
+                <%= h item.t %>
+              <% end -%>
+            <% end -%>
+            <%= "&gt;" unless item == @cms_page_info[:title].last %>
+          <% end -%>
+      <% else -%>
+			 <%= @cms_page_info[:title].t %>
+      <% end -%>   
+
+     <div id='cms_title_right'>
+        <% if session[:context_translation] && permit?('client_admin') %>
+          <a href='javascript:void(0);' onclick='openWindow("<%= url_for :controller => '/manage/translate', :action => 'context' %>","Win",800,600,"yes","yes");'><img src='<%= theme_src("framework/page_title_translate.gif") %>' width='32' height='32' align='absmiddle'/>
+          </a>
+        <% end -%>
+        <% if @cms_page_info[:menu_js] %>
+        <a href='javascript:void(0);' onclick='<%= @cms_page_info[:menu_js] %>'><img src='<%= theme_src("framework/page_title_menu_icon.gif")%>' width='28' height='29'  align='absmiddle' /></a>
+        <% end -%>
+      </div>
+      
+</div>
+
+<div id='cms_main_body'>
+  <% if flash[:notice] %>
+      <div id='flash_notice' class='flash_notice'>
+        <div><%= flash[:notice] %> <a href='javascript:void(0);' onclick="new Effect.Fade('flash_notice', { duration: 0.5 });">(Close Notice)</a></div>
+      </div>
+  <% end -%>
+  <%= render :partial => '/layouts/wizard_top' if @wizard %>
+    <div id='cms_<%=@cms_page_info[:section]%>_content'>
+    <%= yield %>
+    </div>
+  <%= render :partial => '/layouts/wizard_bottom' if @wizard %>
+
+</div>
+
+</div>

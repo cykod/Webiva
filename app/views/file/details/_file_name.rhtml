@@ -1,0 +1,19 @@
+<div id='fm_file_name'>
+  <div id='fm_file_name_display'>
+  <% if @invalid_filename -%>
+    <div class='error' align='center' ><%= "Please enter a valid filename with<br/> the same extension as the existing file".t %></div>
+  <% end -%>
+    <div id='fm_file_name_content'><%= file.name %></div> <button onclick='FileEditor.nameChange(<%= file.id %>);'>Change</button>
+  </div>
+
+  <div id='fm_file_name_form' style='display:none;'>
+    <% cms_unstyled_form_for :file, file, :html => { 
+                :id => 'fm_file_name_form_form', 
+                :onsubmit=>"FileEditor.nameChangeApply(#{file.id}); return false;" } do |f| %>
+      <%= f.text_field :name,:size => '20' %> 
+      <button onclick='FileEditor.nameChangeApply(<%= file.id %>); return false;'>Apply</button>
+      <button onclick='FileEditor.nameChangeCancel(<%= file.id %>); return false;'>Cancel</button>
+    <% end -%>
+    </div>
+  <div style='clear:both;'></div>
+</div>

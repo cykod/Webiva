@@ -1,0 +1,2 @@
+<%= periodically_call_remote(:url => {:action => 'ping'}, :frequency => 0.8) %>
+<p>The key to your remote drb job is: <%= session[:job_key] %></p>

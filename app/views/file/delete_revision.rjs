@@ -1,0 +1,3 @@
+if @file
+  page.replace_html :file_manager_body, :partial => '/file/details/file_details', :locals => {:file => @file }
+end

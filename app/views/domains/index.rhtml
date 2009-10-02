@@ -1,0 +1,14 @@
+<% action_panel do |p| -%>
+ <%= p.link 'Add a new domain to this site', :icon => 'add.gif', :action => 'edit' %>
+<% end -%>
+
+<hr/>
+
+<div class='admin_content'>
+
+<div id='domains_table'>
+  <%= render :partial => 'domains_table' %>
+</div>
+
+
+</div>

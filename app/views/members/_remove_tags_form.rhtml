@@ -1,0 +1,18 @@
+<div class='cms_form'>
+<h3>Remove Tags from Targets</h3>
+Existing Tags:
+<div style='width:300px;'>
+<% @existing_tags.each do |tg| -%>
+        <a href='javascript:void(0);' onclick='MemberEditor.addTagInPopup("<%= jvh tg -%>");'><%= tg -%></a> 
+<%  end -%>
+</div>
+<br/>
+Tags to Remove (Comma Separated List):<br/>
+<textarea id='tags_field' name='add_tags' cols='40' rows='5' ></textarea><br/>
+<br/>
+<div align='right'>
+<input type='submit' value='Remove Tags' onclick='MemberEditor.removeTagsSubmit($("tags_field").value); RedBox.close(); return false;'/> <input type='submit' value='Cancel' onclick='RedBox.close(); return false;' />
+</div>
+
+
+</div>

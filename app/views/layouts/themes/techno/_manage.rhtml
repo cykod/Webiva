@@ -1,0 +1,92 @@
+<div id='cms_container'>
+
+<div id='cms_header'>
+	<table id='cms_header_table' cellspacing='0' cellpadding='0' width='100%'>
+		<tr>
+			<td id='cms_header_logo'><img src='<%= theme_src "framework/header_logo.png" %>'/></td>
+                        <% @menu.each do |mnu| -%>
+                                <td class='<%= @cms_page_info[:section] == mnu[0]  ? 'cms_menu_item_selected' : 'cms_menu_item' %>' width='119'>
+                                        <img src='/images/spacer.gif' width='90' height='1'/>
+                                        <a href='<%= mnu[3] %>'>
+                                                <img src='<%= theme_src "framework/menu_icons/#{mnu[1]}#{@cms_page_info[:section] == mnu[0] ? '_o' : '_g' }.gif" %>'/><br/>
+                                                <%= h(mnu[2].t) %>
+                                        </a>
+                                <td>
+                        <% end -%>
+	
+			<td id='cms_header_right' align='right' width='100%'><img src='/images/spacer.gif' width='11' height='11' /></td>
+		</tr>
+	</table>
+</div>
+
+<div id='cms_page'>
+	<div id='cms_title_header'>
+		<div id='cms_title_left' >
+
+
+      <% if  @cms_page_info[:title].is_a?(Array) %>
+          <% @cms_page_info[:title].each do |item| %>
+             <% if item.is_a?(Array) && item[1] %>
+              <a href='<%= item[1] %>'><%= item.length > 2 ? sprintf(item[0].t,*item[2..-1]) : item[0].t %></a> 
+            <% else -%>
+              <% if item.is_a?(Array) %>  
+                <%= sprintf(item[0].t,*item[2..-1]) %>
+              <% else -%>
+                <%= item.t %>
+              <% end -%>
+            <% end -%>
+           <%= "&gt;" unless item == @cms_page_info[:title].last %>
+          <% end -%>
+      <% else -%>
+			 <%= @cms_page_info[:title].t %>
+      <% end -%>   
+		</div>
+		<div id='cms_title_right'>
+      <% if session[:context_translation] && permit?('client_admin') %>
+        <a href='javascript:void(0);' onclick='openWindow("<%= url_for :controller => '/manage/translate', :action => 'context' %>","Win",800,600,"yes","yes");'>
+          <img src='<%= theme_src("framework/page_title_translate.gif") %>' width='32' height='32' />
+        </a>
+      <% end -%>
+			<% if @cms_page_info[:menu_js] %>
+			<a href='javascript:void(0);' onclick='<%= @cms_page_info[:menu_js] %>'>
+			<img src='<%= theme_src("framework/page_title_menu_icon.gif")%>' width='30' height='30' />
+			</a>
+			<% end -%>
+		</div>
+	</div>
+	<div id='cms_page_body_container'>
+		<div id='cms_page_body' >&nbsp;
+      <% if flash[:notice] %>
+          <div id='flash_notice' class='flash_notice'>
+            <%= flash[:notice] %> <a href='javascript:void(0);' onclick="Element.hide('flash_notice');">X</a>
+          </div>
+      <% end -%>
+      <%= render :partial => '/layouts/wizard_top' if @wizard %>
+			<%= yield %>
+      <%= render :partial => '/layouts/wizard_bottom' if @wizard %>
+		
+               </div>
+	
+	</div>
+
+	<div id='cms_page_bottom'>
+		<div id='cms_page_bottom_left'>
+		
+<% if myself.id  -%>
+			<a class='image_link' href='<%= url_for :controller => "/account" %>'>
+				<img src='<%= theme_src("framework/image_button/my_account_butt.gif") %>' />
+				<span><%= "My Account".t %></span>
+			</a>
+<% end -%>	
+		</div>
+		
+		<div id='cms_page_bottom_right'>
+<% if myself.id  -%>
+			<a class='image_link' href='<%= url_for :controller => '/manage/access', :action => 'logout' %>'>
+				<img src='<%= theme_src("/framework/image_button/logout_butt.gif") %>' />
+				<span><%= "Logout".t %></span>
+			</a>
+<% end -%>
+		</div>
+	</div>
+</div>

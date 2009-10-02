@@ -1,0 +1,7 @@
+<div class='admin_content'>
+<% cms_form_for :content_model, @content_model, :html => { :class=>'admin_form',:onsubmit => " if(this.submitted) { return false; } this.submitted=true; $('content_model_submit').disabled=true;" } do |f| %>
+  <%= f.text_field :name, :label => 'Name of the Content Model', :vertical => true, :size => 60, :noun => 'Name' %>
+  <%= f.text_area :description, :label => 'Description of the Content Model', :vertical => true, :cols => 60, :rows => 4, :noun => 'Description' %>
+  <%= f.submit_tag 'Create', :id => 'content_model_submit' %>
+<% end -%>
+</div>

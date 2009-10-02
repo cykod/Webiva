@@ -1,0 +1,69 @@
+<div style='position:relative;'>
+<div id='loading_screen' class='loader' style='display:none;'></div>
+
+<div style='z-index:1'>
+<%= form_tag('',:id=>'template_form', :onsubmit =>'MailTemplateEditor.saveTemplate(); return false;' %>
+<table width='100%'>
+<tr>
+  <td colspan='2' id='name_error' <%= "style='display:none;'" unless @mail_template.errors['name'] %> >
+    <%= "Template must have a name".t %>
+  </td>
+</tr>
+<tr>
+  <td><%= "Name".t %>*</td>
+  <td><input type='text' name='mail_template[name]' id='template_name' value='<%= h @mail_template.name %>' size='80'></td>
+</tr>
+<tr>
+  <td colspan='2' id='subject_error'  <%= "style='display:none;'" unless @mail_template.errors['subject'] %> >
+    <%= "Template must have a subject".t %>
+  </td>
+</tr>
+<tr>
+  <td><%="Subject".t %>*</td>
+  <td><input type='text' name='mail_template[subject]' id='template_subject' value='<%= h @mail_template.subject %>'  size='80'></td>
+</tr>
+<tr>
+  <td colspan='2' valign='top'>
+   <% ajax_tabs ['HTML Body','Text Body','Attachments'], 'HTML Body' do |t| %>
+  
+  <% t.tab do %>
+      <label><input type='checkbox'  id='mail_template_body_value_html' name='mail_template[body_type][]' value='html' <%= "checked='checked'" if @mail_template.body_type.include?('html') %> /> <%= "Enabled HTML Body".t %></label><br/>
+      <textarea id='template_body_html' name='mail_template[body_html]' cols='70' rows='10'><%= h @mail_template.body_html %></textarea>
+  <% end -%>
+  
+  <% t.tab do %>
+    <input type='hidden' name='mail_template[body_type][]' value='' />
+    <label><input type='checkbox' id='mail_template_body_value_text'  name='mail_template[body_type][]' value='text' <%= "checked='checked'" if @mail_template.body_type.include?('text') %> /> <%= "Enable Text Body".t %></label>
+    &nbsp; <%= "Use %%Variable_Name%% to insert variables into the text template".t  %>
+    <br/>
+    <textarea id='template_body_text'  name='mail_template[body_text]' style='height:300px; width:100%;' ><%= h @mail_template.body_text %></textarea>
+  <% end -%>
+
+  <% t.tab do %>
+    <div id='attachments' style='height:300px;'>
+      <%= link_to '+Add Attachment'.t, { :controller => 'file', :action => 'popup' , :select => 'file', :callback => 'MailTemplateEditor.attachDocument' }, :popup => ['file_manager', 'height=400,width=600' ] %>
+      <div id='template_attachments'>
+        <%= render :partial => 'attachments' %>
+      </div>
+    </div>
+  <% end -%>
+
+  <% end -%>
+  </td>
+</tr>
+<tr>
+  <td colspan='2' style='border-top: 1px solid #000000; text-align:right;'>
+    <% if @campaign %>
+      <input type='submit' value='<%= "Cancel".t %>' onclick="document.location='<%= url_for :controller => 'campaigns', :action => 'message', :path => @campaign.id %>'; return false;" /> &nbsp; &nbsp; <input type='submit' value='<%= "Next".t %>' /> 
+    
+    <% else -%>
+      <input type='submit' value='<%= "Save".t %>' /> | <input type='submit' value='<%= "Cancel".t %>' onclick='MailTemplateEditor.hideTemplate(); return false;' />
+    
+    <% end -%>
+  </td>
+</tr>
+</table>
+</form>
+</div>
+
+</div>

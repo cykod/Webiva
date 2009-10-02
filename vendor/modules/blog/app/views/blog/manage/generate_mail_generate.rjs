@@ -1,0 +1,3 @@
+
+
+page << "TemplateEditor.addContent('#{jh @post_content}')"

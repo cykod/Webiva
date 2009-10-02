@@ -1,0 +1,13 @@
+<% active_table_for :editor_table, @active_table_output,
+                    :refresh_url =>  url_for(:action => 'display_editor_table'),
+                    :class => 'active_table',
+                    :more_actions => [ [ 'Delete','delete','Are you sure you want to delete the selected editors?' ]],
+                    :update => 'member_table' do |t| -%>
+<tr <%= highlight_row "user",t.id %> >
+  <td><%= entry_checkbox 'user',t.id %></td>
+  <td><a href='<%= url_for :action =>'edit', :path => t.id %>'><%= h t.email %></a></td>
+  <td><%= h t.first_name %></td>
+  <td><%= h t.last_name %></td>
+  <td><%= h t.user_class.name if t.user_class %></td>
+</tr>  
+<% end -%>

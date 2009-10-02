@@ -1,0 +1,24 @@
+<div id='item_<%= file.id %>' class='fm_element <%= file.file_type=='fld'?'fm_folder':'fm_item' %>' <%= "style='display:none'" if (@hide_item  || @file_manager_update) %>  >
+  <div class='fm_image fm_image_<%= file.file_type %>' id='handle_item_<%= file.id %>' >
+    <%= file_manager_image_tag(file,@image_size,@icon_size) %>
+  </div>
+  <div class='fm_cover'  id='cover_<%= file.id %>'></div>
+  <div id='name_item_<%= file.id %>' class='fm_title'><%= file.name %>
+    <div class='fm_details'>
+    <%= details = []
+       details << "#{file.width}x#{file.height}" if file.image? 
+       details << number_to_human_size(file.file_size) if file.file_size
+       details << "Created " + file.created_at.localize(DEFAULT_DATETIME_FORMAT.t) if file.created_at 
+       details.join(", ")
+     -%>  
+      </div>
+  </div>
+
+  <div class='fm_lock' id='item_lock_<%= file.id %>' <%= "style='display:none;'" unless file.private? %>><img src='<%= theme_src("icons/lock.gif") %>' /></div>
+  <div class='fm_extension' ><%= file.extension %></div>
+  <div class='fm_processing'><%= "Processing" if file.processor_status == 'processing' %></div>
+  <div style='display:none;' class='fm_item_count'></div>
+  
+  
+  <%= filemanager_register_file(file,@icon_size,@select) %>
+</div>

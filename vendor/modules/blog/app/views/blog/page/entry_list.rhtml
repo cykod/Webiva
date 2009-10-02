@@ -1,0 +1,11 @@
+<div class='cms_form'>
+  <% paragraph_options_form_for "Blog Entries List",:entry_list,@options do |f| -%>
+    <%= f.select :blog_id, @blogs, :label => 'Blog to Display' %>
+    <%= f.page_selector :detail_page, :label => 'Detail Page'.t %>
+    <%= f.select :include_in_path, [["Don't include path in target",nil],
+                                    ["Include Blog ID in detail path","blog_id"],
+                                    ["Include Target ID in detail path","target_id"]] %>
+    <%= f.select :items_per_page, @per_page, :label => 'Items per page'.t %>
+  
+  <% end -%>
+</div>

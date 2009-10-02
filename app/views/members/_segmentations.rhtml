@@ -1,0 +1,23 @@
+<div align='center'>
+<%= "Load:".t %><select name='segmentation' onchange='MemberEditor.loadSegmentation(this.value);'>
+  <% if @loaded_segment_id %>
+    <%= options_for_select [[ '--New Segmentation--'.t, ''] ] + @segmentations,@loaded_segment_id %>
+  <% else -%>
+    <%= options_for_select [[ '--Select Segmentation--'.t, ''] ] + @segmentations, '' %>
+  <% end -%>
+</select>
+<% if @loaded_segment_id %>
+<input type='submit' value='<%= "Delete".t %>' onclick='MemberEditor.deleteSegmentation(<%= @loaded_segment_id %>);' />
+<% end -%>
+    
+<form action='' style='display:inline;' onsubmit='MemberEditor.saveSegmentation($("save_segment_name").value); return false;'>
+<%= "Save:".t %>
+<input type='text' name='save_segment_name' id='save_segment_name' width='40' <%= "value='#{vh @loaded_segment_name}'" if @loaded_segment_name %>>
+
+<% if @loaded_segment_id %>
+  <input type='submit' id='submit_segment_butt' value='<%= "Save".t %>' />
+<% else %>
+  <input type='submit' id='submit_segment_butt' value='<%= "Create".t %>' />
+<% end -%>
+</form>
+</div>

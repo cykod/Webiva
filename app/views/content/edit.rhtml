@@ -1,0 +1,125 @@
+<script>
+FieldEditor = {
+  deletedFields: $A([]),
+  fieldIndex: <%= @content_model.content_model_fields.length + 1 %>,
+  // Sortable Functions
+  createFieldSortables:function() {
+     Sortable.create('model_fields', 
+              { 
+                tag: 'div',      
+                constraint: 'vertical', 
+                handle: 'handle',       
+                dropOnEmpty:true,
+                onUpdate: FieldEditor.updateSortables });
+  },
+  
+  updateSortables: function() {
+  
+  },
+  
+  // Option Functions
+  closeOptions: function(field_id) {
+    Element.hide('options_' + field_id);
+  },
+  
+  toggleOptions: function(field_id) {
+    Element.toggle('options_' + field_id);
+  
+  
+  },
+  
+  updateName: function(field_id,value) {
+    $('field_name_' + field_id).innerHTML = value.escapeHTML();
+  },
+  
+  // Fields Functions
+  addField: function() {
+    params = Form.serialize('add_field_form');
+    FieldEditor.fieldIndex+=1;
+    params += "&field_index=" + FieldEditor.fieldIndex;
+    new Ajax.Updater('model_fields',
+                      '<%= url_for :action => "new_field" %>',
+                     { parameters: params,
+                       insertion: Insertion.Bottom,
+                       evalScripts: true,
+                       onComplete: function(req) {
+                          FieldEditor.createFieldSortables();
+                          
+                        }}
+                     );
+    
+  },
+  
+  deleteField: function(field_idx,field_id) {
+    if(confirm("<%= jh 'Remove this field?'.t %>")) {
+      Element.remove("elem_field_" + field_idx);
+      if(field_id != '')
+        FieldEditor.deletedFields.push(field_id);
+    }
+  
+  },
+  
+  
+  // Save Functions
+  saveAll: function() {
+    <% if !@created %>
+    if(!confirm("<%= jh 'Commit these changes to the Content Model? All field deletions and changes will be permanent.'.t %>")) {
+      return false;
+    }
+    <% end -%>
+    $('save_all_changes').disabled=true;
+    new Effect.Appear($('saving_changes'));
+    
+    var params = FieldEditor.generateFieldParameters() + "&" + Sortable.serialize('model_fields') +  FieldEditor.getDeletedFields();
+    new Ajax.Request("<%= url_for :action => 'update_model', :path => @content_model.id  %>",
+                      { parameters: params });
+  
+  },
+  
+  generateFieldParameters: function() {
+    var request = 'update_fields=1'
+    
+    var forms = $$('.field_form');
+    forms.each(function(frm) {
+      request += "&" + $(frm).serialize();
+    });
+    
+    return request;
+  
+  },
+  
+  getDeletedFields: function() {
+    var result ='';
+    FieldEditor.deletedFields.each(function(fld) {
+      result += "&delete[]=" + fld;    
+    });
+    return result;
+  }
+
+
+}
+
+</script>
+<div class='admin_content'>
+<p style='width:500px;'>
+<%= "When selecting a field name, please select a short (less than 20 character) descriptive phrase to describe the field.".t %>
+<%= "You can choose a longer descriptive user forms when creating a publication.".t %>
+<%= "Field names must begin with a letter.".t %>
+</p>
+<% form_for :add_field, :html => { :onsubmit => 'FieldEditor.addField(); return false;', :id => 'add_field_form' } do |f| %>
+  <%= f.select :field_type, @field_types %>  <%= "Name:".t %>
+  <%= f.text_field :name %>
+  <input type='submit' value='<%= "Add Field" %>'/>
+<% end -%>
+
+
+<div id='model_fields' style='padding:10px;'>
+  <%= render :partial => 'edit_fields', :locals => {:fields => @content_model.content_model_fields } %>
+</div>
+
+<input type='submit' id='save_all_changes' value='<%= "Save".t %>' onclick='FieldEditor.saveAll();' />
+<span id='saving_changes' style='display:none;'><%= 'Saving Changes and Updating Content Model Database...'.t %></span>
+<script>
+FieldEditor.createFieldSortables();
+</script>
+</div>

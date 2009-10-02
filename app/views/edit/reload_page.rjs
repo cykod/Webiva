@@ -1,0 +1,21 @@
+page << "cmsEdit.setPageInfo('#{@container_arg}','#{@page.id}','#{@revision.id}','#{@revision.language}',#{@revision.active},#{@output.css_site_template_id},'#{@page.node_path}');"
+
+page.replace_html :cms_info_url, :inline => "&nbsp;<img align='absmiddle' src='#{theme_src(@container_arg == 'page' ? '/images/icons/page.gif' : '/images/icons/framework.gif')}'/>#{@site_node.node_path}&nbsp;"
+page << "Element.#{@container_arg == 'page' ? 'hide' : 'show'}('cms_add_framework_elements_icons');"
+
+page.replace_html :cms_info_page_title, :inline => "&nbsp;#{@revision.title.to_s.empty? ?  "[No Title]".t : truncate(@revision.title,30)}&nbsp;"
+page << '$("cms_info_page_title").className = "cms_ajax_link";'
+page.replace_html :cms_info_version, :inline => "&nbsp;#{dec(@revision.revision)}&nbsp;"
+page.replace_html :cms_info_language, :inline => "&nbsp;#{@revision.language.upcase}&nbsp;"
+
+page.replace_html :cms_page_content, :partial => 'paragraph_zones'
+
+if @real_revision
+  page.replace_html :cms_modification_link, :partial => 'saved_by', :locals => {:revision => @real_revision }
+end
+page.replace_html :cms_select_modification, "Loading History...".t
+page.replace_html :cms_revisions_languages, :partial => 'revision_languages', :locals => { :revision => @revision }
+page.replace_html :cms_version_list, "Loading Versions...".t
+page.replace_html :cms_info_active, @revision.active ? 'Active'.t : 'Inactive'.t
+
+page << "cmsEdit.pageUnchanged();"

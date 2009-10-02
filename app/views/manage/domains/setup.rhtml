@@ -1,0 +1,15 @@
+<div class='admin_content'>
+
+<b>Setup Domain: <%= @domain.name %>
+<br/><br/>
+<% cms_form_for :domain, @domain, :styled_form => {:no_translate => true} do |f| %>
+  <% if @domain.domain_type == 'redirect' %>
+    <%= f.text_field :redirect, :label => 'Redirect To' %>
+    <%= f.submit_tag 'Setup' %>
+  <% else %>
+    <%= f.select :database, @database_options, :label => 'Configuration Options' %>
+    <%= f.submit_tag 'Setup' %>
+  <% end -%>
+<% end -%>
+
+</div>

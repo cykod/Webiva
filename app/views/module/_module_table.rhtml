@@ -1,0 +1,21 @@
+<% if @error -%>
+  <div class='error'>
+    <%= @error -%>
+  </div>
+<% end -%>
+<table>  
+  <thead>
+  <tr>
+    <th><%= "Name".t %></th>
+    <th><%= "Status".t %></th>
+    <th><%= "Description".t %></th>
+  </tr>
+  </thead>
+  <tbody id='table_body'>
+  <% mods.each do |mod| -%>
+    <tr>
+    <%= render :partial => 'module_row', :locals => { :mod => mod } %>
+    </tr>
+  <% end -%>
+  </tbody>
+</table>

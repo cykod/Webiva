@@ -1,0 +1,42 @@
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" media="all" href="../jscalendar/calendar-win2k-cold-1.css" title="win2k-cold-1" />
+  <script src="../prototype.js" type="text/javascript"></script>
+  <script src="../jscalendar/calendar.js" type="text/javascript"></script>
+  <script type="text/javascript" src="../jscalendar/lang/calendar-en.js"></script>
+  <script src="../jscalendar/calendar-setup.js"></script>
+  <script>
+  //SCMS_popup.onLoad("ColorPicker.onLoad();");
+
+  </script>
+</head>
+<body onload=''>
+<script>
+CmsCalendar = {
+	
+  onLoad: function() {
+  },
+  
+  dateChanged:function(calendar) {
+    alert('Changed!');
+  
+  }
+}
+
+</script>
+
+<input type='hidden' name='choosen_date' id='choosen_date' />
+<div id='calendar-container'></div>
+
+<script type="text/javascript">
+
+  Calendar.setup(
+    {
+      flat         : "calendar-container", // ID of the parent element
+      flatCallback : CmsCalendar.dateChanged           // our callback function
+    }
+  );
+</script>
+</body>
+
+</html>

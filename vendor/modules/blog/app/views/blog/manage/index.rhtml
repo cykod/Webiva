@@ -1,0 +1,29 @@
+<script>
+<%=  active_table_javascript %>
+
+var PostEditor = {
+
+  createMailTemplate: function(pid) {
+  
+     
+  }
+  
+}
+</script>
+
+<% action_panel do |p| -%>
+  <%= p.link "Post a new Entry",   :action => 'post', :path => @blog.id, :icon => 'add.gif' %>
+  <%= p.link "Blog Categories",  :controller => 'categories', :path => @blog.id, :icon => 'edit.gif' %>
+  <%= p.link "Configure Blog", :action => 'configure', :path => @blog.id, :icon => 'configure.gif' if myself.has_role?('blog_config') %>
+  <%= p.link "Delete Blog",  :action => 'delete', :path => @blog.id, :icon =>'delete.gif',:right => true if myself.has_role?('blog_config') %>
+<% end -%>
+
+
+<hr/>
+
+
+<div class='admin_content'>
+<div id='post_table'>
+<%= render :partial => 'post_table' %>
+</div>
+</div>

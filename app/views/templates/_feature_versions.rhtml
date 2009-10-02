@@ -1,0 +1,2 @@
+  <%= "Feature Versions: ".t %><select name='previous_versions' onchange='FeatureEditor.loadVersion(this.value);'><%= options_for_select [['--Active Version--','']] + @feature.version_list_options, @feature.current_version_id %></select>
+

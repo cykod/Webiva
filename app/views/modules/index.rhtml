@@ -1,0 +1,39 @@
+<div class='admin_content'>
+<% if @available_modules.length == 0 %>
+  <div align='center'><b><%= "No Available Modules".t %></b></div>
+
+<% else %>
+
+  <% table_for @available_modules, ['Name','Status','Activate','Deactivate','Dependencies','Description'], :class=>'active_table',:width => '100%' do |t| %>
+  <tr <%= highlight_row "mod",t[:module] %> >
+    <td nowrap='1'>
+      <% if %w(active initialized).include?(t[:status]) && "#{t[:name].to_s.camelcase}::AdminController".constantize.method_defined?('options') %>
+        <%= link_to t[:name].humanize.capitalize, { :action => 'edit', :path => t[:module] } %>
+      <% else -%>
+          <%= t[:name].humanize.capitalize %>
+      <% end -%>
+    </td>
+    <td nowrap='1'><%= t[:status].humanize.t %></td>
+    <% if t[:status] == 'available' %>
+      <td nowrap='1'>
+        <%= link_to 'Activate', { :action => 'update_module',  :mod => t[:module], :status => 'active' }, { :method => :post } %>
+      </td><td></td>
+    <% elsif t[:status] == 'active' || t[:status] == 'initialized' %>
+      <td></td>
+      <td nowrap='1'>
+      <%= link_to 'Deactivate', { :action => 'update_module', :mod => t[:module], :status => 'unavailable'  }, { :method => :post, :confirm => "Are you sure you want to deactivate this module? You will lose any data associated with it's functionality." } %></td>
+    <% else %>
+      <td></td><td></td>
+    <% end -%>
+    <td nowrap='1'>
+       <%= t[:dependencies].map { |dep| SiteModule.module_enabled?(dep) ? dep.humanize : "<span class='error'>#{dep.humanize}</span>"}.to_sentence %>
+    </td>
+    <td width='100%'><%= t[:description].t %></td>
+    
+  </tr>
+  
+  <% end -%>
+
+<% end -%> 
+
+</div>

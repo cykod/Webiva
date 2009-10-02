@@ -1,0 +1,11 @@
+if @update_list
+  page.replace_html :template_list, :partial => 'mail_templates'
+  page << 'MailTemplateEditor.hideTemplate();'
+else
+  if @template.name.to_s.empty?
+    page << 'Element.show("name_error")'
+  end
+  if @template.subject.to_s.empty?
+    page << 'Element.show("subject_error")'
+  end
+end

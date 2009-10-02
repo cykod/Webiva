@@ -1,0 +1,29 @@
+<h3><%= "Translate/Replace Page Text".t %></h3>
+
+<% remote_form_for :trans, @trans, :url => { :action => 'translate_text' } , :loading => "$('_cms_submit_translations').innerHTML='#{'Submitting Translations...'.t}'" do |t| -%>
+<div id='_cms_submit_translations'>
+<table width='90%'>
+<tr>
+  <th><%= "Text".t %></th>
+  <th><%= "Translation".t %></th>
+</tr>
+<% @text.each do |t| %>
+<tr>
+  <td width='50%' valign='top'>
+    <%= t %>
+    <input type='hidden' name='trans[text][]' value='<%= h(t) %>' />
+  </td>
+  <td width='50%' valign='top'><textarea name='trans[trans][]' style='width:100%;' rows='4'></textarea>
+  </td>
+</tr>
+<% end -%>
+<tr>
+  <td/>
+  <td align='right'>
+    <input type='submit' value='<%= vh "Translate".t %>' />
+    <input type='submit' value='<%= vh  "Close".t %>' onclick='window.close(); return false' />
+  </td>
+</tr>
+</table>
+</div>
+<% end -%>

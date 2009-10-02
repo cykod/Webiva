@@ -1,0 +1,5 @@
+
+
+page.replace_html :file_manager_body, :partial => details_partial(file), :locals => {:file => file }
+page.replace "item_#{file.id}",:partial => 'file_item', :locals => { :file => file }
+page << "FileEditor.recreateDragAndDroppables();"

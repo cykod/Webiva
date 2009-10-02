@@ -1,0 +1,17 @@
+<% active_table_for :mail_templates_table, @active_table_output,
+                    :actions => [ ['Duplicate','duplicate','Copy the selected templates?'],
+                                  ['Archive','archive','Archive the selected templates?'],
+                                  ['Unarchive','unarchive','Unarchive the selected templates?']
+                                ] + (@show_campaign ? [['Publish','publish','Publish the selected templates now?']] : []),
+                    :more_actions => [ ['Delete','delete','Are you sure you want to delete the selected templates?']] do |t| -%>
+<tr <%= highlight_row "mail_template", t.id %>>
+  <td><%= entry_checkbox "mail_template", t.id %></td>
+  <td align='center'><%= 'Archived' if t.archived?  %></td>
+  <td><%= link_to h(t.name) + (t.published_at ? " (#{t.published_at.strftime(DEFAULT_DATE_FORMAT)})" : ""), :action => 'edit_template', :path => t %></td>
+  <td><%= h(t.subject) %></td>
+  <td><%= t.language %></td>
+  <td><%= t.created_at ? t.created_at.strftime(DEFAULT_DATETIME_FORMAT.t) : '-' %></td>
+  <td><%= t.updated_at ? t.updated_at.strftime(DEFAULT_DATETIME_FORMAT.t) : '-' %></td>
+  <td><%= v(t.category) %></td>
+</tr>
+<% end -%>

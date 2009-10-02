@@ -1,0 +1,35 @@
+<script>
+SelectorPopup = {
+
+  clearSelection: function() {
+    this.setField('',"<%= jh  @name %>");
+  },
+  
+  setField:function(id,val) {
+    <% if @callback -%>
+     window.opener.<%= @callback %>('<%= @field %>',id,val);
+    <% end -%>
+    var fld = window.opener.document.getElementById('<%= @field %>');
+    fld.value = id;
+    var fld_name = window.opener.document.getElementById('<%= @field %>_name');
+    fld_name.innerHTML = val;
+    setTimeout("window.close();",10);
+  },
+  
+  select: function(val) {
+    var sel = $('objs_object_id');
+    var opt = sel.options[sel.selectedIndex];
+    this.setField(opt.value,opt.text);
+  }
+
+}
+
+</script>
+
+
+<% cms_unstyled_form_for :objs do |f| -%>
+<b><%= @name  %></b>
+  <%= f.submit_tag 'Clear Selection', :onclick => 'SelectorPopup.clearSelection(); return false;' %><br/>
+<%= f.select :object_id, @objects, {},:size => 10, :style => 'width:400px; height:200px;', :onchange => 'SelectorPopup.select(this.value);' %><br/>
+
+<% end -%>

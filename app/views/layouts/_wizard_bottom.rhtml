@@ -1,0 +1,18 @@
+
+  </div>
+</td>
+</tr>
+<tr  >
+  <td colspan='2' id='wizard_buttons' >
+    <% if @current_index > 0 && ! @hide_back  %>
+    <input type='submit' id='wizard_back' value='<%= h "Back".t %>' onclick='document.location="<%= @back_button_url || url_for(:action => @wizard_steps[@current_index-1][0]) %>?previous=1"; return false;' />&nbsp;
+    <% end -%>
+    <% if @current_index == @wizard_steps.length-1 %>
+      <input type='submit' id='wizard_next' value='<%= h (@next_button || "Finished").t %>' onclick="<%= jvh @finished_onclick  %> return false;" <%= "disabled='true'" unless @enable_next %> >
+    <% else -%>
+      <input type='submit' id='wizard_next' value='<%= h (@next_button || "Next").t %>' onclick='if($("wizard_form").onsubmit) { if($("wizard_form").onsubmit()) { this.disabled=true; $("wizard_form").submit(); } return false; } this.disabled=true;  $("wizard_form").submit(); return false;'<%= "disabled='true'" unless @enable_next %> />
+    <% end -%>
+  </td>
+</tr>
+
+</table>

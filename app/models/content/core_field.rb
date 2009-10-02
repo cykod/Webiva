@@ -1,0 +1,486 @@
+# Copyright (C) 2009 Pascal Rettig.
+
+
+
+class Content::CoreField < Content::FieldHandler
+
+  # Get these into the class as class methods
+  class << self;
+     include ActionView::Helpers::TextHelper
+   end
+  
+
+  def self.content_fields_handler_info
+    { :name => 'Core Field Types' }
+  end
+  
+  register_dynamic_fields :ip_address => 'Ip Address',
+                          :email => 'User Email',
+                          :user_identifier => 'User Identifier',
+                          :city => 'City',
+                          :state => 'State',
+                          :page_connection => 'Page Connection',
+                          :current => 'Current Date and Time'
+  
+# Available Content Fields, with meta information
+  register_content_fields [ { :name => :string, 
+                         :description => 'Standard Text Field',
+                         :representation => :string,
+                         :dynamic_fields => [ :ip_address,:email,:user_identifier,:city,:state,:page_connection ]
+                       },
+                       { :name => :text, 
+                         :description => 'Long Text',
+                         :representation => :text
+                       },                       
+                       { :name => :html, 
+                         :description => 'HTML Code',
+                         :representation => :text
+                       },                       
+                       { :name => :editor, 
+                         :description => 'Wysiwyg Editor',
+                         :representation => :text
+                       },                       
+                       { :name => :email, 
+                         :description => 'Email Address',
+                         :representation => :string,
+                         :dynamic_fields => [ :email  ]
+                       },
+                       { :name => :image,
+                          :description => 'Image',
+                          :representation => :integer,
+                          :relation => true
+                       },
+                       { :name => :document,
+                          :description => 'Document',
+                          :representation => :integer,
+                          :relation => true
+                       },
+                       {  :name => :options,
+                          :description => 'Options',
+                          :representation => :string,
+                          :dynamic_fields => [ :page_connection ]
+                       },
+                       {
+                         :name => :us_state,
+                         :description => 'US State Selection',
+                         :representation => :string,
+                         :dynamic_fields => [:state ]
+                       
+                       },
+                       {  :name => :multi_select,
+                          :description => 'Multiple Option Select',
+                          :representation => :text
+                       },
+                       { :name => :integer, 
+                         :description => 'Number (Integer)',
+                         :representation => :integer,
+                         :dynamic_fields => [ :user_id ]
+                       },
+                       { :name => :currency, 
+                         :description => 'Currency',
+                         :representation => :decimal,
+                         :migration_options => ":precision=> 14, :scale => 2"
+                       },
+                       { :name => :date, 
+                         :description => 'Date',
+                         :representation => :date,
+                         :dynamic_fields => [ :current ]
+                       },
+                       { :name => :datetime, 
+                         :description => 'Date And Time',
+                         :representation => :datetime,
+                         :dynamic_fields => [ :current ]
+                       },
+                       { :name => :belongs_to, 
+                         :description => 'Belongs to Relationship',
+                         :representation => :integer,
+                         :relation => true
+                       }
+                       
+#                       ,
+#                       { :name => :has_many, 
+#                         :description => 'Has Many Relationship',
+#                         :representation => :none
+#                       }
+                       
+                     ]  
+                     
+
+  
+  class StringField < Content::Field
+    field_options :required
+    setup_model :required
+    table_header :string
+    
+    content_display :text
+    filter_setup :like, :empty
+    
+    def form_field(f,field_name,field_opts,options={})
+      field_opts[:class] = 'text_field'
+      f.text_field field_name, field_opts.merge(options)
+    end
+  end
+  
+  class IntegerField < Content::Field
+    field_options :required
+    setup_model :required, :validates_numericality
+    table_header :number
+    
+    content_display :text
+    filter_setup :like, :empty
+    
+    def form_field(f,field_name,field_opts,options={})
+      field_opts[:class] = 'text_field'
+      f.text_field field_name, field_opts.merge(options)
+    end
+  end  
+  
+  # Same as integer, just with a different currency
+  class CurrencyField < Content::CoreField::IntegerField
+
+    def form_field(f,field_name,field_opts,options={})
+      field_opts[:class] = 'currency_field'
+      f.text_field field_name, field_opts.merge(options)
+    end
+    
+  end
+  
+  class TextField < Content::CoreField::StringField
+    # Everything the same as StringField except the form field  
+    def form_field(f,field_name,field_opts,options={})
+      field_opts[:class] = 'text_area'
+      f.text_area field_name, field_opts.merge(options)
+    end
+  end
+  
+
+  class HtmlField < Content::Field
+    field_options :required
+    setup_model :required
+    table_header :string
+    
+    content_display :html # Default to non-escaped value
+    filter_setup :like, :empty
+    
+    def form_field(f,field_name,field_opts,options={})
+      field_opts[:class] = 'text_area'
+      f.text_area field_name, field_opts.merge(options)
+    end
+  end  
+  
+  class EditorField < Content::CoreField::HtmlField
+    # Everything the same as StringField that we want to display an editor area
+    def form_field(f,field_name,field_opts,options={})
+      field_opts[:class] = 'editor_area'
+      f.text_area field_name, field_opts.merge(options)
+    end
+  end  
+  
+  class EmailField < Content::Field
+    field_options :required
+    setup_model :required, :validates_as_email
+    table_header :string
+    
+    content_display :text
+    filter_setup :like, :empty
+    
+    def form_field(f,field_name,field_opts,options={})
+      field_opts[:class] = 'text_field'
+      f.text_field field_name, field_opts.merge(options)
+    end
+  end
+  
+  class UsStateField < Content::Field
+    field_options :required
+    setup_model :required
+    table_header :string
+    
+    content_display :text
+    
+    def form_field(f,field_name,field_opts,options={})
+      field_opts[:class] = 'us_state_field'
+      f.select field_name, Content::CoreField::UsStateField.states_select_options
+    end
+    
+    has_options :states,["AL","AK","AR","AS","AZ","CA","CO","CT","DC","DE","FL","FM","GA","GU","HI","IA","ID","IL", "IN","KS","KY","LA","MA","MD","ME","MH","MI","MN","MO","MP","MS","MT","NC","ND","NE","NH","NJ","NM","NV", "NY","OH","OK","OR","PA","PR","PW","RI","SC","SD","TN","TX","UT","VA","VI","VT","WA","WI","WV","WY" ]
+    
+    filter_setup :like, :empty  
+  end
+  
+  class ImageField < Content::Field
+    field_options :required, :belongs_to
+    table_header :has_relation
+    filter_setup :empty
+    
+    
+    setup_model :required do |cls,fld|
+      if fld.model_field.field_options['relation_name']
+       cls.belongs_to fld.model_field.field_options['relation_name'].to_sym, :class_name => 'DomainFile', :foreign_key => fld.model_field.field        
+      end
+    end
+    
+    def form_field(f,field_name,field_opts,options={})
+      if options[:editor]
+        f.filemanager_image field_name, field_opts.merge(options)
+      else
+        f.upload_image field_name, field_opts.merge(options)
+      end    
+    end
+    
+    def content_display(entry,size=:full,options={})
+      domain_file = entry.send(@model_field.field_options['relation_name'])
+      img_size = options[:size] || (size == :full ? 'original' :  'icon')
+      if domain_file
+        domain_file.image_tag(img_size,options)
+      else
+        ''
+      end    
+    end
+    
+    def modify_entry_parameters(parameters)
+      key = @model_field.field
+      if parameters[key.to_s + "_clear"].to_s == '0'
+          parameters[key] = nil
+      elsif parameters[key].is_a?(String)
+        parameters[key] = parameters[key].to_i
+      elsif !parameters[key].to_s.empty? 
+        image_folder  = Configuration.options[:default_image_location] || 1
+        file = DomainFile.create(:filename => parameters[key],
+                                 :parent_id => image_folder)
+        if @model_field.field_type == 'document' 
+         parameters[key] = file.id
+        elsif @model_field.field_type == 'image' && file.file_type == 'img'
+         parameters[key] = file.id
+        else
+          parameters.delete(key)
+          file.destroy
+        end
+      else
+         parameters.delete(key)
+      end  
+      parameters.delete(key.to_s + "_clear")      
+    end
+  end
+  
+  class DocumentField < Content::CoreField::ImageField
+    # Inherits from ImageField - modify_entry_parameters already checks for field type
+    
+    def content_display(entry,size=:full,options={})
+      h entry.send(@model_field.field_options['relation_name']) ? entry.send(@model_field.field_options['relation_name']).name: ''
+    end
+    
+    def form_field(f,field_name,field_opts,options={})
+      if options[:editor]
+        f.filemanager_file field_name, field_opts.merge(options)
+      else
+        f.upload_document field_name, field_opts.merge(options)
+      end          
+    end
+  end
+  
+  class OptionsField < Content::Field
+    field_options :options, :required
+    setup_model :required do |cls,fld|
+       cls.has_options fld.model_field.field.to_sym, fld.available_options
+    end  
+    
+    def active_table_header
+      ActiveTable::OptionHeader.new(@model_field.field, :label => @model_field.name, :options =>self.available_options)
+    end
+  
+    def available_options
+      (@model_field.field_options['options'] || []).collect { |fld| fld=fld.to_s.split(";;");[ fld[0].to_s.strip,fld[-1].to_s.strip] }    
+    end
+    
+    
+    def form_field(f,field_name,field_opts,options={})
+      case options.delete(:control).to_s
+      when 'radio'
+        field_opts[:class] = 'radio_buttons'
+        f.radio_buttons field_name,available_options , field_opts.merge(options)
+      when 'radio_vertical'
+        field_opts[:class] = 'radio_buttons'
+        field_opts[:separator] = '<br/>'
+        f.radio_buttons field_name,available_options , field_opts.merge(options)
+      else
+        f.select field_name, available_options , field_opts.merge(options)
+      end    
+    end
+    
+    
+    def content_display(entry,size=:full,options={})
+      entry.send(@model_field.field + "_display") # From the has_options declared up top
+    end
+    
+    filter_setup :like, :empty
+
+    # Let the publication display as radio, vertical radios or a select
+    
+    display_options_variables :control
+    
+    def form_display_options(pub_field,f)
+       f.radio_buttons :control, [ ['Select Box','select '], ['Radio Buttons','radio' ], ['Vertical Radio Buttons','radio_vertical' ] ]
+    end 
+  
+  end
+  
+  class MultiSelectField < Content::Field
+    field_options :options, :required
+    setup_model :required, :serialize do |cls,fld|
+       cls.has_options fld.model_field.field.to_sym, fld.available_options
+    end  
+    
+    def active_table_header
+      ActiveTable::OptionHeader.new(@model_field.field, :label => @model_field.name, :options => available_options)
+    end    
+  
+    def available_options
+      (@model_field.field_options['options'] || []).collect { |fld| fld=fld.to_s.split(";;");[ fld[0].to_s.strip,fld[-1].to_s.strip] }    
+    end
+    
+    
+    def form_field(f,field_name,field_opts,options={})
+      field_opts.delete(:size)
+      field_opts[:separator] = "<br/>"
+      val =  f.object.send(field_name)
+      if !val.is_a?(Array)
+         f.object.send("#{field_name}=",val.to_s.split("\n"))
+      end
+      f.check_boxes field_name,  @model_field.content_model.content_model.send(@model_field.field + "_select_options") , field_opts.merge(options)
+    end
+    
+    def content_display(entry,size=:full,options={})
+      opts = entry.class.send(@model_field.field + "_options_hash")
+      
+      val = entry.send(@model_field.field)
+      val = [] unless val.is_a?(Array)
+      output = []
+      val.each { |vl|  output << opts[vl] if opts[vl] }
+      separator = options[:separator] || ', '
+      h output.join(separator)    
+    end
+    filter_setup :empty
+  end
+  
+  
+  class DateField < Content::Field
+    field_options :required
+    setup_model :required,:validates_date
+    
+    filter_setup :empty, :date_range
+    
+    table_header :date_range
+    
+    def content_display(entry,size=:full,options = {})
+      dt = entry.send(@model_field.field)
+      dt ? dt.localize(options[:format] || DEFAULT_DATE_FORMAT) : ''
+    end
+    
+    
+    def form_field(f,field_name,field_opts,options={})
+      f.date_field field_name, field_opts.merge(options)
+    end    
+  
+  end
+  
+  class DatetimeField < Content::Field
+    field_options :required
+    setup_model :required,:validates_datetime
+    
+    filter_setup :empty, :date_range
+    
+    table_header :date_range
+    
+  
+    def form_field(f,field_name,field_opts,options={})
+      f.datetime_field field_name, field_opts.merge(options)
+    end    
+
+    
+    def content_display(entry,size=:full,options = {})
+      dt = entry.send(@model_field.field)
+      dt ? dt.localize(options[:format] || DEFAULT_DATETIME_FORMAT) : ''
+    end
+    
+  
+  end
+  
+  class BelongsToField < Content::Field
+    field_options :required
+    setup_model :required  do |cls,fld|
+      if fld.model_field.field_options['relation_name'] && fld.model_field.field_options['relation_class']
+       cls.belongs_to fld.model_field.field_options['relation_name'].to_sym, :class_name => fld.model_field.field_options['relation_class'], :foreign_key => fld.model_field.field        
+      end
+    end
+    
+    table_header :has_relation
+    
+    filter_setup :empty
+    
+    def form_field(f,field_name,field_opts,options={})
+      if @model_field.field_options['relation_class'].blank?
+        begin      
+          cls = @model_field.field_options['relation_class'].constantize
+          f.select field_name, [['--Select %s--' / field.name, nil ]] + cls.select_options, field_opts, options
+        rescue Exception => e
+          f.custom_field field_name, options.merge(field_opts.merge(:value => 'Invalid Relation'))
+        end
+      end
+    end    
+    
+    def content_display(entry,size=:full,options={})
+      if @model_field.field_options['relation_class']
+        h(entry.send(@model_field.field_options['relation_name']) ? entry.send(@model_field.field_options['relation_name']).identifier_name : '')
+      end
+    end
+    
+  end
+  
+  
+  def self.dynamic_current_value(entry,fld,state = {})
+    Time.now
+  end
+  
+  
+  
+  def self.dynamic_ip_address_value(entry,fld,state = {})
+    state[:controller].request.remote_ip if state[:controller]
+  end
+  
+  def self.dynamic_email_value(entry,fld,state = {})
+    state[:user].email
+  end
+  
+  def self.dynamic_user_identifier_value(entry,fld,state = {})
+    if state[:user].id 
+      "#{state[:user].email} (#{state[:user].id})"
+    else
+      "Anonymous"
+    end
+  end
+  
+  def self.dynamic_city_value(entry,fld,state = {})
+    begin
+      MapZipcode.find_by_zip(entry.zipcode).city
+    rescue Exception => e
+      ''
+    end
+  end
+  
+  def self.dynamic_state_value(entry,fld,state ={})
+    begin
+      MapZipcode.find_by_zip(entry.zipcode).state
+    rescue Exception => e
+      ''
+    end
+  end
+  
+  def self.dynamic_page_connection_value(entry,fld,state = {})
+    val = state[:page_connection]
+    if fld.content_model_field.field_type == 'options' # validate input if it's an option
+      fnd = fld.content_model_field.module_class.options
+      val = fnd ? val : ''
+    end
+  end
+  
+end

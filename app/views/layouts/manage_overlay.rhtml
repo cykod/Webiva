@@ -1,0 +1,24 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+
+    <title><%= @title || "CMS" %></title>
+
+    <script> var AUTH_TOKEN = "<%= form_authenticity_token.to_s %>";</script>
+    <%= stylesheet_link_tag 'common' %>
+    <%= theme_stylesheet_link_tag  "admin_framework" %>
+    <%= theme_stylesheet_link_tag 'admin_framework_full' %>
+    <%= javascript_include_tag "overlib/overlib" %>
+    <%= javascript_include_tag :defaults %>
+    <%= javascript_include_tag "builder" %>
+    <%= javascript_include_tag "slider" %>
+    <%= javascript_include_tag "tiny_mce/tiny_mce" %>
+    <%= stylesheet_link_tag 'redbox' %>
+    <%= javascript_include_tag 'redbox' %>
+</head>
+
+<body>
+<%= @content_for_layout %>
+</body>
+
+</html>

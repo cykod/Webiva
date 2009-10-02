@@ -1,0 +1,58 @@
+<script>
+MemberImportEditor = {
+  updateForm: function(field_idx) {
+    var val = $('action_' + field_idx).value ;
+    if(val == 'm') {
+      Element.show('match_options_'+field_idx);
+      $('ident_' + field_idx).disabled = false;
+    }
+    else {
+      Element.hide('match_options_'+field_idx);
+      $('ident_' + field_idx).disabled = true;
+    }
+  
+  }
+
+
+}
+</script>
+<h2><%=h "Select and Match Fields".t %></h2>
+  <p><%= h "Please configure which fields to import from the CSV file.".t %>
+  <%= h "You must match a field to the target's Email address, the email will be used as an identifier to determine whether to update or create a new entry.".t %></p>
+<div >
+<% if @missing_email %>
+ <div class='error'>
+  <b><%= "You must match the Email field to continue the import".t %></b>
+ </div>
+ <br/>
+<% end -%>
+<%= form_tag('', :id => 'wizard_form', :method => 'post') %>
+<table class='data_table' >
+  <tr style='background-color:#DDDDDD;'>
+    <th><%= "Col".t %></th>
+    <th><%= "CSV File Field".t %></th>
+    <th><%= "Action".t %></th>
+    <th><%= "User Field".t %></th>
+  </tr>
+   
+<% @matched_fields.each_with_index do |fld,idx| %>
+<tr style="background-color:<%= idx % 2 == 0 ? "#FFFFFF" : "#EEEEEE" %>;">
+  <td align='right'><%= idx+1 %>.</td>
+  <td><%= fld[0] %></div>
+  <td nowrap='1'>
+       <select name='act[<%= idx %>]' id='action_<%=idx %>' onchange='MemberImportEditor.updateForm(<%= idx %>);' >
+        <option value='m'  <%= "selected='true'" if fld[1] == 'm' %> ><%= "Match".t %></option>
+        <option value='i'  <%= "selected='true'" if fld[1] == 'i' %> ><%= "Ignore".t %></option>
+      </select>
+  </td>
+  <td><div id='match_options_<%=idx%>' <%= "style='display:none;'" unless fld[1] == 'm' %>>
+      <select name='match[<%= idx %>]' id='match_<%=idx%>' style='width:300px;'>
+        <option value='' <%= 'selected="true"' unless fld[2] %> ><%= h "--Select Field--".t %></option>
+        <%= options_for_select @member_field_options, fld[2] %>  
+      </select>
+      </div>
+  </td>
+<% end -%>
+</table>
+</form>
+</div>

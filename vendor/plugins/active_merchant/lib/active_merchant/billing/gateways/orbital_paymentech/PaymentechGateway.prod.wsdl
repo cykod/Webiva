@@ -1,0 +1,877 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions name="PaymentechGateway"
+ targetNamespace="https://ws.paymentech.net/PaymentechGateway/wsdl/PaymentechGateway.wsdl"
+ xmlns:tns="https://ws.paymentech.net/PaymentechGateway/wsdl/PaymentechGateway.wsdl"
+ xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+ xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+ xmlns:ns="urn:ws.paymentech.net/PaymentechGateway"
+ xmlns:SOAP="http://schemas.xmlsoap.org/wsdl/soap/"
+ xmlns:WSDL="http://schemas.xmlsoap.org/wsdl/"
+ xmlns="http://schemas.xmlsoap.org/wsdl/">
+
+<types>
+
+ <schema targetNamespace="urn:ws.paymentech.net/PaymentechGateway"
+  xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:ns="urn:ws.paymentech.net/PaymentechGateway"
+  xmlns="http://www.w3.org/2001/XMLSchema"
+  elementFormDefault="qualified"
+  attributeFormDefault="qualified">
+  <import namespace="http://schemas.xmlsoap.org/soap/encoding/"/>
+  <complexType name="PC3LineItem">
+   <sequence>
+    <element name="pCard3DtlIndex" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+    <element name="pCard3DtlDesc" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+    <element name="pCard3DtlProdCd" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+    <element name="pCard3DtlQty" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+    <element name="pCard3DtlUOM" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+    <element name="pCard3DtlTaxAmt" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+    <element name="pCard3DtlTaxRate" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+    <element name="pCard3Dtllinetot" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+    <element name="pCard3DtlDisc" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+    <element name="pCard3DtlCommCd" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+    <element name="pCard3DtlUnitCost" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+    <element name="pCard3DtlGrossNet" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+    <element name="pCard3DtlTaxType" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+    <element name="pCard3DtlDiscInd" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+    <element name="pCard3DtlDebitInd" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+   </sequence>
+  </complexType>
+  <complexType name="PC3LineItemArray">
+   <sequence>
+    <element name="item" type="ns:PC3LineItem" minOccurs="0" maxOccurs="unbounded" nillable="true"/>
+   </sequence>
+  </complexType>
+  <complexType name="NewOrderRequestElement">
+   <sequence>
+    <element name="industryType" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="transType" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="bin" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="merchantID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="terminalID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="cardBrand" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="ccAccountNum" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="ccExp" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="ccCardVerifyPresenceInd" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="ccCardVerifyNum" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="switchSoloIssueNum" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="switchSoloCardStartDate" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="ecpCheckRT" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="ecpCheckDDA" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="ecpBankAcctType" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="ecpAuthMethod" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="ecpDelvMethod" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="avsZip" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="avsAddress1" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="avsAddress2" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="avsCity" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="avsState" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="avsName" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="avsCountryCode" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="avsPhone" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="useCustomerRefNum" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="addProfileFromOrder" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerRefNum" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="profileOrderOverideInd" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="authenticationECIInd" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="verifyByVisaCAVV" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="verifyByVisaXID" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="priorAuthCd" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="orderID" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="amount" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="comments" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="shippingRef" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="taxInd" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="taxAmount" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="amexTranAdvAddn1" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="amexTranAdvAddn2" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="amexTranAdvAddn3" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="amexTranAdvAddn4" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="mcSecureCodeAAV" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="softDescMercName" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="softDescProdDesc" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="softDescMercCity" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="softDescMercPhone" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="softDescMercURL" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="softDescMercEmail" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="recurringInd" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="retryTrace" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCardOrderID" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCardDestZip" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCardDestName" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCardDestAddress" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCardDestAddress2" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCardDestCity" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCardDestStateCd" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCard3FreightAmt" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCard3DutyAmt" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCard3DestCountryCd" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCard3ShipFromZip" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCard3DiscAmt" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCard3VATtaxAmt" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCard3VATtaxRate" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCard3AltTaxInd" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCard3AltTaxAmt" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCard3LineItemCount" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCard3LineItems" type="ns:PC3LineItemArray" minOccurs="0" maxOccurs="1" nillable="true"/>
+    <element name="magStripeTrack1" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="magStripeTrack2" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="retailTransInfo" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerName" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerEmail" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerPhone" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="cardPresentInd" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="euddBankSortCode" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="euddCountryCode" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="euddRibCode" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="bmlCustomerIP" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="bmlCustomerEmail" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="bmlShippingCost" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="bmlTNCVersion" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="bmlCustomerRegistrationDate" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="bmlCustomerTypeFlag" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="bmlItemCategory" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="bmlPreapprovalInvitationNum" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="bmlMerchantPromotionalCode" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="bmlCustomerBirthDate" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="bmlCustomerSSN" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="bmlCustomerAnnualIncome" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="bmlCustomerResidenceStatus" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="bmlCustomerCheckingAccount" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="bmlCustomerSavingsAccount" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="bmlProductDeliveryType" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="avsDestName" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="avsDestAddress1" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="avsDestAddress2" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="avsDestCity" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="avsDestState" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="avsDestZip" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="avsDestCountryCode" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="avsDestPhoneNum" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="debitBillerReferenceNumber" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+   </sequence>
+  </complexType>
+  <complexType name="NewOrderResponseElement">
+   <sequence>
+    <element name="industryType" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="transType" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="bin" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="merchantID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="terminalID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="cardBrand" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="orderID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="txRefNum" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="txRefIdx" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="respDateTime" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="procStatus" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="approvalStatus" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="respCode" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="avsRespCode" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="cvvRespCode" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="authorizationCode" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="mcRecurringAdvCode" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="visaVbVRespCode" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="procStatusMessage" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="respCodeMessage" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="hostRespCode" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="hostAVSRespCode" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="hostCVVRespCode" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="retryTrace" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="retryAttempCount" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="lastRetryDate" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="customerRefNum" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="customerName" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="profileProcStatus" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="profileProcStatusMsg" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="giftCardInd" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+    <element name="remainingBalance" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+    <element name="requestAmount" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+    <element name="redeemedAmount" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+    <element name="ccAccountNum" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+    <element name="debitBillerReferenceNumber" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+   </sequence>
+  </complexType>
+  <complexType name="MarkForCaptureElement">
+   <sequence>
+    <element name="orderID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="amount" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="taxInd" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="taxAmount" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="bin" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="merchantID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="terminalID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="txRefNum" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="retryTrace" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCardOrderID" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCardDestZip" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCardDestName" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCardDestAddress" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCardDestAddress2" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCardDestCity" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCardDestStateCd" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="amexTranAdvAddn1" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="amexTranAdvAddn2" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="amexTranAdvAddn3" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="amexTranAdvAddn4" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCard3FreightAmt" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCard3DutyAmt" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCard3DestCountryCd" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCard3ShipFromZip" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCard3DiscAmt" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCard3VATtaxAmt" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCard3VATtaxRate" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCard3AltTaxInd" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCard3AltTaxAmt" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCard3LineItemCount" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="pCard3LineItems" type="ns:PC3LineItemArray" minOccurs="0" maxOccurs="1" nillable="true"/>
+   </sequence>
+  </complexType>
+  <complexType name="MarkForCaptureResponseElement">
+   <sequence>
+    <element name="bin" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="merchantID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="terminalID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="orderID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="txRefNum" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="txRefIdx" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="splitTxRefIdx" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="amount" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="respDateTime" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="procStatus" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="procStatusMessage" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="retryTrace" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="retryAttempCount" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="lastRetryDate" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+   </sequence>
+  </complexType>
+  <complexType name="ReversalElement">
+   <sequence>
+    <element name="txRefNum" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="txRefIdx" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="adjustedAmount" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="orderID" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="bin" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="merchantID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="terminalID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="retryTrace" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+   </sequence>
+  </complexType>
+  <complexType name="ReversalResponseElement">
+   <sequence>
+    <element name="outstandingAmt" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="bin" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="merchantID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="terminalID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="orderID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="txRefNum" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="txRefIdx" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="respDateTime" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="procStatus" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="procStatusMessage" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="retryTrace" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="retryAttempCount" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="lastRetryDate" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+   </sequence>
+  </complexType>
+  <complexType name="EndOfDayElement">
+   <sequence>
+    <element name="bin" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="merchantID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="terminalID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="settleRejectedHoldingBin" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+   </sequence>
+  </complexType>
+  <complexType name="EndOfDayResponseElement">
+   <sequence>
+    <element name="bin" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="merchantID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="terminalID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="procStatus" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="batchSeqNum" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="procStatusMessage" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+   </sequence>
+  </complexType>
+  <complexType name="ProfileResponseElement">
+   <sequence>
+    <element name="bin" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="merchantID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="customerName" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="customerRefNum" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="profileAction" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="procStatus" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="procStatusMessage" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="customerAddress1" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="customerAddress2" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="customerCity" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="customerState" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="customerZIP" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="customerEmail" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="customerPhone" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="profileOrderOverideInd" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="orderDefaultDescription" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="orderDefaultAmount" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="customerAccountType" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="ccAccountNum" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="ccExp" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="ecpCheckDDA" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="ecpBankAcctType" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="ecpCheckRT" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="ecpDelvMethod" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="switchSoloCardStartDate" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="switchSoloIssueNum" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+   </sequence>
+  </complexType>
+  <complexType name="ProfileResponse">
+   <sequence>
+    <element name="return" type="ns:ProfileResponseElement" minOccurs="1" maxOccurs="1"/>
+   </sequence>
+  </complexType>
+  <complexType name="ProfileAddElement">
+   <sequence>
+    <element name="bin" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="merchantID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="customerName" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerRefNum" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerAddress1" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerAddress2" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerCity" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerState" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerZIP" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerEmail" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerPhone" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerProfileOrderOverideInd" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="customerProfileFromOrderInd" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="orderDefaultDescription" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="orderDefaultAmount" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerAccountType" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="ccAccountNum" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="ccExp" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="ecpCheckDDA" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="ecpBankAcctType" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="ecpCheckRT" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="ecpDelvMethod" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="switchSoloCardStartDate" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="switchSoloIssueNum" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+   </sequence>
+  </complexType>
+  <complexType name="ProfileChangeElement">
+   <sequence>
+    <element name="bin" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="merchantID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="customerName" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerRefNum" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="customerAddress1" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerAddress2" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerCity" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerState" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerZIP" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerEmail" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerPhone" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerProfileOrderOverideInd" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="orderDefaultDescription" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="orderDefaultAmount" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="customerAccountType" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="ccAccountNum" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="ccExp" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="ecpCheckDDA" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="ecpBankAcctType" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="ecpCheckRT" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="ecpDelvMethod" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="switchSoloCardStartDate" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="switchSoloIssueNum" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+   </sequence>
+  </complexType>
+  <complexType name="ProfileDeleteElement">
+   <sequence>
+    <element name="bin" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="merchantID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="customerName" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="customerRefNum" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+   </sequence>
+  </complexType>
+  <complexType name="ProfileFetchElement">
+   <sequence>
+    <element name="bin" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="merchantID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="customerName" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="customerRefNum" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+   </sequence>
+  </complexType>
+  <complexType name="FlexCacheElement">
+   <sequence>
+    <element name="bin" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="merchantID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="terminalID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="ccAccountNum" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="orderID" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="amount" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="ccCardVerifyNum" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="comments" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="shippingRef" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="industryType" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="flexAutoAuthInd" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="flexPartialRedemptionInd" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="flexAction" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="startAccountNum" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="activationCount" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="txRefNum" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="sequenceNumber" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="retryTrace" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="employeeNumber" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="magStripeTrack1" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="magStripeTrack2" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="retailTransInfo" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="priorAuthCd" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+   </sequence>
+  </complexType>
+  <complexType name="FlexCacheResponseElement">
+   <sequence>
+    <element name="merchantID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="terminalID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="orderID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="ccAccountNum" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="startAccountNum" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="flexAcctBalance" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="flexAcctPriorBalance" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="flexAcctExpireDate" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="cardType" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="txRefIdx" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="txRefNum" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="procStatus" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="procStatusMessage" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="approvalStatus" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="authorizationCode" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="respCode" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="batchFailedAcctNum" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="flexRequestedAmount" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="flexRedeemedAmt" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="flexHostTrace" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="flexAction" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="respDateTime" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="autoAuthTxRefIdx" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="autoAuthTxRefNum" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="autoAuthProcStatus" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="autoAuthStatusMsg" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="autoAuthApprovalStatus" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="autoAuthFlexRedeemedAmt" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="autoAuthResponseCodes" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="autoAuthFlexHostTrace" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="autoAuthFlexAction" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="autoAuthRespTime" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="retryTrace" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="retryAttempCount" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="lastRetryDate" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="cvvRespCode" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="superBlockID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+   </sequence>
+  </complexType>
+  <complexType name="UnmarkElement">
+   <sequence>
+    <element name="merchantID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="terminalID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="bin" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="txRefNum" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="txRefIdx" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="orderID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="retryTrace" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    <element name="retryAttempCount" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+   </sequence>
+  </complexType>
+  <complexType name="UnmarkResponseElement">
+   <sequence>
+    <element name="merchantID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="terminalID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="bin" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="orderID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="txRefNum" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="txRefIdx" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="procStatus" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="procStatusMessage" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="retryTrace" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="retryAttempCount" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    <element name="lastRetryDate" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+   </sequence>
+  </complexType>
+  <element name="NewOrder">
+   <complexType>
+    <sequence>
+    <element name="newOrderRequest" type="ns:NewOrderRequestElement" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+   </complexType>
+  </element>
+  <element name="NewOrderResponse">
+   <complexType>
+    <sequence>
+    <element name="return" type="ns:NewOrderResponseElement" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+   </complexType>
+  </element>
+  <element name="MarkForCapture">
+   <complexType>
+    <sequence>
+    <element name="markForCaptureRequest" type="ns:MarkForCaptureElement" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+   </complexType>
+  </element>
+  <element name="MarkForCaptureResponse">
+   <complexType>
+    <sequence>
+    <element name="return" type="ns:MarkForCaptureResponseElement" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+   </complexType>
+  </element>
+  <element name="Reversal">
+   <complexType>
+    <sequence>
+    <element name="reversalRequest" type="ns:ReversalElement" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+   </complexType>
+  </element>
+  <element name="ReversalResponse">
+   <complexType>
+    <sequence>
+    <element name="return" type="ns:ReversalResponseElement" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+   </complexType>
+  </element>
+  <element name="EndOfDay">
+   <complexType>
+    <sequence>
+    <element name="endOfDayRequest" type="ns:EndOfDayElement" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+   </complexType>
+  </element>
+  <element name="EndOfDayResponse">
+   <complexType>
+    <sequence>
+    <element name="return" type="ns:EndOfDayResponseElement" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+   </complexType>
+  </element>
+  <element name="ProfileAdd">
+   <complexType>
+    <sequence>
+    <element name="profileAddRequest" type="ns:ProfileAddElement" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+   </complexType>
+  </element>
+  <element name="ProfileAddResponse">
+   <complexType>
+    <sequence>
+    <element name="return" type="ns:ProfileResponseElement" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+   </complexType>
+  </element>
+  <element name="ProfileChange">
+   <complexType>
+    <sequence>
+    <element name="profileChangeRequest" type="ns:ProfileChangeElement" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+   </complexType>
+  </element>
+  <element name="ProfileChangeResponse">
+   <complexType>
+    <sequence>
+    <element name="return" type="ns:ProfileResponseElement" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+   </complexType>
+  </element>
+  <element name="ProfileDelete">
+   <complexType>
+    <sequence>
+    <element name="profileDeleteRequest" type="ns:ProfileDeleteElement" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+   </complexType>
+  </element>
+  <element name="ProfileDeleteResponse">
+   <complexType>
+    <sequence>
+    <element name="return" type="ns:ProfileResponseElement" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+   </complexType>
+  </element>
+  <element name="ProfileFetch">
+   <complexType>
+    <sequence>
+    <element name="profileFetchRequest" type="ns:ProfileFetchElement" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+   </complexType>
+  </element>
+  <element name="ProfileFetchResponse">
+   <complexType>
+    <sequence>
+    <element name="return" type="ns:ProfileResponseElement" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+   </complexType>
+  </element>
+  <element name="FlexCache">
+   <complexType>
+    <sequence>
+    <element name="flexCacheRequest" type="ns:FlexCacheElement" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+   </complexType>
+  </element>
+  <element name="FlexCacheResponse">
+   <complexType>
+    <sequence>
+    <element name="return" type="ns:FlexCacheResponseElement" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+   </complexType>
+  </element>
+  <element name="Unmark">
+   <complexType>
+    <sequence>
+    <element name="unmarkRequest" type="ns:UnmarkElement" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+   </complexType>
+  </element>
+  <element name="UnmarkResponse">
+   <complexType>
+    <sequence>
+    <element name="return" type="ns:UnmarkResponseElement" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+   </complexType>
+  </element>
+ </schema>
+</types>
+
+<message name="NewOrderRequest">
+ <part name="parameters" element="ns:NewOrder"/>
+</message>
+
+<message name="NewOrderResponse">
+ <part name="parameters" element="ns:NewOrderResponse"/>
+</message>
+
+<message name="MarkForCaptureRequest">
+ <part name="parameters" element="ns:MarkForCapture"/>
+</message>
+
+<message name="MarkForCaptureResponse">
+ <part name="parameters" element="ns:MarkForCaptureResponse"/>
+</message>
+
+<message name="ReversalRequest">
+ <part name="parameters" element="ns:Reversal"/>
+</message>
+
+<message name="ReversalResponse">
+ <part name="parameters" element="ns:ReversalResponse"/>
+</message>
+
+<message name="EndOfDayRequest">
+ <part name="parameters" element="ns:EndOfDay"/>
+</message>
+
+<message name="EndOfDayResponse">
+ <part name="parameters" element="ns:EndOfDayResponse"/>
+</message>
+
+<message name="ProfileAddRequest">
+ <part name="parameters" element="ns:ProfileAdd"/>
+</message>
+
+<message name="ProfileAddResponse">
+ <part name="parameters" element="ns:ProfileAddResponse"/>
+</message>
+
+<message name="ProfileChangeRequest">
+ <part name="parameters" element="ns:ProfileChange"/>
+</message>
+
+<message name="ProfileChangeResponse">
+ <part name="parameters" element="ns:ProfileChangeResponse"/>
+</message>
+
+<message name="ProfileDeleteRequest">
+ <part name="parameters" element="ns:ProfileDelete"/>
+</message>
+
+<message name="ProfileDeleteResponse">
+ <part name="parameters" element="ns:ProfileDeleteResponse"/>
+</message>
+
+<message name="ProfileFetchRequest">
+ <part name="parameters" element="ns:ProfileFetch"/>
+</message>
+
+<message name="ProfileFetchResponse">
+ <part name="parameters" element="ns:ProfileFetchResponse"/>
+</message>
+
+<message name="FlexCacheRequest">
+ <part name="parameters" element="ns:FlexCache"/>
+</message>
+
+<message name="FlexCacheResponse">
+ <part name="parameters" element="ns:FlexCacheResponse"/>
+</message>
+
+<message name="UnmarkRequest">
+ <part name="parameters" element="ns:Unmark"/>
+</message>
+
+<message name="UnmarkResponse">
+ <part name="parameters" element="ns:UnmarkResponse"/>
+</message>
+
+<portType name="PaymentechGatewayPortType">
+ <operation name="NewOrder">
+  <documentation>Service definition of function ns__NewOrder</documentation>
+  <input message="tns:NewOrderRequest"/>
+  <output message="tns:NewOrderResponse"/>
+ </operation>
+ <operation name="MarkForCapture">
+  <documentation>Service definition of function ns__MarkForCapture</documentation>
+  <input message="tns:MarkForCaptureRequest"/>
+  <output message="tns:MarkForCaptureResponse"/>
+ </operation>
+ <operation name="Reversal">
+  <documentation>Service definition of function ns__Reversal</documentation>
+  <input message="tns:ReversalRequest"/>
+  <output message="tns:ReversalResponse"/>
+ </operation>
+ <operation name="EndOfDay">
+  <documentation>Service definition of function ns__EndOfDay</documentation>
+  <input message="tns:EndOfDayRequest"/>
+  <output message="tns:EndOfDayResponse"/>
+ </operation>
+ <operation name="ProfileAdd">
+  <documentation>Service definition of function ns__ProfileAdd</documentation>
+  <input message="tns:ProfileAddRequest"/>
+  <output message="tns:ProfileAddResponse"/>
+ </operation>
+ <operation name="ProfileChange">
+  <documentation>Service definition of function ns__ProfileChange</documentation>
+  <input message="tns:ProfileChangeRequest"/>
+  <output message="tns:ProfileChangeResponse"/>
+ </operation>
+ <operation name="ProfileDelete">
+  <documentation>Service definition of function ns__ProfileDelete</documentation>
+  <input message="tns:ProfileDeleteRequest"/>
+  <output message="tns:ProfileDeleteResponse"/>
+ </operation>
+ <operation name="ProfileFetch">
+  <documentation>Service definition of function ns__ProfileFetch</documentation>
+  <input message="tns:ProfileFetchRequest"/>
+  <output message="tns:ProfileFetchResponse"/>
+ </operation>
+ <operation name="FlexCache">
+  <documentation>Service definition of function ns__FlexCache</documentation>
+  <input message="tns:FlexCacheRequest"/>
+  <output message="tns:FlexCacheResponse"/>
+ </operation>
+ <operation name="Unmark">
+  <documentation>Service definition of function ns__Unmark</documentation>
+  <input message="tns:UnmarkRequest"/>
+  <output message="tns:UnmarkResponse"/>
+ </operation>
+</portType>
+
+<binding name="PaymentechGateway" type="tns:PaymentechGatewayPortType">
+ <SOAP:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+ <operation name="NewOrder">
+  <SOAP:operation style="document" soapAction=""/>
+  <input>
+   <SOAP:body use="literal"/>
+  </input>
+  <output>
+   <SOAP:body use="literal"/>
+  </output>
+ </operation>
+ <operation name="MarkForCapture">
+  <SOAP:operation style="document" soapAction=""/>
+  <input>
+   <SOAP:body use="literal"/>
+  </input>
+  <output>
+   <SOAP:body use="literal"/>
+  </output>
+ </operation>
+ <operation name="Reversal">
+  <SOAP:operation style="document" soapAction=""/>
+  <input>
+   <SOAP:body use="literal"/>
+  </input>
+  <output>
+   <SOAP:body use="literal"/>
+  </output>
+ </operation>
+ <operation name="EndOfDay">
+  <SOAP:operation style="document" soapAction=""/>
+  <input>
+   <SOAP:body use="literal"/>
+  </input>
+  <output>
+   <SOAP:body use="literal"/>
+  </output>
+ </operation>
+ <operation name="ProfileAdd">
+  <SOAP:operation style="document" soapAction=""/>
+  <input>
+   <SOAP:body use="literal"/>
+  </input>
+  <output>
+   <SOAP:body use="literal"/>
+  </output>
+ </operation>
+ <operation name="ProfileChange">
+  <SOAP:operation style="document" soapAction=""/>
+  <input>
+   <SOAP:body use="literal"/>
+  </input>
+  <output>
+   <SOAP:body use="literal"/>
+  </output>
+ </operation>
+ <operation name="ProfileDelete">
+  <SOAP:operation style="document" soapAction=""/>
+  <input>
+   <SOAP:body use="literal"/>
+  </input>
+  <output>
+   <SOAP:body use="literal"/>
+  </output>
+ </operation>
+ <operation name="ProfileFetch">
+  <SOAP:operation style="document" soapAction=""/>
+  <input>
+   <SOAP:body use="literal"/>
+  </input>
+  <output>
+   <SOAP:body use="literal"/>
+  </output>
+ </operation>
+ <operation name="FlexCache">
+  <SOAP:operation style="document" soapAction=""/>
+  <input>
+   <SOAP:body use="literal"/>
+  </input>
+  <output>
+   <SOAP:body use="literal"/>
+  </output>
+ </operation>
+ <operation name="Unmark">
+  <SOAP:operation style="document" soapAction=""/>
+  <input>
+   <SOAP:body use="literal"/>
+  </input>
+  <output>
+   <SOAP:body use="literal"/>
+  </output>
+ </operation>
+</binding>
+
+<service name="PaymentechGateway">
+	<documentation>http://www.paymentech.net/download/pdf/Orbital_Gateway_Web_Services_Specification_v1.4.pdf</documentation>
+ <port name="PaymentechGateway" binding="tns:PaymentechGateway">
+  <SOAP:address location="https://ws.paymentech.net/PaymentechGateway"/>
+ </port>
+</service>
+
+</definitions>

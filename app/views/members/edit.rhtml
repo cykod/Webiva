@@ -1,0 +1,213 @@
+<script>
+MemberEditor = {
+  updatePassword: function() {
+    if($('user_options_registered_1').checked) {
+      $('user_options_password').disabled = false; 
+      $('user_options_password_confirmation').disabled = false; 
+    }
+    else {
+      $('user_options_password').disabled = true; 
+      $('user_options_password_confirmation').disabled = true; 
+    }
+  },
+  
+  addTag: function(tag_name) {
+    var cur_tags =  $('user_options_tag_names').value;
+    
+    tag_name = tag_name.strip();
+    
+    var tag_arr = cur_tags.split(",");
+    var tag_exists = false;
+    var cur_tags = []
+    
+    tag_arr.each(function(tag) {
+      tag = tag.strip();
+      if(tag != '') {
+	if(tag_name == tag)
+	  tag_exists = true;
+	cur_tags.push(tag);
+      }
+    });
+    
+    if(!tag_exists) {
+      cur_tags.push(tag_name);
+    }
+    else {
+      alert(tag_name + ' <%= jh "tag already present".t %>');
+    }
+    
+    $('user_options_tag_names').value = cur_tags.join(", ");
+  },
+
+  changeVIP: function() {
+    if(confirm("<%= jh 'Are you sure you want to change and existing VIP Number? This is generally not recommended'.t %>")) {
+       $('user_options_vip_number').disabled = false;
+       $('user_options_vip_number').focus();
+       $('user_options_vip_number').select();
+    }
+
+  },
+
+  generateVIPNumber: function() {
+    $('user_options_vip_number').value = "<%= 'Generating VIP Number...'.t %>";
+    $('user_options_vip_number').disabled = true
+    new Ajax.Request("<%= url_for :action => 'generate_vip' %>");
+    return false;
+
+  }
+
+}
+</script>
+
+<div class='admin_content'>
+<table>
+<tr>
+<td>
+<% cms_form_for :user_options, @user, :html => { :class => 'admin_form' }  do |f| %>
+
+<%= f.text_field :email, :required => true %>
+<%= f.text_field :first_name %>
+<%= f.text_field :last_name %>
+<%= f.radio_buttons :gender, [[ 'Male'.t,'m' ], ['Female'.t, 'f' ]] %>
+<tr>
+  <td colspan='2'>
+<% ajax_tabs [ 'Account', 'User Details','Tracking Info' ] + (@user.id.blank? ? [] : ['Addresses' ]), 'Account' do |t| %>
+
+<% t.tab do -%>
+<table>
+  <%= f.text_field :username %>
+  <%= f.text_field :membership_id, :label => 'Membership Number' %>
+  <%= f.radio_buttons :registered, [ ['Yes',true], ['No',false] ], :onchange => 'MemberEditor.updatePassword();' %>
+  <%= f.password_field :password, :disabled => !@user.registered?, :label => @user.hashed_password ? 'Reset Password' : 'Password' %>
+  <%= f.password_field :password_confirmation, :label => 'Confirm', :disabled => !@user.registered?, :label => @user.hashed_password ? 'Confirm Reset' : 'Confirm' %>
+  <%= f.select :user_class_id, myself.has_role?('editor_editors') ? UserClass.all_options : UserClass.options(false), :label => 'User Profile' %>
+  <%= f.ordered_selection_list :tokens, AccessToken, :sortable => false, :label => 'Access Tokens', :options => AccessToken.user_token_options %>
+</table>
+<% end -%>
+
+
+<% t.tab do -%>
+<table>
+  <%= f.filemanager_image :domain_file_id, :label => 'Image' %>
+  <%= f.date_field :dob, :label => 'Date of Birth', :blank => true %>
+  <%= render :partial => 'subscriptions', :locals => { :f => f } %>
+  <%= f.header 'Tags' %>
+  <tr>
+    <td colspan='2'>
+      <textarea name='user_options[tag_names]' id='user_options_tag_names' cols='50' rows='4'><%= h @user.tag_names.join(", ") %></textarea> <br>
+      <%= "Example: Red, Blue".t %>
+    </td>
+  </tr>
+</table>
+<% end -%>
+
+
+<% t.tab do -%>
+<table>
+  <%= f.select :user_level, EndUser.user_level_select_options %>
+  <%= f.text_field :lead_source %>
+  <%= f.text_field :referrer %>
+  <%= f.select :language, Configuration.languages.collect { |lang| [ lang.upcase, lang ] } %>
+  <%= f.text_field :vip_number, :disabled => !@user.vip_number.blank? %>
+  <% f.custom_field '' do %>
+    <% if @user.vip_number.blank? %>
+        <button onclick='MemberEditor.generateVIPNumber(); return false;' ><%= "Generate VIP Number".t %></button>
+    <% else -%>
+        <buttononclick='MemberEditor.changeVIP(); return false;'><%= "Change VIP Number".t %></button>
+    <% end -%>
+  <% end -%>
+</table>
+<% end -%>
+
+<% unless  @user.id.blank? %>
+<% t.tab do -%>
+
+  <% ajax_tabs [ 'Home Address', 'Business Address','Shipping', 'Billing' ], 'Home Address' do |t| %>
+
+    <% t.tab do -%>
+    <table>
+      <% cms_subfields_for :address, @address do |af| %>
+        <%= af.text_field :address %>
+        <%= af.text_field :city %>
+        <%= af.text_field :state %>
+        <%= af.text_field :zip %>
+        <%= af.select :country, [['Select Country'.t,'']] +  af.translated_countries_for_select %>
+        <%= af.text_field :phone %>
+      <% end -%>
+    </table>
+    <% end -%>
+
+    <% t.tab do -%>
+    <table>
+      <% cms_subfields_for :work_address, @work_address do |af| %>
+        <%= af.text_field :company %>
+        <%= af.text_field :phone %>
+        <%= af.text_field :fax %>
+        <%= af.text_field :address %>
+        <%= af.text_field :city %>
+        <%= af.text_field :state %>
+        <%= af.text_field :zip %>
+        <%= af.select :country, [['Select Country'.t,'']] +  af.translated_countries_for_select %>
+      <% end -%>
+    </table>
+    <% end -%>
+
+    <% t.tab do -%>
+    <table>
+      <% cms_subfields_for :shipping_address, @shipping_address do |af| %>
+        <%= af.text_field :address %>
+        <%= af.text_field :city %>
+        <%= af.text_field :state %>
+        <%= af.text_field :zip %>
+        <%= af.select :country, [['Select Country'.t,'']] +  af.translated_countries_for_select %>
+        <%= af.text_field :phone %>
+        <%= af.text_field :fax %>
+      <% end -%>
+    </table>
+    <% end -%>
+
+
+    <% t.tab do -%>
+    <table>
+      <% cms_subfields_for :billing_address, @billing_address do |af| %>
+        <%= af.text_field :address %>
+        <%= af.text_field :city %>
+        <%= af.text_field :state %>
+        <%= af.text_field :zip %>
+        <%= af.select :country, [['Select Country'.t,'']] +  af.translated_countries_for_select %>
+        <%= af.text_field :phone %>
+        <%= af.text_field :fax %>
+      <% end -%>
+    </table>
+    <% end -%>
+
+
+  <% end -%>
+<% end -%>
+<% end -%>
+<% end -%>
+  </td>
+</tr>
+
+<%= f.submit_cancel_tags 'Submit','Cancel', {}, { :onclick => "document.location='#{url_for :action => 'index' }'; return false;" } %>
+<% end -%>
+
+</td>
+<td valign='top'>
+<b><%= "Existing Tags".t %></b> - <%= "Click to add a tag".t %><br/><br/>
+  <% cloud = []
+      EndUser.cloud(EndUser.tags_count(:order => 'count DESC'), %w(12 14 16 18 20)) do |tg, font_size|
+        cloud << [tg,font_size]
+      end
+  %>
+  <% cloud.each do |tag| %>
+    <a href='javascript:void(0);' onclick='MemberEditor.addTag("<%= jvh tag[0] %>");'  style='font-size:<%= tag[1] %>px;'><%= h tag[0] %></a>
+    
+  <% end -%>
+
+<br/><br/>
+</td>
+</tr>
+</table>
+
+</div>

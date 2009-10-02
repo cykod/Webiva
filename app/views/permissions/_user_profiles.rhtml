@@ -1,0 +1,94 @@
+<script>
+  var AUTH_TOKEN = "<%= form_authenticity_token.to_s %>";
+
+  UserClassEditor = {
+    createNew: function(frm) {
+      if($('create_new_name').value == '') {
+        alert('<%= jh "Please Enter a name".t %>');
+        return false;
+      }
+      var params = $H({name: $('create_new_name').value,
+                      description: $('create_new_desc').value,
+                      editor: $('create_new_editor').checked ? 1 : 0,
+                      authenticity_token: AUTH_TOKEN});
+                      
+      $('create_new_name').value = '';
+      $('create_new_desc').value = '';
+      
+      new Ajax.Request("<%= url_for :action => 'create_user_class'  %>",
+                      { parameters: params.toQueryString() });
+
+    },
+    
+    deleteClass: function(user_class_id) {
+      if(confirm("<%= jh 'Are you sure you want to delete this user profile? All member will be moved to the default profile'.t %>")) {
+        
+        Element.remove('elem_user_class_' + + user_class_id + '_row');
+        new Ajax.Request("<%= url_for :action => 'delete_user_class'  %>",
+                        { parameters: "user_class_id=" + user_class_id });
+      }
+    
+    },
+    
+    editingClass: null,
+    editingClassName: '',
+    editingClassDesc: '',
+    
+    editClass: function(user_class_id) {
+      if(UserClassEditor.editingClass == user_class_id)
+        return false;
+        
+      this.cancelEdit();
+      
+      this.editingClass = user_class_id;
+      
+      this.editingClassName = $('class_name_' + this.editingClass).innerHTML;
+      this.editingClassDesc = $('class_desc_' + this.editingClass).innerHTML;
+      
+      Element.hide('tools_' + this.editingClass);
+      
+      $('class_name_' + this.editingClass).innerHTML = "<input type='text' size='20' id='edit_new_name' name='name' value='" + this.editingClassName + "'/>";
+      $('class_desc_' + this.editingClass).innerHTML = "<input type='text' size='40' id='edit_new_desc' name='desc' value='" + this.editingClassDesc + "'/>";
+      $('class_butt_'  + this.editingClass).innerHTML = "<input type='submit'  onclick='UserClassEditor.submitEdit();'  value='<%= "Update Class".t %>'/><input type='submit' onclick='UserClassEditor.cancelEdit();' value='<%= "Cancel Edit".t %>'/>";
+      
+      $('create_class').style.visibility = 'hidden';
+    },
+    
+    cancelEdit: function() {
+      if(this.editingClass) {
+        Element.show('tools_' + this.editingClass);
+        $('class_name_' + this.editingClass).innerHTML = this.editingClassName;
+        $('class_desc_' + this.editingClass).innerHTML = this.editingClassDesc;
+        $('class_butt_' + this.editingClass).innerHTML = '';
+      $('create_class').style.visibility = 'visible';
+        this.editingClass = null;
+      }
+    },
+    
+    submitEdit: function() {
+      var name = $('edit_new_name').value;
+      var desc = $('edit_new_desc').value;
+      this.editingClassName = name;
+      this.editingClassDesc = desc;
+      var params = $H({ name: name, description: desc, user_class_id: this.editingClass,
+                         authenticity_token: AUTH_TOKEN });
+      new Ajax.Request("<%= url_for :action => 'update_user_class'  %>",
+                      { parameters: params.toQueryString() });
+      this.cancelEdit();
+    
+    }
+    
+  }
+
+</script>
+  <h4> User Profiles </h4>
+ <p> <%= "User Profiles allow you to limit access to portions of your website to specific types of users.".t %> 
+    <%= "By distributing your users into different profiles, you can create a different levels of access for different members".t %>
+    <%= "The first three profiles are built-in and cannot be modified".t %> 
+    
+ </p>
+ <div id='user_classes'>
+  <%= render :partial => 'user_profile_details' %>
+ </div>
+ 
+

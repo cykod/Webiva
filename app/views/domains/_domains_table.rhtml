@@ -1,0 +1,31 @@
+<% active_table_for :domains_table, @tbl,
+ :actions =>[
+             ['Make Active','activate','Activate the selected domains?'],
+             ['Make inactive','deactivate','Deactivate the selected domains?']
+            ],
+ :more_actions => [
+                   ['Delete','delete','Delete the selected domains? (Last domain will not be deleted)' ]
+                   ] do |t| -%>
+<tr <%= highlight_row :domain,t.id %>>
+  <td><%= entry_checkbox :domain,t.id %></td>
+  <td><%= link_to h(t.name), :action =>'edit',:path => t.id %></td>
+  <td align='center'>
+    <%= t.active? ? 'Active'.t : 'Inactive'.t %>
+    <%= t.restricted? ? '(Restricted)'.t : '' %>
+ </td>
+  <td>
+    <%= 'SSL' if t.ssl_enabled? %>
+    <%= 'EMAIL' if t.email_enabled?    %> 
+  </td>
+  <td align='center'><%= t.www_prefix? ? 'Yes' : 'No' %></td>
+  <td align='center'>
+    <% if  t.primary? %>
+      <%= "Yes".t %>
+    <% else -%>
+       <%= link_to 'No', :action => 'primary',:method => 'post', :path => t.id, :confirm => 'Make this domain the primary domain?' %>
+    <% end -%>
+  </td>
+  <td><%= h(t.version_name) %></td>
+</tr>
+   
+<% end -%>

@@ -1,0 +1,13 @@
+page << 'Element.hide("name_error")'
+page << 'Element.hide("subject_error")'
+
+page << "$('template_name').value = '#{jh @mail_template.name}';"
+page << "$('template_subject').value = '#{jh @mail_template.subject}';"
+page << "$('template_body_text').value = '#{ jh @mail_template.body_text}';"
+page << "$('template_body_html').value = '#{ jh @mail_template.body_html}';"
+page << "$('mail_template_body_value_text').checked = " + ( @mail_template.is_text ? 'true;' : 'false;')
+page << "$('mail_template_body_value_html').checked = " + ( @mail_template.is_html ? 'true;' : 'false;')
+page << "tinyMCE.updateContent('template_body_html');"
+
+page.replace_html :template_attachments, :partial => 'attachments'
+page << "new Element.hide('loading_screen');"

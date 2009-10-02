@@ -1,0 +1,32 @@
+<% target_cache = {} -%>
+<% active_table_for :user_comments_table, @active_table_output,
+                    :refresh_url => url_for(:action => 'user_comments_table', :path => @user_id),
+                    :class => 'active_table',
+                    :actions => [ ['Approve','approve'], ['Reject','reject' ] ],
+                    :more_actions => [ ['Delete Comments','delete','Are you sure you want to permanently delete these comments?' ] ],
+                    :width => '100%',
+                    :update => 'comments_table' do |t| %>
+<tr <%= highlight_row 'comment',t.id %>>
+   <td>
+      <%= entry_checkbox 'comment',t.id -%>
+    </td>
+   <td>
+      <%= t.target_type.constantize.get_content_description -%>
+   </td>
+    <td>
+      <% unless target_cache[t.target_type] && target_cache[t.target_type][t.target_id]
+            target_cache[t.target_type] ||= {}
+            target_cache[t.target_type][t.target_id] = t.target
+         end 
+      -%>
+        <%= truncate(target_cache[t.target_type][t.target_id].title,35) -%>
+    </td>
+    <td align='center'><img src='<%= theme_src(t.rating_icon) %>'/></td>
+    <td align='right'><%= v t.posted_ip -%></td>    
+    <td nowrap='1'><%= t.posted_at.localize(DEFAULT_DATETIME_FORMAT.t) if t.posted_at -%></td>
+    <td>
+      <%= v(t.comment) -%>
+    </td>
+</tr>
+
+<% end -%>

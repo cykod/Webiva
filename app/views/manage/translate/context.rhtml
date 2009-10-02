@@ -1,0 +1,31 @@
+<script>
+  cmsTranslation = { 
+  
+    submitForm: function(reload) {
+      new Ajax.Request('<%= url_for :action => "context_save" %>',
+                      { parameters: Form.serialize('submit_form'),
+                        onComplete: function() {
+                          if(reload) {
+                            setTimeout("window.opener.location.reload(1);",20);
+                            setTimeout("window.close();",50);
+                          }
+                        
+                        }
+                       });
+    }
+  }
+</script>
+<%= form_tag('',:method=>'post', :id=>'submit_form', :onsubmit => 'cmsTranslation.submitForm(true); return false;')%>
+<h3><%= sprintf("Translating into %s",Locale.language.english_name) %></h3>
+<table>
+<% @requests.each_with_index do |req,idx| -%>
+<tr>
+  <td><%= h req[0] %></td>
+  <td><input type='text' name='translate[<%= idx %>]' size='40' value='<%= vh req[2] %>' />
+  <input type='hidden' name='text[<%= idx %>]' size='40' value='<%= vh req[0] %>' /></td>
+</tr>
+<% end -%>
+</table>
+<input type='submit' value='<%= "Save and Refresh".t %>' />
+<input type='submit' value='<%= "Save".t %>' onclick='cmsTranslation.submitForm(false); return false;'/>
+</form>

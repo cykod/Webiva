@@ -1,0 +1,66 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+    <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+  <link rel="stylesheet" type="text/css" media="all" href="/javascripts/jscalendar/calendar-win2k-cold-1.css" title="win2k-cold-1" />
+  <script src="/javascripts/prototype.js" type="text/javascript"></script>
+  <script src="/javascripts/jscalendar/calendar.js" type="text/javascript"></script>
+  <script type="text/javascript" src="/javascripts/jscalendar/lang/calendar-en.js"></script>
+  <script type="text/javascript" src="/javascripts/jscalendar/lang/calendar-<%= @calendar_language %>.js"></script>
+  <script src="/javascripts/jscalendar/calendar-setup.js"></script>
+  <script src="/javascripts/popup.js"></script>
+  <script>
+  SCMS_popup.onLoad("CmsCalendar.onLoad();");
+
+  </script>
+</head>
+<body onload='SCMS_popup.bodyLoad();'>
+<script>
+CmsCalendar = {
+	
+  onLoad: function() {
+    var opt = SCMS_popup.options();
+    $('choosen_date').innertHTML = opt.date;
+    var calendar;
+
+      
+    var cal  = new Calendar(0,null,CmsCalendar.dateChanged,CmsCalendar.dateClosed);
+
+    if(opt.show_time) {
+      cal.showsTime = true;
+      cal.setDateFormat('<%= "%m/%d/%Y %H:%M".t %>');
+    }
+    else {
+      cal.setDateFormat('<%= "%m/%d/%Y".t %>');
+    }
+    cal.create($('calendar_container'));
+    cal.parseDate(opt.date);
+    cal.show();
+    CmsCalendar.callback = opt.callback; 
+
+  },
+  
+  dateChanged:function(calendar,date) {
+    if(calendar.dateClicked) {
+      
+      SCMS_popup.callback("$('" + CmsCalendar.callback + "').value = '" + date + "';");
+      window.close();
+    }
+  
+  },
+
+  dateClosed:function(calendar) {
+    window.close();
+
+  }
+
+
+}
+
+</script>
+<div id='choosen_date' style='display:none;'></div>
+<div id='calendar_container'></div>
+
+</body>
+
+</html>

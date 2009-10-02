@@ -1,0 +1,24 @@
+<div class='cms_form'>
+<h3><%= "Page Information".t %></h3>
+
+<% cms_form_for :revision, @revision, :html => {:id => 'cms_page_info_form' } do |f| -%>
+<%= f.text_field :title %>
+<%= f.text_field :menu_title %>
+<%= f.header 'Meta Tags' %>
+<%= f.text_area :meta_keywords, :cols => 40, :rows => 4, :label => 'Keywords' %>
+<%= f.text_area :meta_description, :cols => 40, :rows => 4, :label => 'Description' %>
+<%= f.header 'Information' %>
+<%= f.text_area :note , :cols => 40, :rows => 4, :label => 'Notes' %>
+<%= f.header 'Icons' %>
+<%= f.filemanager_image :icon_id, :label => 'Page Icon' %>
+<%= f.filemanager_image :icon_hot_id, :label => 'Page Icon Hot' %>
+<%= f.filemanager_image :icon_disabled_id, :label => 'Page Icon Disabled' %>
+<%= f.filemanager_image :icon_selected_id, :label => 'Page Icon Selected'  %>
+
+<% end -%>
+<div align='left'>
+  <a href='javascript:void(0);' class='cms_ajax_link' onclick='cmsEdit.closeInfo();'><%= "Update &amp; Close".t %></a>
+  <a href='javascript:void(0);' class='cms_ajax_link' onclick='cmsEdit.closeBox();'><%= "Cancel".t %></a>
+</div>
+
+</div>

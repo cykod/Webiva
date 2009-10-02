@@ -1,0 +1,28 @@
+<div class='admin_content'>
+
+<b><%= sprintf("Deleting Domain: %s",@domain.name) %></b>
+
+<p>
+<%= "Please Confirm that you want to PERMANENTLY delete all the information associated with this domain".t %>
+</p>
+
+<p>
+<%= "This action IS NOT REVERSABLE".t %>
+</p>
+
+<p>
+<table>
+<tr>
+  <td>
+<input type='submit' onclick='document.location="<%= url_for :action => 'index' %>";' value="<%= 'Cancel'.t %>" />
+  </td>
+  <td>
+<%= form_tag({:action => :destroy, :path => @domain.id}) %>
+  <input type='submit' value="<%= 'Delete'.t %>" onclick='return confirm("<%= 'Are you sure you want to delete this domain permanently?'.t %>");' />
+</form>
+  </td>
+</tr>
+</table>
+
+</p>
+</div>

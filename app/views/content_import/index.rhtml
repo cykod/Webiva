@@ -1,0 +1,15 @@
+    <h2><%="Import a XLS or CSV File".t %></h2>
+
+<p><%= "Please select a file from the file manager to import entries from.".t %></p>
+
+ <% if @bad_file %>
+  <p><b><%= "Incorrect file format, please select a valid XLS or CSV file to import".t %></b></p>
+ <% end -%>
+
+<p>
+<% cms_form_for :wizard, @wizard, :html => { :id => 'wizard_form' } do |f| %>
+ <%= f.filemanager_file :csv_file, :onchange => '$("wizard_next").disabled=false', :type => 'doc' %>
+ <%= f.select :field_deliminator, [ ['Comma (,)'.t,'comma'],['Semi-Colon (;)'.t,'semicolon'],['Tab'.t,'tab'],['Colon (:)'.t,'colon']] %>
+<% end -%>
+
+</p>

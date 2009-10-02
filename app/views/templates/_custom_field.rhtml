@@ -1,0 +1,25 @@
+<% if opt[3] %>
+<tr>
+  <td/>
+  <td>
+  <%= opt[3] %>
+  </td>
+</tr>
+<% end -%>
+    
+<% case opt[2] 
+    when 'string': -%>
+      <%= f.text_field opt[0].to_sym, :label => opt[1] %>
+    <% when "image": -%>
+      <%= f.filemanager_image opt[0].to_sym, :label => opt[1] %>
+    <% when "src": -%>
+      <%= f.filemanager_file opt[0].to_sym, :label => opt[1] %>
+    <% when "node": -%>
+      <%= f.select opt[0].to_sym, [['--Select Page--'.t,'']] +  SiteNode.page_options.collect { |elem| [ elem[0],elem[1].to_s ] }, :label => opt[1] %>
+    <% when "color": -%>
+      <%= f.color_field opt[0].to_sym, :label => opt[1] %>   
+    <% else -%>
+      <% f.custom_field opt[0] do -%>
+        <%= opt[0] %> - <%= opt[2] %>
+      <% end -%>
+    <% end -%>

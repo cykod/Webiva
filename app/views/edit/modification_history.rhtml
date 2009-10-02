@@ -1,0 +1,6 @@
+<div id='cms_mod_history_<%= @revision.id  %>'>
+<% @revisions.each do |rev| -%>
+<% @last_revision = true if rev == @revisions.last %>
+<a href='javascript:void(0);' <%= (@revision.parent_revision_id == rev.id)  ? "class='cms_ajax_link_selected'" : "class='cms_ajax_link'" %> onclick='cmsEdit.loadEdit(<%= rev.id %>);'><%= render :partial => 'saved_by', :locals => {:revision => rev } %> </a><br/>
+<% end -%>
+</div>

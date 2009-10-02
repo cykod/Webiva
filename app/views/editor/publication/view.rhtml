@@ -1,0 +1,17 @@
+<div class='cms_form'>
+<h3><%= sprintf("%s Options".t,@publication.name) %></h3>
+
+<% tabled_form_for :pub, @options, 
+          :html => { :id => 'edit_entry',
+                     :onsubmit => "cmsEdit.submitParagraphData(this,'#{url_for :action => 'edit'}',#{@paragraph.id},#{@paragraph_index}); return false;"
+                   }  do |f| -%>
+<%= f.select :entry_id, @entries,:label => 'Entry to display' %>                   
+<%= f.select :return_page, @pages, :label => 'Return Page' %>
+<%= f.header "Filter Options" %>
+<%= content_publication_filter_options(f,@publication) %>
+
+<% end -%>
+<hr/>
+<a class='cms_ajax_link' href='javascript:void(0);' onclick="$('edit_entry').onsubmit();"><%= "Update &amp; Close".t %></a>
+<a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.closeBox();'><%= "Cancel".t %></a>
+</div>

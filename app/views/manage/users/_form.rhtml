@@ -1,0 +1,8 @@
+
+
+<%= f.text_field :username %>
+<%= f.password_field :password %>
+<%= f.radio_buttons :client_admin, [ ['Yes',true], ['No',false ] ] %>
+<% if myself.has_role?('system_admin') -%>
+<%= f.radio_buttons :system_admin, [ ['Yes',true], ['No',false ] ] %>
+<% end -%>

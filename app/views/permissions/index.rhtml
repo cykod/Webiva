@@ -1,0 +1,50 @@
+<script>
+  PermissionEditor = {
+    submitPermissions: function(category,frm) {
+      var elem = $('updated_' + category);
+      elem.show();
+      elem.innerHTML = "<%= 'Saving Permissions...'.t %>";
+      new Ajax.Request("<%= url_for :action => 'update_permissions' %>",
+                      { 
+                        parameters: $(frm).serialize() + "&category=" + category,
+                        onComplete: function(req) {
+                          elem.innerHTML = "<%= 'Saved'.t %>";
+                          new Effect.Fade(elem);
+                        }
+                      });
+    
+    }
+  
+  };
+</script>
+<% if myself.has_role?('editor_access_tokens') -%>
+<% action_panel do |p| -%>
+  <%= p.link 'Access Tokens',:controller => '/access_token',:action => 'editor', :icon => 'configure.gif' %>
+<% end -%>
+
+<hr/>
+<% else -%>
+  <br/><br/>
+
+<% end -%>
+
+<% ajax_tabs @categories.collect { |cat| cat[1]  } + ['User Profiles'.t], @categories[0][1]  do |t| %>
+<% @categories.each do |perm| %>
+  <% t.tab do %>
+  <div class='admin_content'>
+    <div id='permission_category_<%= perm[0] %>'>
+      <%= render :partial => 'permission_grid', :locals => { :category => perm, :permissions => @permissions[perm[0]] } %>
+    </div>
+  </div>
+  <% end -%>
+<% end -%>
+
+<% t.tab do %>
+
+<div class='admin_content'>
+  <%= render :partial => 'user_profiles' %>
+</div>
+
+<% end -%>
+
+<% end -%>

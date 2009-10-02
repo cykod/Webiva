@@ -1,0 +1,14 @@
+  <table>
+  
+  <% @publication.triggered_actions.each do |act| %>
+  <tr>
+    <td>
+      <%= link_to act.name , { :controller => '/triggered_action/index', :action => 'index', :action_id => act.id  }, :callback => 'PublicationEditor.replaceAction',  :popup => ['new_action', 'height=450,width=700' ], :id => 'file_link', :class => 'ajax_link'  %>
+    </td>
+    <td>
+    <a href='javascript:void(0);' onclick='PublicationEditor.deleteAction(<%= act.id %>);' ><%= h "Delete".t %></a> 
+    </td>
+  </tr>
+  <% end -%>
+  </table>
+  <br/><br/>

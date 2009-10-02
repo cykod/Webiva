@@ -1,0 +1,97 @@
+<script>
+MemberViewer = {
+  loadedTab: {},
+
+  loadTab: function(idx,url) {
+    if(!this.loadedTab[idx]) {
+      new Ajax.Updater('tab_' + idx,url, { parameters: "tab=" + idx, evalScripts: true });
+      this.loadedTab[idx] = true;
+    }
+  }
+
+
+};
+
+<%= active_table_javascript %>
+</script>
+
+<% unless @user.user_class.editor? && !myself.has_role?('editor_editors') %>
+<% action_panel do |p| -%>
+  <%= p.link 'Edit User',:icon => 'edit.gif',:action => 'edit', :path => @user %>
+  <%= p.link 'Login as User', { :icon => 'download.gif',:action => 'login', :path => @user }, :method => 'post' %>
+<% end -%>
+<hr/>
+<% end -%>
+
+<table width='100%'>
+<tr>
+  <td width='260' valign='top'>
+    <div>
+    <% stat_view do |f| %>
+      <%= f.header "User Profile" %>
+      <%= f.row 'Name',@user.name %>
+      <%= f.row 'Username',@user.username unless @user.username.blank? %>
+      <%= f.row 'Membership #',@user.membership_id unless @user.membership_id.blank? %>
+      <%= f.row('Gender',@user.gender == 'm' ? 'Male'.t : 'Female'.t) if @user.gender %>
+      <%= f.row 'Email',@user.email %>
+      <%= f.row('Language',@user.language.upcase) if @user.language %>
+      <%= f.row('Date of Birth',@user.dob.strftime("%m/%d/%Y".t)) if @user.dob %>
+      <%= f.row('VIP Number',@user.vip_number) unless @user.vip_number.blank? %>
+
+      <%= f.header "Access Information" %>
+      <%= f.row 'User Profile',@user.user_class ? @user.user_class.name : 'None' %>
+      <%= f.raw 'Registered', (@user.registered ? 'Yes' : 'No') %>
+      <%= f.row 'User Level',@user.user_level_display %>
+      <%= f.row('Source',@user.source_display) if !@user.source.blank? %>
+      <%= f.row('Lead Source',@user.lead_source) unless @user.lead_source.blank? %>
+      <%= f.row('Source User',@user.source_user.name) unless @user.source_user.blank? %>
+      <%= f.row('Referrer',@user.referrer) unless @user.referrer.blank? %>
+
+      <%= f.header "Account Dates" %>
+      <%= f.row 'Created',@user.created_at.strftime(DEFAULT_DATETIME_FORMAT.t) if @user.created_at %>
+      <%= f.row 'Updated',@user.updated_at.strftime(DEFAULT_DATETIME_FORMAT.t) if @user.updated_at %>
+      <%= f.row 'Registered',@user.registered_at.strftime(DEFAULT_DATETIME_FORMAT.t) if @user.registered_at %>
+    <% end -%>
+    
+    </div>
+  
+
+    </div>
+  </td>
+  <td valign='top'>
+
+<% ajax_tabs [ 'Details' ] + @handler_tabs, 'Details' do |t| -%>
+
+<% t.tab do -%>
+  <div style='padding:5px 10px'>
+
+  <% if @user.address_id || @user.billing_address_id || @user.work_address_id || @user.shipping_address_id %>
+    <table>
+      <tr>
+      <% [:address,:work_address,:billing_address,:shipping_address].each do |adr_name| -%>
+        <% if (adr = @user.send(adr_name)) -%>
+            <td valign='top' style='padding-right:10px;'>
+            <b><%= adr_name.to_s.humanize.t %></b><br/><%= adr.display("<br/>") %>
+            </td>
+        <% end -%>
+      <% end -%>
+      </tr>
+    </table>
+    <% end -%>
+  </div>
+  <div id='user_actions_table'>
+    <%= render :partial => 'user_actions_table' %>
+  </div>
+<% end -%>
+<% @handler_tabs.each_with_index do |handler,idx| -%>
+  <% t.tab do -%>
+    <div style='padding:5px 10px' id='tab_<%= idx+1 %>'><%= "Loading...".t %></div>
+  <% end -%>
+<% end -%>
+
+<% end -%>
+
+  </td>
+</tr>
+</table>
+

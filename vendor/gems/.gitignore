@@ -1,0 +1,7 @@
+*.o
+*.so
+*.out
+mkmf.log
+extconf.h
+Makefile
+mysql.c

@@ -1,0 +1,6 @@
+author: John Guenin
+summary: Sends files using the X-Sendfile HTTP header.
+homepage: http://john.guen.in/rdoc/x_send_file/
+plugin: http://john.guen.in/svn/plugins/x_send_file/
+license: MIT
+version: 0.2

@@ -1,0 +1,56 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title>{$lang_mail_field_title}</title>
+	<script language="javascript" type="text/javascript" src="../../tiny_mce_popup.js"></script>
+	<script language="javascript" type="text/javascript" src="jscripts/mail_field.js"></script>
+	<script language="javascript" type="text/javascript" src="../../utils/mctabs.js"></script>
+	<script language="javascript" type="text/javascript" src="../../utils/form_utils.js"></script>
+	<link href="css/flash.css" rel="stylesheet" type="text/css" />
+	<base target="_self" />
+</head>
+<body onload="tinyMCEPopup.executeOnLoad('init();');" style="display: none">
+    <form onsubmit="insertField();return false;" action="#">
+		<div class="tabs">
+			<ul>
+				<li id="general_tab" class="current"><span><a href="javascript:mcTabs.displayTab('general_tab','general_panel');" onmousedown="return false;">{$lang_mail_field_general}</a></span></li>
+			</ul>
+		</div>
+
+		<div class="panel_wrapper">
+			<div id="general_panel" class="panel current">
+				<fieldset>
+					<legend>{$lang_mail_field_general}</legend>
+
+					<table border="0" cellpadding="4" cellspacing="0">
+							<tr>
+							<td nowrap="nowrap"><label for="file">{$lang_mail_field_field}</label></td>
+							  <td nowrap="nowrap">
+									<table border="0" cellspacing="0" cellpadding="0">
+									  <tr>
+										<td><input id="field_name" name="field_name" type="text" value="" onfocus="this.select();" /></td>
+										<td id="filebrowsercontainer">&nbsp;</td>
+									  </tr>
+									</table>
+								</td>
+							</tr>
+                                                        <tr>
+                                                             <td valign='baseline'>Standard Fields</td>
+                                                             <td>first_name, last_name, vip_number, email, greeting, title</td>
+                                                        </tr>
+					</table>
+				</fieldset>
+			</div>
+		</div>
+
+		<div class="mceActionPanel">
+			<div style="float: left">
+				<input type="button" id="insert" name="insert" value="{$lang_insert}" onclick="insertField();" />
+			</div>
+
+			<div style="float: right">
+				<input type="button" id="cancel" name="cancel" value="{$lang_cancel}" onclick="tinyMCEPopup.close();" />
+			</div>
+		</div>
+	</form>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<%  unless editing %>
+<% if can_upload %>
+  
+  <div id='upload_form_<%= gallery.id %>' style='display:none;' >
+    <div class='upload_popup'>
+    <div class='upload_popup_header'><%= "Upload Image".t %></div>
+    <div class='upload_popup_content'>
+    <% tabled_form_for :gallery_upload, @upload, :url => '', :html => { :enctype => 'multipart/form-data' } do |f| %>
+      <% f.custom_field 'Select Image' do %>
+        <%= file_column_field 'gallery_upload', 'file' %>
+      <% end -%>
+      <%= f.text_field :description, :label => options.description_string %>
+      <%= f.submit_cancel_tags 'Upload','Cancel', {}, { :onclick => 'CmsGallery.cancelUpload(); return false;' } %>
+    <% end -%>
+    </div>
+    </div>
+  </div>
+<% end -%>
+  
+<% if can_edit %>
+  <div id='info_form_<%= gallery.id %>' style='display:none;' >
+    <div class='upload_popup'>
+    <div class='upload_popup_header'><%= "Image Information".t %></div>
+    <div class='upload_popup_content'>
+    <table>
+      <tr>
+        <td width='64' style='padding-right:20px'><img id='info_image_<%= gallery.id %>' src='/images/spacer.gif' /></td>
+        <td>
+    <% tabled_form_for :image, @image, :url => '' do |f| %>
+      <input type='hidden' name='image[image_id]' id='image_image_id' value=''/>
+      <%= f.text_field :description, :label => options.description_string %>
+      <% if options.autosort == 'no' %>
+        <%= f.select :position, (1..(images.size)).collect { |elem| [" #{elem} ",elem] }, {}, :class => 'position_select' %>
+      <% end -%>
+      <%= f.submit_cancel_tags 'Update','Cancel', {}, { :onclick => 'CmsGallery.cancelInfo(); return false;' } %>
+    <% end -%>
+      </td>
+      </tr>
+      </table>
+    </div>
+    </div>
+  </div>
+  <%= form_tag('',:id => "delete_image_form_#{gallery.id}",  :onsubmit=> "return confirm('#{jvh 'Are you sure you want to remove this image?'.t }');", :style=>'display:none;') %>
+    <input type='hidden' name='delete_image[gallery_id]' value='<%= gallery.id %>'/>
+    <input type='hidden' name='delete_image[image_id]' value='' id='delete_image_id_<%= gallery.id %>'/>
+  </form>
+<% end -%>
+
+<script>
+<% if images.length > 0 %>
+<%= render :partial => '/media/gallery/gallery_image_info', :locals => { :images => images, :gallery => gallery } %>
+<% end -%>
+</script>
+<% end -%>
+<%= feature_output %>

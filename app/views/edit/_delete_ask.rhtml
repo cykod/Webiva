@@ -1,0 +1,34 @@
+<div class='cms_form'>
+<% if @invalid %>
+<h3><%= "Cannot Delete".t %></h3>
+<% case @delete_type 
+   when 'edit' %>
+  <%= 'This is the last remaining edit, please delete the page to remove it'.t %>
+<% when 'revision' %>
+  <%= 'This is the last revision, please delete the page to remove it'.t %>
+<% when 'version' %>
+  <%= 'This is the last version, please delete the page to remove it'.t %>
+<% end -%>  
+ <div align='right'><input type='submit' value="<%= vh 'Close'.t %>" onclick='cmsEdit.closeBox(); return false' /></div>
+<% else %>
+<h3><%= "Confirm Delete".t %></h3>
+<b>
+<% case @delete_type 
+   when 'edit' %>
+  <%= 'Are you sure you want to delete this edit permanently and irriversibly?'.t %>
+<% when 'revision' %>
+  <%= 'Are you sure you want to delete this version permanently and irriversibly?'.t %>
+<% when 'version' %>
+  <%= 'Are you sure you want to delete this version in all languages permanently and irriversibly?'.t %>
+<% end -%>  
+</b>
+<br/>
+<br/>
+ <div align='right'>
+  <input type='submit' value='<%= vh "Delete".t %>' onclick='cmsEdit.confirmedDelete("<%= @delete_type%>"); return false' />
+  <input type='submit' value='<%= vh "Cancel".t  %>' onclick='cmsEdit.closeBox(); return false' />
+  
+</div>
+
+<% end -%>
+</div>

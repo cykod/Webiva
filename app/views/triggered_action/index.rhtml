@@ -1,0 +1,60 @@
+<% if !@triggers || @triggers.length == 0 %>
+
+<div class='error'>
+  <%= "No supported triggers found".t %><br/>
+  <a href='javascript:window.close();'><%= 'Close Window'.t %></a>
+  
+</div>
+<% else -%>
+<script>
+TriggerWizard = {
+  validateNext:function() {
+    $('wizard_next').disabled = true;
+    
+    var actions = Form.getInputs('wizard_form','radio')
+    var selected = false;
+    actions.each(function(act) {
+      if(act.checked)
+        selected = true
+    });
+    
+    if (selected &&
+        $('triggered_action_name').value != '' &&
+        $('triggered_action_action_trigger').value != '')  {
+          $('wizard_next').disabled = false;
+          return true;
+       }
+    else {
+      return false;
+    }
+  
+  },
+  
+  descriptiveName:'',
+  
+  setDescriptiveName: function(name) {
+    if($('triggered_action_name').value == TriggerWizard.descriptiveName) {
+      TriggerWizard.descriptiveName = TriggerWizard.actions[name];
+      $('triggered_action_name').value = TriggerWizard.actions[name];
+    }
+  },
+  
+  actions: { <%=  @actions.map { |act| "'#{jh act[1]}' : '#{jh act[0]}'" }.join(",") %> }
+    
+
+}
+</script>
+<h1><%= @triggered_action.id ? "Modify triggered action" : "Add a New Triggered Action".t %></h1>
+<% cms_form_for :triggered_action, @triggered_action, :html => { :id => 'wizard_form', :onsubmit => 'return TriggerWizard.validateNext();' } do |f| %>
+  <% if @action_id %>
+    <input type='hidden' name='action_id' value='<%= @action_id %>'/>
+  <% else -%>
+    <input type='hidden' name='trigger' value='<%= @trigger_type %>'/>
+    <input type='hidden' name='trigger_id' value='<%= @trigger_id %>'/>
+  <% end -%>
+  <%= f.radio_buttons :full_action_type, @actions, :vertical => true, :label => 'Please select an action', :onchange => 'TriggerWizard.setDescriptiveName(this.value); TriggerWizard.validateNext(); ' %>
+  <%= f.select :action_trigger, @triggers, :vertical => true, :onchange => 'TriggerWizard.validateNext();' %>
+  <%= f.text_field :name, :vertical => true, :label => 'Descriptive Name', :onchange => 'TriggerWizard.validateNext();' %>
+  
+<% end -%>
+<% end -%>

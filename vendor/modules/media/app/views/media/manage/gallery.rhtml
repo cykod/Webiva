@@ -1,0 +1,89 @@
+<script>
+  GalleryEditor = {
+  
+    showUploadStatus: function() {
+      $('upload_status').innerHTML = 'Uploading file...';
+    
+    },
+    
+    selectedChange: function() {
+      $('upload_butt').disabled = false;
+    
+    },
+    
+    recreateSortables: function() {
+      Sortable.create('gallery_images', 
+          { tag: 'div',
+            onUpdate: GalleryEditor.saveSortables
+            
+          });
+    },
+    
+    saveSortables: function() {
+      var sorter = Sortable.serialize('gallery_images');
+      $('upload_status').innerHTML = 'Saving Order..';
+      
+      new Ajax.Request('<%= url_for :action => 'update_order', :path => @gallery.id %>', 
+              { parameters: sorter,
+                onComplete: function(req) { 
+                      $('upload_status').innerHTML = 'Order Updated';
+                }    
+             } );
+    
+    },
+    
+    insertImage: function(image_id,html) {
+      $('gallery_images').insert({ bottom: html });
+      GalleryEditor.recreateSortables();
+      $('upload_status').innerHTML = 'Upload Successful';
+      $('upload_file').value = '';
+      ($('img_' + image_id)).appear();
+    }, 
+    
+    deleteImage: function(image_id) {
+      Element.remove('img_' + image_id);
+      new Ajax.Request('<%= url_for :action => "update_image", :image_action => "delete", :path => @gallery.id %>',{ parameters: { image_id: image_id }});
+      
+    },
+    
+    updateCaption: function(image_id,caption) {
+      $('upload_status').innerHTML = 'Updating Caption';
+      new Ajax.Request('<%= url_for :action => "update_image",:image_action => "update", :path => @gallery.id %>', { 
+          parameters: { image_id: image_id, name: caption },
+          onComplete: function(req) {
+            $('upload_status').innerHTML = 'Saved Caption';
+          }});
+    
+    }
+    
+  }
+
+</script>
+
+<% action_panel do |p| -%>
+  <% p.custom do -%>
+  <iframe id="UploadTarget" name="UploadTarget" src="" style="width:0;height:0px;border:0px;"></iframe>
+  <%= form_tag({  :action => "gallery_upload", :path => @gallery.id }, :enctype => 'multipart/form-data', :onsubmit => 'this.target="UploadTarget"; GalleryEditor.showUploadStatus();', :style => 'display:inline; padding:0px; margin:0px;') %>
+    Add Image: <input id="upload_file" name="upload" onchange="GalleryEditor.selectedChange();" size="30" type="file" />
+    <input type='submit' name='upload_butt' id='upload_butt' value='Upload' disabled='true'/>
+  </form>
+  <% end -%>
+  <% p.custom do -%>
+    <div style='padding-top:px;' id='upload_status'></div>
+  <% end -%>  
+  <%= p.link 'Edit Gallery Info', :action => 'gallery_info', :path => @gallery, :icon => 'edit.gif',:right => true %>
+<% end -%>
+
+<hr/>
+
+<div class='admin_content'>
+<div id='gallery_images'>
+<% @gallery.gallery_images.each do |img| -%>
+  <%= render :partial => 'gallery_image', :locals => { :img => img } %>
+<% end -%>
+</div>
+
+
+</div>
+
+<script>GalleryEditor.recreateSortables(); </script>

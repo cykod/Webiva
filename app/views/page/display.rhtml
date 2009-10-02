@@ -1,0 +1,78 @@
+<% unless @partial_page -%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+    <html xmlns="http://www.w3.org/1999/xhtml"  <%= "xml:lang='#{@output.language}' lang='#{@output.language}'" %>>
+    <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+      <title><%= @cms_module_page_title || @output.title %></title>
+      <meta http-equiv='Content-Language' content='<%= @output.language %>' />
+      <% if @output.meta_description %>
+        <meta name='DESCRIPTION' content='<%= vh @output.meta_description %>'/>
+      <% end -%>
+      <% if @output.meta_keywords%>
+        <meta name='KEYWORDS' content='<%= vh @output.meta_keywords%>'/>
+      <% end -%>
+      <% if @robots.length > 0 %>
+        <meta name='ROBOTS' content='<%= @robots.join(',') %>'/>
+      <% end -%>
+      
+    
+    <%= javascript_include_tag 'swfobject' %>
+    <% if @output.includes[:head_html] -%>
+      <%= @output.includes[:head_html].join("\n") %>
+    <% end-%>
+    <% if @output.includes[:js] -%>
+      <% @output.includes[:js].uniq.each do |js| -%>
+        <% if js.to_s.include?('http://') -%>
+          <script src="<%= vh js %>" type='text/javascript'></script>
+	      <% else -%>
+          <%= javascript_include_tag js %>
+	      <% end -%>
+      <% end -%>
+    <% end -%>
+    <% if @output.includes[:css] -%>
+      <% @output.includes[:css].uniq.each do |css| -%>
+        <%= stylesheet_link_tag css %>
+      <% end -%>
+    <% end -%>
+    
+    <%= @extra_header.uniq.join("\n") if @extra_header %>
+    <link href="/stylesheet/<%= @output.css_site_template_id.to_s + ".css"  %>" rel="Stylesheet" type="text/css" />
+    
+    <% if @google_analytics[:enabled] == 'enabled'  %>
+        <% if request.ssl? %>
+    	   <script src="https://ssl.google-analytics.com/urchin.js" type="text/javascript"></script>
+      	<% else %>
+            <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+	<% end -%>
+        <script type="text/javascript">
+        _uacct = "<%= @google_analytics[:code] %>";
+        urchinTracker();
+        </script>
+    <% end -%>
+    
+    <%= @output.head %>
+    </head>
+<body>
+<div id="overDiv" style="position:absolute; left:0px; top:0px; visibility:hidden; z-index:1000;"></div>
+
+<% end -%>
+<% @output.html  do |blk| -%>
+<% if blk.is_a?(String) -%>
+  <%= blk %> 
+<% elsif blk.is_a?(Hash) -%>
+<% blk[:paragraphs].each do |para| -%>
+<% if para.is_a?(String) -%>
+<%= para %>
+<% else -%>
+<div class='paragraph' >
+<%= render_paragraph @page, @output.revision, para  %>
+</div>
+<% end -%>
+<% end -%>
+<% end -%>
+<% end -%>
+
+<% unless @partial_page -%>
+</body>
+</html>
+<% end -%>

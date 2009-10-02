@@ -1,0 +1,54 @@
+<h1>Administer Domain: <%= @domain.name %></h1>
+
+<h2>Users Permitted to Edit Domain</h2>
+<%= start_form_tag :action => "update", :id => @domain_id %>
+
+<table>
+
+    <tr>
+        <td>Permitted Users</td>
+        <td></td>
+        <td>Unpermitted Users</td>
+    </tr>
+    <tr>
+
+        <td align="center">
+            <select name="domain_options[permitted][]"  multiple="1" size="10">
+                <%= options_from_collection_for_select @permitted_users, "id", "username" %>
+            </select>
+        </td>
+        <td>
+            <input type="submit" name="domain_options[remove]" value=" &gt;&gt; "><br/>
+            <input type="submit" name="domain_options[add]" value=" &lt;&lt; "><br/>
+        </td>
+        <td  align="center">
+            <select name="domain_options[all_users][]" multiple="1" size="10">
+                <%= options_from_collection_for_select @client_users, "id", "username" %>
+            </select>
+        </td>
+    </tr>
+
+</table>
+
+<%= end_form_tag %>
+
+<h2>Access Groups</h2>
+<%= start_form_tag :action => "update_group", :id => @domain_id %>
+<table>
+
+    <tr>
+        <td>Create Access Group:</td>
+        <td><%= text_field("access_group","name") %></td>
+        <td><input type="submit" name="go" value="Create"></td>
+    </tr>
+
+<% @access_groups.each do |ac| -%>
+    <tr>
+       <td><%= ac.name %></td>
+       <td><%= link_to("Delete Group",:action => "delete_group", :id => ac.id) %></td>
+    </tr>
+<% end -%>
+</table>
+<%= end_form_tag %>
+
+<%= link_to "Back to Domains", :action => "list" %>

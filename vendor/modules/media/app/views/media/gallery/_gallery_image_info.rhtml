@@ -1,0 +1,17 @@
+  CmsGalleryImages["<%= gallery.id  %>"] = [
+    <% images.each do |img| %>
+      <% if img.domain_file %>
+        { url: "<%= img.domain_file.url %>",
+          thumb: "<%= img.domain_file.url(:preview) %>",
+          id: <%= img.id %>,
+          name: "<%= jh img.name %>",
+          width: <%= img.domain_file.image_size[0] %>,
+          height: <%= img.domain_file.image_size[1] %>,
+          img: null
+        }<%= "," unless img == images.last %>
+      <% end -%>
+    <% end -%>
+    
+  
+  ];
+ 

@@ -1,0 +1,223 @@
+
+<script>
+
+PublicationEditor = {
+  deletedFields: $A([]),
+  fieldIndex: <%= @publication.content_publication_fields.length %>,
+  
+  commitAction: function(action_id) {
+    setTimeout('PublicationEditor.submitAction(' + action_id + ');',10);
+  },
+  
+  submitAction: function(action_id) {
+    params = $H({ triggered_action_id: action_id ,
+                  publication_id: <%= @publication.id %> });
+                
+    new Ajax.Request("<%= url_for :action => 'update_triggered_actions' %>",
+                    { parameters: params.toQueryString() });
+                    
+  },
+
+  deleteAction: function(action_id) {
+    params = $H({ triggered_action_id: action_id ,
+                  publication_id: <%= @publication.id %> });
+                
+    new Ajax.Request("<%= url_for :action => 'delete_triggered_action' %>",
+                    { parameters: params.toQueryString() });
+                    
+
+  },
+  
+  // Sortable Functions
+  createFieldSortables:function() {
+     Sortable.create('pub_fields', 
+              { 
+                tag: 'div',      
+                constraint: 'vertical', 
+                handle: 'handle',       
+                dropOnEmpty:true,
+                onUpdate: PublicationEditor.updateSortables });
+  },
+  
+  updateSortables: function() {
+  
+  },
+  
+  // Option Functions
+  closeOptions: function(field_id) {
+    Element.hide('options_' + field_id);
+  },
+  
+  toggleOptions: function(field_id) {
+    Element.toggle('options_' + field_id);
+  
+  
+  },
+  
+  updateName: function(field_id,value) {
+    $('field_name_' + field_id).innerHTML = value.escapeHTML();
+  },
+  
+  // Fields Functions
+  addField: function() {
+    params = Form.serialize('add_field_form');
+    PublicationEditor.fieldIndex+=1;
+    params += "&field_index=" + PublicationEditor.fieldIndex;
+    new Ajax.Updater('pub_fields',
+                      '<%= url_for :action => "new_pub_field", :path => [ @content_model.id, @publication.id ]  %>',
+                     { parameters: params,
+                       insertion: Insertion.Bottom,
+                       evalScripts: true,
+                       onComplete: function(req) {
+                          PublicationEditor.createFieldSortables();
+                          
+                        }}
+                     );
+  },
+  
+  deleteField: function(field_idx,field_id) {
+    if(confirm("<%= jh 'Remove this field?'.t %>")) {
+      Element.remove("elem_field_" + field_idx);
+      if(field_id != '')
+        PublicationEditor.deletedFields.push(field_id);
+    }
+  
+  },
+  
+  
+  // Save Functions
+  saveAll: function(preview) {
+
+    $('save_all_changes').disabled=true;
+    $('save_and_preview_all_changes').disabled=true;
+    new Effect.Appear($('saving_changes'));
+    
+    var params = PublicationEditor.generateFieldParameters() + "&" + Sortable.serialize('pub_fields') +  PublicationEditor.getDeletedFields() + '&' + $('options_form').serialize();
+    params += '&preview=' + (preview ? '1' : '0')
+    
+    if(preview) {
+      RedBox.showOverlay();
+      RedBox.loading();
+    }
+    new Ajax.Request("<%= url_for :action => 'update_publication', :path => @publication.id  %>",
+                      { parameters: params });
+  
+  },
+  
+  generateFieldParameters: function() {
+    var request = 'update_fields=1'
+    
+    var forms = $$('.field_form');
+    forms.each(function(frm) {
+      request += "&" + $(frm).serialize();
+    });
+    
+    return request;
+  
+  },
+  
+  getDeletedFields: function() {
+    var result ='';
+    PublicationEditor.deletedFields.each(function(fld) {
+      result += "&delete[]=" + fld;    
+    });
+    return result;
+  },
+  
+  changeFieldType: function(field_index) {
+    var sel = $("field_" + field_index + "_field_type");
+    var value = sel.value;
+    
+    $('field_type_' + field_index).innerHTML = sel.options[sel.selectedIndex].text;
+    
+    
+    $A(sel.options).each(function(elm) {
+      if($(elm.value + "_" + field_index))
+        $(elm.value + "_" + field_index).hide();
+    });
+    
+    $A(['label', 'format','dynamic','preset' ]).each(function(elem) {  
+      if($(elem + "_" + field_index))
+        $(elem + "_" + field_index).hide();
+    });
+        
+    
+    if(value == 'input'  || value == 'value') {
+      Element.show('label_' + field_index);
+    }
+    else if(value == 'format') {
+      Element.show('label_' + field_index);
+      Element.show('format_' + field_index);
+    }
+    else if(value == 'preset') {
+      Element.show('preset_' + field_index);
+    }
+    else if(value == 'dynamic') {
+      Element.show('dynamic_' + field_index);
+    }
+    else {
+      try {
+        Element.show(value + "_" + field_index);
+      } catch(e) { }
+    }
+    
+ },
+ 
+ 
+}
+
+</script>
+<% ajax_tabs [ 'Fields', 'Options','Triggered Actions'], 'Fields' do |t| -%>
+
+<% t.tab do %>
+<div class='admin_content'>
+  <% form_for :add_field, :html => { :onsubmit => 'PublicationEditor.addField(); return false;', :id => 'add_field_form' } do |f| %>
+    <%= f.select :field_id, @available_fields  %>
+    <input type='submit' value='<%= vh "Add Field".t  %>'/>
+  <% end -%>
+  
+  <div id='pub_fields' style='padding:10px;'>
+  <% @publication.content_publication_fields.each_with_index do |fld,index| %>
+    <%= render :partial => 'pub_field', :locals => { :fld => fld, :field_index => index} %>
+  <% end -%>
+  </div>
+  
+  <input type='submit' id='save_and_preview_all_changes' value='<%= jh "Save &amp; Preview".t %>' onclick='PublicationEditor.saveAll(true);' />
+  <input type='submit' id='save_all_changes' value='<%= vh "Save".t %>' onclick='PublicationEditor.saveAll(false);' />
+  <span id='saving_changes' style='display:none;'><%= h 'Saving Changes to Publication...'.t %></span>
+  
+  <script>
+  PublicationEditor.createFieldSortables();
+  </script>
+</div>
+<% end %>
+
+<% t.tab do %>
+<div class='admin_content'>
+
+  <% cms_form_for :options, @publication_options, 
+      :html => { :class => 'admin_form', :id => 'options_form', 
+                 :onsubmit => 'PublicationEditor.saveAll(true); return false;'}  do |f| %>
+    <%= render :partial => @publication.options_partial, :locals => {:f => f } %>
+  <% end -%>
+  <br/><br/>
+  <input type='submit' id='save_and_preview_all_changes' value='<%= jh "Save &amp; Preview".t %>' onclick='PublicationEditor.saveAll(true);' />
+  <input type='submit' id='save_all_changes' value='<%= "Save".t %>' onclick='PublicationEditor.saveAll(false);' />
+  <span id='saving_changes' style='display:none;'><%= 'Saving Changes to Publication...'.t %></span>
+</div>
+<% end -%>
+<% t.tab do %>
+<div class='admin_content'>
+  <div id='triggered_actions'>
+    <%= render :partial => 'triggered_actions' %>
+  </div>
+  <%= link_to "New Action".t , { :controller => '/triggered_action/index', :action => 'index', :callback => 'PublicationEditor.commitAction', :trigger => 'publication', :trigger_id => @publication.id  }, :popup => ['new_action', 'height=450,width=700' ], :id => 'file_link', :class => 'ajax_link'  %>
+</div>
+<% end -%>
+
+
+<% end -%>
+</div>
+  <div id='publication_preview' style='display:none;'>
+  
+  </div>

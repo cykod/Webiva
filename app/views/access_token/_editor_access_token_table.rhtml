@@ -1,0 +1,9 @@
+<% active_table_for :access_token_table, @tbl,
+ :actions => [['Delete','delete','Delete the selected access tokens? (This may affect users permissions on the site)']] do |t| -%>
+  <tr <%= highlight_row 'token',t.id %>>
+    <td><%= entry_checkbox 'token',t.id %></td>
+    <td><%= link_to h(t.token_name), :action => 'edit_editor', :path => [ t.id ] %></td>
+    <td align='center'><%= t.end_user_tokens.count %></td>
+    <td><%= h(t.description) %></td>
+  </tr>
+<% end -%>

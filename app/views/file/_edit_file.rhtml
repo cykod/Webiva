@@ -1,0 +1,36 @@
+<script>FileEditor.disableDragbox();</script>
+
+<div class='cms_form'>
+
+<% if @file -%>
+
+  <h4><%= "Editing:".t %><%= @file.file_path %></h4>
+  <% if @file.file_size.to_i < 100000 -%>
+  <textarea name='file_editor' id='file_editor' style='width:900px; height:600px'><%= h @file.contents %></textarea>
+  
+ <script>
+    editAreaLoader.init({
+      id: "file_editor"	// id of the textarea to transform		
+      ,start_highlight: true	// if start with highlight
+      ,allow_resize: "no"
+      ,min_height: 450
+      ,allow_toggle: true
+      ,language: "en"
+      ,end_toolbar: "syntax_selection"
+//      ,syntax: "html"	
+    });
+  </script>  
+  <div align='right'>
+  <button onclick='FileEditor.closeOverlay()'>Cancel</button>&nbsp;
+  <button onclick='FileEditor.saveFile(<%= @file.id %>, editAreaLoader.getValue("file_editor"));'>Save Changes</button>
+  </div>
+  <% else -%>
+  <%= "File too large to edit, please edit offline".t %>
+  <button onclick='FileEditor.closeOverlay();'>Close</button>
+
+  <% end -%>
+  
+<% else -%>
+Invalid File
+<% end -%>
+</div>

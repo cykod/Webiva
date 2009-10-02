@@ -1,0 +1,18 @@
+#!/bin/bash
+server=$1
+
+if [ -n "$2"  ]
+then
+  action=$2
+else
+  action=webiva:server_deploy
+fi
+
+server_file=./config/deployments/$server.rb
+
+if [ -f $server_file ]; then 
+  echo "Executing Webiva Deploy for $server"
+  cap -v -v -v -v -f $server_file -f ./config/base_deploy.rb $action
+else
+  echo "Invalid Server: $server"
+fi

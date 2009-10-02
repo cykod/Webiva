@@ -1,0 +1,13 @@
+<% action_panel do |p| -%>
+  <%= p.link 'Add a new Token', :action => 'edit', :icon => 'add.gif' %>
+<% end -%>
+
+<hr/>
+
+<div class='admin_content'>
+  <div id='access_token_table'>
+    <%= render :partial => 'access_token_table' %> 
+    
+  </div>
+
+</div>

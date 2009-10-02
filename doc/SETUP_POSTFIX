@@ -1,0 +1,325 @@
+====== Setting up Webiva to Interact with Postfix ===============
+
+Note, these installation instructions are for Debian Etch and outdated
+
+# w/ an incredible amount of help from: http://workaround.org/articles/ispmail-etch/
+
+# Everything as root:
+
+make sure hostname --fqdn works correctly
+or edit /etc/hosts to have fqdn first for ip address
+
+Wrong: 20.30.40.50   mailserver42 mailserver42.example.com
+Right: 20.30.40.50   mailserver42.example.com mailserver42
+
+# install dovecot
+aptitude install dovecot-pop3d dovecot-imapd
+
+# Install postfix and postfix mysql support
+aptitude install postfix-mysql
+
+# Install av
+aptitude install amavisd-new
+aptitude install spamassassin clamav-daemon cpio arj zoo nomarch lzop cabextract pax
+
+# install additional apps
+aptitude install telnet mutt
+
+# Create a webiva mailuser account
+mysql> GRANT SELECT ON webiva.* TO webiva_mail@localhost IDENTIFIED BY 'pw'
+ 
+
+# create file:
+mysql-virtual-mailbox-domains.cf
+
+user = webiva_mail
+password = test
+hosts = 127.0.0.1
+dbname = webiva
+query = select 1 from domains WHERE name='%s' AND email_enabled=1
+
+# add virtual mapping
+postconf -e virtual_mailbox_domains=mysql:/etc/postfix/mysql-virtual-mailbox-domains.cf 
+
+# add users
+ groupadd -g 5025 vmail
+ useradd -g vmail -u 5025 vmail -d /home/webiva/vmail -m
+ 
+# setup users
+postconf -e virtual_uid_maps=static:5025
+postconf -e virtual_gid_maps=static:5025
+
+
+# setup virtual mailboxes
+mysql-virtual-mailbox-maps.cf
+
+user = webiva_mail
+password = test
+hosts = 127.0.0.1
+dbname = webiva
+query = SELECT 1 FROM email_mailboxes WHERE email='%s'
+  
+ # install the virtual mailboxes
+ postconf -e virtual_mailbox_maps=mysql:/etc/postfix/mysql-virtual-mailbox-maps.cf 
+
+
+# setup virtual aliases
+mysql-virtual-alias-maps.cf
+
+user = webiva_mail
+password = test
+hosts = 127.0.0.1
+dbname = webiva
+query = SELECT destination FROM email_aliases WHERE alias='%s'
+
+
+# setup email virtual alias
+mysql-email2email.cf
+ 
+user = webiva_mail
+password = test
+hosts = 127.0.0.1
+dbname = webiva
+query = SELECT email FROM email_mailboxes WHERE email='%s'
+
+# setup the cfs
+postconf -e virtual_alias_maps=mysql:/etc/postfix/mysql-email2email.cf,mysql:/etc/postfix/mysql-virtual-alias-maps.cf
+
+#  mysql-virtual-transports.cf
+
+user = webiva_mail
+password = test
+dbname = webiva
+table = email_transports
+select_field = transport
+where_field = user
+hosts = 127.0.0.1
+
+# add in the transport db
+postconf -e transport_maps=mysql:/etc/postfix/mysql-virtual-transports.cf 
+
+
+# fix the perms on the files (to secure mysql password)
+chgrp postfix /etc/postfix/mysql-*.cf
+chmod u=rw,g=r,o= /etc/postfix/mysql-*.cf
+
+
+
+# add in the extra transports to master.cnf
+dovecot   unix  -       n       n       -       -       pipe
+    flags=DRhu user=vmail:vmail argv=/usr/lib/dovecot/deliver -d ${recipient}
+webiva unix  -       n       n       -       -       pipe
+  flags= user=webiva:webiva argv=/etc/postfix/webiva_transport.sh 
+
+
+# edit default transports
+postconf -e virtual_transport=dovecot
+postconf -e dovecot_destination_recipient_limit=1
+
+# Create webiva transport bash script webiva_transport.sh
+
+#!/bin/bash
+HOME=/home/webiva \
+/home/webiva/current/script/runner \
+'data = STDIN.read; MailReceiver.receive(data)' 2>&1 > \
+/home/webiva/current/log/receive_mail.log
+
+
+# edit /etc/dovecot/dovecot.conf
+# Enable protocols
+protocols = imap imaps pop3 pop3s
+
+# let plaintext login
+disable_plaintext_auth = no
+
+# set maildir
+mail_location = maildir:/home/webiva/vmail/%d/%n
+
+Next look for a section called "auth default". First define the allowed authentication mechanisms:
+
+mechanisms = plain login
+
+
+# remove other passdb pam
+ passdb sql {
+    args = /etc/dovecot/dovecot-sql.conf
+  }
+
+# remove userdb passwd
+
+userdb static {
+    args = uid=5025 gid=5025 home=/home/webiva/vmail/%d/%n allow_all_users=yes
+}
+
+
+socket listen {
+    master {
+        path = /var/run/dovecot/auth-master
+        mode = 0600
+        user = vmail
+    }
+
+    client {
+        path = /var/spool/postfix/private/auth
+        mode = 0660
+        user = postfix
+        group = postfix
+    }
+}
+
+protocol lda {
+    log_path = /home/webiva/vmail/dovecot-deliver.log
+    auth_socket_path = /var/run/dovecot/auth-master
+    postmaster_address = postmaster@mywebiva.com
+    mail_plugins = cmusieve
+    global_script_path = /home/webiva/vmail/globalsieverc
+}
+
+
+# Edit /etc/dovecot/dovecot-sql.conf 
+driver = mysql
+connect = host=localhost dbname=webiva user=webiva_mail password=PW
+default_pass_scheme = SHA
+password_query = SELECT email as user, password FROM email_mailboxes WHERE mailbox_type = 'mailbox' AND email='%u';
+
+
+# changegrp on sql files
+chgrp vmail /etc/dovecot/dovecot.conf
+chmod g+r /etc/dovecot/dovecot.conf
+
+# generate a dovecot key
+openssl req -new -x509 -days 3650 -nodes -out /etc/ssl/certs/dovecot.pem \
+    -keyout /etc/ssl/private/dovecot.pem
+
+
+# update the dovecot.conf file
+ssl_cert_file = /etc/ssl/certs/dovecot.pem
+ssl_key_file = /etc/ssl/private/dovecot.pem
+
+
+# update postfix so that SMTP authentication is done w/ dove
+postconf -e smtpd_sasl_type=dovecot
+postconf -e smtpd_sasl_path=private/auth
+postconf -e smtpd_sasl_auth_enable=yes
+postconf -e smtpd_recipient_restrictions=permit_mynetworks,permit_sasl_authenticated,reject_unauth_destination
+
+
+# create new postfix certificate
+openssl req -new -x509 -days 3650 -nodes -out /etc/ssl/certs/postfix.pem \
+    -keyout /etc/ssl/private/postfix.pem
+
+chmod o= /etc/ssl/private/postfix.pem
+
+postconf -e smtpd_tls_cert_file=/etc/ssl/certs/postfix.pem
+postconf -e smtpd_tls_key_file=/etc/ssl/private/postfix.pem
+
+
+
+
+
+BACKUP MX
+=========
+
+set up a internet host
+
+(Must be done w/ access to the domains DB)
+
+
+postconf -e smtpd_recipient_restrictions=permit_sasl_authenticated,permit_mynetworks,reject_unauth_destination 
+
+create: /etc/postfix/mysql-relaydomains.cf
+  user = webiva_mail
+  password = test
+  hosts = 127.0.0.1
+  dbname = webiva
+  query = select 1 from domains WHERE name='%s' AND email_enabled=1
+  
+#
+postconf -e relay_domains=mysql:/etc/postfix/mysql-relaydomains.cf
+
+
+
+SPAM & VIRUS FILTERING
+=======================
+
+Examine /etc/amavis/conf.d/20-debian_defaults
+
+    * $sa_spam_subject_tag: if this line stay uncommented then every email that AMaViS suspects to be spam get this string inserted into the email's subject. If you do not want to alter the subject you should comment this line out. Users can still filter out spam by checking the X-Spam-Status header.
+    * $sa_tag_level_deflt: spam with a score that is greater or equal to this level will get spam headers added. Debugging is easier if you always add the headers so you should consider setting it to some very low score (e.g. "-1000" so that headers are always added.
+    * $sa_tag2_level_deflt: emails with a spam score greater or equal to this level will be marked as spam. Usually this default is reasonable. Lower it if too much spam gets through. Raise it if you get too many regular mails caught as spam.
+    * $sa_kill_level_deflt: should be set to the same value as $sa_tag2_level_deflt
+    * $final_spam_destiny: the default D_BOUNCE setting is plain stupid here. The usual approach is to tag email as spam. But if you bounced them you would hit some innocent person because spam mails never contain the correct sender address. Just let the user decide what to do with spam. So it is strongly recommended that you set this to D_PASS.
+    * $banned_filename_re: carefully check this list because these patterns tell AMaViS when to bounce an email because it contains data that you do not like to receive in an email
+
+In the file /etc/amavis/conf.d/15-content_filter_mode you also need to remove the '#' from the @bypass_... lines so that spam and virus filtering gets enabled.
+
+
+In the /etc/spamassassin/local.cf file you should add a line to disable automatic expiration of learned spam emails because that feature conflicts with AMaViS:
+
+bayes_auto_expire 0
+
+
+Making Postfix forward emails to AMaViS is done by setting the content_filter setting. Also set another option that will be explained later:
+
+$> postconf -e content_filter=smtp-amavis:[127.0.0.1]:10024
+$> postconf -e receive_override_options=no_address_mappings
+
+
+
+But we need to define the smtp-amavis service first in the /etc/postfix/master.cf. And also we need Postfix to listen on TCP port 10025 for emails that get sent back from AMaViS:
+
+smtp-amavis unix -      -       n     -       2  smtp
+    -o smtp_data_done_timeout=1200
+    -o smtp_send_xforward_command=yes
+    -o disable_dns_lookups=yes
+    -o max_use=20
+
+127.0.0.1:10025 inet n  -       -     -       -  smtpd
+    -o content_filter=
+    -o local_recipient_maps=
+    -o relay_recipient_maps=
+    -o smtpd_restriction_classes=
+    -o smtpd_delay_reject=no
+    -o smtpd_client_restrictions=permit_mynetworks,reject
+    -o smtpd_helo_restrictions=
+    -o smtpd_sender_restrictions=
+    -o smtpd_recipient_restrictions=permit_mynetworks,reject
+    -o smtpd_data_restrictions=reject_unauth_pipelining
+    -o smtpd_end_of_data_restrictions=
+    -o mynetworks=127.0.0.0/8
+    -o smtpd_error_sleep_time=0
+    -o smtpd_soft_error_limit=1001
+    -o smtpd_hard_error_limit=1000
+    -o smtpd_client_connection_count_limit=0
+    -o smtpd_client_connection_rate_limit=0
+    -o receive_override_options=no_header_body_checks,no_unknown_recipient_checks
+
+
+
+Restart Postfix (postfix reload) first. Now two settings here need some explanation. First the receive_override_options are set to no_address_mappings. This disables all address mappings. Your virtual aliases for examples are not considered at first. Then the email is sent to smtp-amavis and in the end returned to the 127.0.0.1:10025 service that sets a lot of options. One of those options is the receive_override_options again. But this time the no_address_mappings setting is left out. So at this stage Postfix finally checks your virtual aliases. Sounds complicated? Well, it has to be done like this or otherwise your aliases would be evaluated twice which leads to mails sent twice. The other options are used to disable checks that Postfix has already done during the first stage.
+
+Note
+
+Setting receive_override_options=no_address_mappings makes Postfix not consider aliases any more. So if you wish to disable AMaViS as a content filter then you must not set this parameter either.
+
+Another tiny caveat is that the user "clamav" must be a member of the system group "amavis" so that the two services are allowed to talk to each other:
+
+$> adduser clamav amavis
+$> /etc/init.d/clamav-daemon restart
+
+
+## Edit the /etc/amavis/conf.d/50-user file and before the "1;" enter these lines:
+
+@lookup_sql_dsn = (
+ ['DBI:mysql:database=webiva;host=127.0.0.1;port=3306',
+  'webiva_mail',
+  'test']);
+
+$sql_select_policy = 'SELECT name FROM domains WHERE CONCAT("@",name) IN (%k)';
+
+
+So the email was detected as spam and passed through to John. Very well. Finally fix the permissions of the AMaViS configuration files so that no unauthorized user can read the database password:
+
+$> chmod o= /etc/amavis/conf.d/50-user
+
+

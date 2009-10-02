@@ -1,0 +1,11 @@
+<div class='cms_form'>
+<% paragraph_options_form_for "Gallery Options", :gallery do |f| %>
+<%= f.select :gallery_id,[['Use Page Connection'.t,'']] + Gallery.find_select_options(:all), :label => 'Gallery to Display' %>
+<%= f.select :images_per_page, (1..19).to_a + (4..10).to_a.collect { |a| [a * 5,a*5] } %>
+<%= f.page_selector :list_page %>
+<%= f.check_box :gallery_create, :label => 'Create Gallery', :description => 'Create gallery if one does not exist' %>
+<%= f.text_field :gallery_category, :label => 'Category', :description => 'Only show galleries from the entered category' %>
+<%= f.text_field :description_string %>
+<%= f.select :autosort, [ ['No Sorting','no'],['Description','asc'],['Description (reverse)','desc' ]] %>
+<% end -%>
+</div>

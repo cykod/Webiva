@@ -1,0 +1,288 @@
+<div class='admin_tabbed_content'>
+<script type='text/javascript'>
+	TemplateEdit = {
+		popup: function() {
+			var menu_options = new Array();
+		
+			<% if @display_view == 'advanced' -%>
+				menu_options.push(['Basic View',"<%= url_for(:action =>'edit', :view => 'basic', :path => @site_template.id) %>"]);
+			<% else -%>
+				menu_options.push(['Advanced View',"<%= url_for(:action =>'edit', :view => 'advanced', :path => @site_template.id) %>"]);
+			<% end -%>
+
+			SCMS.popup(menu_options);
+		},
+		
+    
+    tabNames: [ <%= @tabs.map { |elm| "'#{elm}'" }.join(",") %> ],
+		tabLanguages: $H( { template_html: 'html', style_design: 'css', style_struct: 'css', head: 'html' }),
+		currentFile: '',
+		
+		versionWarning: <%= @site_template.current_version_id ? true : false %>,
+	
+		saveChanges: function(url) {
+		  
+		  if(!url) {
+		    if(TemplateEdit.versionWarning && 
+		       !confirm("<%= jh "You are currently editing a previous version of this template, saving these changes will make them live, continue?".t %>")) {
+ 		     return false;
+ 		   }
+	     TemplateEdit.versionWarning = false;
+			  $('save_changes').disabled = true;
+			  $('changes_saved_tag').innerHTML = 'Saving Changes....';
+		    	$('changes_saved_tag').style.color='#FF0000';
+			  Effect.Appear('changes_saved_tag',{ duration: 0.1 });
+			}
+			
+			var edit_params =  '';
+			var txt = ''
+      <% @files.each do |file| -%>
+        txt = editAreaLoader.getFile("editor_content",'<%= file[1] %>').text;
+        if(txt == "\n") txt = '';
+        edit_params += "&site_template[<%= file[1] %>]=" + encodeURIComponent(txt);
+	    <% end -%>			
+
+		  	var params = Form.serialize('site_template_form') + TranslationEdit.serialize() +  edit_params;
+		  	$('zone_order').value = '';
+			new Ajax.Request(url ? url : "<%= url_for :action => 'update', :path => @site_template.id %>",
+							{ parameters: params });
+					
+			if(!url) {		
+        <% @files.each do |file| -%>
+          editAreaLoader.setFileEditedMode("editor_content",'<%= file[1] %>',false);
+	      <% end -%>			
+      }
+							
+		},
+		
+		createZonesSortables: function() {
+				Sortable.create('zones', 
+		 					{
+		 						dropOnEmpty: true,
+		 						constraint: 'horizontal', 
+		 						onUpdate: TemplateEdit.updateZones });			
+		
+		},
+		
+		updateZones: function() {
+			var zone_order = '';
+			Sortable.sequence('zones').each(function(zone) {
+				zone_order += zone + ",";
+			
+			});
+			$('zone_order').value = zone_order;
+		
+		},
+		
+		loadEditor: function() {
+		
+      editAreaLoader.init({
+			    id: "editor_content"	// id of the textarea to transform	
+			    ,start_highlight: true
+			    ,allow_toggle: false
+			    ,language: "en"
+			    ,syntax: "html"	
+			    ,toolbar: "search, go_to_line, |, undo, redo, |, select_font, |, change_smooth_selection, highlight, reset_highlight, |, help"
+			    ,syntax_selection_allow: "html,css"
+			    ,is_multi_files: true
+			    ,EA_load_callback: "TemplateEdit.editAreaLoaded"
+			    ,EA_file_close_callback: "TemplateEdit.closeFile"
+			    ,EA_file_switch_on_callback: "TemplateEdit.switchFile"
+			    ,change_callback: "TemplateEdit.fileChange"
+			    ,show_line_colors: true
+		    });
+		
+		},
+		
+		fileChange: function(id) {
+		  if(TemplateEdit.currentFile == 'style_struct') {
+		    TemplateEdit.saveChanges("<%= url_for  :action => 'refresh_styles', :type => 'style_struct', :path => @site_template.id %>");
+		  }
+		  else if(TemplateEdit.currentFile == 'style_design') {
+		    TemplateEdit.saveChanges("<%= url_for  :action => 'refresh_styles', :type => 'style_design', :path => @site_template.id %>");
+		  }
+		},
+		
+		editAreaLoaded: function(id) {
+		  if(id == 'editor_content') {
+         editAreaLoader.closeFile('editor_content','');
+	        var txt = ''
+	        <% @files.each do |file| -%>
+	         setTimeout(function() {
+	          txt = "<%= jh @site_template.send(file[1].to_sym) %>";
+	          if(txt == '') txt = "\n";
+            var <%= file[1] %>_file = { id: "<%= file[1] %>", text: txt, syntax: '<%= file[2] %>', title: '<%= jh file[0].t %>', do_highlight: true }
+            editAreaLoader.openFile('editor_content',<%= file[1] %>_file);
+            },5);
+	        <% end -%>
+          
+          setTimeout(function() {
+            editAreaLoader.execCommand('editor_content','switch_to_file','template_html');
+            // Force Syntax Changes
+            },100);
+          setTimeout(function() {
+            editAreaLoader.execCommand('editor_content','change_syntax','html');
+            // Force Syntax Changes
+            },500);
+      }
+		},
+		
+		loadFiles: function() {
+		},
+		
+		closeFile: function(id) {
+		  // Yeah, not allowed..
+		  return false;
+		},
+		
+		switchFile: function(file) {
+		  TemplateEdit.currentFile = file.id;
+		  $('struct_styles_display').hide();
+		  $('design_styles_display').hide();
+		  if(file.id == 'style_struct') {
+  		  $('struct_styles_display').show();
+		  }
+		  else if(file.id == 'style_design')  {
+        $('design_styles_display').show();		  
+		  }
+      // Force Syntax Changes
+      editAreaLoader.execCommand('editor_content','change_syntax',TemplateEdit.tabLanguages.get(file.id));
+		  
+		},
+		
+		selectStyle: function(line) {
+      editAreaLoader.execCommand('editor_content','go_to_line',"" + line);
+		},
+		
+		loadVersion: function(version_id) {
+		  if(confirm('<%= jh "Load a previous version of this template?".t %>')) {
+  		  document.location = '?version=' + version_id;
+  		}
+		}
+		
+		
+	};
+  
+  TranslationEdit = {
+    closeAll: function() {
+      var langs = getChildElements($('translations'));
+      Element.hide('language_loading');
+      langs.each(function(lang) {
+        Element.hide(lang);
+      });
+      
+      var lang_links = $('language_links').select('.ajax_link_selected');
+      lang_links.each(function(lang) {
+        lang.className = 'ajax_link';
+      });
+    },
+    
+    editLanguage: function(lang) {
+      this.closeAll();
+      $('language_link_' + lang).className = 'ajax_link_selected';
+      if($('language_' + lang)) {
+        Element.show('language_' + lang);
+      }
+      else {
+        $('selected_language').value = lang;
+        Element.show('language_loading');
+        var params = $H({ show_language: lang, template_id: <%= @site_template.id %> });
+        new Ajax.Updater('translations',
+                         "<%= url_for :action => 'load_translation'%>",
+                         { parameters: params.toQueryString(),
+                           insertion: Insertion.Bottom,
+                           evalScripts: true,
+                           onComplete: function(req) {
+                            Element.hide('language_loading');
+                           
+                           }
+                          });
+      }
+    
+    },
+    
+    serialize: function() {
+      var trans_forms = $$('.translation_form');
+      var output = '';
+      trans_forms.each(function(frm) {
+        var elems = Form.getElements(frm);
+        elems.each(function(elem) {
+          output += '&' + elem.name + "=" + encodeURIComponent(elem.value);
+        });
+      });
+      output += '&selected_language=' + $('selected_language').value
+      return output;
+    }
+  };
+	
+	
+</script>
+<div align='right' id='template_versions'>
+  <%= render :partial => 'template_versions' %>
+</div>
+<form action='' id='site_template_form' onsubmit='return false;' method='post'>
+<% ajax_tabs(@tabs.map { |elm| elm.humanize.t },@display_view == 'advanced' ? 'Edit' : 'Options') do |t| -%>
+
+
+<% t.tab do -%>
+  <div class='admin_content'>
+			<%= render :partial => 'template_options' %>
+  </div>
+<% end -%>
+
+<% if @tabs.include?('translation') -%>
+  <% t.tab do  -%>
+		<%= render :partial => 'translation' %>
+	<% end -%>
+<% end -%>
+
+<% if @tabs.include?('edit') -%>
+  <% t.tab do  -%>
+		<div id='zone_display' style='border:1px solid #000000; margin:5px 0;'>
+			<%= render :partial => 'zone_ordering' %>
+		</div>
+		<% cms_unstyled_fields_for :site_template,@site_template, :html => { :id => 'site_template_html_form' } do |f| %> 
+      <%= "Image File Folder:".t %><%= f.filemanager_folder :domain_file_id, :label => 'Image File Folder' %><br/.
+      <input type='hidden' id='zone_order' name='zone_order' value='' />
+      <table width='100%'>
+      <tr>
+        <td width='100%'>
+          <textarea name='editor_content' id='editor_content' style='width:100%; height:450px;'></textarea>
+        </td>
+        <td>
+          <div class='style_display' id='design_styles_display' style='display:none;'>
+            <%= render :partial => 'style_selector', :locals => { :styles => @design_styles, :default_styles => display_style(@default_design_styles) } %>
+          </div>
+          <div class='style_display'  id='struct_styles_display' style='display:none;'>
+            <%= render :partial => 'style_selector', :locals => { :styles => @struct_styles, :default_styles => display_style(@default_struct_styles) } %>
+          </div>
+        </td>
+      </tr>
+      </table>
+    <% end -%>
+  <% end -%>
+<% end -%>
+
+<% end -%>
+
+<div class='admin_content'>
+<%= submit_tag 'Save All Changes'.t,   :id => 'save_changes', :onclick=> 'TemplateEdit.saveChanges(); return false;' %>
+<span id='changes_saved_tag' style='display:none;'><b><%= "Changes Saved....".t %></b></span> 
+
+</div>		
+
+
+
+<script>
+<% if @display_view == 'advanced' -%>
+  TemplateEdit.loadEditor();
+	TemplateEdit.createZonesSortables();
+<% end -%> 
+</script>
+
+</div>
+
+
+
+</div>
+

@@ -1,0 +1,29 @@
+<% if @user.is_a?(EndUser) %>
+<table>
+<% %w(email first_name last_name vip_number).each do |fld| %>
+<% unless @user.send(fld).blank? %>
+<tr><td><%= fld.humanize.t %>:</td><td><%= @user.send(fld) %></td></tr>
+<% end -%>
+<% end -%>
+<% if @user.work_address %>
+  <tr><th colspan='2'><%= "Work Address".t %></th></tr>
+  <% %w(company phone address city state zip country).each do |fld| %>
+    <% unless @user.work_address.send(fld).blank? %>
+      <tr><td><%= fld.humanize.t %>:</td><td><%= @user.work_address.send(fld) %></td></tr>
+    <% end -%>
+  <% end -%>
+<% end -%>
+<% if @user.address %>
+  <tr><th colspan='2'><%= "Address".t %></th></tr>
+  <% %w(phone address city state zip country).each do |fld| %>
+    <% unless @user.address.send(fld).blank? %>
+      <tr><td><%= fld.humanize.t %>:</td><td><%= @user.address.send(fld) %></td></tr>
+    <% end -%>
+  <% end -%>
+<% end -%>
+</table>
+<% else -%>
+<div>
+Client User #<%= @user.id %>: <%= @user.name %>
+</div>
+<% end -%>

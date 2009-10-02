@@ -1,0 +1,3 @@
+@categories.each do |perm|
+  page.replace_html "permission_category_#{perm[0]}", :partial => 'permission_grid', :locals => { :category => perm, :permissions => @permissions[perm[0]] }
+end

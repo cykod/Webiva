@@ -1,0 +1,13 @@
+<% publication_options = (publication.data || {})
+   pub_class = publication_options[:form_class].blank? ? nil : publication_options[:form_class]
+   multipart  =   publication.content_publication_fields.detect { |fld| fld.content_model_field.field_type == 'image' || fld.content_model_field.field_type == 'document' }
+ -%>
+<% if feature -%>
+<% cms_unstyled_fields_for "entry_#{publication.id}", entry do |f| %>
+  <%= renderer.form_feature(publication,{ :form => f, :multipart => multipart }) %>
+<% end -%>
+<% else -%>
+<% cms_form_for "entry_#{publication.id}", entry, :html => {  :class => pub_class, :enctype => multipart ? 'multipart/form-data' : nil  }, :url => '' do |f| %>
+        <%= publication.render_form(f,:return_page => return_page) %>
+<% end -%>
+<% end -%>

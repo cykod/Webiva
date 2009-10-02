@@ -1,0 +1,2 @@
+<%= f.text_field :content_type, :default => 'text/xml' %>
+<%= f.select :entries_displayed, [ ['Show All',0 ] ] + (1..20).to_a + (5..20).to_a.collect { |a| a * 5 } %>

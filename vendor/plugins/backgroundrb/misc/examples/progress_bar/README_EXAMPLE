@@ -1,0 +1,12 @@
+In this example directory is all the code for a simple worker with 
+an ajax progress bar. Just copy the appropriate files to the right 
+place in a rails app and play with the sample.
+
+Included files:
+drb_controller.rb #goes in the app/controllers dir
+drb/ # goes in app/views/ dir
+drb.css goes # goes in public/stylesheets
+drb.js # goes in public/javascripts
+progress_worker.rb # goes in lib/workers
+
+You will need to include links to the css and js in your layout.

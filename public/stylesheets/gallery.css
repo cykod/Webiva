@@ -1,0 +1,29 @@
+
+.cms_gallery_shadow {
+  float:left;
+  width:100%;
+  background: url(/images/site/gallery/shadowAlpha.png) no-repeat bottom right !important;
+  background: url(/images/site/gallery/shadow.gif) no-repeat bottom right;
+  margin: 10px 0 0 10px !important;
+  margin: 10px 0 0 5px;
+  padding:0px;
+  }
+
+.cms_gallery_shadow div {
+  background: none !important;
+  background: url(/images/site/gallery/shadow2.gif) no-repeat left top;
+  margin:0px;
+  padding: 0 !important;
+  padding: 0 6px 6px 0;
+  }
+
+.cms_gallery_shadow p {
+  color: #777;
+  background-color: #fff;
+  font: italic 1em georgia, serif;
+/*  border: 0px solid #a9a9a9; */
+  border: 1px solid #CCCCCC; 
+  padding: 4px;
+  margin: -6px 6px 6px -6px !important;
+  margin: 0;
+  }

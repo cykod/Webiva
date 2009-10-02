@@ -1,0 +1,241 @@
+# Copyright (C) 2009 Pascal Rettig.
+
+class OptionsController < CmsController
+  layout "manage"
+
+  
+  permit ['editor_design_templates','editor_permissions','editor_site_management','editor_emails'], :only => :index
+  
+  permit 'editor_site_management', :except => :index
+  
+  
+
+  def index
+    cms_page_info 'Options', 'options'	
+    
+    @subpages =
+      [
+       [ "Editor Accounts", :editor_editors, "website_editors.gif",
+         { :controller => 'editors' }, 
+         "Administor editor accounts, managing who can edit pages on the system" ]
+      ]
+
+    if Configuration.domain_info.email_enabled?
+      @subpages <<
+        [ "Domain Emails", :editor_emails, "emarketing_templates.gif",
+          { :controller => '/email' },
+          "Manage the email accounts associated with this domain" ]
+    end
+
+    @subpages += 
+      [ 
+       [ "Permissions", :editor_permissions, "site_editors.gif",
+         { :controller => '/permissions' },
+         "Administor permissions, controlling which user profiles has access to features of the site."
+       ],
+       [ "Website Configuration", :editor_site_management, "website_configuration.gif",
+         { :controller => '/options', :action => 'configuration' }, "Presents various site-wide configuration options that can be set up. Configure System Languages."
+       ],
+       [ "Design Templates", :editor_design_templates, "design_templates.gif",
+         { :controller => '/templates' },
+         "Create, Select and Edit site design templates. Design templates control the look of your site."
+       ],
+       [ "Module Setup", :editor_site_management, 'module_setup.gif',
+         {  :controller => '/modules'},
+         "Enables additional CMS functionalities via plugin modules. Modules features can be accessed either via website, page editor paragraph types, or additional administrative pages."
+       ],
+       [ "Domains", :editor_site_management, 'system_domains.gif',
+         { :controller => '/domains' },
+         "Administer the domains where this site can be accessed."
+       ]
+      ]
+  end
+  
+  register_permission_category :editor, 'Webiva', 'Permissions relating to the core webiva system'
+  register_permissions :editor, [ [:website, 'Website', 'View page layout' ],
+                                  [:structure, 'Structure', 'Edit Site Structure' ],
+                                  [:structure_advanced, 'Advanced Structure', 'Edit Site structure and modifiers' ],
+                                  [:editor, 'Editor', 'Edit pages'],
+                                  [:files, 'Files & Images', 'Upload files and images' ],
+                                  [:content, 'Content', 'View content models' ],
+                                  [:content_configure, 'Content Configure','Configure content models and publications' ],
+                                  [:visitors, 'Site Visitors', 'View site visitors'],
+                                  [:members, 'Member Management', 'Edit registered Users'],
+                                  [:editors, 'Editor Management', 'Admin site editors'],
+                                  [:emails, 'Edit Email Accounts', 'Admin email accounts'],
+                                  [:mailing, 'Mailing Management', 'Edit mail templates'],
+                                  [:design_templates, 'Design Templates','Access Design templates'],
+                                  [:access_tokens,'Access Tokens','Access Token Management'],
+                                  [:permissions, 'Permissions', 'Configure user profiles and permissions'],
+                                  [:site_management, 'Site Management', 'Manage site options']
+                                ]
+  
+  cms_admin_paths "options",
+  "Options" =>  {:controller => 'options'},
+  "Configuration" =>  { :action => 'configuration' },
+  "Image Sizes" => {:action => 'image_sizes' }
+  
+  def configuration
+    cms_page_path [ "Options" ], "Configuration"
+    
+  end
+  
+  def languages
+    cms_page_path [ "Options", "Configuration" ], "Language"
+    
+    @languages = GlobalizeLanguage.find_common().collect do |lang|
+      [ lang.iso_639_1, lang.english_name.t ]
+    end
+    
+    @languages.sort! { |x,y| x[1] <=> y[1] }
+    
+    @language_list = Configuration.languages()
+    
+    
+    @selected_languages = @language_list.collect do |lang|
+      [ lang, GlobalizeLanguage.find_by_iso_639_1(lang).english_name.t ]
+    end
+    
+  end
+  
+  def domain_options
+    cms_page_path [ "Options", "Configuration" ], "Domain Options"
+    
+    @options = DefaultsHashObject.new(params[:options] || Configuration.options())
+    
+    if request.post? && params[:options]
+      @config = Configuration.retrieve(:options)
+      
+      if @config.options['gallery_folder'] != params[:options][:gallery_folder]
+        old_gal = DomainFile.find_by_id(@config.options['gallery_folder'])
+        old_gal.update_attribute(:special,'') if old_gal
+        new_gal = DomainFile.find_by_id(params[:options][:gallery_folder])
+        new_gal.update_attribute(:special,'galleries') if new_gal
+      end
+      @config.options = @options.to_h
+      
+      @config.save
+      @updated = true
+      Configuration.retrieve(:options)
+    end
+    
+  end
+  
+  def add_language 
+    language = params[:language]
+    lang =  [ language, GlobalizeLanguage.find_by_iso_639_1(language).english_name.t ]
+    render :partial => 'language', :locals => { :lang => lang }
+  end
+  
+  
+  
+  def save_language_configuration
+    languages = params[:selected_languages] || []
+    
+    @valid_languages = []
+    languages.each do |lang|
+      if GlobalizeLanguage.find_by_iso_639_1(lang)
+        @valid_languages << lang
+      end
+    end
+    
+    if @valid_languages.length == languages.length && @valid_languages.length > 0
+      @config = Configuration.retrieve(:languages)
+      
+      @config.options[:list] = @valid_languages
+      @config.save
+      
+      render :inline => 'Saved Changes'
+    else
+      render :inline => 'You must select a default language,<br/>Changes not saved'
+    end
+  end
+  
+  include ActiveTable::Controller
+  
+  active_table :image_sizes_table, DomainFileSize, 
+  [ ActiveTable::IconHeader.new(nil,:width=>10),
+    ActiveTable::StringHeader.new('name'),
+    ActiveTable::StringHeader.new('size_name'),
+    ActiveTable::StaticHeader.new('Final Size') ]
+  
+  def display_image_sizes_table(display=true)
+    
+    active_table_action('domain_file_size') do |action,fids|
+      DomainFileSize.destroy(fids) if action == 'delete'
+      DataCache.expire_container("Config")
+    end
+
+    @active_table_output = image_sizes_table_generate params, :order => 'name'
+    
+    render :partial => 'image_sizes_table' if display
+  end
+  
+  def image_sizes
+    cms_page_path [ "Options", "Configuration" ], "Image Sizes"
+    
+    @images  = DefaultsHashObject.new(params[:image_sizes])
+    
+    display_image_sizes_table(false)
+  end
+  
+  
+  def image_size
+    @domain_file_size = DomainFileSize.find_by_id(params[:path][0]) || DomainFileSize.new()
+    
+    cms_page_path ["Options","Configuration","Image Sizes"], @domain_file_size.id ? [ "Edit %s",nil,@domain_file_size.name ] : "Create Image Size"
+    
+    if request.post? && params[:domain_file_size]
+      operation_order = params[:operation_order].to_s.split("&").find_all() { |elm| !elm.strip.blank? }
+      @domain_file_size.operations = operation_order.collect do |elm|
+        params[:operation][elm].to_hash.symbolize_keys
+      end
+      
+      if @domain_file_size.update_attributes(params[:domain_file_size])
+        DataCache.expire_container("Config")
+        redirect_to :action => 'image_sizes'
+      end
+    end
+    
+    
+  end
+  
+  def add_operation
+    @operation = DomainFileSize.new_operation(params[:operation])
+    
+    render :partial => 'operation', :locals => { :operation => @operation, :idx => params[:index] }
+    
+  end
+  
+  def files
+    
+    cms_page_path ["Options","Configuration"] ,"Files"
+    
+    @options = Configuration.file_types(params[:options])
+    
+    if request.post? && params[:options] && @options.valid?
+      
+      @config = Configuration.retrieve(:file_types)
+      @config.options = @options.to_h
+      
+      @config.save
+      DataCache.expire_container("Config")
+      @updated = true
+    end
+
+    @handlers = get_handler_info(:website,:file)
+    
+    @available_processors = [['Local Storage','local']] + @handlers.collect { |hndl| [hndl[:name],hndl[:identifier]] }
+    
+  end
+  
+  def move_all
+    
+    @options = Configuration.file_types()
+    DomainModel.run_worker('DomainFile',nil,:update_processor_all,{ :processor => @options.default })
+    flash['notice'] = 'Updating all files to ' + @options.default
+    redirect_to :action => 'files'
+
+  end
+  
+end

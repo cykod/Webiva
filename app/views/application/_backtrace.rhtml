@@ -1,0 +1,19 @@
+A <%= exception.class %> Exception occurred in <%= controller.controller_name %>#<%= controller.action_name %>
+
+  <%= exception.message %>
+  <%= backtrace.first %>
+
+* URL: <%= request.protocol %><%= host %><%= request.request_uri %>
+* Parameters: <%= request.parameters.inspect %>
+* Rails root: <%= rails_root %>
+
+<% for variable in request.session.instance_variables -%>
+<% next if variable =~ /^@db/ -%>
+* <%= variable %>: <%= PP.pp(request.session.instance_variable_get(variable),"").gsub(/\n/, "\n  ").strip %>
+<% end -%>
+
+* Process: <%= $$ %>
+* Server : <%= `hostname -s`.chomp %>
+
+<%= backtrace.join "\n" %>
+

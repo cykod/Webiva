@@ -1,0 +1,79 @@
+<script>
+  cmsMenuEntries = [[]];
+</script>
+<div id='cms_loading' style='background-color:#CCCCCC; z-index:1000; position:absolute; width:100%; height:100%;'></div>
+<div class='cms_form' style='width:600px;'>
+<h3><%= "Edit Links Menu".t %></h3>
+<div style='height:300px; overflow:auto;' >
+<div id='cms_menu_entries' >
+<% @item_index = 1 %>
+<% @data[:menu].each do |item| %>
+  <%= render :partial => 'menu_entry', :locals => { :item => item, :level => 1} %>
+<% end -%>
+</div>
+<div id='cms_menu_item_create' style='padding-left: 10px' >
+        <form onsubmit='cmsMenuEdit.createEntry(); return false;'>
+        <input type='text' id='cms_create_item' name='create_item' value='<%= "Click to Create" %>' onfocus='cmsMenuEdit.clearCreate();' size='20' />
+        </form>
+</div>
+</div>
+<hr/>
+<div id='cms_menu_item_info' style='visibility:hidden;'>
+<form id='cms_menu_item_edit' onsubmit='cmsMenuEdit.saveEntry(); return false;'>
+<input type='hidden' name='entry_index' id='cms_entry_index' />
+<table>
+<tr>
+  <td><%= "Entry Title:".t %>
+  </td>
+  <td colspan='2'><input type='text' name='link_to_title' value='' id='cms_link_to_title'></td>
+</tr>
+<tr>
+  <td><%= "Link to:".t %> </td>
+  <td><label for='cms_link_to_page'><input type='radio' name='link_to' value='page' id='cms_link_to_page' /> Page 
+      </lable>
+  </td>
+  <td>
+        
+        <select id='cms_link_to_page_dest' onchange='$("cms_link_to_page").checked = true;'>
+          <option value=''><%= "--Select Page--".t %></option>
+          <% @pages.each do |pg| %>
+            <option value='<%= pg[1] %>'><%= h pg[0] %></option>
+          <% end -%>
+        </select>
+  </td>
+</tr>
+  <td></td>
+  <td><label for='cms_link_to_url'><input type='radio' id='cms_link_to_url' name='link_to' value='url'  /> <%= "Url".t %>
+       </label>
+  </td>
+  <td>
+        <input type='text' size='20' name='link_to_url' id='cms_link_to_url_dest' onkeydown='$("cms_link_to_url").checked = true;'/>
+  </td>
+</tr>
+<tr>
+  <td colspan='3' align='right'>
+    <input type='submit' name='go' value='<%= "Save Entry".t %>' />
+  </td>
+</tr>
+</table>
+</form>
+</div>
+<hr/>
+<a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsMenuEdit.save();'><%= "Update &amp; Close".t %></a>
+<a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.closeBox();'><%= "Cancel".t %></a>
+
+
+
+</div>
+
+<script>
+
+includeJS('/javascripts/edit_menu.js?value=' + Math.random(),cmsMenuEditRun);
+function cmsMenuEditRun() {
+  cmsMenuEdit.initialize(<%= @item_index %>,cmsMenuEntries);
+  cmsMenuEdit.setParagraph(<%= @paragraph.id %>,<%= @paragraph_index %>);
+  cmsMenuEdit.setSaveUrl("<%= url_for :action => 'menu_save' %>");
+  cmsMenuEdit.themeSrc = "<%= theme_src("/images/icons/menu_entry.gif") %>";
+  SCMS.setKeyHandler(cmsMenuEdit.moveKey);
+}
+</script>

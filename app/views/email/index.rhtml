@@ -1,0 +1,29 @@
+<script>
+  <%= active_table_javascript %>
+  
+  EmailEditor = {
+    deleteEmail: function(email_id) {
+      if(confirm('<%= "Are you sure you want to delete this email?" %>')) {
+        new Ajax.Updater('email_table',
+                        "<%= url_for :action => 'delete' %>",
+                        { 
+                          parameters: 'domain_email_id=' + email_id,
+                          eval_scripts:true
+                        });
+      }
+    
+    }
+  
+  }
+</script>
+<% action_panel do |p| -%>
+  <%= p.link 'Add an Email Account', :icon => 'add.gif', :action => 'new' %>
+<% end -%>
+<hr/>
+<div class='admin_content'>
+<div id='email_table'>
+<%= render :partial => 'email_table' %>
+</div>
+
+
+</div>

@@ -1,0 +1,65 @@
+<script>
+  Exporter = {
+    updateForm: function() {
+      if($('export_download_range').checked) {
+        $('export_range_start').disabled = false;
+        $('export_range_end').disabled = false;
+      }
+      else {
+        $('export_range_start').disabled = true;
+        $('export_range_end').disabled = true;
+      }
+    }, 
+    
+    generate: function() {
+      $('export_download').innerHTML = '<%= jh "Exporting File".t %>';
+      Element.show('export_download');
+      $('submit_button').disabled = true;
+      new Ajax.Request("<%= url_for :action => 'generate_file', :path => @content_model.id %>",
+                       { parameters: Form.serialize('export_form'), 
+                         onComplete: function(req) {
+                           setTimeout(Exporter.status,1000);
+                         }
+                       }
+                      );
+    },
+    
+    status: function() {
+      $('export_download').innerHTML = '<%= jh "Still Exporting...".t %>';
+      new Ajax.Request("<%= url_for :action => 'status', :path => @content_model.id %>")
+    },
+    
+    download: function() {
+      $('export_download').innerHTML = '<%= jh "Starting Download".t %>';
+      openWindow("<%= url_for :action => 'download_file', :path => @content_model.id %>",'Download',40,40,'false','false')
+      setTimeout(Exporter.backToContent,100);
+        
+    },
+    
+    backToContent: function() {
+      document.location = "<%= url_for :controller => '/content', :action => 'view', :path => @content_model.id %>";
+      
+    }
+  }
+</script>
+<div class='admin_content'>
+<% cms_form_for :export, @export, :html => { :onsubmit => 'Exporter.generate(); return false;', :id => 'export_form' } do |f| %>
+<%= f.radio_buttons :download, [ [ 'All Entries','all' ], ['Range of Entries','range' ]], :vertical => true, :separator => '<br/>', :onchange => 'Exporter.updateForm();' %>
+<% f.custom_field 'Entry Range', :vertical => true do %>
+  &nbsp;&nbsp;Entry # <input type='text' id='export_range_start' name='export[range_start]' size='4' value='1' /> to <input type='text' name='export[range_end]' size='4' id='export_range_end'  value='<%= @entry_count %>'/>
+<% end -%>
+<%= f.radio_buttons :export_format , @export_options , :vertical => true, :separator => '<br/>', :label => 'Format of downloaded file' %>
+<tr>
+  <td colspan='2' align='right'>
+    <span style='display:none;' id='export_download'><%= "Exporting File".t %></span>&nbsp;&nbsp;&nbsp;<input type='submit' value='<%= vh "Export & Download".t %>' id='submit_button' /> 
+  </td>
+</tr>
+
+
+
+<% end -%>
+
+<script>
+  Exporter.updateForm();
+</script>
+</div>

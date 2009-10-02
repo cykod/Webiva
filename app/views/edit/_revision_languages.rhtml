@@ -1,0 +1,7 @@
+<% revision.translations(Configuration.languages).each do |elem| %>
+  <% if elem[1]  -%>
+    <a href='javascript:void(0);' class='<%= revision.language == elem[0] ? "cms_ajax_link_selected" : "cms_ajax_link" %>' onclick='cmsEdit.loadTranslation(<%= elem[1].id %>);'><%= elem[0].upcase %> - <%= 'Existing Translation'.t %></a><br/>
+  <% else -%>
+    <a href='javascript:void(0);' class='cms_ajax_link' onclick='cmsEdit.createTranslation("<%= elem[0] %>");'><%= elem[0].upcase %> - <%= 'Create Translation'.t %></a><br/>
+  <% end -%>
+<% end -%>

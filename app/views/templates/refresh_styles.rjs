@@ -1,0 +1,7 @@
+
+
+if @refresh_type == 'style_design' 
+  page.replace_html 'design_styles_display', :partial => 'style_selector', :locals => { :styles => @design_styles, :default_styles => display_style(@default_design_styles) } 
+else
+  page.replace_html 'struct_styles_display',:partial => 'style_selector', :locals => { :styles => @struct_styles, :default_styles => display_style(@default_struct_styles) } 
+end

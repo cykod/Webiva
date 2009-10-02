@@ -1,0 +1,94 @@
+
+
+============= Ubuntu 8.10 Installation Instructions ===================
+
+Below are quick installation instructions for Webiva on Ubuntu 8.10. If you have corrections or instructions for other Languages / Linux Distributions or Operating systems, please send them to webiva@cykod.com. 
+
+
+First of all update your system to the latest packages:
+
+$ sudo apt-get update
+
+Now install all the necessary supporting software. You'll need git to
+download the software. Also, webiva needs: Ruby, MySql, RMagick, memcached, rubygems 
+and rake to run  (You'll also probably want Apache2 instead of running via webrick)
+and you'll need to compile some gems to make it work so you'll need some dev 
+libraries as well:
+
+$ sudo apt-get install mysql-server mysql-client ruby1.8 ruby1.8-dev rdoc1.8 \
+    libmagick9-dev libimage-size-ruby1.8 \
+    g++ gcc  libmysql-ruby1.8 irb openssl zip unzip libopenssl-ruby \
+    apache2 memcached libmysqlclient15-dev build-essential \
+
+    git-core rubygems rake
+
+Next clone the repository:
+
+$ git clone git://github.com/cykod/Webiva.git
+$ cd Webiva/
+
+Next make sure memcached has started (It wasn't started correctly after install
+on my test systems):
+
+$ sudo /etc/init.d/memcached restart
+
+Now run the quick install script to set up the master database and the 
+first domain database:
+
+$ ./script/quick_install.rb
+
+You should then be able to run the webbrick server and access you website from 
+port 3000:
+
+$ ./script/server
+
+(You may need to edit your hosts file so that you can pull up iniital website that you created)
+
+Then start up the background server process:
+
+$ ./script/backgroundrb start
+
+
+======== Apache2 / Passenger Install ================
+
+First get passenger installed:
+
+(See http://www.modrails.com/documentation/Users%20guide%20Apache.html#_operating_system_specific_instructions_and_information for more instormation )
+
+$ sudo sh -c 'echo "deb http://apt.brightbox.net hardy main" > /etc/apt/sources.list.d/brightbox.list'
+$ sudo sh -c 'wget -q -O - http://apt.brightbox.net/release.asc | apt-key add -'
+$ sudo apt-get update
+$ sudo apt-get install libapache2-mod-passenger
+
+Easiest way to install webiva is to install it as the default virtual host
+This way you can add domains and won't need to modify your apache2 configuration 
+every time you add on a domain.
+
+Create a virtual host like the one below (make sure the document root points 
+to the webiva/public directory)
+
+$ vi /etc/apache2/sites-available/default
+
+Either modify or replace with:
+
+<VirtualHost *:80>
+  ServerName mywebiva.com
+  ServerAlias www.mywebiva.com
+  DocumentRoot /path/to/your/webiva/public/directory
+
+#  PassengerDefaultUser user # Optional - set site to run as a specific user
+#  RailsEnv production # Optional - set to production or development as necessary
+</VirtualHost>
+
+Then start up the background server process
+
+$ ./script/backgroundrb start
+
+Finally restart apache and you should be good to go:
+
+$ sudo apache2ctl restart
+
+Bring up a browser and confirm that you can access your site.
+
+
+

@@ -1,0 +1,12 @@
+<div class='admin_content'>
+<% admin_form_for :token, @token do |f| -%>
+  <%= f.text_field :token_name %>
+  <%= f.text_area :description %>
+  
+  <%= f.spacer %>
+  <%= f.cancel_submit_buttons 'Cancel','Submit' %>
+  
+<% end -%>
+
+</div>
+

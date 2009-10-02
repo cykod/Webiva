@@ -1,0 +1,6 @@
+
+<% @parent[:children].each do |elem| %>
+<%= render :partial => 'site_map_elem', :locals => { :site_map_elem => elem } %>
+<% end -%>
+<br/>
+<br/>

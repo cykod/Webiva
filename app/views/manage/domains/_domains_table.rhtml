@@ -1,0 +1,33 @@
+<% active_table_for :domains_table, @active_table_output,
+                    :refresh_url => url_for(:action => 'domains_table'),
+                    :class => 'active_table',                    
+                    :update => 'domains_table' do |dmn| %>
+
+
+<% if myself.has_role?('access',dmn) %>
+
+<tr <%= highlight_row "domain",dmn.id %>>
+        
+        <td>
+        <a href='<%= url_for :action => 'edit', :path => dmn %>'><%= dmn.name %></a>
+        </td>
+        <td> 
+          <%= dmn.client.name %>
+        </td>
+        <td>
+          <%= dmn.domain_type_display %>
+        </td>
+        <td>
+          <%= dmn.status_display %>
+        </td>
+        <td>
+            <a href='<%= "http://www.#{dmn.name}/website" %>'>Goto</a>
+        </td>
+        <td>
+              <a href='<%= url_for(:action => 'delete', :path =>dmn ) %>'> Delete </a>
+        </td>
+</tr>
+
+<% end -%>
+
+<% end -%>

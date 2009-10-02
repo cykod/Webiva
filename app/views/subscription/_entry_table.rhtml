@@ -1,0 +1,10 @@
+<% active_table_for :entry_table, @active_table_output,
+                  :actions => [ ['Unsubscribe','unsubscribe','Are you want to unsubscribe the selected users?' ]],
+                  :refresh_url => url_for(:action => 'display_entry_table',:path => @subscription.id) do |t| -%>
+<tr <%= highlight_row 'entry',t.id %> >
+  <td><%= entry_checkbox 'entry', t.id %></td>
+  <td><%= t.end_user.email %></td>
+  <td><%= t.subscribed_at.strftime(DEFAULT_DATETIME_FORMAT.t) %></td>
+  <td><%= t.subscription_type_display %></td>
+</tr>
+<% end -%>

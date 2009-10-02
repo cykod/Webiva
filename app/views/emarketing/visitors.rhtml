@@ -1,0 +1,126 @@
+<script>
+  VisitorViewer = {
+    selectedEntry:null,
+    
+    
+    clear_detail: function() {
+      if(VisitorViewer.selectedEntry) {
+        Element.removeClassName('entry_' + VisitorViewer.selectedEntry,'selected_row');
+      }
+    },
+  
+    detail: function(entry_id) {
+      VisitorViewer.clear_detail();
+      new Ajax.Updater('visitor_detail',
+                       "<%= url_for :action => 'visitor_detail' %>/" + entry_id);
+      Element.addClassName('entry_' + entry_id,'selected_row');
+      VisitorViewer.selectedEntry = entry_id;
+    },
+    
+    loadStatistics: function() {
+      if(!$('site_statistics_details')) {
+        new Ajax.Updater('site_statistics',
+                          "<%= url_for :action => 'site_statistics' %>/" );
+      }
+    
+    
+    },
+    
+    googleRadios: function() {
+      if($('options_google_analytics_disabled').checked) {
+        $('options_analytics_code').disabled = true;
+        Element.hide('analytics_enabled');
+        Element.show('analytics_disabled');
+      }
+      else if($('options_google_analytics_enabled').checked) {
+        $('options_analytics_code').disabled = false;
+        Element.show('analytics_enabled');
+        Element.hide('analytics_disabled');
+      }
+    
+    },
+    
+    saveOptions: function(frm) {
+      params = Form.serialize(frm);
+      $('submit_options').disabled = true;
+      new Ajax.Request("<%= url_for :action=>'options_update' %>",
+                      { 
+                        parameters: params,
+                        onComplete: function(req) {
+                          $('submit_options').disabled = false;
+                          new Effect.Appear('options_updated');
+                        }
+                      });
+      return false;
+    }
+    
+  
+  
+  }
+  
+   <%= active_table_javascript %>
+</script>
+
+<br/>
+<br/>
+<% ajax_tabs [ 'Site Visitors', [ 'Site Statistics', "VisitorViewer.loadStatistics();" ],'Google Analytics' ], 'Site Visitors' do |t| -%>
+
+
+<% t.tab do %>
+<table>
+
+<tr>
+  <td style='padding-right:10px;' width='450' valign='top'>
+<div id='entries_table'>
+<%= render :partial => 'visitor_table' %>
+</div>
+  </td>
+  <td style='border-left:1px solid #000000; padding-left:10px;' valign='top'  >
+    <div id='visitor_detail'>
+      
+    </div>
+  </td>
+</tr>
+</table>
+
+<% end -%>
+
+<% t.tab do %>
+<div id='site_statistics'>
+  <br/><br/>
+  Loading Site Statistics...
+  <br/><br/>
+</div>
+<% end -%>
+
+<% t.tab do %>
+  <div id='options_updated' style='display:none;'><b><%= "Options Updated".t %></b></div>
+  <% tabled_form_for :options, @options, :html => { :onsubmit => 'return VisitorViewer.saveOptions(this);' } do |f| %>
+    <%= f.radio_buttons :google_analytics, [ [ 'Enabled' , 'enabled' ], [ 'Disabled', 'disabled'] ], :label => "Google Analytics", :onchange => 'VisitorViewer.googleRadios()' %>
+    <%= f.text_field :analytics_code, :disabled => @options.google_analytics == 'enabled' ? false : true %>
+    <%= f.submit_tag 'Update', :id => 'submit_options' %>
+  <% end -%>
+
+  <div id='analytics_disabled' <%= "style='display:none;'" if @options.google_analytics == 'enabled'%>>
+  <%= "Google Analytics is a free service that tracks visitors to your website and allows you to analyze your traffic.".t %>
+  <%= "You must first".t %> <a target='_blank' href='<%= "http://www.google.com/analytics/".t %>'><%= "Register for Google Analytics".t %></a>. 
+  <%="Once you are registered, please click enabled and enter your analytics code from the code block as highlighted below. ".t %>
+  <pre>
+    <%= h('
+    <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+    </script>
+    <script type="text/javascript">') %>
+    _uacct = "<b>UA-XXXXXXX-X</b>";
+    <%= h('
+    urchinTracker();
+    </script>  ') %>
+</pre>
+</div>
+<div id='analytics_enabled' <%= "style='display:none;'" unless @options.google_analytics == 'enabled'%>>
+  <%= "Goto".t %><a target='_blank' href='http://www.google.com/analytics/'><%= "Your Google Analytics Account".t %></a>
+</div>
+
+<% end -%>
+
+<% end -%>
+

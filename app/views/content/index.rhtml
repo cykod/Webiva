@@ -1,0 +1,34 @@
+<% action_panel :handler => 'content' do |p| -%>
+    <% @content_actions.each do |act| %>
+      <% if !act[2][:permit] || myself.has_role?(act[2][:permit]) -%>
+        <%= p.link act[0], :url => act[1], :icon => 'add.gif' %>
+      <% end -%>
+    <% end -%>
+    <%= p.link 'Custom Content Models', :action => 'custom', :icon => 'publications.gif' if myself.has_role?('editor_content') %>
+    <%= p.link 'All Content Types', :controller => 'content_types', :icon => 'publications.gif' if myself.has_role?('editor_content_configure') %>
+<% end -%>
+<hr/>
+
+<div class='admin_content'>
+
+  <div class='content_models'>
+  <% @content_models.each do |model| %>
+    <a href='<%= url_for( model[:url] ? model[:url] : {:controller => model[:controller], :action => model[:action]}) %>' class='content_model' >
+    <img src='<%= theme_src(model[:icon] ? model[:icon] : "icons/content/model.gif") %>' align='left' />
+    <%= model[:name] %>
+    </a>
+  <% end -%>
+  <% if @custom_content_models -%>
+  <% @custom_content_models.each do |model| %>
+    <a href='<%= url_for :action => 'view', :path => model.id %>' class='content_model' >
+      <img src='<%= theme_src("icons/content/model.gif") %>' align='left' />
+      <%= model.name %>
+    </a>
+  <% end -%>
+  <% end -%>
+
+  </div>
+
+  <div style='clear:both;'></div>
+
+</div>

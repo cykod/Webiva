@@ -1,0 +1,31 @@
+<h2><%="Confirm User Import".t %></h2>
+<%= form_tag('', :id => 'wizard_form', :method => 'post', :onsubmit => "return confirm('#{jh "Import email targets?".t}');") %>
+<table class='data_table' >
+  <tr style='background-color:#DDDDDD;'>
+  <th valign='top'><%= "Action".t %></th>
+  <% @file_fields.each do |fld| %>
+  <th valign='bottom'><%= fld[0] %><br/>
+        (<%= fld[2] == 'match' ? "Match".t : "New".t %>)
+  </th>
+  <% end -%>
+</tr>
+<% @file_data.each_with_index do |row,idx| %>
+<tr style="background-color:<%= idx % 2 == 0 ? "#FFFFFF" : "#EEEEEE" %>;">
+  <td>
+  <% if row[0] == 'c' %>
+    <%= "Create".t %>
+  <% elsif row[0] == 's' %>
+    <%= "Skipped".t %>
+  <% else -%>
+    <%= 'Update'.t %>
+  <% end -%>
+  </td>
+  <% @file_fields.each_index do |idx| %>
+  <td nowrap='1'><%= truncate(row[idx+1],20) %></td>
+  <% end -%>
+</tr>
+
+<% end -%>
+</table>
+</form>
+</div> 

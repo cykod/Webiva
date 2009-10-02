@@ -1,0 +1,70 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+  <% if @mail_template.site_template %>
+    <link href="<%= url_for :controller => 'public', :action => 'stylesheet', :path => [ @mail_template.site_template.css_id, Locale.language_code.downcase ] %>" media="screen" rel="Stylesheet" type="text/css" />
+    <% end -%>
+    <%= javascript_include_tag :defaults %>
+    <%= javascript_include_tag "builder" %>
+    <%= javascript_include_tag "slider" %>
+    <%= javascript_include_tag "tiny_mce/tiny_mce_src" %>
+    <%= theme_stylesheet_link_tag  "mail_template" %>
+<script>
+
+function mceSetupContent(editor_id, body, doc) {
+    var toolbar = $(editor_id + '_toolbar');
+    toolbar.style.visibility = 'visible';
+    toolbar.parentNode.removeChild(toolbar);
+    $('cms_mail_header').appendChild(toolbar);
+}
+
+tinyMCE.init({
+          theme : "advanced",
+          theme_advanced_layout_manager: "SimpleLayout",
+          auto_reset_designmode : true,
+          mode : "exact",
+          elements: "template_body_html",
+          valid_elements: "*[*]",
+          plugins: 'table,filemanager,advimage,advlink,paste,noneditable,mail_field',
+          extend_valid_elements: 'a[name|href|target|title|onclick]',
+ theme_advanced_buttons1 :    "bold,italic,underline,separator,strikethrough,justifyleft,justifycenter,justifyright,justifyfull,bullist,numlist,undo,redo,pastetext,pasteword,anchor,link,unlink,image,<%= 'filemanager,' if  myself.has_role?('editor_files') %>hr,forecolor,backcolor,formatselect,styleselect,tablecontrols,code",          
+          theme_advanced_buttons2 : "",
+          theme_advanced_buttons3 : "",
+          theme_advanced_toolbar_location : "top",
+          theme_advanced_toolbar_align: 'left',
+          <% if @mail_template.site_template %>
+          content_css: "<%= url_for :controller => 'public', :action => 'stylesheet', :path => [ @mail_template.site_template.css_id, Locale.language_code.downcase ], :editor => 1 %>",
+          theme_advanced_styles : "<%= SiteTemplate.css_design_styles(@mail_template.site_template.css_id,Locale.language_code.downcase).collect { |style| "#{style.humanize.capitalize}=#{style}" }.join(";") %>", 
+          <% end -%>
+          debug : false,
+          relative_urls : false,
+    	    remove_script_host : true,
+          strict_loading_mode : true,
+          setupcontent_callback: "mceSetupContent",
+          width: "100%",
+          image_insert_url: "<%= url_for :controller => 'file', :action => 'manage' %>",
+          auto_resize:true,
+          language: '<%= Locale.language_code.downcase %>'
+       });             
+ </script>    
+    
+</head>
+
+<body style='margin:0px; border:0px;' >
+<div id='cms_mail_header'>
+
+</div>
+<div id='cms_mail_body'>
+<% if @mail_template.site_template %>
+<% @mail_template.site_template.render_html(Locale.language_code.downcase) do |part| -%>
+<%= part.body %>
+<% if part.zone_position == 1 -%>
+<div style='background-color:#CCCCCC; padding:1px 1px 5px 1px;'><textarea id='template_body_html' name='mail_template[body_html]' style='width:100%;' ><%= h @mail_template.body_html %></textarea></div>
+<% elsif !part.variable.blank? -%><%= @mail_template.site_template.render_variable(part.variable,nil,Locale.language_code.downcase) %><% end -%>
+<% end -%>
+<% else -%>
+<div style='background-color:#CCCCCC; padding:1px 1px 5px 1px;'><textarea id='template_body_html' name='mail_template[body_html]' style='width:100%;' ><%= h @mail_template.body_html %></textarea></div>
+<% end -%>
+</div>
+</body>
+</html>

@@ -1,0 +1,7 @@
+<% active_table_for :tags_table, @tbl do |t| -%>
+  <tr>
+    <td><a href='javascript:void(0);' onclick='SCMS.remoteOverlay("<%= url_for :action => 'tag_details' ,:path => [ t.id ] %>")'><%= h(t.tag.name) %></a></td>
+    <td><%= t.tag.end_user_tags.count %></td>
+    <td><%= h(t.description) %></td>
+  </tr>
+<% end -%>

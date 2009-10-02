@@ -1,0 +1,50 @@
+<% if permit?('editor_structure') %>
+
+<div align='right'>
+<a href='javascript:void(0);' onclick='StructureEditor.copyPage(<%= @node.parent_id %>,<%= @node.id %>,"<%= jh "Duplicate this page?" .t %>");'><%= "Duplicate Page".t %></a> | 
+  <a href='javascript:void(0);' onclick='StructureEditor.nodeDelete(<%= @node.id %>,"<%= jh "Are you sure you want to delete this page?" .t %>");'><%= "Delete Page".t %></a>
+</div>  
+
+<% end -%>
+
+
+<b> <%= "Page Details:".t %> <a href='<%= @node.node_path %>'><%= @node.node_path %></a> </b><br/><br/>
+
+
+<table class='ajax_tabs' cellpadding='0' cellspacing='0'>
+  <tr>
+    <td class='normal'>&nbsp;</td>
+  <% @revision_info.each do |info| -%>
+    
+      <td <%= info == @revision_info.first ? 'class="selected"' : 'class="normal"' %> <a class='ajax_link' onclick='SCMS.select_tab(this); ' href='javascript:void(0);'>
+          <span id='title_<%= @node.id %>_<%= info[0] %>' style='<%= "font-weight:bold;" if info[1] %>'>
+           <%= info[0].upcase %>
+          </span>
+        </a>
+      </td>
+  <% end -%>
+    <% if permit?('editor_structure or editor_structure_advanced') %>
+    <td class='normal'><a class='ajax_link' onclick='SCMS.select_tab(this); ' href='javascript:void(0);'><%= "Options".t %></td>
+    <% end -%>
+    <td class='extra'> &nbsp; </td>  
+ </tr>
+  <% @revision_info.each do |info| -%>
+  <tr style='<%= "display:none;" unless info  == @revision_info.first %>'>
+    <td colspan='<%= @revision_info.length + 3 %>' >
+      <div id='node_<%= @node.id %>_<%= info[0] %>'>
+      <%= render :partial => 'revision_info', :locals => { :info => info } %>
+      </div>
+    </td>
+ </tr>
+  <% end -%>
+    <% if permit?('editor_structure or editor_structure_advanced') %>
+      <tr style='display:none;' >
+        <td colspan='<%= @revision_info.length + 3 %>' >
+          <div id='site_node_page_options' >
+          <%= render :partial => 'site_node_options' %>
+          </div>
+        </td>
+      </tr>
+    <% end -%>
+
+</table>

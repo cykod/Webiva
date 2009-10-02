@@ -1,0 +1,77 @@
+<% if reset_password %>
+ <div class='error reset_password'>
+  <%= "Please reset your password to enable future access to you account".t %>
+ </div>
+<% end -%>
+<% cms_form_for :user, user, :url => '', :html => { :class => 'cms_form' } do |f| %>
+  <%= f.text_field :email, :required => true, :vertical => opts[:vertical] %>
+
+  <%= f.text_field :username, :required =>(opts[:username] == 'required'), :vertical => opts[:vertical] if opts[:username] != 'off' %>
+
+<% if opts[:reset_password] != 'off' %>
+  <%= f.password_field :password, :vertical => opts[:vertical], :label => 'Reset Password' %>
+  <%= f.password_field :password_confirmation, :label => 'Confirm', :vertical => opts[:vertical], :label => 'Confirm Reset' %>
+<% end -%>
+
+<% if opts[:gender] != 'off' || opts[:first_name] != 'off' || opts[:last_name] != 'off' || opts[:dob] != 'off' -%>
+  <%= f.header 'User Information' if opts[:registration_type] == 'login' %>
+  <%= f.radio_buttons :gender, [ ['Male','m'],['Female','f' ] ], :required =>(opts[:gender] == 'required'), :vertical => opts[:vertical],:label => '',:noun => 'Title' if opts[:gender] != 'off'%>
+  <%= f.text_field :first_name, :required =>(opts[:first_name] == 'required'), :vertical => opts[:vertical] if opts[:first_name] != 'off' %>
+  <%= f.text_field :last_name,  :required =>(opts[:last_name] == 'required'), :vertical => opts[:vertical] if opts[:last_name] != 'off'%>
+  <%= f.date_field :dob, :required =>(opts[:date_of_birth] == 'required'), :label => 'Date of Birth', :vertical => opts[:vertical]  if opts[:dob] != 'off' %>
+<% end -%>
+  
+<% if opts[:address] != 'off' %>
+  <% cms_subfields_for :address, address do |af| %>
+    <%= af.text_field :address, :required =>(opts[:address] == 'required'), :vertical => opts[:vertical]  %>
+    <% if opts[:country].blank? %>
+      <%= af.select :country, af.translated_countries_for_select( [ 'United States' ] ), :required =>(opts[:address] == 'required'), :vertical => opts[:vertical]%>
+    <% end -%>
+    <% if opts[:address_type] == 'european' %>
+      <%= af.text_field :zip, :required =>(opts[:address] == 'required'), :vertical => opts[:vertical], :size => 10 %>
+      <%= af.text_field :city, :required =>(opts[:address] == 'required'), :vertical => opts[:vertical] %> 
+    <% else -%>          
+      <%= af.text_field :city, :required =>(opts[:address] == 'required'), :vertical => opts[:vertical] %> 
+      <%= af.text_field :state, :required =>(opts[:address] == 'required'), :vertical => opts[:vertical] %>
+      <%= af.text_field :zip, :required =>(opts[:address] == 'required'), :vertical => opts[:vertical], :size => 10 %>
+    <% end -%>
+    <%= af.text_field :phone,  :required =>(opts[:address] == 'required'), :vertical => opts[:vertical] %>
+
+  <% end -%>
+<% end -%>
+<% if opts[:work_address] != 'off' %>
+  <% cms_subfields_for :work_address, work_address do |af| %>
+    <%= af.text_field :company, :required =>(opts[:work_address] == 'required'), :vertical => opts[:vertical] %>
+    <%= af.text_field :address, :rows => 2, :required =>(opts[:work_address] == 'required'), :vertical => opts[:vertical] %>
+    <% if opts[:country].blank? %>
+      <%= af.select :country, af.translated_countries_for_select( [ 'United States' ] ), :required =>(opts[:work_address] == 'required'), :vertical => opts[:vertical] %>
+    <% end -%>
+    <% if opts[:address_type] == 'european' %>
+      <%= af.text_field :zip, :required =>(opts[:work_address] == 'required'), :vertical => opts[:vertical], :size => 10 %>
+      <%= af.text_field :city, :required =>(opts[:work_address] == 'required'), :vertical => opts[:vertical] %> 
+    <% else -%>          
+      <%= af.text_field :city, :required =>(opts[:work_address] == 'required'), :vertical => opts[:vertical] %> 
+      <%= af.text_field :state, :required =>(opts[:work_address] == 'required'), :vertical => opts[:vertical] %>
+      <%= af.text_field :zip, :required =>(opts[:work_address] == 'required'), :vertical => opts[:vertical], :size => 10 %>
+    <% end -%>
+    <%= af.text_field :phone, :required =>(opts[:work_address] == 'required'), :vertical => opts[:vertical] %>
+
+  <% end -%>
+<% end -%>
+<% if subscriptions %>
+<% f.custom_field 'Subscriptions', :vertical => opts[:vertical] do %>
+  <input type='hidden' name='subscription[0]' value='1' />
+  <% subscriptions.each do |sub| %>
+  <% entry = user.user_subscription_entries.find_by_user_subscription_id(sub.id) %>
+  <label for='subscription_<%= sub.id %>'>
+        <input type='checkbox' id='subscription_<%= sub.id %>' name='subscription[<%= sub.id %>]' <%= "checked='checked'" if entry  %> />
+        <%= sub.description %>
+        </label><br/>
+ <% end -%>
+<% end -%>
+<% end -%>
+
+
+  <%= f.submit_tag opts[:edit_button].blank?  ? 'Edit Account' : opts[:edit_button] %>
+
+<% end -%>

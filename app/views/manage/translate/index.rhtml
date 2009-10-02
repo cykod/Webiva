@@ -1,0 +1,30 @@
+<script>
+  <%= active_table_javascript %>
+</script>
+
+<div class='admin_content'>
+
+Select Language: <select onchange='document.location="<%= url_for :controller => '/manage/translate' %>?language="+this.value'>
+  <% @languages.each do |lang| -%>
+    <option value='<%= lang %>' <%= "selected='selected'" if Locale.language_code  == lang %>><%= lang.upcase %></option>
+  <% end -%>
+</select>
+<b>
+<% base_language_only do -%>
+<%= "Please choose a language for translation".t %>
+<% end -%>
+<% not_base_language do -%>
+<%= sprintf("Language: %s".t,Locale.language.native_name) %>
+<% end -%>
+</b>
+</div>
+
+<hr/>
+
+<div class='admin_content'>
+<% not_base_language do -%>
+<div id='view_translation_table'>
+  <%= render :partial => 'view_translation_table' %>
+</div>
+<% end  -%>
+</div>

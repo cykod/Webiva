@@ -1,0 +1,9 @@
+<% field.module_class.field_options_widgets.each do |widget| -%>
+  <% case widget 
+     when :required  -%>
+     <%= f.check_boxes :required, [['Required',true]], :single => true, :label => '' %>
+  <% when :options -%>
+     <%= f.text_area :options_text, :cols => 60, :rows => 4,:vertical => true, :label => 'Available Options (One per line or Text Value;;db_safe_value)' %>
+  <% end -%>
+<% end -%>
+

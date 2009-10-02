@@ -1,0 +1,2 @@
+page.replace_html :cms_info_page_title, :inline => "&nbsp;#{@revision.title.to_s.empty? ?  "[No Title]".t : truncate(@revision.title,30)}&nbsp;"
+page << '$("cms_info_page_title").className = "cms_ajax_link_modified";'

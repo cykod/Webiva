@@ -1,0 +1,18 @@
+<br/>
+<% if info[1] -%>
+<script>
+  $('title_<%= @node.id %>_<%= info[0] %>').style.fontWeight = 'bold';
+</script>
+<b><%= sprintf("Version %s ".t,dec(info[1].revision).to_s) %>, <%= info[1].active? ? 'Active'.t : 'Inactive'.t %>, <%= render :partial => '/edit/saved_by', :locals => { :revision => info[1] } %></b>
+<br/>
+<br/>
+  <input type='submit' value='<%= "Edit Framework".t %>' onclick='document.location="<%= url_for :controller => 'edit', :action => 'page', :path => ['framework',@mod.id,info[1].language ] %>";' />
+<% else -%>
+<% remote_form_for :revision_create, info[1],
+    :update => "node_#{@node.id}_#{info[0]}", 
+    :method => 'post', 
+    :url =>  { :action => 'create_revision', :language  => info[0]  } do  |f| -%>
+  <input type='submit' value='<%= "Create Framework".t %>' /> From 
+  <%= f.select :from_revision_id, @revision_info.find_all { |inf| inf[1] }.collect { |inf| [ inf[0].upcase, inf[1].id ] } %>
+<% end -%>
+<% end -%>

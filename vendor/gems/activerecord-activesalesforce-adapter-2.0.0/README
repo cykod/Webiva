@@ -1,0 +1,51 @@
+== Welcome to Active Salesforce
+
+  ActiveSalesforce is an extension to the Rails Framework that allows for the dynamic creation and management of 
+  ActiveRecord objects through the use of Salesforce meta-data and uses a Salesforce.com organization as the backing store.
+
+
+== Getting started
+
+1. gem install activesalesforce
+2. if you have not already done so generate your initial rails app using "rails <myappname goes here>" 
+3. edit config/environment.rb and add "require_gem 'activesalesforce'" to the end of the "Rails::Initializer.run do |config|" block, e.g.
+
+		Rails::Initializer.run do |config|
+		  ...
+		  
+		  require 'activesalesforce'
+		end
+
+4. edit database.yml
+
+		adapter: activesalesforce
+  		url: https://www.salesforce.com
+  		username: <salesforce user name goes here>
+  		password: <salesforce password goes here>
+  		
+  		NOTE: If you want to access your Salesforce Sandbox account use https://test.salesforce.com as your url instead
+  		
+5. proceed using standard Rails development techniques!  	
+
+== Advanced Features
+
+  1. Session ID based Authentication: Add the following to /app/controllers/application.rb to enable SID auth for all controllers
+  
+  		class ApplicationController < ActionController::Base
+  			before_filter ActiveSalesforce::SessionIDAuthenticationFilter
+		end
+		
+  2. Boxcar'ing of updates, inserts, and deletes. Use <YourModel>.transaction() to demark boxcar boundaries.
+
+== Description of contents
+
+lib
+  Application specific libraries. Basically, any kind of custom code that doesn't
+  belong under controllers, models, or helpers. This directory is in the load path.
+  
+script
+  Helper scripts for automation and generation.
+
+test
+  Unit and functional tests along with fixtures.
+

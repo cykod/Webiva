@@ -1,0 +1,9 @@
+<div id='img_<%= img.id %>' class='gallery_image' style='<%= "display:none;" if @upload %> border:1px solid #CCCCCC; padding:5px; width:425px; margin:5px; background-color:white;' >
+<a onclick="<%= "SCMS.imageOverlay('#{img.domain_file.url}',#{img.domain_file.width},#{img.domain_file.height});" %>" href='javascript:void(0);'><img src='<%= img.domain_file.url(:thumb) %>' align='left' style='padding-right:10px;' /></a>
+Caption:<br/>
+<input type='text' size='40' class='text_field_control' value='<%= vh img.name.to_s %>' onchange='GalleryEditor.updateCaption(<%= img.id %>,this.value);' />
+<div style='text-align:right; padding-top:10px;'>
+  <a href='javascript:void(0);' onclick='GalleryEditor.deleteImage(<%= img.id %>);'>Delete</a>
+</div>
+<div style='clear:both;'></div>
+</div>

@@ -1,0 +1,16 @@
+<div class='cms_form'>
+<h3><%= "Edit Login Options".t %></h3>
+
+<% tabled_form_for :login, @options, 
+          :html => { :id => 'login_form',
+                     :onsubmit => "cmsEdit.submitParagraphData(this,'#{url_for :action => 'login'}',#{@paragraph.id},#{@paragraph_index}); return false;"
+                   }  do |f| -%>
+<%= f.select :login_type, [['By Email','email'],['By Username','username'],['Either','both']] %>
+<%= f.select :success_page, @pages, :label => 'Destination Page' %>
+<%= f.select :failure_page, @pages, :label => 'Failure Page' %>
+<%= f.radio_buttons :forward_login, [ ['Yes','yes'], ['No','no' ] ], :description => 'If users were locked out of a previous, forward them back to that page'; %>
+<% end -%>
+<hr/>
+<a class='cms_ajax_link' href='javascript:void(0);' onclick="$('login_form').onsubmit();"><%= "Update &amp; Close".t %></a>
+<a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.closeBox();'><%= "Cancel".t %></a>
+</div>

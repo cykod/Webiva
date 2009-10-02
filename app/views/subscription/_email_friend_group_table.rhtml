@@ -1,0 +1,7 @@
+<% active_table_for :email_friend_group_table, @tbl do |t| -%>
+<tr <%= highlight_row 'email',t.id %>>
+  <td><%= t.site_url %></td>
+  <td><%= t.count %></td>
+  <td><%= t.sent_min ? Time.parse(t.sent_min).strftime(DEFAULT_DATE_FORMAT.t) : '-' %> - <%= t.sent_max ? Time.parse(t.sent_max).strftime(DEFAULT_DATE_FORMAT.t) : '-' %></td>
+</tr>
+<% end -%>

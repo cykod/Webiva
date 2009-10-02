@@ -1,0 +1,16 @@
+<script>
+  <%= active_table_javascript %>
+</script>
+
+<% action_panel do |p| -%>
+  <%= p.link 'Edit Subscription', :icon => 'edit.gif',:action => 'edit',:path => @subscription.id %>
+  <%= p.link 'Download Email Addresses', :icon => 'download.gif',:action => 'download',:path => @subscription.id, :target => '_blank' %>
+<% end -%>
+<hr/>
+<div class='admin_content'>
+
+<div id='entry_table'>
+  <%= render :partial => 'entry_table' %>
+</div>
+  
+</div>

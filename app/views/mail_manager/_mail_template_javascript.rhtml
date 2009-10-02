@@ -1,0 +1,139 @@
+
+<script type='text/javascript'>
+MailTemplateEditor = {
+  selectedTemplate:<%= @mail_template.id ? @mail_template.id  : 'null' %>,
+
+  showTemplate: function(tid,pos) {
+    Element.hide('template_table');
+    Element.show('template_detail');
+    MailTemplateEditor.selectedTemplate = tid;
+    
+    Element.show('loading_screen');
+    new Ajax.Request("<%= url_for :action => 'load_template' %>/" + tid);
+  },
+  
+  hideTemplate: function() {
+    Element.show('template_table');
+    Element.hide('template_detail');
+  },
+  
+  showHTML: function(elem) {
+    Element.hide('template_text');
+    Element.show('template_html');
+    $('show_text_link').className = '';
+    $('show_html_link').className='selected_link';
+  },
+  showText: function(elem) {
+    Element.show('template_text');
+    Element.hide('template_html');
+    $('show_html_link').className = '';
+    $('show_text_link').className='selected_link';
+  },
+  
+  saveTemplate: function() {
+    tinyMCE.triggerSave();
+    
+    <% if @campaign %>
+      $('template_form').submit();
+    <% else -%>
+      var params = Form.serialize('template_form');
+      
+      new Ajax.Request("<%= url_for :controller => 'mail_manager', :action => 'update_template' %>",
+	  {
+	      method: 'post',
+	      parameters: 'template_id=' + MailTemplateEditor.selectedTemplate + '&' + params
+	  }
+	  );    
+    <% end -%>
+  },
+  
+  
+  deleteTemplate: function(template_id ) {
+    if(confirm('<%= jh "Are you sure you want to delete this template permanently?".t %>')) {
+      this.hideTemplate();
+      
+      new Ajax.Updater('template_list',
+                      "<%= url_for :controller => 'mail_manager', :action => 'delete_template' %>",
+            {
+                evalScripts: true,
+                method: 'post',
+                parameters: 'template_id=' + template_id
+            }
+            );
+    }
+              
+  },
+  
+  showAttachmentPopup: function(aid) {
+      SCMS.popup(new Array(
+        [ 'Remove Attachment', 'js', 'MailTemplateEditor.removeAttachment(' + aid + ')' ]
+      )); 
+  },
+  
+  attachDocument: function(field,type,id,path,url,thumb,name) {
+    this.removeAttachment(id);
+    if(type != 'image') {
+      $('template_attachments').innerHTML += "<div class='attachment' onclick='MailTemplateEditor.showAttachmentPopup(" + id + ");' /><img align='middle' src='" + thumb + "' />" + name + "</div>";
+    }
+    else {
+      $('template_attachments').innerHTML += "<div class='attachment' onclick='MailTemplateEditor.showAttachmentPopup(" + id + ");' /><div class='fm_image'><img src='" + thumb + "' /></div>" + name + "</div>";
+    }
+    $('mail_template_attachments').value += ',' + id
+  },
+  
+  removeAttachment: function(id) {
+    if($('attachment_' + id))
+      Element.remove('attachment_' + id);
+    var attachments = $('mail_template_attachments').value;
+    attachments = attachments.split(',');
+    for(var i=0;i<attachments.length;i++) {
+      if(id == attachments[i]) {
+        attachments.splice(i,1);
+        $('mail_template_attachments').value = attachments.join(',');
+        return;
+      }
+      
+    }
+  }
+  
+  
+
+}
+
+          
+tinyMCE.init({
+          theme : "advanced",
+          theme_advanced_layout_manager: "SimpleLayout",
+          auto_reset_designmode : true,
+          mode : "exact",
+          elements: "template_body_html",
+          valid_elements: "*[*]",
+          plugins: 'advimage,table,filemanager,noneditable,mail_field',
+          extend_valid_elements: 'a[name|href|target|title|onclick]',
+          theme_advanced_buttons1 : "bold,italic,underline,separator,strikethrough,justifyleft,justifycenter,justifyright, justifyfull,bullist,numlist,outdent,indent,undo,redo,link,unlink,filemanager,advimage,mail_field",    
+          theme_advanced_styles : "Header 1=header1;Header 2=header2; Header 3=header3;Table Row=tableRow1", 
+          theme_advanced_buttons2 : "hr,forecolor,backcolor,formatselect,fontselect,fontsizeselect,styleselect,table,cell_props,row_props,code",
+          theme_advanced_buttons3 : "",
+          theme_advanced_toolbar_location : "top",
+          theme_advanced_toolbar_align: 'left',
+          content_css: "/stylesheets/mail_templates.css",
+          debug : false,
+          relative_urls : false,
+          remove_script_host : false,
+          setupcontent_callback: "mceSetupContent",
+          //handle_event_callback: "mceEventCallback",
+          width: "100%",
+          height: "300px",
+          image_insert_url: "<%= url_for :controller => 'file', :action => 'manage' %>"
+       });             
+
+function mceSetupContent() {
+  tinyMCE.updateContent('template_body_html');
+  <% unless @campaign %>
+    $('template_detail').style.display = 'none';
+    $('template_detail').style.visibility = 'visible';
+    
+  <% end -%>
+  
+}
+</script>

@@ -1,0 +1,19 @@
+<div style='border:1px solid #000000;padding:15px;'>
+
+<% if @publication.form? %>
+  <% cms_form_for :content, @content_data do |f| %>
+    <%= @publication.render_form(f) %>
+  <% end -%>
+<% elsif @publication.html? -%>
+  <%= @publication.render_html(@content_data) %>
+<% elsif @publication.data? -%>
+  <%= simple_format(h(@publication.default_feature).gsub("\t","&nbsp;&nbsp;&nbsp;")) %>
+<% end -%>
+
+<br/>
+<hr/>
+<div align='right'>
+
+<a href='javascript:void(0);' onclick='RedBox.close();'><%= "Close".t %></a>
+</div>
+</div>

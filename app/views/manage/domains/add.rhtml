@@ -1,0 +1,12 @@
+<div class='admin_content'>
+
+<% tabled_form_for :domain, @domain do |f| %>
+  <%= f.text_field :name %>
+  <% if myself.has_role?('system_admin') -%>
+    <%= f.select :client_id, @clients %>
+  <% end -%>
+  <%= f.radio_buttons :domain_type, [ ['Domain', 'domain'] , ['Redirect','redirect']] %>
+  <%= f.submit_cancel_tags 'Create','Cancel',{},{ :onclick => "document.location='#{url_for :action => 'index' }'; return false;" } %>
+<% end -%>
+
+</div>

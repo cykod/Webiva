@@ -1,0 +1,28 @@
+<%= f.radio_buttons :archived, [ [ 'Archive this page (page will stay live on website)'.t, true],
+                                     [ 'Do not archive this page'.t, false ] ],
+                                   :separator => '<br/>',
+                                   :default=>'Do not archive this page'
+                                    %>
+
+<%= f.radio_buttons :include_in_sitemap, [ [ 'Include page and children in Site Map'.t, true],
+                                     [ 'Do not show page or children in Site Map '.t, false ] ],
+                                   :separator => '<br/>',
+                                   :default=>'[None]'
+                                    %>
+<%= f.header 'Search Engine Options' %>
+<%= f.radio_buttons :follow_links, [ [ 'Site Default'.t, 1],
+                                     [ 'Advise Search Engines not to follow page links (NOFOLLOW)'.t,0 ],
+                                     [ 'Advise Search Engines to follow page links (FOLLOW)'.t, 2 ] ],
+                                   :separator => '<br/>',
+                                   :default=>'[None]' %>
+<%= f.radio_buttons :index_page, [ [ 'Site Default'.t, 1],
+                                     [ 'Advise Search Engines not to index this page (NOINDEX)'.t, 0],
+                                     [ 'Advise Search Engines to index this page (INDEX)'.t, 2 ] ],
+                                   :separator => '<br/>',
+                                   :default=>'[None]' %>
+                                   
+<%= f.radio_buttons :cache_page, [ [ 'Advise some engines not to cache this page (NOCACHE)'.t, false],
+                                     [ 'Leave caching enabled '.t, true ] ],
+                                   :separator => '<br/>',
+                                   :default=>'[None]'
+                                    %>

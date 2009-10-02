@@ -1,0 +1,66 @@
+<% if para.is_a?(String) %>
+  <%= para %>
+<% elsif para.framework? %>
+  <div class='cms_rendered_wrapper' <%= "style='display:none;'" if para.hidden %>  >
+     <%= render_paragraph(@site_node, @revision, para,  :editor => true) %>
+  </div>
+<% else -%>
+  
+<div <% if ['lock','clear'].include?(para.display_type) %>class='cms_framework_feature'<% else %>class='cms_paragraph'<% end %> id='cms_paragraph_<%= para_index %>' style='padding:0px; margin:0px;'>
+  <div id="cms_paragraph_menu_<%= para_index %>" class="cms_paragraph_menu" style='padding:0px; margin:0px;'>
+      <img src='<%= theme_src("/images/icons/paragraph.gif") %>' class='cms_paragraph_icon' style='padding:0px;margin:0px;' border='0' onclick='cmsEdit.selectParagraph(<%= para_index %>)' />
+      <a href='javascript:void(0);' onclick='cmsEdit.showMenu(<%= para_index %>);' class='cms_ajax_link'>
+          <% if para.content_publication_id.to_i > 0 %>
+            <%= @paragraph_hash["#{para.display_type}_#{para.content_publication_id}"][2] %>
+          <% else %>
+            <%= @paragraph_hash[para.display_type] ? @paragraph_hash[para.display_type][2].t : 'Invalid Paragraph Type' %>
+	  <% end -%>
+      </a>
+ </div>
+  <% if para.display_type == 'html' %>
+    <div class='cms_div'  id='cms_paragraph_display_<%= para_index %>' style='display:none; padding:0px; margin:0px;'>
+      <%= para.display %>
+    </div>
+    <div class='cms_paragraph_editor'  id='cms_paragraph_editor_<%= para_index %>' style='padding:0px; margin:0px;' >
+      <textarea id='cms_paragraph_html_editor_<%= para_index %>'  style='width:100%; visibility:hidden;' onfocus='cmsEdit.focusParagraph(this); return true;'><%= h(para.display_body) %></textarea>
+    </div>
+  <% elsif para.display_type == 'code' %>
+    <div class='cms_div'  id='cms_paragraph_display_<%= para_index %>' style='padding:0px; margin:0px;' onclick='cmsEdit.editParagraph(<%= para_index %>)'>
+      <div class='cms_paragraph_editor_cover'></div>
+      <%= render_paragraph @site_node, @revision, para, :editor => true, :language => @revision.language %>
+    </div><div class='cms_paragraph_editor'  id='cms_paragraph_editor_<%= para_index %>' style='display:none; padding:0px; margin:0px;' >
+      <textarea id='cms_paragraph_html_editor_<%= para_index %>'  style='width:100%;' rows='10' onblur='cmsEdit.unfocusParagraph(<%= para_index %>); return true;'  onfocus='cmsEdit.focusParagraph(<%= para_index %>); return true;'><%= h(para.display_body) %></textarea>
+    </div>
+  <% elsif para.display_type == 'textile' || para.display_type == 'markdown' %>
+    <div class='cms_div'  id='cms_paragraph_display_<%= para_index %>' style='padding:0px; margin:0px;' onclick='cmsEdit.editParagraph(<%= para_index %>)'>
+      <div class='cms_paragraph_editor_cover'></div>
+      <%= render_paragraph @site_node, @revision, para, :editor => true, :language => @revision.language %>
+    </div><div class='cms_paragraph_editor'  id='cms_paragraph_editor_<%= para_index %>' style='display:none; padding:0px; margin:0px;' >
+      <textarea id='cms_paragraph_html_editor_<%= para_index %>'  style='width:100%;' rows='10' onblur='cmsEdit.unfocusParagraph(<%= para_index %>); return true;'  onfocus='cmsEdit.focusParagraph(<%= para_index %>); return true;'><%= h((para.data||{})[:markup]) %></textarea>
+    </div>
+  <% else -%>
+    <div class='cms_paragraph_editor'  id='cms_paragraph_editor_<%= para_index %>' style='padding:0px; margin:0px;' onclick='cmsEdit.editParagraph(<%= para_index %>)' >
+      <div class='cms_paragraph_editor_cover'></div>
+      <%= render_paragraph @site_node, @revision, para, :editor => true, :language => @revision.language %>
+    </div>
+  <% end -%>
+</div>
+
+<script>
+<% if para.display_type == 'html' %>
+    cmsEdit.registerParagraph(<%= para_index %>,new cmsHtmlParagraph(<%= para.id %>,<%= para_index %>));
+    setTimeout("tinyMCE.execCommand('mceAddControl',true,'cms_paragraph_html_editor_<%= para_index %>');",5);
+<% elsif para.display_type == 'code' %>
+    cmsEdit.registerParagraph(<%= para_index %>,new cmsCodeParagraph(<%= para.id %>,<%= para_index %>,'<%= para.display_type %>'));
+<% elsif para.display_type == 'textile' || para.display_type == 'markdown'  %>
+    cmsEdit.registerParagraph(<%= para_index %>,new cmsClickParagraph(<%= para.id %>,<%= para_index %>,'<%= para.display_type %>'));
+<% elsif para.display_module.to_s.empty? %>
+    cmsEdit.registerParagraph(<%= para_index %>,new cmsFrameworkElement(<%= para.id %>,<%= para_index %>,'_<%= para.display_type %>'));
+<% elsif para.content_publication_id -%> 
+    cmsEdit.registerParagraph(<%= para_index %>,new cmsPublicationParagraph(<%= para.id %>,<%= para_index %>,'<%= para.display_module_identifier %>_<%= para.display_type %>','<%= para.display_module %>',<%= para.content_publication_id %>,'<%= para.site_feature_id.to_i %>'));
+<% else %>
+    cmsEdit.registerParagraph(<%= para_index %>,new cmsEditorParagraph(<%= para.id %>,<%= para_index %>,'<%= para.display_module_identifier %>_<%= para.display_type %>','<%= para.display_module %>','<%= para.site_feature_id.to_i %>'));
+<% end -%>
+</script>
+
+<% end -%>

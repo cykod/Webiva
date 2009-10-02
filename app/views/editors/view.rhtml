@@ -1,0 +1,12 @@
+<div class='admin_content'>
+<% tabled_display_form_for :user_options, @user do |f| %>
+
+<%= f.text_field :email %>
+<%= f.text_field :first_name %>
+<%= f.text_field :last_name %>
+<%= f.select :language, Configuration.languages.collect { |lang| [ lang.upcase, lang ] } %>
+<%= f.select :user_class_id, UserClass.options, :label => 'User Profile' %>
+
+<%= f.submit_cancel_tags "Edit", "Return", { :onclick => "document.location='#{url_for :action => 'edit', :path => @user.id}';" }, { :onclick => "document.location='#{url_for :action => 'index'}';" } %>
+<% end -%>
+</div>

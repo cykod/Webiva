@@ -1,0 +1,32 @@
+= BackgrounDRb Changelog
+
+This file contains a summary of changes in particular releases, for a
+detailed change history and tickets, go to:
+
+  http://backgroundrb.devjavu.com/projects/backgroundrb/timeline
+
+== 0.2.1 (Released November 28, 2006 - r162)
+
+This release contains the accumulated fixes and enhancements after the
+dot oh! release. Beside updating BackgrounDRb, we strongly encourage you
+to update to Slave 1.1.0 which has important fixes that greatly improve
+how BackgrounDRb behaves.
+
+- Server: Improved logging of server events and exceptions.
+- Server: Change of default DRb protocol to drbunix (domain sockets)
+- Server: Re-add DRb ACL configuration (not needed for drbunix)
+- Server: new_worker race condition fix
+- Server: Jobs entries are now deleted properly when worker exits.
+- Scheduler: Several scheduler fixes. It was pretty much broken in 0.2.0
+- Scheduler: New external schedule definition file
+- Scheduler: do_work semantic changes (README: Special case: :do_work)
+- Rails: disabled rake tasks for start/stop/restart for now.
+- Rails: disabled Rails unit test in worker generator
+- Documentation: Deprecation of TODO file, items are in trac now.
+- Documentation: CronTrigger documentation
+
+== 0.2.0 (Released October 30, 2006 - r105)
+
+Initial release of BackgrounDRb rewrite. This was is also the first
+versioned release. The README contains the best overview the the new
+architecture. This is the baseline release.

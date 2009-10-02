@@ -1,0 +1,12 @@
+<div class='cms_form'>
+
+<% paragraph_options_form_for "Module Application","module_application",@options do |f| %>
+  <% f.custom_field "" do %>
+      This paragraph is used for custom module applications.<br/>
+      This is an advanced feature that require reconfiguration of the routes.rb file.<br/>
+      Please see the webiva documentation for more information.
+  <% end -%>
+  <%= f.text_field :application_name %>
+<% end -%>
+
+</div>

@@ -1,0 +1,13 @@
+<div class='cms_form'>
+<h3><%= sprintf("%s Options".t,@publication.name) %></h3>
+
+<% tabled_form_for :pub, @options, 
+          :html => { :id => 'admin_list',
+                     :onsubmit => "cmsEdit.submitParagraphData(this,'#{url_for :action => 'admin_list'}',#{@paragraph.id},#{@paragraph_index}); return false;"
+                   }  do |f| -%>
+<%= f.select :edit_page , @pages, :label => 'Edit Page' %>
+<% end -%>
+<hr/>
+<a class='cms_ajax_link' href='javascript:void(0);' onclick="$('admin_list').onsubmit();"><%= "Update &amp; Close".t %></a>
+<a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.closeBox();'><%= "Cancel".t %></a>
+</div>

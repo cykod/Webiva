@@ -1,0 +1,5 @@
+var tinyMCELinkList = new Array(
+  <%= @links.collect { |link|
+      "['#{link.node_path}', '#{link.node_path}']";
+    }.join(",\n") %>
+);

@@ -1,0 +1,9 @@
+<div class='admin_content'>
+
+
+<% cms_form_for :client, @client, :html => { :class => 'admin_form' }, :url => { :action => 'update', :path => @client } do |f| %>
+  <%= render :partial => 'form', :locals => { :f => f } %>
+  <%= f.submit_tag "Edit" %>
+<% end -%>
+
+</div>

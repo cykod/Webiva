@@ -1,0 +1,9 @@
+if @df 
+  if @df.folder?
+    page.replace_html :file_manager_body, :partial => '/file/details/folder_details', :locals => {:file => @df }
+  else
+    page.replace_html :file_manager_body, :partial => '/file/details/file_details', :locals => {:file => @df }
+  end
+else
+  page.replace_html :file_manager_body, :inline => 'File Not Found'
+end

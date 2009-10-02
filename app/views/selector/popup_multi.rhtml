@@ -1,0 +1,51 @@
+<script>
+SelectorPopup = {
+
+  clearSelection: function() {
+    $('objs_content_ids').selectedIndex = -1;
+    this.updateSelection();
+  },
+  
+  updateSelection:function() {
+    var values=[],inputs=[],names=[];
+    
+    var opts = $('objs_content_ids').options;
+    for (var i = 0; i < opts.length; i++){
+      if (opts[i].selected){
+        values.push(opts[i].value);
+        inputs.push("<input type='hidden' name='<%= @field_name %>[]' value='" + opts[i].value + "' />");
+        names.push(opts[i].text);
+      }
+    }
+    <% if @callback -%>
+     if(!window.opener.<%= @callback %>('<%= @field %>',values,names)) {
+      setTimeout("window.close();",10);
+      return;
+    }
+    <% end -%>
+    
+    var fld = window.opener.document.getElementById('<%= @field %>_values');
+    fld.innerHTML = inputs.join("<br/>");
+        
+    var fld_name = window.opener.document.getElementById('<%= @field %>_name');
+    if(values.length == 0) 
+      fld_name.innerHTML = "<%= jh @name %>";
+    else
+      fld_name.innerHTML = names.join("<br/>");
+    
+    setTimeout("window.close();",10);
+  }
+  
+}
+
+</script>
+
+
+<% cms_unstyled_form_for :objs, @selected do |f| -%>
+<b><%= @name  %></b>
+  <%= f.submit_tag 'Clear Selection', :onclick => 'SelectorPopup.clearSelection(); return false;' %>
+  <br/>
+<%= f.select :content_ids, @objects, {},:size => 10, :multiple => true, :style => 'width:400px; height:200px;' %><br/>
+<%= f.submit_tag 'Update Selection', :onclick => 'SelectorPopup.updateSelection(); return false;' %>
+
+<% end -%>

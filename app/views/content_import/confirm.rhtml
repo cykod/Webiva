@@ -1,0 +1,29 @@
+<h2><%="Confirm User Import".t %></h2>
+  <%= form_tag('',:id => 'wizard_form',:onsubmit=>"return confirm('#{jh "Import data into the content model?".t}');") %>
+<table class='data_table' cellspacing='0'  >
+  <tr style='background-color:#DDDDDD;'>
+  <th valign='top'><%= "Action".t %></th>
+  <% @file_fields.each do |fld| %>
+  <th valign='bottom'><%= fld[0] %><br/>
+        (<%= fld[2] == 'match' ? "Match".t : "New".t %>)
+  </th>
+  <% end -%>
+</tr>
+<% @file_data.each_with_index do |row,idx| %>
+<tr style="background-color:<%= idx % 2 == 0 ? "#FFFFFF" : "#EEEEEE" %>;">
+  <td>
+  <% if row[0] == 'c' %>
+    <%= "Create".t %>
+  <% else -%>
+    <%= 'Update'.t %> (#<%= row[0] %>)
+  <% end -%>
+  </td>
+  <% row[1..-1].each do |elm| %>
+  <td nowrap='1'><%= truncate(elm,20) %></td>
+  <% end -%>
+</tr>
+
+<% end -%>
+</table>
+</form>
+</div>

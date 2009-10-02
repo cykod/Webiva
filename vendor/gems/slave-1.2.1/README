@@ -1,0 +1,302 @@
+SYNOPSIS
+
+  the Slave class forks a process and starts a drb server in the child using
+  any object as the server.  the process is detached so it is not required
+  (nor possible) to wait on the child pid.  a Heartbeat is set up between the
+  parent and child processes so that the child will exit of the parent exits
+  for any reason - preventing orphaned slaves from running indefinitely.  the
+  purpose of Slaves is to be able to easily set up a collection of objects
+  communicating via drb protocols instead of having to use IPC. 
+
+  typical usage:
+
+    slave = Slave::new{ AnyObject.new }
+
+    slave.object                  #=> handle on drb object
+    slave.uri                     #=> uri of the drb object
+    slave.socket                  #=> unix domain socket path for drb object
+    slave.psname                  #=> title shown in ps/top
+
+    object = slave.object
+
+    value = object.any_method     #=> use the object normally 
+
+  slaves may be configured via the environment, the Slave class, or via the
+  ctor for object itself.  attributes which may be configured include
+
+    * object : specify the slave object.  otherwise block value is used.
+    * socket_creation_attempts : specify how many attempts to create a unix domain socket will be made 
+    * debug : turn on some logging to STDERR
+    * psname : specify the name that will appear in 'top' ($0)
+    * at_exit : specify a lambda to be called in the *parent* when the child dies
+    * dumped : specify that the slave object should *not* be DRbUndumped (default is DRbUndumped) 
+    * threadsafe : wrap the slave object with ThreadSafe to implement gross thread safety 
+
+URIS
+
+  http://rubyforge.org/projects/codeforpeople/
+  http://codeforpeople.com/lib/ruby/slave
+
+HISTORY
+
+  1.2.1:
+    - jruby/ThreadSafe patches from skaar and ez.  using slave.rb with jruby,
+      how is that!?
+
+  1.2.0:
+    - cleaned up a bunch of warnings.  thanks eric kolve <ekolve@gmail.com>
+      for reporting them.
+
+  1.1.0:
+    - replaced HeartBeat class with LifeLine.
+
+    - __HUGE__ cleanup of file descriptor/fork management with tons of help
+      from skaar and ezra.  thanks guys!
+
+    - introduced Slave.object method used to return any object directory from
+      a child process.  see samples/g.rb.
+
+    - indroduced keyword to automatically make slave objects threadsafe.
+      remember that your slave object must be threadsafe because they are
+      being server via DRb!!!
+
+
+  1.0.0:
+    - THIS RELEASE IS !! NOT !! BACKWARD COMPATIBLE.  NOTE NEW CTOR SYNTAX.
+
+    - detach method also sets up at_exit handler.  extra protection from
+      zombies.
+
+    - ezra zygmuntowicz asked for a feature whereby a parent could be notified
+      when a child exited.  obviously such a mechanism should be both async
+      and sync.  to accomplish this the wait method was extended to support a
+      callback with is either sync or async
+
+        slave = Server.new{ Server.new }
+
+        slave.wait and puts 'this is sync!'
+
+        slave.wait(:non_block=>true){ 'this is async!' }
+   
+    - patch to getval from skaar<skaar@waste.org>.  the impl dropped opts
+      delgating to the class method from the instance one.
+
+  0.2.0:
+    incorporated joel vanderWerf's patch such that, if no object is passed the
+    block is used to create one ONLY in the child.  this avoids having a copy
+    in both parent and child is that needs to be avoided due to, for instance,
+    resource consumption.
+
+
+  0.0.1:
+    - patch from Logan Capaldo adds block form to slave new, block is run in the
+      child
+
+    - added a few more samples/*
+
+    - added Slave#wait
+
+    - added status information to slaves
+
+    - added close-on-exec flag to pipes in parent process
+
+  0.0.0:
+    - initial version
+
+SAMPLES
+
+  <========< samples/a.rb >========>
+
+  ~ > cat samples/a.rb
+
+    require 'slave'
+    #
+    # simple usage is simply to stand up a server object as a slave.  you do not
+    # need to wait for the server, join it, etc.  it will die when the parent
+    # process dies - even under 'kill -9' conditions
+    #
+      class Server
+        def add_two n
+          n + 2
+        end
+      end
+    
+      slave = Slave.new :object => Server.new
+    
+      server = slave.object
+      p server.add_two(40) #=> 42
+    
+      slave.shutdown
+
+  ~ > ruby samples/a.rb
+
+    42
+
+
+  <========< samples/b.rb >========>
+
+  ~ > cat samples/b.rb
+
+    require 'slave'
+    #
+    # if certain operations need to take place in the child only a block can be
+    # used
+    #
+      class Server
+        def connect_to_db 
+          "we only want to do this in the child process!"
+          @connection = :postgresql
+        end
+        attr :connection
+      end
+    
+      slave = Slave.new('object' => Server.new){|s| s.connect_to_db}
+    
+      server = slave.object
+    
+      p server.connection  #=> :postgresql 
+    #
+    # errors in the child are detected and raised in the parent
+    #
+      slave = Slave.new('object' => Server.new){|s| s.typo} #=> raises an error!
+
+  ~ > ruby samples/b.rb
+
+    :postgresql
+    samples/b.rb:22: undefined method `typo' for #<Server:0xb756ed18> (NoMethodError)
+    	from ./lib/slave.rb:369:in `[]'
+    	from ./lib/slave.rb:369:in `initialize'
+    	from samples/b.rb:22:in `new'
+    	from samples/b.rb:22
+
+
+  <========< samples/c.rb >========>
+
+  ~ > cat samples/c.rb
+
+    require 'slave'
+    #
+    # if no slave object is given the block itself is used to contruct it 
+    #
+      class Server
+        def initialize
+          "this is run only in the child"
+          @pid = Process.pid
+        end
+        attr 'pid'
+      end
+    
+      slave = Slave.new{ Server.new }
+      server = slave.object
+    
+      p Process.pid
+      p server.pid # not going to be the same as parents!
+    #
+    # errors are still detected though
+    #
+      slave = Slave.new{ fubar } # raises error in parent
+
+  ~ > ruby samples/c.rb
+
+    7971
+    7972
+    samples/c.rb:21: undefined local variable or method `fubar' for main:Object (NameError)
+    	from ./lib/slave.rb:361:in `call'
+    	from ./lib/slave.rb:361:in `initialize'
+    	from samples/c.rb:21:in `new'
+    	from samples/c.rb:21
+
+
+  <========< samples/d.rb >========>
+
+  ~ > cat samples/d.rb
+
+    require 'slave'
+    #
+    # at_exit hanlders are handled correctly in both child and parent 
+    #
+      at_exit{ p 'parent' }
+      slave = Slave.new{ at_exit{ p 'child' };  'the server is this string' }
+    #
+    # this will print 'child', then 'parent'
+    #
+
+  ~ > ruby samples/d.rb
+
+    "child"
+    "parent"
+
+
+  <========< samples/e.rb >========>
+
+  ~ > cat samples/e.rb
+
+    require 'slave'
+    #
+    # slaves never outlive their parent.  if the parent exits, even under kill -9,
+    # the child will die.
+    #
+      slave = Slave.new{ at_exit{ p 'child' };  'the server is this string' }
+    
+      Process.kill brutal=9, the_parent_pid=Process.pid
+    #
+    # even though parent dies a nasty death the child will still print 'child'
+    #
+
+  ~ > ruby samples/e.rb
+
+    "child"
+
+
+  <========< samples/f.rb >========>
+
+  ~ > cat samples/f.rb
+
+    require 'slave'
+    #
+    # slaves created previously are visible to newly created slaves - in this
+    # example the child process of slave_a communicates directly with the child
+    # process of slave_a 
+    #
+      slave_a = Slave.new{ Array.new }
+      slave_b = Slave.new{ slave_a.object }
+    
+      a, b = slave_b.object, slave_a.object
+    
+      b << 42
+      puts a #=> 42
+
+  ~ > ruby samples/f.rb
+
+    42
+
+
+  <========< samples/g.rb >========>
+
+  ~ > cat samples/g.rb
+
+    require 'slave'
+    #
+    # Slave.object can used when you want to construct an object in another
+    # process.  in otherwords you want to fork a process and retrieve a single
+    # returned object from that process as opposed to setting up a server.
+    #
+      this = Process.pid
+      that = Slave.object{ Process.pid }
+    
+      p 'this' => this, 'that' => that
+    
+    #
+    # any object can be returned and it can be returned asychronously via a thread
+    #
+      thread = Slave.object(:async => true){ sleep 2 and [ Process.pid, Time.now ] }
+      this = [ Process.pid, Time.now ]
+      that = thread.value 
+      
+      p 'this' => this, 'that' => that
+
+  ~ > ruby samples/g.rb
+
+    {"that"=>7990, "this"=>7989}
+    {"that"=>[7991, Fri, Apr 27 2007 16:38:30 -0600], "this"=>[7989, Fri, Apr 27 2007 16:38:28 -0600]}
+

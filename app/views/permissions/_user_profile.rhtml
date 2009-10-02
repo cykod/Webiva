@@ -1,0 +1,14 @@
+<tr <%= highlight_row "user_class",cls.id %> >
+  <td>
+  <span id='tools_<%= cls.id %>'>
+  <% unless cls.built_in? %>
+     <a href='javascript:void(0);' onclick='UserClassEditor.editClass(<%= cls.id %>);'><%= "Edit".t %></a> |
+     <a href='javascript:void(0);' onclick='UserClassEditor.deleteClass(<%= cls.id %>);'><%= "Delete".t %></a>
+  <% end -%>
+  </span>
+  </td>
+  <td id='class_name_<%= cls.id %>' ><%= cls.name %></td>
+  <td  id='class_desc_<%= cls.id %>' ><%= cls.description %></td>
+  <td  id='class_editor_<%= cls.id %>' ><%= cls.editor? ? 'Editor'.t : 'Member'.t %></td>
+  <td  id='class_butt_<%= cls.id %>' ></td>
+</tr>

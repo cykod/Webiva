@@ -1,0 +1,65 @@
+<% if @update_tags -%>
+<script>
+  <%= render :partial => 'update_tags' -%>
+</script>
+<% end -%>
+
+<% if @update_segments -%>
+<script>
+  <%= render :partial => 'update_segmentations' -%>
+</script>
+<% end -%>
+
+<% @user_classes = []
+   @user_level_options = EndUser.user_level_select_options
+   @source_options = EndUser.source_options_hash
+   @view = "View".t
+   @edit = "Edit".t 
+   @delete = "Delete".t
+   @user_class_objs = UserClass.find(:all)
+   @user_class_index = @user_class_objs.index_by(&:id)
+   @user_class_objs.each  { |cls| @user_classes[cls.id] = h(cls.name.t) } %>
+
+<% active_table_for :email_targets_table, @active_table_output,
+                    :refresh_url => url_for(:action => 'display_targets_table'),
+                    :class => 'active_table',
+                    :width => '100%',
+                    :actions => [ ['Add Tags','js','MemberEditor.addTags();'],
+                                   ['Remove Tags','js','MemberEditor.removeTags();']
+                                ],
+                    :more_actions => [ ['Delete Targets','delete','Delete the selected users?'] ],
+                    :update => 'targets_table' do |t| %>
+<tr <%= highlight_row "user",t.id %>  >
+  <td nowrap='1'>
+    <%= entry_checkbox 'user',t.id %>
+  </td>
+  <td align='center'>
+    <% unless  @user_class_index[t.user_class_id].editor? %>
+      <a href='/website/members/edit/<%= t.id %>'><%= theme_image_tag 'icons/table_actions/edit.gif' %></a>
+    <% end -%>
+  </td>
+  <td nowrap='1' align='center'><%= t.user_level %></td>
+  <td><a href='/website/members/view/<%= t.id %>'><%= h t.email.blank? ? 'No Email'.t : t.email %></a></td>
+  <td>
+    <%= h(truncate(t.first_name,30)) %>
+  </td>
+  <td>
+    <%= h(truncate(t.last_name ,30)) %>
+  </td>
+  <td>
+    <%= t.created_at ? t.created_at.strftime(DEFAULT_DATE_FORMAT.t) : '-' %>
+  </td>
+  <td>
+    <%= t.registered_at ? t.registered_at.strftime(DEFAULT_DATE_FORMAT.t) : '-' %>
+  </td>
+
+  <td nowrap='1'><%= @user_classes[t.user_class_id] if t.user_class_id  %></td>
+  <td><%= h @source_options[t.source] %></td>
+  <td><%= h t.lead_source.blank? ? '-' : t.lead_source %></td>
+  <td valign='baseline'><%   user_tags = t.tag_cache_tags.to_s.split(",") %>
+                        <%= user_tags[0..5].collect {|tag| "<a href='javascript:void(0);' onclick='MemberEditor.viewTag(\"#{jh tag}\");'>#{tag}</a>" }.join(", ") %>
+                         <%= "+(#{user_tags.length-6})" if user_tags.length > 6 %>
+  </td>
+</tr>  
+
+<% end -%>

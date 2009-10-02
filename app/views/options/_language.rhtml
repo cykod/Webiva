@@ -1,0 +1,10 @@
+<div id='elem_language_<%= lang[0] %>' onmouseover='SCMS.highlightRow(this);'  onmouseout='SCMS.lowlightRow(this);' onclick='SCMS.clickRow("language","en");' style='padding:5px 5px;'>
+  <span id='language_tools_<%= lang[0] %>' style='width:200px;'>
+    <a href='javascript:void(0);' class='handle' id='handle_<%= lang[0] %>' style='cursor:move;'>Drag</a> | <a href='javascript:void(0);' onclick='ConfigurationEditor.removeLanguage("<%= lang[0] %>")'>Remove</a>
+    &nbsp;&nbsp;&nbsp;
+  </span>
+  <span >
+      <b><%= lang[1] %> - <%= lang[0].upcase %></b>
+  </span>
+</div>
+    

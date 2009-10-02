@@ -1,0 +1,130 @@
+<script>
+EmailEditor = {
+  selectType: function() {
+    if($('email_email_type_mailbox').checked) {
+      Element.show('mailbox_type');
+      Element.hide('alias_type');
+      Element.hide('bounce_type');
+    }
+    else if($('email_email_type_alias').checked) {
+      Element.hide('mailbox_type');
+      Element.show('alias_type');
+      Element.hide('bounce_type');
+    
+    }
+    else {
+      Element.hide('mailbox_type');
+      Element.hide('alias_type');
+      Element.show('bounce_type');
+    }
+  
+  },
+  
+  selectLinked: function() {
+    if($('email_linked_account').checked) {
+      $('email_end_user_id').disabled = false;
+      $('email_password').disabled = true;
+      $('email_password_confirmation').disabled = true;
+    }
+    else {
+      $('email_end_user_id').disabled = true;
+      $('email_password').disabled = false;
+      $('email_password_confirmation').disabled = false;
+    } 
+  
+  } 
+
+}
+
+</script>
+
+
+<div class='admin_content'>
+<h3><%= @email.id ? "Edit Domain Email".t : "Create Domain Email".t %></h3>
+<% cms_form_for :email, @email, :html => { :class => 'admin_form' } do |f| %>
+<table>
+<tbody>
+  <% if @email.system_email? %>
+      <tr>
+        <td colspan='2'>
+          <b><%= "This is a System email address that must be present".t %></b>
+        </td>
+  <% end -%>
+  <% if @email.id %>
+    <%= f.custom_field 'Email', :value =>  "#{@email.email}@#{Configuration.domain}" %>
+  <% else -%>
+    <%= f.text_field :email, :size => 20, :unit => "@#{Configuration.domain}", :label => 'Address'  %>
+  <% end -%>
+<tr>
+  <td>Domain Email Type</td>
+  <td>
+      <label for='email_email_type_mailbox'><%= f.radio_button :email_type, 'mailbox', :onclick => 'EmailEditor.selectType();' %>Mailbox</label> 
+      <label for='email_email_type_alias'><%= f.radio_button :email_type, 'alias', :onclick => 'EmailEditor.selectType();' %>Alias (Redirect)</label>
+      <label for='email_email_type_bounce'><%= f.radio_button :email_type, 'bounce', :onclick => 'EmailEditor.selectType();' %>Bounce</label>
+  </td>
+</tr>
+<Tr>
+  <td>&nbsp;</td>
+  <td></td>
+</tr>
+</tbody>
+<tbody id='mailbox_type' style='<%= "display:none;" unless @email.email_type == 'mailbox' %>'>
+<tr>
+  <td></td>
+  <td><label for='email_linked_account'><%= f.check_box :linked_account, :onclick => 'EmailEditor.selectLinked();' %>Link Password to an Editor Account</label></td>
+</tr>
+<%= f.select :end_user_id, @editor_accounts, {}, :label => 'Linked Account', :disabled => @email.linked_account? ? nil : 'disabled' %>
+<%= f.password_field :password, :disabled => @email.linked_account? ? 'disabled' : nil  %>
+<%= f.password_field :password_confirmation, :disabled => @email.linked_account? ? 'disabled' : nil, :label => 'Confirm'  %>
+
+</tbody>
+<tbody id='alias_type' style='<%= "display:none;" unless @email.email_type == 'alias' %>'>
+<tr>
+  <td></td>
+  <td>
+    Email addresses to forward to (one per line):<br/>
+  </td>
+</tr>
+<%= f.text_area :redirects, :rows => 6, :cols =>50 %>
+</tbody>
+<tbody id='bounce_type' style='<%= "display:none;" unless @email.email_type == 'bounce' %>'>
+<tr>
+  <td></td>
+  <td>
+    <p>
+    <%= "Emails sent to this address will be processed by Webiva as bounces".t %>
+    </p>
+  </td>
+</tr>
+</tbody>
+<tbody>
+  <tr>
+    <td></td>
+    <td align='right'>
+      <input type='submit' name='go' value='<%= vh @email.id ? "Edit".t : "Create".t %>'/>
+      <input type='submit' name='cancel' value='Cancel' onclick='document.location="<%= url_for :action => 'index' %>"; return false;'/>
+    
+    </td>
+  </tr>
+</tbody>
+<tbody style='display:none;'>
+<%= f.radio_buttons :spam_detection_level, [ [ 'Off', 0 ], [ 'Detect SPAM: Messages are marked with **SPAM**', 1 ], ['Reject SPAM: Message are deleted from the server',2]],
+    :separator => '<br/>', :label => 'SPAM Detection'
+ %>
+<tr>
+  <td>Virus Detection</td>
+  <td><label for='email_virus_detection'><%= f.check_box :virus_detection %>Enable Detection</label></td>
+</tr>
+
+</tbody>
+</table>
+
+
+
+
+<% end -%>
+
+
+
+
+</div>

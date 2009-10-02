@@ -1,0 +1,99 @@
+<script>
+ContentEditor = {
+   featureIdx: <%= @content_model.content_model_features.size %>,
+
+  
+  submitForm: function() {
+    var arr = Sortable.sequence('features');
+    $('features_order').value = arr.join(",");
+
+  },
+  
+ 
+  addFeature: function(feature) {
+    if(feature) {
+      var index = ContentEditor.featureIdx++;
+      new Ajax.Updater('features',
+                      "<%= url_for :action => 'add_feature', :path => [ @content_model.id ]  %>",
+                      { parameters: { feature_handler: feature, index: index },
+                        insertion: 'bottom',
+                        onComplete: function(req) {
+                          ContentEditor.recreateFeatureSortables();
+                        } });
+    
+    }
+  
+  },
+  
+  recreateFeatureSortables: function() {
+    Sortable.create("features",{ tag: "div", handle: "handle" } ); 
+  },
+  
+  removeFeature: function(idx) {
+    $('feature_delete_' + idx).value  = 1;
+    Element.hide($('feature_' + idx));
+  }
+
+}
+</script>
+
+
+<div class='admin_content'>
+<% cms_form_for :content,@content_model, :html => { :class => 'admin_form' } do |f| %>
+
+<% tabled_ajax_tabs [ 'Configuration', 'Content Features'], 'Configuration'  do |t| -%>
+
+<% t.tabled_tab do -%>
+<tbody>
+<%= f.text_field :name, :description => 'Display name of the content model',:vertical => true %>
+<%= f.radio_buttons :show_on_content, [ ['Yes',true],['No',false]], :label => 'Main Page', 
+  :description => 'Should this content model appear on the main content page', :vertical => true %>
+<%= f.radio_buttons :show_tags, [ ['Yes',true],['No',false]], :label => 'Use Tags on this Content Model', 
+  :description => 'Should this content model have the ability to use tags', :vertical => true %>
+<%= f.radio_buttons :create_nodes, [ ['Yes',true],['No',false]], :label => 'Create Content Entries',
+  :description => 'Should this content model create content entries that be indexed on the site', :vertical => true %>
+  <%= f.access_control :view_access_control, 'Limit which admins can view this content model', :vertical => true, :description => 'User must also have "Content" permission' %>
+  <%= f.access_control :edit_access_control, 'Limit which admins can edit this content model', :vertical => true, :description => 'User must also have "Content" permission'  %>
+<tr>
+  <td colspan='2' class='label_vertical' >Fields to show on content table:</td>
+</tr>
+<tr>
+  <td colspan='2' class='data_vertical'>
+    <% @content_model.content_model_fields.each do |fld| -%>
+      <label for='show_<%= fld.id %>'>
+      <input type='checkbox' name='show[<%= fld.id %>]' id='show_<%= fld.id %>' value='1' <%= "checked='checked'" if fld.show_main_table? %> />
+      <%= fld.name %>
+      </label><br/>
+    <% end -%>
+  </td>
+</tr>
+</tbody>
+<tbody>
+
+<%= f.custom_field " ", :value => "&nbsp;" %>
+
+<%= f.header "Model Information" %>
+<%= f.label_field :table_name, :description => 'This cannot be changed once the model is create' %>
+<%= f.custom_field 'Field Names', :value => @content_model.content_model_fields.collect(&:field).join(", "), :description => 'Field names are used in site feature' %>
+
+
+
+</tbody>
+<% end -%>
+<% t.tabled_tab do -%>
+<tbody>
+<tr>
+  <td colspan='2'>
+    <%= render :partial => 'configure_features' %>
+  </td>
+</tr>
+</tbody>
+<% end -%>
+<tbody>
+<%= f.submit_tag 'Update' %>
+
+</tbody>
+<% end -%>
+<% end -%>
+
+</div>

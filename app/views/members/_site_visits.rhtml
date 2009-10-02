@@ -1,0 +1,49 @@
+<% @date_format = "%m/%d/%Y".t
+   @time_format = "%T".t  
+   @first_session   
+%>
+  
+<% @first = true -%>
+<%= "Total Sessions:".t %> <%= @entry_info[:session_count] %>, <%= "Total Pages:".t %> <%= @entry_info[:page_count] %>
+<br/><br/>
+
+<% table_for @entries, [ 'Session','Date Started','Time','Pages','Action'], :class=>'admin_table',:cellspacing => '0' do |entry| %>
+
+<% if entry.is_a?(DomainLogEntry) %>
+<tr>
+<td></td>
+<td></td>
+<td><%= entry.occurred_at.localize @time_format %></td>
+<td>/<%= entry.page_path %></td>
+<td><%= entry.action || '-' %> </td>
+
+   
+
+</td>
+</tr>
+<% else -%>
+</tbody>
+<tbody>
+<tr  class='highlighted_row'>
+<td>
+  <a href='javascript:void(0);' onclick='Element.toggle("session_<%= entry[:session_id] %>");'>Session <%= entry[:session] %></a>
+</td>
+<td>
+  <%= entry[:occurred_at].localize @date_format %>
+</td> 
+<td align='right'>
+ <% if entry[:pages] > 1 %>
+   <%= distance_of_time_in_words(entry[:occurred_at],entry[:last_page_at]).capitalize %></td><td align='left'><%= entry[:pages] %> Pages
+<% else -%>
+  </td><td>1 Page
+<% end -%>
+</td>
+<td></td>
+
+</tr>
+</tbody>
+<tbody id='session_<%= entry[:session_id] %>' <%= "style='display:none;'" unless @first %>>
+<% @first = false -%>
+<% end -%>
+
+<% end -%>

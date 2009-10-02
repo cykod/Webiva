@@ -1,0 +1,13 @@
+if @preview
+  page.hide :saving_changes 
+  page << " $('save_all_changes').disabled=false;"
+  page << "  $('save_and_preview_all_changes').disabled=false;"
+  
+  @field_ids_update.each do |fld|
+    page << "$('field_id_#{fld[0]}').value='#{fld[1]}'"
+  end
+  page.replace_html :publication_preview, :partial => 'content_preview'
+  page << "RedBox.addHiddenContent('publication_preview');"
+else
+  page << "document.location='#{url_for :action => 'publications', :path => @content_model}';"
+end

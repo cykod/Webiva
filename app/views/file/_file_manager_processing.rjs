@@ -1,0 +1,3 @@
+page.replace_html 'upload_processing_area', "Still Processing...".t
+
+page <<  "setTimeout('FileEditor.updateProcessing();',1000);"

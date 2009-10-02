@@ -1,0 +1,31 @@
+<% action_panel do |p| -%>
+  <%= p.link 'Create new Mail Template', :icon => 'add.gif', :action => 'add_template' %>
+  
+ <li><% if @show_archived %>
+          <%= link_to theme_icon("action","icons/actions/show.gif") + 'Hide Archived'.t, :action => 'templates',:show_archived => 0 %>
+        <% else-%>
+          <%= link_to theme_icon("action","icons/actions/show.gif") + 'Show Archived'.t, :action => 'templates',:show_archived => 1 %>
+        <% end -%>
+ </li>  
+  <li><% if @show_campaign %>
+          <%= link_to theme_icon("action","icons/actions/show.gif") + 'Show Site Templates'.t, :action => 'templates',:show_campaign => 0 %>
+        <% else-%>
+          <%= link_to theme_icon("action","icons/actions/show.gif") + 'Show Campaign Templates'.t, :action => 'templates',:show_campaign => 1 %>
+        <% end -%>
+ </li>  
+
+<% end -%>
+
+<hr/>
+
+<script>
+  <%= active_table_javascript %>
+</script>
+<div class='admin_content'>
+
+
+<div id='mail_templates_table'>
+  <%= render :partial => 'mail_templates_table' %>
+</div>
+
+</div>

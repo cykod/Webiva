@@ -1,0 +1,1 @@
+page.replace_html 'cms_triggered_actions', :partial => '/editor/includes/actions'

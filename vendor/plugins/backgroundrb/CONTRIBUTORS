@@ -1,0 +1,18 @@
+= BackgrounDRb Contributors
+Thanks to all who have contributed. Please let us know if we have missed
+anyone.
+
+== Contributors to the current BackgrounDRb
+- Ara T. Howard: BackgrounDRb wouldn't be the same without Ara's Slave
+  library and he pointed out some serious race conditions in our code.
+- Saimon Moore: generators and rake tasks to make this work as a plugin. 
+- Werner Bohl: css/js progress example. It's much appreciated.
+- Gunter Ladwig: singleton workers.
+
+== Contributors to the original BackgrounDRb
+- Michael Klien: timestamp expiry options. :accessed or :created
+- David Lemstra: threading and job control enhancements.
+- Georg Friedrich: configurable ACL lists.
+- Ben Johnson: bug reports and fixes
+- Michael Siebert: patch to support cron style and autostart workers.
+- Chris Hulbert: win32 daemon and service implementation

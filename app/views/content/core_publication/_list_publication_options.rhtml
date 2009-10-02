@@ -1,0 +1,4 @@
+<%= f.text_field :table_class, :label => 'Table CSS Class' %>
+ <%= f.select :entries_per_page, [ ['Show All',0 ] ] + (1..20).to_a + (5..20).to_a.collect { |a| a * 5 } %>
+
+

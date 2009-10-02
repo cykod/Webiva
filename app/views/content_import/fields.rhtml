@@ -1,0 +1,79 @@
+<script>
+ContentImportEditor = {
+  updateForm: function(field_idx) {
+    var val = $('action_' + field_idx).value ;
+    if(val == 'm') {
+      Element.show('match_options_'+field_idx);
+      Element.hide('create_options_'+field_idx);
+      $('ident_' + field_idx).disabled = false;
+    }
+    else if(val == 'c') {
+      Element.show('create_options_'+field_idx);
+      Element.hide('match_options_'+field_idx);
+      $('ident_' + field_idx).disabled = true;
+    
+    }
+    else {
+      Element.hide('match_options_'+field_idx);
+      Element.hide('create_options_'+field_idx);
+      $('ident_' + field_idx).disabled = true;
+    }
+  
+  }
+
+
+}
+</script>
+<h2><%="Select and Match Fields".t %></h2>
+  <p><%= "Please configure which fields to import from the CSV file.".t %>
+  <%= "Matched fields marked as identifiers will be used to match and update existing entries".t %></p>
+<% if @invalid_match %>
+  <div class='error'><b><%= "You must select a Content Model Field for all CSV file fields you are trying to match".t %></b></div>
+  <br/>
+<% end -%>
+
+<div >
+<%= form_tag('',:id =>'wizard_form') %>
+
+<table class='data_table' >
+  <tr style='background-color:#DDDDDD;'>
+    <th><%= "Col".t %></th>
+    <th><%= "CSV File Field".t %></th>
+    <th><%= "Action".t %></th>
+    <th><%= "Identifier".t %></th>
+    <th><%= "Content Model Field".t %></th>
+  </tr>
+   
+<% @matched_fields.each_with_index do |fld,idx| %>
+<tr style="background-color:<%= idx % 2 == 0 ? "#FFFFFF" : "#EEEEEE" %>;">
+  <td align='right'><%= idx+1 %>.</td>
+  <td><%= fld[0] %></div>
+  <td nowrap='1'>
+       <select name='act[<%= idx %>]' id='action_<%=idx %>' onchange='ContentImportEditor.updateForm(<%= idx %>);' >
+       <%
+           #"<option value='c' <%= "selected='true'" if fld[1] == 'c' >Create</option>"
+           %>
+        <option value='m'  <%= "selected='true'" if fld[1] == 'm' %> ><%= "Match".t %></option>
+        <option value='i'  <%= "selected='true'" if fld[1] == 'i' %> ><%= "Ignore".t %></option>
+      </select>
+  </td>
+  <td align='center'>
+    <input type='checkbox' name='ident[<%=idx%>]' id='ident_<%=idx%>' <%= "disabled='disabled'" unless fld[1]=='m' %> />
+  </td>
+  <td><div id='match_options_<%=idx%>' <%= "style='display:none;'" unless fld[1] == 'm' %>>
+      <select name='match[<%= idx %>]' id='match_<%=idx%>' style='width:300px;'>
+        <option value='' <%= 'selected="true"' unless !fld[2].empty? %> ><%= h "--Select Field--".t %></option>
+        <%= options_for_select @content_options, fld[2] %>  
+      </select>
+      </div>
+      <div id='create_options_<%=idx%>' <%= "style='display:none;'" unless fld[1] == 'c' %>>
+      <select name='create[<%= idx %>]' id='match_<%=idx%>' style='width:300px;' >
+        <option value='' <%= 'selected="true"' unless !fld[2].empty? %> ><%= h "--Create Field Type--".t %></option>
+        <%= options_for_select @field_types, fld[2] %>  
+      </select>
+      </div>
+  </td>
+<% end -%>
+</table>
+</form>
+</div>

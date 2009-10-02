@@ -1,0 +1,29 @@
+<%  @show_languages.each do |lang| -%>
+<div id='language_<%= lang %>'>
+<form name='translation_<%= lang %>' id='translation_form_<%= lang %>' class='translation_form'>
+<% if @localized_options.length > 0 %>
+ <h3><%= "Translated Variables".t %></h3>
+  <% cms_fields_for "localize_values[#{lang}]", @localized_values[lang]  do |f| -%>
+    <% @localized_options.each do |opt| -%>
+        <%= render :partial => 'custom_field', :locals => {:opt => opt, :f => f} %> 
+    <% end -%>
+  <% end -%>
+
+<% end -%>
+ 
+<h3><%= "Text Translations".t %></h3>
+<table>
+<% @site_template.options[:localize].each_with_index do |trans,idx| -%>
+<tr>
+  <td>
+    <%= h trans[0] %>
+   </td>
+   <td>
+    <input name='translate[<%= lang %>][<%= idx %>]' type='hidden' value='<%= h trans[0] %>' />
+    <input name='translation[<%= lang %>][<%= idx %>]' type='text' size='16' value='<%= h trans[1][lang].to_s %>' />
+ </td>
+ <% end -%>
+</table>
+</form>
+</div>
+ <% end -%>

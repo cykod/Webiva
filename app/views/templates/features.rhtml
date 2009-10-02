@@ -1,0 +1,13 @@
+<% action_panel do |p| -%>
+  <%= p.link 'Add a new Feature', :action => 'new_feature' ,:icon => 'add.gif' %>
+<% end -%>
+
+<hr/>
+
+    <div class='admin_content'>
+
+      <div id='features_table'>
+        <%= render :partial => 'features_table' %>
+      </div>
+    </div>
+

@@ -1,0 +1,25 @@
+      <td >
+        <div id='module_<%= mod[:name] %>' style='position:relative;'>
+        <%= case mod[:status]
+            when :available
+                theme_image_tag 'icons/actions/module_available.gif',
+                              :onclick => show_popup_options("module_#{mod[:name]}",
+                                           'moduleAction',
+                                           ['module_activate'],
+                                           mod[:name])
+            when :active
+                theme_image_tag 'icons/actions/module_active.gif',
+                              :onclick => show_popup_options("module_#{mod[:name]}",
+                                          'moduleAction',
+                                          ['module_deactivate','module_options'],
+                                          mod[:name])
+            when :unavailable
+                theme_image_tag 'icons/actions/module_unavailable.gif',
+                              :onclick => show_popup_options("module_#{mod[:name]}",
+                                          'moduleAction',
+                                          ['module_request'],
+                                          mod[:name])
+            end  %>
+      <%= mod[:info].name %></div></td>
+      <td><%= mod[:status].to_s.capitalize %> </td>
+      <td><%= mod[:info].description %> </td>

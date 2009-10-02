@@ -1,0 +1,11 @@
+<div align='center'>
+<% if @segment[:tags].length > 0 %>
+  <% opts =[ 'any','all','not_any', 'not_all' ] %>
+  (<% opts.each do |opt| -%><% if @segment[:tags_select]==opt -%><img src="<%= theme_src("/images/icons/boolean/#{opt}.gif") %>" align='absmiddle' /><%= opt.humanize.t %><% else %><a href='javascript:void(0);' onclick='MemberEditor.updateSegment("tags_select=<%= opt%>");'><img src="<%= theme_src("/images/icons/boolean/#{opt }.gif") %>"  align='absmiddle' /></a><a href='javascript:void(0);' onclick='MemberEditor.updateSegment("tags_select=<%= opt%>");'><%= opt.humanize.t %></a><% end -%><%= "/" unless opt == opts.last %><% end -%>
+  <a href='javascript:void(0);' onclick='MemberEditor.updateSegment("clear_tag=clear");'><%= "Clear".t %></a>)
+<% end -%>
+<br/>
+<div id='user_cloud'>
+  <%= render :partial => 'user_cloud' %>
+</div>
+</div>

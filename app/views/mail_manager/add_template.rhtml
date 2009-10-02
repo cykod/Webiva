@@ -1,0 +1,30 @@
+<script>
+  function updateOptions() {
+
+//    $('mail_template_create_type_master').checked ? Element.show('master_template_select') : Element.hide('master_template_select');
+    $('mail_template_create_type_design').checked ? Element.show('site_template_select') : Element.hide('site_template_select');
+  
+  
+  }
+</script>
+<div class='admin_content'>
+
+<% cms_form_for :mail_template, @mail_template, :html => { 'class' => 'admin_form' } do |f| -%>
+<tbody>
+<%= f.text_field :name, :vertical => true, :required => true %>
+<%= f.radio_buttons :template_type, MailTemplate.template_type_select_options, :vertical => true %>
+<%= f.radio_buttons :language, Configuration.languages, :vertical => true if Configuration.languages.length > 1 %>
+<%= f.text_field :category, :vertical => true %>
+<%= f.radio_buttons :create_type, [ ['New Blank Mail Template','blank'],['Build from Design Template','design'] ],
+          :separator => '<br/>', :vertical => true, :onclick => 'updateOptions();', :required => true %>
+</tbody>
+<tbody id='site_template_select' <%= "style='display:none;'" unless @mail_template.create_type == 'design' %>>
+<%= f.select :site_template_id, @design_templates, :label => 'Design Template', :vertical => true, :required => true %>          
+</tbody>
+<tbody id='master_template_select' <%= "style='display:none;'" unless @mail_template.create_type == 'master' %>>
+<%= f.select :master_template_id, @master_templates, :label => 'Master Template', :vertical => true, :required => true %>          
+</tbody>
+<tr><td colspan='2'>&nbsp;</td></tr>
+<%= f.submit_tag 'Create' %>
+<% end -%>
+</div>

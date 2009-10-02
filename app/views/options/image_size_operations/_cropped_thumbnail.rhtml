@@ -1,0 +1,3 @@
+<%= f.text_field :width, :unit => 'px',:size => 5 %>
+<%= f.text_field :height, :unit => 'px',:size => 5 %>
+<%= f.select :anchor, DomainFileSize::CroppedThumbnailOperation.anchor_select_options %>

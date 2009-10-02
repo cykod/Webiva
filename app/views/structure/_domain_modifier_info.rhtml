@@ -1,0 +1,59 @@
+<b> <%= "Domain Details Details".t %></b>
+<script>
+DomainEditor = {};
+DomainEditor = {
+  showEdit: function() {
+    Element.hide('domain_view');
+    Element.show('domain_edit');
+  
+  },
+  
+  hideEdit: function() {
+    Element.show('domain_view');
+    Element.hide('domain_edit');
+  
+  },
+  
+  submitForm: function() {
+    
+    params = Form.serialize('domain_form');
+    params += "&node_type=mod&node_id=<%= @mod.id %>";
+    new Ajax.Updater('element_info',
+                     "<%= url_for :action => 'element_info' %>",
+                     { parameters: params,
+                        evalScripts: true,
+                        method: 'post' }
+                     );
+  }
+  
+
+}
+
+
+</script>
+<div id='domain_view' >
+
+<table>
+  <tr>
+    <td><%= 'Limited to Domain:'.t %></td>
+    <td>
+    <a class='ajax_link' href='javascript:void(0);' onclick='DomainEditor.showEdit();'> 
+        <%= @domain_options.limit_to_domain.blank? ? 'None Entered'.t : @domain_options.limit_to_domain %>
+   </a>
+  </td>
+ </tr>
+ </table>
+
+</div>
+
+<div id='domain_edit' style='display:none;'>
+
+<% tabled_form_for :domain, @domain_options, :html => {:id => 'domain_form', :onsubmit => 'DomainEditor.submitForm(); return false;' }  do  |f| -%>
+<%= f.text_field :limit_to_domain %>
+
+<% end -%>
+<div align='right'>
+    <input type='submit' value='<%= "Update".t %>' onclick='DomainEditor.submitForm();'/>
+</div>
+
+</div>

@@ -1,0 +1,16 @@
+<%= @msg_body %>
+
+<% if @user %>
+  <%= render :partial => '/triggered_action_mailer/user', :locals => {:user => @user } %>
+<% end -%>
+
+<% if @data.is_a?(Hash) %>
+  <table>
+  <% @data.each do |key,val| %>
+  <tr>
+    <td valign='baseline' class='label'><%= key.to_s.humanize %></td>
+    <td valign='baseline' class='data'><%= val %></td>
+  </tr>
+  <% end -%>
+  </table>
+<% end -%>

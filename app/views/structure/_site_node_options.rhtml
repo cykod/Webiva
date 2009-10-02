@@ -1,0 +1,27 @@
+<br/>
+
+<div id='site_node_view'>
+ <% link_edit_form_for  :site_node, @node, 
+      :styled_form => { 
+	  :onclick => "Element.hide(\"site_node_view\"); Element.show(\"site_node_edit\");", 
+	  :classname => "ajax_link" 
+      } do |f| -%>
+      <%= render :partial => 'site_node_form', :locals => { :f => f } %>
+  <% end -%>
+</div>
+
+<div id='site_node_edit' style='display:none;'>
+  <% remote_cms_form_for :site_node, @node,
+      :update => "site_node_page_options",
+      :method => 'post', 
+      :url =>  { :action => 'update_site_node_options', :path => @node.id } do  |f| -%>
+    <%= render :partial => 'site_node_form', :locals => { :f => f } %>
+    
+    <%= f.submit_cancel_tags 'Update','Cancel',
+	      {}, 
+	      {
+		:onclick => "Element.show(\"site_node_view\"); Element.hide(\"site_node_edit\"); return false;"
+	      } %>
+    
+<% end -%>
+</div>

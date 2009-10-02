@@ -1,0 +1,46 @@
+<b>Issue #<%= @issue.id %></b> - <%= @issue.status %><br/>
+<b>Reported By: 
+<% if @issue.reporter_user  %>
+  <%= @issue.reporter_user.name %>
+<% else %>
+  [ Anonymous ]
+<% end -%>
+</b><Br/>
+<b>Location: </b><%= @issue.location %><br/>
+<b>Reported Type: </b><%= @issue.reported_type%><br/>
+<b>Reporting Domain: </b><%= @issue.reporting_domain%><br/>
+<h3>Behavior</h3>
+<%= simple_format @issue.behavior %>
+<h3>Notes</h3>
+  
+<% if @issue.system_issue_notes.length > 0 %>
+<table width='100%'>
+  <tr>
+    <th>When</th>
+    <th>Who</th>
+    <th>Action</th>
+    <th align='left'>Note</th>
+  </tr>
+  <% @issue.system_issue_notes.each do |note| %>
+  <tr>
+    <td nowrap='1'>
+      <%= (note.entered_at || Time.now()).localize("%m/%d/%Y %H:%M".t) %>
+    </td> 
+    <td nowrap='1'>
+      <%= note.entered_user ? note.entered_user.name : "[Unknown]" %>
+    </td>
+    <td nowrap='1'>
+      <%= note.action %>
+    </td>
+    <td nowrap='1'>
+      <%= sprintf("%0.2f",note.work_time) %>
+    </td>
+    <td width='100%'>
+      <%= h(note.note).gsub("\n","<br/>") %>
+    </td>
+  </tr>
+  <% end -%>
+
+</table>
+
+<% end -%>

@@ -1,0 +1,37 @@
+<div class='cms_form' >
+  <% paragraph_options_form_for "Email List Options",:email_list ,@options, :html => { :style => 'width:600px; height:450px; overflow:auto;' } do |f| -%>
+<tr>
+<td colspan='2'>                  
+<% ajax_tabs ['Options','Fields','Triggered Actions'], 'Options' do |t| %>
+
+  <% t.tab do -%>  
+    <table>
+    <%= f.select :user_subscription_id, @subscriptions %>
+    <%= f.text_field :tags, :description => 'Comma separated list of Tags to add to email contact' %>
+    <%= f.text_field :user_source, :description => 'Source label to assign to user' %>
+    <%= f.select :destination_page_id, @pages, :description => 'Page to display after sucessful signup' %>
+    <%= f.text_area :success_message, :cols =>40,:rows=>8, :description => 'Displayed after signup unless destination page selected' %>
+    </table>
+  <% end -%>
+  
+  <% t.tab do -%>
+    <table>
+    <%= f.radio_buttons :zip, @on_off %>
+    <%= f.radio_buttons :first_name, @on_off %>
+    <%= f.radio_buttons :last_name, @on_off %>
+  
+    </table>
+  <% end -%>
+  
+  
+  <% t.tab do -%>  
+    <div id='cms_triggered_actions'>
+    <%= render :partial => '/editor/includes/actions' %>
+  </div>
+  <% end -%>
+
+<% end -%>  
+</td>
+</tr>
+<% end -%>
+</div>

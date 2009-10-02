@@ -1,0 +1,25 @@
+<% f.custom_field 'Subscriptions' do %>
+  <input type='hidden' name='subscription[0]' value='1' />
+  <% UserSubscription.find(:all,:order => :name).each do |sub| %>
+  <% entry = @user.user_subscription_entries.find_by_user_subscription_id(sub.id) %>
+  <label for='subscription_<%= sub.id %>'>
+        <input type='checkbox' id='subscription_<%= sub.id %>' name='subscription[<%= sub.id %>]' <%= "checked='checked'" if entry  %> />
+        <%= sub.name %> Subscription
+        </label>
+    <% if entry %>
+        <br/>
+        &nbsp;&nbsp;&nbsp;
+	<%= entry.subscription_type_display %>,
+	<% if !sub.require_registered_user? %>
+	  <%= 'Subscribed'.t %>
+	<% else -%>
+	  <%= entry.verified? ? 'Verified' : 'Awaiting Verification' %>
+	<% end -%>
+        
+    <% end -%>
+    <br/>
+    <br/>
+ <% end -%>
+
+<% end -%>
+

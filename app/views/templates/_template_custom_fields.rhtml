@@ -1,0 +1,5 @@
+<% cms_fields_for :options, @options, :styled_form => { :no_translate => true }  do |f| -%>
+	<% @site_template.options[:options].each do |opt| -%>
+    <%= render :partial => 'custom_field', :locals => {:opt => opt, :f => f} %> 
+	<% end -%>
+<% end -%>

@@ -1,0 +1,23 @@
+<div id='site_statistics_details'>
+<% tabled_display_form_for :stats, @stats do |f| %>
+  <%= f.text_field :unique_ips %>
+  <%= f.text_field :unique_sessions %>
+  <%= f.text_field :anonymous_users %>
+  <%= f.text_field :registered_users %>
+  <%= f.text_field :total_hits %>
+<% end -%>
+
+<table class='admin_table'>
+<tr>
+  <th><%= "Page".t %></th>
+  <th><%= "Views".t %></th>
+</tr>
+
+<% @page_stats.each do |pg| -%>
+<tr>
+  <td><%= pg.node_path %></td>
+  <td><%= pg.views %></td>
+</tr>
+
+<% end -%>
+</div>

@@ -1,0 +1,6 @@
+<div class='cms_form'>
+  <% paragraph_options_form_for "RSS Auto Discovery Options",:rss_auto_discovery ,@options do |f| -%>
+  
+    <%= f.select :module_node_id, @available_feeds,:label => 'Select Feed', :description => 'which feed would you like to add autodiscovery for' %>
+  <% end -%>
+</div>

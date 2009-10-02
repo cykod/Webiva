@@ -1,0 +1,3 @@
+<%= folder.ancestors.map { |fld| link_to(h(fld.id == 1 ? 'Root Folder'.t : fld.name),'javascript:void(0);', :onclick => "FileEditor.gotoFolder(#{fld.id});")  + " &gt; " }.join() %>
+<%=h(folder.id == 1 ? 'Root Folder'.t : folder.name) %>
+

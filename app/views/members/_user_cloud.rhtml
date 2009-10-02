@@ -1,0 +1,27 @@
+<%  all_tags = Tag.find(:all,:include => :tag_note).index_by(&:name)
+    cloud = []
+      EndUser.cloud(EndUser.tags_count(:order => 'name'), %w(10 12 14 16 20)) do |tg, font_size|
+        cloud << [tg,font_size]
+      end
+  %>
+  
+   <% if @segment[:tags].length > 0 %>
+      <% @segment[:tags].each do |tg| %>
+        <% font_size = cloud.detect { |elem| elem[0] == tg } %>
+        <span class='selected_tag'><a href='javascript:void(0);'
+         title='<%= vh(all_tags[tg].tag_note.description) if all_tags[tg] && all_tags[tg].tag_note %>'
+         <%= "style='font-size:#{font_size[1]}px;'" if font_size %> onclick='MemberEditor.clearTag("<%= jvh(tg) %>");'><%= h tg %></a></span> &nbsp;
+      <% end -%>
+   <% end -%>
+    
+  <% cloud.each do  |tg| %>
+    <% unless @segment[:tags].include?(tg[0]) %>
+      <a href='javascript:void(0);'
+         title='<%= vh(all_tags[tg[0]].tag_note.description) if all_tags[tg[0]] && all_tags[tg[0]].tag_note %>'
+
+ style='font-size:<%= tg[1] %>px;' onclick='MemberEditor.viewTag("<%= jvh(tg[0]) %>");'><%= h tg[0] %></a> &nbsp;
+    <% end -%>
+  <% end %>
+  <% if @show_more %>
+    <a href='#'><%= h "All Tags >>".t %></a>
+  <% end -%>

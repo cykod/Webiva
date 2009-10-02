@@ -1,0 +1,9 @@
+<div class='admin_content'>
+<h2><%= h "Publish Content".t %>: <%= @content_model.name %></h2>
+<% cms_form_for :publish, @publication, :html => { :class => 'admin_form' } do |f| %>
+  <%= f.text_field :name, :label => 'Publication Name', :vertical => true %>
+  <%= f.select :publication_type, @publication_types, :vertical => true %>
+  <%= f.text_area :description, :label => 'Description', :vertical => true, :cols => 40, :rows => 5 %>
+  <%= f.submit_tag 'Customize Publication' %>
+<% end -%>
+</div>

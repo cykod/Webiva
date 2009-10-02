@@ -1,0 +1,7 @@
+
+<%= f.text_field :button_label, :label => 'Submit Button Text', :description => 'Text to use for submit button (If submit button image is empty)' %>
+<%= f.filemanager_image :submit_button_image_id, :label => 'Submit Button Image', :description => 'Image to use for submit button. Replaces Submit Button text.' %>
+<%= f.text_field :return_button, :label => 'Return Button Text', :description => 'Text to use for the return button' %>
+<%= f.text_field :field_size, :label => 'Field Size', :description => 'Default text field and text area width' %>
+<%= f.text_field :form_class, :label => 'Form CSS Class' %>
+<%= f.radio_buttons :form_display, [ ['Horizontal','horizontal'],['Vertical','vertical'] ] %>

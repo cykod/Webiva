@@ -1,0 +1,7 @@
+<div class='cms_form'>
+<%  paragraph_options_form_for :list do |f| -%>
+  <%= f.radio_buttons :auto_create, [['Yes',true],['No',false]] %>
+  <%= f.page_selector :edit_page_id %>
+  <%= f.text_field :blog_name  %>
+<% end -%>
+</div>

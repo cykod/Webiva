@@ -1,0 +1,13 @@
+<% active_table_for :client_table, @active_table_output,
+                    :refresh_url => url_for(:action => 'display_client_table'),
+                    :class => 'active_table',
+                    :width => '550',
+                    :actions => [ [ 'Delete', 'delete', 'Are you sure you want to delete this client and all related domains?' ]],
+                    :update => 'client_table' do |t| %>
+<tr <%= highlight_row 'client',t.id %>>
+  <td><%= entry_checkbox 'client',t.id %></td>
+  <td><%= link_to t.name, :action => "edit", :path => t %></td>
+  <td align="center"> <%= t.domains.length %> / <%= t.domain_limit %></td>
+</tr>
+
+<% end -%>

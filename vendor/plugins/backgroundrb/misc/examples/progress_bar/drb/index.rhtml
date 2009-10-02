@@ -1,0 +1,16 @@
+<html>
+<head>
+	<%= javascript_include_tag :defaults -%>
+	<%= javascript_include_tag 'application' -%>
+    <%= stylesheet_link_tag 'progress' %>
+	
+</head>
+<body>	
+<div id='form'>
+</div>
+<dev id='updater'>
+</div>		
+<%= link_to_remote "Start Drb Task with Progres Bar", :url => { :action => "start" }%>
+<div id='progressbar' class="progress"></div>
+</body>
+</html>

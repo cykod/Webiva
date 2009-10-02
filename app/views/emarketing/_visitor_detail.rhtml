@@ -1,0 +1,36 @@
+<% @date_format = "%m/%d/%Y".t
+   @time_format = "%T".t  %>
+   
+<% if @user %>
+<b><%= sprintf("User #%s".t,@user.id.to_s) %>:
+ <a href='<%= url_for :controller => "/members", :action => 'view', :path => @user.id %>'><%= @user.name %></a> </b><br/><br/>
+<% else -%>
+<b><%= sprintf("Anonymous user from %s".t,@entry.ip_address.to_s) %></b><br/><br/>
+<% end -%>
+
+<% table_for @entries, [ 'Date Started','Time','Pages','Action'], :class=>'admin_table',:cellspacing => '0' do |entry| %>
+
+<% if entry.is_a?(DomainLogEntry) %>
+<tr>
+<td></td>
+<td><%= entry.occurred_at.localize @time_format %></td>
+<td>/<%= entry.page_path %></td>
+<td><%= entry.action || '-' %> </td>
+
+   
+
+</td>
+</tr>
+<% else -%>
+<tr  class='highlighted_row'>
+<td>
+  <%= entry[:occurred_at].localize @date_format %>
+</td> 
+<td colspan='3'>
+  
+</td>
+
+</tr>
+<% end -%>
+
+<% end -%>

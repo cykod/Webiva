@@ -1,0 +1,27 @@
+<% even = 0 %>
+
+<% active_table_for :visitor, @active_table_output,
+                    :refresh_url => url_for(:controller => '/emarketing', :action => 'visitor_update'),
+                    :class => 'active_table', :width => '100%',
+                    :update => 'entries_table' do |t| -%>
+<tr id='entry_<%= t.id %>'>
+<td nowrap='1'>
+<a href='javascript:void(0);' onclick='VisitorViewer.detail("<%= t.session_id %>")'>
+<% if !t.end_user %>
+   <%= t.ip_address %>
+<% else %>
+  <%=  t.end_user.name %>   
+<% end -%>      
+</a>
+</td>
+<td nowrap='1' align='right'>
+  <%= t.created_at.strftime(DEFAULT_DATETIME_FORMAT.t) %>
+</td>
+<td nowrap='1' align='right'>
+<%= t.page_count %>
+</td>
+<td nowrap='1' align='right'>
+<%= (t.length.to_i / 60).floor  %> Minutes
+</td>
+</tr>
+<% end -%>

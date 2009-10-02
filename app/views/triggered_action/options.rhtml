@@ -1,0 +1,18 @@
+<script>
+OptionWizard = {
+  addAction:function(name) {
+    window.opener.addAction(name,Form.serialize('wizard_form'));
+  
+  }
+
+}
+</script>
+
+<h2><%= @triggered_action.options_type_name.t  %></h2>
+<% cms_form_for :options, @action_options, :html => { :id => 'wizard_form', :class => 'admin_form' } do |f| %>
+  <%= render :partial => @triggered_action.options_partial, :locals => { :f => f } %>
+
+<% end -%>
+
+
+

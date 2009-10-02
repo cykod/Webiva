@@ -1,0 +1,33 @@
+<div id='elem_field_<%= field_index %>' onmouseover='SCMS.highlightRow(this);'  onmouseout='SCMS.lowlightRow(this);' style='padding:5px;'>
+<span id='field_tools_<%= field_index %>' style='display:inline;'>
+<a href='javascript:void(0);' onmousedown='FieldEditor.closeOptions(<%= field_index %>);' class='handle' id='handle_<%= field_index %>' style='cursor:move;'><%= "Drag".t %></a> |
+<a href='javascript:void(0);' onclick='FieldEditor.toggleOptions(<%= field_index %>);'><%= "Options".t %></a> |
+<a href='javascript:void(0);' onclick='FieldEditor.deleteField(<%= field_index %>,"<%= fld.id %>");'><%= "Del".t %></a>
+ </span>
+ &nbsp;&nbsp; <span id='field_name_<%= field_index %>'><%= h fld.name %></span>  (<%= ContentModel.content_field(fld.field_module,fld.field_type)[:description].t %>)
+ <div id='options_<%= field_index %>' style='<%= "display:none;" if fld.id %> border:1px solid #000000; padding:10px; margin-top:5px;' >
+ <form class='field_form' id='field_options_<%= field_index %>' onsubmit='FieldEditor.closeOptions(<%= field_index %>); return false;'>
+  <% if fld.id %>
+    <input type='hidden' name='field[<%= field_index %>][id]' value='<%= fld.id %>' />
+  <% else %>
+    <input type='hidden' name='field[<%= field_index %>][field_module]' value='<%= fld.field_module %>' />
+    <input type='hidden' name='field[<%= field_index %>][field_type]' value='<%= fld.field_type %>' />
+  <% end -%>
+  <%= "Name:".t %> <input type='text' name='field[<%= field_index %>][name]'  size='40' value="<%= vh fld.name %>" onchange='FieldEditor.updateName(<%= field_index %>,this.value);'  onkeyup='FieldEditor.updateName(<%= field_index %>,this.value);' />
+    <% if fld.field_type == 'belongs_to' %>
+    <%= "Belongs to:".t %> <select name='field[<%= field_index %>][belongs_to]' >
+      <%= options_for_select @relationship_classes, fld.field_options['relation_class'].to_s.underscore %>
+    </select><br/>
+  <% end -%>
+<br/><br/>
+  <%= "Description:".t %><br/>
+  <textarea name='field[<%= field_index %>][description]'  cols='60' rows='3'><%= h fld.description %></textarea><br/>
+  <% cms_fields_for "field[#{field_index}][field_options]", fld.field_options_model do |f| %>
+    <%= render :partial => fld.field_options_partial, :locals => { :f => f, :field => fld } %>
+  <% end -%>
+  
+
+  </form>
+ </div>
+</div>
+<script>$('add_field_name').value = '';</script>

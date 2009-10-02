@@ -1,0 +1,119 @@
+require File.dirname(__FILE__) + "/../spec_helper"
+require File.dirname(__FILE__) + "/../content_spec_helper"
+
+describe ContentPublication do
+
+  include ContentSpecHelper
+
+  reset_domain_tables :content_publications,:content_publication_fields, :content_model_features
+
+ 
+   before(:all) do
+      # Need to clean out the content models and create a new content model
+      # But don't want to do this before each one
+      create_content_model_with_all_fields
+   end
+   
+   before(:each) do
+     @cm.content_model.delete_all
+   end
+  
+  describe "dynamic fields" do
+  
+    it "should be able to fill in the current time with a dynamic field" do
+       @publication = @cm.content_publications.create(:name => 'Test Form',:publication_type => 'create',:publication_module => 'content/core_publication')
+       
+       @publication.content_publication_fields.create(:field_type => 'input',:content_model_field_id => @cm.field(:string_field).id)
+       @publication.content_publication_fields.create(:field_type => 'dynamic',:content_model_field_id => @cm.field(:datetime_field).id,
+                                                      :data => { :dynamic => 'content/core_field:current' })
+
+       @entry = @cm.content_model.new
+       
+       now = Time.now 
+       
+       Time.should_receive(:now).at_least(:once).and_return(now)
+       @publication.update_entry(@entry,{ :string_field => 'Test String' },{})    
+       
+       @entry.datetime_field.should == now
+       @entry.string_field.should == 'Test String'
+    end
+  
+  end
+  
+  describe "preset fields" do
+  
+    it "should be able to fill in a value with a preset field" do
+       @publication = @cm.content_publications.create(:name => 'Test Form',:publication_type => 'create',:publication_module => 'content/core_publication')
+       
+       @publication.content_publication_fields.create(:field_type => 'preset',:content_model_field_id => @cm.field(:string_field).id, :data => { :preset => 'My Preset Value' })
+
+       @entry = @cm.content_model.new
+       @publication.update_entry(@entry,{ :datetime_field => Time.now },{})    
+       
+       @entry.string_field.should == 'My Preset Value'
+    end
+  
+  end
+  
+  
+  describe 'field filters' do
+  
+    it "should be able to do a like filter" do
+       @publication = @cm.content_publications.create(:name => 'List',:publication_type => 'list',:publication_module => 'content/core_publication')
+       @publication.content_publication_fields.create(:field_type => 'value',:content_model_field_id => @cm.field(:string_field).id, :data => { :options => ['filter'] })
+       
+       @entry1 = @cm.content_model.create(:string_field => 'A Field')
+       @entry2 = @cm.content_model.create(:string_field => 'B Field')
+
+       @paging, @data = @publication.get_list_data(1,{:filter_string_field_like => 'Fi'})
+       @data.length.should == 2 # Should return both
+
+       
+       @paging, @data = @publication.get_list_data(1,{:filter_string_field_like => 'A Fi'})
+       @data.length.should == 1 # should return only 'A Field'
+       @data[0].string_field.should == 'A Field'
+    end
+    
+    it "should be able to do an empty filter" do
+       @publication = @cm.content_publications.create(:name => 'List',:publication_type => 'list',:publication_module => 'content/core_publication')
+       @publication.content_publication_fields.create(:field_type => 'value',:content_model_field_id => @cm.field(:string_field).id, :data => { :options => ['filter'] })
+       
+       @entry1 = @cm.content_model.create(:text_field => 'Text Field') # Set a different field, not string_field
+       @entry2 = @cm.content_model.create(:string_field => 'String Field')
+       
+       @paging, @data = @publication.get_list_data(1,{:filter_string_field_not_empty => false})
+       @data.length.should == 2 # Should return both
+
+       
+       @paging, @data = @publication.get_list_data(1,{:filter_string_field_not_empty => true})
+       @data.length.should == 1 # should return only 'A Field'
+       @data[0].string_field.should == 'String Field'    
+    end
+
+    it "should be able to do an date range filter" do
+       @publication = @cm.content_publications.create(:name => 'List',:publication_type => 'list',:publication_module => 'content/core_publication')
+       @publication.content_publication_fields.create(:field_type => 'value',:content_model_field_id => @cm.field(:datetime_field).id, :data => { :options => ['filter'] })
+       
+       @entry0 = @cm.content_model.create(:datetime_field => 3.years.ago, :string_field => '3 Years Ago')
+       @entry1 = @cm.content_model.create(:datetime_field => 1.hours.ago, :string_field => '1 Hour Ago')
+       @entry2 = @cm.content_model.create(:datetime_field => Time.now.at_beginning_of_month - 2.days, :string_field => 'Beginning of the month minus 2 days')
+       
+       @paging, @data = @publication.get_list_data(1,{:filter_datetime_field_start => 'year_ago' })
+       @data.length.should == 2 # Should return all but the first
+
+       
+       @paging, @data = @publication.get_list_data(1,{:filter_datetime_field_start => '0_month' })
+       @data.length.should == 1 # should return only @entry1
+       @data[0].string_field.should == '1 Hour Ago'    
+       
+       @paging, @data = @publication.get_list_data(1,{:filter_datetime_field_end => '0_month', :filter_datetime_field_start => 'year_ago'  })
+       @data.length.should == 1 # should return only '@entry1
+       @data[0].string_field.should == 'Beginning of the month minus 2 days'    
+       
+    end  
+  end
+  
+  
+  
+  
+end

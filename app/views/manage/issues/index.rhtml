@@ -1,0 +1,57 @@
+<script>
+IssueEditor = {
+  
+  toggleIssue: function(issue_id) {
+    if($('issue_details_' + issue_id)) {
+      Element.toggle('issue_' + issue_id);
+    }
+    else {
+      Element.show('issue_' + issue_id);
+      new Ajax.Updater('issue_' + issue_id,
+                       "<%= url_for :action => 'issue' %>/" + issue_id);
+    }
+  },
+  
+  toggleBranch: function(branch_id) {
+    Element.toggle('branch_' + branch_id);
+  },
+  
+  quickCloseSelected: function() {
+    
+    var elems = $$('.issue_checkbox');
+    
+    var params="";
+    
+    elems.each(function(elem) {
+      if(elem.checked) {
+        params += "iid[]=" + elem.value + "&"
+        $('issue_title_' + elem.value).style.textDecoration = "line-through";
+      }
+    
+    });
+    
+    new Ajax.Request("<%= url_for :action => 'quick_close' %>",
+                    { parameters: params });
+    
+  
+  
+  }
+}
+
+</script>
+<div class='admin_content'>
+<label for='show_all'><input onchange='document.location="<%= url_for :action=>'index' %>?show_all=" + (this.checked ? "1" : "0");' type='checkbox' id='show_all' <%= "checked='checked'" if @show_all %>/>Show All</label><br/>
+<a href='<%= url_for :action => 'new' %>'>+ Create Issue</a> | <a href='javascript:void(0);' onclick='IssueEditor.quickCloseSelected();'>Quick Close Selected</a>
+<br/><br/>
+
+<% @issue_tree.to_a.sort.each do |dmn| %>
+  <%= dmn[0] %> [<%= dmn[1][:issue_cnt] %>]
+  <% @branch_idx += 1 %>
+  <div id='branch_<%= @branch_idx %>' style='padding-left:10px;'>
+    <% dmn[1][:branches].to_a.sort.each do |branch| %>
+      <%= render :partial => 'branch', :locals => { :branch => branch, :level => 0 } %>
+    <% end -%>
+  </div>
+<% end -%>
+
+</div>

@@ -1,0 +1,17 @@
+<% if flash[:notice] %>
+<div align='center'>
+  Updated Options
+</div>
+<% end -%>
+<div align='right'>
+  <a href='javascript:void(0);' onclick='StructureEditor.nodeDelete(<%= @node.id %>,"<%= jh "Are you sure you want to delete this RSS Module?" .t %>");'><%= "Remove Data Feed Module".t %></a>
+</div>  
+<b> <%= "Data Feed Options:".t %><a href='<%= @node.node_path %>' target='_blank'><%= @node.node_path %></a></b><br/><br/>
+
+<% remote_cms_form_for :options, @options, :update => 'element_info',:html => {:id => 'feed_form', :class => 'admin_form' }, :url => { :action => 'data_output', :path => @node.id } do |f| -%>
+  <%= f.select :data_publication_id, @data_publications, :label => 'Feed Publication' %>
+  <% if @site_features %>
+    <%= f.select :site_feature_id, @site_features, :label => 'Feed Feature' %>
+  <% end -%>
+  <%= f.submit_tag 'Update Options' %>
+<% end -%>

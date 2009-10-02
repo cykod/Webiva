@@ -1,0 +1,18 @@
+<div class='cms_form'>
+<% paragraph_options_form_for "Comment Options",:comments ,@options do |f| -%>
+  <% tabled_ajax_tabs ['Options','Triggered Actions'], 'Options' do |t| %>
+    <% t.tabled_tab do -%>
+      <%= f.select :linked_to_type, [ ['Page Connection'.t,'connection'],['Website Page'.t,'page']] %>
+      <%= f.select :allowed_to_post, [ ['All Visitors'.t,'all'],['Site Members Only'.t,'members']] %>
+      <%= f.radio_buttons :order, [ ['Newest first'.t,'newest'],['Oldest First'.t,'oldest']] %>
+      <%= f.radio_buttons :show, [ ['All Posts'.t,-1],['All but Rejected'.t,0],['Approved Posts'.t,1]] %>
+      <%= f.radio_buttons :captcha, [ ['Yes'.t,true],['No'.t,false]], :label => 'Require Captcha' %>
+    <% end -%>
+    <% t.tab do -%>
+       <div id='cms_triggered_actions'>
+        <%= render :partial => '/editor/includes/actions' %>
+       </div>
+    <% end -%>
+  <% end -%>
+<% end -%>
+</div>

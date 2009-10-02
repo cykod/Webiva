@@ -1,0 +1,15 @@
+<script>
+  <%= active_table_javascript %>
+</script>
+<% action_panel do |p| -%>
+  <%= p.link 'Create a new Gallery', :icon => 'add.gif',:action => 'gallery_info' %>
+<% end -%>
+
+<hr/>
+
+<div class='admin_content'>
+<div id='galleries_table'>
+  <%= render :partial => 'galleries_table' %>
+</div>
+
+</div>

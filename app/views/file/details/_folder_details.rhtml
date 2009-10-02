@@ -1,0 +1,20 @@
+
+<%= render :partial => '/file/details/file_name', :locals => {:file => file } %>
+
+
+<div id='fm_file_actions'>
+  <% if file.file_type_match(@select) -%>
+    <button onclick='FileEditor.callbackFile(<%= file.id %>);'>Select</button>
+  <% end -%>
+  <button class='last' onclick='FileEditor.deleteSelected([<%= file.id  %>]);'>Delete</button>  
+  <div style='clear:both;'></div>
+</div>
+
+<% stat_view do |v| -%>
+  <%= v.header 'Folder Details' %>    
+  <%= v.row 'Files', file.children.count(:conditions => 'file_type != "fld"') %>
+  <%= v.row 'Subfolders', file.children.count(:conditions => 'file_type = "fld"') %>
+  <%= v.row 'Created', file.created_at.localize(DEFAULT_DATETIME_FORMAT.t) if file.created_at %>
+  <%= v.raw 'Created By', file.creator ? link_to(file.creator.name, :controller => '/members',:action=>'view',:path => [ file.creator_id ]) : h('<Unknown>') %>
+<% end -%>
+

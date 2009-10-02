@@ -1,0 +1,5 @@
+<% if translation_text %>
+  <%= (translation_text.strip == '') ? '[Empty Translation]' : translation_text %>
+<% else %>
+[<%= "no translation".t %>]
+<% end -%>

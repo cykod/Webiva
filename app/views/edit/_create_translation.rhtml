@@ -1,0 +1,50 @@
+<div class='cms_form'>
+<h3><%= "Create Translation".t %> - <%= @translation.language.upcase %>, <%= "Version".t %> <%= dec(@translation.revision) %> </h3>
+<% form_for :translation, @translation, :html => { :onsubmit =>  'cmsEdit.buildTranslation(this); return false;' } do |t| -%>
+
+  <table width="90%">
+    <tr><td colspan="2">
+      <%= 'Would you like to translate this version of the page from a copy of an existing version or from a blank page?'.t %>
+    </td></tr>
+    <tr>
+    <td>
+        <input type='radio' name='translation[trans]' id='translation_trans_copy' value='copy' checked='checked'>
+    </td>
+    <td>
+        <label for='translation_trans_copy'>
+        <%= "Create from existing revision".t %>
+        </label>
+     </td>
+     </tr>
+     <tr>
+      <td/>
+      <td align='left'><%= t.select :revision_identifier, @available_revisions.collect { 
+            |rev| [sprintf("%s - Version %02.2f %s".t,rev.language.capitalize,rev.revision,rev.active ? '(Active)'.t : '') , rev.identifier]  
+         } 
+       %>
+      </td>
+     </tr>
+     <tr>
+     <td> 
+        <input type='radio' name='translation[trans]' id='translation_trans_blank' value='blank'>
+     </td>
+     <td>
+        <label for='translation_trans_blank'>
+        <%= "Create from a blank page".t %>
+        </label>
+     </td>
+     </tr>
+     <tr>
+      <td/>
+      <td align='right'>
+        <%= submit_tag 'Create' %> <%= submit_tag 'Cancel', :onclick=>'cmsEdit.closeBox(); return false;' %>
+      </td>
+     </tr>
+  </table>
+ 
+  <input type='hidden' name='translation[revision]' value='<%= dec(@translation.revision) %>' />
+  <%= t.hidden_field :page_id %>
+  <%= t.hidden_field :language %>
+
+<% end -%>
+</div>

@@ -1,0 +1,30 @@
+
+
+#cms_edit_page_link {
+ position:fixed;
+ bottom:10%;
+ right:0px;
+ text-align:center;
+ opacity: .4;
+ filter: alpha(opacity=40);
+
+}
+
+
+#cms_edit_page_link a {
+ font-family:courier, monospace;
+ display:block;
+ text-align:center;
+ margin:0px;
+ padding:5px 10px;
+ background-color:#CCCCCC;
+ border:1px solid #DDDDDD;
+ text-decoration:none;
+ font-weight:bold;
+ color:black;
+}
+
+#cms_edit_page_link a:hover {
+ background-color:#FFFFFF;
+
+}

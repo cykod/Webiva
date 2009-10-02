@@ -1,0 +1,32 @@
+<script>
+  ImportStatus = {
+    monitor: function() {
+    
+      new Ajax.Request("<%= url_for :action => 'status' %>")
+    
+    }
+  
+  
+  }
+</script>
+<h2><%="Import Status".t %></h2>
+<br/><br/>
+<% if @invalid_worker %>
+
+<div align='center'>
+  <%= "There was a problem with the import. Please contact the system administrator for more information".t %>
+</div>
+
+<% else %>
+<%= "Entries Imported:".t %><span id='import_calculation'><%= "Calculating".t %></span>
+<div style='margin:20px;'>
+  <div align='center' style='height: 20px; width:400px; color:black; border:1px solid #000000; position:relative;'>
+    <div style='text-align:center; position:absolute; left:0px; top:2px; z-index:100; width:400px; height:20px; color:#000000;' id='completed_percentage'><%= @initialized ? "#{@percentage}%" : 'Calculating Import'.t %></div>
+    <div id='completed_bar' style='z-index:1; position:absolute; left:0px; top:0px; width: <%= (@percentage * 4) %>px; height:20px; background-color:#CCCCCC;'></div>
+  </div>
+</div>
+<script>
+  setTimeout(ImportStatus.monitor,1000);
+</script>
+
+<% end -%>

@@ -1,0 +1,9 @@
+<% active_table_for :blog_list_table, @tbl do |t| -%>
+<tr <%= highlight_row 'blog',t.id  %>>
+  <td><%= entry_checkbox 'blog',t.id %></td>
+  <td>
+    <%= link_to v(t.name), :action => 'index', :path => [ t.id ] %>
+  </td>
+  <td><%= t.created_at.localize(DEFAULT_DATE_FORMAT) %></td>
+</tr>
+<% end -%>

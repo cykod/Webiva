@@ -1,0 +1,20 @@
+<div class='cms_form'>
+<h3>Add Tags to Post</h3>
+Available Tags:
+<div style='width:300px;'>
+<%  @cloud.each do |tg| -%>
+  <% if !@existing_tag_arr.include?(tg[:name]) -%>
+      <a href='javascript:void(0);' onclick='PostEditor.addTagInPopup("<%= jvh tg[:name] %>");'><%= tg[:name] %></a> 
+  <% end -%>
+<% end -%>
+</div>
+<br/>
+Tags to Add (Comma Separated List):<br/>
+<textarea id='tags_field' name='tags_field' cols='40' rows='5' ></textarea><br/>
+<br/>
+<div align='right'>
+<input type='submit' value='Add Tags' onclick='PostEditor.addTagsSubmit($("tags_field").value); RedBox.close(); return false;'/> <input type='submit' value='Cancel' onclick='RedBox.close(); return false;' />
+</div>
+
+
+</div>

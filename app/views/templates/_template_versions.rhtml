@@ -1,0 +1,2 @@
+  <%= "Template Versions: ".t %><select name='previous_versions' onchange='TemplateEdit.loadVersion(this.value);'><%= options_for_select [['--Active Version--','']] + @site_template.version_list_options, @site_template.current_version_id %></select>
+

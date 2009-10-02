@@ -1,0 +1,10 @@
+<% active_table_for :email_friend_table, @tbl do |t| -%>
+<tr <%= highlight_row 'email',t.id %>>
+  <td><%= entry_checkbox 'email',t.id %></td>
+  <td><a href='javascript:void(0);' onclick='SCMS.remoteOverlay("<%= url_for :action => 'view_email', :path=> [ t.id ] %>");'><%= v t.from_name %></a></td>
+  <td><%= v(t.end_user ? t.end_user.email : '-') %></td>
+  <td><%= v(t.to_email) %></td>
+  <td><%= v(t.site_url) %></td>
+  <td><%= t.sent_at.strftime(DEFAULT_DATETIME_FORMAT.t) %></td>
+</tr>
+<% end -%>

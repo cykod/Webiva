@@ -1,0 +1,28 @@
+
+page << "cmsEdit.setPageInfo('#{@container_arg}','#{@page.id}','#{@revision.id}','#{@revision.language}',#{@revision.active},#{@output.css_site_template_id},'#{@page.node_path}');"
+
+# Now update each page_paragraph id 
+# As we are identifying paragraphs by index in the editor (not by id)
+# So we can do this update easily, and elements will get handled
+
+page << "cmsEdit.prepareUpdate();"
+@revision.paragraph_update_map.each do |old_para_id,new_para_id|
+  page << "cmsEdit.updateParagraphId('#{old_para_id}','#{new_para_id}');"
+end
+page << "cmsEdit.handleUpdate();"
+
+page.replace_html :cms_modification_link, :partial => 'saved_by', :locals => {:revision => @old_revision }
+page << " $('cms_modification_link').morph('color:#ff0000;', {duration: 0.25}).morph('color:#6765f6;', {duration:1.0,delay:1.5});"
+page << "$('cms_saving_icon').style.visibility='hidden';"
+
+page.replace_html :cms_select_modification, "Loading History...".t
+
+page.replace_html :cms_info_version, dec(@revision.revision)
+page.replace_html :cms_version_list, "Loading Versions...".t
+page.replace_html :cms_info_active, @revision.active ? 'Active'.t : 'Inactive'.t
+page << '$("cms_info_page_title").className = "cms_ajax_link";'
+
+if @save_as
+  page.replace_html :cms_revisions_languages, :partial => 'revision_languages', :locals => { :revision => @revision }
+  page.replace_html :cms_version_list, "Loading Versions...".t
+end

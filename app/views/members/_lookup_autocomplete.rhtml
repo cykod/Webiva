@@ -1,0 +1,17 @@
+<% if @users.length > 0 %>
+<ul class="autocomplete_list">
+<% for user in @users do -%>
+  <li class="autocomplete_item" id='end_user_<%= user.id %>'>
+    <div class="name"><%=h user.name %></div>
+    <div class="subtext">
+      <%=h user.email %>
+    </div>
+  </li>
+<% end -%>
+</ul>
+<% else -%>
+<ul class="autocomplete_list">
+  <li></li>
+</ul>
+  No Results Found
+<% end -%>

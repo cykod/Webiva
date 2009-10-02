@@ -1,0 +1,14 @@
+
+<% @mail_template.domain_files.each do |file| -%>
+<div class='attachment' id='attachment_<%= file.id %>' onclick='TemplateEditor.showAttachmentPopup(<%= file.id %>);'>
+  <% case file.file_type 
+     when 'doc' -%>
+        <img id='handle_item_<%= file.id %>'  src='<%= theme_src("/images/icons/filemanager/document.gif") %>' align='top' width='64' height='64'>
+      <br/>
+  <% when 'img' -%>
+      <div class='fm_image' id='handle_item_<%= file.id %>' ><%= image_tag file.url(:thumb), :align => 'middle', :id => "thumb_image_#{file.id}"  %></div>
+  <% end -%>      
+ <%= file.name %>
+ </div>
+ <% end -%>
+<input type='hidden' id='mail_template_attachments' name='mail_template[attachments]' value='<%= @mail_template.domain_files.collect { |f| f.id }.join(',') %>' />

@@ -1,0 +1,26 @@
+<div id='template_display_fields' <%= hide_if @display_edit_form %> >
+
+<b> <%= "Template Modifier".t %> </b> 
+<% if @frm.template_id %>
+(<a href='<%= url_for :controller => '/templates', :action => 'edit', :path => @frm.template_id %>'><%= "Edit Template".t %></a>)<br/>
+<% end -%>
+<br/>
+<% link_edit_form_for  :mod, @frm, :styled_form => { :onclick => 'Element.show("template_edit_fields"); Element.hide("template_display_fields");', :classname => "ajax_link" } do |f| -%>
+	<%= render :partial => 'template_modifier_table', :locals => { :f => f } %>
+<% end -%>
+</div>
+<div id='template_edit_fields' <%= hide_unless @display_edit_form %> >
+<b><%= "Edit Template".t %></b>
+<br/>
+<br/>
+
+<% remote_tabled_form_for :mod, @frm, 
+		:update => 'element_info', 
+		:method => 'post', 
+		:url =>  { :action => 'element_info', :node_type => 'mod', :node_id => @mod.id  } do  |f| -%>
+
+<%= render :partial => 'template_modifier_table', :locals => { :f => f } %>
+<%= f.submit_cancel_tags 'Submit','Cancel', {}, {:onclick =>  'Element.hide("template_edit_fields"); Element.show("template_display_fields"); return false; ' } %>
+<% end -%>
+
+</div>

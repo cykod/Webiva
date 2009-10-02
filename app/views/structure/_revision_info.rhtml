@@ -1,0 +1,84 @@
+<br/>
+<% if info[1] -%>
+<script>
+  $('title_<%= @node.id %>_<%= info[0] %>').style.fontWeight = 'bold';
+</script>
+
+<b>Version <%= dec info[1].revision %>, <%= info[1].active? ? 'Active'.t : 'Inactive'.t %>, <%= render :partial => '/edit/saved_by', :locals => { :revision => info[1] } %></b>
+<br/>
+<br/>
+<% if permit?('editor_editor') %>
+  <input type='submit' value='<%= "Edit Page".t %>' onclick='document.location="<%= url_for :controller => 'edit', :action => 'page', :path => ['page',@node.id,info[0] ] %>";' />
+<% end -%>
+
+  <% if info[1].active? %>
+    <input type='submit' value='<%= "Goto Page".t %>' onclick='document.location="/view/<%= info[0] %><%= @node.node_path %>";' />
+  <% end -%>
+<% else -%>
+<% if permit?('editor_structure') %>
+
+  <% remote_form_for :revision_create, info[1],
+      :update => "node_#{@node.id}_#{info[0]}", 
+      :method => 'post', 
+      :url =>  { :action => 'create_revision', :language  => info[0]  } do  |f| -%>
+    <input type='submit' value='<%= "Create Page".t %>' /> From 
+    <%= f.select :from_revision_id, @revision_info.find_all { |inf| inf[1] }.collect { |inf| [ inf[0].upcase, inf[1].id ] } %>
+  <% end -%>
+<% else %>
+  <%= "No Existing Revision".t %>
+<% end -%>
+
+
+<% end -%>
+
+
+<% if info[1] -%>
+
+<br/>
+<br/>
+<% if permit?('editor_structure') %>
+  <div id='<%= "node_#{@node.id}_#{info[0]}_view" %>' >
+  <% link_edit_form_for  :revision_view, info[1], 
+      :styled_form => { 
+	  :onclick => "Element.hide(\"node_#{@node.id}_#{info[0]}_view\"); Element.show(\"node_#{@node.id}_#{info[0]}_edit\");", 
+	  :classname => "ajax_link" 
+      } do |f| -%>
+      <%= render :partial => 'revision_info_table', :locals => { :f => f } %>
+  <% end -%>
+  </div>
+  
+  <div id='node_<%= @node.id %>_<%= info[0] %>_edit' style='display:none;'>
+  <% remote_cms_form_for :revision_edit, info[1],
+      :update => "node_#{@node.id}_#{info[0]}", 
+      :method => 'post', 
+      :html => { :class => 'admin_form' },
+      :url =>  { :action => 'update_revision', :revision  => info[1].id  } do  |f| -%>
+      <%= render :partial => 'revision_info_table', :locals => { :f => f  } %>
+      
+    <%= f.header 'Additional Page Options' %>
+    <%= f.filemanager_image :icon_id, :label => 'Page Icon' %>
+    <%= f.filemanager_image :icon_hot_id, :label => 'Page Icon Hot' %>
+    <%= f.filemanager_image :icon_disabled_id, :label => 'Page Icon Disabled' %>
+    <%= f.filemanager_image :icon_selected_id, :label => 'Page Icon Selected'  %>
+    <%= f.color_field :color, :label => 'Color' %>
+    <%= f.color_field :color_selected, :label => 'Selected Color' %>
+    <%= f.color_field :color_hover, :label => 'Hover Color' %>
+    <%= f.text_field :field1, :description => 'Additional Field available in Menu Features' %>
+    <%= f.text_field :field2, :description => '2nd Additional Field available in Menu Features' %>
+    
+    <%= f.submit_cancel_tags 'Update','Cancel',
+	      {}, 
+	      {
+		:onclick => "Element.show(\"node_#{@node.id}_#{info[0]}_view\"); Element.hide(\"node_#{@node.id}_#{info[0]}_edit\"); return false;"
+	      } %>
+  <% end -%>
+<% else -%>
+  <% tabled_display_form_for :revision_view, info[1] do |f| -%>
+      <%= render :partial => 'revision_info_table', :locals => { :f => f } %>
+  <% end -%>
+<% end -%>
+
+
+</div>
+<% end -%>
+<br/>

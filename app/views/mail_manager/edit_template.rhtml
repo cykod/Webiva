@@ -1,0 +1,217 @@
+<script>
+  TemplateEditor = {
+     
+     changeTemplate: function() {
+        TemplateEditor.triggerContent();
+        new Ajax.Request("<%= url_for :action => 'refresh_template' %>",
+        { parameters: Form.serialize('mail_template_form'),
+          onComplete: function(req) {
+            $('template_html_iframe').contentWindow.document.open();
+            $('template_html_iframe').contentWindow.document.write(req.responseText);
+            $('template_html_iframe').contentWindow.document.close();
+          }
+         });
+     
+     },
+     
+     triggerContent: function() {
+        $('template_html_iframe').contentWindow.tinyMCE.triggerSave();
+        $('mail_template_body_html').value = $('template_html_iframe').contentWindow.$('template_body_html').value;
+     },
+     
+     
+     triggerSave: function() {
+      if($('mail_template_body_value_text').checked && $('template_body_text').value == '') {
+        if(confirm('<%= jh "This template has an empty text body, click \"Ok\" to generate the text body automatically".t %>')) {
+          $('mail_template_generate_text_body').value = '1'
+        }
+      
+      }
+      
+      this.triggerContent();
+      return true;
+     
+     },
+     
+     generateTextBody: function() {
+        if(confirm("<%= jh "Replace the existing text body?".t %>")) {
+          this.triggerContent();
+          
+          var params = { html:  $('mail_template_body_html').value };
+          new Ajax.Request('<%= url_for :action => "generate_text_body" %>',
+                           { parameters: params,
+                             onComplete: function(req) {
+                              $('template_body_text').value = req.responseText;
+                             }
+                           });
+         }
+     },
+     
+     
+     sendTestTemplate: function() {
+        $('email_sent_loc').innerHTML = '';
+        TemplateEditor.triggerContent();
+        new Ajax.Request("<%= url_for :action => 'send_test_template' %>",
+        { parameters: Form.serialize('mail_template_form'), 
+          onComplete: function(req) {
+            $('email_sent_loc').innerHTML = req.responseText;
+          }
+         });
+     },
+     
+      showAttachmentPopup: function(aid) {
+      SCMS.popup(new Array(
+        [ 'Remove Attachment', 'js', 'TemplateEditor.removeAttachment(' + aid + ')' ]
+      ));
+  },
+
+  attachDocument: function(field,type,id,path,url,thumb,name) {
+    this.removeAttachment(id);
+    if(type != 'image') {
+      $('template_attachments').innerHTML += "<div class='attachment' onclick='TemplateEditor.showAttachmentPopup(" + id + ");' /><img align='middle' src='" + thumb + "' />" + name + "</div>";
+    }
+    else {
+      $('template_attachments').innerHTML += "<div class='attachment' onclick='TemplateEditor.showAttachmentPopup(" + id + ");' /><div class='fm_image'><img src='" + thumb + "' /></div>" + name + "</div>";
+    }
+    $('mail_template_attachments').value += ',' + id
+  },
+
+  removeAttachment: function(id) {
+    if($('attachment_' + id))
+      Element.remove('attachment_' + id);
+    var attachments = $('mail_template_attachments').value;
+    attachments = attachments.split(',');
+    for(var i=0;i<attachments.length;i++) {
+      if(id == attachments[i]) {
+        attachments.splice(i,1);
+        $('mail_template_attachments').value = attachments.join(',');
+        return;
+      }
+
+    }
+  },
+  
+  addContent: function(content) {
+    this.triggerContent();
+    $('mail_template_body_html').value += "<br/>" + content;
+    $('template_html_iframe').contentWindow.tinyMCE.setContent($('mail_template_body_html').value);
+    $('template_html_iframe').contentWindow.tinyMCE.selectedInstance.resizeToContent();
+  }
+
+  
+  
+  };
+</script>
+
+<div class='admin_content'>
+<% if @campaign %>
+<%= render :partial => '/campaigns/campaign_steps' %>
+<% end -%>
+</div>
+
+<div style='position:relative;'>
+<% cms_unstyled_form_for :mail_template, @mail_template, :html => { :id => 'mail_template_form', :class => 'admin_form', :onsubmit => 'TemplateEditor.triggerSave(); return true;' } do |f| -%>
+<table width='100%'>
+  <tr>
+    <td width='200' valign='top' style='padding-right:20px;'>
+      <div>
+      <%= "Name*:".t %>
+      <%= "<span class='error'>(Missing Name)</span>" if @mail_template.errors.on(:name) %>
+      <br/>
+      <%= f.text_field :name, :size => 30, :class=>'text_field' %>
+      <br/><br/>
+      <div id='options_hidden'>
+        <a href='javascript:void(0);' onclick='SCMS.show_hide("options_visible","options_hidden");'>Options &gt;</a>
+      </div>
+      <div id='options_visible' style='display:none;'>
+        <a href='javascript:void(0);' onclick='SCMS.show_hide("options_hidden","options_visible");'>&lt; Options</a><br/>
+        <%= "Template Type:".t %><br/>
+        <%= f.radio_buttons :template_type, MailTemplate.template_type_select_options, :separator => "<br/>" %><br/>
+        <%= "Template Language:".t %><br/>
+        <%= f.select :language, Configuration.languages if Configuration.languages.length > 1  %><br/>
+        <%= "Template Category:".t %><br/>
+        <%= f.text_field :category, :size => 20 %><br/>
+        <%= "Published:".t %><br/>
+        <%= f.datetime_field :published_at, :size => 20, :blank => true %><br/>
+        <%= "Mail Design Template:".t %><br/>
+        <%= f.select :site_template_id, @design_templates, {}, :onchange => 'TemplateEditor.changeTemplate();' %>
+        
+        <input type='hidden' name='mail_template[generate_text_body]' value='0' id='mail_template_generate_text_body' />
+      </div>
+      
+      <br/>
+      </div>
+      <% if @generate_handlers.length > 0 -%>
+      <hr/>
+      <br/>
+      <% @generate_handlers.each do |hndler| -%>
+        <a href='javascript:void(0);' onclick='SCMS.remoteOverlay("<%= url_for hndler[:url] %>");'><%= hndler[:name] %></a><br/>
+      <% end -%>
+      <br/>
+      <% end -%>
+      <hr/>
+      <br/>
+      <div>
+      <%= "Test This Template:".t %><br/>
+      <input type='text' name='email' id='test_email' size='20' value='<%= vh "[Enter Email]".t %>' onfocus='if(this.value == "<%= jvh "[Enter Email]".t %>") this.value=""; '><input type='submit' value='Send' onclick='TemplateEditor.sendTestTemplate();  return false;' />
+      <div id='email_sent_loc'>
+        
+      </div>
+      </div>
+      <br/>
+      <hr/>
+    <% if @campaign %>
+      <input type='submit' value='<%= "Cancel".t %>' onclick="document.location='<%= url_for :controller => 'campaigns', :action => 'message', :path => @campaign.id %>'; return false;" /> &nbsp; &nbsp; <input type='submit' value='<%= "Next".t %>' /> 
+    
+    <% else -%>
+      <input type='submit' value='<%= "Save".t %>' />
+    <% end -%>
+    </td>
+    <td valign='top'>
+      Subject:* <%= f.text_field :subject, :size => 120 %>
+      <%= "<span class='error'>(Missing Subject)</span>" if @mail_template.errors.on(:subject) %>
+
+      <br/><br/>
+<% ajax_tabs ['HTML Body','Text Body','Attachments'], 'HTML Body' do |t| %>
+  
+  <% t.tab do %>
+      <label><input type='checkbox'  id='mail_template_body_value_html' name='mail_template[body_type][]' value='html' <%= "checked='checked'" if @mail_template.body_type.include?('html') %> /> <%= "Enabled HTML Body".t %></label><br/>
+      <input type='hidden' id='mail_template_body_html' name='mail_template[body_html]' value='<%= vh @mail_template.body_html %>' />
+       <iframe id='template_html_iframe' width='100%' style='height:500px; border:1px solid #CCCCCC; overflow:auto;' frameborder='0' ></iframe>
+      <script>
+        var template_html = "<%= jh render :partial => 'edit_template_html_iframe' %>";
+        $('template_html_iframe').contentWindow.document.open();
+        $('template_html_iframe').contentWindow.document.write(template_html);
+        $('template_html_iframe').contentWindow.document.close();
+      </script>
+      
+  <% end -%>
+  
+  <% t.tab do %>
+    <input type='hidden' name='mail_template[body_type][]' value='' />
+    <label><input type='checkbox' id='mail_template_body_value_text'  name='mail_template[body_type][]' value='text' <%= "checked='checked'" if @mail_template.body_type.include?('text') %> /> <%= "Enable Text Body".t %></label>
+    &nbsp; <a href='javascript:void(0);' onclick='TemplateEditor.generateTextBody();'>Generate Text from HTML Body</a>
+    <br/><%= "Use %%Variable_Name%% to insert variables into the text template".t  %>
+    <br/>
+    <textarea id='template_body_text'  name='mail_template[body_text]' style='height:300px; width:100%;' ><%= h @mail_template.body_text %></textarea>
+  <% end -%>
+
+  <% t.tab do %>
+    <div id='attachments' style='height:300px;'>
+      <%= link_to '+Add Attachment'.t, { :controller => '/file', :action => 'popup' , :select => 'file', :callback => 'TemplateEditor.attachDocument', :thumb_size => 'thumb' }, :popup => ['file_manager', 'height=400,width=600,resizable=yes,scrollbars=yes' ] %>
+      <div id='template_attachments'>
+        <%= render :partial => 'attachments' %>
+      </div>
+    </div>
+  <% end -%>
+
+  <% end -%>
+    <td>
+  </tr>
+</table>
+
+
+<% end -%>
+
+</div>
+

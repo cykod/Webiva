@@ -1,0 +1,6 @@
+database:  
+  adapter: mysql
+  username: root
+  password: 
+  host: 127.0.0.1
+  database: acts_as_taggable

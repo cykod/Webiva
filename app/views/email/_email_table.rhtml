@@ -1,0 +1,43 @@
+<% if flash[:notice] %>
+<div> <b><%= flash[:notice] %></b></div>
+<br/><br/>
+<% flash[:notice] = nil %>
+<% end -%>
+
+<% active_table_for :email_table, @active_table_output,
+                    :refresh_url =>  url_for(:action => 'email_table_output'),
+                    :class => 'active_table',    
+                    :actions => [ [ 'Delete','delete','Are you sure you want to delete the selected addreses?' ] ],                
+                    :update => 'email_table' do |t| -%>
+<tr <%= highlight_row "email",t.id %> >
+  <td>
+    <% unless t.system_email? %><%= entry_checkbox 'email',t.id %><% end -%>
+  </td>
+  <td><a href='<%= url_for :action =>'edit', :path => t.id %>'><%= t.email %>@<%= Configuration.domain %></a></td>
+  <td><%= h t.email_type_display%></td>
+  <td>
+    <% if t.system_email? %><img src='<%= theme_src("icons/emails/system.gif") %>' width='16' height='16' title='<%=  vh "System Email".t %>' /><% end -%>
+    <% if t.email_type == 'mailbox' %>
+      <% if t.virus_detection? %><img src='<%= theme_src("/images/icons/emails/anti_virus.gif") %>' width='16' height='16' title='<%=  vh "Anti-Virus Enabled".t %>' /><% end -%>
+      <% if t.spam_detection_level == 1 %><img src='<%= theme_src("/images/icons/emails/anti_spam.gif") %>' width='16' height='16' title='<%=  vh "Anti-SPAM Low: Detect".t %>' />
+      <% elsif t.spam_detection_level == 2 %><img src='<%= theme_src("/images/icons/emails/anti_spam_high.gif") %>' width='16' height='16' title='<%=  vh "Anti-SPAM High: Reject".t %>' /> <% end -%>
+    <% end -%>
+  
+  </td>
+  <td>
+    <% case t.email_type
+       when 'mailbox' -%>
+       <% if t.linked_account? && t.end_user %>
+        <%= sprintf("Linked to Editor  %s".t,t.end_user.name) %>
+      <% else -%>
+        <%= "Password protected mailbox".t %>
+      <% end -%>
+    <% when 'alias' -%>
+      <% @redirect_list = t.redirect_list %>
+      Redirecting to: <%= @redirect_list.length > 0 ? @redirect_list[0..2].join(", ") : 'No Redirects'%> <%= sprintf("(%s More)".t,(@redirect_list.length-3).to_s)  if @redirect_list.length > 3 %>
+    <% when 'bounce' -%>
+      -
+    <% end -%>
+  </td>
+</tr>  
+<% end -%>

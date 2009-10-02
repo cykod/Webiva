@@ -1,0 +1,13 @@
+<!--[form:translate]-->
+<p id='tr_elem_<%= tr.id %>'>
+<label for="tr_<%= tr.id %>"><%=tr.tr_key%></label>
+<%= link_to_remote 'Del', :url => { :action => :remove_entry, :id => tr.id } , :complete => "Element.remove('tr_elem_#{tr.id}');" %>
+<br />
+<span id="tr_<%= tr.id %>">
+<%= render :partial => 'translation_text', :object => tr.text %>
+</span>
+<%= in_place_editor "tr_#{tr.id}", 
+    :url => { :action => :set_translation_text, :id => tr.id },
+    :load_text_url => url_for({ :action => :translation_text, :id => tr.id })%>
+</p>
+<!--[eoform:translate]-->

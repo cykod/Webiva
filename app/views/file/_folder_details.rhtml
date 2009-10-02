@@ -1,0 +1,9 @@
+<% # if folder.parent 
+%>
+  <%= # render :partial => 'file_item', :locals => { :file => folder.as_parent_folder, :overload_name => '..'} 
+    %>
+<% # end 
+-%>
+<% folder.ordered_children(@order).each do |file| %>
+	<%= render :partial => 'file_item', :locals => { :file => file } %>
+<% end -%>

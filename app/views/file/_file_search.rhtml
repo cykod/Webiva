@@ -1,0 +1,14 @@
+<div align='center' class='admin_form'>
+<% cms_unstyled_form_for :search, :html => { :onsubmit => 'FileEditor.runSearch(this); return false;' } do |f| %>
+<div class='text_field_control'>
+  Search For: <%= f.text_field :search,:size => 40 %>
+  Order: <%= f.select :order, @order_options %>
+</select>
+  <%= f.submit_tag 'Search' %>
+</div>
+<% end -%>
+</div>
+
+<div id='search_results' class='file_manager_list' style='display:none;'>
+
+</div>

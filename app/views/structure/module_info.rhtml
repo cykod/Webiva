@@ -1,0 +1,25 @@
+<h1> <%= @module_info[:info].name %> <%= "Configuration".t %></h1>
+
+<%= error_messages_for :mod %>
+<% tabular_form_for :mod, @mod, :html => { :id => 'module_form' } do |f| %>
+  <%= f.text_field :name %>
+  <%= f.text_area :description, :rows => 7 %>
+<% end %>
+<hr>
+<%= error_messages_for :options %>
+<% tabular_form_for :options, @options, :onsubmit => 'return false;', :html => { :id => 'config_form'  } do |f| %>
+<%= render :partial => "../../components/#{@module_info[:name]}/admin/config", :locals => { :options => @options, :f => f }  %>
+<% end %>  
+
+
+<div align='right'>
+  <%= submit_tag 'Submit', :onclick => "submitModuleInfo(#{@node.id});" %>
+  <%= submit_tag 'Cancel', :onclick => 'hideBox();' %>
+</div>
+
+<script>
+  $('module_form').onsubmit = function() { submitModuleInfo(<%= @node.id %>); return false; }
+  $('config_form').onsubmit = function() { submitModuleInfo(<%= @node.id %>); return false }
+</script>
+
+<%= end_form_tag %>

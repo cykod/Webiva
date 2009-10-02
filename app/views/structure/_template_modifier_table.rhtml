@@ -1,0 +1,2 @@
+	<%= f.radio_buttons :template_id, @site_templates.collect { |tpl| [ tpl.name, tpl.id ] }, :label => 'Selected Template' ,:default => 'None', :vertical => 'true', :separator => '<br/>' %>
+  <%= f.radio_buttons :clear_frameworks, [ ['Yes'.t,'yes'], ['No'.t,'no' ] ], :label => 'Clear Framework Elements' ,:default => 'No', :vertical => 'true', :separator => '&nbsp;' %>  
