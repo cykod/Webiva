@@ -32,7 +32,8 @@ class AccessToken < DomainModel
   # {"access_token_id"=>""}, {"access_token_id"=>"2"}]
   # and it'll return only editor ones
   def self.filter_out_editor_tokens(atr)
-    tokens = self.find(:all,:conditions => 'editor=0',:select => 'id').map(&:id)
+    atr ||= []
+    tokens = AccessToken.find(:all,:conditions => 'editor=0',:select => 'id').map(&:id)
     atr.select do |tkn|
       tokens.include?(tkn[:access_token_id].to_i)
     end

@@ -2,8 +2,6 @@
 
 class StructureController < CmsController
 
-
-
   public
   
   permit ['editor_structure','editor_structure_advanced'], :except => [ :index, :element_info ]
@@ -14,11 +12,17 @@ class StructureController < CmsController
   
   
   def index 
-    session[:structure_view_modifiers] = @display_modifiers= params[:modifiers] || session[:structure_view_modifiers] || 
-                                                  (myself.has_role?('editor_structure_advanced') ? 'show' : 'hide')
-    session[:structure_view_modules] = @display_modules = params[:modules] || session[:structure_view_modules] || 
-                                                    'hide'
-    session[:show_archived] = @show_archived = params[:archived] || session[:show_archived] || 'hide'
+    session[:structure_view_modifiers] = @display_modifiers= params[:modifiers] ||
+      session[:structure_view_modifiers] || 
+      (myself.has_role?('editor_structure_advanced') ? 'show' : 'hide')
+    
+    session[:structure_view_modules] = @display_modules = params[:modules] ||
+      session[:structure_view_modules] ||  'hide'
+    
+    session[:show_archived] = @show_archived = params[:archived] ||
+      session[:show_archived] || 'hide'
+
+    
     if !myself.has_role?('editor_structure_advanced')
       @display_modifiers = session[:structure_view_modifiers] = 'hide'
       @display_modules = session[:structure_view_modules] = 'hide'
@@ -33,6 +37,10 @@ class StructureController < CmsController
     @closed = cookies[:structure].to_s.split("|").map(&:to_i)
 
     @site_root = @version.nested_pages(@closed)
+
+    if @show_archived == 'hide'
+      SiteVersion.remove_archived(@site_root)
+    end
 
     
     if session[:structure_view_modules] 

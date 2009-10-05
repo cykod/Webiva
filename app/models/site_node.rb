@@ -52,6 +52,10 @@ class SiteNode < DomainModel
     @child_cache << val
   end
 
+  def child_cache_set(val)
+    @child_cache = val
+  end
+
   
   def menu
     if self.node_type == 'P'

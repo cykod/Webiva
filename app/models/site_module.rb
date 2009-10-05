@@ -57,7 +57,7 @@ class SiteModule < DomainModel
   
   def self.enabled_modules
     mds = DataCache.get_cached_container("Modules","Active")
-
+    
     unless mds
       mds = self.activated_modules().collect do |active_mod|
         active_mod.name

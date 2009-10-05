@@ -46,11 +46,16 @@ class Manage::UsersController < CmsController
     @client_user = myself.client_user.client.client_users.find_by_id(params[:path][0]) || myself.client_user.client.client_users.new
     @create_user = @client_user.id ?  false : true
     
-    if request.post? 
-      params[:client_user][:client_admin] = false unless params[:client_user][:client_admin]
-      del params[:client_user][:system_admin] if params[:client_user][:system_admin]
-      params[:client_user][:client_id] = myself.client_user.client_id
-      if @client_user.update_attributes(params[:client_user])
+    if request.post?
+      if params[:commit]
+        params[:client_user][:client_admin] = false unless params[:client_user][:client_admin]
+        del params[:client_user][:system_admin] if params[:client_user][:system_admin]
+        params[:client_user][:client_id] = myself.client_user.client_id
+        if @client_user.update_attributes(params[:client_user])
+          redirect_to :action => 'index'
+          return
+        end
+      else
         redirect_to :action => 'index'
         return
       end
@@ -69,11 +74,16 @@ class Manage::UsersController < CmsController
     
       
       if request.post? 
-      
-        params[:client_user][:client_admin] = false unless params[:client_user][:client_admin]
-        params[:client_user][:system_admin] = false unless params[:client_user][:system_admin]
-        
-        if @client_user.update_attributes(params[:client_user])
+        if params[:commit]
+          params[:client_user][:client_admin] = false unless params[:client_user][:client_admin]
+          params[:client_user][:system_admin] = false unless params[:client_user][:system_admin]
+          
+          if @client_user.update_attributes(params[:client_user])
+            flash[:notice] = "Saved %s" / @client_user.name
+            redirect_to :action => 'index'
+            return
+          end
+        else
           redirect_to :action => 'index'
           return
         end
@@ -84,9 +94,15 @@ class Manage::UsersController < CmsController
   end
 
   def destroy
-    @client_user = myself.client_user.client.client_users.find(:first, :conditions => ['id = ?',params[:path][0]]);
 
-    if @client_user
+    if myself.has_role?('system_admin')
+      @client_user = ClientUser.find(:first, :conditions => ['id = ?',params[:path][0]]);
+
+    else
+      @client_user = myself.client_user.client.client_users.find(:first, :conditions => ['id = ?',params[:path][0]]);
+    end
+
+    if @client_user && request.post?
       if @client_user.destroy
         flash[:notice] = "Deleted User: #{@client_user.username}"
       end

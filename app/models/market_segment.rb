@@ -87,18 +87,26 @@ class MarketSegment < DomainModel
    end
    
    def target_count(options = {})
+      options = options.clone
+      options.symbolize_keys!
       self.send(self.segment_type + '_target_count',options)
    end
    
    def target_list(options = {})
+      options = options.clone
+      options.symbolize_keys!
       self.send(self.segment_type + '_target_list',options)
    end
    
    def target_entries(options = {})
+      options = options.clone
+      options.symbolize_keys!
       self.send(self.segment_type + '_target_entries',options)
    end
    
    def target_find(options = {})
+      options = options.clone
+      options.symbolize_keys!
     if self.segment_type == 'members'
       self.send('members_target_find',options)
     else

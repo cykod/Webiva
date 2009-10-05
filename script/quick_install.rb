@@ -121,11 +121,11 @@ INTRODUCTION
     end
 
     print('Creating cms.yml...')
-    write_db_yml_file('cms.yml', { 'username' => "#{@db_name_short}_u" ,:password => @user_password, :database => @db_name })
+    write_db_yml_file('cms.yml', { 'username' => "#{@db_name_short}_u" ,'password' => @user_password, 'database'  => @db_name })
     print("Done!\n")
 
     print('Creating cms_migrator.yml...')
-    write_db_yml_file('cms_migrator.yml',  { 'username' => "#{@db_name_short}_m" ,:password => @migrator_password, :database => @db_name })
+    write_db_yml_file('cms_migrator.yml',  { 'username' => "#{@db_name_short}_m" ,'password' => @migrator_password, 'database' => @db_name })
     print("Done!\n")
   end
 

@@ -181,9 +181,8 @@ module Taggable
           # not using a simple has_and_belongs_to_many but a full model
           # for joining the tags table and the taggable object table
           if join_class_name = options[:join_class_name]
-            Object.class_eval "class #{join_class_name} < ActiveRecord::Base; set_table_name '#{options[:join_table]}' end" unless Object.const_defined?(join_class_name)
             
-            join_model = join_class_name.constantize 
+            join_model = join_class_name.constantize
             tagged = self
             join_model.class_eval do
               belongs_to :tag, :class_name => tag_model.to_s

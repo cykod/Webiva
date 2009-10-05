@@ -113,7 +113,7 @@ ActionMailer::Base.logger = nil unless ENV['RAILS_ENV'] == 'development'
 
 if RAILS_ENV == 'test'
     if defaults_config_file['testing_domain']
-      SystemModel.establish_connection(YAML.load_file("#{RAILS_ROOT}/config/cms.yml")[:testing])
+      SystemModel.establish_connection(YAML.load_file("#{RAILS_ROOT}/config/cms.yml")[:test])
       DomainModel.activate_domain(Domain.find(defaults_config_file['testing_domain']).attributes,'production',false)
     else
       raise 'No Available Testing Database!'

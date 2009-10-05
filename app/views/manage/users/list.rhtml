@@ -1,46 +1,46 @@
-<div class='admin_content'>
-<b><%= sprintf("%s Users", @client.name) %></b><br/><br/>
-
+<% action_panel do |p| %>
 <% if myself.has_role?('system_admin') -%>
-   Active Company: <select name='active_client' onchange='document.location = "<%= url_for :controller => '/manage/users' %>/?active_client_company=" + this.value;' >
+  <%= p.link "New User".t,:action => 'edit_all', :icon =>'add.gif' %>
+<% else -%>
+  <%= p.link "New User".t,:action => 'edit', :icon => 'add.gif' %>
+<% end -%>
+<% if myself.has_role?('system_admin') -%>
+  <% p.custom do %>
+   Active Company: <select name='active_client' onchange='if(this.value) document.location = "<%= url_for :controller => '/manage/users' %>/?active_client_company=" + this.value;' >
     <option value=''>--Select Client--</option>
     <%= options_from_collection_for_select(@clients,'id','name',@active_client) %>
   </select>
 <% end -%>
+<% end -%>
+<% end -%>
+<hr/>
+<div class='admin_content'>
+<b><%= sprintf("%s Users", @client.name) %></b><br/><br/>
 
-<table>
+
+
+<table class='active_table' cellpadding='0' cellspacing='0'>
     <tr>
         <th>Username</th>
         <th>Administrator</th>
+        <th>Delete</th>
     </tr>
 <% @users.each do |usr| -%>    
     <tr>
-        <td>
-             <%= menu_popup "icons/user.gif",0,
-              [
-                [ "Edit User", url_for(:action => myself.has_role?('system_admin') ? "edit_all" : "edit", :path => usr) ],
-                [],
-                [ "Delete User", url_for(:action => "destroy", :path => usr ), "Are you sure?" ]
-              ] %>
-      
+        <td><%= link_to theme_icon(:table,'icons/actions/edit.gif'),  :action => myself.has_role?('system_admin') ? "edit_all" : "edit", :path => usr %>
             <%= link_to usr.username, :action => 'edit_all', :path => usr %></td>
         <td align="center">
-            <% if usr.has_role?("system_admin") -%>
+            <% if usr.system_admin? -%>
               <%= 'System Admin'.t -%>
             <% else -%>
-              <%= usr.has_role?("client_admin")?"Yes":"No" %>
+              <%= usr.client_admin? ? "Yes":"No" %>
             <% end -%>
         </td>
+          <td><%= link_to theme_icon(:table,'icons/actions/delete.gif'),{:action => "destroy", :path => usr}, :method => 'post', :confirm => 'Are you sure?' %> </td>
     </tr>
 <% end -%>
 
 </table>
-<p>
-<% if myself.has_role?('system_admin') -%>
-  <%= link_to "New User".t,:action => 'edit_all' %>
-<% else -%>
-  <%= link_to "New User".t,:action => 'edit' %>
-<% end -%>
-</p>
+
 
 </div>

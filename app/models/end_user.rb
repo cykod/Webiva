@@ -55,8 +55,8 @@ class EndUser < DomainModel
   has_many :end_user_tokens, :dependent => :delete_all
   has_many :access_tokens, :through => :end_user_tokens
   
-  acts_as_taggable :join_table => 'end_user_tags' 
-  
+  acts_as_taggable :join_table => 'end_user_tags', :join_class_name => 'EndUserTag'
+
   has_many :end_user_tags, :class_name => 'EndUserTag'
   #has_many :tags, :through => :user_tags
   

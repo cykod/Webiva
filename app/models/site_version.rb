@@ -42,4 +42,13 @@ class SiteVersion < DomainModel
 
     @root_node
   end
+
+  def self.remove_archived(nd)
+    new_child_cache = nd.child_cache.map do |node|
+      node.archived? ? nil : SiteVersion.remove_archived(node)
+    end.compact
+    nd.child_cache_set(new_child_cache)
+    nd
+  end
+  
 end

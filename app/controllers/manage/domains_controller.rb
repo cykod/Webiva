@@ -5,8 +5,9 @@ class Manage::DomainsController < CmsController
 
   # All client users can access this controller
   # but specific functions are permitted only by the system or client admins
-  permit 'system_admin'
-  
+  permit 'client_admin'
+
+  protected 
   before_filter :validate_admin
   def validate_admin
     unless myself.client_user.system_admin?
@@ -15,6 +16,19 @@ class Manage::DomainsController < CmsController
     end
     
   end
+
+  before_filter :validate_domain, :except => [ :index, :domains_table, :add ]
+  def validate_domain
+   @domain = Domain.find(params[:path][0])
+
+    # Make sure we're editing our own domain
+    if !myself.has_role?('system_admin') &&  myself.client_user.client_id != @domain.client_id
+      redirect_to :action => 'index'
+      return
+    end
+  end
+
+  public
 
   layout "manage"
   
@@ -32,7 +46,13 @@ class Manage::DomainsController < CmsController
                 ]
 
   def domains_table(display=true)
-    @active_table_output = domains_table_generate params, :include => 'client'
+
+    if myself.has_role?('system_admin')
+      @active_table_output = domains_table_generate params, :include => 'client'
+    else
+      
+      @active_table_output = domains_table_generate params, :include => 'client', :conditions => [ "client_id = ?", myself.client_user.client_id  ]
+    end
 
     render :partial => 'domains_table' if display
   end
@@ -46,7 +66,7 @@ class Manage::DomainsController < CmsController
   
   def edit
   
-    @domain = Domain.find(params[:path][0])
+ 
     
     cms_page_info [ ['System',url_for(:controller => '/manage/system')], ['Domains',url_for(:controller => '/manage/domains')], ['Edit %s',nil,@domain.name] ],'system'
 
@@ -80,7 +100,6 @@ class Manage::DomainsController < CmsController
   end
 
   def update_module
-    @domain = Domain.find(params[:path][0])
     
     if request.post?
       mod = params[:mod]
@@ -94,7 +113,6 @@ class Manage::DomainsController < CmsController
   end
   
   def make_unavailable
-    @domain = Domain.find(params[:path][0])
     
     mod = params[:mod]
     
@@ -117,15 +135,21 @@ class Manage::DomainsController < CmsController
       return
     end
     
-    if request.post?
-      @domain = Domain.new(params[:domain])
-      
-      # Override the client unless we are a system administrator
-      @domain.client = myself.client unless myself.client_user.system_admin?
-      @domain.status = 'setup'
-      if @domain.save
-        redirect_to :action => 'setup', :path => @domain.id
-        return 
+    if request.post? && params[:domain]
+
+      if params[:commit]
+        @domain = Domain.new(params[:domain])
+        
+        # Override the client unless we are a system administrator
+        @domain.client = myself.client_user.client unless myself.client_user.system_admin?
+        @domain.status = 'setup'
+        if @domain.save
+          redirect_to :action => 'setup', :path => @domain.id
+          return 
+        end
+      else
+        redirect_to  :action => 'index'
+        return
       end
     end
     
@@ -186,14 +210,11 @@ class Manage::DomainsController < CmsController
   def delete
     cms_page_info [ ['System',url_for(:controller => '/manage/system')], ['Domains',url_for(:controller => '/manage/domains')], 'Delete Domain'],'system'
 
-    @domain = Domain.find(params[:path][0])
   end
 
   def destroy
     
     if request.method == :post
-  
-      @domain = Domain.find(params[:path][0])
 
       if @domain
         @domain.destroy

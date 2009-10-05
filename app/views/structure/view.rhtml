@@ -31,12 +31,12 @@
 <% action_panel do |p| -%>
   <%= p.link 'Collapse Tree', :icon => 'collapse.gif',:url => 'javascript:StructureEditor.collapseTree();' %>
   <%= p.link 'Expand Tree', :icon => 'expand.gif', :url => 'javascript:StructureEditor.expandTree();' %>
-  <% 
-#if @show_archived == 'hide'
-#   p.link 'Show Archived', :icon => 'show.gif', :url => '?archived=show'
-#  else
-#   p.link 'Hide Archived', :icon => 'show.gif', :url => '?archived=hide'
-# end
+  <%= 
+if @show_archived == 'hide'
+   p.link 'Show Archived', :icon => 'show.gif', :url => '?archived=show'
+  else
+   p.link 'Hide Archived', :icon => 'show.gif', :url => '?archived=hide'
+ end
   %>
 <% end -%>
 <div class='admin_content'> 
