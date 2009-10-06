@@ -14,7 +14,7 @@ ENV['HOME'] ||= '/home/webiva'
 
 
 # Specifies gem version of Rails to use when vendor/rails is not present
-RAILS_GEM_VERSION = '2.3.2'
+# RAILS_GEM_VERSION = '2.3.4'
 
 # Concurrency required from backgroundrb,
 # But required to not be on for 

@@ -18,7 +18,7 @@ namespace :webiva do
         run "ln -s #{deploy.shared_path}/config/cms_migrator.yml #{deploy.release_path}/config/cms_migrator.yml"
         run "ln -s #{deploy.shared_path}/config/defaults.yml #{deploy.release_path}/config/defaults.yml"
         run "ln -s #{deploy.shared_path}/config/backgroundrb.yml #{deploy.release_path}/config/backgroundrb.yml"
-        run "ln -s #{deploy.shared_path}/config/mongrel_cluster.yml #{deploy.release_path}/config/mongrel_cluster.yml"
+      
   end
 
 
@@ -29,12 +29,12 @@ namespace :webiva do
             modules_install     
 	    deploy.web.disable
 	    config
-      run "cd #{deploy_to}/current; ./script/backgroundrb stop; true"
+            run "cd #{deploy_to}/current; ./script/backgroundrb stop; true"
 	    deploy.symlink
 	    run "cd #{deploy.release_path}; rake -f #{deploy.release_path}/Rakefile cms:migrate_system_db"
 	    run "cd #{deploy.release_path}; rake -f #{deploy.release_path}/Rakefile cms:migrate_domain_dbs"
 	    run "cd #{deploy.release_path}; rake -f #{deploy.release_path}/Rakefile cms:migrate_domain_components"
-      run "cd #{deploy_to}/current; ./script/backgroundrb start; true"
+            run "cd #{deploy_to}/current; ./script/backgroundrb start; true"
 	    sudo "nohup /etc/init.d/memcached restart"
     end
 
@@ -48,7 +48,7 @@ namespace :webiva do
 	(webiva_modules||[]).each do |mod|
           execute = []
           execute << "cd #{deploy.release_path}/vendor/modules"
-          execute << "git clone #{module_repository}:webiva-#{mod} #{mod}"
+          execute << "git clone #{module_repository}#{mod}.git #{mod.downcase}}"
           run execute.join(" && ")
         end
   end 
@@ -58,13 +58,16 @@ namespace :webiva do
   task :setup do 
     transaction do
       top.deploy.update_code
+      run "mkdir #{deploy.shared_path}; true"
+      run "mkdir #{deploy.shared_path}/log; true"
+      run "mkdir #{deploy.shared_path}/pids; true"
+      run "mkdir #{deploy.shared_path}/system; true"
       run "mkdir #{deploy.shared_path}/config; true"
       run "cp #{deploy.release_path}/config/cms.yml.example #{deploy.shared_path}/config/cms.yml; true"
       run "cp #{deploy.release_path}/config/backup.yml.example #{deploy.shared_path}/config/backup.yml; true"
       run "cp #{deploy.release_path}/config/cms_migrator.yml.example #{deploy.shared_path}/config/cms_migrator.yml; true"
       run "cp #{deploy.release_path}/config/backgroundrb.yml.example #{deploy.shared_path}/config/backgroundrb.yml; true"
       run "cp #{deploy.release_path}/config/defaults.yml.example #{deploy.shared_path}/config/defaults.yml; true"
-      run "cp #{deploy.release_path}/config/mongrel_cluster.yml.example #{deploy.shared_path}/config/mongrel_cluster.yml; true"
       run "mkdir #{deploy.shared_path}/config/sites; true"
       config
       deploy.symlink
@@ -73,13 +76,10 @@ namespace :webiva do
 
 end
 
-#set :deploy_via, :export
-set :runner, nil
-set :mongrel_conf, "#{deploy_to}/current/config/mongrel_cluster.yml"
 
 namespace :deploy do
   task :restart do
-    run "cd #{deploy_to}/current; mongrel_rails cluster::restart"
+    run "cd #{deploy_to}/current; touch tmp/restart.txt"
   end
 end
 

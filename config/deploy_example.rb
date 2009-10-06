@@ -1,5 +1,9 @@
 set :application, "webiva"
-set :repository, "https://svn.cykod.com/#{application}/trunk"
+set :scm, :git
+set :repository, "git://github.com/cykod/Webiva.git"
+
+set :module_repository, "git://github.com/cykod/"
+
 
 role :web, "server.com"
 role :app, "server.com"
