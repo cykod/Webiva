@@ -497,17 +497,18 @@ class ParagraphFeature
         end
       end
       
-      define_tag(name_base + "link") do |tg| 
-        selected = tg.attr.delete('selected_class')
+      define_tag(name_base + "link") do |tg|
+        attr = tg.attr.clone
+        selected = attr.delete('selected_class')
         url = yield(tg)
         if url.blank?
           nil
         elsif url.is_a?(Hash)
           url_selected = url.delete(:selected)
           url[:class] = selected if selected && url_selected
-          tag('a',tg.attr.merge(options).merge(url),true) + tg.expand + "</a>" 
+          tag('a',attr.merge(options).merge(url),true) + tg.expand + "</a>" 
         else
-          tag('a',tg.attr.merge(options).merge({ :href => url }),true) + tg.expand + "</a>" 
+          tag('a',attr.merge(options).merge({ :href => url }),true) + tg.expand + "</a>" 
         end
       end
       define_value_tag(name_base + "href") do |tg| 
