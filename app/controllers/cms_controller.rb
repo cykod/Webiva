@@ -22,8 +22,7 @@ class CmsController < ApplicationController
       redirect_to :controller => '/manage/access', :action => 'denied'
     end
   end
-  
-   
+
   def rescue_action_in_public(exception)
     begin
       if !@cms_page_info
@@ -36,7 +35,11 @@ class CmsController < ApplicationController
         @error_message = 'There was a problem processing your request'
         @review = true
       end
-      render :template => '/application/error', :layout => 'manage'
+      if request.xhr?
+        render :string => "<div class='error'>#{@error_message}</div>"
+      else
+        render :template => '/application/error', :layout => 'manage'
+      end
     rescue Exception => e
       render :text => 'There was an error processing your request', :status => 500
     end
