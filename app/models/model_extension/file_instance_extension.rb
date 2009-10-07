@@ -31,7 +31,9 @@ module ModelExtension::FileInstanceExtension
     end
 
     def apply_content_filter(fields,options={},&block)
-      filter_name = options[:filter]
+      if options[:filter]
+        filter_details = options[:filter]
+      end
 
       fields.each do |fld,output_fld|
         before_save "pre_process_content_filter_#{fld}"
@@ -39,7 +41,7 @@ module ModelExtension::FileInstanceExtension
         after_destroy "destroy_file_instances"
       
         define_method("pre_process_content_filter_#{fld}")  do
-          file_instance_replace(fld,output_fld,filter_name || block.call(self))
+          file_instance_replace(fld,output_fld,filter_details || block.call(self))
         end
         
         define_method("post_process_content_filter_#{fld}")  do
@@ -55,9 +57,10 @@ module ModelExtension::FileInstanceExtension
     mod.extend ModelExtension::FileInstanceExtension::ClassMethods
   end
   
-  def file_instance_search(column_name)
+  def file_instance_search(column_name,html=nil)
     file_ids = []
-    self.send(column_name).to_s.scan(/\/__fs__\/([0-9a-fA-F\/]+)(\:([a-zA-Z_]+)){0,1}/) do |prefix,slash,size|
+    html = self.send(column_name).to_s if html.blank?
+    html.scan(/\/__fs__\/([0-9a-fA-F\/]+)(\:([a-zA-Z_]+)){0,1}/) do |prefix,slash,size|
       file_ids << prefix.split("/")[-1].to_i
     end
     files = DomainFile.find(:all,:conditions => { :id => file_ids })
@@ -70,12 +73,15 @@ module ModelExtension::FileInstanceExtension
     
   end
   
-  def file_instance_replace(column_name,rendered_column_name,content_filter=nil)
-    indexed_files = file_instance_search(column_name)
+  def file_instance_replace(column_name,rendered_column_name,content_filter={})
     html = self.send(column_name).to_s
     if content_filter
-      html = ContentFilter.filter(content_filter,html)
+      content_filter.symbolize_keys!
+      if filter = content_filter.delete(:filter)
+        html = ContentFilter.filter(filter,html,content_filter)
+      end
     end
+    indexed_files = file_instance_search(column_name,html)
     html = html.gsub(/\/__fs__\/([0-9a-fA-F\/]+)(\:([a-zA-Z_]+)){0,1}/) do |match|
       size = $3 ? $3 : nil
       file_id = $1.split("/")[-1].to_i

@@ -45,6 +45,9 @@ class ContentFilter < DomainModel
 
   def self.markdown_filter(code,options={})
     # Need file filter to output __fs__ stuff
+    if options[:folder_id] && folder = DomainFile.find_by_id(options[:folder_id])
+      code = replace_images(code,folder.file_path)
+    end
     Maruku.new(code).to_html
   end
 
@@ -60,6 +63,24 @@ class ContentFilter < DomainModel
 
   def self.comment_filter(code,options={})
     RedCloth.new(code,[:lite_mode, :filter_html]).to_html
+  end
+
+  
+  def self.replace_images(code,image_folder_path)
+    cd =  code.gsub(/\!\[([^\]]+)\]\(([^"')]+)/) do |mtch|
+      alt_text = $1
+      full_url = $2
+      image_path,size = full_url.strip.split("::")
+      if image_path =~ /^http(s|)\:\/\// && full_url[0..0] == '/'
+        url = full_url
+      else
+        df = DomainFile.find_by_file_path(image_folder_path + "/" + image_path)
+        url = df ? df.editor_url(size) : "/images/spacer.gif"
+      end
+      "![#{alt_text}](#{url} "
+    end
+
+    cd
   end
 
 end
