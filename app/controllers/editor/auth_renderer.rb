@@ -67,7 +67,7 @@ class Editor::AuthRenderer < ParagraphRenderer
     data[:error] = true if flash[:auth_user_login_error]
     data[:type] = opts.login_type
     
-    render_paragraph :text => login_feature(get_feature('login'),data)
+    render_paragraph :text => login_feature(data)
   end
   
   

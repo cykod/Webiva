@@ -54,8 +54,8 @@ class Editor::AuthFeature < ParagraphFeature
   FEATURE
   
   
-  def login_feature(feature,data)
-    parser_context = FeatureContext.new do |c|
+  def login_feature(data)
+    webiva_feature(:login) do |c|
       c.define_tag 'logged_in' do |tag|
         if data[:user]
           tag.expand
@@ -105,7 +105,6 @@ class Editor::AuthFeature < ParagraphFeature
       c.define_expansion_tag('use_username') { |tag| data[:type] =='username' }
       c.define_expansion_tag('use_email') { |tag| data[:type] =='email' }
     end
-    parse_feature(feature,parser_context)
   end
 
   
