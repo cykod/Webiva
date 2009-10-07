@@ -89,8 +89,9 @@ class StructureController < CmsController
     node_id = params[:node_id]
     
     @node = SiteNode.find(params[:node_id])
+    parent = SiteNode.find(params[:parent_id])
     
-    @new_node = @node.duplicate!(parent_id)
+    @new_node = @node.duplicate!(parent)
     
     render :partial => 'path', :locals => { :paths => [@new_node] }    
   end

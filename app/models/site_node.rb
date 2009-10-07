@@ -246,10 +246,10 @@ class SiteNode < DomainModel
 
   end
   
-  def duplicate!(parent_id)
+  def duplicate!(parent)
     nd = self.clone
     nd.title += '_copy'
-    nd.parent_id = parent_id
+#    nd.parent_id = parent_id
     nd.save
     
     self.live_revisions.each do |rev|
@@ -258,6 +258,8 @@ class SiteNode < DomainModel
       tmp_rev.save
       tmp_rev.make_real
     end
+
+    nd.move_to_child_of(parent)
     
     nd
   end

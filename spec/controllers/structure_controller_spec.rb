@@ -77,7 +77,14 @@ describe StructureController do
 
       @sp3.reload
       @sp3.children.should == [ @sp1 ]
-    end    
+    end
+
+    it "should be able to duplicate a node" do
+      put(:copy_node, { :node_id => @sp1, :parent_id => @home_page })
+      @home_page.reload
+      @home_page.children.length.should == 4
+      @home_page.children[3].title.should == (@home_page.children[0].title + "_copy")
+    end
   end
 
 
