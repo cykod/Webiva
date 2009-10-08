@@ -537,7 +537,7 @@ class DomainFile < DomainModel
     size = nil unless size && (@@image_sizes[size] || DomainFileSize.custom_sizes[size])
     size ||= :original
     
-    return [1,1] unless self.meta_info
+    return [1,1] unless self.meta_info && self.meta_info[:image_size]
     self.meta_info[:image_size][size] || [1,1]
   end
   
