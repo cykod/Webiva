@@ -1,7 +1,3 @@
-# Copyright (C) 2009 Pascal Rettig.
-
-
-
 class <%= module_class %>::<%= renderer_class %>Renderer < ParagraphRenderer
 
   features '/<%= module_path %>/<%= renderer_path %>_feature'

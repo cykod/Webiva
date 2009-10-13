@@ -1,7 +1,3 @@
-# Copyright (C) 2009 Pascal Rettig.
-
-
-
 class <%= module_class %>::<%= renderer_class %>Feature < ParagraphFeature
 
 
@@ -12,7 +8,7 @@ class <%= module_class %>::<%= renderer_class %>Feature < ParagraphFeature
   
 
   def <%= module_path %>_<%= renderer_path %>_<%= paragraph %>_feature(data)
-    webiva_feature(:<%= module_path %>_<%= renderer_path %>_<%= paragraph %>) do |c|
+    webiva_feature(:<%= module_path %>_<%= renderer_path %>_<%= paragraph %>,data) do |c|
       # c.define_tag ...
     end
   end

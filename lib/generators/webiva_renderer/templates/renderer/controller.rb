@@ -1,7 +1,3 @@
-# Copyright (C) 2009 Pascal Rettig.
-
-
-
 class <%= module_class %>::<%= renderer_class %>Controller < ParagraphController
 
   editor_header '<%= module_name %> Paragraphs'

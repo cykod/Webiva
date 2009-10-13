@@ -1,6 +1,3 @@
-# Copyright (C) 2009 Pascal Rettig.
-
-
 
 class <%= class_name %>::AdminController < ModuleController
 
