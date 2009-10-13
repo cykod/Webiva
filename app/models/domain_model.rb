@@ -547,6 +547,18 @@ class DomainModel < ActiveRecord::Base
     end
   
   end
+   def generate_url(field,value)
+     permalink_try_partial = value.to_s.downcase.gsub(/[ _]+/,"-").gsub(/[^a-z+0-9\-]/,"")
+     idx = 2
+     permalink_try = permalink_try_partial[0..60]
+     
+     while(self.class.send("find_by_#{field}",permalink_try,:conditions => ['id != ?',self.id || 0] ))
+       permalink_try = permalink_try_partial + '-' + idx.to_s
+       idx += 1
+     end
+     
+     self.send("#{field}=",permalink_try)
+  end
   
   def expire_site
     DataCache.expire_container('SiteNode')
