@@ -21,7 +21,7 @@ require "globalize/models/country"
 require "globalize/models/currency"
 
 # Load overriden Rails modules
-require "globalize/rails/active_record"
+#require "globalize/rails/active_record" - removed PFR
 #require "globalize/rails/action_view" - removed PFR
 require "globalize/rails/action_mailer"
 require "globalize/rails/date_helper"
