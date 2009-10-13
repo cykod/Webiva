@@ -37,9 +37,13 @@ namespace "cms" do
         active_modules.each do |mod|
           dir = "#{RAILS_ROOT}/vendor/modules/#{mod.name}/db"
           if(File.directory?(dir) && (!component || component == mod.name))
-            mod.update_attribute(:status,'initialized') if mod.status == 'initializing'
-            ComponentMigrator.current_component = mod.name
-        	  ComponentMigrator.migrate(dir,version)
+            begin
+              ComponentMigrator.current_component = mod.name
+              ComponentMigrator.migrate(dir,version)
+              mod.update_attribute(:status,'initialized') if mod.status == 'initializing'
+            rescue Exception => e
+              mod.update_attribute(:status,'error') if mod.status == 'initializing'
+            end
           elsif (!component || component == mod.name)
             mod.update_attribute(:status,'initialized') if mod.status == 'initializing'
           end
