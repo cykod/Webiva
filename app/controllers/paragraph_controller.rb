@@ -1,7 +1,7 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 # Controller which handle administration of page paragraphs
-# are derived from this
+# are derived from this controller
 class ParagraphController < CmsController
   include SiteNodeEngine::Controller
 
@@ -51,7 +51,7 @@ class ParagraphController < CmsController
 
   def paragraph_options(paragraph_name)
   
-    options_class = self.class.to_s + "::" + paragraph_name.to_s.classify + "Options"
+    options_class = self.class.to_s + "::" + paragraph_name.to_s.camelcase + "Options"
     options_class.constantize.new(@paragraph.data)
   end
 
@@ -96,7 +96,7 @@ class ParagraphController < CmsController
     else
       method_src = <<-METHOD
       def #{paragraph}
-       @options = #{paragraph.to_s.classify}Options.new(params[:#{paragraph}] || paragraph.data || {})
+       @options = #{paragraph.to_s.camelcase}Options.new(params[:#{paragraph}] || paragraph.data || {})
        return if handle_module_paragraph_update(@options)
       end
       METHOD
