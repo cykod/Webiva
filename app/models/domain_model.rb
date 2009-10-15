@@ -11,7 +11,7 @@ class DomainModel < ActiveRecord::Base
   @@active_domain = {} # Made Thread safe for Backgroundrb
   @@active_file = nil
   
-  extend ActiveSupport::Memoizable 
+#  extend ActiveSupport::Memoizable 
 
   include HandlerActions
   include ModelExtension::OptionsExtension
@@ -256,6 +256,11 @@ class DomainModel < ActiveRecord::Base
     self.find(val,opts).collect do |itm|
       [ itm.name, itm.id ]
     end
+  end
+
+  def self.select_options_with_nil(name=nil,opts={})
+    obj_name = name || self.to_s.underscore.humanize
+    [["--Select %s--" / obj_name,nil ]] + self.select_options(opts)
   end
   
   def self.select_options(opts={})
