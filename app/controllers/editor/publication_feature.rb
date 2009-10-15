@@ -114,45 +114,14 @@ def display_feature(publication,data)
     
 
  def data_feature(publication,data)
-    webiva_feature(publication.feature_name) do |c|
-      c.define_loop_tag('entry','entries') { data[:entries] }
+   webiva_feature(publication.feature_name) do |c|
+     c.define_loop_tag('entry','entries') { data[:entries] }
 
-      publication.content_publication_fields.each do |fld|
-        tag_name = %w(belongs_to document image).include?(fld.content_model_field.field_type) ? fld.content_model_field.field_options['relation_name'] : fld.content_model_field.field
-        c.define_value_tag "entry:#{tag_name}" do |tag|
-          val = tag.locals.entry.send(fld.content_model_field.field)
-          if !val || val.to_s.strip.empty?
-           nil
-          else
-        	  val = fld.content_model_field(tag.locals.entry,:size,tag.attr)
-        	  case tag.attr['escape']
-        	  when 'value':
-        	    val =vh(val)
-        	  when 'none'
-        	    val = val
-        	  else 
-        	    val =h(val)
-        	  end
-        	end
-        end
-        if %w(document image).include?(fld.content_model_field.field_type)
-          c.define_tag "entry:#{tag_name}_url" do |tag|
-            file = tag.locals.entry.send(fld.content_model_field.field_options['relation_name'])
-            if file
-              file.url(tag.attr['size'] || nil)
-            else
-              nil
-            end
-          end
-        end
-        
-        c.define_tag 'entry:value' do |tag|
-          tag.locals.value
-        end
-        
-      end
-    end
-  end
+     publication.content_publication_fields.each do |fld|
+       fld.content_model_field.site_feature_value_tags(c,'entry',:full)
+     end
+   end
+ end
   
 
  def list_feature(publication,data)
@@ -175,7 +144,6 @@ def display_feature(publication,data)
        else
          fld.content_model_field.site_feature_value_tags(c,'entry',:full)
        end
-       
     end
     c.pagelist_tag('pages') { |t| data[:pages] }
    end
