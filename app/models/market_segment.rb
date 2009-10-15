@@ -167,6 +167,7 @@ class MarketSegment < DomainModel
    def members_target_count(opts={})
    opts = opts.clone
 
+   options.symbolize_keys!
     
     conditions = options[:conditions] || '1'
     conditions = [conditions] unless conditions.is_a?(Array)
@@ -205,6 +206,7 @@ class MarketSegment < DomainModel
    
    def members_target_find(opts)
     opts = opts.clone
+    options.symbolize_keys!
   
     conditions = options[:conditions] || '1'
     conditions = [conditions] unless conditions.is_a?(Array)
