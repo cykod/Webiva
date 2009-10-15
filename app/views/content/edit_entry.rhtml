@@ -47,7 +47,8 @@ ContentEditor = {
       <% end -%>    
     </td>
   <% end -%>  
-  <%= f.submit_cancel_tags @entry.id ? 'Update' : 'Create', 'Cancel', {}, { :onclick => "document.location='#{url_for :action => 'view', :path => @content_model.id}'; return false;" } %>
+  <%= f.spacer 10 %>
+  <%= f.cancel_submit_buttons 'Cancel',  @entry.id ? 'Update' : 'Create' %> 
 <% end -%>
 
 

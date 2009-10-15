@@ -60,7 +60,8 @@ describe Content::Field do
       @cm.reload
       
       # We should have ID + all the fields we tried to add in
-      @cm.content_model.columns.length.should == (cmfs.length + 1) 
+      # except for has many - b/c that doesn't actually create a field
+      @cm.content_model.columns.length.should == (cmfs.length) 
       
       fdata = fixture_file_upload("files/rails.png",'image/png')
       @image_file = DomainFile.create(:filename => fdata)
@@ -119,6 +120,71 @@ describe Content::Field do
   
   end
   
+  describe "Should be able limit field values" do
 
+    it "should be able to require a value for a field" do 
+      field = ContentModelField.new(:name => 'Title',:field_type => 'string',:field_module => 'content/core_field',:field_options => { :required => true })
+      
+      @cm.update_table([ field.attributes ])
+      
+      cls = @cm.content_model # Get the content model
+      
+      cls.count.should == 0 # Should have nothing in the table
+
+      obj = cls.create
+      cls.count.should == 0
+      obj.should have(1).error_on(:title)
+    end
+
+    it "should be able to require a value be unique" do
+      field = ContentModelField.new(:name => 'Title',:field_type => 'string',:field_module => 'content/core_field',:field_options => { :unique => true })
+      
+      @cm.update_table([ field.attributes ])
+      
+      cls = @cm.content_model # Get the content model
+      
+      cls.count.should == 0 # Should have nothing in the table
+
+      obj = cls.create(:title => 'First Item')
+      cls.count.should == 1
+
+      obj2 = cls.create(:title => 'Second Item')
+      cls.count.should == 2
+
+      obj3 = cls.create(:title => 'First Item')
+      obj3.should have(1).error_on(:title)
+      cls.count.should == 2
+
+      # If not required, then we should be allowed to be blank and
+      # have multiple blank entries
+      obj4 = cls.create()
+      cls.count.should == 3
+
+      obj5 = cls.create()
+      cls.count.should == 4
+    end
+
+    it "should be able to limit a fields value with a regular expression" do
+        field = ContentModelField.new(:name => 'Title',:field_type => 'string',:field_module => 'content/core_field',:field_options => { :regexp => true, :regexp_code => '^[0-9]', :regexp_message => 'must start with a number'  })
+      
+      @cm.update_table([ field.attributes ])
+      
+      cls = @cm.content_model # Get the content model
+      
+      cls.count.should == 0 # Should have nothing in the table
+
+      obj = cls.create(:title => 'First Item')
+      obj.should have(1).error_on(:title)
+      cls.count.should == 0
+
+      obj = cls.create(:title => '0 Item')
+      cls.count.should == 1
+
+      # If not required, then we should be allowed to be blank
+      obj = cls.create()
+      cls.count.should == 2
+    end
+
+  end
   
 end

@@ -105,7 +105,12 @@ module Content::MigrationSupport
             
             if content_field[:relation]
               field_row.field = field_name_try + "_id"
-              field_row.field_options['relation_name'] = field_name_try
+              if content_field[:relation] == :plural
+                 field_row.field_options['relation_singular'] = field_name_try
+                 field_row.field_options['relation_name'] = field_name_try.pluralize
+              else
+                field_row.field_options['relation_name'] = field_name_try
+              end
             else
               field_row.field = field_name_try
             end

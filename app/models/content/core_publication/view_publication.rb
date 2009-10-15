@@ -45,7 +45,7 @@
         end
       end 
       output += "<tr>\n"
-      output += "  <td colspan='2' align='right'><a <cms:return_href/>>Return</a></td>\n"
+      output += "  <td colspan='2' align='right'><cms:return_link>Return</cms:return_link></td>\n"
       output += "</tr>\n"
       output += '</cms:entry>'
       

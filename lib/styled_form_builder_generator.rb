@@ -99,13 +99,14 @@ module StyledFormBuilderGenerator
   
 end
 
+
 module EnhancedFormElements
-    include ActionView::Helpers::TagHelper
-    include ActionView::Helpers::TextHelper
-    include ActionView::Helpers::FormTagHelper
-    include ActionView::Helpers::AssetTagHelper
-    
-    
+  include ActionView::Helpers::TagHelper
+  include ActionView::Helpers::TextHelper
+  include ActionView::Helpers::FormTagHelper
+  include ActionView::Helpers::AssetTagHelper
+ 
+  
     class TranslatedCountries
       include Singleton
       
@@ -235,6 +236,14 @@ module EnhancedFormElements
       end
       return options[:default] || ''
     end
+
+    def grouped_select(field,choices,options ={}, html_options = {})
+      obj_val = @object.send(field) if @object
+      opts = @template.grouped_options_for_select(choices,obj_val)
+
+      name = "#{@object_name}[#{field}]#"
+      select_tag(name,opts,html_options)
+    end
     
     def radio_buttons(field,tag_values,options = {})
       output = ""
@@ -266,7 +275,19 @@ module EnhancedFormElements
         
       end 
       output
-    end 
+    end
+
+    alias_method :radio_buttons_flat, :radio_buttons
+
+    def grouped_radio_buttons(field,tag_values,options={})
+      output = ''
+      tag_values.each do |header,opts|
+        output += "<div class='options_header'><b>#{h(header)}</b></div>"
+        output += radio_buttons_flat(field,opts,options)
+      end
+      output
+
+    end
     
     def check_boxes(field,tag_values,options = {})
       output = ""
@@ -307,6 +328,18 @@ module EnhancedFormElements
   
       output
     end
+
+    alias_method :check_boxes_flat, :check_boxes
+
+    def grouped_check_boxes(field,tag_values,options={})
+      output = ''
+      tag_values.each do |header,opts|
+        output += "<div class='options_header'><b>#{h(header)}</b></div>"
+        output += check_boxes_flat(field,opts,options)
+      end
+      output
+
+    end    
     
     
     def submit_cancel_tags(submit_name,cancel_name,submit_options={},cancel_options={}) 
@@ -375,6 +408,8 @@ module EnhancedFormElements
 end
 
 class StyledForm < ActionView::Helpers::FormBuilder
+
+  
     include StyledFormBuilderGenerator::Generator
     
     include EnhancedFormElements
@@ -399,7 +434,7 @@ class SimpleForm < StyledForm
   end
   
   generate_styled_fields('form_options',
-                         (field_helpers + %w(label_field label_option_field country_select collection_select select radio_buttons check_boxes) - %w(check_box radio_button hidden_field))) do 
+                         (field_helpers + %w(label_field label_option_field country_select collection_select select radio_buttons grouped_check_boxes grouped_radio_buttons grouped_select check_boxes) - %w(check_box radio_button hidden_field))) do 
                            @options[:output]
                           end
   
@@ -537,7 +572,7 @@ class TabledForm < StyledForm
   end
 
   generate_styled_fields('form_options',
-                         (field_helpers + %w(label_field label_option_field country_select collection_select select radio_buttons check_box check_boxes ) - %w(radio_button hidden_field))) do 
+                         (field_helpers + %w(label_field label_option_field country_select collection_select select radio_buttons check_box check_boxes grouped_check_boxes grouped_radio_buttons grouped_select ) - %w(radio_button hidden_field))) do 
                           field(@options)
                           end
                           

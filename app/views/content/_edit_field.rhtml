@@ -1,4 +1,4 @@
-<div id='elem_field_<%= field_index %>' onmouseover='SCMS.highlightRow(this);'  onmouseout='SCMS.lowlightRow(this);' style='padding:5px;'>
+<div id='elem_field_<%= field_index %>' onmouseover='SCMS.highlightRow(this);'  class='admin_form' onmouseout='SCMS.lowlightRow(this);' style='padding:5px;'>
 <span id='field_tools_<%= field_index %>' style='display:inline;'>
 <a href='javascript:void(0);' onmousedown='FieldEditor.closeOptions(<%= field_index %>);' class='handle' id='handle_<%= field_index %>' style='cursor:move;'><%= "Drag".t %></a> |
 <a href='javascript:void(0);' onclick='FieldEditor.toggleOptions(<%= field_index %>);'><%= "Options".t %></a> |
@@ -13,19 +13,15 @@
     <input type='hidden' name='field[<%= field_index %>][field_module]' value='<%= fld.field_module %>' />
     <input type='hidden' name='field[<%= field_index %>][field_type]' value='<%= fld.field_type %>' />
   <% end -%>
-  <%= "Name:".t %> <input type='text' name='field[<%= field_index %>][name]'  size='40' value="<%= vh fld.name %>" onchange='FieldEditor.updateName(<%= field_index %>,this.value);'  onkeyup='FieldEditor.updateName(<%= field_index %>,this.value);' />
-    <% if fld.field_type == 'belongs_to' %>
-    <%= "Belongs to:".t %> <select name='field[<%= field_index %>][belongs_to]' >
-      <%= options_for_select @relationship_classes, fld.field_options['relation_class'].to_s.underscore %>
-    </select><br/>
-  <% end -%>
+  <%= "Name:".t %> <input type='text' class='text_field' name='field[<%= field_index %>][name]'  size='40' value="<%= vh fld.name %>" onchange='FieldEditor.updateName(<%= field_index %>,this.value);'  onkeyup='FieldEditor.updateName(<%= field_index %>,this.value);' />
 <br/><br/>
   <%= "Description:".t %><br/>
   <textarea name='field[<%= field_index %>][description]'  cols='60' rows='3'><%= h fld.description %></textarea><br/>
+  <% cms_unstyled_fields_for  "field[#{field_index}][field_options]", fld.field_options_model do |uf| %>
   <% cms_fields_for "field[#{field_index}][field_options]", fld.field_options_model do |f| %>
-    <%= render :partial => fld.field_options_partial, :locals => { :f => f, :field => fld } %>
+    <%= render :partial => fld.field_options_partial, :locals => { :f => f, :uf => uf, :field => fld, :field_index => field_index } %>
   <% end -%>
-  
+  <% end -%>
 
   </form>
  </div>

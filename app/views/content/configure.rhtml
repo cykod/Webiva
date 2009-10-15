@@ -46,6 +46,7 @@ ContentEditor = {
 <% t.tabled_tab do -%>
 <tbody>
 <%= f.text_field :name, :description => 'Display name of the content model',:vertical => true %>
+<%= f.text_field :identifier_name, :description => "Display name of individual entries, leave blank to use first field as identifier\nCan use %%field_name%% substitution, relationship fields are not available (image, document, belongs to, has many)", :vertical => true %>
 <%= f.radio_buttons :show_on_content, [ ['Yes',true],['No',false]], :label => 'Main Page', 
   :description => 'Should this content model appear on the main content page', :vertical => true %>
 <%= f.radio_buttons :show_tags, [ ['Yes',true],['No',false]], :label => 'Use Tags on this Content Model', 
@@ -74,7 +75,7 @@ ContentEditor = {
 
 <%= f.header "Model Information" %>
 <%= f.label_field :table_name, :description => 'This cannot be changed once the model is create' %>
-<%= f.custom_field 'Field Names', :value => @content_model.content_model_fields.collect(&:field).join(", "), :description => 'Field names are used in site feature' %>
+<%= f.custom_field 'Field Names', :value => @content_model.content_model_fields.collect(&:feature_tag_name).join(", "), :description => 'Field names are used in site feature' %>
 
 
 

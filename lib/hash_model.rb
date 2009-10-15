@@ -138,8 +138,13 @@ class HashModel
   def additional_vars(vars)
     @additional_vars += vars
     
-    @additional_vars.each do |key|
-     self.instance_variable_set "@#{key}",hsh[key.to_sym]
+    vars.each do |key|
+      val = hsh[key.to_sym]
+      if key.to_s =~ /_(id|number)$/ 
+        val = val.blank? ? nil : val.to_i
+      end
+      
+      self.instance_variable_set "@#{key}",val
     end
   end
   

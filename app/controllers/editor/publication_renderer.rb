@@ -45,7 +45,7 @@ class Editor::PublicationRenderer < ParagraphRenderer
 
         publication.update_entry(entry,params['entry_' + publication.id.to_s],renderer_state)
         
-        if entry.save
+        if entry.errors.length == 0 && entry.save
           expire_content(publication.content_model_id)
   
           session['content_model'] ||= {}

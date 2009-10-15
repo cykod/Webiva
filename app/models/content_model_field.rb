@@ -71,8 +71,39 @@ class ContentModelField < DomainModel
     end  
     self.module_class.form_field(f,field_name,field_display_opts,options)
   end
-  
-  
+
+
+  # Return the actual class if this field has a relation
+  # but only 
+  def content_model_relation
+    if !self.field_options['relation_class'].blank?
+      ContentModel.content_model_details(self.field_options['relation_class'])
+    else
+      nil
+    end
+  end
+
+
+  # Return the actual class if this field has a relation
+  def relation_class
+    if !self.field_options['relation_class'].blank?
+      begin
+        return self.field_options['relation_class'].constantize
+      rescue Exception => e
+        return nil
+      end
+    else
+      nil
+    end
+  end
+
+  def feature_tag_name
+    !self.field_options['relation_name'].blank? ? self.field_options['relation_name'] :self.field
+  end
+
+  def site_feature_value_tags(c,name_base,size=:full)
+    self.module_class.site_feature_value_tags(c,name_base,size)
+  end
   
   def content_display(entry,size=:full,options={})
     self.module_class.content_display(entry,size,options)

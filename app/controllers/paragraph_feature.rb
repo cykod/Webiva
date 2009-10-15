@@ -395,9 +395,13 @@ class ParagraphFeature
         obj = yield tag
         opts = options.clone
         opts[:url] ||= ''
-        cms_unstyled_fields_for(arg,obj,opts) do |f|
-          tag.locals.form = f
-          tag.expand
+        if obj || !block_given?
+          cms_unstyled_fields_for(arg,obj,opts) do |f|
+            tag.locals.form = f
+            opts.delete(:code).to_s + tag.expand
+          end
+        else
+          nil
         end
       end
     end
@@ -425,17 +429,27 @@ class ParagraphFeature
     
     def define_button_tag(name,options={})
       onclick = options.delete(:onclick)
-      onclick = "onclick='#{vh(onclick)}'" if onclick
-      define_tag name do |tag|
-        name = options[:name] || tag.attr['name'] || 'commit' 
-        if(tag.attr['type'].to_s == 'image')
-           "<input type='image'  class='submit_tag submit_image' name='#{name}' value='#{vh(tag.attr['value'] || options[:value] || 'Submit')}' src='#{tag.expand}' align='absmiddle' #{onclick} />"
-        else
-          if tag.single?
-            "<input type='submit' class='submit_tag' name='#{name}' value='#{vh(tag.attr['value'] || options[:value] || 'Submit')}' #{onclick} />"
+      define_tag name do |t|
+        name = options[:name] || tag.attr['name'] || 'commit'
+        if  !block_given? || yield(t)
+          if(t.attr['type'].to_s == 'image')
+            tag('image',
+                :class => 'submit_tag submit_image',
+                :name => name,
+                :value => t.attr['value'] || options[:value] || 'Submit',
+                :src => t.expand,
+                :align => absmiddle,
+                :onclick => onclick )
           else
-            "<input type='submit' class='submit_tag' name='#{name}' value='#{vh(tag.expand || options[:value] || 'Submit')}'  #{onclick} />"
-          end      
+              tag('input', { :type => 'submit',
+                    :class => 'submit_tag',
+                    :name => name,
+                    :value => t.single? ?
+                    (t.attr['value'] || options[:value] || 'Submit') : t.expand,
+                    :onclick => onclick })
+          end
+        else
+          nil
         end
       end
     end
@@ -915,7 +929,7 @@ class ParagraphFeature
   end
     
 
- def webiva_feature(feature_name,data={})
+  def webiva_feature(feature_name,data={})
   if !self.documentation
      parser_context = FeatureContext.new(self) do |c| 
       c.define_position_tags  

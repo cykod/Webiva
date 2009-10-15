@@ -11,7 +11,7 @@ class ContentModel < DomainModel
   has_many :content_model_features, :order => :position, :dependent => :destroy
   has_many :content_publications, :order => :name, :dependent => :destroy
 
-  content_node_type :content,Proc.new { |cm| cm.table_name.blank? ? "__dummy__" : cm.table_name.classify } ,:title_field => :identifier_name, :search => false
+  content_node_type :content,Proc.new { |cm| cm.table_name.blank? ? "__dummy__" : cm.table_name.camelcase } ,:title_field => :identifier_name, :search => false
   
   accepts_nested_attributes_for :content_model_features, :allow_destroy => true
 
@@ -135,13 +135,19 @@ class ContentModel < DomainModel
   def self.relationship_classes
     content_models = ContentModel.find(:all,:order => 'name')
     clses = [ [ 'User', 'end_user' ] ] + content_models.collect { |mdl| [ mdl.name, mdl.table_name ] }
-  end  
+  end
+
+  def self.content_model_details(name)
+     name = name.underscore.pluralize
+     cm = ContentModel.find_by_table_name(name,:include => :content_model_fields)
+  end
   
   def self.content_model(name)
     cls = DataCache.local_cache("content_model_table_#{name}")
     return cls if cls
+
     
-    cm = ContentModel.find_by_table_name(name)
+    cm = ContentModel.find_by_table_name(name,:include => :content_model_fields)
     return nil unless cm
     DataCache.put_local_cache("content_model_table_#{name}", cm.content_model)
   end

@@ -1,7 +1,5 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-
-
 class Content::Field
 
   include ModelExtension::OptionsExtension # add has_option functionality
@@ -13,7 +11,13 @@ class Content::Field
   end
   
   @@field_procs = {
-      :required => Proc.new { |field,field_opts,options| field_opts['required'] = options[:required].blank? ? false  : true   },
+    :required => Proc.new { |field,field_opts,options| field_opts['required'] = options[:required].blank? ? false  : true   },
+    :unique => Proc.new { |field,field_opts,options| field_opts['unique'] = options[:unique].blank? ? false  : true   },
+    :regexp => Proc.new do |field,field_opts,options|
+      field_opts['regexp'] = options[:regexp].blank? ? false  : true  
+      field_opts['regexp_code'] = options[:regexp_code]
+      field_opts['regexp_message'] = options[:regexp_message]      
+    end,
       :options => Proc.new { |field,field_opts,options|  field_opts['options'] = options[:options_text].to_s.strip.split("\n").map(&:strip) },
       :belongs_to => Proc.new { |field,field_opts,options|  
             belongs_class_name = options[:belongs_to]
@@ -22,7 +26,15 @@ class Content::Field
             else
               field_opts['relation_class'] = nil
             end 
-      }
+    },
+      :has_many =>  Proc.new { |field,field_opts,options|  
+            belongs_class_name = options[:belongs_to]
+            if ContentModel.relationship_classes.detect { |cls| cls[1] == belongs_class_name }
+              field_opts['relation_class'] = belongs_class_name.camelcase
+            else
+              field_opts['relation_class'] = nil
+            end 
+    }
   }
       
   def self.field_options(*options)
@@ -45,12 +57,14 @@ class Content::Field
   end
   
   @@setup_model_procs = {
-    :required => Proc.new { |cls,fld|  cls.validates_presence_of fld.model_field.field if fld.model_field.field_options['required'] },
+      :required => Proc.new { |cls,fld|  cls.validates_presence_of fld.model_field.field if fld.model_field.field_options['required'] },
+      :unique =>  Proc.new { |cls,fld|  cls.validates_uniqueness_of fld.model_field.field, :allow_blank => true if fld.model_field.field_options['unique'] },
+      :regexp => Proc.new { |cls,fld| cls.validates_format_of fld.model_field.field, :with => Regexp.new(fld.model_field.field_options['regexp_code']), :message => fld.model_field.field_options['regexp_message'].to_s, :allow_blank => true if fld.model_field.field_options['regexp'] },
     :validates_as_email => Proc.new { |cls,fld| cls.validates_as_email fld.model_field.field },
     :validates_date => Proc.new { |cls,fld| cls.validates_date fld.model_field.field,:allow_nil => true },
     :validates_datetime => Proc.new { |cls,fld| cls.validates_datetime fld.model_field.field,:allow_nil => true },
     :serialize => Proc.new { |cls,fld| cls.serialize fld.model_field.field },
-    :validates_numericality => Proc.new { |cls,fld| cls.validates_numericality_of fld.model_field.field, :allow_nil => true },
+      :validates_numericality => Proc.new { |cls,fld| cls.validates_numericality_of fld.model_field.field, :allow_nil => true },
   }
   
   def self.setup_model(*options,&block)
@@ -373,11 +387,37 @@ class Content::Field
     @field_options_model ||= FieldOptions.new(@model_field.field_options)
 #    @field_options_model.set_required_options
   end
+
+
+  def site_feature_value_tags(c,name_base,size=:full)
+    tag_name = @model_field.feature_tag_name
+    fld = @model_field
+    c.value_tag "#{name_base}:#{tag_name}" do |t|
+      val = fld.content_display(t.locals.entry,size,t.attr)
+      if val.blank?
+        nil
+      else
+        val
+      end
+    end
+  end
+         
+  
   
   class FieldOptions < HashModel
-    attributes :required => false, :options => []
+    attributes :required => false, :options => [], :relation_class => nil, :unique => false, :regexp => false, :regexp_code => '', :regexp_message => 'is not formatted correctly'
     
-    boolean_options :required
+    boolean_options :required, :unique, :regexp
+
+    def validate
+      if !self.regexp_code.blank?
+        begin
+          Regexp.new(regexp_code)
+        rescue Exception => e
+          self.errors.add(:regexp,'is not a valid regular expression')
+        end
+      end
+    end
     
     def options_text
       self.options.join("\n");
@@ -385,6 +425,10 @@ class Content::Field
     
     def options_text=(val)
       self.options = val.to_s.strip.split("\n").map(&:strip)
+    end
+
+    def belongs_to
+      self.relation_class.to_s.underscore
     end
   end
   

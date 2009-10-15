@@ -217,6 +217,28 @@ class SiteNodeEngine
           paragraph.render_args[:locals][:renderer] = paragraph.rnd unless paragraph.render_args[:locals][:renderer]
           @paragraph = paragraph
           str = render_to_string(paragraph.render_args)
+        elsif paragraph.render_args[:rjs]
+          paragraph.render_args[:partial] = paragraph.render_args.delete(:rjs)
+          paragraph.render_args[:locals] ||= {}
+          paragraph.render_args[:locals][:renderer] = paragraph.rnd unless paragraph.render_args[:locals][:renderer]
+          @paragraph = paragraph
+          str = "<script type='text/javascript'>" + render_to_string(paragraph.render_args) + "</script>"
+        elsif paragraph.render_args[:parent_rjs]
+          paragraph.render_args[:partial] = paragraph.render_args.delete(:parent_rjs)
+          paragraph.render_args[:locals] ||= {}
+          paragraph.render_args[:locals][:renderer] = paragraph.rnd unless paragraph.render_args[:locals][:renderer]
+          @paragraph = paragraph
+          script =  render_to_string(paragraph.render_args)
+          script = (script || '').
+            gsub('\\', '\\\\\\').
+            gsub(/\r\n|\r|\n/, '\\n').
+            gsub(/['"]/, '\\\\\&').
+            gsub('</script>','</scr"+"ipt>')
+          str =  <<-EOF
+<script type='text/javascript'>
+   with(window.parent) { setTimeout(function() { window.eval('#{script}'); loc.replace('about:blank'); }, 1) }
+</script>
+EOF
         else 
           raise 'Invalid Paragraph Rendering'
         end

@@ -63,7 +63,7 @@ class ContentPublication < DomainModel
   
   def update_entry(entry,values = {},application_state = {})
     application_state = application_state.merge({:values => values })
-    
+    values = self.content_model.entry_attributes(values) 
     self.content_publication_fields.each do |fld|
       val = nil
       case fld.field_type
@@ -76,6 +76,16 @@ class ContentPublication < DomainModel
         fld.content_model_field.assign_value(entry,fld.data[:preset])
       end
     end
+    entry.valid?
+    
+    self.content_publication_fields.each do |fld|
+      if fld.data && fld.data[:required]
+        if fld.content_model_field.text_value(entry).blank?
+          entry.errors.add(fld.content_model_field.field,'is missing')
+        end
+      end
+    end
+
     entry
   end
   

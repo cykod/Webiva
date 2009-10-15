@@ -92,7 +92,8 @@ describe Editor::PublicationRenderer, :type => :controller do
      renderer_get @rnd
   end
  end
- 
+
+
  describe "edit publication" do
  
     def generate_edit_renderer(publication,data = {},page_connection={},options={})

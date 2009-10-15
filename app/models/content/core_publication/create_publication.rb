@@ -67,7 +67,7 @@ class Content::CorePublication::CreatePublication < Content::PublicationType
     end
     publication.content_publication_fields.each do |fld|
       if fld.field_type == 'input'
-        result <<  fld.form_field(f, :vertical => vertical, :editor => editor)
+        result <<  fld.form_field(f, :vertical => vertical, :editor => editor).to_s
       elsif fld.field_type == 'value'
         result << f.custom_field(fld.content_model_field.field, :label => fld.label, :value => fld.content_display(f.object,:preview))
       end

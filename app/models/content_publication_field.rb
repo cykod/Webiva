@@ -34,17 +34,18 @@ class ContentPublicationField < DomainModel
     end
   end
   
-  def field_options
-    return @field_options if @field_options
-    @field_options = self.content_publication.field_options(self.data)
+ def field_options(vars=nil)
+    return @field_options if @field_options && !vars
+    @field_options = self.content_publication.field_options(vars || self.data)
+
     @field_options.additional_vars(self.content_model_field.display_options_variables)
-    
+
     @field_options
   end
     
   def field_options_form_elements(f)
     txt = self.content_publication.field_options_form_elements(self,f)
-    txt += self.content_model_field.form_display_options(self,f) if self.content_publication.form?
+    txt += self.content_model_field.form_display_options(self,f).to_s if self.content_publication.form?
     txt
   end
   

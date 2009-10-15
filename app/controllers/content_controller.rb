@@ -3,7 +3,8 @@
 class ContentController < ModuleController
 
 
-  # This isn't a real module controller, it just acts like one
+  # This isn't a real module controller, it just acts like one with
+  # handlers and stuff
   skip_before_filter :validate_module
 
   layout 'manage'
@@ -19,6 +20,7 @@ class ContentController < ModuleController
   register_handler :content, :publication, "Content::CorePublication"
   
   register_handler :content, :feature, "Content::CoreFeature::EmailTargetConnect"
+  register_handler :content, :feature, "Content::CoreFeature::FieldFormat"
   
   register_handler :trigger, :actions, "Trigger::CoreTrigger"
   
@@ -247,10 +249,15 @@ class ContentController < ModuleController
     @header = "<script src='/javascripts/cms_form_editor.js' type='text/javascript'></script>"
 
     if request.post?
-      if @content_model.update_entry(@entry,params[:entry],myself)
-        flash[:notice] = "Saved %s" / @entry.identifier_name
-        redirect_to :action => 'view', :path => content_id
-        expire_content(@content_model)
+      if params[:commit] 
+        if @content_model.update_entry(@entry,params[:entry],myself)
+          flash[:notice] = "Saved %s" / @entry.identifier_name
+          redirect_to :action => 'view', :path => content_id
+          expire_content(@content_model)
+          return
+        end
+      else
+        redirect_to :action => 'view', :path => @content_model.id
         return
       end
     end
@@ -311,7 +318,6 @@ class ContentController < ModuleController
     
     @field_types = ContentModel.content_field_options
     
-    @relationship_classes = ContentModel.relationship_classes
   end
   
   
@@ -319,8 +325,6 @@ class ContentController < ModuleController
   def new_field
     @content_field =ContentModelField.new(params[:add_field])
     @content_field.field_options={}
-    
-    @relationship_classes = ContentModel.relationship_classes
     
     if !@content_field.valid?
       render :inline => "<script>alert('#{jvh("Invalid Field: " + @content_field.errors.full_messages.join(",")) }');</script>"
@@ -559,19 +563,14 @@ class ContentController < ModuleController
       fld_index = info[0]
       fld_data = info[1]
       pub_field= publication_fields[fld_data[:id].to_i] || @publication.content_publication_fields.build()
-      pub_field.position = position
-      
-      pub_field.data = { :field_format => fld_data[:field_format],
-                         :dynamic => fld_data[:dynamic],
-                         :options => fld_data[:options] || [],
-                         :order => fld_data[:order]
-                       }
-      if(fld_data[:control])
-        pub_field.data[:control] = fld_data[:control]
-      end
       pub_field.label = fld_data[:label]
       pub_field.content_model_field_id= fld_data[:content_field_id]
       pub_field.field_type = fld_data[:field_type]
+      
+      pub_field.position = position
+
+      fld_opts = pub_field.field_options(fld_data)
+      pub_field.data = fld_opts.to_hash
       
       # Quick hack make sure the preset is in the right format
       # Create a new object of the preset type,

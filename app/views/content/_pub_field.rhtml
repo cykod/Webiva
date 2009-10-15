@@ -20,6 +20,10 @@
         <%= render :partial => cust_field[1], :locals => { :f => sf, :field_index => field_index, :field => fld } %>
       </tbody>
       <% end -%>
+
+      <tbody id='input_<%= field_index %>' <%= "style='display:none;'" unless %w(input).include?(fld.field_type) %> >
+          <%= sf.check_boxes :required, [['Field is required',true]], :single => true, :label => false %>
+      </tbody>
     
       <tbody id='format_<%= field_index %>' <%= "style='display:none;'" unless %w(format).include?(fld.field_type) %> >
           <%= sf.text_field :field_format %>

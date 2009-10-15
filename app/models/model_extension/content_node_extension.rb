@@ -52,14 +52,15 @@ module ModelExtension::ContentNodeExtension
     def save_content(user,atr={},skip_save = false)
       self.attributes = atr 
       self.content_node_skip = true
-      if skip_save || self.save
+      
+      if skip_save || (saved_content = self.save)
         if !self.content_node_options[:except] || resolve_argument(self.content_node_options[:except],nil)
           cn = self.content_node || self.build_content_node
           cn.update_node_content(user,self,self.content_node_options)
         end
       end
       self.content_node_skip = false
-      true
+      return skip_save || saved_content
     end
   end
   

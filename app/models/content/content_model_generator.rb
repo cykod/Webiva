@@ -22,11 +22,18 @@ module Content::ContentModelGenerator
     # Setup the fields in the model as necessary (required, validation, etc)
     self.content_model_fields.each { |fld| fld.setup_model(cls) }
     
-    
-    if self.content_model_fields.length  > 0
+    if !self.identifier_name.blank?
       identifier_func = <<-SRC
         def identifier_name
-          self.send(:#{self.content_model_fields[0].field}).to_s + " (" + self.id.to_s + ")"
+          @identifier_name ||= variable_replace("#{self.identifier_name.gsub('"','\\"')}",self.attributes.symbolize_keys)
+        end
+      SRC
+      
+      cls.class_eval identifier_func, __FILE__, __LINE__
+    elsif self.content_model_fields.length  > 0
+      identifier_func = <<-SRC
+        def identifier_name
+          self.send(:#{self.content_model_fields[0].field}).to_s
         end
       SRC
       

@@ -155,52 +155,27 @@ def display_feature(publication,data)
   end
   
 
-  def list_feature(publication,data)
-    webiva_feature(publication.feature_name,data) do |c|
-      c.loop_tag('entry','entries') { |tag| data[:entries].is_a?(Array) && data[:entries]   }
-      c.value_tag('entry:id') { |tag| tag.locals.entry.id }
-      c.link_tag('entry:list') { |tag| Configuration.domain_link(paragraph_page_url) }
-      c.link_tag('entry:detail') { |tag| "#{data[:detail_page]}/#{tag.locals.entry.id}" }
-    
-      publication.content_publication_fields.each do |fld|
-        case fld.content_model_field_id
-        when -1:
-            c.define_tag "entry:edit_button" do |tag|
-            "<form action='#{data[:detail_page]}/#{tag.locals.entry.id}' method='get'><input type='submit' value='#{tag.expand}'/></form>"
-          end
-        when -2:
-          c.define_tag "entry:delete_button" do |tag|
-            "<form onsubmit='return confirm(\"#{jh "Are you sure you want to delete entry?".t}\");' action='#{data[:detail_page]}/#{tag.locals.entry.id}' method='get'><input type='submit' value='#{tag.expand}'/></form>"
-          end
-        else 
-          tag_name = %w(belongs_to document image).include?(fld.content_model_field.field_type) ? fld.content_model_field.field_options['relation_name'] : fld.content_model_field.field
-          
-          
-          if %w(document image).include?(fld.content_model_field.field_type)
-	          c.value_tag "entry:#{tag_name}_url" do |tag|
-	            file = tag.locals.entry.send(fld.content_model_field.field_options['relation_name'])
-              if file
-                file.url(tag.attr['size'] || nil)
-              else
-                nil
-              end
-	          end
-	        end        
-          
-          if fld.content_model_field.field_type == 'image'
-            c.define_image_tag("entry:#{tag_name}") { |t| t.locals.entry.send(fld.content_model_field.field_options['relation_name']) }
-          else 
-            c.value_tag "entry:#{tag_name}" do |tag|
-              val = tag.locals.entry.send(fld.content_model_field.field)
-	            if !val || val.to_s.strip.empty?
-	             nil
-	            else
-            	   val = fld.content_model_field.content_display(tag.locals.entry,:full,tag.attr)
-            	end
-            end          
-        end
-      end
-        
+ def list_feature(publication,data)
+   webiva_feature(publication.feature_name,data) do |c|
+     c.loop_tag('entry','entries') { |tag| data[:entries].is_a?(Array) && data[:entries]   }
+     c.value_tag('entry:id') { |tag| tag.locals.entry.id }
+     c.link_tag('entry:list') { |tag| Configuration.domain_link(paragraph_page_url) }
+     c.link_tag('entry:detail') { |tag| "#{data[:detail_page]}/#{tag.locals.entry.id}" }
+     
+     publication.content_publication_fields.each do |fld|
+       case fld.content_model_field_id
+       when -1:
+           c.define_tag "entry:edit_button" do |tag|
+           "<form action='#{data[:detail_page]}/#{tag.locals.entry.id}' method='get'><input type='submit' value='#{tag.expand}'/></form>"
+         end
+       when -2:
+           c.define_tag "entry:delete_button" do |tag|
+           "<form onsubmit='return confirm(\"#{jh "Are you sure you want to delete this entry?".t}\");' action='#{data[:detail_page]}/#{tag.locals.entry.id}' method='get'><input type='submit' value='#{tag.expand}'/></form>"
+         end
+       else
+         fld.content_model_field.site_feature_value_tags(c,'entry',:full)
+       end
+       
     end
     c.pagelist_tag('pages') { |t| data[:pages] }
    end

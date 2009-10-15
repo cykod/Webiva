@@ -95,21 +95,20 @@ class Content::CoreField < Content::FieldHandler
                          :description => 'Belongs to Relationship',
                          :representation => :integer,
                          :relation => true
+                       },
+                       { :name => :has_many, 
+                         :description => 'Has Many Relationship',
+                         :representation => :none,
+                         :relation => :plural
                        }
-                       
-#                       ,
-#                       { :name => :has_many, 
-#                         :description => 'Has Many Relationship',
-#                         :representation => :none
-#                       }
                        
                      ]  
                      
 
   
   class StringField < Content::Field
-    field_options :required
-    setup_model :required
+    field_options :required, :unique, :regexp
+    setup_model :required, :unique, :regexp
     table_header :string
     
     content_display :text
@@ -122,8 +121,8 @@ class Content::CoreField < Content::FieldHandler
   end
   
   class IntegerField < Content::Field
-    field_options :required
-    setup_model :required, :validates_numericality
+    field_options :required, :regexp
+    setup_model :required, :validates_numericality, :regexp
     table_header :number
     
     content_display :text
@@ -177,8 +176,8 @@ class Content::CoreField < Content::FieldHandler
   end  
   
   class EmailField < Content::Field
-    field_options :required
-    setup_model :required, :validates_as_email
+    field_options :required, :unique
+    setup_model :required, :validates_as_email, :unique
     table_header :string
     
     content_display :text
@@ -208,7 +207,7 @@ class Content::CoreField < Content::FieldHandler
   end
   
   class ImageField < Content::Field
-    field_options :required, :belongs_to
+    field_options :required
     table_header :has_relation
     filter_setup :empty
     
@@ -243,7 +242,7 @@ class Content::CoreField < Content::FieldHandler
           parameters[key] = nil
       elsif parameters[key].is_a?(String)
         parameters[key] = parameters[key].to_i
-      elsif !parameters[key].to_s.empty? 
+      elsif !parameters[key].blank? 
         image_folder  = Configuration.options[:default_image_location] || 1
         file = DomainFile.create(:filename => parameters[key],
                                  :parent_id => image_folder)
@@ -260,6 +259,22 @@ class Content::CoreField < Content::FieldHandler
       end  
       parameters.delete(key.to_s + "_clear")      
     end
+
+
+    def site_feature_value_tags(c,name_base,size=:full)
+      tag_name = @model_field.feature_tag_name
+      fld = @model_field
+      c.value_tag "#{name_base}:#{tag_name}_url" do |t|
+        file = t.locals.entry.send(fld.relation_name)
+        if file
+          file.url(t.attr['size'] || nil)
+        else
+          nil
+        end
+      end
+
+      c.image_tag("#{name_base}:#{tag_name}") { |t| t.locals.entry.send(fld.relation_name) }
+    end
   end
   
   class DocumentField < Content::CoreField::ImageField
@@ -275,6 +290,29 @@ class Content::CoreField < Content::FieldHandler
       else
         f.upload_document field_name, field_opts.merge(options)
       end          
+    end
+
+
+    def site_feature_value_tags(c,name_base,size=:full)
+      tag_name = @model_field.feature_tag_name
+      fld = @model_field
+      
+      c.value_tag("#{name_base}:#{tag_name}") do |t|
+        df = t.locals.entry.send(fld.relation_name)
+        if df
+          "<a href='#{df.url}' target='_blank'>#{h(df.name)}</a>"
+        else
+          nil
+        end
+      end
+      c.link_tag("#{name_base}:#{tag_name}") do |t|
+        df = t.locals.entry.send(fld.relation_name)
+        if df
+          df.url
+        else
+          nil
+        end
+      end
     end
   end
   
@@ -303,7 +341,7 @@ class Content::CoreField < Content::FieldHandler
         field_opts[:separator] = '<br/>'
         f.radio_buttons field_name,available_options , field_opts.merge(options)
       else
-        f.select field_name, available_options , field_opts.merge(options)
+        f.select field_name, [['--Select--',nil]] + available_options , field_opts.merge(options)
       end    
     end
     
@@ -406,7 +444,7 @@ class Content::CoreField < Content::FieldHandler
   end
   
   class BelongsToField < Content::Field
-    field_options :required
+    field_options :required, :belongs_to
     setup_model :required  do |cls,fld|
       if fld.model_field.field_options['relation_name'] && fld.model_field.field_options['relation_class']
        cls.belongs_to fld.model_field.field_options['relation_name'].to_sym, :class_name => fld.model_field.field_options['relation_class'], :foreign_key => fld.model_field.field        
@@ -414,17 +452,50 @@ class Content::CoreField < Content::FieldHandler
     end
     
     table_header :has_relation
+
+    display_options_variables :control, :group_by_id
     
     filter_setup :empty
+
+    
     
     def form_field(f,field_name,field_opts,options={})
-      if @model_field.field_options['relation_class'].blank?
-        begin      
-          cls = @model_field.field_options['relation_class'].constantize
-          f.select field_name, [['--Select %s--' / field.name, nil ]] + cls.select_options, field_opts, options
-        rescue Exception => e
-          f.custom_field field_name, options.merge(field_opts.merge(:value => 'Invalid Relation'))
+      if cls = @model_field.relation_class
+        if options[:group_by_id] && mdl_field = ContentModelField.find_by_id(options[:group_by_id])
+          all_elems = cls.find(:all)
+
+          available_options =  {}
+          all_elems.group_by { |elm| mdl_field.content_display(elm) }.each do |key,arr|
+            available_options[key] = arr.map { |elm| [ elm.identifier_name, elm.id ] }
+          end
+          case options.delete(:control).to_s
+          when 'radio'
+            field_opts[:class] = 'radio_buttons'
+            f.grouped_radio_buttons field_name,available_options , field_opts.merge(options)
+          when 'radio_vertical'
+            field_opts[:class] = 'radio_buttons'
+            field_opts[:separator] = '<br/>'
+            f.grouped_radio_buttons field_name,available_options , field_opts.merge(options)
+          else
+            f.grouped_select field_name, available_options, field_opts.merge(options)
+          end
+        else
+          available_options = cls.select_options
+          case options.delete(:control).to_s
+          when 'radio'
+            field_opts[:class] = 'radio_buttons'
+            f.radio_buttons field_name,available_options , field_opts.merge(options)
+          when 'radio_vertical'
+            field_opts[:class] = 'radio_buttons'
+            field_opts[:separator] = '<br/>'
+            f.radio_buttons field_name,available_options , field_opts.merge(options)
+          else
+            f.select field_name, [['--Select %s--' / @model_field.name, nil ]] +  available_options , field_opts.merge(options)
+          end
         end
+      else
+        f.custom_field field_name, options.merge(field_opts.merge(:value => 'Invalid Relation' ))
+
       end
     end    
     
@@ -433,6 +504,92 @@ class Content::CoreField < Content::FieldHandler
         h(entry.send(@model_field.field_options['relation_name']) ? entry.send(@model_field.field_options['relation_name']).identifier_name : '')
       end
     end
+    
+    def form_display_options(pub_field,f)
+      mdl  =  pub_field.content_model_field.content_model_relation
+      if mdl
+        f.radio_buttons(:control, [ ['Select Box','select '], ['Radio Buttons','radio' ], ['Vertical Radio Buttons','radio_vertical' ] ]) + 
+          f.select(:group_by_id, [["--Don't Group Fields--".t,nil ]] + mdl.content_model_fields.map { |fld| [fld.name, fld.id ]} )
+      else
+        nil
+      end
+    end 
+
+    
+  end
+
+  class HasManyField < Content::Field
+    field_options :required, :has_many
+
+    setup_model  do |cls,fld|
+#      cls.validates_presence_of "#{fld.model_field.field_options['relations_singular']}_ids" if fld.model_field.field_options['required']
+      if fld.model_field.field_options['relation_name'] && fld.model_field.field_options['relation_class']
+        cls.has_through_relations(fld.model_field)
+      end
+    end
+
+    table_header :static
+
+    display_options_variables :control, :group_by_id
+
+    def form_field(f,field_name,field_opts,options={})
+      if cls = @model_field.relation_class
+        if options[:group_by_id] && mdl_field = ContentModelField.find_by_id(options[:group_by_id])
+          all_elems = cls.find(:all)
+
+          available_options =  {}
+          all_elems.group_by { |elm| mdl_field.content_display(elm) }.each do |key,arr|
+            available_options[key] = arr.map { |elm| [ elm.identifier_name, elm.id ] }
+          end
+          control = :grouped_check_boxes
+        else
+          available_options = cls.select_options
+          control = :check_boxes
+        end
+
+        
+        case options.delete(:control).to_s
+        when 'vertical_checkbox'
+          field_opts[:class] = 'check_boxes'
+          field_opts[:separator] = '<br/>'
+          f.send(control,"#{@model_field.field_options['relation_singular']}_ids",available_options , field_opts.merge(options))
+        else 'radio'
+          field_opts[:class] = 'check_boxes'
+          f.send(control, "#{@model_field.field_options['relation_singular']}_ids",available_options , field_opts.merge(options))
+        end
+      else
+        f.custom_field field_name, options.merge(field_opts.merge(:value => 'Invalid Relation' ))
+      end
+    end    
+    
+    def content_display(entry,size=:full,options={})
+      if !@model_field.field_options['relation_class'].blank?
+
+        h(entry.send(@model_field.field_options['relation_name']) ? entry.send(@model_field.field_options['relation_name']).map(&:identifier_name).join(", ") : '')
+      end
+    end
+
+    def assign_value(entry,value)
+      if @model_field.relation_class
+        entry.send("#{@model_field.field_options['relation_singular']}_ids=",value)
+      end
+    end
+    
+    def assign(entry,values)
+      if @model_field.relation_class
+        entry.send("#{@model_field.field_options['relation_singular']}_ids=",values["#{@model_field.field_options['relation_singular']}_ids".to_sym ])
+      end
+    end
+
+    def form_display_options(pub_field,f)
+      mdl  =  pub_field.content_model_field.content_model_relation
+      if mdl
+        f.radio_buttons(:control, [ ['Check Boxes','checkbox '], ['Vertical Check Boxes','vertical_checkbox' ] ]) + 
+          f.select(:group_by_id, [["--Don't Group Fields--".t,nil ]] + mdl.content_model_fields.map { |fld| [fld.name, fld.id ]} )
+      else
+        nil
+      end
+    end 
     
   end
   

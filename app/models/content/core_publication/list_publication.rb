@@ -39,7 +39,7 @@ class Content::CorePublication::ListPublication < Content::PublicationType
 	output += "\t\t<td><cms:delete_link><cms:trans>Delete</cms:trans></td>\n"
       else 
 	      if fld.data[:options] && fld.data[:options].include?('link')
-	        output += "\t\t<td><a <cms:detail_href/>><cms:#{tag_name}/></a></td>\n"
+	        output += "\t\t<td><cms:detail_link><cms:#{tag_name}/></cms:detail_link></td>\n"
 	      else
 	        output += "\t\t<td><cms:#{tag_name}/></td>\n"
 	      end

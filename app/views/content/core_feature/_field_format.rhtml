@@ -1,0 +1,2 @@
+<%= f.select :target_field_id, [['--Select Field--'.t,nil]] + @content_model.content_model_fields.map { |elm| [ elm.name,elm.id ] }, :description => 'The value in this vield will be replaced with the format string'  %>
+<%= f.text_field :format_string, :description => 'Can use %%field_name%% to use value of other fields' %>
