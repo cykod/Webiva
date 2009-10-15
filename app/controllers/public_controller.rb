@@ -60,7 +60,7 @@ class PublicController < ApplicationController
     df = DomainFile.find_by_prefix_and_filename(prefix,filename)
     sz = DomainFileSize.find_by_size_name(size)
     
-    if df && sz
+    if df && sz 
       name = sz.execute(df)
       if df.mime_type.blank?
         name = df.filename(sz.size_name)
@@ -75,7 +75,18 @@ class PublicController < ApplicationController
         x_send_file(name,:type => mime_type,:disposition => 'inline',:filename => df.name)    
       else
         send_file(name,:type => mime_type,:disposition => 'inline',:filename => df.name)    
-      end   
+      end
+    elsif df && DomainFile.image_sizes_hash[size.to_sym]
+      df.generate_thumbnails(true)
+      name = df.filename(size)
+      mime_types =  MIME::Types.type_for(name) 
+      mime_type = mime_types[0] ? mime_types[0].to_s : 'application/octet-stream'
+
+      if USE_X_SEND_FILE
+        x_send_file(name,:type => mime_type,:disposition => 'inline',:filename => df.name)    
+      else
+        send_file(name,:type => mime_type,:disposition => 'inline',:filename => df.name)    
+      end
     else
       render :inline => 'File not found', :status => 404
     end    

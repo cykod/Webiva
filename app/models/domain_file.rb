@@ -13,7 +13,6 @@ class DomainFile < DomainModel
   @@image_sizes = {}
   @@image_size_array.each { |size|  @@image_sizes[size[0]] = [ size[1], size[1] ]  }
  
-  
   @@archive_extensions = ['zip','gz','tar' ]
   
   @@disable_file_processing = false
@@ -33,10 +32,14 @@ class DomainFile < DomainModel
   
   cattr_accessor :public_file_extensions
   
-	attr_accessor :skip_transform
+  attr_accessor :skip_transform
     
   def self.image_sizes
     @@image_size_array
+  end
+
+  def self.image_sizes_hash
+    @@image_sizes
   end
   
   has_and_belongs_to_many :mail_templates
@@ -210,46 +213,77 @@ class DomainFile < DomainModel
    # This is called before the file is saved for the first time (we don't have an id)
    def preprocess_file
 
-    current_file_name = nil
-    if @file_data
-      # Write the filename so we know where to save it (and make sure this file validates)
-      begin
-        current_file_name =File.basename(DomainFile.sanitize_filename(@file_data.original_filename.to_s.downcase))
-        self.write_attribute(:filename,current_file_name)
-      rescue Exception => e
-        self.write_attribute(:filename,nil)
-      end
-      
-      if current_file_name
-			  ext = File.extname(current_file_name)[1..-1]
-			  self.extension= ext.downcase if ext.length > 0 
-		  end    
-		end
-		
-		# If we're not a folder, get a file type
-		if !self.file_type
-			if @@img_file_extensions.include?(self.extension)
-				self.file_type = 'img'
-			elsif @@thm_file_extensions.include?(self.extension)
-				self.file_type = 'thm'
-			else
-				self.file_type = 'doc'
-			end  
-		end
-		
-		if self.file_type.to_s != 'fld'
-		  self.errors.add_to_base('file is missing') if !current_file_name
-		end
-		
-		# Make sure we're somewhere in the file tree
-		self.parent_id = DomainFile.root_folder.id if self.file_type.to_s != 'fld' && !self.parent_id #&& !self.name.blank?
-   
-    if self.name.blank?
-      self.name = current_file_name
-    end
-		
-		
-		
+     current_file_name = nil
+     if @file_data
+       # Write the filename so we know where to save it (and make sure this file validates)
+       begin
+         current_file_name =File.basename(DomainFile.sanitize_filename(@file_data.original_filename.to_s.downcase))
+         self.write_attribute(:filename,current_file_name)
+       rescue Exception => e
+         self.write_attribute(:filename,nil)
+       end
+       
+       if current_file_name
+         ext = File.extname(current_file_name)[1..-1]
+         self.extension= ext.downcase if ext.length > 0 
+       end    
+     end
+     
+     # If we're not a folder, get a file type
+     if !self.file_type
+       if @@img_file_extensions.include?(self.extension)
+         self.file_type = 'img'
+       elsif @@thm_file_extensions.include?(self.extension)
+         self.file_type = 'thm'
+       else
+         self.file_type = 'doc'
+       end  
+     end
+     
+     if self.file_type.to_s != 'fld'
+       self.errors.add_to_base('file is missing') if !current_file_name
+     end
+     
+     # Make sure we're somewhere in the file tree
+     self.parent_id = DomainFile.root_folder.id if self.file_type.to_s != 'fld' && !self.parent_id #&& !self.name.blank?
+     
+     if self.name.blank?
+       self.name = current_file_name
+     end
+     
+     
+     
+   end
+
+   def generate_thumbnails(save_file=true)
+     info = {}
+     
+     info[:image_size] = {}
+     
+     begin
+       img = Magick::Image.read(self.abs_filename).first
+       
+       mime = MIME::Types.type_for(self.abs_filename)
+       self.mime_type = mime[0] ? mime[0].to_s : 'application/octet-stream'
+       
+       info[:image_size][:original] = [ img.columns, img.rows ]
+       
+       # Do the transforms
+       DomainFile.image_sizes.each do |size|
+         thumbnail = img.resize_to_fit(size[1],size[1])
+         info[:image_size][size[0]] = [ thumbnail.columns, thumbnail.rows ]
+         FileUtils.mkpath(self.abs_storage_directory + size[0].to_s);
+         thumbnail.write(self.abs_filename(size[0]))
+       end
+     rescue Exception => e
+       self.file_type = 'doc'
+     end
+
+     self.meta_info = info
+     
+     self.save if save_file
+     
+
    end
    
    # This is called after the file is saved for the first time
@@ -260,7 +294,6 @@ class DomainFile < DomainModel
     
       # Set the prefix
       self.prefix = "#{DomainFile.generate_prefix}/#{self.id}" if  self.prefix.blank?
-      info = {}
       
       # Save the file to the correct location
       FileUtils.mkpath(self.abs_storage_directory);
@@ -283,27 +316,7 @@ class DomainFile < DomainModel
       # Unless we're skipping the transform on this
       if !@skip_transform
         if(self.file_type=='img')
-          info[:image_size] = {}
-          
-#          begin
-            img = Magick::Image.read(self.abs_filename).first
-            
-            mime = MIME::Types.type_for(self.abs_filename)
-            self.mime_type = mime[0] ? mime[0].to_s : 'application/octet-stream'
-            
-            info[:image_size][:original] = [ img.columns, img.rows ]
-            
-            DomainFile.image_sizes.each do |size|
-              thumbnail = img.resize_to_fit(size[1],size[1])
-              info[:image_size][size[0]] = [ thumbnail.columns, thumbnail.rows ]
-              FileUtils.mkpath(self.abs_storage_directory + size[0].to_s);
-              thumbnail.write(self.abs_filename(size[0]))
-            end
-#          rescue Exception => e
-#            self.file_type = 'doc'
-#          end
-        
-          # Do the transforms
+          generate_thumbnails(false)
         end
       
         # Do all the standard transforms
@@ -311,7 +324,7 @@ class DomainFile < DomainModel
         # Update the meta data
       end
       
-      self.meta_info = info
+      
       
       @file_data = nil
       self.save unless update  # Resave to update the file information if we are during the creation process
@@ -487,6 +500,18 @@ class DomainFile < DomainModel
       df.destroy
       return nil
     end
+   end
+
+     # Upload an image 
+   def self.file_upload(file,parent_id=nil,user_id=nil)
+    unless parent_id
+      root = DomainFile.root_folder
+      parent_id = root.id
+    end
+    df = DomainFile.new(:filename => file, :parent_id => parent_id,:creator_id => user_id )
+    df.save
+    
+     df
    end
    
    def mini_icon
