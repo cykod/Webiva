@@ -48,6 +48,7 @@ class SiteFeature < DomainModel
   end
   
   def self.default_feature(feature_type)
+    feature_type = feature_type.to_s
     features = ParagraphRenderer.get_editor_features + ParagraphRenderer.get_component_features + ContentPublication.get_publication_features
     
     features.each do |feature|
@@ -57,9 +58,9 @@ class SiteFeature < DomainModel
           feature_data = pub.default_feature
           return feature_data
         else
-	        cls = feature[2].constantize
-	        return cls.send("get_default_feature_#{feature_type}")
-	      end
+          cls = feature[2].constantize
+          return cls.send("get_default_feature_#{feature_type}")
+        end
       end
     end
   end

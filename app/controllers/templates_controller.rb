@@ -273,7 +273,7 @@ class TemplatesController < CmsController
   end
   
   def feature(popup=false)
-    @feature = SiteFeature.find_by_id(params[:path][0]) || SiteFeature.new(:feature_type => @paragraph.feature_type, :name => @paragraph.feature_type.humanize)
+    @feature = SiteFeature.find_by_id(params[:path][0]) || SiteFeature.new(:feature_type => @paragraph.feature_type.to_s, :name => @paragraph.feature_type.to_s.humanize)
     
     if !@feature.id
       @feature.body = SiteFeature.default_feature(@paragraph.feature_type)
@@ -319,7 +319,7 @@ class TemplatesController < CmsController
 	  end
 	  
     
-    require_js('edit_area/edit_area_full')
+    require_js('edit_area/edit_area_loader')
     require_js('highlight/highlight.pack.js')
     require_css('/javascripts/highlight/styles/default.css')
   end
