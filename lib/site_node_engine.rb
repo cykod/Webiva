@@ -928,7 +928,7 @@ EOF
         (0..part[:paragraphs].length).each do |idx|
           if part[:paragraphs][idx].is_a?(Hash) || part[:paragraphs][idx].is_a?(PageParagraph)
             part[:paragraphs][idx] =  PageParagraph.thaw(part[:paragraphs][idx]) if part[:paragraphs][idx].is_a?(Hash)
-            if part[:paragraphs][idx].connections
+            if part[:paragraphs][idx].connections && part[:paragraphs][idx].connections[:inputs] 
               part[:paragraphs][idx].connections[:inputs].each do |input_type,input|
                 if input[1].to_s.include?("page_arg_")
                   level = input[1].to_s[-1..-1].to_i + 1
