@@ -300,8 +300,12 @@ class DomainModel < ActiveRecord::Base
     end
   end  
   
-  def variable_replace(txt,vars = {})
-    self.class.variable_replace(txt,vars)
+ def variable_replace(txt,vars = {})
+   txt.gsub(/\%\%(\w+)\%\%/) do |mtch|
+     var_name =$1.downcase.to_sym
+#     raise var_name.to_s + vars[var_name].inspect
+     vars[var_name] ? (vars[var_name].is_a?(Proc) ? vars[var_name].call(self,var_name) : vars[var_name]) : ''
+   end
   end
   
   def set_through_collection(collection,foreign_key,ids)
