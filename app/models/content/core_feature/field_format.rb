@@ -36,17 +36,28 @@ class Content::CoreFeature::FieldFormat <  Content::Feature
     field = content_model.content_model_fields.detect { |fld| fld.id == options.target_field_id }
     if field
       field_name = field.field
+
+      field_hash = {}
+      content_model.content_model_fields.each do |fld|
+        field_hash[fld.feature_tag_name.to_sym] = create_field_proc(fld)
+      end
       opts = self.options # Need to bind this locally
 
       cls.send(:before_save) do |entry|
 #        begin
-          entry.send("#{field_name}=",entry.variable_replace(opts.format_string,entry.attributes.symbolize_keys))
+          entry.send("#{field_name}=",entry.variable_replace(opts.format_string,field_hash))
 #        rescue Exception => e
 #          # Die silently
 #        end
       end
     end
     
+  end
+
+  protected
+
+  def create_field_proc(fld)
+    Proc.new { |entry,name| fld.content_display(entry) }
   end
   
 end

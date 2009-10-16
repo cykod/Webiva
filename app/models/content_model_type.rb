@@ -32,16 +32,24 @@ class ContentModelType < DomainModel
     relations_name = "content_relations_#{field_name}"
     has_many relations_name, :conditions => "content_model_id = #{self.quote_value(model_field.content_model_id)} AND content_model_field_id=#{self.quote_value(model_field.id)}", :as => :entry, :class_name => 'ContentRelation'
 
-    has_many target_relation_name, :through => relations_name,
+    has_many "#{target_relation_name}_dbs", :through => relations_name,
     :source => :relation,
     :source_type =>class_name
 
 
-    alias_method "old_#{target_relation_singular}_ids", "#{target_relation_singular}_ids"
+    alias_method "old_#{target_relation_singular}_ids", "#{target_relation_name}_db_ids"
     
     # Now customized set through connection stuff
     class_eval( <<-EOF)
- 
+
+    def #{target_relation_name}
+      if  @#{relations_name}_cache
+        #{class_name}.find(:all,:conditions => { :id => @#{relations_name}_cache }  )
+      else
+         #{target_relation_name}_dbs
+      end
+    end
+
     def #{target_relation_singular}_ids
       if @#{relations_name}_cache
         @#{relations_name}_cache.map { |elm| elm.blank? ? nil : elm.to_i }.compact
