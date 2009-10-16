@@ -164,37 +164,7 @@ class EditController < ModuleController
   def update_paragraphs(paragraphs)
     paragraphs.each do |para_id,para_data|
       para = @revision.page_paragraphs.find_by_id(para_id)
-      if para.display_type == 'textile'
-        begin
-          display_body = RedCloth.new(para_data).to_html
-	      rescue
-	        display_body = 'Invalid Textile'.t
-	      end
-        para.update_attributes(:display_body => display_body, :data => { :markup => para_data })
-      elsif para.display_type == 'markdown'
-        begin ## Throw away
-          display_body = para_data.gsub(/\!\[([^\]]+)\]\(([^"')]+)/) do |mtch|
-            alt_text = $1
-            full_url = $2
-            image_path,size = full_url.strip.split("::")
-            if image_path =~ /^http(s|)\:\/\//
-              url = full_url
-            else
-              df = DomainFile.find_by_file_path("/" + image_path)
-              url = df ? df.url(size) : "/images/spacer.gif"
-            end
-            "![#{alt_text}](#{url} "
-          end
-
-
-          display_body = Maruku.new(display_body).to_html
-	      rescue
-	        display_body = 'Invalid Markdown'.t
-	      end
-        para.update_attributes(:display_body => display_body, :data => { :markup => para_data })
-      else
-        para.update_attributes(:display_body => para_data)
-      end
+      para.update_attributes(:display_body => para_data)
     end
   
   end
@@ -498,6 +468,42 @@ class EditController < ModuleController
     expire_site
     
     render :action => 'version_reload', :layout => false
+  end
+
+  def edit_code
+    get_container
+    
+    require_js('edit_area/edit_area_loader')
+    
+    @page = @container_cls.find(@container_id)
+    @revision = @page.page_revisions.find(params[:path][2])
+    
+    @paragraph = @revision.page_paragraphs.find(params[:paragraph_id])
+    @para_index = params[:para_index]
+    
+    @body = params[:code]
+
+    @action_url = url_for(:action=>'update_code', :path => params[:path])
+
+    @title = "Edit %s Paragraph" / @paragraph.display_type.humanize
+    
+    render :action => 'edit_code', :layout => 'manage_window'
+  end
+
+  def update_code
+    get_container
+
+    @page = @container_cls.find(@container_id)
+    @revision = @page.page_revisions.find(params[:path][2])
+    
+    @paragraph = @revision.page_paragraphs.find(params[:paragraph_id])
+    @paragraph.attributes = params[:paragraph].slice(:display_body)
+    @paragraph.save
+
+    @para_index = params[:para_index]
+
+    render :action => 'update_code'
+
   end
   
   def page_info
@@ -877,37 +883,6 @@ class EditController < ModuleController
   
   end
   
-  def render_markup_paragraph
-    para = params[:paragraph]
-    case params[:paragraph_type]
-    when '_textile':
-      rc = RedCloth.new(para).to_html
-      render :text => "<div class='cms_paragraph_editor_cover'></div>" + rc
-    when '_markdown':
-      begin ## Throw away
-        bc = para.gsub(/\!\[([^\]]+)\]\(([^"')]+)/) do |mtch|
-            alt_text = $1
-            full_url = $2
-            image_path,size = full_url.strip.split("::")
-            if image_path =~ /^http(s|)\:\/\//
-              url = full_url
-            else
-              df = DomainFile.find_by_file_path("/" + image_path)
-              url = df ? df.url(size) : "/images/spacer.gif"
-            end
-            "![#{alt_text}](#{url} "
-          end
-        bc = Maruku.new(bc).to_html
-        render :text => "<div class='cms_paragraph_editor_cover'></div>" + bc 
-      rescue Exception => e
-        render :text => "Formatting Error, Please Re-edit paragraph:".t + e.to_s
-      end
-    else
-      render :text => 'Invalid Paragraph Type'
-    end
-  end
-  
-
   def update_triggered_actions
     action = TriggeredAction.find(params[:triggered_action_id])
     action.update_attribute(:comitted,true)

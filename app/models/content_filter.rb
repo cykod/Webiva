@@ -35,6 +35,12 @@ class ContentFilter < DomainModel
 
 
   def self.full_html_filter(code,options={})
+     # Need file filter to output __fs__ stuff
+    if options[:folder_id] && folder = DomainFile.find_by_id(options[:folder_id])
+      code = html_replace_images(code,folder.file_path)
+    else
+      code = html_replace_images(code,'')
+    end
     code
   end
 
@@ -46,14 +52,25 @@ class ContentFilter < DomainModel
   def self.markdown_filter(code,options={})
     # Need file filter to output __fs__ stuff
     if options[:folder_id] && folder = DomainFile.find_by_id(options[:folder_id])
-      code = replace_images(code,folder.file_path)
+      code = markdown_replace_images(code,folder.file_path)
+    else
+      code = markdown_replace_images(code,'')
     end
-    Maruku.new(code).to_html
+    begin
+      Maruku.new(code).to_html
+    rescue
+      "Invalid Markdown".t
+    end
+      
   end
 
   def self.textile_filter(code,options={})
     # Need file filter to output __fs__ stuff
-    RedCloth.new(code).to_html
+    begin
+      RedCloth.new(code).to_html
+    rescue
+      "Invalid Textile".t
+    end
   end
 
   def self.markdown_safe_filter(code,options={})
@@ -66,7 +83,7 @@ class ContentFilter < DomainModel
   end
 
   
-  def self.replace_images(code,image_folder_path)
+  def self.markdown_replace_images(code,image_folder_path)
     cd =  code.gsub(/\!\[([^\]]+)\]\(([^"')]+)/) do |mtch|
       alt_text = $1
       full_url = $2
@@ -75,9 +92,26 @@ class ContentFilter < DomainModel
         url = full_url
       else
         df = DomainFile.find_by_file_path(image_folder_path + "/" + image_path)
-        url = df ? df.editor_url(size) : "/images/spacer.gif"
+        url = df ? df.editor_url(size) :  "/images/site/missing_thumb.gif" 
       end
       "![#{alt_text}](#{url} "
+    end
+
+    cd
+  end
+
+  def self.html_replace_images(code,image_folder_path)
+
+    re = Regexp.new("(['\"])images\/([a-zA-Z0-9_\\-\\/. :]+?)\\1" ,Regexp::IGNORECASE | Regexp::MULTILINE)
+    cd =  code.gsub(re) do |mtch|
+      wrapper = $1
+      url = $2
+      if url.include?(":")
+        url,size = url.split(":")
+      end
+      df = DomainFile.find_by_file_path(image_folder_path + "/" + url)
+      url = df ? df.editor_url(size) : "/images/site/missing_thumb.gif"
+      "#{wrapper}#{url}#{wrapper}"
     end
 
     cd

@@ -226,7 +226,6 @@ class FileController < CmsController
       if active_module?('media') && folder.gallery
         gi = folder.gallery.gallery_images.create(:domain_file_id => file.id)
       end
-      
       folder.children << file  
     end
       

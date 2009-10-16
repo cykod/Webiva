@@ -1,3 +1,4 @@
+
 <br/>
 <% if info[1] -%>
 <script>
@@ -5,6 +6,14 @@
 </script>
 
 <b>Version <%= dec info[1].revision %>, <%= info[1].active? ? 'Active'.t : 'Inactive'.t %>, <%= render :partial => '/edit/saved_by', :locals => { :revision => info[1] } %></b>
+<div style='float:right; width:150px;'>
+  <% info[1].used_images.each do |img| %>
+     <div align='center'>
+         <img src='<%= img.thumbnail_url(theme,'thumb') %>'/><br/>
+         <%= h(img.name) %>
+     </div><br/>
+  <% end -%>
+</div>
 <br/>
 <br/>
 <% if permit?('editor_editor') %>

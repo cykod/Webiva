@@ -1,0 +1,63 @@
+
+<script>
+CodeEditor = {
+
+  saveChanges: function() {
+  
+   $("code_body").value = editAreaLoader.getValue("code_body");
+
+    var params = Form.serialize('code_form');
+    $('saving').innerHTML = "<%= jh "Updating Paragraph".t %>";
+    $('saving').appear();
+   
+    new Ajax.Request(CodeEditor.codeUrl,{ parameters: params });
+    return false;
+  },
+  
+  codeUrl: "<%= @action_url %>",
+  
+  codeLoad: function() {
+    editAreaLoader.init({
+			          id: "code_body"	// id of the textarea to transform		
+			          ,start_highlight: false	// if start with highlight
+			          ,allow_resize: "no"
+			          ,min_height: 450
+			          ,allow_toggle: true
+                                  ,toolbar: "search, go_to_line, fullscreen, |, undo, redo, |, select_font,|, change_smooth_selection, highlight, reset_highlight, |, help"
+			          ,language: "en"
+			          ,syntax: "html"	
+			          ,show_line_colors: false
+                                  ,display: "<%= @paragraph.display_type == 'code' ? 'onload' : 'later' %>"
+		          });
+  },
+
+  updateCode:function(para_index,html) {
+         window.opener.cmsEdit.setParagraphValue(para_index,html);
+
+  } 
+  
+
+}
+
+
+
+
+</script>
+
+<form action='' onsubmit='CodeEditor.saveChanges(); return false;' method='post' id='code_form'>
+<input type='hidden' name='paragraph_id' value='<%= @paragraph.id %>' />
+<input type='hidden' name='para_index' value='<%= @para_index %>' />
+
+            <textarea id='code_body' style='height:450px; width:100%;' name='paragraph[display_body]'><%= h @paragraph.display_body %></textarea>
+           
+<br/>
+<div style='width:400px; text-align:right;'>
+  <span id='saving' style='display:none;'>Saving Changes...</span>
+  <button class="submit_button" onclick='CodeEditor.saveChanges("para_index=<%= @paragraph_index %>"); return false;'><%= "Update Paragraph".t %></button>
+  <button class="submit_button" onclick='window.close();  return false;'><%= "Close".t %></button>
+</div>
+
+</form>
+<script type='text/javascript'>
+  CodeEditor.codeLoad();
+</script>

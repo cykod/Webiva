@@ -1,0 +1,4 @@
+
+page.CodeEditor.updateCode(@para_index,@paragraph.display_body_html);
+
+page.replace_html 'saving', 'Updated'

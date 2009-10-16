@@ -407,7 +407,7 @@ class DomainFile < DomainModel
    
   def update_file_path
     pth = ''
-    if self.parent && self.parent.file_path
+    if self.parent(true) && self.parent.file_path
       pth = self.parent.file_path
     end
     

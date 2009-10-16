@@ -30,7 +30,7 @@ function mceEventCallback(e) {
   var active_instance_id = tinyMCE.selectedInstance ? tinyMCE.selectedInstance.editorId : "";
   if(cmsEdit.visibleHtmlToolbar != active_instance_id ) {
     var toolbars = $$('.mceToolbarExternal');
-    
+
     for(i=0;i<toolbars.length;i++) {
       if(toolbars[i].id == active_instance_id + "_toolbar" && e.type != 'blur') {
         toolbars[i].style.display = "block";
@@ -45,19 +45,19 @@ function mceEventCallback(e) {
     var re = /^mouse(.*)$/
     if(e.type != 'focus' && e.type != 'blur' && e.type != 'click' && e.type != 'keypress' && e.type != 'keyup' && !re.exec(e.type)) {
       if(e.type == 'keydown') {
-        
+
         var charCode = (e.charCode) ? e.charCode :
 				((e.which) ? e.which : e.keyCode);
         if(!cmsSkipKeys[charCode])
-	   cmsEdit.pageChanged();		
+	   cmsEdit.pageChanged();
       }
       else {
         cmsEdit.pageChanged();
       }
     }
-    
+
   }
-  
+
   if(e.type =='focus') {
      cmsEdit.unselectParagraph();
   }
@@ -76,32 +76,32 @@ var cmsEdit = {
   pageType: null,
 	pageId: null,
 	revisionId: null,
-  siteTemplateId:null, 
-  pageActive: false, 
+  siteTemplateId:null,
+  pageActive: false,
 	availableParagraphs:null,
 	language: null,
   paraIndex:0,
-  
+
   destPageId:null,
   destRevisionId:null,
   destParams:null,
-	
+
   addParagraphType:null,
   addParagraphPub:null,
-  
+
   visibleHtmlToolbar:null,
   pageModified:false,
-  
+
   features:{},
   focusedElem:null,
   selectedParagraph:null,
   updateParagraphs:null,
   paragraphs:$H({}),
-	
+
 	setEditURL: function(url) {
 		cmsEdit.editURL = url;
 	},
-	
+
 	setPageInfo: function(page_type,page_id,revision_id,lang,active,template_id,page_url)  {
     cmsEdit.pageType= page_type;
 		cmsEdit.pageId = page_id;
@@ -114,15 +114,15 @@ var cmsEdit = {
       cmsEdit.siteTemplateId = template_id;
     }
 	},
-  
+
   setParagraphIndex: function(para_index) {
     cmsEdit.paraIndex = para_index;
   },
-  
+
   setText: function(txt) {
     cmsEdit.txt = $H(txt);
   },
-  
+
   prepareUpdate: function() { cmsEdit.updateParagraphs = {}; },
   updateParagraphId: function(old_paragraph_id,new_paragraph_id) { cmsEdit.updateParagraphs['' + old_paragraph_id] = new_paragraph_id },
   handleUpdate: function() {
@@ -132,45 +132,45 @@ var cmsEdit = {
         var updatePara = cmsEdit.updateParagraphs['' + para.paragraph_id];
         para.paragraph_id = updatePara;
       }
-    
+
     });
   },
-	
+
 	setParagraphs: function(paras) {
 		cmsEdit.availableParagraphs = $H(paras);
 	},
-	
+
 	clearTemplateFeatures: function() {
 	  cmsEdit.features = {};
-	
+
 	},
-  
+
   setTemplateFeatures: function(template_id,feature_type,feature_list) {
     if(!cmsEdit.features[template_id]) {
       cmsEdit.features[template_id] = $H({ def: [] } );
     }
-   
+
     cmsEdit.features[template_id].set(feature_type,feature_list);
-  
+
   },
-  
+
   getFeatures: function(template_id,feature_type) {
     var tpl_features = cmsEdit.features[template_id];
     var all_features = cmsEdit.features[0];
-    
+
     var feat = []
 
-    
-    
+
+
     if (tpl_features &&  tpl_features.get(feature_type)) feat = feat.concat(tpl_features.get(feature_type));
     if (all_features && all_features.get(feature_type)) feat = feat.concat(all_features.get(feature_type));
     return feat;
   },
-	
+
 	url: function(action) {
 	    return  cmsEdit.editURL + action + "/" + cmsEdit.pageType  + "/" + cmsEdit.pageId + "/" + cmsEdit.revisionId;
   	},
-  	
+
 	templateUrl: function(action,item_id) {
 	    if(item_id) {
   	    return  '/website/templates/' + action + "/" + item_id
@@ -179,42 +179,42 @@ var cmsEdit = {
   	    return  '/website/templates/' + action
   	  }
   	},
-  	
-    
+
+
   paragraphUrl: function(url,paragraph_id,para_index) {
     return url + "/" + cmsEdit.pageType + "/" + cmsEdit.pageId + "/" + cmsEdit.revisionId + "/" + paragraph_id + "/" + para_index
-  
+
   },
-  
+
   forceUrl: function(page_type,page_id) {
       return  cmsEdit.editURL + 'page' + "/" + page_type + "/" + page_id ;
   },
-    
+
   pageChanged:function() {
       cmsEdit.pageModified = true;
       $('cms_save_changes').disabled = false;
       // Start a 2 minute timer to backup any changes
   },
-  
+
   pageUnchanged: function() {
       cmsEdit.pageModified = false;
       $('cms_save_changes').disabled = true;
   },
-  
+
   registerParagraph:function(para_index,obj) {
     cmsEdit.paragraphs.set(para_index,obj);
-  
+
   },
-  
+
   cleanupParagraphs: function() {
       cmsEdit.paragraphs.each(function(elem) {
         if(elem[1]) {
           cmsEdit.paragraphs.get(elem[0]).cleanup();
         }
       });
-  
+
   },
-  
+
     /* Page Loading Funcs */
     refreshPage: function() {
       if(cmsEdit.pageModified) {
@@ -229,14 +229,14 @@ var cmsEdit = {
      else {
       cmsEdit.gotoRefreshUrl();
      }
-    
+
     },
-    
+
     refreshInfo: function() {
       new Ajax.Request(cmsEdit.url('refresh_info'));
     },
-    
-    
+
+
     reloadPage: function(page_type,page_id,site_template_id) {
       SCMS.hidePopupDiv('cms_select_page');
       if(site_template_id != cmsEdit.siteTemplateId) {
@@ -244,26 +244,26 @@ var cmsEdit = {
         if(cmsEdit.leavePage(new_page_url)) {
           setTimeout("document.location='" + new_page_url + "';",10);
         }
-        
+
       }
       else {
         cmsEdit.loadPage(page_type,page_id,'');
       }
     },
-    
+
     finishAction: function() {
       RedBox.close();
       cmsEdit.destAction(cmsEdit.destPageType,cmsEdit.destPageId ,cmsEdit.destRevisionId,cmsEdit.destParams );
     },
-    
+
     cancelAction: function() {
       RedBox.close();
     },
-    
+
     gotoPage: function() {
       return cmsEdit.leavePage(cmsEdit.pageUrl);
     },
-    
+
     leavePage: function(url) {
       if(cmsEdit.pageModified) {
         cmsEdit.destPageType = '';
@@ -276,21 +276,21 @@ var cmsEdit = {
       }
       else return true;
     },
-    
+
     gotoUrl: function(page_type,page_id,revsion_id,params) {
       document.location = params;
     },
-    
+
     gotoRefreshUrl: function(page_type,page_id,revision_id,params) {
         var new_page_url = cmsEdit.url('page');
         setTimeout("document.location='" + new_page_url + "';",10);
     },
-    
+
     gotoDestUrl: function() {
       document.location=cmsEdit.destParams;
-    
+
     },
-    
+
     saveFirst: function() {
       RedBox.close();
       if(cmsEdit.destAction == cmsEdit.fetchPage) {
@@ -317,8 +317,8 @@ var cmsEdit = {
                             cmsEdit.gotoRefreshUrl);
       }
     },
-    
-    
+
+
     loadPage: function(page_type,page_id,revision_id) {
       if(cmsEdit.pageModified) {
         cmsEdit.destPageType = page_type;
@@ -331,7 +331,7 @@ var cmsEdit = {
         cmsEdit.fetchPage(page_type,page_id,revision_id);
       }
     },
-    
+
     fetchPage: function(page_type,page_id,revision_id) {
         var selectedPage = $('page_selector_' + cmsEdit.pageType + '_' + cmsEdit.pageId );
         if(selectedPage) selectedPage.className = "cms_ajax_link";
@@ -341,46 +341,46 @@ var cmsEdit = {
         cmsEdit.pageType = page_type;
         cmsEdit.pageId = page_id;
         cmsEdit.revisionId = revision_id;
-        
+
         var newSelectedPage = $('page_selector_' + page_type + '_' + page_id);
         if(newSelectedPage) newSelectedPage.className = "cms_ajax_link_selected";
 
         new Ajax.Request(cmsEdit.url('reload_page'),
                          { onComplete: function() { RedBox.close(); } });
     },
-    
+
     preparePageRefresh: function() {
       cmsEdit.cleanupParagraphs();
       cmsEdit.paragraphs = $H({});
       cmsEdit.cancelAddFrameworkElement();
       cmsEdit.cancelAddParagraph();
     },
-    
+
     /* Framework Element Adding Funcs */
-    
+
     addSelectFrameworkElement: function() {
       SCMS.popupDiv('cms_add_framework_element');
     },
-    
+
     selectFrameworkElement: function(type) {
-      cmsEdit.cancelAddParagraph();    
-    
-      SCMS.hidePopupDiv('cms_add_framework_element'); 
+      cmsEdit.cancelAddParagraph();
+
+      SCMS.hidePopupDiv('cms_add_framework_element');
       Element.hide('cms_add_framework_element_icon');
       Element.show('cms_cancel_add_framework_element_icon');
       cmsEdit.displayAddFrameworkElems(true);
       cmsEdit.addElementType = type;
-    
+
     },
-    
+
     cancelAddFrameworkElement: function() {
-      SCMS.hidePopupDiv('cms_add_framework_element'); 
+      SCMS.hidePopupDiv('cms_add_framework_element');
       Element.show('cms_add_framework_element_icon');
       Element.hide('cms_cancel_add_framework_element_icon');
       cmsEdit.displayAddFrameworkElems(false);
-    
+
     },
-    
+
     createZoneElement: function(zone_idx) {
       if(cmsEdit.addElementType) {
         var para_info = cmsEdit.availableParagraphs.get(this.addElementType);
@@ -388,7 +388,7 @@ var cmsEdit = {
               display_type: para_info[1],
               para_index: this.paraIndex });
         this.paraIndex++;
-        
+
         cmsEdit.cancelAddFrameworkElement();
         new Ajax.Request(cmsEdit.url('add_paragraph'),
                   {
@@ -403,16 +403,16 @@ var cmsEdit = {
                     }
                   }
                   );
-      }   
+      }
     },
-    
+
     displayAddFrameworkElems: function(show) {
       var adds= $$('.cms_add_element_zone');
       adds.each(function(add) {
         show ? Element.show(add) : Element.hide(add);
       });
     },
-    
+
     removeFrameworkFeature: function(para_index) {
       if(confirm("Are you sure you want to delete this framework feature?")) {
         var element = $('cms_paragraph_' + para_index).parentNode;
@@ -420,27 +420,27 @@ var cmsEdit = {
         cmsEdit.confirmedDeleteParagraph(para_index);
       }
     },
-    
-    
+
+
     displayZoneFrameworkParagraphs: function(element,show) {
       var elems = getChildElementsByClass(element,'cms_rendered_wrapper');
       elems.each(function(add) {
         show ? Element.show(add) : Element.hide(add);
       });
     },
-    
+
     /* Paragraph Adding Funcs */
-    
-  	
+
+
   	addSelectParagraph: function() {
   		SCMS.popupDiv('cms_add_paragraph');
   	},
-    
-    
-  	
+
+
+
   	addParagraph: function(type,pub_id) {
-      cmsEdit.cancelAddParagraph();    
-      SCMS.hidePopupDiv('cms_add_paragraph'); 
+      cmsEdit.cancelAddParagraph();
+      SCMS.hidePopupDiv('cms_add_paragraph');
   		Element.hide('cms_add_paragraph_icon');
   		Element.show('cms_cancel_add_paragraph_icon');
   		cmsEdit.displayAddParagraphs(true);
@@ -448,27 +448,27 @@ var cmsEdit = {
   		  cmsEdit.addParagraphType = type + "_" + pub_id;
   		else
   		  cmsEdit.addParagraphType = type;
-  		
+
   	},
-  	
+
   	cancelAddParagraph: function() {
   		Element.hide('cms_cancel_add_paragraph_icon');
   		Element.show('cms_add_paragraph_icon');
   		cmsEdit.displayAddParagraphs(false);
-      cmsEdit.addParagraphType = null;                  
+      cmsEdit.addParagraphType = null;
   	},
-  	
+
   	displayAddParagraphs: function(show) {
   		var adds= $$('.cms_add_paragraph_zone');
   		adds.each(function(add) {
   			show ? Element.show(add) : Element.hide(add);
   		});
   	},
-  	
+
   	createParagraph:function(zone_idx) {
 	if(cmsEdit.addParagraphType) {
 	    var para = cmsEdit.availableParagraphs.get(cmsEdit.addParagraphType);
-	  
+
 	    params = $H({ zone: zone_idx,
 		  display_type: para[1],
 		  para_index: this.paraIndex
@@ -477,11 +477,11 @@ var cmsEdit = {
               params.set('pub_id',para[6]);
             }
 	    this.paraIndex++;
-	    
+
 	    if(para[0] != 'builtin') {
 	      params.set('display_module',para[3]);
 	    }
-	    
+
 	    new Ajax.Request(cmsEdit.url('add_paragraph'),
 		      {
 			parameters : params.toQueryString(),
@@ -494,31 +494,31 @@ var cmsEdit = {
 			}
 		      }
 		      );
-		    }  	
+		    }
 	  cmsEdit.cancelAddParagraph();
 	 },
-   
+
    editParagraph: function(para_index) {
       para_index = Number(para_index);
       var para = cmsEdit.paragraphs.get(para_index);
       var para_info = cmsEdit.availableParagraphs.get(para.paragraph_type);
-      
+
       if(cmsEdit.previewMode)
         return true;
 
-      
+
       if(para.isClientEditor()) {
         para.edit();
         return true;
       }
-    
+
       SCMS.setKeyHandler(null);
-      
+
       new Ajax.Updater('page_info_div',
                       cmsEdit.paragraphUrl(para_info[4],para.paragraph_id,para_index),
                       { parameters: { 'site_template_id' : cmsEdit.siteTemplateId },
                         method:'get',
-                        evalScripts:true, 
+                        evalScripts:true,
                         onComplete: function(req) {
                           setTimeout("RedBox.addHiddenContent('page_info_div');",20);
                         },
@@ -526,25 +526,25 @@ var cmsEdit = {
                           RedBox.loading();
                         }
                       });
-    
-   
+
+
    },
-   
+
    selectParagraph:function(para_id) {
       cmsEdit.unfocusSelectedParagraph();
       cmsEdit.unselectParagraph();
       $('cms_paragraph_menu_' + para_id).className = 'cms_paragraph_menu_selected';
       cmsEdit.selectedParagraph = para_id;
-   
+
    },
-   
+
    unselectParagraph:function() {
       if(cmsEdit.selectedParagraph && $('cms_paragraph_menu_' + cmsEdit.selectedParagraph)) {
         $('cms_paragraph_menu_' + cmsEdit.selectedParagraph).className = 'cms_paragraph_menu';
       }
       cmsEdit.selectedParagraph = null;
    },
-   
+
    /* Paragraph Sorting */
   recreateSortables: function() {
 
@@ -571,96 +571,96 @@ var cmsEdit = {
                 reverteffect: cmsEdit.revertParagraphDrag,
                 onUpdate:cmsEdit.pageChanged
                 })
-                
+
                 });
     this.ParagraphMovement = true;
 
   },
-  
+
   destroySortables: function() {
     $$('.cms_paragraph_zone').each(function(zone) {
       Sortable.destroy(zone.id);
     });
-  
-  
+
+
   },
-  
+
   saveParagraphPosition: function() {
-  
-  
+
+
   },
-  
+
   startParagraphDrag: function(elem) {
     cmsEdit.unselectParagraph();
     cmsEdit.displayAddParagraphs(false);
-    
+
     var elem_id = SCMS.getElemNum(elem.id);
     var paraObj = cmsEdit.paragraphs.get(elem_id);
     paraObj.showPreview(true);
 
-    
+
     var drops = $$('cms_paragraph_zone');
     drops.each(function(drop) {
       Element.addClassName(drop,'cms_paragraph_zone_drop');
     });
-  
+
   },
-  
+
   endParagraphDrag: function(elem) {
     var drops = $$('.cms_paragraph_zone');
     drops.each(function(drop) {
       Element.removeClassName(drop,'cms_paragraph_zone_drop');
     });
-    
+
     var elem_id = SCMS.getElemNum(elem.id);
     var paraObj = cmsEdit.paragraphs.get(elem_id);
-    
+
     paraObj.endPreview(true);
-  
-  
+
+
   },
-  
+
   revertParagraphDrag: function(element, top_offset, left_offset) {
       new Effect.Move(element, { x: -left_offset, y: -top_offset, duration: 0.01,
           queue: {scope:'_draggable', position:'end'}
         });
   },
-  
+
   /* Saving function */
-  
+
   saveChanges: function() {
     cmsEdit.pageModified=false;
     $('cms_save_changes').disabled = true;
     cmsEdit.sendChanges('save_changes');
-  
+
   },
-  
+
   saveAsSend: function(version) {
     cmsEdit.hideSaveAs();
     cmsEdit.pageModified=false;
     $('cms_save_changes').disabled = true;
     cmsEdit.sendChanges('save_as',"version=" + version);
   },
-  
+
   sendChanges: function(action,params,cleanup,callback) {
-  
+
     tinyMCE.triggerSave();
-    
-    
-    
+
+
+
     var update_params = cmsEdit._getParagraphOrder();
     update_params += cmsEdit._getParagraphData();
     if(params != undefined) {
       update_params += "&" + params;
     }
-    
+
     if(cleanup != undefined && cleanup) {
       cmsEdit.cleanupParagraphs();
     }
     else {
       $('cms_saving_icon').style.visibility='visible';
     }
-    
+
     new Ajax.Request(cmsEdit.url(action),
                      { method: "post",
                        parameters: update_params,
@@ -670,10 +670,10 @@ var cmsEdit = {
                         }
                        }
                      });
-  
-  
+
+
   },
-  
+
   _getParagraphOrder: function() {
     zones = $$('.cms_paragraph_zone');
     var update_str = ""
@@ -691,12 +691,12 @@ var cmsEdit = {
         });
 
 
-    });  
-    
+    });
+
     return update_str;
-  
+
   },
-  
+
   _getParagraphData: function() {
     var edit_paras = $$('.cms_paragraph_editor');
     var update_params  = ''
@@ -708,11 +708,11 @@ var cmsEdit = {
       }
     });
     return update_params;
-  
+
   },
-  
+
   /* Page Preview */
-  
+
   hideEditors: function() {
     cmsEdit.paragraphs.each(function(elem) {
       if(elem[1]) {
@@ -720,9 +720,9 @@ var cmsEdit = {
         cmsEdit.paragraphs.get(elem[0]).showPreview(false);
       }
     });
-  
+
   },
-  
+
   showEditors: function() {
     cmsEdit.paragraphs.each(function(elem) {
       if(elem[1]) {
@@ -731,9 +731,9 @@ var cmsEdit = {
       }
     });
   },
-  
+
   previewPage: function() {
-    
+
     cmsEdit.previewMode = true;
     tinyMCE.triggerSave();
     cmsEdit.destroySortables();
@@ -742,9 +742,9 @@ var cmsEdit = {
     // Kill All Sortables
     // Put each paragraph in preview moe
     cmsEdit.hideEditors();
-  
+
   },
-  
+
   cancelPreview: function() {
     cmsEdit.previewMode = false;
     cmsEdit.recreateSortables();
@@ -754,35 +754,35 @@ var cmsEdit = {
     // Remove Preview Mode
     cmsEdit.showEditors();
   },
-  
+
   /* Paragraph Moving */
   unfocusParagraph: function(para_index) {
     var para = cmsEdit.paragraphs.get(cmsEdit.focusedElem);
     if(para && para.isClientEditor()) {
       para.blur();
-    }  
+    }
   },
-  
+
   unfocusSelectedParagraph: function() {
     if(cmsEdit.focusedElem) {
 	$('cms_paragraph_html_editor_' + cmsEdit.focusedElem).blur();
     }
     cmsEdit.focusedElem = null;
-  
+
   },
-  
+
   focusParagraph: function(para_index) {
     cmsEdit.focusedElem = para_index;
     cmsEdit.unselectParagraph();
-  
+
   },
-  
+
   moveKey: function(evt) {
     if(cmsEdit.previewMode)
       return true;
-    
+
     var arrow = SCMS.getArrowKey(evt)
-    
+
     if(cmsEdit.focusedElem) {
       if(!cmsEdit.pageModified) {
 	var para = cmsEdit.paragraphs.get(cmsEdit.focusedElem);
@@ -799,28 +799,28 @@ var cmsEdit = {
 
     if(!cmsEdit.selectedParagraph)
       return true;
-    
-    
+
+
     if(!arrow) {
-       return false; 
+       return false;
      }
      else  {
         cmsEdit.pageChanged();
         cmsEdit.showPreviewTimeout(cmsEdit.selectedParagraph);
         if(arrow == 'up') {
-          
+
           if(!SCMS.moveElemUp('cms_paragraph_' + cmsEdit.selectedParagraph,'cms_paragraph')) {
             arrow = 'left';
           }
-          
+
         }
         if(arrow == 'down') {
            if(!SCMS.moveElemDown('cms_paragraph_' + cmsEdit.selectedParagraph,'cms_paragraph')) {
             arrow='right';
            }
         }
-        
-        if(arrow == 'left' || arrow == 'right') { 
+
+        if(arrow == 'left' || arrow == 'right') {
           var elem = $('cms_paragraph_' + cmsEdit.selectedParagraph);
           var zone = elem.parentNode;
           var zones = $$('.cms_paragraph_zone');
@@ -829,13 +829,13 @@ var cmsEdit = {
             idx = (idx + 1) % zones.length;
           }
           else {
-            if(--idx < 0) 
+            if(--idx < 0)
               idx = zones.length - 1;
           }
           Element.remove(elem);
           if(arrow =='right') {
             SCMS.unshiftElem(zones[idx],elem,'cms_paragraph');
-          
+
           }
           else {
             zones[idx].appendChild(elem);
@@ -843,12 +843,12 @@ var cmsEdit = {
         }
         cmsEdit.endPreviewTimeout(cmsEdit.selectedParagraph);
      }
-     
+
     return false;
-     
-    
+
+
   },
-  
+
   showPreviewTimeout: function(para_id) {
       if(cmsEdit.paragraphs.get(para_id).timer) {
         clearTimeout(cmsEdit.paragraphs.get(para_id).timer);
@@ -858,42 +858,42 @@ var cmsEdit = {
         cmsEdit.paragraphs.get(para_id).showPreview(true);
       }
   },
-  
+
   endPreviewTimeout: function(para_id) {
     if(cmsEdit.paragraphs.get(para_id).timer) {
-    
+
     }
     cmsEdit.paragraphs.get(para_id).timer = setTimeout("cmsEdit.clearPreviewTimeout('" + para_id + "')",1200);
   },
-  
+
   clearPreviewTimeout: function(para_id) {
         cmsEdit.paragraphs.get(para_id).timer = false;
         cmsEdit.paragraphs.get(para_id).endPreview(true);
         cmsEdit.recreateSortables();
-        
+
   },
-  
+
   /* Save As */
-  
+
   saveAs: function() {
-    SCMS.popupDiv('cms_save_as'); 
+    SCMS.popupDiv('cms_save_as');
   },
-  
+
   hideSaveAs: function() {
-    SCMS.hidePopupDiv('cms_save_as'); 
+    SCMS.hidePopupDiv('cms_save_as');
   },
-  
+
   saveAsSpecific: function() {
-    SCMS.hidePopupDiv('cms_save_as'); 
+    SCMS.hidePopupDiv('cms_save_as');
     SCMS.setKeyHandler(null);
     RedBox.showInline('cms_save_as_specific');
   },
-  
+
   saveAsSpecificSubmit: function(frm) {
     // Get Value
     var elem = Form.findFirstElement(frm);
     var value = elem.value;
-    
+
     regexp = /^[0-9]*\.[0-9]{1,2}$/
     if(!regexp.test(value)) {
       alert(cmsEdit.txt.get('invalidVersionText'));
@@ -903,17 +903,17 @@ var cmsEdit = {
       cmsEdit.closeBox();
       cmsEdit.saveAsSend(value);
     }
-    
-    
+
+
   },
-  
+
   /* Paragraph Menu */
-  
+
   showMenu: function(para_index) {
     var para = cmsEdit.paragraphs.get(para_index);
     var paragraph_type = para.paragraph_type;
     var opts = new Array();
-    
+
     if(paragraph_type == 'clear') {
       opts = new Array([cmsEdit.txt.get('deleteFeatureText'),'js','cmsEdit.removeFrameworkFeature(' + para_index + ');']);
     }
@@ -924,20 +924,20 @@ var cmsEdit = {
 
       var txt = '';
       var style_txt='';
-      
+
       var p_info = cmsEdit.availableParagraphs.get(paragraph_type);
       var p_features= p_info[5];
 
       if(p_features.length > 0 ) {
-        
+
         txt += "<a href='javascript:void(0);' onclick='cmsEdit.createParagraphStyle(\"" + para_index+ "\",\"" + paragraph_type+ "\");'>" +  cmsEdit.txt.get('createStyleText') + "</a><br/>";
         if(para.paragraph_feature == 0)
            style_txt = '<b class="selected">*' + cmsEdit.txt.get('currentStyleText') + cmsEdit.txt.get('defaultStyleText') + '</b>';
         else
           style_txt =  cmsEdit.txt.get('selectStyleText') + cmsEdit.txt.get('defaultStyleText');
-          
+
         txt += "<a href='javascript:void(0);' onclick='cmsEdit.selectParagraphStyle(\"" + para_index+ "\",0);'>" + style_txt + "</a><br/>";
-        
+
         var header = false;
         if(p_features.length > 0 && p_features[0] != '') {
           p_features.each(function(feature) {
@@ -948,65 +948,66 @@ var cmsEdit = {
                style_txt = '<b class="selected">*' + cmsEdit.txt.get('currentStyleText') + feature[0] + '</b>';
             else
               style_txt =  cmsEdit.txt.get('selectStyleText') + feature[0];
-               
+
             txt += "<a href='javascript:void(0);' onclick='cmsEdit.selectParagraphStyle(\"" + para_index+ "\"," + feature[1] + ");'>" + style_txt  + "</a>";
             txt += " (<a href='javascript:void(0);' onclick='cmsEdit.editParagraphStyle(\"" + para_index+ "\"," + feature[1] + ");'>" +  cmsEdit.txt.get('editStyleText') +  "</a>) <br/>";
             });
           });
-        }  
+        }
       }
-      
+
       if(paragraph_type != '_html' &&  paragraph_type != '_lock' && paragraph_type != '_clear') {
         txt += "<hr/>"
         txt += "<a href='javascript:void(0);' onclick='cmsEdit.editParagraph(\"" + para_index + "\");'>" + cmsEdit.txt.get('editParagraphText') + "</a><br/>";
       }
-      
+
       txt += "<hr/>"
       txt += "<a href='javascript:void(0);' onclick='cmsEdit.deleteParagraph(\"" + para_index + "\");'>" + cmsEdit.txt.get('deleteParagraphText') + "</a><br/>";
-      
+
       SCMS.customPopup(txt,"Action");
       return;
-       
+
     }
-    
+
 
     SCMS.popup(opts);
   },
-  
+
   deleteParagraph: function(para_index) {
     if(confirm(cmsEdit.txt.get('deleteText'))) {
       cmsEdit.confirmedDeleteParagraph(para_index);
     }
   },
-        
+
   confirmedDeleteParagraph: function(para_index) {
       var params = $H({ paragraph_id: cmsEdit.paragraphs.get(para_index).paragraph_id });
       new Ajax.Request(cmsEdit.url('delete_paragraph'),
                         { parameters: params.toQueryString() }
                         );
-      
+
       cmsEdit.pageChanged();
       cmsEdit.paragraphs.get(para_index).showPreview(true);
       cmsEdit.paragraphs.set(para_index,null);
       Element.remove('cms_paragraph_' + para_index);
       cmsEdit.recreateSortables();
-      
+
   },
-  
+
   createParagraphStyle: function(para_index,paragraph_type) {
-  
+
   var p_info = cmsEdit.availableParagraphs.get(paragraph_type);
   var p_features= p_info[5];
-  
+
    var para = cmsEdit.paragraphs.get(para_index);
     var params = $H({ para_index: para_index,
                       paragraph_id: para.paragraph_id,
                       feature_type: p_features[0] });
-    openWindow(cmsEdit.templateUrl('popup_feature') + "?" + Object.toQueryString(params),'EditStyle',900,600,'yes','yes');
-  
+    cmsEdit.styleWin =  openWindow(cmsEdit.templateUrl('popup_feature') + "?" + Object.toQueryString(params),'EditStyle',900,600,'yes','yes');
+      cmsEdit.styleWin.focus();
+
   },
-  
-  
+
+
   selectParagraphStyle: function(para_index,feature_id) {
     var para = cmsEdit.paragraphs.get(para_index);
     var params = $H({ para_index: para_index,
@@ -1019,18 +1020,20 @@ var cmsEdit = {
                        evalScripts:true
                      });
   },
-  
+
   editParagraphStyle: function(para_index,feature_id) {
     var para = cmsEdit.paragraphs.get(para_index);
     var params = $H({ para_index: para_index,
                       paragraph_id: para.paragraph_id,
                       feature_id: feature_id });
-    openWindow(cmsEdit.templateUrl('popup_feature',feature_id) + "?" + Object.toQueryString(params),'EditStyle',900,600,'yes','yes');
+    cmsEdit.styleWin = openWindow(cmsEdit.templateUrl('popup_feature',feature_id) + "?" + Object.toQueryString(params),'EditStyle',900,600,'yes','yes');
+      cmsEdit.styleWin.focus();
+
   },
-  
-  
+
+
   /* Modification History */
-  
+
   showModificationHistory: function() {
     SCMS.popupDiv('cms_select_modification');
     if(!$('cms_mod_history_' + cmsEdit.revisionId)) {
@@ -1038,32 +1041,32 @@ var cmsEdit = {
                       cmsEdit.url('modification_history'));
     }
   },
-  
+
   loadEdit: function(revision_id) {
     SCMS.hidePopupDiv('cms_select_modification');
     cmsEdit.loadPage(cmsEdit.pageType,cmsEdit.pageId,revision_id);
-    
-  
+
+
   },
-  
+
   /* Translations */
-  
+
   showTranslations: function() {
     SCMS.popupDiv('cms_revisions_languages');
   },
-  
+
   loadTranslation: function(revision_id) {
     SCMS.hidePopupDiv('cms_revisions_languages');
     cmsEdit.loadPage(cmsEdit.pageType,cmsEdit.pageId,revision_id);
   },
-  
+
   createTranslation: function(lang) {
     SCMS.setKeyHandler(null);
     var params = $H({ language: lang });
     new Ajax.Updater('page_info_div',
                     cmsEdit.url('create_translation'),
                     {
-                      evalScripts:true, 
+                      evalScripts:true,
                       parameters:params.toQueryString(),
                       onComplete: function(req) {
                         RedBox.addHiddenContent('page_info_div');
@@ -1071,9 +1074,9 @@ var cmsEdit = {
                       onLoading:function(req) {
                        RedBox.loading();
                       }
-                    });  
+                    });
   },
-  
+
   buildTranslation: function(frm) {
     if(cmsEdit.pageModified) {
       cmsEdit.destPageType = null;
@@ -1082,12 +1085,12 @@ var cmsEdit = {
       cmsEdit.destParams = Form.serialize(frm);
       cmsEdit.destAction = cmsEdit.submitTranslation;
       RedBox.showInline('cms_save_changes_dialog');
-    }  
+    }
     else {
       cmsEdit.submitTranslation(null,null,null,Form.serialize(frm));
     }
   },
-  
+
   submitTranslation: function(page_type,page_id,revsion_id,params) {
     cmsEdit.closeBox();
     cmsEdit.cleanupParagraphs();
@@ -1096,9 +1099,9 @@ var cmsEdit = {
                       parameters:params
                     });
   },
-  
+
   /* Versions */
-  
+
   showVersions: function() {
     SCMS.popupDiv('cms_version_list');
     if(!$('cms_revision_history_' + cmsEdit.revisionId)) {
@@ -1106,14 +1109,14 @@ var cmsEdit = {
                       cmsEdit.url('version_history'));
     }
   },
-  
+
   loadVersion: function(revision_id) {
     SCMS.hidePopupDiv('cms_version_list');
     cmsEdit.loadPage(cmsEdit.pageType,cmsEdit.pageId,revision_id);
   },
-  
+
   /* Page Activation / Deactivation */
-  
+
   activateVersion: function() {
     if(cmsEdit.pageActive) {
         if(confirm(cmsEdit.txt.get('deactivateText'))) {
@@ -1123,17 +1126,17 @@ var cmsEdit = {
     else {
           new Ajax.Request(cmsEdit.url('activate_version'));
     }
-  
+
   },
-  
+
   /* Page Information */
-  
+
   pageInfo: function() {
     SCMS.setKeyHandler(null);
     new Ajax.Updater('page_info_div',
                     cmsEdit.url('page_info'),
                     {
-                      evalScripts:true, 
+                      evalScripts:true,
                       onComplete: function(req) {
                         RedBox.addHiddenContent('page_info_div');
                       },
@@ -1142,46 +1145,46 @@ var cmsEdit = {
                       }
                     });
    },
-   
+
    closeInfo: function() {
     var params = $('cms_page_info_form').serialize();
-    
+
     new Ajax.Request(cmsEdit.url('update_info'),
                      { parameters: params }
                      );
     cmsEdit.pageChanged();
     cmsEdit.closeBox();
    },
-   
+
    closeBox: function() {
     SCMS.setKeyHandler(cmsEdit.moveKey);
     RedBox.close();
    },
-    
+
    /* Page Menu */
-   
+
    pageMenu: function() {
     SCMS.popupDiv('cms_page_menu');
    },
-   
+
    deletePopup: function(type) {
       new Ajax.Updater('page_info_div',
                     cmsEdit.url('delete_ask'),
                     {
                       parameters:'delete_type=' + type,
-                      evalScripts:true, 
+                      evalScripts:true,
                       onComplete: function(req) {
                         RedBox.addHiddenContent('page_info_div');
                       },
                       onLoading:function(req) {
                        RedBox.loading();
                       }
-                    });   
-   
+                    });
+
    },
-   
+
    confirmedDelete: function(type) {
-    
+
     cmsEdit.cleanupParagraphs();
     cmsEdit.paragraphs = $H({});
     new Ajax.Request(cmsEdit.url('delete'),
@@ -1190,8 +1193,8 @@ var cmsEdit = {
                         cmsEdit.closeBox();
                         }});
    },
-   
-   
+
+
    submitParagraphData: function(frm,url,paragraph_id,para_idx) {
     var params = Form.serialize(frm);
     new Ajax.Request(cmsEdit.paragraphUrl(url,paragraph_id,para_idx),
@@ -1208,19 +1211,19 @@ var cmsEdit = {
                              }
                           }
                         }
-                        
+
                      );
       return false;
    },
-   
+
    /* Page Connections */
-   
+
    pageConnections: function() {
     SCMS.setKeyHandler(null);
     new Ajax.Updater('page_info_div',
                     cmsEdit.url('page_connections'),
                     {
-                      evalScripts:true, 
+                      evalScripts:true,
                       onComplete: function(req) {
                         RedBox.addHiddenContent('page_info_div');
                       },
@@ -1229,23 +1232,23 @@ var cmsEdit = {
                       }
                     });
    },
-   
+
    closePageConnections: function() {
     var params = $('cms_page_connections').serialize();
-    
+
     new Ajax.Request(cmsEdit.url('update_page_connections'),
                      { parameters: params }
                      );
     cmsEdit.pageChanged();
     cmsEdit.closeBox();
    },
-   
+
    pageVariables: function() {
       SCMS.setKeyHandler(null);
       new Ajax.Updater('page_info_div',
                     cmsEdit.url('page_variables'),
                     {
-                      evalScripts:true, 
+                      evalScripts:true,
                       onComplete: function(req) {
                         RedBox.addHiddenContent('page_info_div');
                       },
@@ -1253,50 +1256,56 @@ var cmsEdit = {
                        RedBox.loading();
                       }
                     });
-   
+
    },
 
    updatePageVariables: function() {
     // Get the page variables
-    // and update each 
+    // and update each
     var params = $('cms_page_variables').serialize();
-    
+
     cmsEdit.sendChanges('update_page_variables',
                             params,
                             true,
-                            cmsEdit.closePageVariables);    
+                            cmsEdit.closePageVariables);
    },
-    
+
   closePageVariables: function() {
     cmsEdit.pageChanged();
     cmsEdit.closeBox();
    },
-   
-   
+
+
  /* Triggered Accionts */
   commitAction: function(action_id) {
     setTimeout('cmsEdit.submitAction(' + action_id + ');',10);
   },
-  
+
   submitAction: function(action_id) {
     params = { triggered_action_id: action_id};
-                
+
     new Ajax.Request(cmsEdit.url('update_triggered_actions'),
                     { parameters: params });
-                    
+
   },
 
   deleteAction: function(action_id) {
 
     params = { triggered_action_id: action_id};
-                
+
     new Ajax.Request(cmsEdit.url('delete_triggered_action'),
                     { parameters: params });
-                    
-  }
 
-  
-   
+  },
+
+  setParagraphValue: function(elem_id,html) {
+        $('cms_paragraph_display_'+elem_id).innerHTML = "<div class='cms_paragraph_editor_cover'></div>" + html;
+
+      cmsEdit.pageChanged();
+    }
+
+
+
 }
 
 
@@ -1415,82 +1424,18 @@ function cmsCodeParagraph(paragraph_id, para_index,para_type) {
 
 cmsCodeParagraph.prototype = new cmsParagraph();
 
-cmsCodeParagraph.prototype.isClientEditor = function() { return true };
-
-cmsCodeParagraph.prototype.paragraphData = function() {
-  var value = $('cms_paragraph_html_editor_' + this.para_index).value;
-  return "paragraph[" + this.paragraph_id + "]=" + encodeURIComponent(value);
-}
-
-cmsCodeParagraph.prototype.showPreview = function(drag) {
-    var elem_id = this.para_index;
-    $('cms_paragraph_display_'+elem_id).innerHTML = "<div class='cms_paragraph_editor_cover'></div>" + $('cms_paragraph_html_editor_' + elem_id).value;
-    Element.hide('cms_paragraph_editor_' + elem_id);
-    Element.show('cms_paragraph_display_' + elem_id);
-}
-
-cmsCodeParagraph.prototype.cleanup = function() {
-}
 
 cmsCodeParagraph.prototype.edit = function() {
     var elem_id = this.para_index;
     var elem_height = Element.getHeight('cms_paragraph_display_' + elem_id);
     
-    if(elem_height < 100) 
-      elem_height = 100;
+    var params = { para_index: this.para_index, paragraph_id: this.paragraph_id };
+
+    if(cmsEdit.editWin && !cmsEdit.editWin.closed) cmsEdit.editWin.close();
+    cmsEdit.editWin = openWindow(cmsEdit.url('edit_code') + "?" + Object.toQueryString(params),'Edit Code',900,550,'yes','yes');
+
+  
+    cmsEdit.editWin.focus();
     
-    var rows = elem_height / 12;
-    Element.hide('cms_paragraph_display_' + elem_id);
-    $('cms_paragraph_html_editor_' + elem_id).rows = rows;
-    Element.show('cms_paragraph_editor_' + elem_id);
-    $('cms_paragraph_html_editor_' + elem_id).focus();
-}
-
-cmsCodeParagraph.prototype.blur = function() {
-  this.showPreview(false);
-
-}
-
-
-cmsCodeParagraph.prototype.endPreview = function(drag) {
-    //var elem_id = this.para_index;
-    //Element.hide('cms_paragraph_display_' + elem_id);
-    //Element.show('cms_paragraph_editor_' + elem_id);
-}
-
-
-function cmsClickParagraph(paragraph_id, para_index,para_type) {
-  this.para_index = para_index;
-  this.paragraph_id = paragraph_id;
-  this.paragraph_type = '_' + para_type;
-  this.updating= false;
-}
-
-
-cmsClickParagraph.prototype = new cmsCodeParagraph();
-
-cmsClickParagraph.prototype.blur = function() {
-	var elem_id = this.para_index;
-	$('cms_paragraph_display_'+elem_id).style.backgroundColor='#CCCCCC';
-	var params = { paragraph: $('cms_paragraph_html_editor_' + this.para_index).value,
-		      paragraph_type: this.paragraph_type };
-	Element.hide('cms_paragraph_editor_' + elem_id);
-	Element.show('cms_paragraph_display_' + elem_id);
-	setTimeout(function() {
-	  new Ajax.Updater('cms_paragraph_display_' + elem_id,
-			  cmsEdit.url('render_markup_paragraph'),
-			  { parameters: params,
-			    onSuccess: function(req) {
-				$('cms_paragraph_display_'+elem_id).style.backgroundColor='inherit';
-			  }});
-	},10);
-
-}
-
-
-cmsClickParagraph.prototype.showPreview = function(drag) {
-    var elem_id = this.para_index;
-    if($('cms_paragraph_editor_' + elem_id).visible() && !drag) {
-      $('cms_paragraph_html_editor_' + elem_id).blur();
-    }
+    return; 
 }

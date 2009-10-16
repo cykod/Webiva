@@ -56,6 +56,11 @@ class PageRevision < DomainModel
   def site_template
     SiteTemplate.find(1)
   end
+
+
+  def used_images
+    DomainFileInstance.find(:all,:conditions => { :target_type => 'PageParagraph', :target_id => page_paragraph_ids }, :include => :domain_file).map(&:domain_file).uniq
+  end
   
   # Delete any temporary revisions
   # that are more than 2 days old

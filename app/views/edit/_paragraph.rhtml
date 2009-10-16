@@ -50,16 +50,12 @@
 <% if para.display_type == 'html' %>
     cmsEdit.registerParagraph(<%= para_index %>,new cmsHtmlParagraph(<%= para.id %>,<%= para_index %>));
     setTimeout("tinyMCE.execCommand('mceAddControl',true,'cms_paragraph_html_editor_<%= para_index %>');",5);
-<% elsif para.display_type == 'code' %>
-    cmsEdit.registerParagraph(<%= para_index %>,new cmsCodeParagraph(<%= para.id %>,<%= para_index %>,'<%= para.display_type %>'));
-<% elsif para.display_type == 'textile' || para.display_type == 'markdown'  %>
-    cmsEdit.registerParagraph(<%= para_index %>,new cmsClickParagraph(<%= para.id %>,<%= para_index %>,'<%= para.display_type %>'));
-<% elsif para.display_module.to_s.empty? %>
-    cmsEdit.registerParagraph(<%= para_index %>,new cmsFrameworkElement(<%= para.id %>,<%= para_index %>,'_<%= para.display_type %>'));
 <% elsif para.content_publication_id -%> 
     cmsEdit.registerParagraph(<%= para_index %>,new cmsPublicationParagraph(<%= para.id %>,<%= para_index %>,'<%= para.display_module_identifier %>_<%= para.display_type %>','<%= para.display_module %>',<%= para.content_publication_id %>,'<%= para.site_feature_id.to_i %>'));
-<% else %>
+<% elsif !para.display_module.blank? %>
     cmsEdit.registerParagraph(<%= para_index %>,new cmsEditorParagraph(<%= para.id %>,<%= para_index %>,'<%= para.display_module_identifier %>_<%= para.display_type %>','<%= para.display_module %>','<%= para.site_feature_id.to_i %>'));
+<% else %>
+    cmsEdit.registerParagraph(<%= para_index %>,new cmsCodeParagraph(<%= para.id %>,<%= para_index %>,'<%= para.display_type %>'));
 <% end -%>
 </script>
 

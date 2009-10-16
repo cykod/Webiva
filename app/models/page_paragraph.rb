@@ -34,9 +34,24 @@ class PageParagraph < DomainModel
 
   
   # PageParagraph file instance support is in PageRevisions
-  process_file_instance :display_body, :display_body_html
+  # process_file_instance :display_body, :display_body_html
+  apply_content_filter(:display_body =>  :display_body_html) do |para|
+    { :filter => para.paragraph_filter }
+  end
+
+  def paragraph_filter
+    if self.display_module.blank?
+      case display_type
+      when 'code' : 'full_html'
+      when 'textile' : 'textile'
+      when'markdown' : 'markdown'
+      end
+    else
+      nil
+    end
+  end
   
-  def post_process_file_instance_display_body
+  def post_process_content_filter_display_body
     # Most Instance Support is in page_revisions
   end
   

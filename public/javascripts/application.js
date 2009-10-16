@@ -14,7 +14,7 @@ SCMS = {
 				}
 				if(internal[0].length > maxLength)
 					maxLength=internal[0].length;
-	
+
 			}
 			else if(internal.length == 2) {
 					txt += "<a href='" + internal[1] + "'>" + internal[0] + "</a>";
@@ -25,13 +25,13 @@ SCMS = {
 				txt += "<hr>";
 			}
 		}
-	
+
 		var width=30+maxLength * 7;
 
                 if(!options) {
                     options={};
                 }
-                
+
                 var performActionText = options['action'] ? options['action'] : "Action"
 
                 var loc;
@@ -40,29 +40,29 @@ SCMS = {
                  loc = options['location'] == 'below' ? BELOW : ABOVE;
                 }
                 else loc = BELOW;
-	
+
 		overlib(txt,CAPTION,"&nbsp;" + performActionText,STICKY,loc,OFFSETX,0,OFFSETY,12,WIDTH,width,
                              FGCLASS,'cms_popup_text',BGCLASS,'cms_popup_bg',CAPTIONFONTCLASS,'cms_popup_caption',
 		                      MOUSEOFF,CLOSETEXT,'');
                 /* FGCOLOR,'#FFFFFF',BGCOLOR,'#bababa',CLOSETEXT,'<img src="/images/site/close_gray.gif" width="16" height="16" border="0"/>');*/
-			
-			
+
+
 	},
-	
+
 	customPopup: function(txt,title) {
 	 var performActionText = title ? title : "Action"
 
 	overlib(txt,CAPTION,"&nbsp;" + performActionText, STICKY,BELOW,OFFSETX,0,OFFSETY,12,WIDTH,300,
                              FGCLASS,'cms_popup_text',BGCLASS,'cms_popup_bg',CAPTIONFONTCLASS,'cms_popup_caption',
 		                      MOUSEOFF,CLOSETEXT,'');
-	
+
 	},
-  
+
 	show_hide: function(show,hide) {
 		Element.show(show);
 		Element.hide(hide);
 	},
-	
+
 	showHide: function(show,hide,swap) {
 	  if(!swap) {
 		  Element.show(show);
@@ -73,7 +73,7 @@ SCMS = {
 		  Element.show(hide);
 	  }
 	},
-	
+
 	toggle: function(elems,visibility) {
 	  for(var i=0;i<elems.length;i++) {
 	    if(visibility[i]) {
@@ -84,18 +84,18 @@ SCMS = {
 	    }
 	  }
 	},
-	
+
 	enable_disable: function(enable,disable) {
-	
+
 		$(enable).disabled = false;
 		$(disable).disabled = true;
 	},
-	
+
 	get_file_extension: function(filename) {
 		var period = filename.lastIndexOf(".");
 		if(period== -1) return "";
 		return filename.substr(period,filename.length);
-	
+
 	},
 
 
@@ -104,16 +104,16 @@ SCMS = {
 	  if(elem)
   	  SCMS.select_tab(elem);
 	},
-	
+
 
 	select_tab: function(elem) {
 		var selected_td = elem.parentNode;
 		var row = selected_td.parentNode;
 		var tbody = row.parentNode;
-		
+
 		var tabs = getChildElements(row); // 0, T1-Tn, Extra
 		var contents = getChildElements(tbody); // Header, T1-Tn
-		
+
 		var i=0;
 		for(i=1;i<contents.length;i++) {
 			Element.hide(contents[i]);
@@ -121,18 +121,18 @@ SCMS = {
 		for(i=1;i<tabs.length-1;i++) {
 			if(tabs[i] != selected_td) {
 				tabs[i].className = 'normal';
-			
+
 			}
 			else {
 				tabs[i].className = 'selected';
 				Element.show(contents[i]);
 			}
-		
+
 		}
-	
+
 	},
-	
-	
+
+
 	setFileField: function(field,file_type,file_id,file_name,file_url,file_thumb) {
 	  if(file_name) {
   		$(field + '_name').innerHTML = file_name;
@@ -143,98 +143,98 @@ SCMS = {
 		$(field).value = file_id;
     if($(field).onchange)
       $(field).onchange();
-    
-    
-  
+
+
+
 	},
-  
+
   pickerWin:null,
   pickerOptions:null,
-  
+
   pickerWindow: function(url,options,params) {
     var screenWidth = 1024, screenHeight = 764;
-    
+
     params= $H(params);
-  
-    if (params.get('scrollbars') == undefined) 
+
+    if (params.get('scrollbars') == undefined)
       params.set('scrollbars','no')
-    if (params.get('resizable') == undefined) 
+    if (params.get('resizable') == undefined)
       params.set('resizable','no');
-  
+
     if (document.all || document.layers) {
       screenWidth = screen.availWidth;
       screenHeight = screen.availHeight;
     }
     var width = params.get('width');
     var height = params.get('height');
-  
+
     if(!width) {
       width = screenWidth - 20;
     }
     if(!height) {
       height = screenHeight - 20;
     }
-  
+
     var x = (screenWidth-width)/2;
     var y = (screenHeight-height)/2;
     if(this.pickerWin) {
       this.pickerWin.close();
     }
     this.pickerOptions = options;
-  
+
     this.pickerWin = window.open(url,"picker",'width=' + width + ',height=' + height + ',toolbar=no,resizable=' + params.get('resizable') + ',scrollbars=' + params.get('scrollbars') + ',top=' + x + ',left=' + y);
-  
+
     return false;
   },
-  
+
   pickerCallback: function(val) {
     eval(val);
   },
-  
-  
+
+
   updateColorField: function(field) {
     var reg = /^\#([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})$/
     var results = reg.exec($(field).value);
-    if(results) { 
+    if(results) {
       $(field + '_color').style.backgroundColor = $(field).value;
       $(field).style.backgroundColor='#FFFFFF';
     }
     else {
       $(field).style.backgroundColor='#FF0000';
     }
-  
+
   },
-  
+
   getElemNum: function(elem) {
     elem = $(elem);
     var elem_id = elem.id.split("_");
     elem_id = elem_id[elem_id.length - 1];
-    
+
     return Number(elem_id);
 
   },
-  
+
   elemNumArray: function(container,className) {
     container = $(container);
-    
+
     var elems= $A(document.getElementsByClassName(className,container));
-    
+
     var selectedIds = [];
     elems.each(function(elem) {
 	selectedIds.push(SCMS.getElemNum(elem.id));
     })
-    
+
     return selectedIds;
-  
+
   },
-  
-      
-  
-  
+
+
+
+
   moveElemUp: function(elem,cls) {
     elem = $(elem);
     var previousElem = SCMS.elemBefore(elem,cls);
-    
+
     var parentContainer = elem.parentNode;
     if(previousElem) {
       Element.remove(elem);
@@ -244,17 +244,17 @@ SCMS = {
     else {
       return false;
     }
-    
+
   },
-  
+
   moveElemDown: function(elem,cls) {
     elem = $(elem);
-  
+
     // Get the parent of the elem
     // If we're not the first one
     var parentContainer = elem.parentNode;
     var elems = (cls != undefined) ? getChildElementsByClass(parentContainer,cls) : getChildElements(parentContainer);
-    
+
     var nextElemAfter = null;
     var nextElem = null;
     for(var i=elems.length-1;i>=0;i--) {
@@ -263,7 +263,7 @@ SCMS = {
       nextElemAfter = nextElem;
       nextElem = elems[i];
     }
-    
+
     if(nextElemAfter) {
       Element.remove(elem);
       parentContainer.insertBefore(elem,nextElemAfter);
@@ -277,71 +277,71 @@ SCMS = {
     else {
       return false;
     }
-  
+
   },
-  
+
   elemBefore: function(elem,cls) {
     elem = $(elem);
-  
+
    // Get the parent of the elem
     // If we're not the first one
     var parentContainer = elem.parentNode;
-    
-    
+
+
     var elems = (cls != undefined) ? getChildElementsByClass(parentContainer,cls) : getChildElements(parentContainer);
-    
+
     var previousElem = null;
     for(var i=0;i<elems.length;i++) {
       if(elems[i] == elem)
       break;
       previousElem = elems[i];
     }
-      
+
     if(previousElem)
       return previousElem;
     else
       return false;
   },
-  
+
   elemAfter: function(elem, cls) {
-  
+
     elem = $(elem);
-  
+
     // Get the parent of the elem
     // If we're not the first one
     var parentContainer = elem.parentNode;
     var elems = (cls != undefined) ? getChildElementsByClass(parentContainer,cls) : getChildElements(parentContainer);
-    
+
     var nextElem = null;
     for(var i=elems.length-1;i>=0;i--) {
       if(elems[i] == elem)
       break;
       nextElem = elems[i];
     }
-    
+
     if(nextElem) {
       return nextElem;
     }
     else {
       return false;
-    }  
+    }
    },
-  
+
   elemPosition: function(elem,cls) {
     elem = $(elem);
-    
+
     var parentContainer = elem.parentNode;
     var elems = (cls != undefined) ? getChildElementsByClass(parentContainer,cls) : getChildElements(parentContainer);
-    
+
     for(var i=0;i<elems.length;i++) {
       if(elems[i] == elem)
         return i;
     }
-    return -1; 
+    return -1;
   },
-  
+
   unshiftElem: function(parent,elem,cls) {
-    
+
     var elems = (cls != undefined) ? getChildElementsByClass(parent,cls) : getChildElements(parent);
     if(elems.length == 0) {
       parent.appendChild(elem);
@@ -349,31 +349,31 @@ SCMS = {
     else {
       parent.insertBefore(elem,elems[0]);
     }
-  
+
     return true;
   },
-  
+
   popupDiv: function(elem)  {
     elem = $(elem);
     SCMS.hideSelectBoxes();
-    
+
     elem.onmouseover=SCMS.popupDiv_show;
     elem.onmouseout=SCMS.popupDiv_delayedHide;
     Element.show(elem);
   },
-  
+
   hidePopupDiv: function(elem) {
     SCMS.popupDiv_delayedHideExecute($(elem).id);
   },
-  
-  
+
+
   popupDiv_delayedHide: function () {
     var elem = this;
     if(!elem.delayedTimer)  {
       elem.delayedTimer = setTimeout("SCMS.popupDiv_delayedHideExecute('" + elem.id + "');",100);
     }
   },
-  
+
   popupDiv_delayedHideExecute: function(elem_id) {
     var elem = $(elem_id);
     if(elem) {
@@ -390,9 +390,9 @@ SCMS = {
       clearTimeout(elem.delayedTimer);
       elem.delayedTimer = null;
     }
-  
+
   },
-  
+
   showSelectBoxes: function(){
     if(document.all) {
       selects = document.getElementsByTagName("select");
@@ -411,7 +411,7 @@ SCMS = {
       }
     }
   },
-  
+
   setKeyHandler: function(func) {
     if(document.all) {
       document.onkeydown = func;
@@ -420,14 +420,14 @@ SCMS = {
       document.onkeypress = func;
     }
   },
-  
+
   getEscapeKey: function(evt) {
-  
+
     evt = (evt) ? evt : ((window.event) ? event : null);
     var charCode = (evt.charCode) ? evt.charCode :
         ((evt.which) ? evt.which : evt.keyCode);
     var Esc = (window.event) ?  27 : evt.DOM_VK_ESCAPE; // MSIE : Firefox
-    
+
     if(charCode == Esc)
       return true;
     else
@@ -447,21 +447,21 @@ SCMS = {
     else
       return false;
 
-  },  
-  
+  },
+
   getArrowKey: function(evt) {
-  
+
     evt = (evt) ? evt : ((window.event) ? event : null);
     var charCode = (evt.charCode) ? evt.charCode :
         ((evt.which) ? evt.which : evt.keyCode);
-    
-    var ArrowUpKey = (window.event) ?    
+
+    var ArrowUpKey = (window.event) ?
             38 : evt.DOM_VK_UP ;// MSIE : Firefox
-    var ArrowDownKey = (window.event) ?    
+    var ArrowDownKey = (window.event) ?
             40 : evt.DOM_VK_DOWN ;// MSIE : Firefox
-    var ArrowRightKey = (window.event) ?    
+    var ArrowRightKey = (window.event) ?
             39 : evt.DOM_VK_RIGHT ;// MSIE : Firefox
-    var ArrowLeftKey = (window.event) ?    
+    var ArrowLeftKey = (window.event) ?
             37 : evt.DOM_VK_LEFT ;// MSIE : Firefox
     if(charCode == ArrowUpKey)
       return 'up';
@@ -473,8 +473,8 @@ SCMS = {
       return 'left';
     else return null;
   },
-  
-  
+
+
  overlay: function(text) {
     var nd = $('SCMS_overlay_hidden');
     if(!nd) {
@@ -482,17 +482,17 @@ SCMS = {
       var body = document.getElementsByTagName('body');
       body[0].appendChild(nd);
     }
-    
+
     nd.innerHTML = text;
-    
+
     RedBox.showOverlay();
     RedBox.addHiddenContent('SCMS_overlay_hidden');
   },
-  
+
   closeOverlay: function() {
     RedBox.close();
   },
-  
+
 
 
   remoteOverlay: function(url,params) {
@@ -508,8 +508,8 @@ SCMS = {
               }});
 
   },
-  
-  
+
+
  updateOverlay: function(url,params) {
     if(!params) {
       params = {};
@@ -524,48 +524,48 @@ SCMS = {
                  }
               }});
   },
-  
+
   imageOverlay: function(url,width,height) {
     //RedBox.loading();
     RedBox.showOverlay();
-  
+
     var nd = $('SCMS_overlay_hidden');
     if(!nd) {
       nd = Builder.node('div', { id: 'SCMS_overlay_hidden', style: 'display:none;' });
       var body = document.getElementsByTagName('body');
       body[0].appendChild(nd);
     }
-    
+
     $('SCMS_overlay_hidden').innerHTML='';
-    
+
     var container = Builder.node('div', { style: 'padding:20px;' });
     var actions = Builder.node('div');
     actions.innerHTML = "<a href='javascript:void(0);' onclick='RedBox.close();'>Close</a>";
-    
+
     var image = document.createElement("img");
     image.id='overlay_image';
     SCMS._imageDisplay(image,width,height)
     image.setAttribute('src',url);
-    
+
     container.appendChild(image);
     container.appendChild(actions);
-    
+
     nd.appendChild(container);
-    
+
     setTimeout("RedBox.addHiddenContent('SCMS_overlay_hidden');",10);
   },
-  
+
   _imageDisplay: function(image,width,height) {
     var pageSize = RedBox.getPageSize();
-    
+
     var orig_width = width;
     var orig_height =height;
-    
+
     var horiz_scale = (pageSize[0] - 200) / width;
     var vert_scale = (pageSize[1] - 200) / height;
-    
+
     var scale = horiz_scale < vert_scale ? horiz_scale : vert_scale;
-    
+
     var scaleFactor = 100;
     if(scale > 1.0) {
       scale = 1.0;
@@ -576,23 +576,23 @@ SCMS = {
     image.height = img_height;
     image.style.width=img_width+ "px";
     image.style.height=img_height+ "px";
-    
+
     scaleFactor = Math.round(scale * 100);
-    
+
     new Insertion.Top('SCMS_overlay_hidden',"&nbsp; " + orig_width + "px X " + orig_height + "px (" + scaleFactor + "%)");
 
   },
-  
-  
+
+
   highlightRow: function(row) {
       //new Effect.Morph(row,{ style: "color: #FF0000; background-color: #CCCCCC;", duration: 0.4, queue: {scope: tools_id }});
       $(row).addClassName('highlighted_row');
   },
-  
+
   lowlightRow: function(row,callback) {
-      //new Effect.Morph(row,{ style: "color: #000000; background-color: #FFFFFF;", duration: 0.4, queue: {scope: tools_id } });    
+      //new Effect.Morph(row,{ style: "color: #000000; background-color: #FFFFFF;", duration: 0.4, queue: {scope: tools_id } });
       $(row).removeClassName('highlighted_row');
-      
+
       if(callback == undefined)
         callback = '';
   },
@@ -606,7 +606,7 @@ SCMS = {
       var row=$('elem_' + elem_type + '_' + elem_id + '_row')
 
       if($('elem_' + elem_type + '_' + elem_id)) {
-        if($('elem_' + elem_type + '_' + elem_id).checked) 
+        if($('elem_' + elem_type + '_' + elem_id).checked)
           row.addClassName('selected_row');
         else
           row.removeClassName('selected_row');
@@ -614,11 +614,11 @@ SCMS = {
 
 
   },
-  
+
   emptyQueue: function(scope) {
     var queue = Effect.Queues.get(scope);
     queue.each(function(e) { e.cancel() });
-  
+
   },
 
   setCookie: function(name, value, expires, path, domain, secure) {
@@ -654,8 +654,8 @@ SCMS = {
       "; expires=Thu, 01-Jan-70 00:00:01 GMT";
     }
   }
-  
-  
+
+
 }
 
 
@@ -664,7 +664,7 @@ function showMenu(id) {
     clearTimeout($(id).timer);
     $(id).timer = null;
   }
-  
+
 
 }
 function clearMenu(id) {
@@ -679,17 +679,17 @@ function hideMenu(id) {
 
 function getChild(parentElement,className) {
   var children = getChildElementsByClass(parentElement,className);
-  
+
   if(children.length > 0)
     return children[0];
-  else 
+  else
     return null;
 }
 
 function getChildElementsByClass(parentElement,className) {
   parentElement = $(parentElement);
   var nodes = parentElement.childNodes;
-  
+
   var children = new Array();
   for(var i=0;i<nodes.length;i++) {
     if(nodes[i].nodeType == 1) {
@@ -698,19 +698,19 @@ function getChildElementsByClass(parentElement,className) {
       }
     }
   }
-  
+
   return $A(children);
 }
 
 function getChildElements(parentElement) {
   var nodes = parentElement.childNodes;
-  
+
   var children = new Array();
   for(var i=0;i<nodes.length;i++) {
     if(nodes[i].nodeType == 1)
       children.push($(nodes[i]));
   }
-  
+
   return $A(children);
 }
 
@@ -731,23 +731,23 @@ function delayedHideShow(elem) {
 function delayedHideExecute(elem_id) {
     if($(elem_id)) {
       clearTimeout($(elem_id).delayedTimer);
-      Element.hide(elem_id);  
+      Element.hide(elem_id);
    }
 }
 
 function displayDropdown(elem_id) {
   var base_elem = $(elem_id);
   Element.toggle(base_elem);
-      
+
 }
 
 function selectDropdownElement(selected_elem) {
 
-      elems = getChildElements(selected_elem.parentNode); 
+      elems = getChildElements(selected_elem.parentNode);
       elems.each(function(elem) {
           Element.removeClassName(elem,'cms_dropdown_selected');
         });
-        
+
       var selectedItem = getChild(selected_elem.parentNode.parentNode,'cms_dropdown_display');
       if(selectedItem) {
         selectedItem.innerHTML = selected_elem.innerHTML;
@@ -766,7 +766,7 @@ function includeJS(path,onComplete) {
   e.setAttribute('src',path);
   e.setAttribute('type',"text/javascript");
   e.setAttribute('charset','utf-8');
-  
+
   if(document.all) {
     e.onreadystatechange = function() {
       if(e.readyState=="complete" || e.readyState=="loaded") {
@@ -777,9 +777,9 @@ function includeJS(path,onComplete) {
   else {
     e.onload = onComplete;
   }
-    
+
   document.getElementsByTagName("head")[0].appendChild(e);
-  
+
   return false;
 }
 
@@ -828,10 +828,10 @@ function openWindow(url,name,width,height,resizable,scrollbars) {
   var x = (screenWidth-width)/2;
   var y = (screenHeight-height)/2;
   var opts = 'width=' + width + ',height=' + height + ',toolbar=no,resizable=' + resizable +",scrollbars=" + scrollbars + ',top=' + x + ',left=' + y;
-  
+
   var win = window.open(url,name,opts);
 //  alert(opts);
-  return false;
+  return win;
 }
 
 
@@ -839,9 +839,9 @@ function openWindow(url,name,width,height,resizable,scrollbars) {
 try {
 if (!AUTH_TOKEN)
    AUTH_TOKEN = 'DummyToken';
-} 
+}
 catch (e)
-{ 
+{
  AUTH_TOKEN = 'DummyToken';
 }
 

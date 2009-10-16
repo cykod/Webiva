@@ -930,6 +930,7 @@ var FileEditor = {
       var dim = SCMS.getCookie("fm_dim");
       if(dim) {
         var dims = dim.split(",");
+        FileEditor.disabledCookie = true;
         setTimeout("window.resizeTo(" + dims[0] + "," + dims[1] + ");",20);
       }
       <% end -%>
@@ -939,8 +940,11 @@ var FileEditor = {
     },
 
     onResize: function() {
-        var dim = document.viewport.getDimensions();
-        SCMS.setCookie("fm_dim",dim.width + "," + dim.height);
+        if(!FileEditor.disabledCookie) {
+            var dim = document.viewport.getDimensions();
+            SCMS.setCookie("fm_dim",dim.width + "," + dim.height);
+        }
+        FileEditor.disabledCookie = false;
     },
     
     dragX:0,

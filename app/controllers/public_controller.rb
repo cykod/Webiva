@@ -70,7 +70,7 @@ class PublicController < ApplicationController
         mime_type = df.mime_type
       end
       
-      render :nothing => true
+      render :nothing => true if RAILS_ENV == 'test'
       if USE_X_SEND_FILE
         x_send_file(name,:type => mime_type,:disposition => 'inline',:filename => df.name)    
       else
@@ -111,7 +111,9 @@ class PublicController < ApplicationController
     if @df && !File.exists?(@df.filename(@size)) 
       sz = DomainFileSize.find_by_size_name(@size)
       if @df && sz
-        sz.execute(@df)    
+        sz.execute(@df)
+      elsif @df && DomainFile.image_sizes_hash[size.to_sym]
+        @df.generate_thumbnails(true)
       end
     end
 
