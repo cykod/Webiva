@@ -37,6 +37,10 @@ class DomainModel < ActiveRecord::Base
   def self.inspect_values
     self.object_id.to_s + ":" + @@active_domain.inspect
   end
+
+  def self.class_name
+    self.to_s
+  end
   
   def update_all_attributes(atr = {})
     self.send("attributes=",atr,false)

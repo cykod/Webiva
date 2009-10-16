@@ -14,6 +14,8 @@ module Content::ContentModelGenerator
       #remove_const class_name if const_defined? class_name
       cls = Class.new(ContentModelType) # const_set(class_name.to_s, Class.new(ContentModelType))
     end
+
+    cls.set_class_name class_name
     
     cls.set_table_name self.table_name
     

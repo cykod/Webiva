@@ -214,7 +214,8 @@ class Content::CoreField < Content::FieldHandler
     
     setup_model :required do |cls,fld|
       if fld.model_field.field_options['relation_name']
-       cls.belongs_to fld.model_field.field_options['relation_name'].to_sym, :class_name => 'DomainFile', :foreign_key => fld.model_field.field        
+        cls.belongs_to fld.model_field.field_options['relation_name'].to_sym, :class_name => 'DomainFile', :foreign_key => fld.model_field.field
+        cls.domain_file_column(fld.model_field.field)
       end
     end
     

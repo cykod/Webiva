@@ -16,6 +16,19 @@
 module ModelExtension::FileInstanceExtension
 
   module ClassMethods
+
+    def domain_file_column(column_name)
+      after_save "pre_process_domain_file_instance_#{column_name}"
+      after_save "post_process_file_instance_#{column_name}"
+      
+      define_method("pre_process_domain_file_instance_#{column_name}")  do
+        file_instance_column_replace(column_name)
+      end
+
+       define_method("post_process_file_instance_#{column_name}")  do
+        file_instance_update(column_name)
+      end     
+    end
   
     def process_file_instance(column_name,rendered_column_name)
       before_save "pre_process_file_instance_#{column_name}"
@@ -94,14 +107,20 @@ module ModelExtension::FileInstanceExtension
     end
     self.send("#{rendered_column_name}=",html)
   end
-  
+
+  def file_instance_column_replace(column_name)
+    if self.send("#{column_name}_changed?")
+      @file_instance_affected ||={}
+      @file_instance_affected[column_name.to_s] = [ self.send(column_name) ]
+    end
+  end
   
   def file_instance_update(column_name,rendered_column_name=nil)
     destroy_file_instances(column_name)
-    value_str = ",'#{self.class.to_s}','#{self.id}','#{column_name}')"
+    value_str = ",'#{self.class.class_name}','#{self.id}','#{column_name}')"
 
 
-    if @file_instance_affected[column_name.to_s] && @file_instance_affected[column_name.to_s].length > 0 
+    if  @file_instance_affected && @file_instance_affected[column_name.to_s] && @file_instance_affected[column_name.to_s].length > 0 
       DomainFileInstance.connection.execute("INSERT INTO domain_file_instances (`domain_file_id`,`target_type`,`target_id`,`column`) VALUES " + 
         @file_instance_affected[column_name.to_s].map { |fid| "(#{fid}" + value_str }.join(",") )
     end
