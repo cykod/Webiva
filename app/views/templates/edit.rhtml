@@ -210,7 +210,8 @@
           output += '&' + elem.name + "=" + encodeURIComponent(elem.value);
         });
       });
-      output += '&selected_language=' + $('selected_language').value
+      if($('selected_language'))
+            output += '&selected_language=' + $('selected_language').value
       return output;
     }
   };

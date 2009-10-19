@@ -150,7 +150,7 @@ class SiteTemplate < DomainModel
        parsing_errors << ('Error Parsing Template HTML of %s:' / self.name)  + err.to_s.t
       end
       
-      parent_zones = parser_context.zones
+      parent_zones = parser_context.zones.clone
       
       self.child_templates.each do |child|
         begin
