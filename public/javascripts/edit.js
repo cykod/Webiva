@@ -507,7 +507,7 @@ var cmsEdit = {
         return true;
 
 
-      if(para.isClientEditor()) {
+      if(para.isCodeEditor()) {
         para.edit();
         return true;
       }
@@ -1315,7 +1315,7 @@ function cmsParagraph() {
 
 
 cmsParagraph.prototype.isClientEditor = function() { return false };
-
+cmsParagraph.prototype.isPopupEditor = function() { return false };
 
 cmsParagraph.prototype.showPreview = function(drag) {
 }
@@ -1424,18 +1424,18 @@ function cmsCodeParagraph(paragraph_id, para_index,para_type) {
 
 cmsCodeParagraph.prototype = new cmsParagraph();
 
-
+cmsCodeParagraph.prototype.isCodeEditor = function() { return true; }
 cmsCodeParagraph.prototype.edit = function() {
     var elem_id = this.para_index;
     var elem_height = Element.getHeight('cms_paragraph_display_' + elem_id);
-    
+
     var params = { para_index: this.para_index, paragraph_id: this.paragraph_id };
 
     if(cmsEdit.editWin && !cmsEdit.editWin.closed) cmsEdit.editWin.close();
     cmsEdit.editWin = openWindow(cmsEdit.url('edit_code') + "?" + Object.toQueryString(params),'Edit Code',900,550,'yes','yes');
 
-  
+
     cmsEdit.editWin.focus();
-    
-    return; 
+
+    return;
 }
