@@ -507,7 +507,7 @@ var cmsEdit = {
         return true;
 
 
-      if(para.isCodeEditor()) {
+      if(para.isCustomEditor()) {
         para.edit();
         return true;
       }
@@ -1315,7 +1315,7 @@ function cmsParagraph() {
 
 
 cmsParagraph.prototype.isClientEditor = function() { return false };
-cmsParagraph.prototype.isPopupEditor = function() { return false };
+cmsParagraph.prototype.isCustomEditor = function() { return false };
 
 cmsParagraph.prototype.showPreview = function(drag) {
 }
@@ -1379,6 +1379,7 @@ function cmsHtmlParagraph(paragraph_id, para_index) {
 cmsHtmlParagraph.prototype = new cmsParagraph();
 
 cmsHtmlParagraph.prototype.isClientEditor = function() { return true };
+cmsHtmlParagraph.prototype.isCustomEditor = function() { return true };
 
 cmsHtmlParagraph.prototype.paragraphData = function() {
   var value = $('cms_paragraph_html_editor_' + this.para_index).value;
@@ -1424,7 +1425,7 @@ function cmsCodeParagraph(paragraph_id, para_index,para_type) {
 
 cmsCodeParagraph.prototype = new cmsParagraph();
 
-cmsCodeParagraph.prototype.isCodeEditor = function() { return true; }
+cmsCodeParagraph.prototype.isCustomEditor = function() { return true; }
 cmsCodeParagraph.prototype.edit = function() {
     var elem_id = this.para_index;
     var elem_height = Element.getHeight('cms_paragraph_display_' + elem_id);
