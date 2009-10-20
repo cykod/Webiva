@@ -23,17 +23,6 @@ class Blog::AdminController < ModuleController
                                 [ :user_blogs, 'User Blog Editor', 'Can Edit User Blogs' ]
                              ]
 
-#  content_type "Blog::BlogPost", "Blog", 
-
-  private
-  def get_module
-    @mod = SiteModule.get_module('blog')
-    
-    @mod.options = {} unless @mod.options.is_a?(Hash)
-    @mod.options[:fields] = [] unless @mod.options[:fields].is_a?(Array)
-    @mod.options[:options] = {} unless @mod.options[:options].is_a?(Hash)
-  end 
-                     
   public     
 
     def self.get_blogs_info
@@ -49,7 +38,6 @@ class Blog::AdminController < ModuleController
 
   def create
     cms_page_info [ ["Content",url_for(:controller => '/content') ], "Create a new Blog"], "content"
-    get_module
     
     @blog = Blog::BlogBlog.new(params[:blog])
 
