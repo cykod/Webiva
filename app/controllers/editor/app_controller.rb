@@ -4,7 +4,7 @@ class Editor::AppController < ParagraphController
   permit 'editor'
   
   # Editor for authorization paragraphs
-  editor_header "Module Application Paragraphs", :paragraph_app
+  editor_header "System Paragraphs", :paragraph_app
   editor_for :module_application, :name => 'Module Application'
 
   def module_application

@@ -201,24 +201,29 @@ class EditController < ModuleController
     @paragraph_types << @available_paragraph_types[-1] if myself.has_role?('paragraph_markdown')
 
     editor_paragraph_types = ParagraphController.get_editor_paragraphs
+    editor_paragraph_types.sort { |elm1,elm2| elm1[0] <=> elm2[0] }
+    last_type = nil
     editor_paragraph_types.each do |type|
       @available_paragraph_types += type[2]
       
       if !type[1] || myself.has_role?(type[1].to_s)
-        @paragraph_types << type[0]
+        @paragraph_types << type[0] if(last_type != type[0])
         @paragraph_types += type[2]
+        last_type = type[0]
       end
     end
     
 
     module_paragraphs =  SiteModule.get_module_paragraphs
-
+    module_paragraphs.sort { |elm1,elm2| elm1[0] <=> elm2[0] }
+    last_type = nil
     module_paragraphs.each do |header_type,type|
       @available_paragraph_types += type[2]
       
       if myself.has_role?('paragraph_module') && (!type[1] || myself.has_role?(type[1].to_s))
-        @paragraph_types << type[0]
+        @paragraph_types << type[0] if(last_type != type[0])
         @paragraph_types += type[2]
+        last_type = type[0]
       end
     end
     
