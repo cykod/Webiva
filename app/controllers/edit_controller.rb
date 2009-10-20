@@ -190,12 +190,12 @@ class EditController < ModuleController
   def generate_paragraph_types
     @paragraph_types = [ ['hidden', 'lock','Zone Lock',nil,[]],
                          ['hidden', 'clear','Zone Clear',nil,[]],
-                         ['builtin', 'html','Basic Paragraph',nil,['html']]
+                         ['builtin', 'html','Basic Paragraph',nil,[]]
                         ]
     @available_paragraph_types = @paragraph_types.clone
-    @available_paragraph_types += [ ['builtin', 'code', 'Code Paragraph',nil,['html']],
-                                    ['builtin', 'textile', 'Textile Paragraph',nil,['html']],
-                                    ['builtin', 'markdown', 'Markdown Paragraph',nil,['html']] ]
+    @available_paragraph_types += [ ['builtin', 'code', 'Code Paragraph',nil,[]],
+                                    ['builtin', 'textile', 'Textile Paragraph',nil,[]],
+                                    ['builtin', 'markdown', 'Markdown Paragraph',nil,[]] ]
     @paragraph_types << @available_paragraph_types[-3] if myself.has_role?('paragraph_code')
     @paragraph_types << @available_paragraph_types[-2] if myself.has_role?('paragraph_textile')
     @paragraph_types << @available_paragraph_types[-1] if myself.has_role?('paragraph_markdown')

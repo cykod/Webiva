@@ -927,8 +927,7 @@ var cmsEdit = {
 
       var p_info = cmsEdit.availableParagraphs.get(paragraph_type);
       var p_features= p_info[5];
-
-      if(p_features.length > 0 ) {
+      if(p_features.length > 0 && p_features[0] != '' ) {
 
         txt += "<a href='javascript:void(0);' onclick='cmsEdit.createParagraphStyle(\"" + para_index+ "\",\"" + paragraph_type+ "\");'>" +  cmsEdit.txt.get('createStyleText') + "</a><br/>";
         if(para.paragraph_feature == 0)
@@ -939,7 +938,6 @@ var cmsEdit = {
         txt += "<a href='javascript:void(0);' onclick='cmsEdit.selectParagraphStyle(\"" + para_index+ "\",0);'>" + style_txt + "</a><br/>";
 
         var header = false;
-        if(p_features.length > 0 && p_features[0] != '') {
           p_features.each(function(feature) {
             var selectable_features = cmsEdit.getFeatures(cmsEdit.siteTemplateId, feature);
             selectable_features.each(function(feature) {
@@ -953,7 +951,7 @@ var cmsEdit = {
             txt += " (<a href='javascript:void(0);' onclick='cmsEdit.editParagraphStyle(\"" + para_index+ "\"," + feature[1] + ");'>" +  cmsEdit.txt.get('editStyleText') +  "</a>) <br/>";
             });
           });
-        }
+
       }
 
       if(paragraph_type != '_html' &&  paragraph_type != '_lock' && paragraph_type != '_clear') {
