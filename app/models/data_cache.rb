@@ -28,6 +28,8 @@ class DataCache
     end
     container_string = DomainModel.active_domain_db + "::" + container
     version_string = container_string + ":" + version.to_s
+
+    DefaultsHashObject
     
     ret_val = CACHE.get_multi(container_string,version_string)
     val = ret_val[version_string]

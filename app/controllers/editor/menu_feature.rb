@@ -61,7 +61,8 @@ class Editor::MenuFeature < ParagraphFeature
             end
           end
           
-          c.define_tag('menu') do |tag|
+       c.define_tag('menu') do |tag|
+         tag.locals.data ||= data
             if(tag.locals.data[:menu].is_a?(Array) && tag.locals.data[:menu].length > 0) 
               if tag.attr['popup']
                 "<div id='pmenu_#{tag.locals.data.object_id}' style='display:none;'>" + tag.expand + "</div>"

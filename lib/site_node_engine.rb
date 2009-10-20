@@ -1,6 +1,5 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-require 'defaults_hash_object'
 require "mime/types"
 require 'digest/sha1'
 
@@ -502,8 +501,8 @@ EOF
       doc =  DocumentOutput.new
       doc.paction = user.action("/document/download",:identifier => @container.domain_file.file_path)
       return doc
-    end 
-    
+    end
+
     # Precompile any remaining paragraphs (Ignore when in edit mode)
     # This is done so any action can get handled ahead of time and redirects are handled properly
     if @mode != 'edit'
@@ -512,8 +511,8 @@ EOF
       if max_path_level < @path_args.length 
         raise MissingPageException.new(@container,@language), "Page Not Found" 
       end
-      
-      page_connections = {}
+
+     page_connections = {}
       loop_cnt = 0
       unrendered = -1
       begin
@@ -839,6 +838,7 @@ EOF
     # Kill the zone_paragraphs hash as we don't need to store it in
     # page information
     @page_information[:zone_paragraphs] = nil
+
   end
 
   # Add any modifiers on the rendering stack
@@ -895,7 +895,7 @@ EOF
           includes[inc_type] ||= []
           includes[inc_type] += inc_arr
         end
-        
+
         body = controller.render_paragraph(@container.is_a?(SiteNode) ? @container : @container.site_node, @page_information.revision,output, :language => @language)
       end
     end

@@ -1,7 +1,5 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-
-
 class NodeEngine::PageInformation < DefaultsHashObject
 
   def initialize(hsh = {})

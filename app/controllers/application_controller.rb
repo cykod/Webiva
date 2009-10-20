@@ -3,10 +3,6 @@
 require "yaml"
 require 'singleton'
 require 'pp'
-require 'defaults_hash_object'
-
-
-require 'handler_actions' 
 
 
 # Filters added to this controller will be run for all controllers in the application.

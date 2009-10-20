@@ -1,8 +1,8 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 class HashObject
-  def initialize(hsh = {},defaults = {}) 
-    @hsh = HashWithIndifferentAccess.new(defaults.merge(hsh || {}))
+  def initialize(hsh = {},defaults = {})
+    @hsh = defaults.symbolize_keys.merge((hsh || {}).symbolize_keys)
   end
   
   def id 
@@ -15,18 +15,18 @@ class HashObject
   end
 
   def []=(key,value)
-    @hsh[key] = value
+    @hsh[key.to_sym] = value
   end
   
   def [](key)
-    @hsh[key]
+    @hsh[key.to_sym]
   end
   
   def to_h
-    @hsh
+    @hsh.symbolize_keys
   end
   
   def to_hash
-    @hsh
+    to_h
   end 
 end

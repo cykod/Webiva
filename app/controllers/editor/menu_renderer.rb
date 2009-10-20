@@ -110,7 +110,7 @@ class Editor::MenuRenderer < ParagraphRenderer
     end
     
 
-    render_paragraph :text => menu_feature(get_feature('menu'),data)
+    render_paragraph :text => menu_feature(data)
     require_js('menu') if @include_menu_js
   end
   

@@ -3,6 +3,7 @@
 class Editor::ActionRenderer < ParagraphRenderer
 
   paragraph :triggered_action
+  paragraph :html_headers, :cache => true
 
   def triggered_action
 
@@ -15,6 +16,35 @@ class Editor::ActionRenderer < ParagraphRenderer
     else
       render_paragraph :nothing => true
     end
+  end
+
+
+  def html_headers
+
+    @options = paragraph_options(:html_headers)
+
+    @options.css_files.each do |file|
+      if(file =~ /^images\/(.*)$/)
+        df = DomainFile.find_by_file_path($1)
+        file = df.filename if df
+      end
+      require_css(file)
+    end
+
+    @options.js_files.each do |file|
+      if(file =~ /^images\/(.*)$/)
+        df = DomainFile.find_by_file_path($1)
+        file = df.filename if df
+      end
+      require_js(file)
+    end
+
+    if !@options.header.blank?
+      include_in_head(@options.header)
+    end
+    
+    render_paragraph :nothing => true
+
   end
 
 end

@@ -200,7 +200,7 @@ class ParagraphRenderer < ParagraphFeature
   
   def paragraph_options(paragraph_name)
   
-    options_class = self.class.to_s.gsub(/Renderer$/,"Controller") + "::" + paragraph_name.to_s.classify + "Options"
+    options_class = self.class.to_s.gsub(/Renderer$/,"Controller") + "::" + paragraph_name.to_s.camelcase + "Options"
     options_class.constantize.new(@para.data)
   end
   
