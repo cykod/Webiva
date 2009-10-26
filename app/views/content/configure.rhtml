@@ -17,6 +17,7 @@ ContentEditor = {
                       "<%= url_for :action => 'add_feature', :path => [ @content_model.id ]  %>",
                       { parameters: { feature_handler: feature, index: index },
                         insertion: 'bottom',
+                        evalScripts: true,
                         onComplete: function(req) {
                           ContentEditor.recreateFeatureSortables();
                         } });

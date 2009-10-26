@@ -88,11 +88,14 @@ class ParagraphRenderer < ParagraphFeature
     cls.available_features.each do |feat|
       method_definition = <<-METHOD
       def #{feat}_feature(*data)
+        
         cls = #{cls_name}.new(@para,self)
         cls.set_documentation(self.documentation)
         if data.length == 0
+          raise ParagraphRenderer::CaptureDataException.new(instance_variable_hash) if capture_data
           cls.#{feat}_feature(instance_variable_hash)
         else
+          raise ParagraphRenderer::CaptureDataException.new(*data) if capture_data
           cls.#{feat}_feature(*data)
         end
       end
@@ -173,13 +176,22 @@ class ParagraphRenderer < ParagraphFeature
       self.new(UserClass.get_class('domain_user'),ApplicationController.new,PageParagraph.new,SiteNode.new,PageRevision.new)
   end
   
-  def self.document_feature(name)
+  def self.document_feature(name,data={})
     rnd = self.dummy_renderer
     rnd.set_documentation(true)
-    rnd.send(name,{})
+    rnd.send(name,data)
   end
-  
-  
+
+  class CaptureDataException < Exception
+    def initialize(data)
+      @data = data
+    end
+
+    attr_reader :data     
+  end
+
+  attr_accessor :capture_data
+    
   
   def ajax?
     @opts[:ajax]
@@ -261,9 +273,10 @@ class ParagraphRenderer < ParagraphFeature
     if @paragraph_output
       raise 'Only 1 paragraph output function can be called per paragraph'
     end
-#    if args[:partial]
-#      args[:partial] = [ self.class.template_root, args[:partial] ]
-#    end
+    if args[:feature]
+      feature = args.delete(:feature)
+      args[:text] = self.send("#{feature}_feature") 
+    end
     if args[:partial] && !args[:locals]
       args[:locals] = instance_variable_hash
     end
@@ -321,6 +334,10 @@ class ParagraphRenderer < ParagraphFeature
   
   def include_in_head(html)
     @head_html << html
+  end
+
+  def form_authenticity_token
+    @controller.send(:form_authenticity_token)
   end
   
   def method_missing(method,*args)

@@ -16,6 +16,8 @@ class ContentPublication < DomainModel
   belongs_to :content_model
   serialize :data
   serialize :actions
+
+  attr_accessor :start_empty
   
   has_many :content_publication_fields, :dependent => :destroy, :order => 'content_publication_fields.position', :include => :content_model_field
   
@@ -68,7 +70,7 @@ class ContentPublication < DomainModel
       val = nil
       case fld.field_type
       when 'dynamic':
-        val = fld.content_model_field.dynamic_value(fld.data[:dynamic],application_state)
+        val = fld.content_model_field.dynamic_value(fld.data[:dynamic],entry,application_state)
         fld.content_model_field.assign_value(entry,val)
       when 'input':
         fld.content_model_field.assign(entry,values)

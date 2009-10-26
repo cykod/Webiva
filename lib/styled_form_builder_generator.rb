@@ -18,7 +18,16 @@ module StyledFormBuilderGenerator
           end
           
           define_method fld do |field,*args|
-            output = lambda { super(field,*args) }
+            output = lambda do |opts|
+              if opts.is_a?(Hash)
+                if args.last.is_a?(Hash)
+                  args[-1] = args.last.merge(opts)
+                else
+                  args << opts
+                end
+              end
+              super(field,*args)
+            end
             options = args.last.is_a?(Hash) ? args.last : {}
             
             @options = self.send(options_func,fld,field,output,options)
@@ -428,8 +437,9 @@ class SimpleForm < StyledForm
   include EnhancedFormElements
   
   def form_options(tag,field,output,options)
+    options[:class] = options[:class] ? tag + '_input ' + options[:class] : tag + '_input '
     {
-      :output => output.call
+      :output => output.call( {:class => options[:class] })
     }
   end
   
@@ -517,7 +527,7 @@ class TabledForm < StyledForm
       :required => options.delete(:required),
       :vertical => options.delete(:vertical),
       :error => ( options.delete(:skip_error) ? nil : output_error_message( noun || label,field) ),
-      :output => output.call,
+      :output => output.call( :class => options[:class] ),
       :valign => options[:valign],
       :description => description.to_s.gsub("\n","<br/>"),
       :cols => cols,
@@ -634,7 +644,7 @@ class TabledDisplayForm < TabledForm
   	if ['label_option_field'].include?(tag)
 		{
 		:label => emit_label(options[:label] || field.to_s.humanize),
-		:output => output.call,
+        :output => output.call,
 		:control => tag
 		}
   	else
@@ -1382,6 +1392,113 @@ module CmsFormElements
   end
 
 
+  def ordered_array(field,opts,options={})
+    objects = @object.send(field)
+    
+    # options for select doesn't support disabled arguments, so ryo
+    select_options = ([['--Select--'.t,nil]] + opts).map do |opt|
+      opt_disabled = objects.include?(opt[1]) ? 'disabled="disabled"' : ''
+      "<option value='#{opt[1]}' #{opt_disabled}>#{h(opt[0])}</option>"
+    end.join
+
+    opts_hash = {}
+    opts.each { |elm| opts_hash[elm[1]] = elm[0].to_s }
+    
+    obj_name = @object_name.to_s.gsub(/\[|\]/,"_");
+    idx=-1
+    existing_options = objects.map do |elm|
+      idx+=1
+      <<-TXT
+      <div class='ordered_selection_list_item' id='#{obj_name}_#{field}_element_#{idx}'>
+<div class='ordered_selection_list_remove'><a href='javascript:void(0);' onclick='OrderedArray.delete("#{obj_name}_#{field}","#{@object_name}[#{field}]","#{idx}","#{ elm}");'>X</a></div><div class='ordered_selection_list_value' id='ordered_selection_list_item_#{elm}'>#{h opts_hash[elm]}</div>
+       </div>
+TXT
+    end.join
+      
+    html = <<-HTML
+<script>
+  OrderedArray = {
+     add:function(name,obj_name) {
+       var idx= $(name + "_select").selectedIndex;
+
+       if(idx!=0) {	    
+        var option = $(name + "_select").options[idx];
+
+        if(!option.value) return;
+        option.disabled = true;
+        
+        $(name + "_select").selectedIndex = 0;
+
+        var existing =  $(name + "_selector").select(".ordered_selection_list_item");
+        var index =1;
+        if(existing.length > 0) {
+          index = existing.map(function(elm) { return SCMS.getElemNum(elm.id); }).max() + 1;
+        }
+           
+        var html = "<div class='ordered_selection_list_item' id='" + name + "_element_" + index + "'>";
+        html += "<div class='ordered_selection_list_remove'><a href='javascript:void(0);' onclick='OrderedArray.delete(\\"" + name + "\\",\\"" + obj_name + "\\",\\"" + index +  "\\",\\"" + option.value + "\\");'>X</a></div>";
+        html += "<div class='ordered_selection_list_value' id='ordered_selection_list_item_" + option.value + "'>" +  option.text.escapeHTML() + "</div>";
+        html +="</div>";
+        $(name + '_selector').insert(html);
+        $(name + '_selector').show();
+
+  
+        OrderedArray.createSortables(name,obj_name);
+      }
+			
+     },
+
+     createSortables:function(name,obj_name) {
+       Sortable.create($(name + "_selector"),{
+               tag: 'div',
+               constraint: 'vertical',
+               dropOnEmpty: true,
+               onUpdate: function() { OrderedArray.refreshPositions(name,obj_name); }
+       });
+       OrderedArray.refreshPositions(name,obj_name);
+     },
+
+    refreshPositions:function(name,obj_name) {
+        $(name + "_positions").innerHTML = null;
+        var elems = $(name + "_selector").select('.ordered_selection_list_value');
+
+        output = "";
+        var reg = /^ordered_selection_list_item_/
+      
+         elems.each(function(elem) {
+           var str = elem.id.replace(reg, "")
+           output += "<input type='hidden' name='" + obj_name + "[]' value='" + str.escapeHTML() +  "'/>"; 
+         });
+
+         $(name + "_positions").innerHTML = output;
+
+    },
+
+
+    delete: function(name,obj_name,index,obj_id) {
+      $(name + '_element_' + index).remove();
+      var opts = $(name + "_select").options;
+
+      for(var i=0;i<opts.length;i++) {
+        if(opts[i].value == obj_id)
+            opts[i].disabled = false;
+      }
+       OrderedArray.refreshPositions(name,obj_name);
+    }
+	
+   }
+</script>
+      <select name='#{obj_name}_#{field}_select' id='#{obj_name}_#{field}_select'>#{select_options}</select>
+      <button onclick='OrderedArray.add("#{obj_name}_#{field}","#{@object_name}[#{field}]"); return false;' >Add</button><br/>
+      <div id='#{obj_name}_#{field}_positions'></div>
+      <div class='ordered_selection_list' id='#{obj_name}_#{field}_selector' #{"style='display:none;'" if objects.length == 0}>
+        #{existing_options}
+      </div>
+#{    "<script>OrderedArray.createSortables('#{obj_name}_#{field}','#{@object_name}[#{field}]');</script>"}
+HTML
+         
+  end
+
   
   def ordered_selection_list(field,class_name,options={})
 
@@ -1417,7 +1534,7 @@ module CmsFormElements
  <input type='hidden' name='#{@object_name}[#{field}][][#{id_field}]' value='' />
  #{"<input type='hidden' name='#{@object_name}[#{field}][][#{position_field}]' value='' />" if sortable}
       <div class='ordered_selection_list_item' id='#{obj_name}_#{field}_element_#{elm.send(id_field)}'>
-<div class='ordered_selection_list_remove'><a href='javascript:void(0);' onclick='OrderedList.delete("#{obj_name}_#{field}","#{elm.send(id_field)}");'>X</a></div>
+<div class='ordered_selection_list_remove'><a href='javascript:void(0);' onclick='OrderedList.delete("#{obj_name}_#{field}", "#{elm.send(id_field)}");'>X</a></div>
            #{h elm.name}
            <input type='hidden' name='#{@object_name}[#{field}][][#{id_field}]' value='#{elm.send(id_field)}' />
            #{"<input type='hidden' name='#{@object_name}[#{field}][][#{position_field}]' value='#{elm.send(position_field)}' />" if sortable}
@@ -1461,7 +1578,7 @@ TXT
      createSortables:function(name,obj_name) {
        Sortable.create($(name + "_selector"),{
                tag: 'div',
-               constraint: 'verticle',
+               constraint: 'vertical',
                dropOnEmpty: true,
                onUpdate: function() { OrderedList.refreshPositions(name); }
        });
@@ -1489,10 +1606,6 @@ TXT
       }
 
     }
-
-
-
-	
    }
 </script>
       <select name='#{obj_name}_#{field}_select' id='#{obj_name}_#{field}_select'>#{select_options}</select>
@@ -1544,7 +1657,7 @@ class CmsForm < TabledForm
 
   include CmsFormElements
   generate_styled_fields('form_options',
-                          %w(access_control filemanager_image filemanager_folder filemanager_file price_classes price_range color_field date_field datetime_field upload_image upload_document unsorted_selector content_selector multi_content_selector image_list end_user_selector autocomplete_field ordered_selection_list)) do 
+                          %w(access_control filemanager_image filemanager_folder filemanager_file price_classes price_range color_field date_field datetime_field upload_image upload_document unsorted_selector content_selector multi_content_selector image_list end_user_selector autocomplete_field ordered_selection_list ordered_array)) do 
                           field(@options)
                           end
 
@@ -1562,7 +1675,20 @@ class CmsUnstyledForm < StyledForm
   include CmsFormElements
   include EnhancedFormElements
 
-
+ 
+  
+  generate_styled_fields('form_options',
+                          field_helpers + %w(label_field label_option_field country_select collection_select select radio_buttons grouped_check_boxes grouped_radio_buttons grouped_select check_boxes) - %w(check_box radio_button hidden_field) +  %w(access_control filemanager_image filemanager_folder filemanager_file price_classes price_range color_field date_field datetime_field upload_image upload_document unsorted_selector content_selector multi_content_selector image_list end_user_selector autocomplete_field ordered_selection_list ordered_array)) do 
+      options[:output]
+  end
+  
+  def form_options(tag,field,output,options)
+    options[:class] = !options[:class].blank? ? tag.to_s + '_input ' + options[:class].to_s : tag.to_s + '_input'
+    {
+      :output => output.call( {:class => options[:class] })
+    }
+  end
+  
  def output_error_message(label,field)
     return nil unless @object && @object.errors
     val = super

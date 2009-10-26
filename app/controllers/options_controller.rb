@@ -101,23 +101,28 @@ class OptionsController < CmsController
   def domain_options
     cms_page_path [ "Options", "Configuration" ], "Domain Options"
     
-    @options = DefaultsHashObject.new(params[:options] || Configuration.options())
+    @options =  Configuration.options(params[:options])
     
     if request.post? && params[:options]
       @config = Configuration.retrieve(:options)
       
-      if @config.options['gallery_folder'] != params[:options][:gallery_folder]
+      if @config.options['gallery_folder'] != @options.gallery_folder
+        # TODO - Fix & Modularize
         old_gal = DomainFile.find_by_id(@config.options['gallery_folder'])
         old_gal.update_attribute(:special,'') if old_gal
         new_gal = DomainFile.find_by_id(params[:options][:gallery_folder])
         new_gal.update_attribute(:special,'galleries') if new_gal
       end
-      @config.options = @options.to_h
+      @config.options = @options.to_hash
       
       @config.save
-      @updated = true
       Configuration.retrieve(:options)
+      flash[:notice] = 'Updated Domain Options'.t
+      redirect_to :action => 'configuration'
     end
+    
+    handlers = get_handler_info(:members,:view)
+    @member_tabs = handlers.map {|elm| [ elm[:name], elm[:identifier].to_s ] }
     
   end
   

@@ -83,14 +83,13 @@ class Editor::PublicationRenderer < ParagraphRenderer
 
     if params['entry_' + publication.id.to_s] || editor? || !paragraph_output
         entry = publication.content_model.content_model.new(params['entry_' + publication.id.to_s]) unless entry
-        
-        paragraph_output = render_to_string :partial => "/editor/publication/create",
-                                          :locals => { :publication => publication,
-                                                        :entry => entry, 
-                                                        :return_page => nil,
-                                                        :renderer => self,
-                                                        :feature => paragraph.site_feature ? get_feature(publication.feature_name) : nil }
-        # Only save the data if we haven't posted and aren't in the editor
+        publication_options = (publication.data || {})
+        pub_class = publication_options[:form_class].blank? ? nil : publication_options[:form_class]
+      multipart  =   publication.content_publication_fields.detect { |fld| fld.content_model_field.field_type == 'image' || fld.content_model_field.field_type == 'document' }
+
+        paragraph_output = form_feature(publication,{:entry => entry, :multipart => multipart,:publication => publication})
+
+      
         # TO DO - reactivate caching and expand to whole content / publication controller
         #DataCache.put_content(content_type,content_target,target_display,paragraph_output) if !editor? && !request.post?
     end
@@ -235,13 +234,14 @@ class Editor::PublicationRenderer < ParagraphRenderer
     require_js('prototype')
     require_js('overlib/overlib')
     require_js('user_application')
+
+    publication_options = (publication.data || {})
+    pub_class = publication_options[:form_class].blank? ? nil : publication_options[:form_class]
+    multipart  =   publication.content_publication_fields.detect { |fld| fld.content_model_field.field_type == 'image' || fld.content_model_field.field_type == 'document' }
+
+    render_paragraph :text =>   form_feature(publication,{:entry => entry, :multipart => multipart,:publication => publication})
+
       
-    render_paragraph :partial => "/editor/publication/create",
-                     :locals => { :publication => publication,
-                                  :entry => entry,
-                                  :return_page => return_page,
-                                  :renderer => self,
-                                  :feature => paragraph.site_feature ? get_feature(publication.feature_name) : nil  }
                     
 
 

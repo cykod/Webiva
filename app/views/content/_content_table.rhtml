@@ -19,7 +19,7 @@
       <% end -%>
   </td>
 <% @content_model.content_model_fields.each do |fld| -%>
-  <% if fld.show_main_table? -%>
+  <% if fld.show_main_table? && fld.data_field? -%>
     <td><% if fld == @content_model.content_model_fields.first -%>
     <a href='<%= url_for :action => 'entry', :path => [ @content_model.id, entry.id ] %>'>
       <%= fld.content_display(entry,:excerpt) %></a>

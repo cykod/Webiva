@@ -4,6 +4,8 @@
   <%= f.text_field :name, :label => 'Publication Name', :vertical => true %>
   <%= f.select :publication_type, @publication_types, :vertical => true %>
   <%= f.text_area :description, :label => 'Description', :vertical => true, :cols => 40, :rows => 5 %>
+   <%= f.check_boxes :start_empty, [["Don't add any fields to this content model",true]],  :vertical => true %>
+  <%= f.spacer %>
   <%= f.submit_tag 'Customize Publication' %>
 <% end -%>
 </div>

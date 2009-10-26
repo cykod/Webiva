@@ -274,7 +274,7 @@ class FileController < CmsController
       name = 'New Folder'.t
       @hide_item = true
       
-      gallery_folder = Configuration.options[:gallery_folder].to_i == parent_folder.id
+      gallery_folder = Configuration.options.gallery_folder.to_i == parent_folder.id
       
       @folder = parent_folder.children.create(:name => name,:file_type => 'fld',:special => gallery_folder ? 'gallery' : '')
       @parent_id = parent_folder.id

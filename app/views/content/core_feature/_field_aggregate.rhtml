@@ -1,0 +1,6 @@
+<% available_data_fields =  @content_model.content_model_fields.select { |elm| elm.data_field? }.map { |elm| [ elm.name,elm.id ] } %>
+<%= f.select :target_field_id, [['--Select Field--'.t,nil]] + available_data_fields, :description => 'The value is this field will be replaced be checking for value in field listed below'  %>
+<%= f.radio_buttons :aggregate_type, [['Any field not blank','any'],['All fields not blank','all'],['No fields set','none']] %>
+<%= f.text_field :full_value, :description => 'This is the value that will be set if the aggregate type returns true' %>
+<%= f.text_field :blank_value %>
+<%= f.ordered_array :source_fields, available_data_fields %>

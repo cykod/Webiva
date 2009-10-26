@@ -88,8 +88,8 @@ class Configuration < DomainModel
     self.get(:google_analytics, {:enabled => false, :code => '' })
   end
   
-  def self.options
-    self.get(:options, { } )
+  def self.options(opts=nil)
+    DomainOptions.new(opts ||self.get(:options, { } ))
   end
   
   def self.images_sizes
@@ -101,23 +101,23 @@ class Configuration < DomainModel
   end
   
   def self.missing_image(gender)
-    DomainFile.find_by_id(self.options[:missing_image_id])
+    DomainFile.find_by_id(self.options.missing_image_id)
   end
   
   def self.mailing_contact
-     self.options[:mailing_contact_email]
+     self.options.mailing_contact_email
   end
   
   def self.mailing_from
-    self.options[:mailing_default_from_name]
+    self.options.mailing_default_from_name
   end
   
   def self.reply_to_email
-     self.options[:mailing_contact_email] || ("noreply@" +  DomainModel.active_domain_name)
+     self.options.mailing_contact_email || ("noreply@" +  DomainModel.active_domain_name)
   end
   
   def self.from_email
-    self.options[:mailing_contact_email] || ("noreply@" +  DomainModel.active_domain_name)
+    self.options.mailing_contact_email || ("noreply@" +  DomainModel.active_domain_name)
   end
   
   def self.domain
@@ -165,6 +165,17 @@ class Configuration < DomainModel
         options_arr[opt.to_s] = val.split("\n").find_all { |elm| !elm.blank? }
       end
     end
+  end
+
+  class DomainOptions < HashModel
+    attributes :domain_title_name => nil, :mailing_contact_email =>nil,:mailing_default_from_name => nil, :company_address => nil, :default_image_location => nil, :gallery_folder => nil, :page_title_prefix => nil, :user_image_folder => nil, :missing_image_id => nil, :missing_male_image_id => nil, :missing_female_image_id => nil, :theme => 'standard', :member_tabs => []
+
+    integer_options :default_image_location, :gallery_folder,:user_image_folder, :missing_image_id, :missing_male_image_id, :missing_female_image_id
+
+  end
+
+  def self.log_config_error(error,data={})
+    # Dummy function for now
   end
 
 end

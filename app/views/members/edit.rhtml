@@ -188,8 +188,8 @@ MemberEditor = {
 <% end -%>
   </td>
 </tr>
+<%= f.cancel_submit_buttons 'Cancel','Submit' %>
 
-<%= f.submit_cancel_tags 'Submit','Cancel', {}, { :onclick => "document.location='#{url_for :action => 'index' }'; return false;" } %>
 <% end -%>
 
 </td>

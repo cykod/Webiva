@@ -596,3 +596,40 @@ body
 }
 
 
+
+/* Ordered Selection List Stuff */
+
+.ordered_selection_list {
+ padding:5px;
+ border:1px solid #CCCCCC;
+ margin:4px 0px;
+ width:300px;
+ overflow:auto;
+ 
+
+}
+
+.ordered_selection_list_item {
+ clear:both;
+ cursor:pointer;
+ padding:2px;
+ margin:2px !important;
+ background-color:#DDDDDD;
+ position:relative;
+ font-weight:bold;
+ color:#666666;
+ margin:4px;
+}
+
+.ordered_selection_list_value {
+ 
+}
+
+.ordered_selection_list_remove {
+ position:absolute;
+ right:5px;
+
+}
+
+.ordered_selection_list_remove a { text-decoration: none; font-weight:bold; color:black; }
+

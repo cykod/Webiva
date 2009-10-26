@@ -98,7 +98,11 @@ class Content::Field
       end
     EOF
     self.class_eval content_display_code, __FILE__, __LINE__ 
-  end
+    end
+
+    def content_value(entry)
+       entry.send(@model_field.field)
+    end 
   
   def self.text_value(val,size,options={})
     if size == :excerpt
@@ -354,6 +358,10 @@ class Content::Field
     
     end
   end
+
+  # By default this field holds data
+  # But some sub-classes may not (e.g. HeaderField)
+  def data_field?; true; end
   
   def display_options(pub_field,f); ''; end
   def form_display_options(pub_field,f); ''; end
@@ -370,18 +378,24 @@ class Content::Field
   end
   
   def self.table_header(header_type)
-    header_class = "#{header_type}_header".classify
-    header_code =  <<-EOF
+    if header_type != :none
+      header_class = "#{header_type}_header".classify
+      header_code =  <<-EOF
       def active_table_header
         ActiveTable::#{header_class}.new(@model_field.field, :label => @model_field.name)  
       end
-    EOF
-    self.class_eval header_code, __FILE__, __LINE__ 
+      EOF
+      self.class_eval header_code, __FILE__, __LINE__
+    else
+      define_method(:active_table_header) { nil } 
+    end
   end  
   
   def modify_entry_parameters(parameters)
     # Dummy, don't do anything
   end
+
+  
   
   def field_options_model
     @field_options_model ||= FieldOptions.new(@model_field.field_options)
@@ -402,7 +416,14 @@ class Content::Field
     end
   end
          
+ 
+  def assign_value(entry,value)
+    entry.send("#{@model_field.field}=",value)
+  end
   
+  def assign(entry,values)
+    entry.send("#{@model_field.field}=",values[@model_field.field.to_sym]) if values.has_key?(@model_field.field.to_sym)
+  end 
   
   class FieldOptions < HashModel
     attributes :required => false, :options => [], :relation_class => nil, :unique => false, :regexp => false, :regexp_code => '', :regexp_message => 'is not formatted correctly'
@@ -433,11 +454,5 @@ class Content::Field
   end
   
   
-  def assign_value(entry,value)
-    entry.send("#{@model_field.field}=",value)
-  end
-  
-  def assign(entry,values)
-    entry.send("#{@model_field.field}=",values[@model_field.field.to_sym])  
-  end
+
 end

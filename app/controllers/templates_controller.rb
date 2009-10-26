@@ -13,7 +13,8 @@ class TemplatesController < CmsController
       'Options' => { :controller => 'options' },
       "Design Templates" => { :controller => 'templates' },
       "Site Features" => { :action => 'features' }
-                            
+
+   include SiteNodeEngine::Controller
   
   protected
   def expire_site
@@ -272,7 +273,7 @@ class TemplatesController < CmsController
     end
   end
   
-  def feature(popup=false)
+  def feature(popup=false,data={})
     @feature = SiteFeature.find_by_id(params[:path][0]) || SiteFeature.new(:feature_type => @paragraph.feature_type.to_s, :name => @paragraph.feature_type.to_s.humanize)
     
     if !@feature.id
@@ -297,9 +298,9 @@ class TemplatesController < CmsController
     # Try to generate automatic feature tag documentation
     begin
       if details[3] # If we have a publication
-        @doc = details[2].document_feature(details[1],details[3])
+        @doc = details[2].document_feature(self,details[1],details[3])
       else
-        @doc = details[2].document_feature(details[1])
+        @doc = details[2].document_feature(self,details[1],data)
       end
     rescue Exception => e
       @doc = nil
@@ -330,6 +331,15 @@ class TemplatesController < CmsController
     @paragraph_id = params[:paragraph_id]
     
     @paragraph = PageParagraph.find(@paragraph_id)
+
+    engine = SiteNodeEngine.new(@paragraph.page_revision.revision_container,:display => session[:cms_language], :path => [],:edit => true, :capture => true)
+
+    data ={}
+    begin
+      @result = engine.run_paragraph(@paragraph,self,myself)
+    rescue ParagraphRenderer::CaptureDataException => e
+      data = e.data
+    end
     
     if params[:version] && !params[:version].blank?
       flash[:feature_version_load] = params[:version]
@@ -337,7 +347,7 @@ class TemplatesController < CmsController
       return
     end  
     
-    feature(true)
+    feature(true,data)
   
     @reload_url = "?para_index=#{@paragraph_index}&paragraph_id=#{@paragraph_id}&"
     

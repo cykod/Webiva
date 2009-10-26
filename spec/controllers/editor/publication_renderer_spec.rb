@@ -111,8 +111,8 @@ describe Editor::PublicationRenderer, :type => :controller do
        @entry = @cm.content_model.create(:string_field => 'This is a test of the emergency broadcast system')
 
        @rnd = generate_edit_renderer(@publication, { :redirect_page => @view_page_node.id }, { :input => [ :entry_id, @entry.id ] })
+       @rnd.should_render_feature('form')
        renderer_get @rnd
-       @rnd.should render_paragraph(:partial => '/editor/publication/create')
     end
     
      it "should be able to display default edit publication form feature" do
@@ -121,8 +121,8 @@ describe Editor::PublicationRenderer, :type => :controller do
          @entry = @cm.content_model.create(:string_field => 'This is a test of the emergency broadcast system')
 
          @rnd = generate_edit_renderer(@publication, { :redirect_page => @view_page_node.id }, { :input => [ :entry_id, @entry.id ] }, :site_feature_id => @feature.id)
+         @rnd.should_render_feature('form')
          renderer_get @rnd
-         @rnd.should render_paragraph(:partial => '/editor/publication/create')
          
       end    
     
@@ -157,8 +157,8 @@ describe Editor::PublicationRenderer, :type => :controller do
     it "should be display the create form if allowed" do
        @rnd = generate_edit_renderer(@publication, { :redirect_page => @view_page_node.id,:allow_entry_creation => true })
     
+       @rnd.should_render_feature('form')
        renderer_get @rnd
-       @rnd.should render_paragraph(:partial => '/editor/publication/create')
     end 
     
     it "should be able to create a new entry if allowed" do

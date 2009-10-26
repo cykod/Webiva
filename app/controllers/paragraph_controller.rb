@@ -134,7 +134,7 @@ class ParagraphController < CmsController
             ctrl_paragraphs = []
 	    paras.each do |para|
 	      unless para[1][:hidden]
-                para_info = [ 'editor', para[0].to_s, para[1][:name] || para[0].humanize, "/editor/#{controller_name}", para[1][:features] || [] ]
+                para_info = [ 'editor', para[0].to_s, para[1][:name] || para[0].humanize, "/editor/#{controller_name}", para[1][:features] || [], nil,  para[1][:legacy] ? true : false ]
 		ctrl_paragraphs << para_info
 	      end
 	    end

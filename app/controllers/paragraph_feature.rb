@@ -31,15 +31,15 @@ class ParagraphFeature
     end
   end
   
-  def self.dummy_renderer
-    ParagraphRenderer.new(UserClass.get_class('domain_user'),ApplicationController.new,PageParagraph.new,SiteNode.new,PageRevision.new)
+  def self.dummy_renderer(controller=nil)
+    ParagraphRenderer.new(UserClass.get_class('domain_user'),controller || ApplicationController.new,PageParagraph.new,SiteNode.new,PageRevision.new)
   end
 
- def self.document_feature(name)
-    rnd = self.dummy_renderer
+  def self.document_feature(controller,name,data={})
+    rnd = self.dummy_renderer(controller)
     feature = self.new(PageParagraph.new,rnd)
     feature.set_documentation(true)
-    feature.send(name,{})
+    feature.send(name,data)
   end
   
   
@@ -115,37 +115,41 @@ class ParagraphFeature
         define_value_tag(name,field,&Proc.new { |t| val = block.call(t); val ? h(val) : nil })
       end
     end
+
+    def value_tag_helper(tag,field,&block)
+      val = yield(tag)
+      if tag.single?
+        val
+      else
+        tag.locals.send("#{field}=",val)
+        if tag.attr['equals']
+          eql = val.is_a?(Integer) ? tag.attr['equals'].to_i : tag.attr['equals']
+          val == eql ? tag.expand : nil
+        elsif tag.attr['include']
+          inc = val.is_a?(Array) && val.include?(tag.attr['include'])
+          inc ? tag.expand : nil
+        elsif tag.attr['not_equals']
+          eql = val.is_a?(Integer) ? tag.attr['not_equals'].to_i : tar.attr['not_equals']
+          val != eql ? tag.expand : nil
+        elsif tag.attr['min']
+          min = val.is_a?(Integer) ? tag.attr['min'].to_i : tar.attr['min']
+          val >= min ? tag.expand : nil
+        elsif tag.attr['max']
+          max = val.is_a?(Integer) ? tag.attr['max'].to_i : tar.attr['max']
+          val <= max ? tag.expand : nil
+        else
+          if val.is_a?(Array)
+            val.length == 0 || val[0].blank? ? nil : tag.expand
+          else
+            val.blank? ? nil : tag.expand
+          end
+        end
+      end
+    end
     
     def define_value_tag(name,field='value',&block)
       define_tag(name) do |tag|
-        val = yield(tag)
-        if tag.single?
-          val
-        else
-          tag.locals.send("#{field}=",val)
-          if tag.attr['equals']
-            eql = val.is_a?(Integer) ? tag.attr['equals'].to_i : tar.attr['equals']
-            val == eql ? tag.expand : nil
-          elsif tag.attr['include']
-            inc = val.is_a?(Array) && val.include?(tag.attr['include'])
-            inc ? tag.expand : nil
-          elsif tag.attr['not_equals']
-            eql = val.is_a?(Integer) ? tag.attr['not_equals'].to_i : tar.attr['not_equals']
-            val != eql ? tag.expand : nil
-          elsif tag.attr['min']
-            min = val.is_a?(Integer) ? tag.attr['min'].to_i : tar.attr['min']
-            val >= min ? tag.expand : nil
-          elsif tag.attr['max']
-            max = val.is_a?(Integer) ? tag.attr['max'].to_i : tar.attr['max']
-            val <= max ? tag.expand : nil
-          else
-            if val.is_a?(Array)
-              val.length == 0 || val[0].blank? ? nil : tag.expand
-            else
-              val.blank? ? nil : tag.expand
-            end
-          end
-        end
+        value_tag_helper(tag,field,&block)
       end
       
       name_parts = name.split(":")
@@ -249,6 +253,124 @@ class ParagraphFeature
       define_expansion_tag(tag_name + ":myself") { |t| usr = yield t; usr == myself if usr }
     
     end
+
+    def define_user_details_tags(name_base,options={})
+      local=options[:local]
+      if !local
+        name_parts = name_base.split(":")
+        local = name_parts[-1]
+      end
+      expansion_tag("#{name_base}:myself") { |t| t.locals.send(local) == myself }
+      expansion_tag("#{name_base}:male") { |t| t.locals.send(local).gender == 'm' }
+      expansion_tag("#{name_base}:female") { |t| t.locals.send(local).gender == 'f' }
+      define_value_tag("#{name_base}:user_id") { |t| t.locals.send(local).id }
+      define_value_tag("#{name_base}:first_name") { |t| t.locals.send(local).first_name }
+      define_value_tag("#{name_base}:last_name") { |t| t.locals.send(local).last_name }
+      define_value_tag("#{name_base}:name") { |t| t.locals.send(local).name }
+      define_value_tag("#{name_base}:email") { |t| t.locals.send(local).email }
+      define_image_tag("#{name_base}:img") { |t| t.locals.send(local).image }
+      define_image_tag("#{name_base}:second_img") { |t| t.locals.send(local).second_image }
+      define_image_tag("#{name_base}:fallback_img") { |t| t.locals.send(local).second_image || t.locals.send(local).image }
+
+      expansion_tag("#{name_base}:address") { |t| t.locals.address = t.locals.send(local).address }
+      define_user_address_tags("#{name_base}:address")
+      
+      expansion_tag("#{name_base}:work_address") { |t| t.locals.work_address = t.locals.send(local).work_address }
+      define_user_address_tags("#{name_base}:work_address")
+
+    end
+
+    def define_user_address_tags(name_base,options={})
+       local=options[:local]
+      if !local
+        name_parts = name_base.split(":")
+        local = name_parts[-1]
+      end
+
+      define_value_tag("#{name_base}:display") { |t| t.locals.send(local).display(t.attr['separator'] || "<br/>") }
+      
+      %w(address address_2 company phone fax city state zip country).each do |fld|
+        define_h_tag("#{name_base}:#{fld}") { |t| t.locals.send(local).send(fld) }
+      end
+      
+    end
+
+    def image_tag_helper(tag,img,tag_opts)
+      # Handle rollovers
+      if img.is_a?(Array)
+        rollover = img[1]
+        object_id = img[2]
+        img = img[0]
+      end
+      
+      attr = tag.attr.clone
+      if img 
+        icon_size = attr.delete('size') || tag_opts[:size] || nil
+        size = icon_size #%w(icon thumb preview small original).include?(icon_size) ?  icon_size : nil
+        size = nil if size == 'original'
+        img_size = img.image_size(size)
+        shadow = attr.delete('shadow')
+        align = attr.delete('align') 
+        field = attr.delete('field')
+        
+        case field
+        when 'width':
+            img_tag = img_size[0].to_s
+        when 'height':
+            img_tag = img_size[1].to_s
+        when 'dimensions':
+            img_tag =  "width='#{img_size[0].to_s}' height='#{img_size[1].to_s}'"
+        when 'src':
+            img_tag = img.url(size)
+        else
+          if shadow
+            shadow_align = align
+            border_amt = (attr.delete('border') || 1).to_i
+            if(align == 'left')
+              border = "0 #{border_amt}px #{border_amt}px 0px"
+            elsif(align == 'right')
+              border = "0 0 #{border_amt}px #{border_amt}px"
+            else
+              border = 0
+            end
+          else
+            attr['align'] = align
+            border_amt = (attr.delete('border') || 1).to_i
+            attr['style'] = (!attr['style'].blank?) ? attr['style'] + ';' : ''
+            if(align == 'left')
+              attr['style'] += "margin: 0 #{border_amt}px #{border_amt}px 0px;"
+            elsif(align == 'right')
+              attr['style'] += "margin: 0 0 #{border_amt}px #{border_amt}px"
+            end
+          end
+          
+          img_url = img.url(size)
+          img_opts =  { :src => img_url,:width => img_size[0],:height => img_size[1] }
+          attr.symbolize_keys!
+          if attr[:width] || attr[:height]
+            img_opts.delete(:width)
+            img_opts.delete(:height)
+          end
+          tag_opts = attr.merge(img_opts)
+          if rollover
+            tag_opts[:onmouseover] = "WebivaMenu.swapImage(this,'#{jvh img_url}','#{jvh  rollover.url(size)}','#{object_id}'); " + tag_opts[:onmouseover].to_s
+            tag_opts[:onmouseout] = "WebivaMenu.restoreImage(this,'#{object_id}'); " + tag_opts[:onmouseout].to_s
+            preload = "<script>WebivaMenu.preloadImage('#{jvh rollover.url(size)}');</script>"
+          end
+          img_tag =  tag('img',tag_opts) + preload.to_s
+          img_tag = "<div style='float:#{shadow_align}; margin:#{border}; #{attr['style']}'><div style='width:#{img_size[0] + 12}px; float:#{shadow_align};' class='cms_gallery_shadow'><div><p>" + img_tag + "</p></div></div></div>" if shadow
+        end
+        if tag.single?
+          img_tag
+        else
+          tag.locals.value = img_tag
+          tag.expand
+        end            
+      else
+        nil
+      end
+
+    end
     
       def define_image_tag(tag_name,local_obj=nil,attribute=nil,tag_opts={})
         define_tag tag_name + ":value" do |tag|
@@ -284,80 +406,7 @@ class ParagraphFeature
         
         define_tag tag_name do |tag|
           img = obj_value.call(tag)
-          
-          # Handle rollovers
-          if img.is_a?(Array)
-            rollover = img[1]
-            object_id = img[2]
-            img = img[0]
-          end
-          
-          attr = tag.attr.clone
-          if img 
-            icon_size = attr.delete('size') || tag_opts[:size] || nil
-            size = icon_size #%w(icon thumb preview small original).include?(icon_size) ?  icon_size : nil
-            size = nil if size == 'original'
-            img_size = img.image_size(size)
-            shadow = attr.delete('shadow')
-            align = attr.delete('align') 
-            field = attr.delete('field')
-            
-            case field
-            when 'width':
-              img_tag = img_size[0].to_s
-            when 'height':
-              img_tag = img_size[1].to_s
-            when 'dimensions':
-              img_tag =  "width='#{img_size[0].to_s}' height='#{img_size[1].to_s}'"
-            when 'src':
-              img_tag = img.url(size)
-            else
-              if shadow
-                shadow_align = align
-                border_amt = (attr.delete('border') || 1).to_i
-                if(align == 'left')
-                  border = "0 #{border_amt}px #{border_amt}px 0px"
-                elsif(align == 'right')
-                  border = "0 0 #{border_amt}px #{border_amt}px"
-                else
-                  border = 0
-                end
-              else
-                attr['align'] = align
-                border_amt = (attr.delete('border') || 1).to_i
-                attr['style'] = (!attr['style'].blank?) ? attr['style'] + ';' : ''
-                if(align == 'left')
-                  attr['style'] += "margin: 0 #{border_amt}px #{border_amt}px 0px;"
-                elsif(align == 'right')
-                  attr['style'] += "margin: 0 0 #{border_amt}px #{border_amt}px"
-                end
-              end
-              
-              img_url = img.url(size)
-              img_opts =  { :src => img_url,:width => img_size[0],:height => img_size[1] }
-              attr.symbolize_keys!
-              if attr[:width] || attr[:height]
-                  img_opts.delete(:width)
-                  img_opts.delete(:height)
-              end
-              tag_opts = attr.merge(img_opts)
-              if rollover
-                tag_opts[:onmouseover] = "WebivaMenu.swapImage(this,'#{jvh img_url}','#{jvh  rollover.url(size)}','#{object_id}'); " + tag_opts[:onmouseover].to_s
-                tag_opts[:onmouseout] = "WebivaMenu.restoreImage(this,'#{object_id}'); " + tag_opts[:onmouseout].to_s
-                preload = "<script>WebivaMenu.preloadImage('#{jvh rollover.url(size)}');</script>"
-              end
-              img_tag =  tag('img',tag_opts) + preload.to_s
-              img_tag = "<div style='float:#{shadow_align}; margin:#{border}; #{attr['style']}'><div style='width:#{img_size[0] + 12}px; float:#{shadow_align};' class='cms_gallery_shadow'><div><p>" + img_tag + "</p></div></div></div>" if shadow
-            end
-            if tag.single?
-              img_tag
-            else
-              tag.locals.value = img_tag
-              tag.expand
-            end            
-          else
-            nil
-          end
+          image_tag_helper(tag,img,tag_opts)
         end
     end
     
@@ -373,43 +422,46 @@ class ParagraphFeature
       end
     end
     
-    def define_form_for_tag(name,arg,options = {})
-      define_tag name do |tag|
-        obj = yield tag if block_given?
-        if obj || !block_given?
+      def define_form_for_tag(name,arg,options = {})
+        frm_obj = options[:local] || 'form'
+        define_tag name do |tag|
+          obj = yield tag if block_given?
+          if obj || !block_given?
+            opts = options.clone
+            opts[:url] ||= ''
+            frm_tag =  form_tag(opts.delete(:url), opts.delete(:html) || {}) + opts.delete(:code).to_s
+            cms_unstyled_fields_for(arg,obj,opts) do |f|
+              tag.locals.send("#{frm_obj}=",f)
+              frm_tag + tag.expand + "</form>"
+            end
+          else
+            nil
+          end
+        end
+      end
+      
+      def define_fields_for_tag(name,arg,options = {})
+        frm_obj = options.delete(:local) || 'form'
+        define_tag name do |tag|
+          obj = yield tag
           opts = options.clone
           opts[:url] ||= ''
-          frm_tag =  form_tag(opts.delete(:url), opts.delete(:html) || {}) + opts.delete(:code).to_s
-          cms_unstyled_fields_for(arg,obj,opts) do |f|
-            tag.locals.form = f
-            frm_tag + tag.expand + "</form>"
+          if obj || !block_given?
+            cms_unstyled_fields_for(arg,obj,opts) do |f|
+              tag.locals.send("#{frm_obj}=",f)
+              opts.delete(:code).to_s + tag.expand
+            end
+          else
+            nil
           end
-        else
-          nil
         end
       end
-    end
-    
-    def define_fields_for_tag(name,arg,options = {})
-      define_tag name do |tag|
-        obj = yield tag
-        opts = options.clone
-        opts[:url] ||= ''
-        if obj || !block_given?
-          cms_unstyled_fields_for(arg,obj,opts) do |f|
-            tag.locals.form = f
-            opts.delete(:code).to_s + tag.expand
-          end
-        else
-          nil
-        end
-      end
-    end
         
     
-    def define_form_error_tag(name) 
+      def define_form_error_tag(name,options={})
+        frm_obj = options.delete(:local) || 'form'
       define_tag name do |tag|
-        frm = tag.locals.form
+        frm = tag.locals.send(frm_obj)
         if frm && frm.object && frm.object.errors && frm.object.errors.length > 0
           if tag.single?
             frm.object.errors.full_messages.join(tag.attr['separator'] || "<br/>")
@@ -430,15 +482,16 @@ class ParagraphFeature
     def define_button_tag(name,options={})
       onclick = options.delete(:onclick)
       define_tag name do |t|
-        name = options[:name] || tag.attr['name'] || 'commit'
+        name = options[:name] || t.attr['name'] || 'commit'
         if  !block_given? || yield(t)
           if(t.attr['type'].to_s == 'image')
-            tag('image',
+            tag('input',
+                :type => 'image',
                 :class => 'submit_tag submit_image',
                 :name => name,
                 :value => t.attr['value'] || options[:value] || 'Submit',
                 :src => t.expand,
-                :align => absmiddle,
+                :align => :absmiddle,
                 :onclick => onclick )
           else
               tag('input', { :type => 'submit',
@@ -455,13 +508,14 @@ class ParagraphFeature
     end
     
     def define_delete_button_tag(name,options={})
+      frm_obj = options[:local] || 'form'
       define_tag name do |t|
-        if t.locals.form.object.id.blank?
+        if t.locals.send(frm_obj).object.id.blank?
           nil
         else
           <<-TAGS 
-            <input type='hidden' name='#{t.locals.form.object_name}_delete' value='0' id='#{t.locals.form.object_name}_delete' />
-            <input type='submit' onclick='$("#{t.locals.form.object_name}_delete").value="1"; return true;' value='#{vh t.expand}'/>
+            <input type='hidden' name='#{t.locals.send(frm_obj).object_name}_delete' value='0' id='#{t.locals.send(frm_obj).object_name}_delete' />
+            <input type='submit' onclick='$("#{t.locals.send(frm_obj).object_name}_delete").value="1"; return true;' value='#{vh t.expand}'/>
           TAGS
         end
       end
@@ -551,6 +605,75 @@ class ParagraphFeature
     def define_field_tag(name,options={},&block)
       define_form_field_tag(name,options,&block)    
     end
+
+    def form_field_tag_helper(t,frm,control_type,field_name,options={},&block)
+      options=options.clone
+      atr = t.attr.symbolize_keys
+      # Block contains the options for an options control 
+      # otherwise it just wraps the output
+      options_control = %w(select radio_buttons check_boxes).include?(control_type.to_s)
+      field_opts = options.delete(:options) if options_control
+            
+      
+      if control_type == 'select'
+        options[:id] ||= "#{frm.object_name}_#{field_name}"
+      end
+      
+      empty_click = atr.delete('prefill')
+      if empty_click
+        atr['onfocus'] = "if(this.value=='#{jvh empty_click}') this.value=''";
+        atr['onblur'] = "if(this.value=='') this.value='#{jvh empty_click}'";
+        frm.object.send("#{field_name}=",empty_click) if frm.object.send(field_name).blank?
+      end
+
+      if options_control
+        if opt_names = atr.delete(:options)
+          
+          names = opt_names.split(',').collect { |elm| elm.blank? ? nil : elm.strip }.compact
+          idx = -1
+          control_opts =  field_opts.map do |elm| 
+            idx+=1
+            [ names[idx] || elm[0], elm[1] ]
+          end
+        elsif field_opts
+          control_opts = field_opts
+        else
+          control_opts = block.call(t)
+        end
+        
+        if control_type.to_s == 'select'
+          output = frm.select_tag("#{frm.object_name}[#{field_name}]",options_for_select(control_opts,frm.object.send(field_name)),options.merge(atr))
+        else
+
+          output = frm.send(control_type,field_name,control_opts,options.merge(atr))
+        end
+      else
+        output = frm.send(control_type,field_name,options.merge(atr))
+      end
+      
+      # Block contains the options for an options control 
+      # otherwise it just wraps the output
+      if block && (!options_control || field_opts)
+        block.call(tag,output)
+      else
+        output
+      end
+    end
+    
+
+    def form_field_error_tag_helper(t,frm,field_name)
+      errs = frm.object.errors.on(field_name)
+      if errs.is_a?(Array)
+        errs = errs.uniq
+        val = errs.collect { |msg| 
+          (t.attr['label'] || field_name.humanize) + " " + msg.t + "<br/>"
+        }.join("\n")
+      elsif errs
+        val =(t.attr['label'] || field_name.humanize) + " " + errs.t
+      end
+      
+      val
+    end
     
     def define_form_field_tag(name,options={},&block)
       options = options.clone
@@ -560,91 +683,87 @@ class ParagraphFeature
       pre_tag += ":" unless pre_tag.blank?
       tag_name = name_parts[-1]
       
+      
       control_type = options.delete(:control) || 'text_field'
       field_name = options.delete(:field) || tag_name
       options[:class] ||= control_type
+      frm_obj = options[:local] || :form
       
-      # Block contains the options for an options control 
-      # otherwise it just wraps the output
-      options_control = %w(select radio_buttons check_boxes).include?(control_type.to_s)
-      field_opts = options.delete(:options) if options_control
-      
-      define_tag "#{pre_tag}#{tag_name}" do |tag|
-
-        atr = tag.attr.symbolize_keys
-        frm = tag.locals.form
-        
-        if control_type == 'select'
-          options[:id] ||= "#{frm.object_name}_#{field_name}"
-        end
-        
-        empty_click = atr.delete('prefill')
-        if empty_click
-          atr['onfocus'] = "if(this.value=='#{jvh empty_click}') this.value=''";
-          atr['onblur'] = "if(this.value=='') this.value='#{jvh empty_click}'";
-          frm.object.send("#{field_name}=",empty_click) if frm.object.send(field_name).blank?
-        end
-
-        if options_control
-          if opt_names = atr.delete(:options)
-            
-            names = opt_names.split(',').collect { |elm| elm.blank? ? nil : elm.strip }.compact
-            idx = -1
-            control_opts =  field_opts.map do |elm| 
-              idx+=1
-              [ names[idx] || elm[0], elm[1] ]
-            end
-          elsif field_opts
-            control_opts = field_opts
-          else
-            control_opts = block.call(tag)
-          end
-          
-          if control_type.to_s == 'select'
-            output = frm.select_tag("#{frm.object_name}[#{field_name}]",options_for_select(control_opts,frm.object.send(field_name)),options.merge(atr))
-          else
-
-            output = frm.send(control_type,field_name,control_opts,options.merge(atr))
-          end
-        else
-          output = frm.send(control_type,field_name,options.merge(atr))
-        end
-        
-        # Block contains the options for an options control 
-        # otherwise it just wraps the output
-        if block && (!options_control || field_opts)
-          block.call(tag,output)
-        else
-          output
-        end
+     
+      define_tag "#{pre_tag}#{tag_name}" do |t|
+        form_field_tag_helper(t,t.locals.send(frm_obj),control_type,field_name,options)
       end
     
-      define_tag "#{pre_tag}#{tag_name}_error" do |tag|
-        frm = tag.locals.form
-        errs = frm.object.errors.on(field_name)
-        if errs.is_a?(Array)
-          errs = errs.uniq
-          val = errs.collect { |msg| 
-            (tag.attr['label'] || field_name.humanize) + " " + msg.t + "<br/>"
-          }.join("\n")
-        elsif errs
-          val = fld.label + " " + errs.t
+      define_value_tag "#{pre_tag}#{tag_name}_error" do |t|
+        form_field_error_tag_helper(t,t.locals.send(frm_obj),field_name)
+      end
+    end
+
+    # Can only be used in webiva_custom_feature
+    def define_publication_field_tags(prefix,publication,options = {})
+      c = self
+
+      frm_obj = options.delete(:local) || 'form'
+      pub_options = publication.options.to_hash
+      size = pub_options[:field_size] || nil;
+
+      publication.content_publication_fields.each do |fld|
+        if fld.content_model_field.data_field?
+          tag_name = fld.content_model_field.feature_tag_name
+
+          if fld.field_type=='input'
+            c.define_tag "#{prefix}:#{tag_name}" do |t|
+              opts = { :label => fld.label, :size => size }.merge(fld.data)
+              opts[:size] = t.attr['size'] if t.attr['size']
+              fld.form_field(t.locals.send(frm_obj),opts.merge(t.attr))
+            end
+
+            c.value_tag "#{prefix}:#{tag_name}_value" do |t|
+              fld.content_value(t.locals.send(frm_obj).object)
+            end
+            
+            c.value_tag "#{prefix}:#{tag_name}_display" do |t|
+              fld.content_display(t.locals.send(frm_obj).object,:full,t.attr)
+            end
+            
+            
+            c.value_tag "#{prefix}:#{tag_name}_error" do |t|
+              t.locals.send(frm_obj).output_error_message(fld.label,fld.content_model_field.field)
+            end
+          elsif fld.field_type == 'value'
+            fld.content_model_field.site_feature_value_tags(c,prefix,:full)
+          end
+        end
+      end
+
+      if publication.form?
+        c.loop_tag("#{prefix}:field") do |t|
+          fields = publication.content_publication_fields.select { |fld| fld.field_type == 'input' && fld.content_model_field.data_field? }
+          if t.attr['except']
+            except_fields = t.attr['except'].split(",").map { |elm| elm.blank? ? nil : elm.strip }.compact
+            fields = fields.select { |elm| !except_fields.include?(elm.content_model_field.feature_tag_name) }
+          end
+          if t.attr['fields']
+            only_fields = t.attr['fields'].split(",").map { |elm| elm.blank? ? nil : elm.strip }.compact
+            fields = fields.select { |elm| only_fields.include?(elm.content_model_field.feature_tag_name) }
+          end
+          fields
+        end
+
+        c.value_tag("#{prefix}:field:label") do |t|
+          t.locals.field.label
+        end
+        c.value_tag("#{prefix}:field:control") do |t|
+          opts = { :label => t.locals.field.label, :size => size }.merge(t.locals.field.data)
+          opts[:size] = t.attr['size'] if t.attr['size']
+          t.locals.field.form_field(t.locals.send(frm_obj),opts.merge(t.attr))
         end
         
-        if tag.single?
-          val
-        elsif val 
-          tag.locals.value = val
-          tag.expand
-        else 
-          nil
-        end        
+        c.value_tag("#{prefix}:field:error") do |t|
+          c.form_field_error_tag_helper(t,t.locals.send(frm_obj),t.locals.field.content_model_field.field)
+        end
       end
-      
-      define_tag "#{pre_tag}#{tag_name}_error:value" do |tag|
-        tag.locals.value
-      end
-      
+
     end
     
     def define_pagelist_tag(tag_name,options = {}) 
@@ -893,6 +1012,41 @@ class ParagraphFeature
       define_block_tag(name_base + "link")
       define_value_tag(name_base + "href")
     end
+
+    def define_user_details_tags(name_base,options={})
+      expansion_tag("#{name_base}:myself")
+      expansion_tag("#{name_base}:male")
+      expansion_tag("#{name_base}:female")
+      define_value_tag("#{name_base}:user_id")
+      define_value_tag("#{name_base}:first_name")
+      define_value_tag("#{name_base}:last_name") 
+      define_value_tag("#{name_base}:name")
+      define_value_tag("#{name_base}:email")
+      define_image_tag("#{name_base}:img") 
+      define_image_tag("#{name_base}:second_img") 
+      define_image_tag("#{name_base}:fallback_img")
+
+      expansion_tag("#{name_base}:address") 
+      define_user_address_tags("#{name_base}:address")
+      
+      expansion_tag("#{name_base}:work_address")
+      define_user_address_tags("#{name_base}:work_address")
+
+    end
+
+    def define_user_address_tags(name_base,options={})
+      define_value_tag("#{name_base}:display")
+      
+      %w(address address_2 company phone fax city state zip country).each do |fld|
+        define_h_tag("#{name_base}:#{fld}")
+      end
+      
+    end
+
+    def define_h_tag(tg,options={})
+      @method_list << [ "Escaped value tag",tg ]
+    end
+    
     
     def method_missing(method,*args)
       method = method.to_s

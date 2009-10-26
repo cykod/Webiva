@@ -174,9 +174,9 @@ class StructureController < CmsController
     node.save
     
     opts = Configuration.options
-    if(!opts['page_title_prefix'].blank?)
+    if(!opts.page_title_prefix.blank?)
       node.live_revisions.each do |rev|
-        rev.update_attribute(:title,opts['page_title_prefix'] + node.title.humanize)
+        rev.update_attribute(:title,opts.page_title_prefix + node.title.humanize)
       end
     end
 
@@ -192,20 +192,17 @@ class StructureController < CmsController
   def adjust_node
     node_id = params[:node_id]
     adjustment = params[:adjustment].to_i
-    
-    node = SiteNode.find(node_id)
+    previous_id = params[:previous_id].to_i
 
-    while adjustment != 0
-      if adjustment < 0
-        node.move_left
-        adjustment += 1
-      elsif adjustment > 0
-        node.move_right
-        adjustment -= 1
+    node = SiteNode.find(node_id)
+    if previous_id > 0
+      node.move_to_right_of(previous_id)
+    else
+      if node.parent.children.length > 1 &&  node.parent.children[0] != node
+        node.move_to_left_of( node.parent.children[0])
       end
     end
-    
-   
+
     expire_site    
     
     render :nothing => true

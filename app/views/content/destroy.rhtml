@@ -6,12 +6,12 @@
 <p>
 <%= "If you have any questions click on cancel and contact your system administrator.".t %>
 </p>
-<%="Are you sure you want to continue?".t %><br/><br/>
+<%="Are you sure you want to continue and destroy the %s Content Model?" / h(@content_model.name) %><br/><br/>
 </div>
 <table>
   <tr>
     <td>
-<%= form_tag('',:onsubmit => "return confirm('#{ jvh 'Continue with permanent destruction of content model?'.t}');" %>
+<%= form_tag('',:onsubmit => "return confirm('#{ jvh 'Continue with permanent destruction of content model?'.t}');") %>
 <input type='hidden' name='destroy' value='<%= @destroy_content_hash %>'/>
 <input type='submit' value='<%= "Destroy Content Model".t %>' />
 </form>

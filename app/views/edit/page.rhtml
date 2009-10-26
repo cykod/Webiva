@@ -148,7 +148,7 @@ tinyMCE.init({
       <div id='cms_add_paragraph' class='cms_popup' style='display:none; top:25px; left:10px; padding:10px;'>
       <% @paragraph_types.each do |para| -%>
         <% if para.is_a?(Array) -%>
-            <% if para[0] != 'hidden' %>
+            <% if para[0] != 'hidden' && !para[6] %>
               <a class='cms_ajax_link'  href='javascript:void(0);' onclick='cmsEdit.addParagraph("<%= para[3].to_s.gsub("/","_") %>_<%= para[1] %>",<%= para[5] || 0 %>);'><%= "+Add".t %> <%= para[5] ? para[2] : para[2].t  %></a><br/>
             <% end -%>
         <% else %>

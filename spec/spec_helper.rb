@@ -165,7 +165,12 @@ module Spec
         controller.should_receive('myself').at_least(:once).and_return(@myself)
       end
       
-   
+      def mock_user(email = 'test@webiva.com')
+        # get me a client user to ignore any permission issues    
+        @myself = EndUser.push_target('test@webiva.com')
+        controller.should_receive('myself').at_least(:once).and_return(@myself)
+      end
+      
       def build_renderer_helper(user_class,site_node_path,display_module_type,data={},page_connections={},extra_attributes = {})
         display_parts = display_module_type.split("/")
         para = PageParagraph.create(:display_type => display_parts[-1], :display_module => display_parts[0..-2].join("/"),:data=>data)

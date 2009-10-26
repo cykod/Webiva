@@ -247,8 +247,12 @@ class SiteNode < DomainModel
   end
   
   def duplicate!(parent)
-    nd = self.clone
+    atr = self.attributes
+    atr.delete(lft)
+    atr.delete(rgt)
+    nd = SiteNode.new(atr)
     nd.title += '_copy'
+
 #    nd.parent_id = parent_id
     nd.save
     

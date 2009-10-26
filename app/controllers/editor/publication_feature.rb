@@ -18,33 +18,15 @@ class Editor::PublicationFeature < ParagraphFeature
     size = pub_options[:field_size] || nil;
 
     webiva_feature(publication.feature_name) do |c|
-#      c.form_for_tag("form")
-      c.define_tag "form" do |tag|
-        multipart = data[:multipart] ? 'multipart/form-data' : nil
-        form_tag('',:method => 'post', :enctype => multipart) + tag.expand + "</form>"
+      c.form_for_tag("form","entry_#{publication.id}",:enctype => data[:multipart] ? 'multipart/form-data' : nil)  do |tag|
+        data[:entry]
       end
-      
+
       c.define_tag 'edit_butt' do |tag|
         "<input type='submit' value='#{tag.single? ? 'Edit'.t : tag.expand}'/>"
       end
-      
-      publication.content_publication_fields.each do |fld|
-        tag_name = %w(belongs_to document image).include?(fld.content_model_field.field_type) ? fld.content_model_field.field_options['relation_name'] :      fld.content_model_field.field
-        
-        if fld.field_type=='input'
-          c.define_tag "form:#{tag_name}" do |tag|
-            opts = { :label => fld.label,:size => size, :control => fld.data[:control] }
-            opts[:size] = tag.attr['size'] if tag.attr['size']
-            fld.form_field(data[:form],opts.merge(tag.attr))
-          end
-          
-          c.value_tag "form:#{tag_name}_error" do |tag|
-            data[:form].output_error_message(fld.label,fld.content_model_field.field)
-          end
-        elsif fld.field_type == 'value'
-          c.value_tag("entry:#{tag_name}") { |tag| fld.content_model_field.content_display(data[:entry],:full,tag.attr) }
-        end
-      end
+
+      c.publication_field_tags('form',publication)
     end
   end
   
@@ -87,26 +69,7 @@ def display_feature(publication,data)
       c.define_tag("previous:offset") { |tag| tag.locals.offset }
       c.link_tag("previous:") { |tag| data[:page_href] + "/" + tag.locals.offset.to_s }
 
-      publication.content_publication_fields.each do |fld|
-        tag_name = %w(belongs_to document image).include?(fld.content_model_field.field_type) ? fld.content_model_field.field_options['relation_name'] :      fld.content_model_field.field
-        if fld.field_type=='value'
-          
-          if %w(document image).include?(fld.content_model_field.field_type)
-            c.define_tag "entry:#{tag_name}_url" do |tag|
-              file = tag.locals.entry.send(fld.content_model_field.field_options['relation_name'])
-              file.url(tag.attr['size'] || nil)
-            end
-          end
-          
-          if fld.content_model_field.field_type == 'image'
-            c.define_image_tag("entry:#{tag_name}",'entry',fld.content_model_field.field_options['relation_name'])
-          else 
-            c.value_tag("entry:#{tag_name}") do |tag|
-              fld.content_model_field.content_display(data[:entry],:size,tag.attr)
-            end
-          end
-        end
-      end
+      c.define_publication_field_tags("entry",publication)
 
       c.link_tag("return") { |tag| data[:return_page] }
    end

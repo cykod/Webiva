@@ -15,12 +15,13 @@ class Content::CoreField < Content::FieldHandler
   end
   
   register_dynamic_fields :ip_address => 'Ip Address',
-                          :email => 'User Email',
-                          :user_identifier => 'User Identifier',
-                          :city => 'City',
-                          :state => 'State',
-                          :page_connection => 'Page Connection',
-                          :current => 'Current Date and Time'
+  :email => 'User Email',
+  :user_identifier => 'User Identifier',
+  :user_id => 'User ID',
+  :city => 'City',
+  :state => 'State',
+  :page_connection => 'Page Connection',
+  :current => 'Current Date and Time'
   
 # Available Content Fields, with meta information
   register_content_fields [ { :name => :string, 
@@ -94,14 +95,18 @@ class Content::CoreField < Content::FieldHandler
                        { :name => :belongs_to, 
                          :description => 'Belongs to Relationship',
                          :representation => :integer,
-                         :relation => true
+                         :relation => true,
+                         :dynamic_fields => [:user_id ]
                        },
                        { :name => :has_many, 
                          :description => 'Has Many Relationship',
                          :representation => :none,
                          :relation => :plural
-                       }
-                       
+                       },
+                       { :name => :header, 
+                         :description => 'Header',
+                         :representation => :none,
+                       }       
                      ]  
                      
 
@@ -115,7 +120,7 @@ class Content::CoreField < Content::FieldHandler
     filter_setup :like, :empty
     
     def form_field(f,field_name,field_opts,options={})
-      field_opts[:class] = 'text_field'
+      field_opts[:class] = 'field_sring_field'
       f.text_field field_name, field_opts.merge(options)
     end
   end
@@ -129,7 +134,7 @@ class Content::CoreField < Content::FieldHandler
     filter_setup :like, :empty
     
     def form_field(f,field_name,field_opts,options={})
-      field_opts[:class] = 'text_field'
+      field_opts[:class] = 'field_integer_field'
       f.text_field field_name, field_opts.merge(options)
     end
   end  
@@ -138,7 +143,7 @@ class Content::CoreField < Content::FieldHandler
   class CurrencyField < Content::CoreField::IntegerField
 
     def form_field(f,field_name,field_opts,options={})
-      field_opts[:class] = 'currency_field'
+      field_opts[:class] = 'field_currency_field'
       f.text_field field_name, field_opts.merge(options)
     end
     
@@ -147,7 +152,7 @@ class Content::CoreField < Content::FieldHandler
   class TextField < Content::CoreField::StringField
     # Everything the same as StringField except the form field  
     def form_field(f,field_name,field_opts,options={})
-      field_opts[:class] = 'text_area'
+      field_opts[:class] = 'field_text_area'
       f.text_area field_name, field_opts.merge(options)
     end
   end
@@ -162,7 +167,7 @@ class Content::CoreField < Content::FieldHandler
     filter_setup :like, :empty
     
     def form_field(f,field_name,field_opts,options={})
-      field_opts[:class] = 'text_area'
+      field_opts[:class] = 'field_text_area'
       f.text_area field_name, field_opts.merge(options)
     end
   end  
@@ -170,7 +175,7 @@ class Content::CoreField < Content::FieldHandler
   class EditorField < Content::CoreField::HtmlField
     # Everything the same as StringField that we want to display an editor area
     def form_field(f,field_name,field_opts,options={})
-      field_opts[:class] = 'editor_area'
+      field_opts[:class] = 'field_editor_area'
       f.text_area field_name, field_opts.merge(options)
     end
   end  
@@ -184,7 +189,7 @@ class Content::CoreField < Content::FieldHandler
     filter_setup :like, :empty
     
     def form_field(f,field_name,field_opts,options={})
-      field_opts[:class] = 'text_field'
+      field_opts[:class] = 'field_email_field'
       f.text_field field_name, field_opts.merge(options)
     end
   end
@@ -197,7 +202,7 @@ class Content::CoreField < Content::FieldHandler
     content_display :text
     
     def form_field(f,field_name,field_opts,options={})
-      field_opts[:class] = 'us_state_field'
+      field_opts[:class] = 'field_us_state_field'
       f.select field_name, Content::CoreField::UsStateField.states_select_options
     end
     
@@ -259,6 +264,12 @@ class Content::CoreField < Content::FieldHandler
          parameters.delete(key)
       end  
       parameters.delete(key.to_s + "_clear")      
+    end
+
+    
+    def assign(entry,values)
+       modify_entry_parameters(values)
+       super
     end
 
 
@@ -350,6 +361,8 @@ class Content::CoreField < Content::FieldHandler
     def content_display(entry,size=:full,options={})
       entry.send(@model_field.field + "_display") # From the has_options declared up top
     end
+
+   
     
     filter_setup :like, :empty
 
@@ -502,7 +515,11 @@ class Content::CoreField < Content::FieldHandler
     
     def content_display(entry,size=:full,options={})
       if @model_field.field_options['relation_class']
-        h(entry.send(@model_field.field_options['relation_name']) ? entry.send(@model_field.field_options['relation_name']).identifier_name : '')
+        begin
+          h(entry.send(@model_field.field_options['relation_name']) ? entry.send(@model_field.field_options['relation_name']).identifier_name : '')
+        rescue
+          "Invalid Content Model"
+        end
       end
     end
     
@@ -565,8 +582,11 @@ class Content::CoreField < Content::FieldHandler
     
     def content_display(entry,size=:full,options={})
       if !@model_field.field_options['relation_class'].blank?
-
-        h(entry.send(@model_field.field_options['relation_name']) ? entry.send(@model_field.field_options['relation_name']).map(&:identifier_name).join(", ") : '')
+        begin
+          h(entry.send(@model_field.field_options['relation_name']) ? entry.send(@model_field.field_options['relation_name']).map(&:identifier_name).join(", ") : '')
+        rescue Exception => e
+          "Invalid Content Model"
+        end
       end
     end
 
@@ -593,13 +613,39 @@ class Content::CoreField < Content::FieldHandler
     end 
     
   end
-  
+
+
+  class HeaderField < Content::Field
+    field_options
+    setup_model 
+    table_header :none
+
+    def content_display(entry,size,options={})
+      h(@model_field.name)
+    end
+
+    def data_field?; false; end
+
+    filter_setup
+    
+    def form_field(f,field_name,field_opts,options={})
+      f.header @model_field.name, field_opts.merge(options)
+    end
+
+    def assign_value(entry,value)
+      # Can't assign
+    end
+    
+    def assign(entry,values)
+      # Can't assign
+    end    
+  end
   
   def self.dynamic_current_value(entry,fld,state = {})
     Time.now
   end
   
-  
+
   
   def self.dynamic_ip_address_value(entry,fld,state = {})
     state[:controller].request.remote_ip if state[:controller]
@@ -630,6 +676,12 @@ class Content::CoreField < Content::FieldHandler
       MapZipcode.find_by_zip(entry.zipcode).state
     rescue Exception => e
       ''
+    end
+  end
+
+  def self.dynamic_user_id_value(entry,fld,state={})
+    if state[:user]
+      state[:user].id
     end
   end
   

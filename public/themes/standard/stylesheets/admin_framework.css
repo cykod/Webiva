@@ -1597,11 +1597,13 @@ ol.admin_list li {
 }
 
 
-.admin_form input.text_field_input, .admin_form textarea, .admin_form .text_field_control input,input.formatted, .admin_form  .password_field_control input, .admin_form input[type=text] {
+.admin_form input.text_field_input, .admin_form textarea,input.formatted, .admin_form  .password_field_control input {
  border:1px solid #a6cdda;
  padding:2px 2px;
  background-color: white; 
 }
+
+.admin_form .fieldWithErrors .text_field_input { border:1px solid red; }
 
 
 .admin_form input:focus  {
@@ -1878,6 +1880,9 @@ table.permission_grid td {
  position:relative;
  font-weight:bold;
  color:#666666;
+}
+
+.ordered_selection_list_value {
 }
 
 .ordered_selection_list_remove {

@@ -10,6 +10,11 @@ class ContentModelType < DomainModel
   def after_save
     #
   end
+
+  def after_destroy
+    self.connection.execute("DELETE FROM content_relations WHERE content_model_id=" + quote_value(self.content_model_id) + "  AND entry_id=" + quote_value(self.id))
+  end
+  
   
   def self.human_name
     'Content Model'

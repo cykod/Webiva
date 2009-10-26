@@ -8,6 +8,8 @@ class ContentModelField < DomainModel
   has_many :content_publication_fields, :dependent => :destroy
 
   belongs_to :content_model
+
+  has_many :content_relations, :dependent => :delete_all
   
 #  acts_as_list
 
@@ -52,6 +54,14 @@ class ContentModelField < DomainModel
   def modify_entry_parameters(parameters)
     self.module_class.modify_entry_parameters(parameters)
   end
+
+  def is_type?(type)
+    types = type.split("/")
+    types.shift if types[0].blank?
+    return self.field_module == types[0..-2].join("/") && self.field_type==types[-1]
+  end
+
+  def data_field?;  self.module_class.data_field?; end
   
   def form_field(f,options={})
     options.symbolize_keys!
@@ -107,7 +117,11 @@ class ContentModelField < DomainModel
   
   def content_display(entry,size=:full,options={})
     self.module_class.content_display(entry,size,options)
-  end  
+  end
+
+  def content_value(entry)
+    self.module_class.content_value(entry)
+  end
   
   def filter_variables
     self.module_class.filter_variables

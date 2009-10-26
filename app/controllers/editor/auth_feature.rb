@@ -3,18 +3,108 @@
 class Editor::AuthFeature < ParagraphFeature
 
 
+
+  feature :user_register, :default_feature => <<-FEATURE
+<cms:registered>
+You are already registered
+</cms:registered>
+<cms:register>
+  <!-- enter form elements directly -->
+  <div class='item'>
+     <cms:email_error><div class='error'><cms:value/></div></cms:email_error>
+     <div class='label'>Email:</div>
+     <div class='field'><cms:email/></div>
+  </div>
+
+  <cms:any_field except='email'>
+  <div class='item'>
+     <cms:error><div class='error'><cms:value/></div></cms:error>
+     <div class='label'><cms:label/>*:</div>
+     <div class='field'><cms:control/></div>
+  </div>
+  </cms:any_field>
+  <!-- optional fields except='field1' or fields="field1,field2" options work too -->
+
+
+
+  <cms:submit/>
+</cms:register>
+
+
+FEATURE
   
+  def user_register_feature(data)
+    webiva_feature(:user_register,data) do |c|6
+      c.expansion_tag('registered') { |t| data[:registered] }
+      c.form_for_tag('register',:user) { |t| data[:usr] ? data[:usr] : nil }
 
+      c.expansion_tag('register:errors') { |t| data[:failed] }
 
+      data[:options].all_field_list.each do |fld|
+        c.field_tag("register:#{fld[0]}",{ :control => fld[1][1]}.merge(fld[1][3]||{}))
+      end
+
+      ['any_field','required_field','optional_field'].each do |fields|
+        user_fields_helper('register',c,fields,data)
+      end
+
+      c.fields_for_tag('register:address',:address) { |t| data[:address] ? data[:address] : nil }
+      user_fields_helper('register:address',c,'address_field',data)
+
+       data[:options].address_field_list.each do |fld|
+        c.field_tag("register:address:#{fld[0]}",{ :control => fld[1][1]}.merge(fld[1][3]||{}))
+      end
+
+      c.fields_for_tag('register:business',:business) { |t| data[:business] ? data[:business] : nil }
+      user_fields_helper('register:business',c,'business_address_field',data)
+      
+      data[:options].business_address_field_list.each do |fld|
+        c.field_tag("register:business:#{fld[0]}",{ :control => fld[1][1]}.merge(fld[1][3]||{}))
+      end
+
+      if data[:options].publication
+        c.fields_for_tag('register:publication',:model) { |t|  data[:model] }
+        c.publication_field_tags("register:publication",data[:options].publication)
+      end
+      
+      c.button_tag('register:submit')
+    end
+  end
+
+  def user_fields_helper(prefix,c,fields_name,data)
+    c.loop_tag("#{prefix}:#{fields_name}") do |t|
+      fields = data[:options].send("#{fields_name}_list") || []
+      if t.attr['except']
+        except_fields = t.attr['except'].split(",").map { |elm| elm.blank? ? nil : elm.strip }.compact
+        fields = fields.select { |elm| !except_fields.include?(elm[0].to_s) }
+      end
+      if t.attr['fields']
+        only_fields = t.attr['fields'].split(",").map { |elm| elm.blank? ? nil : elm.strip }.compact
+        fields = fields.select { |elm| only_fields.include?(elm[0].to_s) }
+      end
+      fields
+    end
+    c.value_tag("#{prefix}:#{fields_name}:label") do |t|
+      t.locals.send(fields_name)[1][0]
+    end
+    c.value_tag("#{prefix}:#{fields_name}:control") do |t|
+      frm = t.locals.form
+      c.form_field_tag_helper(t,frm,t.locals.send(fields_name)[1][1],t.locals.send(fields_name)[1][2],t.locals.send(fields_name)[1][3]||{})
+    end
+    c.value_tag("#{prefix}:#{fields_name}:error") do |t|
+      c.form_field_error_tag_helper(t,t.locals.form, t.locals.send(fields_name)[0].to_s)
+    end
+  end
+  
   feature :login, :default_data => { },
   :default_feature => <<-FEATURE
   <div>
     <cms:logged_in>
       <cms:trans>Welcome Back</cms:trans> <cms:name/>
       <br/>
-      <a <cms:logout_href/>><cms:trans>Logout</cms:trans></a>
+      <cms:logout_link>Logout</cms:logout_link>
     </cms:logged_in>
-    <cms:login_form>
+    <cms:login>
       <table>
       <cms:error>
       <tr>
@@ -25,30 +115,29 @@ class Editor::AuthFeature < ParagraphFeature
       <cms:use_email>
       <tr>
       <td><cms:trans>Email</cms:trans>:</td>
-      <td><input type='text' <cms:email/> size='20'/></td>
+      <td><cms:email/></td>
+
       </tr>
       </cms:use_email>
       
       <cms:use_username>
       <tr>
       <td><cms:trans>Username</cms:trans>:</td>
-      <td><input type='text' <cms:username/> size='20'/></td>
+      <td><cms:username/></td>
       </tr>
       </cms:use_username>
       
-      
-      
       <tr>
       <td><cms:trans>Password</cms:trans>:</td>
-      <td><input type='password' <cms:password/> size='20' /></td>
+      <td><cms:password/></td>
       </tr>
       <tr>
-      <td colspan='2' align='right'/>
-      <input type='submit' value='<cms:trans>Login</cms:trans>'/>
+      <td colspan='2' align='right'>
+      <cms:submit/>
       </td>
       </tr>
       </table>
-    </cms:login_form>
+    </cms:login>
   </div>
   
   FEATURE
@@ -72,19 +161,24 @@ class Editor::AuthFeature < ParagraphFeature
           form_tag('')  + tag.expand + "</form>"
         end
       end
-      c.define_tag('email') { |tag| "name='cms_login[login]' id='cms_login_login'" }
-      c.define_tag('username') { |tag| "name='cms_login[username]' id='cms_login_username'" }
-      c.define_tag('password') { |tag|  "name='cms_login[password]' id='cms_login_password'" }
+      c.define_tag('login_form:email') { |tag| "name='cms_login[login]' id='cms_login_login'" }
+      c.define_tag('login_form:username') { |tag| "name='cms_login[username]' id='cms_login_username'" }
+      c.define_tag('login_form:password') { |tag|  "name='cms_login[password]' id='cms_login_password'" }
       
-      c.define_tag('remember') { |tag| "type='checkbox' name='cms_login[remember]' value='1' id='cms_login_remember'" }
-      
-      c.define_tag 'error' do |tag|
-        if data[:error]
-          tag.expand
-        else
-          ''
-        end
+      c.define_tag('login_form:remember') { |tag| "type='checkbox' name='cms_login[remember]' value='1' id='cms_login_remember'" }
+
+      c.form_for_tag('login','cms_login') do |t|
+        data[:user] ? nil : data[:login_user]
       end
+
+      c.field_tag('login:email',:size => 20,:field => 'login')
+      c.field_tag('login:username',:size => 20)
+      c.field_tag('login:password',:size => 20,:control => 'password_field')
+      c.field_tag('login:remember',:control => 'check_box')
+      c.button_tag('login:submit',:value => 'Login')
+      
+      
+      c.expansion_tag('error') { |t| data[:error] }
       
 
       
@@ -94,7 +188,7 @@ class Editor::AuthFeature < ParagraphFeature
       c.define_value_tag('logged_in:first_name'){ |tag| data[:user].first_name }
       c.define_value_tag('logged_in:last_name'){ |tag| data[:user].last_name }
       
-      c.define_tag 'logged_in:logout_href' do |tag|
+      c.define_link_tag 'logged_in:logout' do |tag|
         if editor?
           "href='javascript:void(0);'"
         else
@@ -103,7 +197,7 @@ class Editor::AuthFeature < ParagraphFeature
       end
       
       c.define_expansion_tag('use_username') { |tag| data[:type] =='username' }
-      c.define_expansion_tag('use_email') { |tag| data[:type] =='email' }
+      c.define_expansion_tag('use_email') { |tag| data[:type] =='email'|| data[:type]=='both' }
     end
   end
 

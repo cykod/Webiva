@@ -821,22 +821,37 @@ var StructureEditor = {
 		}
 		if(StructureEditor.elementAdjust != 0) {
 			var adjustment = StructureEditor.elementAdjust;
-			
-			StructureEditor.elementAdjust = 0;
-			
-			var node_id=StructureEditor.nodeSelected;
-			
-			var req = $H({ node_id: node_id,
-							adjustment: adjustment });
-							
-			new Ajax.Request(StructureEditor.adjustNodeURL,
-						{
-							parameters : req.toQueryString(),
-							onComplete : function(resp) {
-							}
-						}
-						);    
-			}
+		    
+		    StructureEditor.elementAdjust = 0;
+		    
+		    var node_id=StructureEditor.nodeSelected;
+
+                    var node = $("node_" + node_id);
+                    var parentContainer = node.parentNode;
+                    var elems = getChildElementsByClass(node.parentNode,'node');
+		    
+                    var previousElem = null;
+                    for(var i=0;i<elems.length;i++) {
+                        if(elems[i] == node)
+                            break;
+			previousElem = elems[i];
+		    }
+                    var previousId=null;
+                    
+                    if(previousElem) previousId = SCMS.getElemNum(previousElem);
+		    
+		    var req = $H({ node_id: node_id,
+                                   previous_id: previousId,  
+				   adjustment: adjustment });
+		    
+		    new Ajax.Request(StructureEditor.adjustNodeURL,
+				     {
+					 parameters : req.toQueryString(),
+					 onComplete : function(resp) {
+					 }
+				     }
+				    );    
+		}
 	},
 	
 	adjustModifier: function(mod_id,amt) {

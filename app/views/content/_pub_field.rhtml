@@ -22,7 +22,7 @@
       <% end -%>
 
       <tbody id='input_<%= field_index %>' <%= "style='display:none;'" unless %w(input).include?(fld.field_type) %> >
-          <%= sf.check_boxes :required, [['Field is required',true]], :single => true, :label => false %>
+          <%= sf.check_boxes :required, [['Field is required',true]], :single => true, :label => '' %>
       </tbody>
     
       <tbody id='format_<%= field_index %>' <%= "style='display:none;'" unless %w(format).include?(fld.field_type) %> >

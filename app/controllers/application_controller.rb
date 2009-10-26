@@ -325,7 +325,7 @@ class ApplicationController < ActionController::Base
       page_title=title.t
     end
     
-    title = Configuration.options[:domain_title_name] || "CMS"
+    title = Configuration.options.domain_title_name || "CMS"
     @cms_page_info[:page_title] = title.to_s + ": " +  page_title.to_s
   end
   
@@ -505,7 +505,7 @@ class ApplicationController < ActionController::Base
   def handle_file_upload(parameters,key,options = {}) 
     
     if !parameters[key].to_s.empty?
-      image_folder  = options[:folder] || Configuration.options[:default_image_location]
+      image_folder  = options[:folder] || Configuration.options.default_image_location
       file = DomainFile.create(:skip_transform => true,:filename => parameters[key],:parent_id => image_folder,:creator_id => myself.id )
       if file.id
         parameters[key] = file.id 
@@ -524,7 +524,7 @@ class ApplicationController < ActionController::Base
     if parameters[key.to_s + "_clear"].to_s == '0'
       parameters[key] = nil
     elsif !parameters[key].to_s.empty?
-      image_folder  = options[:folder] || Configuration.options[:default_image_location]
+      image_folder  = options[:folder] || Configuration.options.default_image_location
       file = DomainFile.create(:filename => parameters[key],
                                :parent_id => image_folder,
                                :creator_id => myself.id)

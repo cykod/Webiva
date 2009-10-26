@@ -77,7 +77,6 @@ class SiteFeature < DomainModel
         end
       end
     end
-    raise self.feature_type + features.inspect
     return nil
   end
   

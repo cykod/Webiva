@@ -50,21 +50,21 @@ describe StructureController do
     
     it "should be able to move a page to the top of a list" do
       @home_page.children.should == [ @sp1, @sp2, @sp3 ]
-      put(:adjust_node,  { :node_id => @sp3.id, :adjustment => '-2' })
+      put(:adjust_node,  { :node_id => @sp3.id, :adjustment => '-2', :previous_id => nil })
       @home_page.reload
       @home_page.children.should == [ @sp3, @sp1, @sp2 ]
     end
 
     it "should be able to move a page to the middle of a list" do
       @home_page.children.should == [ @sp1, @sp2, @sp3 ]
-      put(:adjust_node,  { :node_id => @sp1.id, :adjustment => '1' })
+      put(:adjust_node,  { :node_id => @sp1.id, :adjustment => '1', :previous_id => @sp2.id })
       @home_page.reload
       @home_page.children.should == [ @sp2, @sp1, @sp3 ]
     end
 
     it "should be able to move a page to the bottom of a list" do
       @home_page.children.should == [ @sp1, @sp2, @sp3 ]
-      put(:adjust_node,  { :node_id => @sp1.id, :adjustment => '2' })
+      put(:adjust_node,  { :node_id => @sp1.id, :adjustment => '2', :previous_id => @sp3.id })
       @home_page.reload
       @home_page.children.should == [ @sp2, @sp3, @sp1 ]
     end

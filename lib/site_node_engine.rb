@@ -156,6 +156,7 @@ class SiteNodeEngine
           return output
         else
           rnd = cls.new(myself.user_class,self,paragraph,site_node,revision,opts)
+          rnd.capture_data = true if  opts[:capture]
           if paragraph.site_feature_id && !opts[:edit]
             # If we're not in the editor, include the feature css
             # We have the render_css attribute from paragraph cached from the thaw
@@ -421,7 +422,8 @@ EOF
 
   def initialize(container,options = {} )
     @container = container
-    
+    @capture_data = options[:capture]
+
     @path_args = options[:path] || []
     if options[:edit] 
       @mode = 'edit'
@@ -442,38 +444,26 @@ EOF
     end
   end
   
-  def run_paragraph(paragraph,controller,user)
+  def run_paragraph(paragraph,controller,user,options = {})
     nd = generate_page_information(controller,user)
-    
-    if !paragraph.info[:ajax]
+
+    if !paragraph.info[:ajax] && (@mode != 'edit')
       raise 'Not an ajax paragraph'
     end
-    
-    @page_information.render_elements.each do |part|
-      if part.is_a?(Hash)
-        (0..part[:paragraphs].length).each do |idx|
-          if (part[:paragraphs][idx].is_a?(Hash) && part[:paragraphs][idx][:id] == paragraph.id) ||
-             (part[:paragraphs][idx].is_a?(PageParagraph) && part[:paragraphs][idx].id == paragraph.id)
-                        
-            part[:paragraphs][idx] =  PageParagraph.thaw(part[:paragraphs][idx]) if part[:paragraphs][idx].is_a?(Hash)
-            @result = controller.compile_paragraph(@container.is_a?(SiteNode) ? @container : @container.site_node, 
-                                                  @page_information.revision,
-                                                  part[:paragraphs][idx],
-                                                  :ajax => true,
-                                                  :language => @language
-                                                  )
-            result_cls = @result.class.to_s
-            if result_cls == "ParagraphRenderer::ParagraphOutput" 
-              return @result
-            else 
-              return nil
-            end
-          end
-        end
-      end
+
+    @result = controller.compile_paragraph(@container.is_a?(SiteNode) ? @container : @container.site_node, 
+                                           @page_information.revision,
+                                           paragraph,
+                                           :ajax => @mode=='edit' ? false : true,
+                                           :language => @language,
+                                           :capture => @capture_data
+                                           )
+    result_cls = @result.class.to_s
+    if result_cls == "ParagraphRenderer::ParagraphOutput" 
+      return @result
+    else 
+      return nil
     end
-    
-    return nil
   end
 
   # Run the site node engine,
@@ -539,7 +529,8 @@ EOF
                                                       part[:paragraphs][idx],
                                                       :page_path => @page_path,
                                                       :language => @language,
-                                                      :connections => page_connections )
+                                                      :connections => page_connections,
+                                                      :capture => @capture_data)
                 # We may not have a result if the page connections
                 # aren't fullfilled yet
                 if result
@@ -747,6 +738,7 @@ EOF
       end
       
     end
+
     paragraphs.reverse_each do |para|
       @page_information.zone_paragraphs[para.zone_idx] ||= []
       

@@ -247,7 +247,7 @@ class MembersController < CmsController
       if request.post?
         @user.source = 'import'
         @user.admin_edit=true      
-        if(@user.save) #(false)
+        if(@user.save)
           @user.tag_names = @tag_names if @tag_names
           update_subscriptions(@user,params[:subscription])
           flash[:notice] = 'Created User'.t
@@ -261,7 +261,7 @@ class MembersController < CmsController
   
   
   def edit
-      cms_page_path ['People'],'Edit Contact'
+    cms_page_path ['People'],'Edit Contact'
     
     user_id = params[:path][0]
     
@@ -272,40 +272,57 @@ class MembersController < CmsController
       return
     end
 
-    @address = @user.address || @user.build_address
-    @work_address = @user.work_address || @user.build_work_address
-    @billing_address = @user.billing_address || @user.build_billing_address
-    @shipping_address = @user.shipping_address || @user.build_shipping_address
     
     if request.post?
-      @user.user_class_id = params[:user_options][:user_class_id]
+      if params[:commit] 
+        @user.user_class_id = params[:user_options][:user_class_id]
 
-      # Don't let user class be upgrade to editor if the user can edit those
-      if @user.user_class.editor? && !myself.has_role?('editor_editors')
-        redirect_to :action => 'index'
-        return
-      end
+        # Don't let user class be upgrade to editor if the user can edit those
+        if @user.user_class.editor? && !myself.has_role?('editor_editors')
+          redirect_to :action => 'index'
+          return
+        end
 
-      # If it's not an editor - get rid of any editor tokens
-      if  !@user.user_class.editor? 
-        params[:user_options][:tokens] = AccessToken.filter_out_editor_tokens(params[:user_options][:tokens])
-      end
-      
-      @user.attributes = params[:user_options]
-      @user.admin_edit=true      
-      if @user.save #(false)
-        @address.update_attributes(params[:address])
-        @work_address.update_attributes(params[:work_address])
-        @billing_address.update_attributes(params[:billing_address])
-        @shipping_address.update_attributes(params[:shipping_address])
+        # If it's not an editor - get rid of any editor tokens
+        if  !@user.user_class.editor? 
+          params[:user_options][:tokens] = AccessToken.filter_out_editor_tokens(params[:user_options][:tokens])
+        end
+        
+        @user.attributes = params[:user_options]
+        @user.admin_edit=true
 
-        @user.action('/members/edit',:admin_user_id => myself.id, :level => 0)
-        update_subscriptions(@user,params[:subscription])
-        flash[:notice] = 'Saved User: "%s" ' / (@user.email.blank? ? @user.name : @user.email)
+        # stupid-complicated for no reason FIXME
+        %w(address work_address billing_address shipping_address).each do |adr|
+          address = @user.send(adr)
+          if address || !params[adr].values.join("").blank?
+            address ||=  @user.send("build_#{adr}")
+            address.attributes = params[adr]
+            instance_variable_set("@#{adr}".to_sym,address)
+          end
+        end
+        
+        if @user.save
+          %w(address work_address billing_address shipping_address).each do |adr|
+            adr = instance_variable_get("@#{adr}".to_sym)
+            adr.update_attribute(:end_user_id, @user.id) if adr
+          end
+          
+          @user.action('/members/edit',:admin_user_id => myself.id, :level => 0)
+          update_subscriptions(@user,params[:subscription])
+          flash[:notice] = 'Saved User: "%s" ' / (@user.email.blank? ? @user.name : @user.email)
+          redirect_to :action =>'index'
+          return
+        end
+      else
         redirect_to :action =>'index'
         return
       end
     end
+    
+    @address ||= @user.address || @user.build_address
+    @work_address ||= @user.work_address || @user.build_work_address
+    @billing_address ||= @user.billing_address || @user.build_billing_address
+    @shipping_address ||= @user.shipping_address || @user.build_shipping_address
     
     @editing=true
     
@@ -346,6 +363,12 @@ class MembersController < CmsController
     cms_page_path [ 'People'],['%s',nil,@user.name.to_s.strip.blank? ? @user.email : @user.name ] 
     
     handlers = get_handler_info(:members,:view)
+
+    tabs_to_display = Configuration.options.member_tabs
+    if tabs_to_display.length > 0
+      handlers = handlers.select { |hndl| tabs_to_display.include?(hndl[:identifier].to_s) }
+    end
+    
     idx=1
     @handler_tabs = [[ "Website Visits",  jvh("MemberViewer.loadTab(1,'#{url_for :controller => '/members', :action => 'member_visits', :path => @user.id}');") ]] + 
             handlers.sort() { |hndler1,hndler2| hndler1[:name] <=> hndler2[:name] }.collect do |handler|

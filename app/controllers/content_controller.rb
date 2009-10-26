@@ -21,6 +21,7 @@ class ContentController < ModuleController
   
   register_handler :content, :feature, "Content::CoreFeature::EmailTargetConnect"
   register_handler :content, :feature, "Content::CoreFeature::FieldFormat"
+  register_handler :content, :feature, "Content::CoreFeature::FieldAggregate"
   
   register_handler :trigger, :actions, "Trigger::CoreTrigger"
   
@@ -97,14 +98,15 @@ class ContentController < ModuleController
       columns = [ ActiveTable::IconHeader.new('', :width=>10), 
                   ActiveTable::NumberHeader.new("`#{@content_model.table_name}`.id", :label => 'ID',:width => 40),
                   ActiveTable::IconHeader.new('', :width => 10) ] +
-      @content_model.content_model_fields.find_all { |elm| elm.show_main_table? }.collect do |fld|
-        fld.active_table_header
-      end
+      @content_model.content_model_fields.find_all { |elm| elm.show_main_table? && elm.data_field? }.collect do |fld|
+        fld.active_table_header 
+      end.compact
       if @content_model.show_tags?
         columns << ActiveTable::OptionHeader.new("content_tags.id", :label=> "Tags",
                                                   :options => ContentTag.find_select_options(:all,:conditions => ['content_type = ?',@content_model.content_model.to_s ] ) )
                                                   
       end
+
 
       include_tags = @content_model.show_tags? ? 'content_tags' : nil
       active_table_generate(@content_model.table_name + '_table',@content_model.content_model,columns,{},reset ? { :content_table => { :clear_search=> 1 } } : params,{ :per_page => 15, :include => include_tags, :order => "`#{@content_model.table_name}`.id DESC" })
@@ -368,11 +370,10 @@ class ContentController < ModuleController
 
     @content_model = ContentModel.find(content_id)
     
-    cms_page_info([ [ 'Content', url_for(:action => 'index') ] ] +  (@content_model.show_on_content ? [] : [['Custom Content', url_for(:action => 'custom' ) ]]) + ['Destroy Content Model Warning' ],'content')
+    cms_page_info([ [ 'Content', url_for(:action => 'index') ] ] +  (@content_model.show_on_content ? [] : [['Custom Content', url_for(:action => 'custom' ) ]]) + [['Really Destroy Content Model: %s',nil,@content_model.name ]],'content')
 
     
     if request.post? && params[:destroy] == session[:destroy_content_hash]
-    raise 'Detroy!'
 
      logger.warn(params[:destroy])
      logger.warn(session[:destroy_content_hash])
@@ -417,7 +418,7 @@ class ContentController < ModuleController
       if @publication.save
       
         # Add all the fields by default
-        @publication.add_all_fields!
+        @publication.add_all_fields! unless @publication.start_empty[0].blank?
         expire_content(@content_model)
       
         redirect_to :action => :publication, :path => [ @content_model.id, @publication.id ]
@@ -570,6 +571,8 @@ class ContentController < ModuleController
       pub_field.position = position
 
       fld_opts = pub_field.field_options(fld_data)
+      fld_opts.valid?
+
       pub_field.data = fld_opts.to_hash
       
       # Quick hack make sure the preset is in the right format

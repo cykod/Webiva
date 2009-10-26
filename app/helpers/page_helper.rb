@@ -5,8 +5,8 @@ module PageHelper
   
 
   def ajax_url_for(rnd,options={})
-    opts = options.merge(:site_node => rnd.paragraph.page_revision.revision_container_id, 
-                         :page_revision => rnd.paragraph.page_revision.id,
+    opts = options.merge(:site_node => rnd.paragraph.page_revision ? rnd.paragraph.page_revision.revision_container_id : 0, 
+                         :page_revision => rnd.paragraph.page_revision_id,
                          :paragraph => rnd.paragraph.id)
     rnd.paragraph_action_url(opts)
   end

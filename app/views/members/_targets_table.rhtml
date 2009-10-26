@@ -41,10 +41,10 @@
   <td nowrap='1' align='center'><%= t.user_level %></td>
   <td><a href='/website/members/view/<%= t.id %>'><%= h t.email.blank? ? 'No Email'.t : t.email %></a></td>
   <td>
-    <%= h(truncate(t.first_name,30)) %>
+    <%= h(truncate(t.first_name,:length => 30)) %>
   </td>
   <td>
-    <%= h(truncate(t.last_name ,30)) %>
+    <%= h(truncate(t.last_name ,:llength => 30)) %>
   </td>
   <td>
     <%= t.created_at ? t.created_at.strftime(DEFAULT_DATE_FORMAT.t) : '-' %>

@@ -2,21 +2,36 @@
   <% if @updated %>
     <b><%= "Updated Options".t %></b>
   <% end -%>
-  <% cms_form_for :options,@options, :html => { :class => 'admin_form' } , :update => 'domain_options' do |f| %>
+  <% admin_form_for :options,@options, :html => { :class => 'admin_form' } , :update => 'domain_options' do |f| %>
+<% tabled_ajax_tabs ['Options','Default Folders &amp; Images','Backend Configuration'],'Options' do |t| %>
+
+<% t.tabled_tab do %>
     <%= f.text_field :domain_title_name, :description => 'This is the title that appears at the top of the page in the CMS backend' %>
     <%= f.text_field :mailing_contact_email, :label=>'Site Email',:description => 'Default address that emails from the site come from'  %>
     <%= f.text_field :mailing_default_from_name,:label => 'Site Email Name', :description => 'Name associated with the site email' %>
     <%= f.text_area :company_address, :rows => 4, :cols =>40, :description => 'Company business address used for CAN-SPAM Compliance'  %>
+    <%= f.text_field :page_title_prefix, :description => 'Default prefix to use before page titles'  %>
+<% end -%>
+
+<% t.tabled_tab do %>
     <%= f.filemanager_folder :default_image_location, :label => 'Folder For Member Uploaded Files', :description => 'Folder that holds files uploaded from the front end of the website' %>
 <% if active_module?('media') %>
     <%= f.filemanager_folder :gallery_folder, :label => 'Folder For Galleries' %>
 <% end -%>
-    <%= f.text_field :page_title_prefix, :description => 'Default prefix to use before page titles'  %>
     <%= f.filemanager_folder :user_image_folder, :label => 'Folder For User Images' %>
     <%= f.filemanager_image :missing_image_id, :label => 'Missing User Image', :description => 'Image for users without images'  %>
     <%= f.filemanager_image :missing_male_image_id, :label => 'Missing Image (m)',:description => 'Image for Male Users without Images' %>
     <%= f.filemanager_image :missing_female_image_id, :label => 'Missing Image(f)',:description =>'Image for Female Users without Images' %>
+<% end -%>
+
+<% t.tabled_tab do %>
+    <%= f.ordered_array :member_tabs, @member_tabs, :description => 'If nothing is selected all tabs will be shown' %>
     <%= f.select :theme, [ ['Standard Theme','standard'], ['Steel Theme','techno']], :label => 'Administration Theme' %>
-    <%= f.submit_tag 'Update' %>
+
+<% end -%>
+
+<% end -%>
+
+    <%= f.submit_tag 'Update All' %>
   <% end -%>
   </div>

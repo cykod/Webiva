@@ -23,6 +23,17 @@ class ContentPublicationField < DomainModel
       nil
     end
   end
+
+  def content_value(entry)
+    if !self.content_model_field_id.blank? && self.content_model_field
+      self.content_model_field.content_value(entry)
+    else
+      nil
+    end
+  end
+  
+ 
+  
   
  def form_field(entry,options={})
     if !self.content_model_field_id.blank? && self.content_model_field

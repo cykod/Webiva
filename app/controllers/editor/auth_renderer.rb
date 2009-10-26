@@ -3,15 +3,195 @@
 class Editor::AuthRenderer < ParagraphRenderer
 
   features '/editor/auth_feature'
-  
+
+  paragraph :user_register
   paragraph :login
   paragraph :enter_vip
-  paragraph :register
   paragraph :edit_account
   paragraph :missing_password
   paragraph :email_list
   paragraph :splash
 
+  # LEGACY PARAGRAPHS
+  paragraph :register
+
+
+  def user_register
+
+    @options = paragraph_options(:user_register)
+
+    if !editor? &&  myself.id && @options.already_registered_page_url
+      return redirect_paragraph @options.already_registered_page_url
+    end
+
+    if myself.id && !editor?
+      @registered = true
+    else
+      @usr = EndUser.new
+      @address = @usr.build_address(:address_name => 'Default Address'.t )
+      @business = @usr.build_address(:address_name => 'Business Address'.t )
+
+      if @options.publication
+        @model = @options.publication.content_model.content_model.new
+      end
+    end
+
+    if request.post? && params[:user] && !@registered
+      # See we already have an unregistered user with this email
+      @usr = EndUser.find_visited_target(params[:user][:email])
+      
+      if @usr.registered?
+        # If not, we need to create a new user
+        @usr = EndUser.new(:source => 'website')
+      end
+      
+      # Assign a slice of params to the user
+      @usr.attributes = params[:user].slice(*(@options.required_fields + @options.optional_fields + @options.always_required_fields).uniq)
+
+      @usr.registered = true if @options.registration_type == 'account'
+      @usr.user_class_id = @options.user_class_id if @usr.user_class_id.blank? || @options.modify_profile == 'modify'
+
+      # check everything is valid
+      all_valid = true
+      @usr.valid?
+
+      # go over each required field - add an error if it's missing
+      @options.required_fields.each do |fld|
+        if @usr.send(fld).blank?
+          @usr.errors.add(fld,'is missing')
+        end
+      end
+
+      all_valid = false unless @usr.errors.length == 0
+     
+      # same for address
+      if params[:address] ||  @options.address_required_fields.length > 0
+        @address.attributes = (params[:address]||{}).slice(*@options.available_address_field_list.keys)
+        @address.valid?
+
+        @options.address_required_fields.each do |fld|
+          if @address.send(fld).blank?
+            @address.errors.add(fld,'is missing')
+          end
+        end
+         all_valid = false unless @address.errors.length == 0
+      end
+
+      # same for business address
+      if params[:business] ||  @options.work_address_required_fields.length > 0
+        @business.attributes = (params[:business]||{}).slice(*@options.available_address_field_list.keys)
+        @business.valid?
+
+        @options.work_address_required_fields.each do |fld|
+          if @business.send(fld).blank?
+            @business.errors.add(fld,'is missing')
+          end
+        end
+        all_valid = false unless @business.errors.length == 0
+      end
+
+      if @model
+        @options.publication.update_entry(@model,params[:model],renderer_state)
+        all_valid = false unless @model.errors.length == 0
+      end
+
+      # if there are no errors on anything
+      # save the user,
+
+      @failed = true unless all_valid
+      
+      if all_valid 
+      
+
+        # Set a source if we have one        
+        if session[:user_referrer]
+          @usr.referrer = session[:user_referrer]
+        end
+
+        @usr.lead_source = @options.source unless @options.source.blank?
+
+        if params[:address]
+          @address.save
+          @usr.address_id =@address.id
+        end
+
+        if params[:business]
+          @business.save
+          @usr.work_address_id = @business.id
+        end
+
+        # Make sure save is sucessful - will recheck validation and
+        # rescan for uniques
+        if(@usr.save)
+
+
+          @usr.tag_names_add(@options.add_tags) unless @options.add_tags.blank?
+          @usr.tag_names_add(session[:user_tags]) if session[:user_tags]
+
+          session[:user_tags] = nil
+          session[:user_source] = nil
+
+          @address.update_attribute(:end_user_id,@usr.id) if @address.id
+          @business.update_attribute(:end_user_id,@usr.id) if @business.id
+
+          if @options.include_subscriptions.is_a?(Array) && @options.include_subscriptions.length > 0
+            update_subscriptions(@usr,@options.include_subscriptions,params[:subscription])
+          end
+
+          process_login(@usr)
+
+          if @model
+            # Re-update entry as we now have a user object
+            @options.publication.update_entry(@model,params[:model],renderer_state)
+            @model.save
+          end
+
+
+          # Fill a publication if necessary
+          if @options.content_publication.to_i > 0
+            fill_entry(@publication,@entry,@user)
+            if @entry.save
+              if @publication.update_action_count > 0
+                @publication.run_triggered_actions(entry,'create',myself)
+              end
+            end
+          end
+          
+          # run any triggered actions
+          if paragraph.update_action_count > 0
+            paragraph.run_triggered_actions(@user,'action',@user)
+          end
+
+          # send mail template if we have one
+          if @options.registration_template.to_i > 0 && @mail_template = MailTemplate.find_by_id(opts.registration_template.to_i)
+            MailTemplateMailer.deliver_to_user(@user,@mail_template)
+
+          end
+          
+          paragraph_action('User Registration',@usr.email)
+
+          if @options.lockout_redirect &&  session[:lock_lockout]
+            lock_logout = session[:lock_lockout]
+            session[:lock_lockout] = nil
+            redirect_paragraph lock_logout
+            return
+          elsif @options.success_page_url
+            redirect_paragraph @options.success_page_url
+            return
+          end
+          render_paragraph :text => 'Successful Registration'.t 
+          return
+        end
+
+        
+      end
+    end
+
+    @field_list = @options.field_list
+    
+    render_paragraph :feature => :user_register
+  end
+  
   def login
     opts = paragraph_options(:login)
 
@@ -20,6 +200,8 @@ class Editor::AuthRenderer < ParagraphRenderer
     if myself.id
       data[:user] = myself
     end
+
+    data[:login_user] = myself
     
     if params[:cms_logout]
        paragraph_action(myself.action('/editor/auth/logout'))
@@ -128,223 +310,7 @@ class Editor::AuthRenderer < ParagraphRenderer
   end
   
   
-  
-  
-  def register
-    opts = Editor::AuthController::RegisterOptions.new(paragraph.data)
     
-    @optional_fields = %w{gender membership_id first_name last_name username}
-    
-    if ( myself.registered? || myself.user_class_id == opts.user_class_id) && !editor? 
-      if opts.already_registered_redirect.to_i > 0
-        nd = SiteNode.find_by_id(opts.already_registered_redirect)
-        if nd 
-          redirect_paragraph nd.node_path if nd
-          return 
-	  end
-      else
-        render_paragraph :text => 'Already registered'.t
-        return
-      end
-      
-    end
-    
-
-    if opts.content_publication.to_i > 0 && (@publication = ContentPublication.find_by_id(opts.content_publication.to_i))
-        
-
-        require_js('prototype')
-        require_js('overlib/overlib')
-        require_js('user_application')
-
-    
-        @entry = @publication.content_model.content_model.new(params['entry_' + @publication.id.to_s])
-
-    end
-
-    
-    @user = myself
-    @user = EndUser.new unless myself.is_a?(EndUser)
-    @address = @user.address ? @user.address : @user.build_address(:address_name => 'Default Address'.t )
-    @work_address = @user.work_address ? @user.work_address : @user.build_work_address(:address_name => 'Default Work Address'.t )
-
-    if opts.clear_info.to_s == 'y'
-      if @user.id
-        %w(email first_name last_name gender ).each { |fld| @user.send(fld + "=",'') }
-        adr_fields = %w(company phone fax address city state zip country)
-        adr_fields.each { |fld| @address.send(fld + "=",'') }
-        adr_fields.each { |fld| @work_address.send(fld + "=",'') }
-      end
-    end
-    
-    if !editor? && request.post? && params[:user]
-    
-      # See we already have an unregistered user with this email
-      @user = EndUser.find_visited_target(params[:user][:email])
-      
-      if @user.registered?
-        # If not, we need to create a new user
-        @user = EndUser.new(:source => 'website')
-      end
-      @user.attributes = params[:user]
-
-      if !@user.id || opts.modify_profile == 'modify'
-        @user.user_class_id = opts.user_class_id
-      end
-      @user.language = session[:cms_language]
-      if opts.registration_type == 'login'
-        @user.registered = true
-        @user.user_level = 3 unless @user.user_level > 3
-      else
-        @user.user_level = 2 unless @user.user_level > 2 
-      end
-      
-      
-      all_valid = true
-      if opts.address != 'off'
-
-        @address.attributes = params[:address]
-        @address.country = opts.country unless opts.country.blank?
-        @address.validate_registration(:home,opts.address == 'required',opts.address_type )
-        all_valid = false unless @address.errors.empty?
-      end
-      
-      if opts.work_address != 'off'
-        @work_address.attributes = params[:work_address]
-        @work_address.country = opts.country unless opts.country.blank?
-        @work_address.validate_registration(:work,opts.work_address == 'required',opts.address_type )
-        @work_address.errors.add(:fax,'is missing') if opts.work_fax == 'required' && @work_address.fax.blank?
-        all_valid = false unless @work_address.errors.empty?
-      end
-      
-
-      if opts.content_publication.to_i > 0
-          fill_entry(@publication,@entry,@user)
-      
-          all_valid = false unless @entry.valid?
-      end
-
-      
-      @user.valid?
-
-      if opts.site_policy != 'off'
-        @user.errors.add(:site_policy,'must be accepted') if @user.site_policy != 'accept'
-      end 
-      
-      if opts.membership_id != 'off'
-        @user.errors.add(:membership_id,' must be entered') if opts.membership_id == 'required' && @user.membership_id.blank?
-        
-        if !@user.membership_id.blank?
-          if !EndUser.find_by_email_and_membership_id(@user.email,@user.membership_id)
-            @user.errors.add(:membership_id,' must match the number on file with your email address')
-          end
-        end
-      end
-      
-      @user.errors.add(:captcha_key,'are incorrect') unless opts.captcha == 'off' || simple_captcha_valid?
-  
-      @user.validate_registration(opts.to_h)
-      all_valid = false unless @user.errors.empty?
-      
-      if all_valid
-        if opts.address != 'off'
-          @address.save
-          @user.address_id = @address.id
-        end
-        if opts.work_address != 'off'
-      	  @work_address.save
-	        @user.work_address_id = @work_address.id
-        end
-
-        # Set a source if we have one        
-        if session[:user_referrer]
-          @user.referrer = session[:user_referrer]
-        end
-        
-        
-        @user.save
-        
-        @user.tag_names_add(opts.add_tags) if !opts.add_tags.to_s.empty?
-	      
-        # add any session based tags on registration
-        @user.tag_names_add(session[:user_tags]) if session[:user_tags]
-        
-        session[:user_tags] = nil
-        session[:user_source] = nil
-        
-        if opts.include_subscriptions.is_a?(Array) && opts.include_subscriptions.length > 0
-          update_subscriptions(@user,opts.include_subscriptions,params[:subscription])
-        end 
-
-        @address.update_attribute(:end_user_id,@user.id) if opts.address != 'off'
-        @work_address.update_attribute(:end_user_id,@user.id) if opts.work_address != 'off'
-        
-	session[:user_id] = @user.id
-	session[:user_model] = @user.class.to_s
-	myself
-
-        if opts.content_publication.to_i > 0
-          fill_entry(@publication,@entry,@user)
-          if @entry.save
-            if @publication.update_action_count > 0
-              @publication.run_triggered_actions(entry,'create',myself)
-            end
-          end
-        end
-
-        if paragraph.update_action_count > 0
-          paragraph.run_triggered_actions(@user,'action',@user)
-        end
-
-        if opts.registration_template.to_i > 0 && @mail_template = MailTemplate.find_by_id(opts.registration_template.to_i)
-            MailTemplateMailer.deliver_to_user(@user,@mail_template)
-
-        end
-	
-      	paragraph_action('User Registration',@user.email)
-	
-        if session[:lock_lockout]
-              lock_logout = session[:lock_lockout]
-              session[:lock_lockout] = nil
-              redirect_paragraph lock_logout
-              return
-        elsif opts.success_page.to_i > 0
-          nd = SiteNode.find_by_id(opts.success_page)
-          if nd 
-            redirect_paragraph nd.node_path if nd
-            return 
-	       end
-	      end
-	      render_paragraph :text => 'Successful Registration'.t 
-	      return
-      end
-    elsif !editor?
-      if paragraph.view_action_count > 0
-        paragraph.run_triggered_actions(@user,'view',@user)
-      end
-    end
-
-    if opts.include_subscriptions.is_a?(Array) && opts.include_subscriptions.length > 0
-      @subscriptions = UserSubscription.find(:all,:order => :name,:conditions => "id IN (#{opts.include_subscriptions.collect {|sub| DomainModel.connection.quote(sub) }.join(",")})")
-    else
-      @subscriptions = nil
-    end
-    
-    display_options = opts.to_hash
-    display_options[:vertical] = opts.form_display == 'vertical'
-    
-    render_paragraph :partial => '/editor/auth/register', 
-                      :locals => { :user => @user, 
-                                   :opts => display_options, 
-                                   :fields => @optional_fields,
-                                   :address => @address,
-                                   :work_address => @work_address,
-                                   :publication => @publication,
-                                   :entry => @entry,
-                                   :subscriptions => @subscriptions }
-  end
-
-  
   
   def edit_account
    opts = paragraph.data
@@ -631,6 +597,228 @@ class Editor::AuthRenderer < ParagraphRenderer
         redirect_paragraph :site_node => options.splash_page_id
       end
     end   
-  end  
+  end
+
+
+
+
+  ## LEGACY PARAGRAPHS
+
+  
+  def register
+    opts = Editor::AuthController::RegisterOptions.new(paragraph.data)
+    
+    @optional_fields = %w{gender membership_id first_name last_name username}
+    
+    if ( myself.registered? || myself.user_class_id == opts.user_class_id) && !editor? 
+      if opts.already_registered_redirect.to_i > 0
+        nd = SiteNode.find_by_id(opts.already_registered_redirect)
+        if nd 
+          redirect_paragraph nd.node_path if nd
+          return 
+	  end
+      else
+        render_paragraph :text => 'Already registered'.t
+        return
+      end
+      
+    end
+    
+
+    if opts.content_publication.to_i > 0 && (@publication = ContentPublication.find_by_id(opts.content_publication.to_i))
+        
+
+        require_js('prototype')
+        require_js('overlib/overlib')
+        require_js('user_application')
+
+    
+        @entry = @publication.content_model.content_model.new(params['entry_' + @publication.id.to_s])
+
+    end
+
+    
+    @user = myself
+    @user = EndUser.new unless myself.is_a?(EndUser)
+    @address = @user.address ? @user.address : @user.build_address(:address_name => 'Default Address'.t )
+    @work_address = @user.work_address ? @user.work_address : @user.build_work_address(:address_name => 'Default Work Address'.t )
+
+    if opts.clear_info.to_s == 'y'
+      if @user.id
+        %w(email first_name last_name gender ).each { |fld| @user.send(fld + "=",'') }
+        adr_fields = %w(company phone fax address city state zip country)
+        adr_fields.each { |fld| @address.send(fld + "=",'') }
+        adr_fields.each { |fld| @work_address.send(fld + "=",'') }
+      end
+    end
+    
+    if !editor? && request.post? && params[:user]
+    
+      # See we already have an unregistered user with this email
+      @user = EndUser.find_visited_target(params[:user][:email])
+      
+      if @user.registered?
+        # If not, we need to create a new user
+        @user = EndUser.new(:source => 'website')
+      end
+      @user.attributes = params[:user]
+
+      if !@user.id || opts.modify_profile == 'modify'
+        @user.user_class_id = opts.user_class_id
+      end
+      @user.language = session[:cms_language]
+      if opts.registration_type == 'login'
+        @user.registered = true
+        @user.user_level = 3 unless @user.user_level > 3
+      else
+        @user.user_level = 2 unless @user.user_level > 2 
+      end
+      
+      
+      all_valid = true
+      if opts.address != 'off'
+
+        @address.attributes = params[:address]
+        @address.country = opts.country unless opts.country.blank?
+        @address.validate_registration(:home,opts.address == 'required',opts.address_type )
+        all_valid = false unless @address.errors.empty?
+      end
+      
+      if opts.work_address != 'off'
+        @work_address.attributes = params[:work_address]
+        @work_address.country = opts.country unless opts.country.blank?
+        @work_address.validate_registration(:work,opts.work_address == 'required',opts.address_type )
+        @work_address.errors.add(:fax,'is missing') if opts.work_fax == 'required' && @work_address.fax.blank?
+        all_valid = false unless @work_address.errors.empty?
+      end
+      
+
+      if opts.content_publication.to_i > 0
+          fill_entry(@publication,@entry,@user)
+      
+          all_valid = false unless @entry.valid?
+      end
+
+      
+      @user.valid?
+
+      if opts.site_policy != 'off'
+        @user.errors.add(:site_policy,'must be accepted') if @user.site_policy != 'accept'
+      end 
+      
+      if opts.membership_id != 'off'
+        @user.errors.add(:membership_id,' must be entered') if opts.membership_id == 'required' && @user.membership_id.blank?
+        
+        if !@user.membership_id.blank?
+          if !EndUser.find_by_email_and_membership_id(@user.email,@user.membership_id)
+            @user.errors.add(:membership_id,' must match the number on file with your email address')
+          end
+        end
+      end
+      
+      @user.errors.add(:captcha_key,'are incorrect') unless opts.captcha == 'off' || simple_captcha_valid?
+  
+      @user.validate_registration(opts.to_h)
+      all_valid = false unless @user.errors.empty?
+      
+      if all_valid
+        if opts.address != 'off'
+          @address.save
+          @user.address_id = @address.id
+        end
+        if opts.work_address != 'off'
+      	  @work_address.save
+	        @user.work_address_id = @work_address.id
+        end
+
+        # Set a source if we have one        
+        if session[:user_referrer]
+          @user.referrer = session[:user_referrer]
+        end
+        
+        
+        @user.save
+        
+        @user.tag_names_add(opts.add_tags) if !opts.add_tags.to_s.empty?
+	      
+        # add any session based tags on registration
+        @user.tag_names_add(session[:user_tags]) if session[:user_tags]
+        
+        session[:user_tags] = nil
+        session[:user_source] = nil
+        
+        if opts.include_subscriptions.is_a?(Array) && opts.include_subscriptions.length > 0
+          update_subscriptions(@user,opts.include_subscriptions,params[:subscription])
+        end 
+
+        @address.update_attribute(:end_user_id,@user.id) if opts.address != 'off'
+        @work_address.update_attribute(:end_user_id,@user.id) if opts.work_address != 'off'
+        
+	session[:user_id] = @user.id
+	session[:user_model] = @user.class.to_s
+	myself
+
+        if opts.content_publication.to_i > 0
+          fill_entry(@publication,@entry,@user)
+          if @entry.save
+            if @publication.update_action_count > 0
+              @publication.run_triggered_actions(entry,'create',myself)
+            end
+          end
+        end
+
+        if paragraph.update_action_count > 0
+          paragraph.run_triggered_actions(@user,'action',@user)
+        end
+
+        if opts.registration_template.to_i > 0 && @mail_template = MailTemplate.find_by_id(opts.registration_template.to_i)
+            MailTemplateMailer.deliver_to_user(@user,@mail_template)
+
+        end
+	
+      	paragraph_action('User Registration',@user.email)
+	
+        if session[:lock_lockout]
+              lock_logout = session[:lock_lockout]
+              session[:lock_lockout] = nil
+              redirect_paragraph lock_logout
+              return
+        elsif opts.success_page.to_i > 0
+          nd = SiteNode.find_by_id(opts.success_page)
+          if nd 
+            redirect_paragraph nd.node_path if nd
+            return 
+	       end
+	      end
+	      render_paragraph :text => 'Successful Registration'.t 
+	      return
+      end
+    elsif !editor?
+      if paragraph.view_action_count > 0
+        paragraph.run_triggered_actions(@user,'view',@user)
+      end
+    end
+
+    if opts.include_subscriptions.is_a?(Array) && opts.include_subscriptions.length > 0
+      @subscriptions = UserSubscription.find(:all,:order => :name,:conditions => "id IN (#{opts.include_subscriptions.collect {|sub| DomainModel.connection.quote(sub) }.join(",")})")
+    else
+      @subscriptions = nil
+    end
+    
+    display_options = opts.to_hash
+    display_options[:vertical] = opts.form_display == 'vertical'
+    
+    render_paragraph :partial => '/editor/auth/register', 
+                      :locals => { :user => @user, 
+                                   :opts => display_options, 
+                                   :fields => @optional_fields,
+                                   :address => @address,
+                                   :work_address => @work_address,
+                                   :publication => @publication,
+                                   :entry => @entry,
+                                   :subscriptions => @subscriptions }
+  end
+
+  
   
 end

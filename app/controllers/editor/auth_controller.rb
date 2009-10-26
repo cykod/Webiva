@@ -7,7 +7,9 @@ class Editor::AuthController < ParagraphController
   editor_header "Member Paragraphs", :paragraph_member
   editor_for :login, :name => 'User Login', :features => ['login']
   editor_for :enter_vip, :name => 'Enter VIP #', :features => ['enter_vip'], :triggers => [['Failed VIP Login','failure'],['Successful VIP Login','success' ],['Repeat Successful VIP Login','repeat']]
-  editor_for :register, :name => 'User Registration', :triggers => [ ['View Registration Paragraph','view'], ['Successful Registration','action'] ]
+
+  editor_for :user_register, :name => 'User Registration', :feature => 'user_register', :triggers => [ ['View Registration Paragraph','view'], ['Successful Registration','action'] ]
+
 
   editor_for :edit_account, :name => 'Edit Account', :triggers => [ ['Edit Profile','action' ]] 
 
@@ -17,6 +19,135 @@ class Editor::AuthController < ParagraphController
   
   editor_for :email_list, :name => 'Email List Signup', :triggers => [ ['Signed Up','action']], :features => ['email_list']
   editor_for :splash, :name => 'Splash Page'
+
+
+  
+  editor_for :register, :name => 'Legacy User Registration', :triggers => [ ['View Registration Paragraph','view'], ['Successful Registration','action'] ], :legacy => true
+
+  def user_register
+    @options = UserRegisterOptions.new(params[:user_register]||paragraph.data||{})
+    handle_paragraph_update(@options)
+  end
+  
+  class UserRegisterOptions < HashModel
+    
+    attributes :registration_type => 'account',
+    :required_fields => [ ], :optional_fields => [ 'first_name','last_name'],
+    :success_page_id => nil, :already_registered_page_id => nil,
+    :user_class_id => nil,  :modify_profile => 'modify', :registration_template_id => nil,
+    :include_subscriptions => [], :country => 'United States', :add_tags => '',
+    :work_address_required_fields => [],
+    :address_required_fields => [],
+    :content_publication_id => nil, :source => nil, :lockout_redirect => false
+
+    boolean_options :lockout_redirect
+
+    page_options :success_page_id
+   
+    validates_presence_of :success_page_id, :user_class_id
+
+    def available_field_list
+      { :email => [ 'Email'.t,:text_field, :email ],
+        :password => [ 'Password'.t, :password_field, :password ],
+        :password_confirmation => [ 'Confirm Password'.t, :password_field, :password_confirmation ],
+        :first_name => ['First Name'.t,:text_field,:first_name],
+        :middle_name => ['Middle Name'.t,:text_field,:middle_name],
+        :last_name => ['Last Name'.t,:text_field,:last_name],
+        :gender => ['Gender'.t, :radio_buttons,  { :options => [ ['Mr.'.t,'m'],['Mrs.'.t,'f' ] ] } ],
+        :username => [ 'Username'.t,:text_field, :username ],
+        :salutation => [ 'Salutation'.t,:text_field, :salutation ]
+      }
+    end
+
+    def available_optional_field_options
+      opts = available_field_list
+      opts.delete(:email)
+      opts.delete(:password)
+      opts.delete(:password_confirmation)
+      opts.map { |elm| [ elm[1][0],elm[0].to_s ] }.sort
+    end
+
+    def available_field_options
+      available_field_list.to_a.map { |elm| [ elm[1][0],elm[0].to_s ] }.sort
+    end
+
+    def all_field_list
+       available_field_list.to_a
+    end
+
+    def any_field_list
+      flds = available_field_list
+      fields = (self.required_fields + self.optional_fields).uniq
+      ['password','password_confirmation','email'].each do |fld|
+        fields.unshift(fld) if !fields.include?(fld)
+      end
+      fields.map { |elm| flds[elm.to_sym] ? [ elm.to_sym, flds[elm.to_sym] ] : nil }.compact
+    end
+    def always_required_fields
+      flds = [ 'email']
+      flds += [ 'password','password_confirmation'] if self.registration_type == 'account'
+      flds
+    end
+
+    def required_field_list
+      flds = available_field_list
+      fields = (self.required_fields).uniq
+      ['password_confirmation','password','email'].each do |fld|
+        fields.unshift(fld) if !fields.include?(fld)
+      end
+      fields.map { |elm| flds[elm.to_sym] ? [ elm.to_sym, flds[elm.to_sym] ] : nil }.compact
+    end
+
+    def optional_field_list
+      flds = available_field_list
+      fields = (self.optional_fields).uniq
+      fields.map { |elm| flds[elm.to_sym] ? [ elm.to_sym, flds[elm.to_sym] ] : nil }.compact
+    end
+
+    def available_address_field_list
+      {
+        :company => [ 'Company'.t, :text_field,:company],
+        :phone => [ 'Phone'.t, :text_field,:phone],
+        :fax => [ 'Fax'.t, :text_field,:fax],
+        :address => [ 'Address'.t, :text_field,:address],
+        :address_2 => [ 'Address (Line 2)'.t, :text_field,:address_2],
+        :city => [ 'City'.t, :text_field,:city],
+        :state => [ 'State'.t, :select,:state,{ :options => ContentModel.state_select_options } ],
+        :zip => [ 'Zip Code'.t, :text_field,:zip]
+      }
+    end
+
+    def available_address_field_options(business = false)
+      flds = available_address_field_list
+      if(!business)
+        flds.delete(:company)
+       end
+      flds.to_a.map { |elm| [ elm[1][0],elm[0].to_s ] }.sort
+    end
+
+    def address_field_list
+      hsh = available_address_field_list
+      hsh.delete(:company)
+      hsh.to_a
+    end
+
+    def business_address_field_list
+      available_address_field_list.to_a
+    end
+
+    def content_model
+      if publication
+        @content_mode ||= @pub.conten_model
+      else
+        nil
+      end
+    end
+
+    def publication
+      @pub ||= ContentPublication.find_by_id(self.content_publication_id)
+    end
+    
+  end
   
 
   def login
@@ -33,41 +164,7 @@ class Editor::AuthController < ParagraphController
   end
   
   
-  def register
-  
-    @options = RegisterOptions.new(params[:register] || @paragraph.data || {})
-    
-    if request.post? && @options.valid?
-      if @options.include_subscriptions.is_a?(Array)
-         @options.include_subscriptions = @options.include_subscriptions.find_all { |elem| !elem.blank? }.collect { |elem| elem.to_i } 
-      else
-        @options.include_subscriptions = []
-      end
-      
-      @paragraph.data = @options.to_h
-      @paragraph.save
-      render_paragraph_update
-      return
-    end
 
-    @content_publications = [ ['No Publication', 0 ] ] + ContentPublication.find(:all,:conditions => 'publication_type = "create"',:order => 'content_models.name, content_publications.name',
-                                                     :include => :content_model ).collect { |pub| [ pub.content_model.name + ' - ' + pub.name, pub.id ] }
-    
-      @pages = [[ '--Select Page--'.t, nil ]] + SiteNode.page_options()
-    
-      @fields = %w{username membership gender first_name last_name dob address work_address work_fax referrer captcha}
-      @field_options = [ [ 'Required', 'required' ], [ 'Optional','optional' ], ['Do not Display','off' ] ]
-     @subscriptions = UserSubscription.find_select_options(:all,:order => 'name')
-  end
-  
-  class RegisterOptions < HashModel
-    default_options :success_page => nil, :content_publication => nil, :registration_type => 'login', :form_display => 'normal', :already_registered_redirect => nil, :user_class_id => nil, :username => 'off', :first_name => 'required', :last_name => 'required', :modify_profile => 'modify', :referrer => 'off', :membership => 'off',
-                    :gender => 'required', :dob => 'off', :address => 'off', :work_address => 'off', :add_tags => '', :work_fax => 'off',
-                    :site_policy => 'off', :policy_text => '', :registration_template => nil, :include_subscriptions => [], :clear_info => 'n', :country => 'United States',
-                    :address_type => 'us', :registration_button => nil, :captcha => 'off'
-    integer_options :success_page, :already_registered_redirect, :user_class_id, :content_publication ,:registration_template
-    validates_presence_of :success_page
-  end  
 
   def edit_account
      @options = EditAccountOptions.new(params[:edit_profile] || @paragraph.data || {})
@@ -213,4 +310,51 @@ class Editor::AuthController < ParagraphController
   
   end
 
+
+
+
+
+
+
+
+
+
+  # LEGACY PARAGRAPHS
+
+
+  def register
+  
+    @options = RegisterOptions.new(params[:register] || @paragraph.data || {})
+    
+    if request.post? && @options.valid?
+      if @options.include_subscriptions.is_a?(Array)
+         @options.include_subscriptions = @options.include_subscriptions.find_all { |elem| !elem.blank? }.collect { |elem| elem.to_i } 
+      else
+        @options.include_subscriptions = []
+      end
+      
+      @paragraph.data = @options.to_h
+      @paragraph.save
+      render_paragraph_update
+      return
+    end
+
+    @content_publications = [ ['No Publication', 0 ] ] + ContentPublication.find(:all,:conditions => 'publication_type = "create"',:order => 'content_models.name, content_publications.name',
+                                                     :include => :content_model ).collect { |pub| [ pub.content_model.name + ' - ' + pub.name, pub.id ] }
+    
+      @pages = [[ '--Select Page--'.t, nil ]] + SiteNode.page_options()
+    
+      @fields = %w{username membership gender first_name last_name dob address work_address work_fax referrer captcha}
+      @field_options = [ [ 'Required', 'required' ], [ 'Optional','optional' ], ['Do not Display','off' ] ]
+     @subscriptions = UserSubscription.find_select_options(:all,:order => 'name')
+  end
+  
+  class RegisterOptions < HashModel
+    default_options :success_page => nil, :content_publication => nil, :registration_type => 'login', :form_display => 'normal', :already_registered_redirect => nil, :user_class_id => nil, :username => 'off', :first_name => 'required', :last_name => 'required', :modify_profile => 'modify', :referrer => 'off', :membership => 'off',
+                    :gender => 'required', :dob => 'off', :address => 'off', :work_address => 'off', :add_tags => '', :work_fax => 'off',
+                    :site_policy => 'off', :policy_text => '', :registration_template => nil, :include_subscriptions => [], :clear_info => 'n', :country => 'United States',
+                    :address_type => 'us', :registration_button => nil, :captcha => 'off'
+    integer_options :success_page, :already_registered_redirect, :user_class_id, :content_publication ,:registration_template
+    validates_presence_of :success_page
+  end    
 end

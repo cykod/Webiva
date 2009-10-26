@@ -93,7 +93,7 @@ hljs.initHighlightingOnLoad();
          <%= f.text_field :category, :size => 30 %>
          <%= f.text_field :description,:size => 80 %>
          <%= f.custom_field :feature_type, :value => @feature.feature_type %>
-         <%= f.select :site_template_id, [['--Available in all Site Templates--',nil]] + SiteTemplate.site_template_options %>
+         <%= f.select :site_template_id, [['--Available in all Site Templates--',nil]] + SiteTemplate.select_options(:conditions => { :template_type => 'site', :parent_id => nil}) %>
          <%= f.filemanager_folder :image_folder_id,:description => 'Overrides site template folder (if a site template is selected)' %>
       <% end -%>
    </div>

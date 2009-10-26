@@ -230,6 +230,7 @@ class EditController < ModuleController
     content_paragraphs = ContentPublication.get_publication_paragraphs
     @available_paragraph_types += content_paragraphs 
     @paragraph_types +=  content_paragraphs  if myself.has_role?('paragraph_content')
+
     
     @paragraph_hash = {}
     @available_paragraph_types.each do |para| 

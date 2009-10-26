@@ -34,7 +34,8 @@ class EndUser < DomainModel
   attr_accessor :admin_edit
   attr_accessor :password
   attr_accessor :site_policy
-  
+
+  attr_reader :login
   
   belongs_to :domain_file
   belongs_to :second_image, :class_name => 'DomainFile',:foreign_key => :second_image_id

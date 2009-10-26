@@ -49,107 +49,115 @@ module Content::MigrationSupport
   # If this is coming from a web edit (field_data is a hash, and field order is an array)
   # We need transform field data to an array
   def update_table(field_data,deleted_fields = [])
-      migration_code = ''
-      
-      if deleted_fields
-        deleted_fields.each do |fld| 
-          field = self.content_model_fields.find(fld)
-          migration_code += "remove_column :#{self.table_name}, :#{field.field}\n"
-          field.destroy
+    migration_code = ''
+    
+    if deleted_fields
+      deleted_fields.each do |fld| 
+        field = self.content_model_fields.find(fld)
+        content_field = ContentModel.content_field(field.field_module,field.field_type)
+        if content_field[:representation].is_a?(Array)
+          content_field[:representation].each do |rep|
+            migration_code += "remove_column  :#{self.table_name}, :#{field.field}#{rep[0].blank? ? '' : "_#{rep[0]}"}\n"
+          end
+          # Handle regular fields
+        elsif content_field[:representation] && content_field[:representation] != :none
+          migration_options = content_field[:migration_options] ? ", " + content_field[:migration_options] : ''
+          migration_code += "remove_column  :#{self.table_name}, :#{field.field}\n"
         end
       end
-      
-      self.class.logger.warn(field_data.inspect)
-#      ContentModelField.transaction do
-        field_data.each_with_index do |field,idx|
-          field.symbolize_keys!
+    end
+    
+    self.class.logger.warn(field_data.inspect)
+    #      ContentModelField.transaction do
+    field_data.each_with_index do |field,idx|
+      field.symbolize_keys!
 
-          content_field = nil 
+      content_field = nil 
 
-          # If we're not a hash or a non-field item (group, label, etc)
-          if(!field.is_a?(Hash))
-            # Nothing
-          # find the field row if we have an id
-          elsif(field[:id]) 
-            field_row = self.content_model_fields.find(field[:id])
-            field_row.field_options ||= {}
-            self.class.logger.warn('FIELD ROW')
-            self.class.logger.warn(field_row.inspect)
-            content_field = ContentModel.content_field(field_row.field_module,field_row.field_type)
-            
-            next unless content_field
-            
-          # Otherwise, we need to create migration code
-          else 
-            field_row = self.content_model_fields.build()
-            field_row.field_options = {}
-            
-            content_field = ContentModel.content_field(field[:field_module],field[:field_type])
-            next unless content_field
-          
-            
-            field_name_prefix = field[:name].downcase.gsub(/[^a-z0-9]/,"_")[0..20]
-            # use an index if necessary, (e.g. blog_2, etc if necessary )
-            field_name_index = 1
-            field_name_try = field_name_prefix
-      
-            while self.content_model_fields.find(:first,:conditions => [ 'field=?',field_name_try ] )
-              field_name_index += 1
-              field_name_try = field_name_prefix + field_name_index.to_s
-            end
-            
-            
-            raise 'Error' unless content_field
-            field_row.field_type = field[:field_type].to_s
-            field_row.field_module = field[:field_module].to_s
-            
-            if content_field[:relation]
-              field_row.field = field_name_try + "_id"
-              if content_field[:relation] == :plural
-                 field_row.field_options['relation_singular'] = field_name_try
-                 field_row.field_options['relation_name'] = field_name_try.pluralize
-              else
-                field_row.field_options['relation_name'] = field_name_try
-              end
-            else
-              field_row.field = field_name_try
-            end
-            
-            
-            # Handle fields with more than field
-            if content_field[:representation].is_a?(Array)
-              content_field[:representation].each do |rep|
-                migration_code += "add_column  :#{self.table_name}, :#{field_row.field}#{rep[0].blank? ? '' : "_#{rep[0]}"}, :#{rep[1]}\n"
-              end
-            # Handle regular fields
-            elsif content_field[:representation] && content_field[:representation] != :none
-              migration_options = content_field[:migration_options] ? ", " + content_field[:migration_options] : ''
-              migration_code += "add_column  :#{self.table_name}, :#{field_row.field}, :#{content_field[:representation]}#{migration_options}\n"
-            end
-            
-            
-            
-          end
-          
-          if field_row && content_field
-            field_row.field_options.merge!(field_row.set_field_options(field[:field_options]))
-            
-            field_row.position = idx + 1;
-            field_row.name = field[:name]
-            field_row.description = field[:description]
-            
-            field_row.save
-            
-            self.class.logger.warn(field_row.inspect)
-          end
-          
+      # If we're not a hash or a non-field item (group, label, etc)
+      if(!field.is_a?(Hash))
+        # Nothing
+        # find the field row if we have an id
+      elsif(field[:id]) 
+        field_row = self.content_model_fields.find(field[:id])
+        field_row.field_options ||= {}
+        self.class.logger.warn('FIELD ROW')
+        self.class.logger.warn(field_row.inspect)
+        content_field = ContentModel.content_field(field_row.field_module,field_row.field_type)
+        
+        next unless content_field
+        
+        # Otherwise, we need to create migration code
+      else 
+        field_row = self.content_model_fields.build()
+        field_row.field_options = {}
+        
+        content_field = ContentModel.content_field(field[:field_module],field[:field_type])
+        next unless content_field
+        
+        
+        field_name_prefix = field[:name].downcase.gsub(/[^a-z0-9]/,"_")[0..20]
+        # use an index if necessary, (e.g. blog_2, etc if necessary )
+        field_name_index = 1
+        field_name_try = field_name_prefix
+        
+        while self.content_model_fields.find(:first,:conditions => [ 'field=?',field_name_try ] )
+          field_name_index += 1
+          field_name_try = field_name_prefix + field_name_index.to_s
         end
-#      end
+        
+        
+        raise 'Error' unless content_field
+        field_row.field_type = field[:field_type].to_s
+        field_row.field_module = field[:field_module].to_s
+        
+        if content_field[:relation]
+          field_row.field = field_name_try + "_id"
+          if content_field[:relation] == :plural
+            field_row.field_options['relation_singular'] = field_name_try
+            field_row.field_options['relation_name'] = field_name_try.pluralize
+          else
+            field_row.field_options['relation_name'] = field_name_try
+          end
+        else
+          field_row.field = field_name_try
+        end
+        
+        
+        # Handle fields with more than field
+        if content_field[:representation].is_a?(Array)
+          content_field[:representation].each do |rep|
+            migration_code += "add_column  :#{self.table_name}, :#{field_row.field}#{rep[0].blank? ? '' : "_#{rep[0]}"}, :#{rep[1]}\n"
+          end
+          # Handle regular fields
+        elsif content_field[:representation] && content_field[:representation] != :none
+          migration_options = content_field[:migration_options] ? ", " + content_field[:migration_options] : ''
+          migration_code += "add_column  :#{self.table_name}, :#{field_row.field}, :#{content_field[:representation]}#{migration_options}\n"
+        end
+        
+        
+        
+      end
       
-      cClass = ContentMigrator.clone
-      cClass.update_up(migration_code)
-      cClass.migrate_domain(Domain.find(DomainModel.active_domain_id))
+      if field_row && content_field
+        field_row.field_options.merge!(field_row.set_field_options(field[:field_options]))
+        
+        field_row.position = idx + 1;
+        field_row.name = field[:name]
+        field_row.description = field[:description]
+        
+        field_row.save
+        
+        self.class.logger.warn(field_row.inspect)
+      end
       
+    end
+    #      end
+    
+    cClass = ContentMigrator.clone
+    cClass.update_up(migration_code)
+    cClass.migrate_domain(Domain.find(DomainModel.active_domain_id))
+    
   end
   
 end

@@ -70,7 +70,7 @@ class HashModel
   def self.current_integer_opts; []; end
   def self.current_boolean_opts; []; end
   def self.current_float_opts; []; end
-  
+  def self.current_integer_array_opts; []; end
 
   def self.integer_options(*objs)
     if objs[0].is_a?(Array)
@@ -78,11 +78,23 @@ class HashModel
     else
       objs = current_integer_opts + objs
     end
-      
-    
     objs.uniq!
     
     class << self; self end.send(:define_method,"current_integer_opts") do
+      objs
+    end
+  end
+
+
+   def self.integer_array_options(*objs)
+    if objs[0].is_a?(Array)
+      objs = current_integer_array_opts + objs[0]
+    else
+      objs = current_integer_array_opts + objs
+    end
+    objs.uniq!
+    
+    class << self; self end.send(:define_method,"current_integer_array_opts") do
       objs
     end
   end
@@ -202,7 +214,7 @@ class HashModel
     bool_opts.each do |opt|
       val = self.send(opt)
       if val.is_a?(String) # Assume we're a bool if not a val
-        val  = val.to_i == 1 ? true : false
+        val  = (val == 'true' || val.to_i == 1) ? true : false
         self.instance_variable_set "@#{opt.to_s}",val
       end
     end
@@ -214,6 +226,18 @@ class HashModel
         self.instance_variable_set "@#{opt.to_s}",val
       end
     end
+    int_arr_opts = self.class.current_integer_array_opts
+    int_arr_opts.each do |opt|
+      val = self.send(opt)
+      if val.is_a?(Array)
+        val = val.map { |elm| elm.blank? ? nil : elm.to_i }.compact
+      else
+        val = []
+      end
+      self.instance_variable_set "@#{opt.to_s}",val
+    end
+    
+    
   end
      
   def self.self_and_descendants_from_active_record

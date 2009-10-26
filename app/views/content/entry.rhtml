@@ -1,7 +1,11 @@
 <div class='admin_content'>
 <% stat_view do |t| -%>
   <% @content_model.content_model_fields.each do |fld| %>
-  <%= t.raw fld.name, fld.content_display(@entry,:form) %>
+  <% if fld.is_type?('/content/core_field/header')  %>
+    <%= t.header fld.name %>
+  <% else -%>
+    <%= t.raw fld.name, fld.content_display(@entry,:form) %>
+  <% end -%>
   <% end -%>
   <% if @content_model.show_tags? %>
     <%= t.raw "Tags", @entry.tag_names %>
