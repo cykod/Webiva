@@ -1046,6 +1046,30 @@ class ParagraphFeature
     def define_h_tag(tg,options={})
       @method_list << [ "Escaped value tag",tg ]
     end
+
+    def define_publication_field_tags(prefix,publication,options)
+      publication.content_publication_fields.each do |fld|
+        if fld.content_model_field.data_field?
+          tag_name = fld.content_model_field.feature_tag_name
+
+          if fld.field_type=='input'
+            define_form_field_tag "#{prefix}:#{tag_name}" 
+            value_tag "#{prefix}:#{tag_name}_value"
+            value_tag "#{prefix}:#{tag_name}_display"
+            define_form_field_error_tag "#{prefix}:#{tag_name}_error"
+          elsif fld.field_type == 'value'
+            fld.content_model_field.site_feature_value_tags(c,prefix,:full)
+          end
+        end
+      end
+
+      if publication.form?
+        define_form_fields_loop_tag("#{prefix}:field")
+        define_value_tag("#{prefix}:field:label")
+        define_value_tag("#{prefix}:field:control")
+        define_value_tag("#{prefix}:field:error")
+      end
+    end
     
     
     def method_missing(method,*args)
@@ -1059,7 +1083,9 @@ class ParagraphFeature
       else
         nil
       end
-    end    
+    end
+
+    
     
      # get versions of all the define_... methods without the define
     skip_methods = %w(define_form_tag define_tag define_form_tag)

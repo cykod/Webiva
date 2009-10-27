@@ -548,12 +548,19 @@ class Content::CoreField < Content::FieldHandler
 
     table_header :static
 
-    display_options_variables :control, :group_by_id
+    display_options_variables :control, :group_by_id, :filter_by_id, :filter
 
     def form_field(f,field_name,field_opts,options={})
       if cls = @model_field.relation_class
         if options[:group_by_id] && mdl_field = ContentModelField.find_by_id(options[:group_by_id])
-          all_elems = cls.find(:all)
+
+           filter = field_opts.delete(:filter) || options[:filter]
+          if options[:filter_by_id] && (fltr_field =  ContentModelField.find_by_id(options[:filter_by_id])) && !filter.blank?
+            
+            all_elems = cls.find(:all,:conditions => { fltr_field.field => filter })
+          else
+            all_elems = cls.find(:all)
+          end
 
           available_options =  {}
           all_elems.group_by { |elm| mdl_field.content_display(elm) }.each do |key,arr|
@@ -561,7 +568,14 @@ class Content::CoreField < Content::FieldHandler
           end
           control = :grouped_check_boxes
         else
-          available_options = cls.select_options
+          filter = field_opts.delete(:filter)  || options[:filter]
+          if options[:filter_by_id] && (fltr_field =  ContentModelField.find_by_id(options[:filter_by_id])) && !filter.blank?
+           
+            available_options = cls.select_options(:conditions => { fltr_field.field => filter })
+          else
+            available_options = cls.select_options
+          end
+          
           control = :check_boxes
         end
 
@@ -606,7 +620,9 @@ class Content::CoreField < Content::FieldHandler
       mdl  =  pub_field.content_model_field.content_model_relation
       if mdl
         f.radio_buttons(:control, [ ['Check Boxes','checkbox '], ['Vertical Check Boxes','vertical_checkbox' ] ]) + 
-          f.select(:group_by_id, [["--Don't Group Fields--".t,nil ]] + mdl.content_model_fields.map { |fld| [fld.name, fld.id ]} )
+          f.select(:group_by_id, [["--Don't Group Fields--".t,nil ]] + mdl.content_model_fields.map { |fld| [fld.name, fld.id ]} ) +
+          f.select(:filter_by_id, [["--Don't Allow Filtering--".t,nil ]] + mdl.content_model_fields.map { |fld| [fld.name, fld.id ]} ) +
+          f.text_field(:filter, :description => "Can be overridden in a site feature by adding a 'filter' attribute to the field")
       else
         nil
       end
