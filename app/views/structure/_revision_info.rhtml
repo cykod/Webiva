@@ -1,9 +1,6 @@
 
 <br/>
 <% if info[1] -%>
-<script>
-  $('title_<%= @node.id %>_<%= info[0] %>').style.fontWeight = 'bold';
-</script>
 
 <b>Version <%= dec info[1].revision %>, <%= info[1].active? ? 'Active'.t : 'Inactive'.t %>, <%= render :partial => '/edit/saved_by', :locals => { :revision => info[1] } %></b>
 <div style='float:right; width:150px;'>
