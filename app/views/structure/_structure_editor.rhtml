@@ -607,7 +607,7 @@ var StructureEditor = {
 	
 	editPageTitle: function(node_id,select_node) {
 	
-                <% if !permit?('editor_structure') || !permit('editor_structure_advanced') %>
+                <% if !permit?('editor_structure') || !permit?('editor_structure_advanced') %>
                 return;
                 <% end -%>
 			
