@@ -125,6 +125,9 @@ class ParagraphFeature
         if tag.attr['equals']
           eql = val.is_a?(Integer) ? tag.attr['equals'].to_i : tag.attr['equals']
           val == eql ? tag.expand : nil
+        elsif tag.attr['contains']
+          contains = tag.attr['contains'].to_s.split(",").map { |elm| elm.strip.blank? ? nil : elm.strip }.compact
+          contains.include?(val) ? tag.expand : nil
         elsif tag.attr['include']
           inc = val.is_a?(Array) && val.include?(tag.attr['include'])
           inc ? tag.expand : nil
@@ -758,6 +761,8 @@ class ParagraphFeature
       end
 
       if publication.form?
+        
+        
         c.define_tag("#{prefix}:has_many_field") do |t|
           frm = t.locals.send(frm_obj)
           available_fields = publication.content_publication_fields.map(&:content_model_field).map { |fld| [ fld.feature_tag_name, fld.id, fld ]}
