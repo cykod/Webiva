@@ -775,18 +775,22 @@ class ParagraphFeature
             frm.object.send("#{fld.field_options['relation_singular']}_ids")
           end
 
-        
-
-          # Generate array
+          # Yeah, not so hot - needs to be extract to core_field somehow
           if active_fields[0] && cls = active_fields[0].relation_class
             cm =  active_fields[0].content_model_relation
+
+            if t.attr['filter_by'] && filter_field = cm.content_model_fields.detect { |fld| fld.field == t.attr['filter_by'] }
+              conditions = { filter_field.field => t.attr['filter'] }
+            else
+              conditions = nil
+            end
 
             if t.attr['order'] && order_field = cm.content_model_fields.detect { |fld| fld.field == t.attr['order'] }
               order_by = "`#{order_field.field}`"
             else
               order_by = nil
             end
-             arr = cls.find(:all,:order => order_by)
+            arr = cls.find(:all,:order => order_by,:conditions => conditions)
             if t.attr['group'] && group_field = cm.content_model_fields.detect { |fld| fld.field == t.attr['group'] }
 
               if t.attr['group_2nd'] && group_2nd_field =  cm.content_model_fields.detect { |fld| fld.field == t.attr['group_2nd'] }
@@ -811,7 +815,7 @@ class ParagraphFeature
                 arr = available_options.to_a.sort { |a,b| a[0].to_s.downcase <=> b[0].to_s.downcase }.map { |elm| { :name => elm[0], :items => elm[1] } }
               end
             else
-               arr.map! { |elm| [ elm.identifier_name, elm.id ] }
+              arr.map! { |elm| [ elm.identifier_name, elm.id ] }
             end
             output = ''
             arr.each_with_index do |value,idx|
