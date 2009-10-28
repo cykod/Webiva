@@ -202,8 +202,13 @@ module Spec
    end
    
    class ViewExampleGroup < FunctionalExampleGroup
-      def build_feature(feature_class)
-        paragraph = mock_model(PageParagraph,:site_feature => nil, :content_publication => nil)
+      def build_feature(feature_class,code=nil)
+        if code
+          site_feature = mock_model(SiteFeature,:body => code,:body_html => code,:feature_type => :any,:options => {} )
+          paragraph = mock_model(PageParagraph,:site_feature => site_feature, :content_publication => nil)
+ 	else
+	  paragraph = mock_model(PageParagraph,:site_feature => nil, :content_publication => nil)
+ 	end
         renderer = mock_model(ParagraphRenderer,:get_handler_info => [])
         feature_class.classify.constantize.new(paragraph,renderer)
       end
