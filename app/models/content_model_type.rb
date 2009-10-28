@@ -66,7 +66,7 @@ class ContentModelType < DomainModel
       if @#{relations_name}_cache
         @#{relations_name}_cache.map { |elm| elm.blank? ? nil : elm.to_i }.compact
       else
-        old_#{target_relation_singular}_ids
+        @old_#{target_relation_singular}_ids_cache ||=  old_#{target_relation_singular}_ids
       end
     end
 

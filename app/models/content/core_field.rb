@@ -553,7 +553,7 @@ class Content::CoreField < Content::FieldHandler
     def form_field(f,field_name,field_opts,options={})
       if cls = @model_field.relation_class
         if options[:order_by_id] && order_field =  ContentModelField.find_by_id(options[:order_by_id])
-          order_by = order_field.field.to_sym
+          order_by = "`#{order_field.field}`"
         else
           order_by = nil
         end
@@ -587,13 +587,13 @@ class Content::CoreField < Content::FieldHandler
 
         
         case options.delete(:control).to_s
-        when 'vertical_checkbox'
+        when 'checkbox'
+          field_opts[:class] = 'check_boxes'
+          f.send(control, "#{@model_field.field_options['relation_singular']}_ids",available_options , field_opts.merge(options))
+        else
           field_opts[:class] = 'check_boxes'
           field_opts[:separator] = '<br/>'
           f.send(control,"#{@model_field.field_options['relation_singular']}_ids",available_options , field_opts.merge(options))
-        else 'radio'
-          field_opts[:class] = 'check_boxes'
-          f.send(control, "#{@model_field.field_options['relation_singular']}_ids",available_options , field_opts.merge(options))
         end
       else
         f.custom_field field_name, options.merge(field_opts.merge(:value => 'Invalid Relation' ))

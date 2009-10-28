@@ -699,6 +699,27 @@ class ParagraphFeature
       end
     end
 
+    def has_many_field_helper(level,t,value,idx,arr)
+      output = ''
+      t.locals.first = idx == 0
+      t.locals.last =  value == arr.last
+      t.locals.index = idx+1
+      t.locals.has_many_level = level
+      if value.is_a?(Hash)
+        t.locals.has_many_grouping=value[:name]
+        t.locals.has_many_entry=nil
+        output << t.expand
+        value[:items].each_with_index do |subval,idx2|
+          output << has_many_field_helper(level+1,t,subval,idx2,value[:items])
+        end
+        output
+      else
+        t.locals.has_many_grouping = nil
+        t.locals.has_many_entry = value
+        t.expand
+      end
+    end
+
     # Can only be used in webiva_custom_feature
     def define_publication_field_tags(prefix,publication,options = {})
       c = self
@@ -737,6 +758,83 @@ class ParagraphFeature
       end
 
       if publication.form?
+        c.define_tag("#{prefix}:has_many_field") do |t|
+          frm = t.locals.send(frm_obj)
+          available_fields = publication.content_publication_fields.map(&:content_model_field).map { |fld| [ fld.feature_tag_name, fld.id, fld ]}
+
+          fields = t.attr['fields'].split(",").map { |fld| fld.strip.blank? ? nil : fld.strip }.compact
+
+          active_fields = available_fields.select { |fld| fields.include?(fld[0]) }.map { |fld| fld[2] } 
+          t.locals.has_many_fields = active_fields
+          t.locals.has_many_values = t.locals.has_many_fields.map do  |fld|
+            frm.object.send("#{fld.field_options['relation_singular']}_ids")
+          end
+
+        
+
+          # Generate array
+          if active_fields[0] && cls = active_fields[0].relation_class
+            cm =  active_fields[0].content_model_relation
+
+            if t.attr['order'] && order_field = cm.content_model_fields.detect { |fld| fld.field == t.attr['order'] }
+              order_by = "`#{order_field.field}`"
+            else
+              order_by = nil
+            end
+             arr = cls.find(:all,:order => order_by)
+            if t.attr['group'] && group_field = cm.content_model_fields.detect { |fld| fld.field == t.attr['group'] }
+
+              if t.attr['group_2nd'] && group_2nd_field =  cm.content_model_fields.detect { |fld| fld.field == t.attr['group_2nd'] }
+                available_options =  {}
+                arr.group_by { |elm| group_field.content_display(elm) }.each do |key,arr2|
+                  arr2.group_by { |elm|  group_2nd_field.content_display(elm) }.each do |key2,arr3|
+                    available_options[key] ||= {}
+                    available_options[key][key2] = arr3.map { |elm| [ elm.identifier_name, elm.id ] }
+                  end
+                end
+                arr = available_options.to_a.map do |elm|
+                  [ elm[0],
+                    elm[1].to_a.sort { |a,b| a[0].to_s.downcase <=> b[0].to_s.downcase }.map { |elm2| { :name => elm2[0], :items => elm2[1] } }
+                  ]
+                end.sort { |a,b| a[0].to_s.downcase <=> b[0].to_s.downcase }.map { |elm| { :name => elm[0], :items => elm[1] } }
+              else
+                available_options =  {}
+                arr.group_by { |elm| group_field.content_display(elm) }.each do |key,arr|
+                  
+                  available_options[key] = arr.map { |elm| [ elm.identifier_name, elm.id ] }
+                end
+                arr = available_options.to_a.sort { |a,b| a[0].to_s.downcase <=> b[0].to_s.downcase }.map { |elm| { :name => elm[0], :items => elm[1] } }
+              end
+            else
+               arr.map! { |elm| [ elm.identifier_name, elm.id ] }
+            end
+            output = ''
+            arr.each_with_index do |value,idx|
+              output << has_many_field_helper(1,t,value,idx,arr)
+            end
+          end
+          output
+        end
+
+        c.value_tag("#{prefix}:has_many_field:grouping") { |t| t.locals.has_many_grouping }
+        c.expansion_tag("#{prefix}:has_many_field:entry") { |t| t.locals.has_many_entry }
+
+        (0..4).to_a.each do |idx|
+          c.value_tag("#{prefix}:has_many_field:entry:field#{idx+1}") do |t|
+            if t.locals.has_many_fields[idx]
+              frm = t.locals.send(frm_obj)
+              field_name = "#{t.locals.has_many_fields[idx].field_options['relation_singular']}_ids"
+              check_box_tag("#{frm.object_name}[#{field_name}][]",
+                            t.locals.has_many_entry[1],
+                            t.locals.has_many_values[idx].include?(t.locals.has_many_entry[1]),
+                            :id => "#{frm.object_name}_#{field_name}_#{t.locals.has_many_entry[1]}")
+            end
+          end
+        end
+        c.value_tag("#{prefix}:has_many_field:entry:label") { |t| t.locals.has_many_entry[0] }
+        c.value_tag("#{prefix}:has_many_field:level") { |t| t.locals.has_many_level } 
+
+        
         c.loop_tag("#{prefix}:field") do |t|
           fields = publication.content_publication_fields.select { |fld| fld.field_type == 'input' && fld.content_model_field.data_field? }
           if t.attr['except']
