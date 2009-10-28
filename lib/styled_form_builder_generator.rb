@@ -644,7 +644,7 @@ class TabledDisplayForm < TabledForm
   	if ['label_option_field'].include?(tag)
 		{
 		:label => emit_label(options[:label] || field.to_s.humanize),
-        :output => output.call,
+                :output => output.call({}),
 		:control => tag
 		}
   	else
