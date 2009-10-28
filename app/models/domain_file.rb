@@ -360,7 +360,7 @@ class DomainFile < DomainModel
    
    def destroy_thumbs
     # Need to destroy thumbs and get image size for the domain file version
-    if self.meta_info[:image_size]
+    if self.meta_info && self.meta_info[:image_size]
       self.meta_info[:image_size].each do |size,vals|
         FileUtils.rm_rf(abs_storage_directory + "/" + size.to_s)
       end 
