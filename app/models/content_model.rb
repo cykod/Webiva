@@ -17,6 +17,7 @@ class ContentModel < DomainModel
 
   serialize :options
 
+  after_destroy :destroy_linked_content
 
   include SiteAuthorizationEngine::Target
   
@@ -135,6 +136,10 @@ class ContentModel < DomainModel
   def self.relationship_classes
     content_models = ContentModel.find(:all,:order => 'name')
     clses = [ [ 'User', 'end_user' ] ] + content_models.collect { |mdl| [ mdl.name, mdl.table_name ] }
+  end
+
+  def destroy_linked_content
+    ContentRelation.destroy_all(:conditions => { :content_model_id => self.id })
   end
 
   def self.content_model_details(name)

@@ -307,9 +307,13 @@ class ParagraphRenderer < ParagraphFeature
   end 
   
   def require_js(js)
+    if js.is_a?(Array)
+      js.each { |fl| require_js(fl) }
+    else
       js.downcase!
       js += ".js" unless js[-3..-1] == '.js'
       @js_includes << js
+    end
   end
   
   def require_ajax_js
@@ -327,11 +331,15 @@ class ParagraphRenderer < ParagraphFeature
                          :paragraph => self.paragraph.id)
     paragraph_action_url(opts)
   end    
-  
-  def require_css(css)
-    @css_includes << css
-  end
-  
+ 
+ def require_css(css)
+   if css.is_a?(Array)
+     @css_includes += css
+   else
+     @css_includes << css
+   end
+ end
+   
   def include_in_head(html)
     @head_html << html
   end

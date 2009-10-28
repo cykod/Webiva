@@ -548,32 +548,38 @@ class Content::CoreField < Content::FieldHandler
 
     table_header :static
 
-    display_options_variables :control, :group_by_id, :filter_by_id, :filter
+    display_options_variables :control, :group_by_id, :filter_by_id, :filter, :order_by_id
 
     def form_field(f,field_name,field_opts,options={})
       if cls = @model_field.relation_class
+        if options[:order_by_id] && order_field =  ContentModelField.find_by_id(options[:order_by_id])
+          order_by = order_field.field.to_sym
+        else
+          order_by = nil
+        end
+
+        filter = field_opts.delete(:filter) || options[:filter]
+        if options[:filter_by_id] && (fltr_field =  ContentModelField.find_by_id(options[:filter_by_id])) && !filter.blank?
+          conditions = { fltr_field.field => filter }
+        else
+          conditions = nil
+        end
+        
         if options[:group_by_id] && mdl_field = ContentModelField.find_by_id(options[:group_by_id])
 
-           filter = field_opts.delete(:filter) || options[:filter]
-          if options[:filter_by_id] && (fltr_field =  ContentModelField.find_by_id(options[:filter_by_id])) && !filter.blank?
-            
-            all_elems = cls.find(:all,:conditions => { fltr_field.field => filter })
-          else
-            all_elems = cls.find(:all)
-          end
+          all_elems = cls.find(:all,:conditions => conditions, :order => order_by)
 
           available_options =  {}
           all_elems.group_by { |elm| mdl_field.content_display(elm) }.each do |key,arr|
             available_options[key] = arr.map { |elm| [ elm.identifier_name, elm.id ] }
           end
+          available_options = available_options.to_a.sort { |a,b| a[0] <=> b[0] }
           control = :grouped_check_boxes
         else
-          filter = field_opts.delete(:filter)  || options[:filter]
-          if options[:filter_by_id] && (fltr_field =  ContentModelField.find_by_id(options[:filter_by_id])) && !filter.blank?
-           
-            available_options = cls.select_options(:conditions => { fltr_field.field => filter })
-          else
-            available_options = cls.select_options
+          available_options = cls.select_options(:conditions => conditions,:order => order_by)
+
+          if !order_by
+            available_options.sort! { |a,b| a[0].downcase <=> b[0].downcase }
           end
           
           control = :check_boxes
@@ -622,7 +628,8 @@ class Content::CoreField < Content::FieldHandler
         f.radio_buttons(:control, [ ['Check Boxes','checkbox '], ['Vertical Check Boxes','vertical_checkbox' ] ]) + 
           f.select(:group_by_id, [["--Don't Group Fields--".t,nil ]] + mdl.content_model_fields.map { |fld| [fld.name, fld.id ]} ) +
           f.select(:filter_by_id, [["--Don't Allow Filtering--".t,nil ]] + mdl.content_model_fields.map { |fld| [fld.name, fld.id ]} ) +
-          f.text_field(:filter, :description => "Can be overridden in a site feature by adding a 'filter' attribute to the field")
+          f.text_field(:filter, :description => "Can be overridden in a site feature by adding a 'filter' attribute to the field") +
+            f.select(:order_by_id, [["--Use Default Order--".t,nil ]] + mdl.content_model_fields.map { |fld| [fld.name, fld.id ]} ) 
       else
         nil
       end

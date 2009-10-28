@@ -1138,7 +1138,7 @@ class ParagraphFeature
     
   
  def get_feature(type,options = {})
-    if @para.site_feature && @para.site_feature.feature_type == type.to_s
+    if @para.site_feature && (@para.site_feature.feature_type == :any || @para.site_feature.feature_type == type.to_s)
       feat = @para.site_feature
       feat
     else
