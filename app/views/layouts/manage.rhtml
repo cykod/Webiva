@@ -8,8 +8,8 @@
     <META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW, NOCACHE">
 
     <%= stylesheet_link_tag 'common' %>
-    <%= theme_stylesheet_link_tag  "admin_framework" %>
-    <%= theme_stylesheet_link_tag 'admin_framework_full' %>
+    <%= theme_stylesheet_link_tag  "admin_framework", :media => 'all' %>
+    <%= theme_stylesheet_link_tag 'admin_framework_full', :media => 'all' %>
     <script> var AUTH_TOKEN = "<%= form_authenticity_token.to_s %>";</script>
     <%= javascript_include_tag "overlib/overlib" %>
     <%= javascript_include_tag :defaults %>

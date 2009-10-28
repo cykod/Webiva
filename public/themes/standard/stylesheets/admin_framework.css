@@ -2006,3 +2006,9 @@ table.permission_grid td {
 }
 
 .active_tree_selected_leaf > .active_tree_leaf_content { background-color:#DDDDDD; }
+
+
+@media print {
+ #cms_header { display:none; }
+ ul.action_panel { display:none; }
+}

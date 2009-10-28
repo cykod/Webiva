@@ -600,8 +600,8 @@ JAVASCRIPT
     output
   end
 
-  def theme_stylesheet_link_tag(stylesheet)
-    stylesheet_link_tag "/themes/#{theme}/stylesheets/#{stylesheet}"
+  def theme_stylesheet_link_tag(stylesheet,options={})
+    stylesheet_link_tag "/themes/#{theme}/stylesheets/#{stylesheet}" ,options
   end
 
 
