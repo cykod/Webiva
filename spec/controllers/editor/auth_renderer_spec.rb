@@ -14,7 +14,7 @@ describe Editor::AuthRenderer, :type => :controller do
       build_renderer('/page','/editor/auth/user_register',default.merge(data),{})
     end
     
-    reset_domain_tables :end_users,:end_user_addresses
+    reset_domain_tables :end_users,:end_user_addresses, :tags, :end_user_tags
     
     it "should be able to view the default user paragraph" do
       @rnd = generate_renderer
