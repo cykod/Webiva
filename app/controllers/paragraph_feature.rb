@@ -712,14 +712,14 @@ class ParagraphFeature
         t.locals.has_many_grouping=value[:name]
         t.locals.has_many_entry=nil
         output << t.expand
-        value[:items].each_with_index do |subval,idx2|
-          output << has_many_field_helper(level+1,t,subval,idx2,value[:items])
+
+        if value[:items][0].is_a?(Hash)
+          raise 'WTFER?'
+        else
+          t.locals.has_many_grouping = nil
+          t.locals.has_many_entry = value[:items]
+          output << t.expand
         end
-        output
-      else
-        t.locals.has_many_grouping = nil
-        t.locals.has_many_entry = value
-        t.expand
       end
     end
 
@@ -775,7 +775,7 @@ class ParagraphFeature
             frm.object.send("#{fld.field_options['relation_singular']}_ids")
           end
 
-          # Yeah, not so hot - needs to be extract to core_field somehow
+          # Yeah, not so hot - needs to be extract to core_field somehwo
           if active_fields[0] && cls = active_fields[0].relation_class
             cm =  active_fields[0].content_model_relation
 
@@ -826,21 +826,36 @@ class ParagraphFeature
         end
 
         c.value_tag("#{prefix}:has_many_field:grouping") { |t| t.locals.has_many_grouping }
-        c.expansion_tag("#{prefix}:has_many_field:entry") { |t| t.locals.has_many_entry }
+        c.define_tag("#{prefix}:has_many_field:entries") do |t|
+          pre = t.attr['pre'] || ''
+          post = t.attr['post'] || ''
+          prefix = t.attr['prefix']
+          align = t.attr['align'] || 'center'
+          if !t.locals.has_many_entry
+            nil
+          elsif t.single? 
+            frm = t.locals.send(frm_obj)
 
-        (0..4).to_a.each do |idx|
-          c.value_tag("#{prefix}:has_many_field:entry:field#{idx+1}") do |t|
-            if t.locals.has_many_fields[idx]
-              frm = t.locals.send(frm_obj)
-              field_name = "#{t.locals.has_many_fields[idx].field_options['relation_singular']}_ids"
-              check_box_tag("#{frm.object_name}[#{field_name}][]",
-                            t.locals.has_many_entry[1],
-                            t.locals.has_many_values[idx].include?(t.locals.has_many_entry[1]),
-                            :id => "#{frm.object_name}_#{field_name}_#{t.locals.has_many_entry[1]}")
+            field_names = t.locals.has_many_fields.map { |fld|  "#{fld.field_options['relation_singular']}_ids" }
+            output = ''
+            values = t.locals.has_many_values
+            t.locals.has_many_entry.each do |ent|
+              output <<  pre + (prefix ?  "<tr><td class='has_many_label'>#{ent[0]}</td>" : "<tr>")
+              t.locals.has_many_fields.each_with_index do |fld,idx|
+                output << "<td align='#{align}' class='has_many_item'>" +
+                  check_box_tag("#{frm.object_name}[#{field_names[idx]}][]",
+                                ent[1],
+                                values[idx].include?(ent[1]),
+                                :id => "#{frm.object_name}_#{field_names[idx]}_#{ent[1]}") + "</td>"
+              end
+              output <<( prefix ? "</tr>" :  "<td class='value_label'>#{ent[0]}</td></tr>") + post
             end
+            output
+          else
+            t.locals.has_many_entry ? t.expand : nil
           end
         end
-        c.value_tag("#{prefix}:has_many_field:entry:label") { |t| t.locals.has_many_entry[0] }
+
         c.value_tag("#{prefix}:has_many_field:level") { |t| t.locals.has_many_level } 
 
         
