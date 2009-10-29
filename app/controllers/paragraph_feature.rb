@@ -714,13 +714,14 @@ class ParagraphFeature
         output << t.expand
 
         if value[:items][0].is_a?(Hash)
-          raise 'WTFER?'
+          
         else
           t.locals.has_many_grouping = nil
           t.locals.has_many_entry = value[:items]
           output << t.expand
         end
       end
+      output
     end
 
     # Can only be used in webiva_custom_feature
