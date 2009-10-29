@@ -702,22 +702,28 @@ class ParagraphFeature
       end
     end
 
-    def has_many_field_helper(level,t,value,idx,arr)
+    def has_many_field_helper(level,t,value,idx)
       output = ''
-      t.locals.first = idx == 0
-      t.locals.last =  value == arr.last
-      t.locals.index = idx+1
-      t.locals.has_many_level = level
+     
       if value.is_a?(Hash)
         t.locals.has_many_grouping=value[:name]
         t.locals.has_many_entry=nil
         output << t.expand
 
-        if value[:items][0].is_a?(Hash)
-          
+        output << has_many_field_helper(level,t,value[:items],idx)
+        
+      elsif value.is_a?(Array)
+        if value[0].is_a?(Hash)
+          value.each_with_index do |itm,idx2|
+            t.locals.first = idx2 == 0
+            t.locals.last =  itm == value.last
+            t.locals.index = idx2+1
+            t.locals.has_many_level = level
+            output << has_many_field_helper(level+1,t,itm,idx2)
+          end
         else
           t.locals.has_many_grouping = nil
-          t.locals.has_many_entry = value[:items]
+          t.locals.has_many_entry = value
           output << t.expand
         end
       end
@@ -776,7 +782,7 @@ class ParagraphFeature
             frm.object.send("#{fld.field_options['relation_singular']}_ids")
           end
 
-          # Yeah, not so hot - needs to be extract to core_field somehwo
+          # TODO: Yeah, not so hot - needs to be extract to core_field somehow
           if active_fields[0] && cls = active_fields[0].relation_class
             cm =  active_fields[0].content_model_relation
 
@@ -819,9 +825,7 @@ class ParagraphFeature
               arr.map! { |elm| [ elm.identifier_name, elm.id ] }
             end
             output = ''
-            arr.each_with_index do |value,idx|
-              output << has_many_field_helper(1,t,value,idx,arr)
-            end
+            output << has_many_field_helper(1,t,arr,0)
           end
           output
         end
@@ -834,12 +838,13 @@ class ParagraphFeature
           align = t.attr['align'] || 'center'
           if !t.locals.has_many_entry
             nil
-          elsif t.single? 
+          else 
             frm = t.locals.send(frm_obj)
 
             field_names = t.locals.has_many_fields.map { |fld|  "#{fld.field_options['relation_singular']}_ids" }
             output = ''
             values = t.locals.has_many_values
+
             t.locals.has_many_entry.each do |ent|
               output <<  pre + (prefix ?  "<tr><td class='has_many_label'>#{ent[0]}</td>" : "<tr>")
               t.locals.has_many_fields.each_with_index do |fld,idx|
@@ -852,8 +857,6 @@ class ParagraphFeature
               output <<( prefix ? "</tr>" :  "<td class='value_label'>#{ent[0]}</td></tr>") + post
             end
             output
-          else
-            t.locals.has_many_entry ? t.expand : nil
           end
         end
 
