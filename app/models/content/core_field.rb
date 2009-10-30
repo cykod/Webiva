@@ -330,7 +330,7 @@ class Content::CoreField < Content::FieldHandler
 
       c.value_tag("#{name_base}:#{tag_name}_filename") do |t|
         df = t.locals.entry.send(fld.relation_name)
-        df ? df.extension : nil
+        df ? df.name.to_s[0..(t.attr['limit'] || 40).to_i]  : nil
       end
       
       c.link_tag("#{name_base}:#{tag_name}") do |t|
