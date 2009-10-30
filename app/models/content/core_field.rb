@@ -327,6 +327,12 @@ class Content::CoreField < Content::FieldHandler
         df = t.locals.entry.send(fld.relation_name)
         df ? df.extension : nil
       end
+
+      c.value_tag("#{name_base}:#{tag_name}_filename") do |t|
+        df = t.locals.entry.send(fld.relation_name)
+        df ? df.extension : nil
+      end
+      
       c.link_tag("#{name_base}:#{tag_name}") do |t|
         df = t.locals.entry.send(fld.relation_name)
         if df
