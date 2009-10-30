@@ -23,6 +23,9 @@ class ApplicationController < ActionController::Base
   
   before_filter :check_ssl
   prepend_before_filter :activate_domain
+  append_after_filter :clear_cache
+
+
 
   after_filter :save_anonymous_tags
   
@@ -84,6 +87,10 @@ class ApplicationController < ActionController::Base
 
 
   protected
+
+  def clear_cache
+    DataCache.reset_local_cache
+  end
   
   def template_root
     :application
