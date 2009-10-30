@@ -47,7 +47,7 @@ class PublicController < ApplicationController
   
   
   def image
-    if params[:domain_id].to_i != Configuration.domain_id.to_i
+    if params[:domain_id].to_i != DomainModel.active_domain[:file_store].to_i
       render :inline => 'File not found', :status => 404
       return
     end
