@@ -274,11 +274,13 @@ class DomainFile < DomainModel
          info[:image_size][size[0]] = [ thumbnail.columns, thumbnail.rows ]
          FileUtils.mkpath(self.abs_storage_directory + size[0].to_s);
          thumbnail.write(self.abs_filename(size[0]))
+         thumbnail.destroy!
        end
+       img.destroy!
      rescue Exception => e
        self.file_type = 'doc'
      end
-
+     GC.start
      self.meta_info = info
      
      self.save if save_file

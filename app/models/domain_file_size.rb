@@ -89,7 +89,9 @@ class DomainFileSize < DomainModel
       result_file = df.abs_filename(self.size_name,true)
       image = Magick::Image::read(df.filename)[0]
       self.operations.each do |operation|
-        image = operation.apply(image)
+        old_image = image
+        image = operation.apply(old_image)
+        old_image.destroy! if image != old_image
       end
       FileUtils.mkpath(File.dirname(result_file))
       image.write(result_file)
@@ -99,7 +101,9 @@ class DomainFileSize < DomainModel
     df.reload(:lock => true)
     if image
       df.set_size(self.size_name,image.columns,image.rows)
+      image.destroy!
     end
+    GC.start
     df.save
     return result_file
   end
