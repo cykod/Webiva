@@ -107,6 +107,10 @@ class ContentModelField < DomainModel
     end
   end
 
+  def relation_name
+    !self.field_options['relation_name'].blank? ? self.field_options['relation_name'] :self.field
+  end
+
   def feature_tag_name
     !self.field_options['relation_name'].blank? ? self.field_options['relation_name'] :self.field
   end
