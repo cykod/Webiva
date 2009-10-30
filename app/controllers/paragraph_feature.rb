@@ -459,21 +459,33 @@ class ParagraphFeature
           end
         end
       end
-        
+
+      def define_publication_form_error_tag(name,publication,options={})
+        frm_obj = options.delete(:local) || 'form'
+        define_value_tag name do |t|
+          output = []
+          frm = t.locals.send(frm_obj)
+          publication.content_publication_fields.each do |fld|
+            err = frm.output_error_message(fld.label,fld.content_model_field.field)
+            output << err if err
+          end
+          output.join()
+        end
+      end
     
       def define_form_error_tag(name,options={})
         frm_obj = options.delete(:local) || 'form'
-      define_tag name do |tag|
-        frm = tag.locals.send(frm_obj)
-        if frm && frm.object && frm.object.errors && frm.object.errors.length > 0
-          if tag.single?
-            frm.object.errors.full_messages.join(tag.attr['separator'] || "<br/>")
+        define_tag name do |tag|
+          frm = tag.locals.send(frm_obj)
+          if frm && frm.object && frm.object.errors && frm.object.errors.length > 0
+            if tag.single?
+              frm.object.errors.full_messages.join(tag.attr['separator'] || "<br/>")
+            else
+              tag.locals.value = frm.object.errors.full_messages.join(tag.attr['separator'] || "<br/>")
+              tag.expand           
+            end          
           else
-            tag.locals.value = frm.object.errors.full_messages.join(tag.attr['separator'] || "<br/>")
-            tag.expand           
-          end          
-        else
-          nil
+            nil
         end
       end
       
@@ -1027,7 +1039,7 @@ class ParagraphFeature
     def define_position_tags(prefix=nil)
         prefix += ':' if prefix
         prefix = prefix.to_s
-        define_tag(prefix + 'index') { |tag| (tag.attr['modulus'] ?  ((tag.locals.index) % tag.attr['modulus'].to_i)+1 : tag.locals.index+1)}
+        define_tag(prefix + 'index') { |tag| (tag.attr['modulus'] ?  ((tag.locals.index) % tag.attr['modulus'].to_i)+1 : tag.locals.index)}
         define_tag(prefix + 'at') { |tag| tag.attr['index'].to_i == tag.locals.index ? tag.expand : nil }
         define_tag(prefix + 'not_at') { |tag| tag.attr['index'].to_i != tag.locals.index ? tag.expand : nil }
         define_tag(prefix + 'first') { |tag| tag.locals.first ? tag.expand : '' }

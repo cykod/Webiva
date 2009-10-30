@@ -383,6 +383,11 @@ FEATURE
       title = site_node.title.humanize
       menu_title = site_node.title.humanize
     end
+
+    conn_type,conn_data = page_connection
+    if conn_type == :title
+      title = conn_data
+    end
       
     data = { :parent => build_bread_crumb_data(opts[:root_page],site_node.parent),
             :current => { :title => title,

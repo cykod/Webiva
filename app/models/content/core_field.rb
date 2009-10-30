@@ -72,6 +72,11 @@ class Content::CoreField < Content::FieldHandler
                           :description => 'Multiple Option Select',
                           :representation => :text
                        },
+                       {
+                           :name => :boolean,
+                           :description => 'Single Checkbox',
+                           :representation => :boolean
+                       },
                        { :name => :integer, 
                          :description => 'Number (Integer)',
                          :representation => :integer,
@@ -327,6 +332,9 @@ class Content::CoreField < Content::FieldHandler
       end
     end
   end
+
+  
+    
   
   class OptionsField < Content::Field
     field_options :options, :required
@@ -375,6 +383,28 @@ class Content::CoreField < Content::FieldHandler
     end 
   
   end
+
+  class BooleanField < Content::Field
+    field_options :on_off_value, :required
+    setup_model :required
+
+    def active_table_header
+      ActiveTable::BooleanHeader.new(@model_field.field, :label => @model_field.name)
+    end
+
+    def form_field(f,field_name,field_opts,options={})
+      field_opts[:class] = 'boolean'
+      f.check_boxes field_name, [[ @model_field.field_options['on_description'].blank? ? @model_field.field_options['on'] :  @model_field.field_options['on_description'] , true ]],:single => true
+    end
+
+    def content_display(entry,size=:full,options={})
+      entry.send("#{@model_field.field}?") ? @model_field.field_options['on'] : @model_field.field_options['off']
+    end
+    
+    filter_setup :like, :empty
+    
+  end
+  
   
   class MultiSelectField < Content::Field
     field_options :options, :required

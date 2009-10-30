@@ -54,15 +54,18 @@ module Content::MigrationSupport
     if deleted_fields
       deleted_fields.each do |fld| 
         field = self.content_model_fields.find(fld)
-        content_field = ContentModel.content_field(field.field_module,field.field_type)
-        if content_field[:representation].is_a?(Array)
-          content_field[:representation].each do |rep|
-            migration_code += "remove_column  :#{self.table_name}, :#{field.field}#{rep[0].blank? ? '' : "_#{rep[0]}"}\n"
+        if field
+          content_field = ContentModel.content_field(field.field_module,field.field_type)
+          if content_field[:representation].is_a?(Array)
+            content_field[:representation].each do |rep|
+              migration_code += "remove_column  :#{self.table_name}, :#{field.field}#{rep[0].blank? ? '' : "_#{rep[0]}"}\n"
+            end
+            # Handle regular fields
+          elsif content_field[:representation] && content_field[:representation] != :none
+            migration_options = content_field[:migration_options] ? ", " + content_field[:migration_options] : ''
+            migration_code += "remove_column  :#{self.table_name}, :#{field.field}\n"
           end
-          # Handle regular fields
-        elsif content_field[:representation] && content_field[:representation] != :none
-          migration_options = content_field[:migration_options] ? ", " + content_field[:migration_options] : ''
-          migration_code += "remove_column  :#{self.table_name}, :#{field.field}\n"
+          field.destroy
         end
       end
     end
@@ -96,7 +99,7 @@ module Content::MigrationSupport
         next unless content_field
         
         
-        field_name_prefix = field[:name].downcase.gsub(/[^a-z0-9]/,"_")[0..20]
+        field_name_prefix = field[:name].downcase.gsub(/[^a-z0-9]+/,"_")[0..20].singularize
         # use an index if necessary, (e.g. blog_2, etc if necessary )
         field_name_index = 1
         field_name_try = field_name_prefix

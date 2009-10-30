@@ -96,7 +96,7 @@ class SiteNodeEngine
       if paragraph.connections && paragraph.connections[:inputs].is_a?(Hash)
         opts[:connections] ||= {}
         paragraph.connections[:inputs].each do |input_key,input|
-          if input[0] == 0 
+          if input[0].to_s == "0"
             case input[1].to_s
             when 'page_arg_0':
                 paragraph.set_page_connections(input_key =>  params[:path][0])
@@ -108,21 +108,22 @@ class SiteNodeEngine
                 paragraph.set_page_connections(input_key => myself)
             when 'title':
                 if opts[:connections][:title]
-                  paragraph.set_page_connections(:input_key => [ :title,  opts[:connections][:title] ])
-                else
+                  paragraph.set_page_connections(input_key => [ :title,  opts[:connections][:title] ])
+                elsif !opts[:edit]
                   return nil
                 end
             when 'title_str':
                 if opts[:connections][:title_str]
-                  paragraph.set_page_connections(:input_key => [ :title,  opts[:connections][:title_str] ])
-                else
+                  paragraph.set_page_connections(input_key => [ :title,  opts[:connections][:title_str] ])
+                elsif !opts[:edit]
                   return nil
                 end
             end
           else
+            raise opts[:connections].inspect if paragraph.display_type=='publications_list' && opts[:repeat_count] == 1
             if opts[:connections][input[0].to_s] && opts[:connections][input[0].to_s][input[1].to_sym]
               paragraph.set_page_connections(input_key.to_sym => opts[:connections][input[0].to_s][input[1].to_sym])
-            else
+            elsif !opts[:edit]
               return nil
               #paragraph.info[:cache] = false # We might not have the right connections if we are in the pre-compile step
             end
@@ -198,8 +199,10 @@ class SiteNodeEngine
         paragraph = compile_paragraph(site_node,revision,paragraph,opts)
       end
 
+
       cls= paragraph.class
       cls_name = cls.to_s 
+
 
       if cls_name == "ParagraphRenderer::ParagraphOutput"
         return '' if paragraph.render_args[:nothing]
@@ -502,10 +505,19 @@ EOF
         raise MissingPageException.new(@container,@language), "Page Not Found" 
       end
 
-     page_connections = {}
+      page_connections = {}
       loop_cnt = 0
       unrendered = -1
-      begin
+      last_unrendered = 0
+      repeat_count = 0
+      first = true
+      while first || ( unrendered > 0 && repeat_count < 3)
+        first = false
+        if last_unrendered == unrendered
+          repeat_count += 1
+        else
+          repeat_count = 0
+        end
         last_unrendered = unrendered
         loop_cnt += 1
         unrendered = 0
@@ -518,7 +530,7 @@ EOF
                 # Title string is special because any paragraph could
                 # generate one, so only if we're stuck and unrendered
                 # to we need to generated one
-                if  page_connections[:title_str].blank? && last_unrendered == unrendered && unrendered > 0 
+                if  page_connections[:title_str].blank? && repeat_count > 1
                   page_connections[:title_str] = @page_information[:title_str] = create_page_title(nd)
                   page_connections[:title] = @page_information[:title]
                 end
@@ -530,7 +542,8 @@ EOF
                                                       :page_path => @page_path,
                                                       :language => @language,
                                                       :connections => page_connections,
-                                                      :capture => @capture_data)
+                                                      :capture => @capture_data,
+                                                      :repeat_count => repeat_count)
                 # We may not have a result if the page connections
                 # aren't fullfilled yet
                 if result
@@ -568,11 +581,11 @@ EOF
             end
           end
         end
-      end while unrendered > 0 && unrendered != last_unrendered
-      
-    #      if unrendered > 0 
-    #        raise page_connections.inspect + ': Unrendered Paragraphs'
-    #      end
+      end 
+
+      if unrendered > 0 
+        raise page_connections.inspect + ': Unrendered Paragraphs'
+      end
     end
   
 

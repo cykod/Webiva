@@ -26,12 +26,6 @@ class PageParagraph < DomainModel
   belongs_to :site_module
   belongs_to :content_publication
 
-  def before_create
-    if self.identity_hash.blank?
-      self.identity_hash = DomainModel.generate_hash
-    end
-  end
-
   
   # PageParagraph file instance support is in PageRevisions
   # process_file_instance :display_body, :display_body_html
@@ -69,6 +63,9 @@ class PageParagraph < DomainModel
   end
   
   def before_create
+    if self.identity_hash.blank?
+      self.identity_hash = DomainModel.generate_hash
+    end
     self.display_body ||= ''
     unless self.data.is_a?(Hash)
       self.send(:data=,{})

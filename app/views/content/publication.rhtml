@@ -198,6 +198,10 @@ PublicationEditor = {
   <% cms_form_for :options, @publication_options, 
       :html => { :class => 'admin_form', :id => 'options_form', 
                  :onsubmit => 'PublicationEditor.saveAll(true); return false;'}  do |f| %>
+    <% cms_subfields_for :publication, @publication do |pf| %>
+         <%= pf.text_field :name %>
+         <%= pf.text_area :description, :cols => 50, :rows => 4 %>
+    <% end -%>
     <%= render :partial => @publication.options_partial, :locals => {:f => f } %>
   <% end -%>
   <br/><br/>

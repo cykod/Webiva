@@ -18,6 +18,11 @@ class Content::Field
       field_opts['regexp_code'] = options[:regexp_code]
       field_opts['regexp_message'] = options[:regexp_message]      
     end,
+    :on_off_value => Proc.new do |field,field_opts,options|
+      field_opts['on'] = options[:on]
+      field_opts['off'] = options[:off]
+      field_opts['on_description'] = options[:on_description]
+    end,
       :options => Proc.new { |field,field_opts,options|  field_opts['options'] = options[:options_text].to_s.strip.split("\n").map(&:strip) },
       :belongs_to => Proc.new { |field,field_opts,options|  
             belongs_class_name = options[:belongs_to]
@@ -426,7 +431,7 @@ class Content::Field
   end 
   
   class FieldOptions < HashModel
-    attributes :required => false, :options => [], :relation_class => nil, :unique => false, :regexp => false, :regexp_code => '', :regexp_message => 'is not formatted correctly'
+    attributes :required => false, :options => [], :relation_class => nil, :unique => false, :regexp => false, :regexp_code => '', :regexp_message => 'is not formatted correctly', :on => '', :off => '', :on_description => ''
     
     boolean_options :required, :unique, :regexp
 

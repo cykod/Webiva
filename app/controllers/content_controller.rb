@@ -552,7 +552,8 @@ class ContentController < ModuleController
      end
      options = @publication.options(params[:options])
      
-     @publication.data = options.to_h
+    @publication.data = options.to_h
+    @publication.attributes = params[:publication]
      @publication.save
      
      expire_content(@content_model)

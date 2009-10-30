@@ -19,6 +19,10 @@
      <%= f.select :belongs_to, ContentModel.relationship_classes, :label => 'Belongs to' %>
  <% when :has_many -%>
      <%= f.select :belongs_to, ContentModel.relationship_classes, :label => 'Has Many', :description => 'Changing relationship model will destroy existing connections'  %>
+ <% when :on_off_value -%>
+     <%= f.text_field :on %>
+     <%= f.text_field :off %>
+     <%= f.text_field :on_description, :description => 'This appears as a label next to the check box instead of the on value ' %>
   <% end -%>
 <% end -%>
 

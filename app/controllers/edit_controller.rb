@@ -579,7 +579,8 @@ class EditController < ModuleController
     
 #    if @page.is_a?(SiteNode) || true
       @outputs = { :integer => [ [ 0, 'Page', :page_arg_0, 'Argument #1 - ' + @page.node_path + "/XXX", :integer ], [ 0, 'Page', :page_arg_1, 'Argument #2 - ' + @page.node_path + "/xxx/YYY", :integer ]  ],
-                   :path => [ [ 0, 'Page', :page_arg_0, 'Argument #1 - ' + @page.node_path + "/XXX", :path ], [ 0, 'Page', :page_arg_1, 'Argument #2 - ' + @page.node_path + "/xxx/YYY", :path ]  ],
+      :path => [ [ 0, 'Page', :page_arg_0, 'Argument #1 - ' + @page.node_path + "/XXX", :path ], [ 0, 'Page', :page_arg_1, 'Argument #2 - ' + @page.node_path + "/xxx/YYY", :path ]  ],
+      :title => [ [  0, 'Page Title', :title, 'Page Title', :title ]],
                    :user => [ [ 0, 'User ID', :user_id, 'User ID', :user ] ],
                    :target => [ [ 0, 'Active User', :user_target, 'User', :target ] ],                   
                    :user_class => [ [0, 'User Profile', :user_class_id, 'User Profile', :user_class ] ]
@@ -596,7 +597,7 @@ class EditController < ModuleController
         if info[:outputs]
           info[:outputs].each do |pout|
             @outputs[pout[2]] ||= []
-            @outputs[pout[2]] << [para.id, info[:name]] + pout
+            @outputs[pout[2]] << [para.identity_hash || para.id.to_s, info[:name]] + pout
           end
         end 
         
@@ -605,7 +606,7 @@ class EditController < ModuleController
             selected = (para.connections||{})[:inputs] || {}
             selected_value = "#{selected[:input][0]}_#{selected[:input][1]}" if selected[:input]
               
-            @inputs << { :paragraph_id =>  para.id, 
+            @inputs << { :paragraph_id =>  para.identity_hash || para.id.to_s, 
                          :input_name => 'Input',
                          :input_key => 'input',
                          :info => info,
@@ -617,7 +618,7 @@ class EditController < ModuleController
             info[:inputs].each do |key,input|
 
             selected_value = "#{selected_input[key.to_sym][0]}_#{selected_input[key.to_sym][1]}" if selected_input[key.to_sym]
-            @inputs << { :paragraph_id =>  para.id, 
+            @inputs << { :paragraph_id =>  para.identity_hash || para.id.to_s, 
                          :input_name => key.to_s.humanize,
                          :input_key => key,                         
                          :info => info,
@@ -648,7 +649,7 @@ class EditController < ModuleController
     @page = @container_cls.find(@container_id)
     @revision = @page.page_revisions.find(params[:path][2])
     
-    @paragraphs = @revision.page_paragraphs.index_by(&:id)
+    @paragraphs = @revision.page_paragraphs.index_by { |para| para.identity_hash || para.id.to_s }
     
     # Reset the page connections
     @paragraphs.each do |id,para|
@@ -658,19 +659,17 @@ class EditController < ModuleController
     end
     
     params[:inputs].each do |paragraph_id,inputs|
-      para = @paragraphs[paragraph_id.to_i]
-      
+      para = @paragraphs[paragraph_id.to_s]
       if para
          inputs.each do |input_key,input_value|
            para.connections[:inputs] ||= {}
-           if input_value =~ /^([0-9]+)\|([^|]+)\|(.*)$/
-            para.connections[:inputs][input_key.to_sym] = [ $1.to_i, $2.to_sym, $3.to_sym ]
-            
+           if input_value =~ /^([^|]+)\|([^|]+)\|(.*)$/
+            para.connections[:inputs][input_key.to_sym] = [ $1, $2.to_sym, $3.to_sym ]
             if $1.to_i > 0
-              output_para = @paragraphs[$1.to_i]
+              output_para = @paragraphs[$1]
               if output_para
                 output_para.connections[:outputs] ||= []
-                output_para.connections[:outputs] <<  [ $2.to_sym, para.id, input_key ]
+                output_para.connections[:outputs] <<  [ $2.to_sym, para.identity_hash, input_key ]
               end
             end
            end
