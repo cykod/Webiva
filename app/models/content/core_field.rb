@@ -253,28 +253,29 @@ class Content::CoreField < Content::FieldHandler
           parameters[key] = nil
       elsif parameters[key].is_a?(String)
         parameters[key] = parameters[key].to_i
-      elsif !parameters[key].blank? 
-        image_folder  = Configuration.options[:default_image_location] || 1
+      elsif !parameters[key].is_a?(Integer) &&  !parameters[key].blank? 
+        image_folder  = Configuration.options.default_image_location || 1
         file = DomainFile.create(:filename => parameters[key],
                                  :parent_id => image_folder)
         if @model_field.field_type == 'document' 
-         parameters[key] = file.id
+          parameters[key] = file.id
         elsif @model_field.field_type == 'image' && file.file_type == 'img'
          parameters[key] = file.id
         else
           parameters.delete(key)
           file.destroy
         end
-      else
+      elsif !parameters[key].is_a?(Integer)
          parameters.delete(key)
       end  
-      parameters.delete(key.to_s + "_clear")      
+      parameters.delete(key.to_s + "_clear")
+
     end
 
     
     def assign(entry,values)
-       modify_entry_parameters(values)
-       super
+      modify_entry_parameters(values)
+      entry.send("#{@model_field.field}=",values[@model_field.field]) if values.has_key?(@model_field.field)
     end
 
 
@@ -322,6 +323,10 @@ class Content::CoreField < Content::FieldHandler
           nil
         end
       end
+      c.value_tag("#{name_base}:#{tag_name}_type") do |t|
+        df = t.locals.entry.send(fld.relation_name)
+        df ? df.extension : nil
+      end
       c.link_tag("#{name_base}:#{tag_name}") do |t|
         df = t.locals.entry.send(fld.relation_name)
         if df
@@ -339,7 +344,7 @@ class Content::CoreField < Content::FieldHandler
   class OptionsField < Content::Field
     field_options :options, :required
     setup_model :required do |cls,fld|
-       cls.has_options fld.model_field.field.to_sym, fld.available_options
+       cls.has_options fld.model_field.field.to_sym, fld.available_options.clone
     end  
     
     def active_table_header
@@ -347,7 +352,7 @@ class Content::CoreField < Content::FieldHandler
     end
   
     def available_options
-      (@model_field.field_options['options'] || []).collect { |fld| fld=fld.to_s.split(";;");[ fld[0].to_s.strip,fld[-1].to_s.strip] }    
+      @available_opts ||= (@model_field.field_options['options'] || []).collect { |fld| fld=fld.to_s.split(";;");[ fld[0].to_s.strip,fld[-1].to_s.strip] }    
     end
     
     
