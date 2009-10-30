@@ -495,13 +495,16 @@ SCMS = {
 
 
 
-  remoteOverlay: function(url,params) {
+  remoteOverlay: function(url,params,method) {
     RedBox.loading();
+    if(!method) method='post';
     if(!params) {
       params = {};
     }
+
     new Ajax.Request(url,
               { parameters: params,
+                method: method,
                onComplete: function(req) {
                   SCMS.overlay(req.responseText);
                   req.responseText.evalScripts();

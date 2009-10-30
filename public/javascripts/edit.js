@@ -514,20 +514,8 @@ var cmsEdit = {
 
       SCMS.setKeyHandler(null);
 
-      new Ajax.Updater('page_info_div',
-                      cmsEdit.paragraphUrl(para_info[4],para.paragraph_id,para_index),
-                      { parameters: { 'site_template_id' : cmsEdit.siteTemplateId },
-                        method:'get',
-                        evalScripts:true,
-                        onComplete: function(req) {
-                          setTimeout("RedBox.addHiddenContent('page_info_div');",20);
-                        },
-                        onLoading:function(req) {
-                          RedBox.loading();
-                        }
-                      });
-
-
+        SCMS.remoteOverlay(cmsEdit.paragraphUrl(para_info[4],para.paragraph_id,para_index),
+                           { parameters: { 'site_template_id' : cmsEdit.siteTemplateId }},'get' );
    },
 
    selectParagraph:function(para_id) {
@@ -1200,12 +1188,13 @@ var cmsEdit = {
                           onSuccess: function(transport) {
                             try {
                                 if(!((transport.getResponseHeader('Content-type') || 'text/javascript').strip().match(/^(text|application)\/(x-)?(java|ecma)script(;.*)?$/i))) {
-                                  transport.responseText.evalScripts();
                                   Element.update('RB_window',transport.responseText.stripScripts());
+                                  transport.responseText.evalScripts();
+
                                   }
                               }
                              catch (e) {
-                              alert('Error')
+                               alert(e.toString());
                              }
                           }
                         }
