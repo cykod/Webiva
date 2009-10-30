@@ -18,18 +18,22 @@ class ContentModelType < DomainModel
   
   def self.human_name
     'Content Model'
-  end  
+  end
+
+  def self.subclasses
+     @@subclasses[self] = []
+  end
   
   def self.human_attribute_name(attribute)
     attribute.to_s.humanize
   end
 
-  def self.set_class_name(val)
-    sing = class << self; self; end
-    sing.send(:define_method, :class_name) do
-      val
-    end
-  end
+#  def self.set_class_name(val)
+#    sing = class << self; self; end
+#    sing.send(:define_method, :class_name) do
+#      val
+#    end
+#  end
   
   def self.self_and_descendants_from_active_record
     [ ContentModelType ]
