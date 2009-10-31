@@ -17,7 +17,7 @@ class Feedback::CommentsController < ParagraphController
   
   def comments
     
-    @options = CommentOptions.new(params[:comments] || @paragraph.data || {})
+    @options = CommentsOptions.new(params[:comments] || @paragraph.data || {})
     if handle_paragraph_update(@options)
       DataCache.expire_content("Comments")
       return
@@ -27,7 +27,7 @@ class Feedback::CommentsController < ParagraphController
   end
   
 
-  class CommentOptions < HashModel
+  class CommentsOptions < HashModel
     attributes :allowed_to_post => 'members', :linked_to_type => 'connection', :order => 'newest', :show => 1, :captcha => false
     
     boolean_options :captcha
