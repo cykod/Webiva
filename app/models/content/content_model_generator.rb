@@ -14,10 +14,10 @@ module Content::ContentModelGenerator
     Object.class_eval do
       # remove_const class_name if const_defined? class_name
       #cls = Class.new(ContentModelType) #
-      cls = const_set(class_name.to_s, Class.new(ContentModelType))
+      cls = Class.new(ContentModelType) #const_set(class_name.to_s, Class.new(ContentModelType))
     end
 
-    #cls.set_class_name class_name
+    cls.set_class_name class_name
     
     cls.set_table_name self.table_name
     
@@ -72,7 +72,7 @@ SRC
       clses = DataCache.local_cache("content_models_list") || {}
       clses[self.table_name] = [ cls, class_name.to_s ]
       DataCache.put_local_cache("content_models_list", clses)
-      class_name.constantize
+      cls
   end
 
 

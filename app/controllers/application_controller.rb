@@ -89,15 +89,15 @@ class ApplicationController < ActionController::Base
   protected
 
   def clear_cache
-    classes = (DataCache.local_cache("content_models_list") || {}).values
-    classes.each do |cls|
-      Object.send(:remove_const,cls[1]) #if
-      #Object.const_defined?(cls[1])
-    end
-    classes = {}
+  #  classes = (DataCache.local_cache("content_models_list") || {}).values
+  #  classes.each do |cls|
+  #    Object.send(:remove_const,cls[1]) #if
+  #    #Object.const_defined?(cls[1])
+  #  end
+  #  classes = {}
     
     DataCache.reset_local_cache
-    ContentModelType.remove_subclasses
+#    ContentModelType.remove_subclasses
     ContentModelType.subclasses
   end
   
