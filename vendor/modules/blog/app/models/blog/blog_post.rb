@@ -47,6 +47,8 @@ class Blog::BlogPost < DomainModel
         end
         
         self.permalink = permalink_try
+      elsif 
+        self.permalink = self.permalink.to_s.gsub(/[^a-z+0-9\-]/,"")
       end
   end
 
