@@ -419,6 +419,9 @@ class Content::Field
         val
       end
     end
+    c.value_tag "#{name_base}:#{tag_name}_value" do |t|
+      t.locals.entry.send(fld.field)
+    end
   end
          
  
