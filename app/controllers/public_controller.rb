@@ -82,7 +82,6 @@ class PublicController < ApplicationController
       mime_types =  MIME::Types.type_for(name) 
       mime_type = mime_types[0] ? mime_types[0].to_s : 'application/octet-stream'
 
-
        if USE_X_SEND_FILE
          x_send_file(abs_name,:type => mime_type) #,:filename => df.name)    
        else

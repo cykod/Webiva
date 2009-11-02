@@ -269,6 +269,7 @@ class ParagraphFeature
       define_value_tag("#{name_base}:user_id") { |t| t.locals.send(local).id }
       define_value_tag("#{name_base}:first_name") { |t| t.locals.send(local).first_name }
       define_value_tag("#{name_base}:last_name") { |t| t.locals.send(local).last_name }
+      define_value_tag("#{name_base}:salutation") { |t| t.locals.send(local).salutation }
       define_value_tag("#{name_base}:name") { |t| t.locals.send(local).name }
       define_value_tag("#{name_base}:email") { |t| t.locals.send(local).email }
       define_image_tag("#{name_base}:img") { |t| t.locals.send(local).image }
@@ -351,6 +352,10 @@ class ParagraphFeature
           img_opts =  { :src => img_url,:width => img_size[0],:height => img_size[1] }
           attr.symbolize_keys!
           if attr[:width] || attr[:height]
+            img_opts.delete(:width)
+            img_opts.delete(:height)
+          end
+          unless img_size[0] && img_size[0].to_i > 1 && img_size[1].to_i > 1
             img_opts.delete(:width)
             img_opts.delete(:height)
           end
@@ -758,7 +763,9 @@ class ParagraphFeature
             c.define_tag "#{prefix}:#{tag_name}" do |t|
               opts = { :label => fld.label, :size => size }.merge(fld.data)
               opts[:size] = t.attr['size'] if t.attr['size']
-              fld.form_field(t.locals.send(frm_obj),opts.merge(t.attr))
+              opts = opts.merge(t.attr)
+              opts.symbolize_keys!
+              fld.form_field(t.locals.send(frm_obj),opts)
             end
 
             c.value_tag "#{prefix}:#{tag_name}_value" do |t|
