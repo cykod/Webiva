@@ -186,7 +186,7 @@ class Blog::PageRenderer < ParagraphRenderer
       data = { :entry => entry, :list_page => list_page, :blog => blog }
       feature_output = blog_entry_detail_feature(data)
 
-      entry.cache_put(display_string, [ entry_id,entry_title,feature_output ], entry.permalink) unless editor?
+      entry.cache_put(display_string, [ entry_id,entry_title,feature_output ], entry.permalink) unless editor? || !entry
     end
     
     require_css('gallery')
