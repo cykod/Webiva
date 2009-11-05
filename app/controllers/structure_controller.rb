@@ -326,6 +326,10 @@ class StructureController < CmsController
   
   	render :partial => 'domain_element_info'
   end
+
+  def m_element_info(node)
+    render :nothing => true
+  end
   
   # Page Element Information
   def p_element_info(node)
