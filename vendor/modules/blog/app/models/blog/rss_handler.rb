@@ -17,7 +17,7 @@ class Blog::RssHandler
   
 
   def self.get_feed_options
-    revisions = PageRevision.find(:all,:include => :page_paragraphs,
+    revisions = PageRevision.find(:all,:joins => :page_paragraphs,
                        :conditions => 'display_module = "/blog/page" AND display_type = "entry_list" AND page_revisions.active=1 AND revision_type="real"')
                        
     opts = []
