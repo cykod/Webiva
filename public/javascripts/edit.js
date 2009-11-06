@@ -264,7 +264,19 @@ var cmsEdit = {
       return cmsEdit.leavePage(cmsEdit.pageUrl);
     },
 
+    closeStyleWin: function() {
+      if(cmsEdit.styleWin) {
+        try {
+          cmsEdit.styleWin.close();
+          cmsEdit.styleWin = null;
+
+        } catch(e) {}
+      }
+    },
+
+
     leavePage: function(url) {
+      cmsEdit.closeStyleWin();
       if(cmsEdit.pageModified) {
         cmsEdit.destPageType = '';
         cmsEdit.destPageId = '';
@@ -274,19 +286,28 @@ var cmsEdit = {
         RedBox.showInline('cms_save_changes_dialog');
         return false;
       }
-      else return true;
+      else {
+        return true;
+
+      }
     },
 
     gotoUrl: function(page_type,page_id,revsion_id,params) {
+      cmsEdit.closeStyleWin();
+
       document.location = params;
     },
 
     gotoRefreshUrl: function(page_type,page_id,revision_id,params) {
+      cmsEdit.closeStyleWin();
+
         var new_page_url = cmsEdit.url('page');
         setTimeout("document.location='" + new_page_url + "';",10);
     },
 
     gotoDestUrl: function() {
+      cmsEdit.closeStyleWin();
+
       document.location=cmsEdit.destParams;
 
     },
@@ -333,8 +354,12 @@ var cmsEdit = {
     },
 
     fetchPage: function(page_type,page_id,revision_id) {
+      cmsEdit.closeStyleWin();
+
         var selectedPage = $('page_selector_' + cmsEdit.pageType + '_' + cmsEdit.pageId );
         if(selectedPage) selectedPage.className = "cms_ajax_link";
+
+
 
         RedBox.showOverlay();
         cmsEdit.preparePageRefresh();
@@ -990,7 +1015,7 @@ var cmsEdit = {
                       feature_type: p_features[0] });
     cmsEdit.styleWin =  openWindow(cmsEdit.templateUrl('popup_feature') + "?" + Object.toQueryString(params),'EditStyle',900,600,'yes','yes');
       cmsEdit.styleWin.focus();
-
+    cClick();
   },
 
 
@@ -1005,6 +1030,7 @@ var cmsEdit = {
                      { parameters: params.toQueryString(),
                        evalScripts:true
                      });
+    cClick();
   },
 
   editParagraphStyle: function(para_index,feature_id) {
@@ -1014,7 +1040,7 @@ var cmsEdit = {
                       feature_id: feature_id });
     cmsEdit.styleWin = openWindow(cmsEdit.templateUrl('popup_feature',feature_id) + "?" + Object.toQueryString(params),'EditStyle',900,600,'yes','yes');
       cmsEdit.styleWin.focus();
-
+    cClick();
   },
 
 
