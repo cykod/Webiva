@@ -34,7 +34,7 @@ ContentEditor = {
 <div class='admin_content'>
 <% cms_form_for :entry, @entry, :html => { :enctype => 'multipart/form-data', :class => 'admin_form' } do |f| %>
   <% @content_model.content_model_fields.each do |fld| %>
-    <%= fld.form_field(f,:editor => true) %>
+    <%= fld.form_field(f,:editor => true) unless fld.options.hidden %>
   <% end -%>
   <% if @content_model.show_tags? %>
     <%= f.text_area :tag_names, :cols => 60, :rows =>5, :label => 'Tags', :description => 'Comma separated list of tags for this entry' %>

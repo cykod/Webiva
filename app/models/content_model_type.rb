@@ -3,6 +3,14 @@
 class ContentModelType < DomainModel
   self.abstract_class = true
 
+  attr_accessor :content_score_a,:content_score_b,:content_score_c
+
+  def content_score
+    self.content_score_a.to_f +
+      self.content_score_b.to_f +
+      self.content_score_c.to_f 
+  end
+  
   def self.select_options(options = {})
        self.find(:all,options).collect { |itm| [ itm.identifier_name, itm.id ] }
   end
@@ -45,10 +53,10 @@ class ContentModelType < DomainModel
     target_relation_name = model_field.field_options['relation_name']
     target_relation_singular = model_field.field_options['relation_singular']
 
-    relations_name = "content_relations_#{field_name}"
+    relations_name = "content_relations_#{field_name}".pluralize.to_sym
     has_many relations_name, :conditions => "content_model_id = #{self.quote_value(model_field.content_model_id)} AND content_model_field_id=#{self.quote_value(model_field.id)}", :as => :entry, :class_name => 'ContentRelation'
 
-    has_many "#{target_relation_name}_dbs", :through => relations_name,
+    has_many "#{target_relation_name}_dbs".to_sym, :through => relations_name,
     :source => :relation,
     :source_type =>class_name
 

@@ -108,7 +108,9 @@ class Editor::PublicationController < ParagraphController
   end
   
   class ListOptions < HashModel
-      default_options :detail_page => nil, :tags => []
+    default_options :detail_page => nil, :tags => [], :per_page => nil
+
+    integer_options :per_page
       integer_options :detail_page
   end
   

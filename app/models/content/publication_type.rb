@@ -19,7 +19,7 @@ class Content::PublicationType
     define_method(:options_class) { cls }
   end
   
-  def self.options_partial(tpl)
+  def self.options_partial(tpl)p
     define_method(:options_partial) { tpl }
   end
   
@@ -30,6 +30,10 @@ class Content::PublicationType
     end
     
     define_method(:field_types) { options }
+  end
+
+  def self.feature_name(name)
+    define_method(:feature_method_name) { name }
   end
   
   @@field_types = {
@@ -66,8 +70,18 @@ class Content::PublicationType
   
   @@field_option_procs = {
     :detail_link => Proc.new() { |type,fld,f| f.check_boxes :options, [['Detail Link','link']], :single => true, :label => '' },
-    :filter => Proc.new() { |type,fld,f| f.check_boxes :options, [[ 'Filter','filter']], :single => true, :label => '' },
-    :order => Proc.new() { |type,fld,f| f.select :order, [ [ 'None'.t, nil ], ['Ascending'.t, 'asc' ], ['Descending'.t, 'desc' ] ] }
+    :filter => Proc.new() do |type,fld,f|
+      f.header('Filtering',:description => "Turning on filtering will allow publication paragraphs to show a subset of the entries in this content model.\nWhat entries are displayed can be controlled by an editor in the publication paragraph options,\nor by the user if this filter is 'exposed'") + 
+      f.radio_buttons(:filter, [[ 'No Filter',nil], ['Filter','filter'],['Fuzzy Filter','fuzzy']],
+                      :description => "Fuzzy filter will generate a weight 'score' for the result and order results by that score"
+                      ) +
+        f.radio_buttons(:fuzzy_filter,[ ["Filter A","a"],["Filter B","b"],["Filter C","c"]],:description => "Adding different fields to the same filter will allow entries to show in the results on a partial match,\nwhile using multiple filters will require a match on each filter to appear in the results") + 
+        f.text_field(:filter_weight,:size => 4, :label => 'Fuzzy Filter Weight') +
+        f.check_boxes(:filter_options, [['Expose this filter to users','expose'],['Make filter available as input in page connections','connection']] )
+    end,
+    :order => Proc.new() { |type,fld,f|
+      f.header('Ordering', :description => 'Fields higher in the publication will have a higher ordering priority') +
+      f.radio_buttons(:order, [ [ 'None'.t, nil ], ['Ascending'.t, 'asc' ], ['Descending'.t, 'desc' ] ]  ) }
   }
   
   def field_options(fld,f); ''; end 
@@ -113,7 +127,8 @@ class Content::PublicationType
   def content_publication_fields
     @publication.content_publication_fields
   end
-  
+
+  def filter?; false; end
   
   def preview_data
     raise 'Override me'

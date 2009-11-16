@@ -1,3 +1,5 @@
+<%= f.check_boxes :hidden, [['Hide field in forms',true]], :single => true, :label => '' -%>
+<%= f.check_boxes :exclude, [['Exclude field from search keywords',true]], :single => true, :label => '' -%>
 <% field.module_class.field_options_widgets.each do |widget| -%>
   <% case widget 
      when :required  -%>

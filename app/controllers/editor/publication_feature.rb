@@ -93,7 +93,7 @@ def display_feature(publication,data)
      c.value_tag('entry:id') { |tag| tag.locals.entry.id }
      c.link_tag('entry:list') { |tag| Configuration.domain_link(paragraph_page_url) }
      c.link_tag('entry:detail') { |tag| "#{data[:detail_page]}/#{tag.locals.entry.id}" }
-     
+     c.value_tag('entry:score') { |t| t.locals.entry.content_score }
      publication.content_publication_fields.each do |fld|
        case fld.content_model_field_id
        when -1:
@@ -107,7 +107,10 @@ def display_feature(publication,data)
        else
          fld.content_model_field.site_feature_value_tags(c,'entry',:full)
        end
-    end
+     end
+
+     c.publication_filter_form_tags("filter","filter_#{paragraph.id}", publication) { |t| [ data[:filter], data[:searching]] }
+     
     c.pagelist_tag('pages') { |t| data[:pages] }
    end
   end

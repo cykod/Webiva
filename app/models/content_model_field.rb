@@ -46,6 +46,10 @@ class ContentModelField < DomainModel
     cls = "#{self.field_module.classify}::#{field_class.classify}".constantize
     @module_class ||= cls.new(self)
   end
+
+  def default_field_name
+    self.module_class.default_field_name
+  end
   
   def entry_attributes(parameters)
     self.module_class.entry_attributes(parameters)
@@ -65,7 +69,9 @@ class ContentModelField < DomainModel
   
   def form_field(f,options={})
     options.symbolize_keys!
-    field_name = options.delete(:field) || self.field
+
+    field_name = options.delete(:field)
+    field_name = self.module_class.default_field_name unless field_name
     
     field_size = options.delete(:size).to_i
     field_size = 40 if field_size == 0 
@@ -115,8 +121,9 @@ class ContentModelField < DomainModel
     !self.field_options['relation_name'].blank? ? self.field_options['relation_name'] :self.field
   end
 
-  def site_feature_value_tags(c,name_base,size=:full)
-    self.module_class.site_feature_value_tags(c,name_base,size)
+  def site_feature_value_tags(c,name_base,size=:full,options={})
+    options[:local] ||= 'entry'
+    self.module_class.site_feature_value_tags(c,name_base,size,options)
   end
   
   def content_display(entry,size=:full,options={})
@@ -130,13 +137,25 @@ class ContentModelField < DomainModel
   def filter_variables
     self.module_class.filter_variables
   end
-  
-  def filter_conditions(options)
-    self.module_class.filter_conditions(options)
+
+  def filter_names
+    self.module_class.filter_names
   end
   
-  def filter_options(f)
-    self.module_class.filter_options(f)
+  def filter_conditions(options,filter_opts)
+    if filter_opts[:filter] == 'filter'
+      self.module_class.filter_conditions(options,filter_opts)
+    elsif filter_opts[:filter] == 'fuzzy'
+      self.module_class.fuzzy_filter_conditions(options,filter_opts)
+    end
+  end
+
+  def escaped_field
+    "`#{self.content_model.table_name}`.`#{self.field}`"
+  end
+
+  def filter_options(f,name=nil,attr={})
+    self.module_class.filter_options(f,name,attr.symbolize_keys)
   end
   
   def setup_model(cls)
@@ -156,6 +175,8 @@ class ContentModelField < DomainModel
   def field_options_model
     self.module_class.field_options_model
   end
+
+  alias_method :options, :field_options_model
   
   def field_options_partial
     self.module_class.field_options_partial
@@ -171,6 +192,10 @@ class ContentModelField < DomainModel
   
   def form_display_options(pub_field,f)
     self.module_class.form_display_options(pub_field,f)
+  end
+
+  def filter_display_options(pub_field,f)
+    self.module_class.filter_display_options(pub_field,f)
   end
   
   def dynamic_value(dynamic_field,entry,application_state={})

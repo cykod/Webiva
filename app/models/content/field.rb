@@ -50,6 +50,8 @@ class Content::Field
     field_options_code =  <<-EOF
       def set_field_options(options)
         returning field_opts = {} do
+          field_opts['hidden'] = options['hidden'].blank? ? false : true
+          field_opts['exclude'] = options['exclude'].blank? ? false : true
           #{options.map { |opt| "@@field_procs[:#{opt}].call(@model_field,field_opts,options||{})" }.join("\n")}
         end
       end
@@ -235,99 +237,217 @@ class Content::Field
     end_time
   end
  
-  @@filter_procs = {
-    :empty => {
-              :variables => Proc.new { |field_name,fld| [ (field_name + '_not_empty').to_sym  ]  },
-              :options => Proc.new do |field_name,fld,f|
-                 label_name = fld.model_field.name + " Filter".t
-                 f.check_boxes(field_name + "_not_empty",[ ['Not Empty'.t,'value']], :label => label_name, :single => true )    
-              end,
-              :conditions => Proc.new do |field_name,fld,options|
-                val = options[(field_name + "_not_empty").to_sym]
-                if !val
-                  nil
-                else
-                  val.blank? ? nil : [ "#{fld.model_field.field} != ''" ]
-                end
-              end
-              },
-    :like => {
-             :variables => Proc.new { |field_name,fld| [ (field_name + '_like').to_sym  ]  },
-             :options => Proc.new do |field_name,fld,f|
-                 label_name = fld.model_field.name + " Filter".t
-                 f.text_field(field_name + "_like", {:size => 40, :label => label_name})
-              end,
-              :conditions => Proc.new do |field_name,fld,options|
-                val = options[(field_name + "_like").to_sym].to_s.strip
-                val.empty? ? nil :[ "`#{fld.model_field.field}` LIKE ?", '%' + val + '%' ]
-              end              
-              },
-    :equal => {
-             :variables => Proc.new { |field_name,fld| [ (field_name + '_equal').to_sym  ]  },
-             :options => Proc.new do |field_name,fld,f|
-                 label_name = fld.model_field.name + " Filter".t
-                 f.text_field(field_name + "_equal", {:size => 40, :label => label_name})
-              end,
-              :conditions => Proc.new do |field_name,fld,options|
-                val = options[(field_name + "_equal").to_sym].to_s.strip
-                val.empty? ? nil :[ "`#{fld.model_field.field}` = ?", val ]
-              end                
-              },
-    :date_range => {
-       :variables => Proc.new { |field_name,fld| [ (field_name + '_start').to_sym, (field_name + '_end').to_sym  ]  },
-       :options => Proc.new do |field_name,fld,f|
-           label_name = fld.model_field.name + " Filter".t
-           f.select(field_name + "_start", 
-                         Content::Field.relative_date_start_options, 
-                         :label => (label_name + " Start".t)) +
-           f.select(field_name + "_end", 
-                         Content::Field.relative_date_end_options, 
-                         :label => (label_name + " End".t))          
-        end,
-        :conditions => Proc.new do |field_name,fld,options|
-          start_val = options[(field_name + "_start").to_sym].to_s
-	        end_val = options[(field_name + "_end").to_sym].to_s
-	        
-	        conditions = []
-	        values = []
-	        
-	        start_date = Time.now
-	        if !start_val.empty?
-	          
-	           start_date =Content::Field.calculate_filter_start_date(start_val)
-	           conditions << "`#{fld.model_field.field}` >= ?"
-	           values << (fld.model_field.field_type == 'date' ? start_date.to_date : start_date)
-	        end
-	        
-	        if !end_val.empty?
-	           end_date =  Content::Field.calculate_filter_end_date(start_date,end_val)
-	           
-	           
-	           conditions << "`#{fld.model_field.field}` <= ?"
-	           values << (fld.model_field.field_type == 'date' ? end_date.to_date : end_date)
-	        end
-	        
-	        conditions.length > 0 ? [ conditions.join(" AND "), values ] : nil
-	        
-        end                
-    }    
-  
+  @@filter_procs = {}
+
+
+  @@filter_procs[:multiple_like] = { 
+    :variables => Proc.new { |field_name,fld| [ (field_name + '_options').to_sym  ]  },
+    :options => Proc.new do |field_name,fld,f,attr|
+      label_name = fld.model_field.name + " Filter".t
+      if attr[:single]
+        f.radio_buttons(field_name + "_options",fld.available_options, { :label => label_name}.merge(attr))
+      else
+        f.check_boxes(field_name + "_options",fld.available_options, { :label => label_name}.merge(attr))
+      end
+    end,
+    :conditions => Proc.new do |field_name,fld,options|
+      val = options[(field_name + "_options").to_sym]
+      val  = [ val ] unless val.is_a?(Array)
+      val = val.reject(&:blank?)
+      values = val.map {  |elm| "%\n- #{elm}%"}
+      val.length == 0 ? nil :{ :conditions =>  values.map { |elm| "(#{fld.escaped_field} LIKE ?)" }.join(" OR "), :values => values }
+    end ,
+    :fuzzy =>  Proc.new do |field_name,fld,options|
+      val =  options[(field_name + "_options").to_sym]
+      val  = [ val ] unless val.is_a?(Array)
+      val = val.reject(&:blank?)
+      val.length == 0 ? nil :{ :score => "IF( " +  values.map { |elm| "(#{fld.escaped_field} LIKE #{DomainModel.quote_value(elm)})" }.join(" OR ") + ",1,0)" }
+    end
   }
+
+  @@filter_procs[:not_empty] = {
+    :variables => Proc.new { |field_name,fld| [ (field_name + '_not_empty').to_sym  ]  },
+    :options => Proc.new do |field_name,fld,f,attr|
+      label_name = fld.model_field.name + " Filter".t
+      f.check_boxes(field_name + "_not_empty",[ [attr[:label] || 'Not Empty'.t,'value']], :label => label_name, :single => true )    
+    end,
+    :fuzzy => Proc.new do |field_name,fld,options|
+      val = options[(field_name + "_not_empty").to_sym]
+      val.blank? ? nil : {:score =>  "IF(#{fld.escaped_field} != '',1,0) " }
+    end,
+    :conditions => Proc.new do |field_name,fld,options|
+      val = options[(field_name + "_not_empty").to_sym]
+      val.blank? ? nil : {:conditions =>  "#{fld.escaped_field} != ''" }
+    end
+  }
+
+  @@filter_procs[:like] = {
+    :variables => Proc.new { |field_name,fld| [ (field_name + '_like').to_sym  ]  },
+    :options => Proc.new do |field_name,fld,f,attr|
+      label_name = fld.model_field.name + " Filter".t
+      f.text_field(field_name + "_like", {:size => 40, :label => label_name})
+    end,
+    :fuzzy => Proc.new do |field_name,fld,options|
+      val =  options[(field_name + "_like").to_sym].to_s.strip
+      val.empty? ? nil : { :score =>  "IF(#{fld.escaped_field} LIKE " + DomainModel.quote_value("%" + val + "%") + ",1,0)" }
+    end,
+    :conditions => Proc.new do |field_name,fld,options|
+      val = options[(field_name + "_like").to_sym].to_s.strip
+      val.empty? ? nil : { :conditions =>  "#{fld.escaped_field} LIKE ?", :values=> '%' + val + '%' }
+    end              
+  }
+
+  @@filter_procs[:equal] = {
+    :variables => Proc.new { |field_name,fld| [ (field_name + '_equal').to_sym  ]  },
+    :options => Proc.new do |field_name,fld,f,attr|
+      label_name = fld.model_field.name + " Filter".t
+      f.text_field(field_name + "_equal", {:size => 40, :label => label_name})
+    end,
+    :conditions => Proc.new do |field_name,fld,options|
+      val = options[(field_name + "_equal").to_sym].to_s.strip
+      val.empty? ? nil :{ :conditions =>  "#{fld.escaped_field} = ?", :values => val }
+    end ,
+    :fuzzy =>  Proc.new do |field_name,fld,options|
+      val =  options[(field_name + "_like").to_sym].to_s.strip
+      val.empty? ? nil : { :score =>  "IF(#{fld.escaped_field} = " + DomainModel.quote_value(val) + ",1,0)" }
+    end
+  }
+
+  @@filter_procs[:include] = {
+    :variables => Proc.new { |field_name,fld|  [ (field_name + '_include').to_sym  ]  },
+    :options => Proc.new do |field_name,fld,f,attr|
+      label_name = fld.model_field.name + " Filter".t
+      fld.form_field(f,field_name + "_include",{},attr)
+    end,
+    :conditions => Proc.new do |field_name,fld,options|
+      val = options[(field_name + "_include").to_sym]
+      if val && val.is_a?(Array)
+        val = val.reject(&:blank?).map(&:to_i)
+        if val.length > 0
+          join = "`#{fld.model_field.field}`"
+          { :joins =>  "INNER JOIN content_relations as #{join} ON (#{join}.content_model_id = #{fld.model_field.content_model_id} AND #{join}.content_model_field_id = #{fld.model_field.id} AND entry_id = `#{fld.model_field.content_model.table_name}`.id)",
+            :conditions => "#{join}.relation_id IN (?)",
+            :values => [ val ]
+          }
+        else
+          nil
+        end
+      else
+        nil
+      end
+    end,
+    :fuzzy => Proc.new  do |field_name,fld,options|
+      val = options[(field_name + "_include").to_sym]
+      if val && val.is_a?(Array) && val.length > 0
+        val = val.reject(&:blank?).map(&:to_i)
+        join = "`#{fld.model_field.field}`"
+        if val.length > 0
+          { :joins =>  "LEFT JOIN content_relations as #{join} ON (#{join}.content_model_id = #{fld.model_field.content_model_id} AND #{join}.content_model_field_id = #{fld.model_field.id} AND  #{join}.entry_id = `#{fld.model_field.content_model.table_name}`.id AND #{join}.relation_id IN (" + val.map { |v| DomainModel.quote_value(v) }.join(",") + "))",
+            :score => "COUNT(DISTINCT #{join}.id)",
+            :count => "#{join}.id IS NOT NULL"
+          }
+        else
+          nil
+        end
+      else
+        nil
+      end
+    end
+
+
+  }
+
+  @@filter_procs[:options] = {
+    :variables => Proc.new { |field_name,fld| [ (field_name + '_options').to_sym  ]  },
+    :options => Proc.new do |field_name,fld,f,attr|
+      label_name = fld.model_field.name + " Filter".t
+      if attr[:single]
+        f.radio_buttons(field_name + "_options",fld.available_options, { :label => label_name}.merge(attr))
+      else
+        f.check_boxes(field_name + "_options",fld.available_options, { :label => label_name}.merge(attr))
+      end
+    end,
+    :conditions => Proc.new do |field_name,fld,options|
+      val = options[(field_name + "_options").to_sym]
+      val  = [ val ] unless val.is_a?(Array)
+      val = val.reject(&:blank?)
+      val.length == 0 ? nil :{ :conditions =>  "#{fld.escaped_field} IN (?)", :values => [ val ] }
+    end ,
+    :fuzzy =>  Proc.new do |field_name,fld,options|
+      val =  options[(field_name + "_options").to_sym]
+      val  = [ val ] unless val.is_a?(Array)
+      val = val.reject(&:blank?)
+      val.length == 0 ? nil : { :score =>  "IF(#{fld.escaped_field} IN (" + val.map { |elm| DomainModel.quote_value(elm) }.join(",") + "),1,0)" }
+    end
+
+  }
+
+  @@filter_procs[:date_range] = {
+    :variables => Proc.new { |field_name,fld| [ (field_name + '_start').to_sym, (field_name + '_end').to_sym  ]  },
+    :options => Proc.new do |field_name,fld,f,attr|
+      label_name = fld.model_field.name + " Filter".t
+      f.select(field_name + "_start", 
+               Content::Field.relative_date_start_options, 
+               :label => (label_name + " Start".t)) +
+        f.select(field_name + "_end", 
+                 Content::Field.relative_date_end_options, 
+                 :label => (label_name + " End".t))          
+    end,
+    :conditions => Proc.new do |field_name,fld,options|
+      start_val = options[(field_name + "_start").to_sym].to_s
+      end_val = options[(field_name + "_end").to_sym].to_s
+      
+      conditions = []
+      values = []
+      
+      start_date = Time.now
+      if !start_val.empty?
+        
+        start_date =Content::Field.calculate_filter_start_date(start_val)
+        conditions << "#{fld.escaped_field} >= ?"
+        values << (fld.model_field.field_type == 'date' ? start_date.to_date : start_date)
+      end
+      
+      if !end_val.empty?
+        end_date =  Content::Field.calculate_filter_end_date(start_date,end_val)
+        
+        
+        conditions << "#{fld.escaped_field} <= ?"
+        values << (fld.model_field.field_type == 'date' ? end_date.to_date : end_date)
+      end
+      conditions.length > 0 ? { :conditions => conditions.join(" AND "), :values => values } : nil
+
+    end                
+  }    
+  
   
   def self.filter_setup(*options)
-    define_method(:filter_options) do |f|
-      field_name = "filter_" + self.model_field.field
+    define_method(:filter_options) do |f,name,attr|
+      field_name = "filter_" + self.model_field.feature_tag_name
+
+      options.map do |opt|
+        if opt.is_a?(Hash) && (name.blank? || opt[:name] == name)
+          opt[:options].call(field_name,self,f,attr).to_s
+        elsif name.blank? || opt == name.to_sym
+          @@filter_procs[opt][:options].call(field_name,self,f,attr).to_s
+        else
+          ''
+        end
+      end.join
+    end
+
+    define_method(:filter_names) do
       options.map do |opt|
         if opt.is_a?(Hash)
-          opt[:options].call(field_name,self,f).to_s
+          opt[:name]
         else
-          @@filter_procs[opt][:options].call(field_name,self,f).to_s
+          opt.to_sym
         end
-      end.join("\n")
+      end.compact
     end
     
     define_method(:filter_variables) do
-      field_name = "filter_" + self.model_field.field
+      field_name = "filter_" + self.model_field.feature_tag_name
       options.inject([]) do |lst,opt|
         if opt.is_a?(Hash)
           vars = opt[:variables].call(field_name,self)
@@ -337,39 +457,83 @@ class Content::Field
         vars ? lst + vars : lst
       end
     end
-    
-    define_method(:filter_conditions) do |field_opts|
-      conditions = []
-      values = []
-      field_name = "filter_" + self.model_field.field
+
+    define_method(:filter_conditions) do |field_opts,filter_opts|
+      opts = {}
+      field_name = "filter_" + self.model_field.feature_tag_name
       options.each do |opt|
         if opt.is_a?(Hash)
-          opt_conditions, opt_values = opt[:conditions].call(field_name,self,field_opts)
+          opt_conditions = opt[:conditions].call(field_name,self,field_opts)
         else
-          opt_conditions, opt_values = @@filter_procs[opt][:conditions].call(field_name,self,field_opts)
+          opt_conditions = @@filter_procs[opt][:conditions].call(field_name,self,field_opts)
         end
-        
-        opt_values = [ opt_values ] if !opt_values.blank? && !opt_values.is_a?(Array)
-        
-        conditions << opt_conditions if opt_conditions
-        values += opt_values if opt_values
+
+        if opt_conditions
+          opt_conditions.each do |key,val|
+            if val
+              opts[key] ||= []
+              if val.is_a?(Array)
+                opts[key] += val
+              else
+                opts[key] << val
+              end
+            end
+          end
+        end
       end
-      
-      if conditions.length > 0
-        [ conditions.map { |cond| "(#{cond})" }.join(" AND "),  values ]
-      else
-        []
-      end
-    
+
+      opts
     end
+
+ 
+    define_method(:fuzzy_filter_conditions) do |field_opts,filter_opts|
+      opts = {}
+      field_name = "filter_" + self.model_field.feature_tag_name
+      options.each do |opt|
+        if opt.is_a?(Hash)
+          opt_conditions = opt[:fuzzy].call(field_name,self,field_opts)
+        else
+          opt_conditions = @@filter_procs[opt][:fuzzy].call(field_name,self,field_opts)
+        end
+
+        if opt_conditions
+          opt_conditions.each do |key,val|
+            if val
+              opts[key] ||= []
+              if val.is_a?(Array)
+                opts[key] += val
+              else
+                opts[key] << val
+              end
+            end
+          end
+
+          filter_weight = (filter_opts[:filter_weight]||1.0).to_f
+
+          if opts[:score]
+            score = opts.delete(:score).map! { |elm| "(#{elm} * #{filter_weight})" }
+            count = opts.delete(:count)
+
+            opts["score_#{filter_opts[:fuzzy_filter]}".to_sym] = score
+            opts["count_#{filter_opts[:fuzzy_filter]}".to_sym] = count
+          end
+        end
+      end
+
+      opts
+    end    
   end
 
   # By default this field holds data
   # But some sub-classes may not (e.g. HeaderField)
   def data_field?; true; end
+
+  def escaped_field; @model_field.escaped_field; end
   
   def display_options(pub_field,f); ''; end
   def form_display_options(pub_field,f); ''; end
+  def filter_display_options(pub_field,f); ''; end
+  
   
   def display_options_variables; []; end
   
@@ -408,11 +572,12 @@ class Content::Field
   end
 
 
-  def site_feature_value_tags(c,name_base,size=:full)
+  def site_feature_value_tags(c,name_base,size=:full,options={})
+    local = options[:local] 
     tag_name = @model_field.feature_tag_name
     fld = @model_field
     c.value_tag "#{name_base}:#{tag_name}" do |t|
-      val = fld.content_display(t.locals.entry,size,t.attr)
+      val = fld.content_display(t.locals.send(local),size,t.attr)
       if val.blank?
         nil
       else
@@ -420,7 +585,7 @@ class Content::Field
       end
     end
     c.value_tag "#{name_base}:#{tag_name}_value" do |t|
-      t.locals.entry.send(fld.field)
+      t.locals.send(local).send(fld.field)
     end
   end
          
@@ -431,12 +596,16 @@ class Content::Field
   
   def assign(entry,values)
     entry.send("#{@model_field.field}=",values[@model_field.field.to_sym]) if values.has_key?(@model_field.field.to_sym)
-  end 
+  end
+
+  def default_field_name
+    @model_field.field
+  end
   
   class FieldOptions < HashModel
-    attributes :required => false, :options => [], :relation_class => nil, :unique => false, :regexp => false, :regexp_code => '', :regexp_message => 'is not formatted correctly', :on => '', :off => '', :on_description => ''
+    attributes :required => false, :options => [], :relation_class => nil, :unique => false, :regexp => false, :regexp_code => '', :regexp_message => 'is not formatted correctly', :on => '', :off => '', :on_description => '', :hidden => false, :exclude => false
     
-    boolean_options :required, :unique, :regexp
+    boolean_options :required, :unique, :regexp, :hidden, :exclude
 
     def validate
       if !self.regexp_code.blank?

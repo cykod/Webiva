@@ -4,6 +4,8 @@
 
 module Content::ContentModelGenerator
 
+
+  
   def content_model
     clses = DataCache.local_cache("content_models_list") || {}
     cls = clses[self.table_name]
@@ -12,14 +14,16 @@ module Content::ContentModelGenerator
     class_name = self.table_name.classify
     cls = nil
     Object.class_eval do
-      # remove_const class_name if const_defined? class_name
+      remove_const class_name if const_defined? class_name
       #cls = Class.new(ContentModelType) #
-      cls = Class.new(ContentModelType) #const_set(class_name.to_s, Class.new(ContentModelType))
+      cls = const_set(class_name.to_s, Class.new(ContentModelType))
     end
 
     cls.set_class_name class_name
     
     cls.set_table_name self.table_name
+
+    cls.cached_content
     
     # Setup the fields in the model as necessary (required, validation, etc)
     self.content_model_fields.each { |fld| fld.setup_model(cls) }
@@ -75,5 +79,7 @@ SRC
       cls
   end
 
+
+    alias_method :model_class, :content_model
 
 end

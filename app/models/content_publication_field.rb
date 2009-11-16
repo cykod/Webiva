@@ -57,6 +57,7 @@ class ContentPublicationField < DomainModel
   def field_options_form_elements(f)
     txt = self.content_publication.field_options_form_elements(self,f)
     txt += self.content_model_field.form_display_options(self,f).to_s if self.content_publication.form?
+    txt += self.content_model_field.filter_display_options(self,f).to_s if self.content_publication.filter?
     txt
   end
   
@@ -64,22 +65,39 @@ class ContentPublicationField < DomainModel
     @publication_module_class  ||= self.publication_field_module.classify.constantize
   end
 
-  def filter_options(f)
-    if self.content_model_field && (self.data[:options] || []).include?('filter') 
-      self.content_model_field.filter_options(f)
+  def filter_options(f,name=nil,attr={})
+    if self.content_model_field && self.options.filter 
+      self.content_model_field.filter_options(f,name,(self.data||{}).merge(attr.symbolize_keys))
     else 
       ''
     end
+  end
+
+  def options
+    @options ||= self.content_publication.field_options(self.data)
+  end
+
+  def escaped_field
+    self.content_model_field.escaped_field
   end
   
   def filter_variables
     self.content_model_field.filter_variables
   end
+
+  def filter_names
+    self.content_model_field.filter_names
+  end
   
-  def filter_conditions(options={})
-    if (self.data[:options] || []).include?('filter')
-        self.content_model_field.filter_conditions(options)
+  def filter_conditions(opts={},form_options={})
+    
+    if !options.filter.blank?
+      if options.filter_options && options.filter_options.include?('expose')
+        opts= opts.merge(form_options.slice(*filter_variables))
+      end
+      return self.content_model_field.filter_conditions(opts,data)
     end
+    nil
   end
   
   def available_dynamic_field_options

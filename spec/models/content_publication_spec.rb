@@ -60,7 +60,7 @@ describe ContentPublication do
   
     it "should be able to do a like filter" do
        @publication = @cm.content_publications.create(:name => 'List',:publication_type => 'list',:publication_module => 'content/core_publication')
-       @publication.content_publication_fields.create(:field_type => 'value',:content_model_field_id => @cm.field(:string_field).id, :data => { :options => ['filter'] })
+       @publication.content_publication_fields.create(:field_type => 'value',:content_model_field_id => @cm.field(:string_field).id, :data => { :filter => 'filter' })
        
        @entry1 = @cm.content_model.create(:string_field => 'A Field')
        @entry2 = @cm.content_model.create(:string_field => 'B Field')
@@ -76,7 +76,7 @@ describe ContentPublication do
     
     it "should be able to do an empty filter" do
        @publication = @cm.content_publications.create(:name => 'List',:publication_type => 'list',:publication_module => 'content/core_publication')
-       @publication.content_publication_fields.create(:field_type => 'value',:content_model_field_id => @cm.field(:string_field).id, :data => { :options => ['filter'] })
+       @publication.content_publication_fields.create(:field_type => 'value',:content_model_field_id => @cm.field(:string_field).id, :data => { :filter => 'filter'  })
        
        @entry1 = @cm.content_model.create(:text_field => 'Text Field') # Set a different field, not string_field
        @entry2 = @cm.content_model.create(:string_field => 'String Field')
@@ -92,7 +92,7 @@ describe ContentPublication do
 
     it "should be able to do an date range filter" do
        @publication = @cm.content_publications.create(:name => 'List',:publication_type => 'list',:publication_module => 'content/core_publication')
-       @publication.content_publication_fields.create(:field_type => 'value',:content_model_field_id => @cm.field(:datetime_field).id, :data => { :options => ['filter'] })
+       @publication.content_publication_fields.create(:field_type => 'value',:content_model_field_id => @cm.field(:datetime_field).id, :data => { :filter => 'filter' })
        
        @entry0 = @cm.content_model.create(:datetime_field => 3.years.ago, :string_field => '3 Years Ago')
        @entry1 = @cm.content_model.create(:datetime_field => 1.hours.ago, :string_field => '1 Hour Ago')
@@ -110,9 +110,71 @@ describe ContentPublication do
        @data.length.should == 1 # should return only '@entry1
        @data[0].string_field.should == 'Beginning of the month minus 2 days'    
        
-    end  
+    end
+
+
+    describe "Fuzzy filtering and exposed filters"  do
+
+      before(:each) do
+        @publication = @cm.content_publications.create(:name => 'List',:publication_type => 'list',:publication_module => 'content/core_publication')
+
+       
+        cls = @cm.content_model
+
+        @entry0 = cls.create(:string_field => 'Yes', :text_field => 'Yay!')
+        @entry1 = cls.create(:string_field => 'No', :text_field => 'Nay!')
+        @entry2 = cls.create(:string_field => 'No', :text_field => 'Yay!')
+        @entry3 = cls.create(:string_field => 'Yes', :text_field => 'Nay!')
+
+      end
+
+      it "should be able to do a fuzzy filter" do
+        @publication.content_publication_fields.create(:field_type => 'value',:content_model_field_id => @cm.field(:string_field).id, :data => { :filter => 'fuzzy',:fuzzy_filter => 'a'  })
+        
+        @publication.content_publication_fields.create(:field_type => 'value',:content_model_field_id => @cm.field(:text_field).id, :data => { :filter => 'fuzzy', :fuzzy_filter => 'a'  })
+
+        
+        @paging, @data = @publication.get_list_data(1,{:filter_string_field_like => 'No', :filter_text_field_like => 'Nay!' })
+        @data.length.should == 3 # Should return all but the first
+
+        @paging[:total].should == 3
+
+        @data[0].should == @entry1
+        @data[0].content_score_a.should == 2
+        @data[1].content_score_a.should == 1
+      end
+
+      it "shouldn't let user filters through if filter not exposed" do
+        
+        @publication.content_publication_fields.create(:field_type => 'value',:content_model_field_id => @cm.field(:string_field).id, :data => { :filter => 'filter'  })
+        
+        @publication.content_publication_fields.create(:field_type => 'value',:content_model_field_id => @cm.field(:text_field).id, :data => { :filter => 'filter'  })
+
+        
+        @paging, @data = @publication.get_list_data(1,{:filter_string_field_like => 'No', :filter_text_field_like => 'Nay!' }, {:filter_string_field_like => 'Yes', :filter_text_field_like => 'Yay!'} )
+        @data.length.should == 1 # Should only return first
+
+
+        @data[0].should == @entry1
+      end
+
+      it "should let user filters through if exposed" do
+        @publication.content_publication_fields.create(:field_type => 'value',:content_model_field_id => @cm.field(:string_field).id, :data => { :filter => 'filter', :filter_options => ['expose']  })
+        
+        @publication.content_publication_fields.create(:field_type => 'value',:content_model_field_id => @cm.field(:text_field).id, :data => { :filter => 'filter', :filter_options => ['expose']  })
+
+        
+        @paging, @data = @publication.get_list_data(1,{:filter_string_field_like => 'No',:order => 'id' }, {:filter_string_field_like => 'Yes'} )
+        
+        @data.length.should == 2 # Should only return first
+
+        @data[0].should == @entry0
+        @data[1].should == @entry3
+      end
+
+    end
+    
   end
-  
   
   
   

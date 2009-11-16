@@ -154,7 +154,7 @@ class ContentModel < DomainModel
     
     cm = ContentModel.find_by_table_name(name,:include => :content_model_fields)
     return nil unless cm
-    DataCache.put_local_cache("content_model_table_#{name}", cm.content_model)
+    cm.content_model
   end
   
   def entry_attributes(parameters)

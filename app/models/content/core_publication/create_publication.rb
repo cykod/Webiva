@@ -18,6 +18,8 @@ class Content::CorePublication::CreatePublication < Content::PublicationType
   # No Field options
   
   register_triggers :view, :create
+
+  feature_name 'form'
   
   
  def default_feature

@@ -11,12 +11,16 @@ class Content::CorePublication::ListPublication < Content::PublicationType
   
   options_class ListOptions
   options_partial '/content/core_publication/list_publication_options'
+
+  feature_name :list
   
   field_types :entry_value #, :formatted_value
   
   field_options :detail_link, :filter, :order
   
   register_triggers :view
+
+  def filter?; true; end
   
   
   def default_feature

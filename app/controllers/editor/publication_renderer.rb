@@ -24,12 +24,6 @@ class Editor::PublicationRenderer < ParagraphRenderer
   
   public 
   
-  def self.document_feature(name,publication)
-    rnd = self.dummy_renderer
-    rnd.set_documentation(true)
-    rnd.send(name,publication,{})
-  end
-  
 
   def create
     publication = paragraph.content_publication
@@ -290,11 +284,25 @@ class Editor::PublicationRenderer < ParagraphRenderer
     options = paragraph.data || {}
     detail_page =  SiteNode.get_node_path(options[:detail_page],'#')
 
-    entries = publication.get_list_data(params[:page],options) #content_model.content_model.find(:all)
+    if request.post? &&  params["filter_#{paragraph.id}"] && !params["clear_filter_#{paragraph.id}"]
+      filter_data = DefaultsHashObject.new(params["filter_#{paragraph.id}"])
+      searching =  params["filter_#{paragraph.id}"].values.detect { |fld| !fld.blank? }
+    else
+      filter_data = DefaultsHashObject.new({})
+      searching = false
+    end
+
+    publication.each_page_connection_input do |filter_name,fld|
+      conn_type,conn_id = page_connection(filter_name)
+      options[conn_type] = conn_id unless conn_id.blank?
+    end
+
+    
+    entries = publication.get_list_data(params[:page],options,filter_data.to_hash)
   
     require_css('gallery')
   
-    data ={ :detail_page => detail_page, :entries => entries[1], :pages => entries[0] } 
+    data ={ :detail_page => detail_page, :entries => entries[1], :pages => entries[0], :filter => filter_data, :searching => searching  } 
     render_paragraph :text => list_feature(publication,data) 
 #     render_paragraph :partial => '/editor/publication/list',
 #                       :locals => { :publication => publication,

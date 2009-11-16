@@ -1,0 +1,2 @@
+<% available_data_fields =  @content_model.content_model_fields.select { |elm| elm.data_field? }.map { |elm| [ elm.name,elm.id ] } %>
+<%= f.select :target_field_id, [['--Select Field--'.t,nil]] + available_data_fields, :description => 'The value is this field will be replaced be checking for value in field listed below'  %>

@@ -10,7 +10,7 @@ class ContentPublication < DomainModel
                            [ 'Entry Display', 'view' ],
                            [ 'Entry List', 'list' ],
                            [ 'Entry Edit Form', 'edit' ],
-                           [ 'Admin List', 'admin_list' ],
+                           [ 'Admin List', 'Admin_list' ],
                            [ 'Data Output', 'data' ] ]
   
   belongs_to :content_model
@@ -19,7 +19,7 @@ class ContentPublication < DomainModel
 
   attr_accessor :start_empty
   
-  has_many :content_publication_fields, :dependent => :destroy, :order => 'content_publication_fields.position', :include => :content_model_field
+  has_many :content_publication_fields, :dependent => :destroy, :order => 'content_publication_fields.position', :include => [ :content_model_field, :content_publication ]
   
   has_many :page_paragraphs, :dependent => :destroy
   
@@ -49,6 +49,10 @@ class ContentPublication < DomainModel
   
   def before_create
     self.feature_name =  self.content_model.name.downcase.gsub(/[^a-z0-9]/,"_")[0..20] + "_" + self.name.downcase.gsub(/[^a-z0-9]/,"_")[0..20] + "_publication"
+  end
+
+  def feature_method_name
+    self.publication_type_class.feature_method_name
   end
   
   def add_all_fields!
@@ -95,6 +99,10 @@ class ContentPublication < DomainModel
   def form?
     self.publication_type_class.respond_to?(:render_form)
   end
+
+  def filter?
+     self.publication_type_class.filter?
+  end
   
   def html?
     self.publication_type_class.respond_to?(:render_html)
@@ -137,11 +145,49 @@ class ContentPublication < DomainModel
   def generate_preview_data
     self.publication_type_class.preview_data
   end
+
+  def each_page_connection_input
+    self.content_publication_fields.each do |fld|
+      fld.filter_variables.each do |filter_var|
+        yield fld.content_model_field.field.to_sym,fld
+      end
+    end
+  end
+
+  def page_connections
+    info = {}
+    self.content_publication_fields.each do |fld|
+      if fld.options.filter_options.include?('connection')
+        info[:inputs] ||= {}
+        info[:inputs][fld.content_model_field.field.to_sym] = []
+
+        fld.filter_variables.each do |filter_var|
+          info[:inputs][fld.content_model_field.field.to_sym] <<
+            [ filter_var.to_sym, filter_var.to_s.humanize, :path ]
+        end
+        
+      end
+    end
+
+
+    self.content_publication_fields.each do |fld|
+      if fld.options.page_connection
+        info[:outputs] ||= []
+        info[:outputs] << [fld.content_model_field.field.to_sym,
+                           fld.content_model_field.name,
+                           :path]
+        info[:outputs] << [fld.content_model_field.field.to_sym,
+                           fld.content_model_field.name,
+                           "#{fld.content_model_field.field_type}_field".to_sym]
+      end
+    end
+    info
+  end
   
   def filter_variables
     returning filter_vars = [] do
       self.content_publication_fields.each do |fld|
-        if (fld.data[:options] || []).include?('filter')
+        if (fld.options.filter)
           filter_vars.concat(fld.filter_variables)
         end
       end
@@ -157,99 +203,208 @@ class ContentPublication < DomainModel
     end
     output
   end
-  
-  def get_filter_conditions(options)
-  
-    order = []
+
+  # return a hash of find arguments for this publication
+  # given as set of admin options and a set of user submitted
+  # form_options which are only used on filters that are exposed
+  def filter_conditions(options={},form_options={})
+    options = options.symbolize_keys
+    form_options = form_options.symbolize_keys
+
+    filter = {
+      :order => [],
+      :conditions => [],
+      :joins => [],
+      :values => [],
+      :includes => [],
+      :score => [],
+      :count => []
+    }
+
+    filter[:joins] = [ options[:joins] ] if options[:joins]
+
+    if options[:conditions]
+      if options[:conditions].is_a?(Array)
+        filter[:conditions] << options[:conditions][0]
+        filter[:values] += options[:conditions][1..-1] if options[:conditions].length > 1
+      else
+        filter[:conditions] << options[:conditions]
+      end
+    end
+
+    filter[:order] << options[:order] if options[:order]
     
-    conditions = options[:conditions] || ['1']
-    conditions = [ conditions ] unless conditions.is_a?(Array)
-    
-    values = options[:values] || []
-    
-        
     self.content_publication_fields.each do |fld|
-      if fld.data[:order]
-        if fld.data[:order] == 'asc'
-          order << "`#{fld.content_model_field.field}` ASC"
-        elsif fld.data[:order] == 'desc'
-          order << "`#{fld.content_model_field.field}` DESC"
+      
+      fld_options = fld.filter_conditions(options,form_options)
+
+      if fld_options
+        fld_options.each do |key,val|
+          next if val.nil?
+          val = [ val ] unless val.is_a?(Array)
+          filter[key] ||= []
+          filter[key] += val
+
+          # If we have a score, but don't have a separate count/where
+          # statement, assume this score statement is ok for
+          # both a content_score and a WHERE/count condition
+          # e.g. IF(field="spam",1,0) is ok in a count
+          # e.g. COUNT(content_relations.id) is not ok (group field) -
+          # need to replace with content_relations.id IS NOT NULL
+          # so each filter handles the second case itself, but the
+          # first case we need to make it an automatic count condition
+          %w(a b c).each do |fuzzy_filter|
+            if key == "score_#{fuzzy_filter}".to_sym && !fld_options["count_#{fuzzy_filter}".to_sym]
+              filter["count_conditions_#{fuzzy_filter}".to_sym] ||= []
+              filter["count_conditions_#{fuzzy_filter}".to_sym] += val
+            end
+          end
+        end
+
+        if fld.data[:order]
+          if fld.data[:order] == 'asc'
+            filter[:order] << "`#{fld.content_model.table_name}`.`#{fld.content_model_field.field}` ASC"
+          elsif fld.data[:order] == 'desc'
+            filter[:order] << "`#{fld.content_model.table_name}`.`#{fld.content_model_field.field}` DESC"
+          end
         end
       end
+    end
 
-      fld_conditions, fld_values = fld.filter_conditions(options)
-      
-      conditions << fld_conditions if fld_conditions
-      values += fld_values if fld_values
-      
-    end
-          
-    if order.length > 0
-      order = order.join(",")
-    else
-      order = nil
-    end
-    
-    offset = options[:offset] if options[:offset]
-    
-    include_joins = []
     if(self.content_model.show_tags?)
 
       tags = (options[:tags]||[]).find_all() { |elm| !elm.blank? }
       if tags.length > 0
-        conditions << 'content_tags.id IN (?)'
-        values << tags
-        include_joins << 'content_tags'
+        filter[:conditions] << 'content_tags.id IN (?)'
+        filter[:values] << tags
+        filter[:joins] << "INNER JOIN content_tags ON (`#{content_model.table_name}`.id = content_tags.id)"
       end
     end
-    
 
-    return { :conditions => [ conditions.join(" AND ") ] + values, :order => order, :offset => offset, :include => include_joins }
+    
+    # Generate a find-friendly options hash output
+    filter_output = {}
   
+    if filter[:joins].length > 0
+      filter_output[:joins] = filter[:joins].uniq.join(" ")
+      filter_output[:group] = "`#{content_model.table_name}`.id"
+    end
+
+    %w(a b c).each do |fuzzy_filter|
+      score_sym = "score_#{fuzzy_filter}".to_sym
+      if filter[score_sym] && filter[score_sym].length > 0
+        score = filter[score_sym].uniq.join(" + ")
+        filter_output[:select] = "`#{content_model.table_name}`.id, (#{score}) as content_score_#{fuzzy_filter}"
+
+        extra_conditions = []
+        if filter["count_conditions_#{fuzzy_filter}".to_sym]
+          extra_conditions << "(" + filter[ "count_conditions_#{fuzzy_filter}".to_sym].join(" + ") + ") > 0"
+        end
+        extra_conditions += filter["count_#{fuzzy_filter}".to_sym] if filter["count_#{fuzzy_filter}".to_sym]
+        if extra_conditions.length > 0
+          filter[:conditions] << extra_conditions.map { |elm| "(#{elm})" }.join(" OR ")
+        end
+        
+        filter[:order].unshift("content_score_#{fuzzy_filter} DESC")
+        filter_output[:group] = "`#{content_model.table_name}`.id"
+      end
+    end
+
+    if filter[:conditions].length > 0
+      filter_output[:conditions] = [ filter[:conditions].map { |elm| "(#{elm})" }.join(" AND ") ] + filter[:values]
+      filter_output[:conditions] = filter_output[:conditions][0] if filter_output[:conditions].length == 1
+    end
+
+    
+    if filter[:order].length > 0
+      filter_output[:order] = filter[:order].uniq.join(", ")
+    end
+
+    if filter[:includes].length > 0
+      filter_output[:includes] = filter[:includes]
+    end
+
+
+    filter_output[:offset] = options[:offset] if options[:offset]
+
+
+    return filter_output
   end
   
-  def get_list_data(page = 1,options = {})
+  def get_list_data(page = 1,options = {},form_options = {})
     return nil  unless %w(list admin_list data).include?(self.publication_type)
     
-    filter_options = get_filter_conditions(options)
-    
+    filter_options = filter_conditions(options,form_options)
+
     mdl = self.content_model.content_model
     
     per_page = (options[:per_page] || self.options.entries_per_page || self.options.entries_displayed).to_i
     per_page = :all if per_page == 0
     
     filter_options[:per_page] =  per_page
+
+    pages,data = mdl.paginate(page, filter_options)
+
+    [ pages, resolve_filtered_data(data,filter_options) ]
+  end
+
+  # we might just have a bunch of classes with a id & a score
+  # need to pull the actual data out
+  def resolve_filtered_data(data,filter_options=[])
+    if !data.is_a?(Array)
+      data = [ data]
+      single = true
+    else
+      single = false
+    end
+    return nil unless data[0]
     
-    mdl.paginate(page, filter_options)
+    if data[0].attributes['content_score_a'] || data[0].attributes['content_score_b'] || data[0].attributes['content_score_c']
+      elems = data[0].class.find(:all,:include => filter_options[:include], :conditions => { :id => data.map(&:id) }).index_by(&:id)
+      output = data.map do |elm|
+        row = elems[elm.id]
+        if row
+          row.content_score_a = elm.attributes['content_score_a'].to_i
+          row.content_score_b = elm.attributes['content_score_b'].to_i
+          row.content_score_c = elm.attributes['content_score_c'].to_i
+          row
+        else
+          nil
+        end
+      end.compact
+      single ? output[0] : output
+    else
+      single ? data[0] : data
+    end
   end
   
   
-  def get_random_entry(options = {})
-    filter_options = get_filter_conditions(options)
+  def get_random_entry(options = {},form_options = {})
+    filter_options = filter_conditions(options,form_options)
     
     mdl = self.content_model.content_model
     
     cnt = mdl.count(:all,:conditions => filter_options[:conditions])
     
     num = rand(cnt)
-    mdl.find(:first,:conditions => filter_options[:conditions], :offset => num)
+    resolve_filtered_data(mdl.find(:first,:conditions => filter_options[:conditions], :offset => num),filter_options)
   end
   
-  def get_field_entry(field,val, options = {})
+  def get_field_entry(field,val, options = {},form_options ={})
     mdl = self.content_model.content_model
     if mdl.columns_hash[field.to_s] && val
-      filter_options = get_filter_conditions(options)
+      filter_options = filter_conditions(options,form_options)
       filter_options[:conditions][0] += " AND #{field} = ?"
       filter_options[:conditions] << val
       
-      cnt = mdl.count(:all,:conditions => filter_options[:conditions])
+      cnt = mdl.count(:all,filter_options.slice( :conditions, :joins, :include, :distinct, :having))
       
       if cnt > 0
         num = rand(cnt)
       else
         num = 0
       end
-      mdl.find(:first,:conditions => filter_options[:conditions], :offset => num)
+      resolve_filtered_data(mdl.find(:first,:conditions => filter_options[:conditions], :offset => num),filter_options)
     else
       return nil
     end
@@ -258,8 +413,8 @@ class ContentPublication < DomainModel
   
   # Get a specific entry id or the first entry, but make sure it matches
   # the filter conditions
-  def get_filtered_entry(entry_id,options = {})
-    filter_options = get_filter_conditions(options)
+  def get_filtered_entry(entry_id,options = {},form_options = {})
+    filter_options = filter_conditions(options,form_options)
     
     mdl = self.content_model.content_model
     
@@ -267,19 +422,19 @@ class ContentPublication < DomainModel
     
     if entry_id.to_sym == :first
       filter_options[:order] = 'id' unless filter_options[:order]
-      mdl.find(:first,:conditions => filter_options[:conditions],:order => filter_options[:order], :offset => filter_options[:offset] )
+      resolve_filtered_data(mdl.find(:first,filter_options),filter_options)
     else
-      mdl.find_by_id(entry_id,:conditions => filter_options[:conditions])
+      mdl.find_by_id(entry_id,filter_options)
     end
   end
   
-  def get_filtered_count(options = {})
+  def get_filtered_count(options = {},form_options = {})
     return nil unless self.publication_type == 'view'
     
-    filter_options = get_filter_conditions(options)
+    filter_options = filter_conditions(options,form_options)
     
     mdl = self.content_model.content_model
-    mdl.count(:all,:conditions => filter_options[:conditions])
+    mdl.count(:all, filter_options.slice( :conditions, :joins, :include, :distinct, :having))
   end
   
   

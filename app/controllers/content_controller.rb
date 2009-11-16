@@ -22,6 +22,7 @@ class ContentController < ModuleController
   register_handler :content, :feature, "Content::CoreFeature::EmailTargetConnect"
   register_handler :content, :feature, "Content::CoreFeature::FieldFormat"
   register_handler :content, :feature, "Content::CoreFeature::FieldAggregate"
+  register_handler :content, :feature, "Content::CoreFeature::KeywordGenerator"
   
   register_handler :trigger, :actions, "Trigger::CoreTrigger"
   
@@ -248,7 +249,7 @@ class ContentController < ModuleController
     
     @entry = @content_model.content_model.find_by_id(entry_id) || @content_model.content_model.new()
 
-    @header = "<script src='/javascripts/cms_form_editor.js' type='text/javascript'></script>"
+    require_js('cms_form_editor')
 
     if request.post?
       if params[:commit] 
@@ -418,7 +419,7 @@ class ContentController < ModuleController
       if @publication.save
       
         # Add all the fields by default
-        @publication.add_all_fields! unless @publication.start_empty[0].blank?
+        @publication.add_all_fields! if @publication.start_empty.blank?
         expire_content(@content_model)
       
         redirect_to :action => :publication, :path => [ @content_model.id, @publication.id ]
@@ -546,10 +547,7 @@ class ContentController < ModuleController
      end
      # Now we have:
      # [ [ position_1_index, position_1_data ], [ position_2_index, position_2_data ] ... ]
-     
-     if params[:options] && !params[:options][:entries_per_page].blank?
-      params[:options][:entries_per_page] = params[:options][:entries_per_page].to_i
-     end
+
      options = @publication.options(params[:options])
      
     @publication.data = options.to_h
@@ -580,9 +578,9 @@ class ContentController < ModuleController
       # Create a new object of the preset type,
       # and assign the preset value to the field
       # when we get it back out, should be in the correct format
-      if fld_data[:preset]
-        entry = @content_model.content_model.new(pub_field.content_model_field.field.to_sym => fld_data[:preset])
-        pub_field.data[:preset] = entry.send(pub_field.content_model_field.field.to_sym)
+      if fld_data[:preset] && !fld_data[:preset].blank?
+        entry = @content_model.content_model.new(pub_field.content_model_field.default_field_name.to_sym => fld_data[:preset])
+        pub_field.data[:preset] = entry.send(pub_field.content_model_field.default_field_name.to_sym)
       end
                        
       pub_field.save

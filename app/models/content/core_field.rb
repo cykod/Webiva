@@ -122,7 +122,7 @@ class Content::CoreField < Content::FieldHandler
     table_header :string
     
     content_display :text
-    filter_setup :like, :empty
+    filter_setup :like, :not_empty
     
     def form_field(f,field_name,field_opts,options={})
       field_opts[:class] = 'field_sring_field'
@@ -136,7 +136,7 @@ class Content::CoreField < Content::FieldHandler
     table_header :number
     
     content_display :text
-    filter_setup :like, :empty
+    filter_setup :like, :not_empty
     
     def form_field(f,field_name,field_opts,options={})
       field_opts[:class] = 'field_integer_field'
@@ -169,7 +169,7 @@ class Content::CoreField < Content::FieldHandler
     table_header :string
     
     content_display :html # Default to non-escaped value
-    filter_setup :like, :empty
+    filter_setup :like, :not_empty
     
     def form_field(f,field_name,field_opts,options={})
       field_opts[:class] = 'field_text_area'
@@ -191,7 +191,7 @@ class Content::CoreField < Content::FieldHandler
     table_header :string
     
     content_display :text
-    filter_setup :like, :empty
+    filter_setup :like, :not_empty
     
     def form_field(f,field_name,field_opts,options={})
       field_opts[:class] = 'field_email_field'
@@ -213,13 +213,13 @@ class Content::CoreField < Content::FieldHandler
     
     has_options :states,["AL","AK","AR","AS","AZ","CA","CO","CT","DC","DE","FL","FM","GA","GU","HI","IA","ID","IL", "IN","KS","KY","LA","MA","MD","ME","MH","MI","MN","MO","MP","MS","MT","NC","ND","NE","NH","NJ","NM","NV", "NY","OH","OK","OR","PA","PR","PW","RI","SC","SD","TN","TX","UT","VA","VI","VT","WA","WI","WV","WY" ]
     
-    filter_setup :like, :empty  
+    filter_setup :like, :not_empty  
   end
   
   class ImageField < Content::Field
     field_options :required
     table_header :has_relation
-    filter_setup :empty
+    filter_setup :not_empty
     
     
     setup_model :required do |cls,fld|
@@ -279,11 +279,12 @@ class Content::CoreField < Content::FieldHandler
     end
 
 
-    def site_feature_value_tags(c,name_base,size=:full)
+    def site_feature_value_tags(c,name_base,size=:full,options={})
+      local = options[:local]
       tag_name = @model_field.feature_tag_name
       fld = @model_field
       c.value_tag "#{name_base}:#{tag_name}_url" do |t|
-        file = t.locals.entry.send(fld.relation_name)
+        file = t.locals.send(local).send(fld.relation_name)
         if file
           file.url(t.attr['size'] || nil)
         else
@@ -311,12 +312,13 @@ class Content::CoreField < Content::FieldHandler
     end
 
 
-    def site_feature_value_tags(c,name_base,size=:full)
+    def site_feature_value_tags(c,name_base,size=:full,options={})
+      local = options[:local]
       tag_name = @model_field.feature_tag_name
       fld = @model_field
       
       c.value_tag("#{name_base}:#{tag_name}") do |t|
-        df = t.locals.entry.send(fld.relation_name)
+        df = t.locals.send(local).send(fld.relation_name)
         if df
           "<a href='#{df.url}' target='_blank'>#{h(df.name)}</a>"
         else
@@ -383,7 +385,7 @@ class Content::CoreField < Content::FieldHandler
 
    
     
-    filter_setup :like, :empty
+    filter_setup :like, :not_empty, :options
 
     # Let the publication display as radio, vertical radios or a select
     
@@ -412,7 +414,7 @@ class Content::CoreField < Content::FieldHandler
       entry.send("#{@model_field.field}?") ? @model_field.field_options['on'] : @model_field.field_options['off']
     end
     
-    filter_setup :like, :empty
+    filter_setup :like, :not_empty
     
   end
   
@@ -452,7 +454,7 @@ class Content::CoreField < Content::FieldHandler
       separator = options[:separator] || ', '
       h output.join(separator)    
     end
-    filter_setup :empty
+    filter_setup :not_empty, :multiple_like
   end
   
   
@@ -460,7 +462,7 @@ class Content::CoreField < Content::FieldHandler
     field_options :required
     setup_model :required,:validates_date
     
-    filter_setup :empty, :date_range
+    filter_setup :not_empty, :date_range
     
     table_header :date_range
     
@@ -480,7 +482,7 @@ class Content::CoreField < Content::FieldHandler
     field_options :required
     setup_model :required,:validates_datetime
     
-    filter_setup :empty, :date_range
+    filter_setup :not_empty, :date_range
     
     table_header :date_range
     
@@ -510,7 +512,7 @@ class Content::CoreField < Content::FieldHandler
 
     display_options_variables :control, :group_by_id
     
-    filter_setup :empty
+    filter_setup :not_empty
 
     
     
@@ -572,7 +574,29 @@ class Content::CoreField < Content::FieldHandler
       else
         nil
       end
-    end 
+    end
+
+
+    def site_feature_value_tags(c,name_base,size=:full,options = {})
+      tag_name = @model_field.feature_tag_name
+      local = options[:local] || 'entry'
+      
+      relation_name = @model_field.relation_name
+      if @model_field.relation_class == EndUser
+        c.expansion_tag("#{name_base}:#{relation_name}") do |t|
+          entry =  t.locals.send(local)
+          if entry
+            t.locals.user =  t.locals.send(local).send(relation_name)
+          else
+            nil
+          end
+        end
+        c.user_details_tags("#{name_base}:#{relation_name}",:local => :user)
+      else
+        #raise 'Unsupported'
+      end
+
+    end
 
     
   end
@@ -587,6 +611,8 @@ class Content::CoreField < Content::FieldHandler
       end
     end
 
+    filter_setup :include
+
     table_header :static
 
     display_options_variables :control, :group_by_id, :filter_by_id, :filter, :order_by_id
@@ -599,7 +625,7 @@ class Content::CoreField < Content::FieldHandler
           order_by = nil
         end
 
-        filter = field_opts.delete(:filter) || options[:filter]
+        filter = field_opts.delete(:filter_values) || options[:filter]
         if options[:filter_by_id] && (fltr_field =  ContentModelField.find_by_id(options[:filter_by_id])) && !filter.blank?
           conditions = { fltr_field.field => filter }
         else
@@ -616,25 +642,33 @@ class Content::CoreField < Content::FieldHandler
           end
           available_options = available_options.to_a.sort { |a,b| a[0] <=> b[0] }
           control = :grouped_check_boxes
+
         else
           available_options = cls.select_options(:conditions => conditions,:order => order_by)
 
           if !order_by
             available_options.sort! { |a,b| a[0].downcase <=> b[0].downcase }
           end
+
           
           control = :check_boxes
         end
 
-        
         case options.delete(:control).to_s
         when 'checkbox'
+#           "#{@model_field.field_options['relation_singular']}_ids"
           field_opts[:class] = 'check_boxes'
-          f.send(control, "#{@model_field.field_options['relation_singular']}_ids",available_options , field_opts.merge(options))
+          f.send(control,field_name, available_options, field_opts.merge(options.merge({:integer => true})))
+        when 'selects'
+          if control == :grouped_check_boxes
+            f.multiple_grouped_selects(field_name,[['',[["--Select--".t,nil]]]] + available_options, field_opts.merge(options.merge({:integer => true})))
+          else
+            f.multiple_selects(field_name,[["--Select--".t,nil]] + available_options, field_opts.merge(options.merge({:integer => true})))
+          end
         else
           field_opts[:class] = 'check_boxes'
           field_opts[:separator] = '<br/>'
-          f.send(control,"#{@model_field.field_options['relation_singular']}_ids",available_options , field_opts.merge(options))
+          f.send(control,field_name,available_options , field_opts.merge(options.merge({:integer => true})))
         end
       else
         f.custom_field field_name, options.merge(field_opts.merge(:value => 'Invalid Relation' ))
@@ -663,18 +697,30 @@ class Content::CoreField < Content::FieldHandler
       end
     end
 
+    def default_field_name
+      "#{@model_field.field_options['relation_singular']}_ids"
+    end
+
     def form_display_options(pub_field,f)
       mdl  =  pub_field.content_model_field.content_model_relation
       if mdl
-        f.radio_buttons(:control, [ ['Check Boxes','checkbox '], ['Vertical Check Boxes','vertical_checkbox' ] ]) + 
+        f.radio_buttons(:control, [ ['Check Boxes','checkbox'], ['Vertical Check Boxes','vertical_checkbox' ], ['Multiple Selects','selects' ]]) + 
           f.select(:group_by_id, [["--Don't Group Fields--".t,nil ]] + mdl.content_model_fields.map { |fld| [fld.name, fld.id ]} ) +
           f.select(:filter_by_id, [["--Don't Allow Filtering--".t,nil ]] + mdl.content_model_fields.map { |fld| [fld.name, fld.id ]} ) +
-          f.text_field(:filter, :description => "Can be overridden in a site feature by adding a 'filter' attribute to the field") +
-            f.select(:order_by_id, [["--Use Default Order--".t,nil ]] + mdl.content_model_fields.map { |fld| [fld.name, fld.id ]} ) 
+          f.text_field(:filter_values, :description => "Can be overridden in a site feature by adding a 'filter' attribute to the field") +
+           f.select(:order_by_id, [["--Use Default Order--".t,nil ]] + mdl.content_model_fields.map { |fld| [fld.name, fld.id ]} ) 
       else
         nil
       end
-    end 
+    end
+
+    def filter_display_options(pub_field,f)
+      mdl  =  pub_field.content_model_field.content_model_relation
+      if mdl
+        f.header("Exposed Filter Display Options",:description => 'If the filter is exposed, the options below control how the options are displayed') + 
+          form_display_options(pub_field,f)
+      end
+    end
     
   end
 
@@ -685,7 +731,11 @@ class Content::CoreField < Content::FieldHandler
     table_header :none
 
     def content_display(entry,size,options={})
-      h(@model_field.name)
+      nil # h(@model_field.name)
+    end
+
+    def content_value(entry)
+      nil
     end
 
     def data_field?; false; end
