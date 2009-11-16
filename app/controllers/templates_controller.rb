@@ -304,7 +304,6 @@ class TemplatesController < CmsController
         @doc = details[2].document_feature(self,details[1],data)
       end
     rescue Exception => e
-      raise e
       @doc = nil
     end
     
