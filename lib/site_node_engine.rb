@@ -34,7 +34,9 @@ class SiteNodeEngine
 
       return page,path_args
     end  
-  
+
+    # If we have a document's node, which is a file or any data
+    # return that
     def handle_document_node(output,page)
     
       # if we have data, just output the data
@@ -123,7 +125,7 @@ class SiteNodeEngine
             raise opts[:connections].inspect if paragraph.display_type=='publications_list' && opts[:repeat_count] == 1
             if opts[:connections][input[0].to_s] && opts[:connections][input[0].to_s][input[1].to_sym]
               paragraph.set_page_connections(input_key.to_sym => opts[:connections][input[0].to_s][input[1].to_sym])
-            elsif !opts[:edit]
+            elsif !opts[:edit] && !opts[:ajax]
               return nil
               #paragraph.info[:cache] = false # We might not have the right connections if we are in the pre-compile step
             end
