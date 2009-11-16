@@ -289,11 +289,11 @@ class SiteNode < DomainModel
       node_path = self.parent.node_path
     end
     
-	unless node_path[-1..-1] == '/'
-		node_path += '/'
-	end
-	
-	node_path +=  self.title.to_s
+    unless node_path[-1..-1] == '/'
+      node_path += '/'
+    end
+    
+    node_path +=  self.title.to_s
     
     self.node_path = node_path
     self.node_level = self.parent ?  self.parent.node_level.to_i + 1 : 0
