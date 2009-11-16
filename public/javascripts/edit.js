@@ -1013,7 +1013,7 @@ var cmsEdit = {
     var params = $H({ para_index: para_index,
                       paragraph_id: para.paragraph_id,
                       feature_type: p_features[0] });
-    cmsEdit.styleWin =  openWindow(cmsEdit.templateUrl('popup_feature') + "?" + Object.toQueryString(params),'EditStyle',900,600,'yes','yes');
+    cmsEdit.styleWin =  openWindow(cmsEdit.templateUrl('popup_feature') + "?" + Object.toQueryString(params),'EditStyle' + cmsEdit.revisionId ,900,600,'yes','yes');
       cmsEdit.styleWin.focus();
     cClick();
   },
@@ -1038,7 +1038,7 @@ var cmsEdit = {
     var params = $H({ para_index: para_index,
                       paragraph_id: para.paragraph_id,
                       feature_id: feature_id });
-    cmsEdit.styleWin = openWindow(cmsEdit.templateUrl('popup_feature',feature_id) + "?" + Object.toQueryString(params),'EditStyle',900,600,'yes','yes');
+    cmsEdit.styleWin = openWindow(cmsEdit.templateUrl('popup_feature',feature_id) + "?" + Object.toQueryString(params),'EditStyle' + cmsEdit.revisionId,900,600,'yes','yes');
       cmsEdit.styleWin.focus();
     cClick();
   },
@@ -1320,6 +1320,9 @@ var cmsEdit = {
 
 
 }
+
+
+window.onbeforeunload = cmsEdit.closeStyleWin;
 
 
 /* Generic Paragraph Editor */
