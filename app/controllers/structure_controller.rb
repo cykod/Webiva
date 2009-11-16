@@ -61,11 +61,25 @@ class StructureController < CmsController
     
     old_path = node.node_path;
 
-    if node && parent_node
-      node.move_to_child_of(parent_node)
-      #SiteNode.update_paragraph_links(old_path,node.node_path)
+    begin
+      if node && parent_node && node.parent_id != parent_node.id
+        node.move_to_child_of(parent_node)
+        node.reload
+        node.save
+        #SiteNode.update_paragraph_links(old_path,node.node_path)
+      end
+    rescue ActiveRecord::ActiveRecordError
+      SiteNode.rebuild!
+      if node && parent_node
+        node.move_to_child_of(parent_node)
+        node.reload
+        node.save
+        Configuration.log_config_error('Had to rebuild site tree')
+        #SiteNode.update_paragraph_links(old_path,node.node_path)
+      end
     end
-    
+
+
     render :nothing => true
   end
   
