@@ -176,15 +176,24 @@ class ParagraphRenderer < ParagraphFeature
       self.new(UserClass.get_class('domain_user'),ApplicationController.new,PageParagraph.new,SiteNode.new,PageRevision.new)
   end
   
-  def self.document_feature(name,data={})
+  def self.document_feature(name,data={},publication=nil)
     rnd = self.dummy_renderer
     rnd.set_documentation(true)
-    rnd.send(name,data)
+    if publication
+      rnd.send("#{publication.feature_method_name}_feature",publication,data)
+    else
+      rnd.send(name,data)
+    end
   end
 
+
   class CaptureDataException < Exception
-    def initialize(data)
-      @data = data
+    def initialize(pub,data=nil)
+      if data
+        @data = data
+      else
+        @data = pub
+      end
     end
 
     attr_reader :data     
@@ -275,6 +284,7 @@ class ParagraphRenderer < ParagraphFeature
     end
     if args[:feature]
       feature = args.delete(:feature)
+      raise "Undefined feature: #{feature}" unless self.respond_to?("#{feature}_feature") 
       args[:text] = self.send("#{feature}_feature") 
     end
     if args[:partial] && !args[:locals]

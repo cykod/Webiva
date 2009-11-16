@@ -42,9 +42,6 @@ class ParagraphFeature
     feature.send(name,data)
   end
   
-  
-
-
   def self.feature(type,opts = {})
     features = self.available_features
     features << type
@@ -116,43 +113,45 @@ class ParagraphFeature
       end
     end
 
-    def value_tag_helper(tag,field,&block)
-      val = yield(tag)
-      if tag.single?
-        val
+    def value_tag_helper(t,field,val)
+      t.locals.send("#{field}=",val)
+      if t.attr['equals']
+        eql = val.is_a?(Integer) ? t.attr['equals'].to_i : t.attr['equals']
+        val == eql ? t.expand : nil
+      elsif t.attr['contains']
+        contains = t.attr['contains'].to_s.split(",").map { |elm| elm.strip.blank? ? nil : elm.strip }.compact
+        contains.include?(val) ? t.expand : nil
+      elsif t.attr['include']
+        inc = val.is_a?(Array) && val.include?(t.attr['include'])
+        inc ? t.expand : nil
+      elsif t.attr['not_equals']
+        eql = val.is_a?(Integer) ? t.attr['not_equals'].to_i : tar.attr['not_equals']
+        val != eql ? t.expand : nil
+      elsif t.attr['min']
+        min = val.is_a?(Integer) ? t.attr['min'].to_i : tar.attr['min']
+        val >= min ? t.expand : nil
+      elsif t.attr['max']
+        max = val.is_a?(Integer) ? t.attr['max'].to_i : tar.attr['max']
+        val <= max ? t.expand : nil
+      elsif t.attr['link']
+        
       else
-        tag.locals.send("#{field}=",val)
-        if tag.attr['equals']
-          eql = val.is_a?(Integer) ? tag.attr['equals'].to_i : tag.attr['equals']
-          val == eql ? tag.expand : nil
-        elsif tag.attr['contains']
-          contains = tag.attr['contains'].to_s.split(",").map { |elm| elm.strip.blank? ? nil : elm.strip }.compact
-          contains.include?(val) ? tag.expand : nil
-        elsif tag.attr['include']
-          inc = val.is_a?(Array) && val.include?(tag.attr['include'])
-          inc ? tag.expand : nil
-        elsif tag.attr['not_equals']
-          eql = val.is_a?(Integer) ? tag.attr['not_equals'].to_i : tar.attr['not_equals']
-          val != eql ? tag.expand : nil
-        elsif tag.attr['min']
-          min = val.is_a?(Integer) ? tag.attr['min'].to_i : tar.attr['min']
-          val >= min ? tag.expand : nil
-        elsif tag.attr['max']
-          max = val.is_a?(Integer) ? tag.attr['max'].to_i : tar.attr['max']
-          val <= max ? tag.expand : nil
+        if val.is_a?(Array)
+          val.length == 0 || val[0].blank? ? nil : t.expand
         else
-          if val.is_a?(Array)
-            val.length == 0 || val[0].blank? ? nil : tag.expand
-          else
-            val.blank? ? nil : tag.expand
-          end
+          val.blank? ? nil : t.expand
         end
       end
     end
     
     def define_value_tag(name,field='value',&block)
       define_tag(name) do |tag|
-        value_tag_helper(tag,field,&block)
+        val = yield(tag)
+        if tag.single?
+          val
+        else
+          value_tag_helper(tag,field,val)
+        end
       end
       
       name_parts = name.split(":")
@@ -436,6 +435,11 @@ class ParagraphFeature
           obj = yield tag if block_given?
           if obj || !block_given?
             opts = options.clone
+            if obj.is_a?(Hash)
+              arg = obj.delete(:object)
+              opts = opts.merge(obj)
+              obj = arg
+            end
             opts[:url] ||= ''
             frm_tag =  form_tag(opts.delete(:url), opts.delete(:html) || {}) + opts.delete(:code).to_s
             cms_unstyled_fields_for(arg,obj,opts) do |f|
@@ -511,12 +515,14 @@ class ParagraphFeature
                 :name => name,
                 :value => t.attr['value'] || options[:value] || 'Submit',
                 :src => t.expand,
+                :id => t.attr['id'] || options[:id],
                 :align => :absmiddle,
                 :onclick => onclick )
           else
               tag('input', { :type => 'submit',
                     :class => 'submit_tag',
                     :name => name,
+                    :id => t.attr['id'] || options[:id],
                     :value => t.single? ?
                     (t.attr['value'] || options[:value] || 'Submit') : t.expand,
                     :onclick => onclick })
@@ -746,6 +752,36 @@ class ParagraphFeature
       end
       output
     end
+
+    def define_publication_filter_fields_tags(prefix,arg,publication,options={})
+
+      if block_given?
+        define_expansion_tag("#{prefix}_search") { |t| yield(t) }
+      else
+        define_expansion_tag("#{prefix}_search") { |t| false }
+      end
+
+      
+      define_button_tag("#{prefix}:submit",:value => 'Search')
+      define_button_tag("#{prefix}:clear",:value => 'Clear',:name => "clear_#{arg}")
+      publication.content_publication_fields.each do |fld|
+        if !fld.options.filter.blank? && fld.options.filter_options.include?('expose')
+          fld.filter_variables.each do |var|
+            define_value_tag("#{prefix}:#{var}_value") do |t|
+              obj = t.locals.send(arg).object
+              obj.send(var)
+            end
+          end
+          fld.filter_names.each do |variable|
+          
+            define_tag("#{prefix}:#{fld.content_model_field.feature_tag_name}_#{variable}") do |t|
+              fld.filter_options(t.locals.send(arg),variable,t.attr)
+            end
+          end
+        end
+      end
+    end
+
 
     # Can only be used in webiva_custom_feature
     def define_publication_field_tags(prefix,publication,options = {})
@@ -1064,19 +1100,20 @@ class ParagraphFeature
     def each_local_value(arr,tag,field = 'value')
       output = ''
       return nil unless arr.is_a?(Array)
-       arr.each_with_index do |value,idx|
-          tag.locals.send("#{field}=",value)
-          tag.locals.first = value == arr.first
-          tag.locals.last =  value == arr.last
-          tag.locals.index =  idx+1
-          if block_given?
-            data = yield value, tag
-            output += data.to_s
-          else
-            output += tag.expand
-          end
+      last = arr.length-1
+      arr.each_with_index do |value,idx|
+        tag.locals.send("#{field}=",value)
+        tag.locals.first = idx == 0
+        tag.locals.last =  idx == last
+        tag.locals.index =  idx+1
+        if block_given?
+          data = yield value, tag
+          output += data.to_s
+        else
+          output += tag.expand
         end
-        output
+      end
+      output
     end
     
     def define_post_button_tag(tag_name,options = {})
@@ -1179,6 +1216,29 @@ class ParagraphFeature
 
     end
 
+    def define_publication_filter_fields_tags(prefix,arg,publication,options={})
+
+      define_form_for_tag(prefix)
+      define_expansion_tag("#{prefix}_search")
+      
+      define_button_tag("#{prefix}:search",:value => 'Search')
+      define_button_tag("#{prefix}:clear",:value => 'Clear',:name => "clear_#{arg}")      
+
+      define_field_fields_tag("#{prefix}:fields")
+      publication.content_publication_fields.each do |fld|
+        if !fld.options.filter.blank? && fld.options.filter_options.include?('expose')
+
+          fld.filter_variables.each do |var|
+            define_value_tag("#{prefix}:#{var}_value")
+          end
+          fld.filter_names.each do |variable|
+            define_tag("#{prefix}:#{fld.content_model_field.feature_tag_name}_#{variable}")
+          end
+
+        end
+      end
+    end
+    
     def define_user_address_tags(name_base,options={})
       define_value_tag("#{name_base}:display")
       
@@ -1192,7 +1252,11 @@ class ParagraphFeature
       @method_list << [ "Escaped value tag",tg ]
     end
 
-    def define_publication_field_tags(prefix,publication,options)
+
+    def define_publication_field_tags(prefix,publication,options={})
+      c = self
+      local = options.delete(:local) || 'entry'
+      
       publication.content_publication_fields.each do |fld|
         if fld.content_model_field.data_field?
           tag_name = fld.content_model_field.feature_tag_name
@@ -1203,7 +1267,7 @@ class ParagraphFeature
             value_tag "#{prefix}:#{tag_name}_display"
             define_form_field_error_tag "#{prefix}:#{tag_name}_error"
           elsif fld.field_type == 'value'
-            fld.content_model_field.site_feature_value_tags(c,prefix,:full)
+            fld.content_model_field.site_feature_value_tags(c,prefix,:full,:local => local)
           end
         end
       end
@@ -1252,8 +1316,14 @@ class ParagraphFeature
   def set_documentation(val)
    @display_documentation = val
   end
-    
 
+  # Run a feature where the tags need to be re-parsed each time
+  # dummy file
+  def webiva_custom_feature(feature_name,data={},&block)
+    webiva_feature(feature_name,data,&block)
+  end
+
+  # Run a feature that can be cached 
   def webiva_feature(feature_name,data={})
   if !self.documentation
      parser_context = FeatureContext.new(self) do |c| 
@@ -1276,10 +1346,10 @@ class ParagraphFeature
   end
  end
  
- def webiva_custom_feature(feature_content)
-    parser_context = FeatureContext.new(self) { |c| yield c }
-    parse_feature(SiteFeature.new(:body_html => feature_content),parser_context)
- end
+#  def webiva_custom_feature(feature_content)
+#    parser_context = FeatureContext.new(self) { |c| yield c }
+#    parse_feature(SiteFeature.new(:body_html => feature_content),parser_context)
+# end
     
   
  def get_feature(type,options = {})
@@ -1312,9 +1382,17 @@ class ParagraphFeature
       begin
         feature_parser.parse(feature.body_html || feature.body)
       rescue  Radius::MissingEndTagError => err
-        "<div><b>#{'Feature Definition Contains an Error'.t}</b><br/>#{err.to_s.t}</div>"
+        if myself.editor?
+          "<div><b>#{'Feature Definition Contains an Error'.t}</b><br/>#{err.to_s.t}</div>"
+        else
+          ""
+        end
       rescue Radius::UndefinedTagError => err
-        "<div><b>#{'Feature Definition Contains an Undefined tag:'.t}</b>#{err.to_s.t}</div>"
+        if myself.editor?
+          "<div><b>#{'Feature Definition Contains an Undefined tag:'.t}</b>#{err.to_s.t}</div>"
+        else
+          ""
+        end
       end
   end
   
