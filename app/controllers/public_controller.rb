@@ -72,9 +72,9 @@ class PublicController < ApplicationController
       
       render :nothing => true if RAILS_ENV == 'test'
       if USE_X_SEND_FILE
-        x_send_file(name,:type => mime_type) #,:disposition => 'inline',:filename => df.name)    
+        x_send_file(name,:type => mime_type,:disposition => 'inline',:filename => df.name)    
       else
-        send_file(name,:type => mime_type) #,:disposition => 'inline',:filename => df.name)    
+        send_file(name,:type => mime_type,:disposition => 'inline',:filename => df.name)    
       end
     elsif df && DomainFile.image_sizes_hash[size.to_sym]
       df.generate_thumbnails(true)
@@ -83,9 +83,9 @@ class PublicController < ApplicationController
       mime_type = mime_types[0] ? mime_types[0].to_s : 'application/octet-stream'
 
        if USE_X_SEND_FILE
-         x_send_file(abs_name,:type => mime_type) #,:filename => df.name)    
+         x_send_file(name,:type => mime_type,:filename => df.name)    
        else
-         send_file(abs_name,:type => mime_type) #,:filename => df.name)    
+         send_file(name,:type => mime_type,:filename => df.name)    
        end
 
       
