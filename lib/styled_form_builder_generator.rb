@@ -253,6 +253,38 @@ module EnhancedFormElements
       name = "#{@object_name}[#{field}]#"
       select_tag(name,opts,html_options)
     end
+
+    def multiple_selects(field,choices,options={},html_options={})
+      labels = options[:labels].to_s.split(",").map { |elm| elm.to_s.strip }
+      number = (options.delete(:number)||1).to_i
+      number = 1 if number < 1
+      number = 10 if number > 10
+      separator = options.delete(:separator)||"<br/>"
+      obj_val = @object.send(field) if @object
+      obj_val = [obj_val] unless obj_val.is_a?(Array)
+      obj_val = obj_val.map(&:to_i) if options.delete(:integer)
+      name = "#{@object_name}[#{field}][]"
+      (1..number).map do |idx|
+        opts = @template.options_for_select(choices,obj_val[idx-1])
+        labels[idx-1].to_s + select_tag(name,opts,html_options)
+      end.join(separator)
+    end
+
+    def multiple_grouped_selects(field,choices,options={},html_options={})
+      labels = options[:labels].to_s.split(",").map { |elm| elm.to_s.strip }
+      number = (options.delete(:number)||1).to_i
+      number = 1 if number < 1
+      number = 10 if number > 10
+      separator = options.delete(:separator)||"<br/>"
+      obj_val = @object.send(field) if @object
+      obj_val = [obj_val] unless obj_val.is_a?(Array)
+      obj_val = obj_val.map(&:to_i) if options.delete(:integer)
+      name = "#{@object_name}[#{field}][]"
+      (1..number).map do |idx|
+        opts = @template.grouped_options_for_select(choices,obj_val[idx-1])
+        labels[idx-1].to_s + select_tag(name,opts,html_options)
+      end.join(separator)
+    end
     
     def radio_buttons(field,tag_values,options = {})
       output = ""
@@ -306,11 +338,15 @@ module EnhancedFormElements
       singular = opts.delete(:single)
       field_array = singular ? '' : "[]"
       separator = opts.delete(:separator) || ' &nbsp; '
+      to_iize = opts.delete(:integer)
 
-      output += hidden_field_tag("#{@object_name}[#{field}]#{field_array}",'',:id => "#{@object_name}_#{field}_empty")       
+      output += hidden_field_tag("#{@object_name}[#{field}]#{field_array}",'',:id => "#{@object_name}_#{field}_empty") unless opts.delete(:no_blank)
       tag_values.each do |val|
         if(val.is_a?(Array)) 
           obj_val = @object.send(field) if @object
+          if to_iize && obj_val && obj_val.is_a?(Array)
+            obj_val = obj_val.map { |elm| elm.to_i }
+          end
           if obj_val && ((obj_val.is_a?(Array) && obj_val.include?(val[1]) || obj_val == val[1] ))
             checked=true
           else
