@@ -180,6 +180,7 @@ var StructureEditor = {
     
     }
     else {
+      if(StructureEditor.movingNode) return false;
       if(id) {
 	      if(StructureEditor.nodeSelectedType != node_type || StructureEditor.nodeSelected != id) {
 	        StructureEditor.loadElementInfo(node_type,id);
@@ -240,7 +241,6 @@ var StructureEditor = {
   },
   
   loadElementInfo:function(node_type,node_id) {
-  		
       var url =   StructureEditor.elementInfoURL
       
       if(node_type == 'node') {
@@ -378,6 +378,7 @@ var StructureEditor = {
       
       parentDiv.removeChild(drag);
       
+      StructureEditor.movingNode = true;
       
       var req = $H({
         node_id: drag.node_id,
@@ -389,6 +390,8 @@ var StructureEditor = {
                   {
                       parameters : req.toQueryString(),
                       onComplete : function(resp) {
+                        StructureEditor.movingNode = false;
+                        StructureEditor.selectNode('node',drag.node_id);
                       }
                   }
                   );               
