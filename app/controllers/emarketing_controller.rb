@@ -28,9 +28,9 @@ class EmarketingController < CmsController
   active_table :visitor_table,
                 DomainLogSession,
                 [ ActiveTable::StaticHeader.new('user', :label => 'Who'),
-                  ActiveTable::OrderHeader.new('first_access', :label => 'When'),
-                  ActiveTable::OrderHeader.new('page_count', :label => 'Pages'),
-                  ActiveTable::OrderHeader.new('time_on_site', :label => 'Stayed')
+                  ActiveTable::DateRangeHeader.new('created_at', :label => 'When'),
+                  ActiveTable::StaticHeader.new('page_count', :label => 'Pages'),
+                  ActiveTable::StaticHeader.new('time_on_site', :label => 'Stayed')
                 ]
   
   def visitor_table_output(opts)
