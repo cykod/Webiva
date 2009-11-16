@@ -187,6 +187,7 @@ class EndUser < DomainModel
 
   ## Action Functionality
   def action(action_path,opts = {})
+    opts[:level] ||= 3
     EndUserAction.log_action(self,action_path,opts)
   end
 
