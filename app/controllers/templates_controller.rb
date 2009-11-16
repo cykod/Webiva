@@ -294,15 +294,17 @@ class TemplatesController < CmsController
     cms_page_path [ "Options", "Design Templates", "Site Features"], [ '"%s" Feature', nil, @feature.name ] 
     
     details = @feature.feature_details
+    # [ Human Name, feature_name, Renderer, Publication ]
 
     # Try to generate automatic feature tag documentation
     begin
       if details[3] # If we have a publication
-        @doc = details[2].document_feature(self,details[1],details[3])
+        @doc = details[2].document_feature(self,details[1],data,details[3])
       else
         @doc = details[2].document_feature(self,details[1],data)
       end
     rescue Exception => e
+      raise e
       @doc = nil
     end
     
