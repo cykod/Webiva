@@ -17,7 +17,7 @@ class DomainModel < ActiveRecord::Base
   include ModelExtension::OptionsExtension
   
   cattr_accessor :logger
-  
+
   def self.active_domain
     @@active_domain[Process.pid]  || {}
   end
@@ -57,35 +57,34 @@ class DomainModel < ActiveRecord::Base
 
   
   def self.paginate(page,args = {})
-      window_size =args.delete(:window) || 2
+    args = args.clone.symbolize_keys!
+    window_size =args.delete(:window) || 2
+    
+    page_size = args.delete(:per_page).to_i
+    page_size = 20 if page_size <= 0
+    
+    count_args = args.slice( :conditions, :joins, :include, :distinct, :having)
+    
+    if page_size.is_a?(Integer)
+
+      total_count = self.count(count_args)
+      pages = (total_count.to_f / (page_size || 10)).ceil
+      pages = 1 if pages < 1
+      page = (page ? page.to_i : 1).clamp(1,pages)
       
-      page_size = args.delete(:per_page).to_i
-      page_size = 20 if page_size <= 0
+      offset = (page-1) * page_size
       
-      count_args = {}
-      [ :conditions, :joins, :include, :distinct ].each do |cnd| 
-        count_args[cnd] = args[cnd] if args[cnd]  
-      end
-      
-      
-      if page_size.is_a?(Integer)
-	      total_count = self.count(count_args)
-	      pages = (total_count.to_f / (page_size || 10)).ceil
-	      pages = 1 if pages < 1
-	      page = (page ? page.to_i : 1).clamp(1,pages)
-	
-	      offset = (page-1) * page_size
-	
-	      args[:offset] = offset
-	      args[:limit] = page_size
-      else
-        total_count = 0
-        page = 1
-        pages = 1
-      end
-      items = self.find(:all,args)
-      
-      [ { :pages => pages, :page => page, :window_size => window_size, :total => total_count }, items ]
+      args[:offset] = offset
+      args[:limit] = page_size
+    else
+      total_count = 0
+      page = 1
+      pages = 1
+    end
+
+    items = self.find(:all,args)
+    
+    [ { :pages => pages, :page => page, :window_size => window_size, :total => total_count }, items ]
     
       
   end
