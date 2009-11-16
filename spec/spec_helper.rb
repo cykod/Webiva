@@ -167,7 +167,7 @@ module Spec
       
       def mock_user(email = 'test@webiva.com')
         # get me a client user to ignore any permission issues    
-        @myself = EndUser.push_target('test@webiva.com')
+        @myself = EndUser.push_target(email)
         controller.should_receive('myself').at_least(:once).and_return(@myself)
       end
       
