@@ -30,7 +30,7 @@ class EditController < ModuleController
   register_action '/editor/auth/login', :description => 'User Logged in', :level => 2
   register_action '/editor/auth/logout', :description => 'User Logged Out', :level => 2
   register_action '/editor/auth/cookie', :description => 'User Cookie Login', :level => 2
-
+  register_action '/members/edit', :description => 'Admin account edit', :level => 2
 
 
   private
@@ -578,8 +578,18 @@ class EditController < ModuleController
     @paragraphs = @revision.page_paragraphs
     
 #    if @page.is_a?(SiteNode) || true
-      @outputs = { :integer => [ [ 0, 'Page', :page_arg_0, 'Argument #1 - ' + @page.node_path + "/XXX", :integer ], [ 0, 'Page', :page_arg_1, 'Argument #2 - ' + @page.node_path + "/xxx/YYY", :integer ]  ],
-      :path => [ [ 0, 'Page', :page_arg_0, 'Argument #1 - ' + @page.node_path + "/XXX", :path ], [ 0, 'Page', :page_arg_1, 'Argument #2 - ' + @page.node_path + "/xxx/YYY", :path ]  ],
+    @outputs = {
+      :integer => [
+                   [ 0, 'URL', :page_arg_0, 'Page Argument #1 - ' + @page.node_path+ "/XXX", :integer ], 
+                   [ 0, 'URL', :page_arg_1, 'Page Argument #2 - ' + @page.node_path + "/xxx/YYY", :integer ],
+                   [ 0, 'URL', :page_arg_2, 'Page Argument #3 - ' + @page.node_path + "/xxx/yyy/ZZZ", :integer ] 
+                   ],
+      :path => [
+                [ 0, 'Page', :page_arg_0, "Argument #1 - " + @page.node_path + "/XXX", :path ], 
+                [ 0, 'Page', :page_arg_1, "Argument #2 - " + @page.node_path + "/xxx/YYY", :path ],  
+                [ 0, 'Page', :page_arg_1, "Argument #2 - " + @page.node_path + "/xxx/yyy/ZZZ", :path ]
+
+              ],
       :title => [ [  0, 'Page Title', :title, 'Page Title', :title ]],
                    :user => [ [ 0, 'User ID', :user_id, 'User ID', :user ] ],
                    :target => [ [ 0, 'Active User', :user_target, 'User', :target ] ],                   
@@ -591,6 +601,32 @@ class EditController < ModuleController
     @inputs = []
     # Build the list of available outputs
     @paragraphs.each do |para|
+      if para.content_publication
+        para_info = para.editor_info
+        
+        info = para.content_publication.page_connections
+        if info[:outputs]
+          info[:output].each do |pout|
+            @outputs[pout[2]] ||= []
+            @outputs[pout[2]] << [ para.identity_hash || para.id.to_s, para_info[:name]] + pout
+          end
+        end
+
+        if info[:inputs]
+          selected_input = (para.connections||{})[:inputs] || {}
+          info[:inputs].each do |key,input|
+
+            # paragraph id | other paragraph argument | my argument
+            selected_value = selected_input[key.to_sym].map(&:to_s).join("|") if  selected_input[key.to_sym]
+            @inputs << { :paragraph_id =>  para.identity_hash || para.id.to_s, 
+                         :input_name => key.to_s.humanize,
+                         :input_key => key,                         
+                         :info => para_info,
+                         :input => input,
+                         :selected => selected_value }
+          end
+        end
+      end
       if para.display_module
         info = para.editor_info
         
@@ -604,26 +640,25 @@ class EditController < ModuleController
         if info[:inputs]
           if info[:inputs].is_a?(Array)
             selected = (para.connections||{})[:inputs] || {}
-            selected_value = "#{selected[:input][0]}_#{selected[:input][1]}" if selected[:input]
-              
+            selected_value = selected[:input].map(&:to_s).join("|") if  selected[:input]
+
             @inputs << { :paragraph_id =>  para.identity_hash || para.id.to_s, 
-                         :input_name => 'Input',
-                         :input_key => 'input',
-                         :info => info,
-                         :input => info[:inputs], 
-                         :selected => selected_value }
+              :input_name => 'Input',
+              :input_key => 'input',
+              :info => info,
+              :input => info[:inputs], 
+              :selected => selected_value }
           elsif info[:inputs].is_a?(Hash)
             selected_input = (para.connections||{})[:inputs] || {}
             
             info[:inputs].each do |key,input|
-
-            selected_value = "#{selected_input[key.to_sym][0]}_#{selected_input[key.to_sym][1]}" if selected_input[key.to_sym]
-            @inputs << { :paragraph_id =>  para.identity_hash || para.id.to_s, 
-                         :input_name => key.to_s.humanize,
-                         :input_key => key,                         
-                         :info => info,
-                         :input => input,
-                         :selected => selected_value }
+              selected_value = selected_input[key.to_sym].map(&:to_s).join("|") if  selected_input[key.to_sym]
+              @inputs << { :paragraph_id =>  para.identity_hash || para.id.to_s, 
+                :input_name => key.to_s.humanize,
+                :input_key => key,                         
+                :info => info,
+                :input => input,
+                :selected => selected_value }
             end
           
           end

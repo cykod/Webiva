@@ -16,7 +16,7 @@
               <% options = capture do %>
                 <% @outputs[inp[2]].each do |output| %>
                   <% if output[0] != para[:paragraph_id] %>
-                    <option <%= "selected='selected'" if para[:selected] == "#{output[0]}_#{output[2]}" %> value='<%= "#{output[0]}|#{output[2]}|#{inp[0]}" %>'><%= inp[1].t %> - <%= output[1].t %> - <%= output[3].t %></option>
+                    <option <%= "selected='selected'" if para[:selected] == "#{output[0]}|#{output[2]}|#{inp[0]}" %> value='<%= "#{output[0]}|#{output[2]}|#{inp[0]}" %>'>[<%= output[1].t %> - <%= output[3].t %>] &raquo; <%= vh inp[1].t %></option>
                   <% end -%>                
                 <% end -%>
               <% end -%>
