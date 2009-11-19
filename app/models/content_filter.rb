@@ -84,9 +84,10 @@ class ContentFilter < DomainModel
 
   
   def self.markdown_replace_images(code,image_folder_path)
-    cd =  code.gsub(/\!\[([^\]]+)\]\(([^"')]+)/) do |mtch|
-      alt_text = $1
-      full_url = $2
+    cd =  code.gsub(/(\!?)\[([^\]]+)\]\(([^"')]+)/) do |mtch|
+      img = $1
+      alt_text = $2
+      full_url = $3
       image_path,size = full_url.strip.split("::")
       if image_path =~ /^http(s|)\:\/\// && full_url[0..0] == '/'
         url = full_url
@@ -94,7 +95,7 @@ class ContentFilter < DomainModel
         df = DomainFile.find_by_file_path(image_folder_path + "/" + image_path)
         url = df ? df.editor_url(size) :  "/images/site/missing_thumb.gif" 
       end
-      "![#{alt_text}](#{url} "
+      "#{img}[#{alt_text}](#{url} "
     end
 
     cd
