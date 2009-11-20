@@ -586,7 +586,7 @@ EOF
       end 
 
       if unrendered > 0 
-        raise page_connections.inspect + ': Unrendered Paragraphs'
+        # raise page_connections.inspect + ': Unrendered Paragraphs'
       end
     end
   
