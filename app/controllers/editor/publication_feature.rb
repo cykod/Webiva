@@ -17,15 +17,19 @@ class Editor::PublicationFeature < ParagraphFeature
     pub_options = publication.data || {}
     size = pub_options[:field_size] || nil;
 
-    webiva_feature(publication.feature_name) do |c|
+    webiva_custom_feature(publication.feature_name,data) do |c|
       c.form_for_tag("form","entry_#{publication.id}",:enctype => data[:multipart] ? 'multipart/form-data' : nil)  do |tag|
         data[:entry]
       end
 
       c.define_tag 'edit_butt' do |tag|
-        "<input type='submit' value='#{tag.single? ? 'Edit'.t : tag.expand}'/>"
+        button_label = tag.single? ?  (pub_options[:button_label].blank?  ? 'Edit' : pub_options[:button_label] ) : tag.expand
+        "<input type='submit' value='#{vh button_label}'/>"
       end
-
+      c.define_tag 'create_butt' do |tag|
+        button_label = tag.single? ?  (pub_options[:button_label].blank?  ? 'Create' : pub_options[:button_label] ) : tag.expand
+        "<input type='submit' value='#{vh button_label}'/>"
+      end
       c.publication_field_tags('form',publication)
     end
   end
@@ -37,7 +41,7 @@ def display_feature(publication,data)
 
    pub_options = publication.data || {}
 
-   webiva_feature(publication.feature_name) do |c|
+   webiva_custom_feature(publication.feature_name) do |c|
       c.expansion_tag('entry') { |tag|  tag.locals.entry = data[:entry]  }
 
       c.define_tag "next" do |tag|
@@ -77,7 +81,7 @@ def display_feature(publication,data)
     
 
  def data_feature(publication,data)
-   webiva_feature(publication.feature_name) do |c|
+   webiva_custom_feature(publication.feature_name) do |c|
      c.define_loop_tag('entry','entries') { data[:entries] }
 
      publication.content_publication_fields.each do |fld|
@@ -88,7 +92,7 @@ def display_feature(publication,data)
   
 
  def list_feature(publication,data)
-   webiva_feature(publication.feature_name,data) do |c|
+   webiva_custom_feature(publication.feature_name,data) do |c|
      c.loop_tag('entry','entries') { |tag| data[:entries].is_a?(Array) && data[:entries]   }
      c.value_tag('entry:id') { |tag| tag.locals.entry.id }
      c.link_tag('entry:list') { |tag| Configuration.domain_link(paragraph_page_url) }
