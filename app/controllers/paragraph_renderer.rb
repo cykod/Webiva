@@ -172,12 +172,12 @@ class ParagraphRenderer < ParagraphFeature
     @page_title = nil
   end
   
-  def self.dummy_renderer
-      self.new(UserClass.get_class('domain_user'),ApplicationController.new,PageParagraph.new,SiteNode.new,PageRevision.new)
+  def self.dummy_renderer(ctrl=nil)
+      self.new(UserClass.get_class('domain_user'),ctrl || ApplicationController.new,PageParagraph.new,SiteNode.new,PageRevision.new)
   end
   
-  def self.document_feature(name,data={},publication=nil)
-    rnd = self.dummy_renderer
+  def self.document_feature(name,data={},controller=nil,publication=nil)
+    rnd = self.dummy_renderer(controller)
     rnd.set_documentation(true)
     if publication
       rnd.send("#{publication.feature_method_name}_feature",publication,data)

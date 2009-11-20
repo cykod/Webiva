@@ -298,12 +298,9 @@ class TemplatesController < CmsController
 
     # Try to generate automatic feature tag documentation
     begin
-      if details[3] # If we have a publication
-        @doc = details[2].document_feature(self,details[1],data,details[3])
-      else
-        @doc = details[2].document_feature(self,details[1],data)
-      end
+      @doc = details[2].document_feature(details[1],data,self,details[3])
     rescue Exception => e
+      raise e
       @doc = nil
     end
     

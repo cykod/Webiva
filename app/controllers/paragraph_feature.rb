@@ -35,7 +35,7 @@ class ParagraphFeature
     ParagraphRenderer.new(UserClass.get_class('domain_user'),controller || ApplicationController.new,PageParagraph.new,SiteNode.new,PageRevision.new)
   end
 
-  def self.document_feature(controller,name,data={})
+  def self.document_feature(name,data={},controller=nil,publication=nil)
     rnd = self.dummy_renderer(controller)
     feature = self.new(PageParagraph.new,rnd)
     feature.set_documentation(true)

@@ -49,7 +49,7 @@ class Content::CorePublication::CreatePublication < Content::PublicationType
       end
     end 
     output += "<tr>\n"
-    output += "  <td colspan='2' align='right'><cms:edit_butt/></td>\n"
+    output += "  <td colspan='2' align='right'><cms:create_butt/></td>\n"
     output += "</tr>\n"
     output += "</table>\n"
     output += '</cms:form>'
