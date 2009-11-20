@@ -15,10 +15,11 @@ class InitialBlogSetup < ActiveRecord::Migration
       t.column :domain_file_id, :integer
       t.column :status, :string, :default => 'active'
       t.column :keywords, :string
-      t.column :preview, :text
-      t.column :preview_html, :text
-      t.column :body, :text
-      t.column :body_html, :text
+      t.column :preview, :text , :limit => 2.megabytes
+      t.column :preview_html, :text, :limit => 2.megabytes
+      t.column :body, :text , :limit => 2.megabytes
+
+      t.column :body_html, :text , :limit => 2.megabytes
       t.column :author, :string
       t.column :created_at, :datetime
       t.column :updated_at, :datetime

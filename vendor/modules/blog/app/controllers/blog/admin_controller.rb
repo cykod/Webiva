@@ -5,7 +5,7 @@ class Blog::AdminController < ModuleController
   
   component_info('Blog',
                  :description => 'Add Blog Content Feature', 
-                 :access => :private,
+                 :access => :public,
                  :dependencies => [ 'feedback'] )
   
                               

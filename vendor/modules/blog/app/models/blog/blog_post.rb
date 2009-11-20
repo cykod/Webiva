@@ -120,6 +120,7 @@ class Blog::BlogPost < DomainModel
   end
   
   def save_revision!(revision)
+    self.reload(:lock => true) if self.id
     Blog::BlogPostRevision.transaction do
       self.active_revision.update_attribute(:status,'old') if self.id && self.active_revision
       
@@ -140,7 +141,7 @@ class Blog::BlogPost < DomainModel
   
   def publish_now
     # then unless it's already published, set it to published and update the published_at time
-    unless(self.status == 'published' && self.published_at < Time.now) 
+    unless(self.status == 'published' && self.published_at && self.published_at < Time.now) 
         self.status = 'published'
         self.published_at = Time.now
     end
