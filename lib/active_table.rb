@@ -3,7 +3,7 @@ require "digest"
 
 
 =begin rdoc
-ActiveTable is a module that adds in "Active" AJAX-updatable and searchable tables into the sytem. 
+ActiveTable is a module that adds in "active" AJAX-updatable and searchable tables into the sytem. 
 
 It defines a number of different ActiveTable::ColumnHeader classes which represent different types of 
 columns that can be ordered and or searched and will auto-generate the SQL for those conditions.
@@ -12,9 +12,123 @@ When the columns and order of the columns is known ahead of time (as it normally
 use the #active_table singleton method to define the table and then generate the output for the 
 table by calling (table_name)_generate 
 
-Headers are generally created using the hdr(:type,options = {}) method but to keep the header 
-definition succinct the system will also tyry to autogenerate the appropriate header  for 
-string and date fields if you just pass in a symbol with the column name
+Headers are generally created using the hdr(type,field, options = {}) method but to keep the header 
+definition succinct the system will also try to autogenerate the appropriate header for 
+string and date fields if you just pass in a symbol with the column name it will create a header
+
+=== Example usage
+
+ class UserController < CmsController
+
+   ...
+
+   # Define a table called user_table on the EndUser model
+   active_table :user_table, EndUser,
+         [ :check,                    # used for the initial check_box column
+           :first_name,               # creates a string header
+           hdr(:string,:last_name),   # explicitly create a string header
+           hdr(:boolean,:registered), # create a boolean header
+           :registered_at,            # automatically create a :date_range header
+           hdr(:options,:source,      # explicitly create an options header
+               :options => [ ['Website','website']... ]),
+           "Tags",                    # implicitly create a static header
+           hdr(:static,"Actions")]    # Explicitly Create a static header
+
+   # Ajax method
+   def display_user_table(display=true)
+
+     active_table_action('user') do |act,user_ids|
+       case act
+       when 'delete': EndUser.destroy(user_ids)
+       when ...do something else...
+       end
+     end
+
+     @tbl = user_table_generate params, 
+        :conditions => [ 'active=1' ],
+        :order => 'last_name, first_name'
+
+     render :partial => 'user_table' if display
+   end
+
+   # Full page method
+   def index
+     
+     display_user_table(false)
+   end
+
+   ...
+
+  end
+
+index.erb.html
+
+  ...
+
+  <div id='user_table'><%= render :partial => 'user_table' %></div>
+
+_user_table.erb.html
+
+  <% active_table_for :user_table, @tbl,
+     :actions => [['Delete','delete','Are you sure you want to delete these users?']] do |t| -%>
+  <tr <%= highlight_row('user',t.id) %>>
+    <td><%= entry_checkbox('user',t.id) %></td>
+    <td><%= h t.first_name %></td>
+    ...
+  </tr>
+  <% end -%>
+
+
+#active_table_for defaults to updating a div with the same name as the table, but that can be overridden 
+with the [:update] option. It will default to call a controller method called display_[table_name] but 
+can be overridden with the :refresh_url option. :more_actions will display a list of additional actions that
+will appear in a drop down to the right of :actions. 
+
+=== Header options 
+ [:label]
+   Will use this instead of the humanized field name as a label
+ [:options]
+   Either an select-friendly array of options [[name,id],...] or a symbol that maps to a instance
+   method that returns a select-friendly array of options
+ [:width] 
+   A width in pixels for the header column to display
+ [:icon]
+  An icon image to display in-front of the label (except the icon header, which uses this instead of a field name)
+
+
+=== Header Types
+ [:blank]
+   Create an empty header used for filler columns
+ [:boolean]
+   Create a header appropriate for boolean fields - orderable and searchable
+ [:date]
+   Create a header with an orderable and searchable date (however date_range is often a better choice)
+ [:date_range]
+   Create a header that lets the user enter a range of dates to display
+ [:exists]
+   Used for columns to determine whether they are null or not 
+ [:has_relation]
+   Used for belongs_to fields, checks if the value is > 0 or not > 0, useful for foreign keys
+ [:icon]
+   Header that isn't sortable or searchable but displays and icon image
+ [:multi_option_header]
+   Uses a LIKE search to searches for multiple options in a serialized area in a text field (used by the content system)
+ [:number_header]
+   Used to search on an integer
+ [:join_header]
+   Advanced header that searches for available options doing a join with some custom join sql. Pass an :options argument to 
+   the options has for the searchable values (or pass a symbol to use a callback)
+ [:option_header]
+   Header that searches among available options. Pass an :options argument to 
+   the options has for the searchable values (or pass a symbol to use a callback)
+ [:order_header]
+   Header is is only orderable and not searchable
+ [:static_header]
+   Header that is neither orderable nor searchable
+ [:string_header]
+   Header that is orderable and allows a LIKE search on the contents of the value
+ [:two_string_header]
+   Header that does a like search on two fields. Pass :second_field as an option to the options hash
 =end
 module ActiveTable 
 
@@ -209,15 +323,18 @@ module ActiveTable
       mod.send(:helper_method, "active_table_javascript".to_sym)
     end
     
-    def active_table_javascript
+    def active_table_javascript # :nodoc: 
       # dummy function - moved to active_table.js
     end
     
   end
   
   
+  # Singleton methods included available in controllers
   module ClassFunctions
 
+    # Helper method for creating active_table headers. Can also 
+    # Create the classes directly
      def hdr(type,*opts)
       begin
         cls = "ActiveTable::#{type.to_s.classify}Header".constantize
@@ -228,7 +345,10 @@ module ActiveTable
       end
     end
 
-  
+     # Helper method to generate an active table.
+     # table_name should be a symbol, model_class should be an 
+     # DomainModel class and columns should be an array of 
+     # symbols, hashes and ActiveTable::ColumnHeader columns created via the #hdr method
     def active_table(table_name,model_class,columns,options = {})
     
       columns = columns.collect do |col|
@@ -269,7 +389,7 @@ module ActiveTable
   end
   
   # Object generated by active_table_generate
-  class TableOutput
+  class TableOutput #:nodoc: all
     attr_reader :data,:paging,:column_instances
     
     def initialize(data,paging,column_instances)
@@ -281,7 +401,7 @@ module ActiveTable
   
   # ActiveTable generates ColumnInstance's representing actual instances of a ColumnHeader,
   # which reference the header but include additional searching and order state
-  class ColumnInstance 
+  class ColumnInstance  #:nodoc: all
     attr_reader :active_table
     attr_reader :header
     attr_reader :searching
@@ -310,8 +430,8 @@ module ActiveTable
   end
   
 
-  # Parent class representing a header of the table, subclass this class to define new
-  # header types. 
+  # Parent class representing a header of the table, subclass this to define new
+  # header types. See active_record.rb
   class ColumnHeader 
     attr_reader :field
     attr_reader :name
@@ -388,7 +508,7 @@ module ActiveTable
     
   end
   
-  class OptionHeader < ColumnHeader
+  class OptionHeader < ColumnHeader # :nodoc: all
   
     def initialize(field,options = {})
       @available_options = options.delete(:options)
@@ -450,7 +570,7 @@ module ActiveTable
 
   end
   
-  class MultiOptionHeader < OptionHeader
+  class MultiOptionHeader < OptionHeader # :nodoc: all
   
     def search_conditions(searching = nil)
       searching = [searching] unless searching.is_a?(Array)
@@ -465,7 +585,7 @@ module ActiveTable
     end
   end
 
-  class JoinHeader < ColumnHeader
+  class JoinHeader < ColumnHeader # :nodoc: all
 
     def initialize(field,join_sql,options = {})
       @join_sql = join_sql
@@ -524,7 +644,7 @@ module ActiveTable
 
   end
   
-  class DateHeader < ColumnHeader
+  class DateHeader < ColumnHeader # :nodoc: all
 
    def initialize(field,options = {})
       @datetime_field = options.delete(:datetime)
@@ -568,7 +688,7 @@ module ActiveTable
     
   end
   
-  class DateRangeHeader < ColumnHeader
+  class DateRangeHeader < ColumnHeader # :nodoc: all
 
    def initialize(field,options = {})
       @datetime_field = options.delete(:datetime)
@@ -667,7 +787,7 @@ module ActiveTable
     
   end
   
-  class StringHeader < ColumnHeader
+  class StringHeader < ColumnHeader # :nodoc: all
     def search_html(active_table,searching)
       "<input type='string' id='#{field_name}' name='#{active_table}[#{field_hash}]' size='30' value='#{searching}' />"
     end
@@ -681,7 +801,7 @@ module ActiveTable
     end
   end
 
-  class TwoStringHeader < ColumnHeader
+  class TwoStringHeader < ColumnHeader # :nodoc: all
     def search_html(active_table,searching)
       "<input type='string' id='#{field_name}' name='#{active_table}[#{field_hash}]' size='30' value='#{searching}' />"
     end
@@ -695,7 +815,7 @@ module ActiveTable
     end
   end
 
-  class NumberHeader < ColumnHeader
+  class NumberHeader < ColumnHeader # :nodoc: all
     def search_html(active_table,searching)
       "<input type='string' name='#{active_table}[#{field_hash}]' size='30' value='#{searching}' />"
     end
@@ -713,7 +833,7 @@ module ActiveTable
     end
   end
 
-  class ExistsHeader < ColumnHeader
+  class ExistsHeader < ColumnHeader # :nodoc: all
     def search_html(active_table,searching)
       "<label for='#{field_name}_yes'> <input type='radio' id='#{field_name}_yes' name='#{active_table}[#{field_hash}]' value='1'  #{"checked='checked'" if searching == "1"}> Yes</label><label  for='#{field_name}_no'> <input type='radio' no='#{field_name}_no' #{"checked='checked'" if searching == "0"}  name='#{active_table}[#{field_hash}]' value='0'> No</label>" 
     end
@@ -739,7 +859,7 @@ module ActiveTable
     end
   end
   
-  class HasRelationHeader < ColumnHeader
+  class HasRelationHeader < ColumnHeader # :nodoc: all
     def search_html(active_table,searching)
       "<label for='#{field_name}_yes'> <input type='radio' id='#{field_name}_yes' name='#{active_table}[#{field_hash}]' value='1'  #{"checked='checked'" if searching == "1"}> Yes</label><label  for='#{field_name}_no'> <input type='radio' no='#{field_name}_no' #{"checked='checked'" if searching == "0"}  name='#{active_table}[#{field_hash}]' value='0'> No</label>" 
     end
@@ -766,7 +886,7 @@ module ActiveTable
   end
     
   
-  class BooleanHeader < ColumnHeader 
+  class BooleanHeader < ColumnHeader  # :nodoc: all
     def search_html(active_table,searching)
       "<label for='#{field_name}_yes'> <input type='radio' id='#{field_name}_yes' name='#{active_table}[#{field_hash}]' value='1'  #{"checked='checked'" if searching == "1"}> Yes</label><label  for='#{field_name}_no'> <input type='radio' no='#{field_name}_no' #{"checked='checked'" if searching == "0"}  name='#{active_table}[#{field_hash}]' value='0'> No</label>" 
     end
@@ -794,13 +914,13 @@ module ActiveTable
   
   end
 
-  class OrderHeader < ColumnHeader
+  class OrderHeader < ColumnHeader # :nodoc: all
     def is_searchable?
       false # turn off searching on order headers
     end
   end
   
-  class StaticHeader < ColumnHeader
+  class StaticHeader < ColumnHeader # :nodoc: all
     def is_searchable?
       false # turn off searching on order headers
     end
@@ -810,13 +930,13 @@ module ActiveTable
     end
   end
   
-  class BlankHeader < StaticHeader
+  class BlankHeader < StaticHeader # :nodoc: all
     def initialize
       super('')
     end
   end
 
-  class IconHeader < StaticHeader 
+  class IconHeader < StaticHeader  # :nodoc: all
     def initialize(icon,options={})
       @icon = icon
       super('',options)

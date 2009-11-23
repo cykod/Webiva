@@ -30,8 +30,6 @@ class StructureController < CmsController  # :nodoc: all
     
     
   
-    @domain = verify_site_access
-
     @version = SiteVersion.default
     
     @closed = cookies[:structure].to_s.split("|").map(&:to_i)
@@ -84,8 +82,6 @@ class StructureController < CmsController  # :nodoc: all
   end
   
   def add_modifier
-    @domain = verify_site_access
-    
     parent_id =params[:parent_id]
     modifier_type = params[:modifier_type]
     
@@ -97,7 +93,6 @@ class StructureController < CmsController  # :nodoc: all
   
   
   def copy_node
-    @domain = verify_site_access
   
     parent_id = params[:parent_id]
     node_id = params[:node_id]
@@ -111,8 +106,6 @@ class StructureController < CmsController  # :nodoc: all
   end
   
   def add_node 
-    @domain = verify_site_access
-    
     parent_node = SiteNode.find(params[:parent_id])
     node_type = params[:node_type]  
     title = params[:title] || 'enter_title'

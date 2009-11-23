@@ -84,8 +84,6 @@ class ModuleAppController < ApplicationController
       @path =  params[:path].join("/")
     end
 
-    set_language
-
     @page = get_error_page unless @page
     
     params[:full_path] = params[:path].clone
@@ -193,38 +191,7 @@ class ModuleAppController < ApplicationController
     end
   end
   
-  
-  def set_language
-    # Setup language handling
-    domain_languages = Configuration.languages
-    
-    client_accept_language = nil
-    # Check if there is a user requested language
-    if(!session[:cms_language] && request.env['HTTP_ACCEPT_LANGUAGE']) 
-      # Check languages by order of importance
-      langs = request.env['HTTP_ACCEPT_LANGUAGE'].split(",")
-      langs.each do |lang|
-        # get just the language, ignore the locale
-        lang = lang[0..1]
-        if domain_languages.include?(lang)
-          client_accept_language = lang
-          break
-        end
-      end
-    
-    end
-    
-    
-    session[:cms_language] ||= client_accept_language || domain_languages[0]
-    
-    if(params[:set_language] && domain_languages.include?(params[:set_language]))
-      session[:cms_language] = params[:set_language]
-    end
-    
-    Locale.set(session[:cms_language]) unless RAILS_ENV == 'test'
-    
-  end
-  
+
     
   def validate_module
     info = self.class.get_component_info
