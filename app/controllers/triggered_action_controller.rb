@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class TriggeredActionController < WizardController
+class TriggeredActionController < WizardController  # :nodoc: all
   
   permit ['editor_content','editor_mailing']
   

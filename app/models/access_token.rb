@@ -1,7 +1,14 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 
+=begin rdoc
+Access tokens grant additional permissions to EndUsers they are added do. Users
+may have multiple access tokens, and each token can have different start and expiration dates,
+as well as a "Target" which can verifiy access
 
+AccessToken ties into the SiteAuthorizationEngine as an Actor, i.e. they have different permissions 
+that are added to them. 
+=end
 class AccessToken < DomainModel
 
   include SiteAuthorizationEngine::Actor
@@ -15,14 +22,17 @@ class AccessToken < DomainModel
 
   has_many :roles, :through => :user_roles
 
+  # Alias for token_name
   def name
     self.token_name
   end
 
+  # returns a select-friendly list of options for editor tokens
   def self.editor_token_options
     self.select_options(:conditions => 'editor=1')
   end
 
+  # returns a select-friendly list of options for non-editor tokens
   def self.user_token_options
    self.select_options(:conditions => 'editor=0')
   end

@@ -30,6 +30,13 @@ class ApplicationController < ActionController::Base
   after_filter :save_anonymous_tags
   
   hide_action :myself
+
+  # Returns an EndUser object representing the currently logged in user
+  # Anonymous users still return an EndUser object except with a special user class
+  # and without a valid ID
+  #
+  # The user object is cached in the response object so it is only generated once
+  # per request
   def myself
     if response.data[:user]
       if response.data[:user].is_a?(ClientUser) 

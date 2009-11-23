@@ -1,7 +1,11 @@
 # Copyright (C) 2009 Pascal Rettig.
+# 
+# Assorted Monkey patches onto existing Rails and Plugin classes
 
 
-module ActionController
+
+# ActionController Monkey Patches
+module ActionController  #:nodoc:all
   class Response #:nodoc:
     def data
       @response_data ||= {}
@@ -22,7 +26,7 @@ ActionView::Base.field_error_proc = Proc.new{ |html_tag, instance| html_tag.matc
 #end
 
 # Monkey Patch Globalize to do no translation if we are on the base language
-module Globalize
+module Globalize #:nodoc:all
   class Locale
     @@translation_requests = []
     @@cache_translation_requests = false
@@ -59,7 +63,7 @@ module Globalize
   
 end
 
-class Fixnum
+class Fixnum  #:nodoc:all
   def clamp(min,max=nil)
     if self < min
       min
@@ -71,7 +75,7 @@ class Fixnum
   end
 end
 
-class Module
+class Module  #:nodoc:all
    alias :rails_official_const_missing :const_missing
 
    def const_missing(class_id)
@@ -85,7 +89,7 @@ class Module
 
 end
 
-class Time
+class Time  #:nodoc:all
         def to_date
                 Date.new(year, month, day)
                 rescue NameError
@@ -120,13 +124,13 @@ class Time
         end
 end
 
-class DateTime
+class DateTime  #:nodoc:all
         def to_time
                 Time.local(year,month,day,hour,min,sec)
         end
 end
 
-class Date
+class Date  #:nodoc:all
         def to_time
                 Time.local(year,month,day)
         end

@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class ModulesController < CmsController
+class ModulesController < CmsController # :nodoc: all
   layout 'manage'
   
   permit 'editor_site_management'

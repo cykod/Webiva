@@ -2,7 +2,7 @@
 
 require 'mime/types' 
 
-class FileController < CmsController
+class FileController < CmsController # :nodoc: all
 
   permit "editor_files"
 

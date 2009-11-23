@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class ModuleController < CmsController
+class ModuleController < CmsController  # :nodoc: all
   layout "manage"
   
  # skip_before_filter :validate_paragraph, :only => :admin

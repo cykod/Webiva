@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class MemberExportController < CmsController
+class MemberExportController < CmsController # :nodoc: all
   layout 'manage'
   permit 'editor_members'
   

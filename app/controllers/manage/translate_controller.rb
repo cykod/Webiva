@@ -2,7 +2,7 @@
 
 
 
-class Manage::TranslateController < CmsController
+class Manage::TranslateController < CmsController # :nodoc: all
   skip_before_filter :context_translate_before
   skip_after_filter :context_translate_after
 

@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class StructureController < CmsController
+class StructureController < CmsController  # :nodoc: all
 
   public
   

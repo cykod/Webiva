@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class EmailController < CmsController
+class EmailController < CmsController # :nodoc: all
   layout 'manage'
   
   permit 'editor_emails'

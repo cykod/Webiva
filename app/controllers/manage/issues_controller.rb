@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class Manage::IssuesController < CmsController
+class Manage::IssuesController < CmsController # :nodoc: all
 
   permit 'system_admin'
   before_filter :validate_admin

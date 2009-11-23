@@ -2,7 +2,7 @@
 
 require 'csv'
  
-class SubscriptionController < CmsController
+class SubscriptionController < CmsController # :nodoc: all
   layout 'manage'
   permit ['editor_mailing','editor_content']
 

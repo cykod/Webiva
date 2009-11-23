@@ -3,6 +3,17 @@
 
 require 'singleton' 
 
+
+# Base class for displaying SiteNode content renderered by the 
+# SiteNodeEngine
+#
+# classes that inherit from ModuleAppController can run like normal Rails controllers
+# except the system will wrap the Webiva content around the controllers output, including
+# support for locks and other page modifiers.
+#
+# The CMS site tree needs to have a valid page at the url that is set up in routes.rb
+# (or the init.rb of the appropriate modules) and a "Module Application Paragraph" dropped into
+# the appropriate zone.
 class ModuleAppController < ApplicationController
   protect_from_forgery
 
@@ -252,6 +263,8 @@ class ModuleAppController < ApplicationController
   def self.get_modules_for
     []
   end
+
+  protected
   
   def javascript_defaults
     require_js('prototype')

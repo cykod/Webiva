@@ -2,7 +2,7 @@
 
 require 'csv'
 
-class MemberImportController < WizardController
+class MemberImportController < WizardController # :nodoc: all
   permit 'editor_members'
   
   @@deliminators = { 'semicolon' => ';', 'comma' => ',', 'colon' => ':', 'tab' => "\t" }

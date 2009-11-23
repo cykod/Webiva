@@ -1,7 +1,7 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 
-class ContentTypesController < CmsController
+class ContentTypesController < CmsController # :nodoc: all
 
   
   permit 'editor_content_type'

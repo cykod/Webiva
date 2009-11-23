@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class ContentController < ModuleController
+class ContentController < ModuleController #:nodoc: all
 
 
   # This isn't a real module controller, it just acts like one with

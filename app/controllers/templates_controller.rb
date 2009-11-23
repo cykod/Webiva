@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class TemplatesController < CmsController
+class TemplatesController < CmsController # :nodoc: all
 
   permit 'editor_design_templates'
 

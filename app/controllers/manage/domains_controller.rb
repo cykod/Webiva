@@ -1,7 +1,7 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 
-class Manage::DomainsController < CmsController
+class Manage::DomainsController < CmsController # :nodoc: all
 
   # All client users can access this controller
   # but specific functions are permitted only by the system or client admins

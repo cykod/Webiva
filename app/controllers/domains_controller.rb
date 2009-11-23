@@ -1,7 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class DomainsController < CmsController
-
+class DomainsController < CmsController # :nodoc: all
 
   cms_admin_paths 'options',
   'Options' => { :controller => '/options' },

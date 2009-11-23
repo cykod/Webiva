@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class EditorsController < CmsController
+class EditorsController < CmsController  # :nodoc: all
 
   layout 'manage'
   

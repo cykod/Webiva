@@ -1,19 +1,27 @@
 # Copyright (C) 2009 Pascal Rettig.
 
+# Parent class for all Webiva backend controllers. All controllers which 
+# expose backend functionality should inherit from this class (or one of it's children)
 class CmsController < ApplicationController
      
   layout 'manage'
 
   include SiteAuthorizationEngine::Controller
+  include ActiveTable::Controller
 
   before_filter :validate_is_editor
   
   protected
 
-  def store_return_location
+  # Store the current location in case of a lockout
+  # can be used by renderers to allow redirection back after 
+  # registration or login
+  def store_return_location 
     session[:lockout_current_url] = self.request.path_info
   end
   
+  # Filter method validating that the current user has an
+  # editor user class. Skip this filters to get around the requirement.
   def validate_is_editor
     if myself && myself.user_class
       myself.user_class.editor?
@@ -23,6 +31,7 @@ class CmsController < ApplicationController
     end
   end
 
+  # Generate friendlier error messages than the 500-white-screen-of-death
   def rescue_action_in_public(exception)
     begin
       if !@cms_page_info
@@ -48,10 +57,13 @@ class CmsController < ApplicationController
   
      
 
-   def self.get_content_info
+   def self.get_content_info # :nodoc:
       []
    end
   
+   # Register a content model to appear on the content
+   # This controller must define a class method called
+   # self.get_[:name:]_info which 
    def self.content_model(name,options = {})
       content = self.get_content_info
       content << [ name,options ]
@@ -62,10 +74,18 @@ class CmsController < ApplicationController
       
    end
 
-  def self.get_content_actions
+  def self.get_content_actions # :nodoc:
     []
   end
 
+  # Register a content action to appear in the action panel on the content page
+  #
+  # For example:
+  #
+  #  content_action  'Create a new Blog', { :controller => '/blog/admin', :action => 'create' }, :permit => 'blog_config'
+  #
+  # Will add an action to called 'Create a new Blog' to the top of the content page that will be visible only
+  # to users with the blog_config permission
   def self.content_action(action,url,options = {})
     actions = self.get_content_actions
     actions << [ action, url, options ]
@@ -75,7 +95,7 @@ class CmsController < ApplicationController
       end    
   end
 
-    def self.get_content_models_and_actions
+  def self.get_content_models_and_actions # :nodoc:
       content_models = []
       content_actions = []
       Dir.glob("#{RAILS_ROOT}/app/controllers/editor/[a-z0-9\-_]*_controller.rb") do |file|

@@ -8,7 +8,7 @@ module ApplicationHelper
   
   include EscapeHelper
 
-   class PopupMenuBuilder 
+   class PopupMenuBuilder #:nodoc:all
       include ActionView::Helpers::JavaScriptHelper
      
      def link(name,options = {})
@@ -24,6 +24,7 @@ module ApplicationHelper
      end  
    end
    
+   # Builds a popup menu
    def popup_menu(id,image,options={},&block)
       options = options.clone
       options[:class] = 'line_icon'
@@ -36,7 +37,9 @@ module ApplicationHelper
       concat("[] )); }</script>")
    end
 
-   def action_panel(options = {},&block)
+   # Creates an action panel (the set of links at the top of an admin page)
+  
+   def action_panel(options = {},&block)  # :yields: ActionPanelBuilder.new
       concat("<div class='admin_content'><ul class='action_panel'>")
       
       apb = ActionPanelBuilder.new(self)

@@ -1,8 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
-
-
-class AccessTokenController < CmsController
-
+# Controller for manipulating AccessToken's
+class AccessTokenController < CmsController # :nodoc:all
 
   permit 'editor_access_tokens'
 

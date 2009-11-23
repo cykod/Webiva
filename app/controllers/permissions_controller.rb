@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class PermissionsController < CmsController
+class PermissionsController < CmsController # :nodoc: all
   layout 'manage'
   
   
