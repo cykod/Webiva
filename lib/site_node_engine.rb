@@ -460,6 +460,7 @@ EOF
                                            @page_information.revision,
                                            paragraph,
                                            :ajax => @mode=='edit' ? false : true,
+                                           :editor => @mode == 'edit',
                                            :language => @language,
                                            :capture => @capture_data
                                            )
@@ -959,6 +960,8 @@ EOF
     
     if @page_information.title && @page_information.title.length > 0
       @page_information.title.stringify_keys!
+      @page_information.title['title'] = @page_information.title['default'] if  @page_information.title['default']
+
       if title_str.blank?
         title_str = @page_information.title['default'] || @page_information.title.values.join(" ")
       else
