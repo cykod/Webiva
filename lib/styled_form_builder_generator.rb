@@ -1427,6 +1427,10 @@ module CmsFormElements
     self.select(field,[['--Select Page--'.t,nil]] + SiteNode.page_options,opts)
   end
 
+  def url_selector(field,opts = {})
+    self.select(field,[['--Select Page--'.t,nil]] + SiteNode.page_options.map {  |elm| [elm[0],elm[0]] },opts)
+  end
+
 
   def ordered_array(field,opts,options={})
     objects = @object.send(field)
