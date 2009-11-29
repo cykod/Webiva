@@ -436,9 +436,9 @@ class ParagraphFeature
           if obj || !block_given?
             opts = options.clone
             if obj.is_a?(Hash)
-              arg = obj.delete(:object)
+              arg_obj = obj.delete(:object)
               opts = opts.merge(obj)
-              obj = arg
+              obj = arg_obj
             end
             opts[:url] ||= ''
             frm_tag =  form_tag(opts.delete(:url), opts.delete(:html) || {}) + opts.delete(:code).to_s
@@ -717,7 +717,7 @@ class ParagraphFeature
       
      
       define_tag "#{pre_tag}#{tag_name}" do |t|
-        form_field_tag_helper(t,t.locals.send(frm_obj),control_type,field_name,options)
+        form_field_tag_helper(t,t.locals.send(frm_obj),control_type,field_name,options,&block)
       end
     
       define_value_tag "#{pre_tag}#{tag_name}_error" do |t|
@@ -817,7 +817,7 @@ class ParagraphFeature
               t.locals.send(frm_obj).output_error_message(fld.label,fld.content_model_field.field)
             end
           elsif fld.field_type == 'value'
-            fld.content_model_field.site_feature_value_tags(c,prefix,:full)
+            fld.content_model_field.site_feature_value_tags(c,prefix,:full,:local => frm_obj  )
           end
         end
       end
@@ -946,9 +946,31 @@ class ParagraphFeature
       end
 
     end
+
+    def define_results_tags(tag_base,options ={ },&block)
+      
+      define_pagelist_tag("#{tag_base}:pages",options,&block)
+
+      self.value_tag("#{tag_base}:total_results") do |tag|
+        page_data = yield(tag)
+        page_data[:total]
+      end
+
+      self.value_tag("#{tag_base}:first_result") do |tag|
+        page_data = yield(tag)
+        page_data[:first]
+      end
+
+      self.value_tag("#{tag_base}:last_result") do |tag|
+        page_data = yield(tag)
+        page_data[:last]
+      end
+      
+    end
     
     def define_pagelist_tag(tag_name,options = {}) 
       
+
       self.define_tag tag_name do |tag|
         page_data = yield(tag)
         if page_data
@@ -1248,7 +1270,7 @@ class ParagraphFeature
       
     end
 
-    def define_h_tag(tg,options={})
+    def define_h_tag(tg,field='value',options={})
       @method_list << [ "Escaped value tag",tg ]
     end
 
@@ -1410,10 +1432,12 @@ class ParagraphFeature
   end
   
    def ajax_url(options={})
-    opts = options.merge(:site_node => @renderer.paragraph.page_revision.revision_container_id, 
-                         :page_revision => @renderer.paragraph.page_revision.id,
-                         :paragraph => @renderer.paragraph.id)
-    paragraph_action_url(opts)
+     if @renderer.paragraph &&  @renderer.paragraph.page_revision
+       opts = options.merge(:site_node => @renderer.paragraph.page_revision.revision_container_id, 
+                            :page_revision => @renderer.paragraph.page_revision.id,
+                            :paragraph => @renderer.paragraph.id)
+       paragraph_action_url(opts)
+     end
   end  
    
 end
