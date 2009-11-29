@@ -168,7 +168,14 @@ class Configuration < DomainModel
   end
 
   class DomainOptions < HashModel
-    attributes :domain_title_name => nil, :mailing_contact_email =>nil,:mailing_default_from_name => nil, :company_address => nil, :default_image_location => nil, :gallery_folder => nil, :page_title_prefix => nil, :user_image_folder => nil, :missing_image_id => nil, :missing_male_image_id => nil, :missing_female_image_id => nil, :theme => 'standard', :member_tabs => []
+    attributes :domain_title_name => nil, :mailing_contact_email =>nil,
+    :mailing_default_from_name => nil, :company_address => nil, 
+    :default_image_location => nil, :gallery_folder => nil, 
+    :page_title_prefix => nil, :user_image_folder => nil, 
+    :missing_image_id => nil, :missing_male_image_id => nil, 
+    :missing_female_image_id => nil, :theme => 'standard', :member_tabs => [],
+    :general_activation_template_id => nil,
+    :general_activation_url => nil
 
     integer_options :default_image_location, :gallery_folder,:user_image_folder, :missing_image_id, :missing_male_image_id, :missing_female_image_id
 
