@@ -1,4 +1,8 @@
 
+@media print { 
+  #cms_edit_page_link { display:none; }
+
+ }
 
 #cms_edit_page_link {
  position:fixed;

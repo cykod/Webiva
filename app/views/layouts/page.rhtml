@@ -39,7 +39,7 @@
     
     <%= @extra_header.uniq.join("\n") if @extra_header %>
     <link href="/stylesheet/<%= @output.css_site_template_id.to_s + ".css"  %>" rel="Stylesheet" type="text/css" />
-    <%= stylesheet_link_tag 'edit_page_link' if page_editor? -%>
+    <%= stylesheet_link_tag 'edit_page_link', :media => :all if page_editor? -%>
     
    
     
