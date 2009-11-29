@@ -366,8 +366,9 @@ class ParagraphRenderer < ParagraphFeature
     end
   end
   
-  def renderer_state
-    {:user => myself, :renderer => self, :controller => @controller }
+  # Return state of the renderer, include current user, allowing for override
+  def renderer_state(override={ })
+    {:user => myself, :renderer => self, :controller => @controller }.merge(override)
   end
   
   def output
