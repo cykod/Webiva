@@ -16,7 +16,9 @@ class CmsController < ApplicationController
   
   def validate_is_editor
     if myself && myself.user_class
-      myself.user_class.editor?
+      if !myself.user_class.editor?
+        redirect_to :controller => '/manage/access', :action => 'denied'
+      end
     else
       store_return_location
       redirect_to :controller => '/manage/access', :action => 'denied'
