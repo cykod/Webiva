@@ -244,13 +244,18 @@ class MembersController < CmsController
 
       @user = EndUser.new(params[:user_options])
       
-      if request.post?
-        @user.source = 'import'
-        @user.admin_edit=true      
-        if(@user.save)
-          @user.tag_names = @tag_names if @tag_names
-          update_subscriptions(@user,params[:subscription])
-          flash[:notice] = 'Created User'.t
+      if request.post? 
+        if params[:commit]
+          @user.source = 'import'
+          @user.admin_edit=true      
+          if(@user.save)
+            @user.tag_names = @tag_names if @tag_names
+            update_subscriptions(@user,params[:subscription])
+            flash[:notice] = 'Created User'.t
+            redirect_to :action => 'index'
+            return
+          end
+        else
           redirect_to :action => 'index'
           return
         end

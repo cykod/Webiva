@@ -1,0 +1,16 @@
+
+
+
+<input type='hidden' id='user_register_features_order' name='features_order' value=''/>
+Add a feature: <select name='add_feature' id='user_register_add_feature'><%= options_for_select @options.available_features %></select><button onclick='UserRegisterEditor.addFeature($("user_register_add_feature").value); return false;' >Add Feature</button>
+<br/><br/>
+
+<div id='user_register_features'>
+<% @options.register_features.each_with_index do |feature,idx| -%>
+  <%= render :partial => 'user_register_feature', :locals => { :feature => feature, :idx => idx } %>
+<% end -%>
+</div>
+
+<script>
+  UserRegisterEditor.recreateFeatureSortables();
+</script>

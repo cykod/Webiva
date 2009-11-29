@@ -1,0 +1,13 @@
+<div id='user_register_feature_<%= idx %>' style='border:1px solid #CCCCCC; padding:10px; margin:10px;' class='text_field_control label'>
+<div style='float:right;'>
+  <a href='javascript:void(0);' onclick='UserRegisterEditor.removeFeature(<%= idx %>);'><img src='<%= theme_src('icons/actions/delete.gif') %>'/></a>
+</div>
+<img class='handle' style='cursor:pointer;' src='<%= theme_src('icons/paragraph_move.gif') %>' id='handle_<%= idx %>' align='absmiddle' /> 
+<%= feature.name %><br/>
+  <input type='hidden' name='user_register[features][<%= idx %>][feature_handler]' value='<%= feature.feature_handler %>'/>
+<% cms_fields_for "user_register[features][#{idx}][feature_options]", feature.options do |ff| -%>
+  <%= render :partial => feature.options_partial, :locals => { :f => ff, :prefix =>  "user_register[features][#{idx}][feature_options]", :options => feature.options } %>
+<% end -%>
+
+</div>
+

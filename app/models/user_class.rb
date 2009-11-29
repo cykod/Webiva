@@ -11,6 +11,7 @@ class UserClass < DomainModel
 
   include SiteAuthorizationEngine::Actor
   
+  serialize :role_cache
 
   has_many :end_users
 
@@ -40,6 +41,18 @@ class UserClass < DomainModel
           editor.has_role(cat.to_s + "_" + elem[0].to_s)
         end
     end
+  end
+
+  def cached_role_ids
+    if self.role_cache.is_a?(Array)
+      self.role_cache
+    else
+      self.role_ids
+    end
+  end
+
+  def before_save
+    self.role_cache = self.role_ids
   end
   
   # Called the first time the class is loaded

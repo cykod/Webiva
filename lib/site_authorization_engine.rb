@@ -80,19 +80,21 @@ module SiteAuthorizationEngine
       self.role_ids.include?(Role.expand_role(role,target))
     end
 
-    def has_role(role,target=nil)
+    def has_role(role,target=nil,skip_save=false)
       obj = Role.role_item(role,target)
       if !self.roles.include?(obj)
         self.user_roles.create(:role => obj)
         self.roles.reload
+        self.save unless skip_save
       end
     end
 
-    def has_no_role(role,target=nil)
+    def has_no_role(role,target=nil,skip_save=false)
       obj = Role.role_item(role,target)
       if user_role = self.user_roles.find_by_role_id(obj.id)
         user_role.destroy
         obj.destroy if obj.user_roles.empty?
+        self.save unless skip_save
       end
     end
 

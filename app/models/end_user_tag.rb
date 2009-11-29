@@ -2,6 +2,8 @@
 
 
 class EndUserTag < DomainModel
+  
+
   belongs_to :tag
   belongs_to :end_user
   
