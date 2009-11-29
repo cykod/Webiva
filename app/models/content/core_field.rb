@@ -359,8 +359,27 @@ class Content::CoreField < Content::FieldHandler
       ActiveTable::OptionHeader.new(@model_field.field, :label => @model_field.name, :options =>self.available_options)
     end
   
-    def available_options
-      @available_opts ||= (@model_field.field_options['options'] || []).collect { |fld| fld=fld.to_s.split(";;");[ fld[0].to_s.strip,fld[-1].to_s.strip] }    
+    def available_options(atr={ })
+      opts = @available_opts ||= (@model_field.field_options['options'] || []).collect { |fld| fld=fld.to_s.split(";;");[ fld[0].to_s.strip,fld[-1].to_s.strip] }    
+      # Let the labels be rewritten
+      unless atr[:labels].blank?
+        labels = atr[:labels].split(",")
+        offset = -1
+        opts = opts.map { |elm| offset +=1; [ labels[offset] || elm[0], elm[1] ] }
+      end
+      unless atr[:offset].blank?
+        offset = atr[:offset].to_i-1
+        offset = 0 if offset < 0
+        opts = opts[offset..-1]
+      end
+
+      unless atr[:limit].blank?
+        limit = atr[:limit].to_i-1
+        limit = 0 if limit < 0
+        opts = opts[0..limit]
+      end
+
+      opts 
     end
     
     
@@ -429,7 +448,7 @@ class Content::CoreField < Content::FieldHandler
       ActiveTable::OptionHeader.new(@model_field.field, :label => @model_field.name, :options => available_options)
     end    
   
-    def available_options
+    def available_options(atr={ })
       (@model_field.field_options['options'] || []).collect { |fld| fld=fld.to_s.split(";;");[ fld[0].to_s.strip,fld[-1].to_s.strip] }    
     end
     

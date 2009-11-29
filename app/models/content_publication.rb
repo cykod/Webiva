@@ -326,10 +326,25 @@ class ContentPublication < DomainModel
 
 
     filter_output[:offset] = options[:offset] if options[:offset]
+    filter_output[:select] = options[:select] if options[:select]
 
 
     return filter_output
   end
+
+  def get_full_data(options={ },form_options={ })
+
+    return nil  unless %w(list admin_list data).include?(self.publication_type)
+    
+    filter_options = filter_conditions(options,form_options)
+
+    mdl = self.content_model.content_model
+    
+    data = mdl.find(:all, filter_options)
+
+    resolve_filtered_data(data,filter_options) || []
+  end
+
   
   def get_list_data(page = 1,options = {},form_options = {})
     return nil  unless %w(list admin_list data).include?(self.publication_type)
@@ -342,6 +357,7 @@ class ContentPublication < DomainModel
     per_page = :all if per_page == 0
     
     filter_options[:per_page] =  per_page
+
 
     pages,data = mdl.paginate(page, filter_options)
 

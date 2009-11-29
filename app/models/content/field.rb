@@ -112,15 +112,24 @@ class Content::Field
     end 
   
   def self.text_value(val,size,options={})
+    options.symbolize_keys!
     if size == :excerpt
       content_smart_truncate(val)
     elsif options[:format] && options[:format] == 'html'
       val
     else
-      h val
+      if options[:limit]
+       Content::Field.snippet(h(val),options[:limit].to_i,options[:omission] || '...')
+      else
+        h val
+      end
     end
   end  
-  
+
+  def self.snippet(text, wordcount, omission)
+    text.split[0..(wordcount-1)].join(" ") + (text.split.size > wordcount ? " " + omission : "")
+  end
+
 
   def self.white_list_sanitizer
     @@white_list_sanitizer ||= HTML::WhiteListSanitizer.new
@@ -361,10 +370,11 @@ class Content::Field
     :variables => Proc.new { |field_name,fld| [ (field_name + '_options').to_sym  ]  },
     :options => Proc.new do |field_name,fld,f,attr|
       label_name = fld.model_field.name + " Filter".t
-      if attr[:single]
-        f.radio_buttons(field_name + "_options",fld.available_options, { :label => label_name}.merge(attr))
+      option_attr = { :labels => attr.delete(:labels), :limit => attr.delete(:limit), :offset => attr.delete(:offset) }
+      if attr.delete(:single)
+        f.radio_buttons(field_name + "_options",fld.available_options(option_attr), { :label => label_name}.merge(attr))
       else
-        f.check_boxes(field_name + "_options",fld.available_options, { :label => label_name}.merge(attr))
+        f.check_boxes(field_name + "_options",fld.available_options(option_attr), { :label => label_name}.merge(attr))
       end
     end,
     :conditions => Proc.new do |field_name,fld,options|

@@ -27,16 +27,10 @@ class ContentModelField < DomainModel
   
   
   def text_value(data)
-    val = data.send(self.field)
-    case self.field_type
-    when 'multi_select':
-      if val.is_a?(Array)
-        val.find_all() { |elem| !elem.blank?}.join(", ")
-      else
-        ''
-      end
+    if self.module_class
+      content_display(data)
     else
-      val.to_s
+      ''
     end
   end
   
