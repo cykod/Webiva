@@ -117,6 +117,8 @@ class Content::Field
       content_smart_truncate(val)
     elsif options[:format] && options[:format] == 'html'
       val
+    elsif options[:format] && options[:format] == 'simple'
+      simple_format(h(val))
     else
       if options[:limit]
        Content::Field.snippet(h(val),options[:limit].to_i,options[:omission] || '...')
