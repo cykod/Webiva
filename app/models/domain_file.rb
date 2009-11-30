@@ -225,7 +225,7 @@ class DomainFile < DomainModel
        
        if current_file_name
          ext = File.extname(current_file_name)[1..-1]
-         self.extension= ext.downcase if ext.length > 0 
+         self.extension= ext.downcase if ext.to_s.length > 0 
        end    
      end
      
