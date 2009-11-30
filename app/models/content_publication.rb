@@ -218,10 +218,12 @@ class ContentPublication < DomainModel
       :values => [],
       :includes => [],
       :score => [],
-      :count => []
+      :count => [],
+      :select => []
     }
 
     filter[:joins] = [ options[:joins] ] if options[:joins]
+    filter[:select] = [ options[:select] ] if options[:select]
 
     if options[:conditions]
       if options[:conditions].is_a?(Array)
@@ -294,7 +296,8 @@ class ContentPublication < DomainModel
       score_sym = "score_#{fuzzy_filter}".to_sym
       if filter[score_sym] && filter[score_sym].length > 0
         score = filter[score_sym].uniq.join(" + ")
-        filter_output[:select] = "`#{content_model.table_name}`.id, (#{score}) as content_score_#{fuzzy_filter}"
+        filter_output[:select] ||=  [] 
+        filter_output[:select] << "`#{content_model.table_name}`.id, (#{score}) as content_score_#{fuzzy_filter}" 
 
         extra_conditions = []
         if filter["count_conditions_#{fuzzy_filter}".to_sym]
@@ -326,7 +329,15 @@ class ContentPublication < DomainModel
 
 
     filter_output[:offset] = options[:offset] if options[:offset]
-    filter_output[:select] = options[:select] if options[:select]
+
+    filter_output[:select] ||= []
+    filter_output[:select] += [ options[:select] ] if options[:select]
+    if filter_output[:select].length > 0
+      filter_output[:select] = filter_output[:select].join(',') 
+    else
+      filter_output.delete(:select)
+    end
+    
 
 
     return filter_output
