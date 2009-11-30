@@ -137,7 +137,7 @@ class Content::Field
     @@white_list_sanitizer ||= HTML::WhiteListSanitizer.new
   end
   
-  class << self; include ActionView::Helpers::TextHelper; end
+  class << self; include ActionView::Helpers::TextHelper; include ActionView::Helpers::TagHelper end
   
   def self.content_smart_truncate(val)
       val = val.to_s
