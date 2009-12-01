@@ -336,7 +336,7 @@ class Content::Field
         val = val.reject(&:blank?).map(&:to_i)
         if val.length > 0
           join = "`#{fld.model_field.field}`"
-          { :joins =>  "INNER JOIN content_relations as #{join} ON (#{join}.content_model_id = #{fld.model_field.content_model_id} AND #{join}.content_model_field_id = #{fld.model_field.id} AND entry_id = `#{fld.model_field.content_model.table_name}`.id)",
+          { :joins =>  "INNER JOIN content_relations as #{join} ON (#{join}.content_model_id = #{fld.model_field.content_model_id} AND #{join}.content_model_field_id = #{fld.model_field.id} AND #{join}.entry_id = `#{fld.model_field.content_model.table_name}`.id)",
             :conditions => "#{join}.relation_id IN (?)",
             :values => [ val ]
           }
