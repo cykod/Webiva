@@ -4,16 +4,10 @@ A <%= exception.class %> Exception occurred in <%= controller.controller_name %>
   <%= backtrace.first %>
 
 * URL: <%= request.protocol %><%= host %><%= request.request_uri %>
-* Parameters: <%= request.parameters.inspect %>
+* Parameters: <%= parameters.inspect %>
 * Rails root: <%= rails_root %>
-
-<% for variable in request.session.instance_variables -%>
-<% next if variable =~ /^@db/ -%>
-* <%= variable %>: <%= PP.pp(request.session.instance_variable_get(variable),"").gsub(/\n/, "\n  ").strip %>
-<% end -%>
-
+* User Agent: <%= request.env['HTTP_USER_AGENT'] -%>
 * Process: <%= $$ %>
 * Server : <%= `hostname -s`.chomp %>
 
 <%= backtrace.join "\n" %>
-
