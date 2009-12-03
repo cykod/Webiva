@@ -226,6 +226,8 @@ FEATURE
         data[:user] ? nil : data[:login_user]
       end
 
+      c.value_tag('logged_in:profile_id') { |t| myself.user_class_id }
+
       c.field_tag('login:email',:size => 20,:field => 'login')
       c.field_tag('login:username',:size => 20)
       c.field_tag('login:password',:size => 20,:control => 'password_field')
