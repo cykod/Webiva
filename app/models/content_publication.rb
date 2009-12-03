@@ -92,7 +92,7 @@ class ContentPublication < DomainModel
       end
     end
 
-    entry
+    entry.save
   end
   
   
