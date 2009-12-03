@@ -1016,10 +1016,14 @@ module CmsFormElements
     current_doc= nil
     if doc_file && !doc_file.url.to_s.empty?
       current_doc = <<-DOC_SOURCE
+      <input type='hidden' name='#{@object_name}[#{field}_clear]' id='#{@object_name}_#{field}_clear' value='#{doc_file ? doc_file.id : ''}' />
+      <span id="#{@object_name}_#{field}_file">
       <a href='#{doc_file.url}' target='_blank' >
       <img src='/images/site/document.gif' style='width:16px;height:16px;padding:0px;margin:0px;border:0px;' />
       #{h doc_file.name}
-      </a><br/>
+      </a>&nbsp;
+      <a href='javascript:void(0);' onclick='document.getElementById("#{@object_name}_#{field}_clear").value="0"; document.getElementById("#{@object_name}_#{field}_file").innerHTML="";'>(Remove)</a>
+      </span><br/>
     DOC_SOURCE
    end
     <<-SRC
