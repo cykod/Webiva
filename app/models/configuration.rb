@@ -100,8 +100,22 @@ class Configuration < DomainModel
     true
   end
   
-  def self.missing_image(gender)
-    DomainFile.find_by_id(self.options.missing_image_id)
+  def self.missing_image(gender=nil)
+    gender ||= 'unknown'
+
+    img = DataCache.local_cache('missing_image_#{gender}')
+    return img if img
+
+    if gender.to_s == 'm'
+       img = DomainFile.find_by_id(self.options.missing_male_image_id)
+    elsif gender.to_s == 'f'
+      img = DomainFile.find_by_id(self.options.missing_female_image_id)
+    end
+    img ||= DomainFile.find_by_id(self.options.missing_image_id)
+    
+    
+    DataCache.put_local_cache('missing_image_#{gender}',img)
+    img
   end
   
   def self.mailing_contact

@@ -73,7 +73,8 @@ class Editor::AuthController < ParagraphController
         :first_name => ['First Name'.t,:text_field,:first_name],
         :middle_name => ['Middle Name'.t,:text_field,:middle_name],
         :last_name => ['Last Name'.t,:text_field,:last_name],
-        :gender => ['Gender'.t, :radio_buttons,  { :options => [ ['Mr.'.t,'m'],['Mrs.'.t,'f' ] ] } ],
+        :gender => ['Gender'.t, :radio_buttons, :gender, { :options => [ ['Male'.t,'m'],['Female'.t,'f' ] ] } ],
+        :introduction => ['Introduction'.t, :radio_buttons, :gender, { :options => [ ['Mr.'.t,'Mr.'],['Mrs.'.t,'Mrs' ], ['Ms.'.t, 'Ms'] ] } ],
         :username => [ 'Username'.t,:text_field, :username ],
         :salutation => [ 'Salutation'.t,:text_field, :salutation ]
       }
