@@ -66,20 +66,19 @@ class ContentPublication < DomainModel
   	end
   end
   
-  
-  def update_entry(entry,values = {},application_state = {})
+  def assign_entry(entry,values = {},application_state = {})
     application_state = application_state.merge({:values => values })
     values = self.content_model.entry_attributes(values) 
     self.content_publication_fields.each do |fld|
       val = nil
       case fld.field_type
       when 'dynamic':
-        val = fld.content_model_field.dynamic_value(fld.data[:dynamic],entry,application_state)
+          val = fld.content_model_field.dynamic_value(fld.data[:dynamic],entry,application_state)
         fld.content_model_field.assign_value(entry,val)
       when 'input':
-        fld.content_model_field.assign(entry,values)
+          fld.content_model_field.assign(entry,values)
       when 'preset':
-        fld.content_model_field.assign_value(entry,fld.data[:preset])
+          fld.content_model_field.assign_value(entry,fld.data[:preset])
       end
     end
     entry.valid?
@@ -92,7 +91,17 @@ class ContentPublication < DomainModel
       end
     end
 
-    entry.save
+    entry
+  end
+  
+  def update_entry(entry,values = {},application_state = {})
+    entry = assign_entry(entry,values,application_state)
+
+    if entry.errors.length == 0
+      entry.save 
+    else
+      false
+    end
   end
   
   

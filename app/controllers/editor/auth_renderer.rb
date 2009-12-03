@@ -96,7 +96,7 @@ class Editor::AuthRenderer < ParagraphRenderer
       end
 
       if @model
-        @options.publication.update_entry(@model,params[:model],renderer_state)
+        @options.publication.assign_entry(@model,params[:model],renderer_state)
         all_valid = false unless @model.errors.length == 0
       end
       
@@ -163,7 +163,7 @@ class Editor::AuthRenderer < ParagraphRenderer
 
           if @model
             # Re-update entry as we now have a user object
-            @options.publication.update_entry(@model,params[:model],renderer_state(:myself => @usr))
+            @options.publication.assign_entry(@model,params[:model],renderer_state(:myself => @usr))
             @model.save
           end
 
