@@ -1,6 +1,6 @@
-<script>
+<script type='text/javascript'>
 
-var FileEditor = {
+FileEditor = {
 	minIconSize: 32,
 	maxIconSize: 224,
 	iconSize: <%= @icon_size %>,
@@ -72,8 +72,14 @@ var FileEditor = {
     FileEditor.iconSizeName = size;
     FileEditor.iconLoadRequest++;
     
+                    
+
     if(FileEditor.nodeSelected) {
+       var elem_ids = $('file_manager').select('.fm_element').map(SCMS.getElemNum);
+                   
+
       var params = $H({
+                      file_ids: elem_ids.join(","),
                       folder_id: FileEditor.nodeSelected,
                       load_request: FileEditor.iconLoadRequest
                       });
@@ -83,7 +89,7 @@ var FileEditor = {
   },
 	
 	updateIconSizes: function() {
-		var elems =getChildElements($('file_manager'));
+		var elems =$('file_manager').select('.fm_element');
       
 		elems.each(function(elem) {
 			FileEditor.adjustElementSize($(elem),FileEditor.iconSize);
@@ -558,18 +564,20 @@ var FileEditor = {
  	},
 	
 	
-	loadFolder: function(folder_id,file_id) {
-    FileEditor.hideDetails();
+	loadFolder: function(folder_id,file_id,page) {
+         if(!page) page = 1;
+         FileEditor.hideDetails();
     
-    FileEditor.destroyFolderDroppables();
+          FileEditor.destroyFolderDroppables();
 		//$('file_manager').style.visibility='hidden';
 		FileEditor.loadRequest++;
 		var loadRequest=FileEditor.loadRequest;
 		
 		var params = { field: '<%= @field %>',
-						  select: '<%= @select %>',
-						  callback: '<%= @callback %>',
-						};
+                               page: page,
+ 			       select: '<%= @select %>',
+			       callback: '<%= @callback %>',
+			     };
 		if(file_id) params['file_id'] = file_id;
 		  
 		new Ajax.Request("<%= url_for :action => 'load_folder' %>" + "/" + folder_id,

@@ -645,8 +645,8 @@ class DomainFile < DomainModel
     return false
   end
   
-  def ordered_children(order)
-    self.children.find(:all,:order => DomainFile.order_sql(order))
+  def ordered_children(order,page=1)
+    DomainFile.paginate(page,:conditions => ['parent_id=?',self.id],:order => DomainFile.order_sql(order),:per_page => 40) 
   end
   
   def self.run_search(src,order = 'name')

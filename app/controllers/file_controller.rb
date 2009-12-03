@@ -28,6 +28,8 @@ class FileController < CmsController
     @popup = params[:popup]
 
     @mce = params[:mce]
+
+    @page = params[:page]
     
     @order = params[:order] || 'name'
    @order_options = [ ['Name >','name'],
@@ -65,6 +67,8 @@ class FileController < CmsController
     @select = 'all'
     @full_page = true
     @onload = 'FileEditor.init();'
+
+    @page = params[:page] || 1
     
     require_js('edit_area/edit_area_loader')
 	  
@@ -98,6 +102,12 @@ class FileController < CmsController
     @icon_size = params[:icon_size]
     raise 'Invalid Folder' unless @folder
     
+    file_ids = params[:file_ids].to_s.split(",").reject(&:blank?)
+    if file_ids.length > 0
+      @elements = @folder.children.find(:all,:conditions => { :id => file_ids  })
+    else
+      @elements = []
+    end
     
     render :action => 'update_icon_sizes'
   end

@@ -905,7 +905,7 @@ fm_image_img {
  background-color: #edc472;
 }
 
-.active_table .pagination_spacer {
+.pagination_spacer {
   vertical-align:middle;
   height:10px;
   margin:5px 0px;
@@ -913,19 +913,19 @@ fm_image_img {
 }
 
 
-.active_table .pagination_row {
+ .pagination_row {
   vertical-align:middle;
 }
 
 
-.active_table ul.pagination {
+ ul.pagination {
   display:block;
   margin:0px;
   padding:0px;
   float:right;
 }
 
-  .active_table ul.pagination li {
+ ul.pagination li {
     display:block;
     float:left;
     background-color:#a6cdda;
@@ -933,14 +933,14 @@ fm_image_img {
     border:1px solid #557e9f;
   }
   
-    .active_table ul.pagination li.first {
+   ul.pagination li.first {
     }
 
-    .active_table ul.pagination li.highlight {
+   ul.pagination li.highlight {
 
     }
 
-    .active_table ul.pagination li.current {
+   ul.pagination li.current {
         display:block;
         padding:4px;
         background-color:#FFFFFF;
@@ -948,12 +948,12 @@ fm_image_img {
     }
 
 
-    .active_table ul.pagination li.spacer {
+   ul.pagination li.spacer {
         display:block;
         padding:4px;
     }
 
-    .active_table ul.pagination li a {
+    ul.pagination li a {
       display:block;
       padding:4px;
       text-decoration:none;
