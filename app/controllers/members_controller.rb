@@ -372,6 +372,18 @@ class MembersController < CmsController
     tabs_to_display = Configuration.options.member_tabs
     if tabs_to_display.length > 0
       handlers = handlers.select { |hndl| tabs_to_display.include?(hndl[:identifier].to_s) }
+
+      handlers = handlers.select do |hndl|
+        hndl[:permit] ? myself.has_role?(hndl[:permit]) : true
+      end
+
+      handlers = handlers.select do |hndl|
+        if hndl[:display]
+          hndl[:class].send(hndl[:display],@user)
+        else
+          true
+        end
+      end
     end
     
     idx=1
