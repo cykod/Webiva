@@ -15,6 +15,9 @@ end
 
 Autotest.add_hook :initialize do |at|
   %w{.hg .git tmtags Rakefile Capfile README spec/spec.opts spec/rcov.opts}.each {|exception|at.add_exception(exception)}
+  if ENV['COMPONENT']
+    at.clear_mappings()
+  end
   at.remove_exception("log/") # f-ing blog
   at.add_exception("log/*.log")
   at.add_exception("log.log")
