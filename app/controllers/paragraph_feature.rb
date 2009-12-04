@@ -270,7 +270,8 @@ class ParagraphFeature
       define_value_tag("#{name_base}:last_name") { |t| t.locals.send(local).last_name }
       define_value_tag("#{name_base}:salutation") { |t| t.locals.send(local).salutation }
       define_value_tag("#{name_base}:name") { |t| t.locals.send(local).name }
-      define_value_tag("#{name_base}:email") { |t| t.locals.send(local).email }
+      define_value_tag("#{name_base}:email") { |t| t.locals.send(local).email } 
+      define_value_tag("#{name_base}:cell_phone") { |t| t.locals.send(local).cell_phone }
       define_image_tag("#{name_base}:img") { |t| t.locals.send(local).image }
       define_image_tag("#{name_base}:second_img") { |t| t.locals.send(local).second_image }
       define_image_tag("#{name_base}:fallback_img") { |t| t.locals.send(local).second_image || t.locals.send(local).image }
