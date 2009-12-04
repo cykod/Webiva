@@ -504,7 +504,7 @@ EOF
     if @mode != 'edit'
       # See how many page argument the page paragraphs are expecting
       max_path_level = calculate_max_path_level
-      if max_path_level < @path_args.length 
+      if max_path_level < @path_args.length  && @container.node_type != 'M'
         raise MissingPageException.new(@container,@language), "Page Not Found" 
       end
 
