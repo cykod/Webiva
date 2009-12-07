@@ -346,7 +346,10 @@ class ApplicationController < ActionController::Base
   
   def self.cms_admin_paths(section,pages = {})
     pages['Content'] ||= { :controller => '/content' }
-    pages['Options'] ||= { :controller => '/options' }
+    pages['Options'] ||= { :controller => '/options' } 
+    pages['Modules'] ||= { :controller => '/modules' }
+    pages['People'] ||= { :controller => '/members' } 
+    pages['System'] ||= { :controller => '/manage/system' }
     sing = class << self; self; end
     sing.send :define_method, "cms_page_path_info" do
       { :section => section, :pages => pages }

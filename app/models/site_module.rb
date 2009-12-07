@@ -176,7 +176,7 @@ class SiteModule < DomainModel
   end
 
   def self.complete_module_initialization(name)
-    mdl = SiteModule.find_by_name_and_status(name,'initialized')
+    mdl = SiteModule.find_by_name_and_status(name.to_s.underscore,'initialized')
     if mdl
       mdl.update_attribute(:status,'active')
       mdl.expire_site

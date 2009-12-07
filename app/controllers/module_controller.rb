@@ -8,8 +8,6 @@ class ModuleController < CmsController
     layout 'manage'
     
     def validate_module
-      return true if RAILS_ENV == 'test'
-
       if !get_module(self.class.to_s.include?('AdminController'))
         redirect_to :controller => '/modules'
         return false
@@ -30,9 +28,9 @@ class ModuleController < CmsController
 
     # Allow access to the AdminController if we're in the initialized state
     if adm
-      @mod = SiteModule.find_by_name(info[0].to_s.downcase,:conditions => {:status => [ 'active','initialized' ] })
+      @mod = SiteModule.find_by_name(info[0].to_s.underscore.downcase,:conditions => {:status => [ 'active','initialized' ] })
     else
-      @mod = SiteModule.find_by_name_and_status(info[0].to_s.downcase,'active')
+      @mod = SiteModule.find_by_name_and_status(info[0].to_s.underscore.downcase,'active')
     end
     if @mod
       @mod.options = {} unless @mod.options.is_a?(Hash)

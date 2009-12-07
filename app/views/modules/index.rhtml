@@ -8,9 +8,9 @@
   <tr <%= highlight_row "mod",t[:module] %> >
     <td nowrap='1'>
       <% if %w(active initialized).include?(t[:status]) && "#{t[:name].to_s.camelcase}::AdminController".constantize.method_defined?('options') %>
-        <%= link_to t[:name].humanize.capitalize, { :action => 'edit', :path => t[:module] } %>
+        <%= link_to t[:name].to_s, { :action => 'edit', :path => t[:module] } %>
       <% else -%>
-          <%= t[:name].humanize.capitalize %>
+          <%= t[:name].to_s %>
       <% end -%>
     </td>
     <td nowrap='1'><%= t[:status].humanize.t %></td>
