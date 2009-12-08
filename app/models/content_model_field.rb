@@ -144,6 +144,10 @@ class ContentModelField < DomainModel
     end
   end
 
+  def filter_display(opts)
+    self.module_class.filter_display(opts)
+  end
+
   def escaped_field
     "`#{self.content_model.table_name}`.`#{self.field}`"
   end

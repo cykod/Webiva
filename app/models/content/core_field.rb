@@ -404,7 +404,7 @@ class Content::CoreField < Content::FieldHandler
 
    
     
-    filter_setup :like, :not_empty, :options
+    filter_setup :options, :not_empty
 
     # Let the publication display as radio, vertical radios or a select
     
@@ -645,7 +645,8 @@ class Content::CoreField < Content::FieldHandler
         end
 
         filter = field_opts.delete(:filter_values) || options[:filter]
-        if options[:filter_by_id] && (fltr_field =  ContentModelField.find_by_id(options[:filter_by_id])) && !filter.blank?
+        filter_blank = filter.is_a?(Array) ? filter.map(&:to_s).join('').blank? : filter.blank?
+        if options[:filter_by_id] && (fltr_field =  ContentModelField.find_by_id(options[:filter_by_id])) && filter_blank
           conditions = { fltr_field.field => filter }
         else
           conditions = nil
@@ -678,6 +679,12 @@ class Content::CoreField < Content::FieldHandler
 #           "#{@model_field.field_options['relation_singular']}_ids"
           field_opts[:class] = 'check_boxes'
           f.send(control,field_name, available_options, field_opts.merge(options.merge({:integer => true})))
+        when 'multiselect'
+          if control == :grouped_check_boxes
+            f.grouped_select(field_name,available_options, field_opts.merge(options.merge({:integer => true})), :size => 10, :multiple => true)
+          else
+            f.select(field_name, available_options, field_opts.merge(options.merge({:integer => true})), :size => 10, :multiple => true)
+          end
         when 'selects'
           if control == :grouped_check_boxes
             f.multiple_grouped_selects(field_name,[['',[["--Select--".t,nil]]]] + available_options, field_opts.merge(options.merge({:integer => true})))
@@ -723,7 +730,7 @@ class Content::CoreField < Content::FieldHandler
     def form_display_options(pub_field,f)
       mdl  =  pub_field.content_model_field.content_model_relation
       if mdl
-        f.radio_buttons(:control, [ ['Check Boxes','checkbox'], ['Vertical Check Boxes','vertical_checkbox' ], ['Multiple Selects','selects' ]]) + 
+        f.radio_buttons(:control, [ ['Check Boxes','checkbox'], ['Vertical Check Boxes','vertical_checkbox' ], ['Multiple Selects','selects' ],['Multi-select','multiselect']]) + 
           f.select(:group_by_id, [["--Don't Group Fields--".t,nil ]] + mdl.content_model_fields.map { |fld| [fld.name, fld.id ]} ) +
           f.select(:filter_by_id, [["--Don't Allow Filtering--".t,nil ]] + mdl.content_model_fields.map { |fld| [fld.name, fld.id ]} ) +
           f.text_field(:filter_values, :description => "Can be overridden in a site feature by adding a 'filter' attribute to the field") +

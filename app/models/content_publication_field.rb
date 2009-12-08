@@ -61,6 +61,10 @@ class ContentPublicationField < DomainModel
     txt
   end
   
+  def filter_display(opts)
+    self.content_model_field.filter_display(opts)
+  end
+  
   def publication_module_class
     @publication_module_class  ||= self.publication_field_module.classify.constantize
   end
