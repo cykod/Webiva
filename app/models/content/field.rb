@@ -435,7 +435,7 @@ class Content::Field
       val = options[(field_name + "_options").to_sym]
       val  = [ val ] unless val.is_a?(Array)
       val = val.reject(&:blank?)
-      val.length == 0 ? nil : fld.available_options.select {  |opt| val.include?(opt)  }.join(", ")
+      val.length == 0 ? nil : fld.available_options.map {  |opt| val.include?(opt[1]) ? opt[0] : nil  }.compact.join(", ")
     end
 
   }
