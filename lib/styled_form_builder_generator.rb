@@ -248,9 +248,15 @@ module EnhancedFormElements
 
     def grouped_select(field,choices,options ={}, html_options = {})
       obj_val = @object.send(field) if @object
+
+      if html_options[:multiple]
+        obj_val = [obj_val] unless obj_val.is_a?(Array)
+        obj_val = obj_val.map(&:to_i) if options.delete(:integer)
+      end
+
       opts = @template.grouped_options_for_select(choices,obj_val)
 
-      name = "#{@object_name}[#{field}]#"
+      name = "#{@object_name}[#{field}]"
       select_tag(name,opts,html_options)
     end
 
@@ -586,6 +592,7 @@ class TabledForm < StyledForm
     
     cols = (options.delete(:columns) || 1)
     
+    valign = options[:valign] || 'baseline'
     
     required = opts.delete(:required) ? "*" : ""
     
@@ -600,7 +607,7 @@ class TabledForm < StyledForm
       else
           description = "<tr><td/><td class='description'>#{options[:description]}</td></tr>" if !options[:description].blank?
       
-	error + "<tr><td class='label'  valign='baseline' >" + vals[:label] + required + "</td><td class='data #{options[:control]}_control' colspan='#{cols}'>" + vals[:output] + '</td></tr>' + description.to_s
+	error + "<tr><td class='label'  valign='#{valign}' >" + vals[:label] + required + "</td><td valign='baseline' class='data #{options[:control]}_control' colspan='#{cols}'>" + vals[:output] + '</td></tr>' + description.to_s
       end
     else
       vertical = options.delete(:vertical)
@@ -610,7 +617,7 @@ class TabledForm < StyledForm
 	@template.concat("<tr><td colspan='#{cols+1}' class='label_vertical'>" + emit_label(label) + required + '</td></tr>' + error + "<tr><td colspan='#{cols+1}' class='data " + options[:control].to_s + "_control'>")
       else
          description = "<tr><td/><td class='description' colspan='#{cols}'>#{options[:description]}</td></tr>" if !options[:description].blank?
-        @template.concat(error + '<tr><td  class="label" valign="baseline" >' + emit_label(label) + required + "</td><td class='data' colspan='#{cols}' valign='baseline'>")
+         @template.concat(error + "<tr><td  class='label' valign='#{valign}' >" + emit_label(label) + required + "</td><td valign='baseline' class='data' colspan='#{cols}'>")
       end
       yield
       @template.concat("</td></tr>" + description.to_s)
