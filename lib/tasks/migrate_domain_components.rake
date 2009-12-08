@@ -42,7 +42,11 @@ namespace "cms" do
               ComponentMigrator.migrate(dir,version)
               mod.update_attribute(:status,'initialized') if mod.status == 'initializing'
             rescue Exception => e
-              mod.update_attribute(:status,'error') if mod.status == 'initializing'
+              if mod.status == 'initializing'
+                mod.update_attribute(:status,'error')
+              else
+                raise e
+              end
             end
           elsif (!component || component == mod.name)
             mod.update_attribute(:status,'initialized') if mod.status == 'initializing'
