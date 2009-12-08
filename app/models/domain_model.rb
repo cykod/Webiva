@@ -581,12 +581,15 @@ class DomainModel < ActiveRecord::Base
      idx = 2
      permalink_try = permalink_try_partial[0..60]
      
-     while(self.class.send("find_by_#{field}",permalink_try,:conditions => ['id != ?',self.id || 0] ))
-       permalink_try = permalink_try_partial + '-' + idx.to_s
-       idx += 1
+     if !field.blank?
+       while(self.class.send("find_by_#{field}",permalink_try,:conditions => ['id != ?',self.id || 0] ))
+         permalink_try = permalink_try_partial + '-' + idx.to_s
+         idx += 1
+       end
+       self.send("#{field}=",permalink_try)
+     else
+       permalink_try
      end
-     
-     self.send("#{field}=",permalink_try)
   end
   
   def expire_site
