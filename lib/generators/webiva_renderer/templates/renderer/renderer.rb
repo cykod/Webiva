@@ -12,7 +12,7 @@ class <%= module_class %>::<%= renderer_class %>Renderer < ParagraphRenderer
     # Any instance variables will be sent in the data hash to the 
     # <%= module_path %>_<%= renderer_path %>_<%= paragraph %>_feature automatically
   
-    render_feature :text => <%= module_path %>_<%= renderer_path %>_<%= paragraph %>
+    render_paragraph :feature => :<%= module_path %>_<%= renderer_path %>_<%= paragraph %>
   end
 <%- end -%>
 
