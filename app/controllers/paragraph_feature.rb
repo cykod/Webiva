@@ -30,6 +30,10 @@ class ParagraphFeature
       end
     end
   end
+
+  def self.standalone_feature(site_feature_id=nil)
+    self.new(PageParagraph.new(:site_feature_id => site_feature_id),dummy_renderer)
+  end
   
   def self.dummy_renderer(controller=nil)
     ParagraphRenderer.new(UserClass.get_class('domain_user'),controller || ApplicationController.new,PageParagraph.new,SiteNode.new,PageRevision.new)
