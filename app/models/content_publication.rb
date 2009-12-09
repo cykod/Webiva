@@ -56,12 +56,13 @@ class ContentPublication < DomainModel
   end
   
   def add_all_fields!
-    self.content_model.content_model_fields.each do |fld|
+    self.content_model.content_model_fields.find(:all,:order => 'position').each_with_index do |fld,idx|
     self.content_publication_fields.create(
 				:label => fld.name,
 				:field_type => self.field_type_options[0][1],
 				:data => {},
-				:content_model_field_id => fld.id
+				:content_model_field_id => fld.id,
+                                 :position => idx
 				)
   	end
   end
