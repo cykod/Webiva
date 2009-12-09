@@ -6,7 +6,16 @@ class DataCache
   @@local_cache = {}
   
   def self.reset_local_cache
+    # Reset the locally cached custom content models as well
+    classes = (DataCache.local_cache("content_models_list") || {}).values
+    classes.each do |cls|
+     Object.send(:remove_const,cls[1]) if Object.const_defined?(cls[1])
+    end
+    classes = {}
+
     @@local_cache = {}
+
+    ContentModelType.subclasses
   end
   
   def self.local_cache(key)

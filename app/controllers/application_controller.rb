@@ -31,6 +31,7 @@ class ApplicationController < ActionController::Base
   
   hide_action :myself
   def myself
+    return EndUser.default_user unless response
     if response.data[:user]
       if response.data[:user].is_a?(ClientUser) 
         return response.data[:end_user]
@@ -89,15 +90,8 @@ class ApplicationController < ActionController::Base
   protected
 
   def clear_cache
-    classes = (DataCache.local_cache("content_models_list") || {}).values
-    classes.each do |cls|
-     Object.send(:remove_const,cls[1]) if Object.const_defined?(cls[1])
-    end
-    classes = {}
-    
     DataCache.reset_local_cache
 #    ContentModelType.remove_subclasses
-    ContentModelType.subclasses
   end
   
   def template_root
