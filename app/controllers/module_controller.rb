@@ -8,7 +8,7 @@ class ModuleController < CmsController
     layout 'manage'
     
     def validate_module
-      if !get_module(self.class.to_s.include?('AdminController'))
+      if !get_module(self.class.to_s.include?('AdminController')) && RAILS_ENV != 'test'
         redirect_to :controller => '/modules'
         return false
       else
