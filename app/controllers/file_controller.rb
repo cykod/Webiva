@@ -97,6 +97,8 @@ class FileController < CmsController
   end
 
   def update_icon_sizes
+    calculate_image_size
+
     @folder = DomainFile.find_folder(params[:folder_id])
     @load_request = params[:load_request]
     @icon_size = params[:icon_size]

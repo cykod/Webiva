@@ -378,7 +378,14 @@ class DomainFile < DomainModel
       
       # Only allow valid file sizes
       size = nil unless force || !size || @@image_sizes[size.to_sym] || DomainFileSize.custom_sizes[size.to_sym]
-      self.storage_directory + (size ? "#{size}/" : '') +  atr
+
+     # Special case handling for thumbnails
+     if size && self.file_type == 'thm'
+       
+       self.storage_directory + "#{size}/" + (File.basename(atr,".#{extension}") + ".jpg")
+     else
+       self.storage_directory + (size ? "#{size}/" : '') +  atr
+     end
    end
    
    # Return the absolute storage directory - valid for opening a file  on the server 
