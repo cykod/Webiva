@@ -60,7 +60,7 @@ class PublicController < ApplicationController
     df = DomainFile.find_by_prefix(prefix)
 
     # Special case for thumbs
-    if df.name != filename
+    if df && df.name != filename
       unless df.file_type == 'thm' && filename.gsub(/\.[^.]+$/,".#{df.extension}")
         df = nil
       end
