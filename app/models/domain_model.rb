@@ -271,6 +271,13 @@ class DomainModel < ActiveRecord::Base
      Digest::SHA1.hexdigest(Time.now.to_i.to_s + rand(1e100).to_s)
   end
 
+  def self.hash_hash(hsh)
+    arr = hsh.to_a.sort { |a,b| a[0].to_s<=>b[0].to_s }
+    Digest::SHA1.hexdigest(arr.to_s)[0..63]
+  end
+
+ 
+
   def self.find_select_options(val=:all,opts={})
     self.find(val,opts).collect do |itm|
       [ itm.name, itm.id ]

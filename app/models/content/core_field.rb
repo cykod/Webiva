@@ -654,21 +654,39 @@ class Content::CoreField < Content::FieldHandler
         
         if options[:group_by_id] && mdl_field = ContentModelField.find_by_id(options[:group_by_id])
 
+          opts = { :conditions => conditions,:order => order_by, :group_by_id => options[:group_by_id] }
+          opt_hsh = cls.hash_hash(opts)
+          
           all_elems = cls.find(:all,:conditions => conditions, :order => order_by)
 
-          available_options =  {}
-          all_elems.group_by { |elm| mdl_field.content_display(elm) }.each do |key,arr|
-            available_options[key] = arr.map { |elm| [ elm.identifier_name, elm.id ] }
+          available_options = cls.cache_fetch('select_options_grouped',opt_hsh)
+          if !available_options
+            available_options =  {}
+            all_elems.group_by { |elm| mdl_field.content_display(elm) }.each do |key,arr|
+              available_options[key] = arr.map { |elm| [ elm.identifier_name, elm.id ] }
+            end
+            available_options = available_options.to_a.sort { |a,b| a[0] <=> b[0] }
+
+            
+            cls.cache_put('select_options_grouped',available_options,opt_hsh)
           end
-          available_options = available_options.to_a.sort { |a,b| a[0] <=> b[0] }
+
           control = :grouped_check_boxes
 
         else
-          available_options = cls.select_options(:conditions => conditions,:order => order_by)
+          opts = { :conditions => conditions,:order => order_by }
+          opt_hsh = cls.hash_hash(opts)
+          available_options = cls.cache_fetch('select_options',opt_hsh)
+          
+          if !available_options
+            available_options = cls.select_options(opts)
+            if !order_by
+              available_options.sort! { |a,b| a[0].downcase <=> b[0].downcase }
+            end
 
-          if !order_by
-            available_options.sort! { |a,b| a[0].downcase <=> b[0].downcase }
+            cls.cache_put('select_options',available_options,opt_hsh)
           end
+
 
           
           control = :check_boxes

@@ -278,7 +278,7 @@ class Content::Field
       val =  options[(field_name + "_options").to_sym]
       val  = [ val ] unless val.is_a?(Array)
       val = val.reject(&:blank?)
-      val.length == 0 ? nil : val.map {  |elm| "\"#{elm}\"" }.join (", ")
+      val.length == 0 ? nil : val.map {  |elm| "\"#{elm}\"" }.join(", ")
       
     end
   }

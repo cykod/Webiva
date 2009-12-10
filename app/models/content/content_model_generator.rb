@@ -24,7 +24,7 @@ module Content::ContentModelGenerator
     cls.set_table_name self.table_name
 
     cls.cached_content
-    
+
     # Setup the fields in the model as necessary (required, validation, etc)
     self.content_model_fields.each { |fld| fld.setup_model(cls) }
     
@@ -42,6 +42,8 @@ module Content::ContentModelGenerator
           self.send(:#{self.content_model_fields[0].field}).to_s
                   end
       SRC
+
+      cls.set_identifier_field self.content_model_fields[0].field
       
       cls.class_eval identifier_func, __FILE__, __LINE__
     else
