@@ -659,7 +659,7 @@ class Content::CoreField < Content::FieldHandler
           
           all_elems = cls.find(:all,:conditions => conditions, :order => order_by)
 
-          available_options = cls.cache_fetch('select_options_grouped',opt_hsh)
+          available_options = cls.cache_fetch(opt_hsh,'select_options_grouped')
           if !available_options
             available_options =  {}
             all_elems.group_by { |elm| mdl_field.content_display(elm) }.each do |key,arr|
@@ -668,7 +668,7 @@ class Content::CoreField < Content::FieldHandler
             available_options = available_options.to_a.sort { |a,b| a[0] <=> b[0] }
 
             
-            cls.cache_put('select_options_grouped',available_options,opt_hsh)
+            cls.cache_put(opt_hsh,available_options,'select_options_grouped')
           end
 
           control = :grouped_check_boxes
@@ -676,7 +676,7 @@ class Content::CoreField < Content::FieldHandler
         else
           opts = { :conditions => conditions,:order => order_by }
           opt_hsh = cls.hash_hash(opts)
-          available_options = cls.cache_fetch('select_options',opt_hsh)
+          available_options = cls.cache_fetch(opt_hsh,'select_options')
           
           if !available_options
             available_options = cls.select_options(opts)
@@ -684,7 +684,7 @@ class Content::CoreField < Content::FieldHandler
               available_options.sort! { |a,b| a[0].downcase <=> b[0].downcase }
             end
 
-            cls.cache_put('select_options',available_options,opt_hsh)
+            cls.cache_put(opt_hsh,available_options,'select_options')
           end
 
 
