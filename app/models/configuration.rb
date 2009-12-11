@@ -103,7 +103,7 @@ class Configuration < DomainModel
   def self.missing_image(gender=nil)
     gender ||= 'unknown'
 
-    img = DataCache.local_cache('missing_image_#{gender}')
+    img = DataCache.local_cache("missing_image_#{gender}")
     return img if img
 
     if gender.to_s == 'm'
@@ -114,7 +114,7 @@ class Configuration < DomainModel
     img ||= DomainFile.find_by_id(self.options.missing_image_id)
     
     
-    DataCache.put_local_cache('missing_image_#{gender}',img)
+    DataCache.put_local_cache("missing_image_#{gender}",img)
     img
   end
   
