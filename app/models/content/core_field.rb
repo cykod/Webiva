@@ -667,8 +667,6 @@ class Content::CoreField < Content::FieldHandler
             end
             available_options = available_options.to_a.sort { |a,b| a[0] <=> b[0] }
 
-            raise available_options.inspect
-            
             cls.cache_put(opt_hsh,available_options,'select_options_grouped')
           end
 
