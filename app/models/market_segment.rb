@@ -26,10 +26,22 @@ class MarketSegment < DomainModel
       MembersOptions.new(val || self.options)
     when 'content_model': 
       ContentModelOptions.new(val || self.options)
+    when 'custom':
+      CustomModelOptions.new(val || self.options)
     else
       DefaultsHashObject.new
     end
    
+   end
+
+   def self.create_custom(campaign,user_ids)
+     self.create(:options => {  :user_ids => user_ids }, :segment_type => 'custom', :name => "#{campaign.name} Custom Segment", :market_campaign_id => campaign.id )
+   end
+
+   class CustomModelOptions < HashModel
+     default_options :user_ids => []
+
+     integer_array_options :user_ids
    end
    
    class SubscriptionOptions < HashModel
@@ -121,6 +133,34 @@ class MarketSegment < DomainModel
    end
    
    private
+
+
+   def custom_target_count(options={ })
+     opts = self.options_model
+     if opts.user_ids.length > 0
+       EndUser.count(:conditions => { :id => opts.user_ids })
+     else
+       0
+     end
+   end
+
+   def custom_target_list(options)
+     opts = self.options_model
+     if opts.user_ids.length > 0
+       EndUser.find(:all,:conditions => { :id => opts.user_ids },:select => 'end_users.email,end_users.id,end_users.full_name,end_users.first_name,end_users.last_name,end_users.middle_name').map {  |elm| [ elm.email,elm.name ]}
+     else
+       []
+     end
+   end
+
+   def custom_target_entries(options)
+     opts = self.options_model
+     if opts.user_ids.length > 0
+       EndUser.find(:all,:conditions => { :id => opts.user_ids }).map {  |elm| [ elm.email,elm, elm.id ]}
+     else
+       []
+     end
+   end
    
    def subscription_target_count(options={})
     self.user_subscription.active_subscriptions.count()
