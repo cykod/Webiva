@@ -643,7 +643,6 @@ class Content::CoreField < Content::FieldHandler
         else
           order_by = nil
         end
-
         filter = field_opts.delete(:filter_values) || options[:filter]
         filter_blank = filter.is_a?(Array) ? filter.map(&:to_s).join('').blank? : filter.blank?
         if options[:filter_by_id] && (fltr_field =  ContentModelField.find_by_id(options[:filter_by_id])) && !filter_blank
@@ -654,10 +653,12 @@ class Content::CoreField < Content::FieldHandler
         
         if options[:group_by_id] && mdl_field = ContentModelField.find_by_id(options[:group_by_id])
 
+
           opts = { :conditions => conditions,:order => order_by, :group_by_id => options[:group_by_id] }
           opt_hsh = cls.hash_hash(opts)
           
-          available_options = cls.cache_fetch(opt_hsh,'select_options_grouped')
+          available_options =  cls.cache_fetch(opt_hsh,'select_options_grouped')
+
           if !available_options
             all_elems = cls.find(:all,:conditions => conditions, :order => order_by)
             available_options =  {}
@@ -666,6 +667,7 @@ class Content::CoreField < Content::FieldHandler
             end
             available_options = available_options.to_a.sort { |a,b| a[0] <=> b[0] }
 
+            raise available_options.inspect
             
             cls.cache_put(opt_hsh,available_options,'select_options_grouped')
           end

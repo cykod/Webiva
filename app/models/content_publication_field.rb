@@ -71,7 +71,9 @@ class ContentPublicationField < DomainModel
 
   def filter_options(f,name=nil,attr={})
     if self.content_model_field && self.options.filter 
-      self.content_model_field.filter_options(f,name,(self.data||{}).merge(attr.symbolize_keys))
+      opts = (self.data||{ }).clone
+      opts.delete(:filter)
+      self.content_model_field.filter_options(f,name,opts.merge(attr.symbolize_keys))
     else 
       ''
     end
