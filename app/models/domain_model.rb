@@ -142,9 +142,11 @@ class DomainModel < ActiveRecord::Base
     
     self.module_eval(<<-SRC)
     def run_triggered_actions(data = {},trigger_name = nil,user = nil)
-      actions = trigger_name ?  self.triggered_actions.find(:all,:conditions => ['action_trigger=?',trigger_name]) :  self.triggered_actions
-      actions.each do |act|
-	act.perform(data,user)
+      if (trigger_name.to_s == 'view' && self.view_action_count > 0) || (trigger_name.to_s != 'view' && self.update_action_count > 0)
+        actions = trigger_name ?  self.triggered_actions.find(:all,:conditions => ['action_trigger=?',trigger_name]) :  self.triggered_actions
+        actions.each do |act|
+          act.perform(data,user)
+        end
       end
     end    
     SRC
