@@ -249,7 +249,7 @@ class Content::CoreField < Content::FieldHandler
     
     def modify_entry_parameters(parameters)
       key = @model_field.field
-      if parameters[key.to_s + "_clear"].to_s == '0'
+      if parameters[key.to_s + "_clear"].to_s == '0' && (parameters[key].is_a?(Integer) ||  parameters[key].blank? )
         parameters[key] = nil
       elsif parameters[key].is_a?(String)
         parameters[key] = parameters[key].to_i
