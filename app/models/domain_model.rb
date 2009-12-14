@@ -409,14 +409,14 @@ class DomainModel < ActiveRecord::Base
 #    end
 #  end
 #  
-#  alias_method :destroy_active_record, :destroy
-#  
-#  def destroy
-#    post_handlers(self,:pre_destroy)
-#    if destroy_active_record
-#        post_handlers(self,:post_destroy)
-#    end
-#  end
+  alias_method :destroy_active_record, :destroy
+  
+  def destroy
+    post_handlers(self,:pre_destroy)
+    if destroy_active_record
+        post_handlers(self,:post_destroy)
+    end
+  end
   
   def post_handlers(record,action)
     DomainModel.get_handlers(:model,record.class.to_s.underscore.to_sym).each do |handler|
