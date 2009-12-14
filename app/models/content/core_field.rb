@@ -250,7 +250,7 @@ class Content::CoreField < Content::FieldHandler
     def modify_entry_parameters(parameters)
       key = @model_field.field
       if parameters[key.to_s + "_clear"].to_s == '0'
-          parameters[key] = nil
+        parameters[key] = nil
       elsif parameters[key].is_a?(String)
         parameters[key] = parameters[key].to_i
       elsif !parameters[key].is_a?(Integer) &&  !parameters[key].blank? 
@@ -274,7 +274,6 @@ class Content::CoreField < Content::FieldHandler
 
     
     def assign(entry,values)
-      modify_entry_parameters(values)
       entry.send("#{@model_field.field}=",values[@model_field.field]) if values.has_key?(@model_field.field)
     end
 
