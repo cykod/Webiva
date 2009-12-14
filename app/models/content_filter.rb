@@ -27,7 +27,17 @@ class ContentFilter < DomainModel
   def self.filter(name,code,options={})
     name = name.to_s
     if @@built_in_filter_hash[name]
-      return self.send("#{name}_filter",code,options)
+      
+      # Pre-filter Proc
+      code = options[:pre_filter].call(code) if options[:pre_filter]
+
+      # Do the actual filtering
+      code = self.send("#{name}_filter",code,options)
+
+      # Post filter proc
+      code = options[:post_filter].call(code)  if options[:post_filter]
+
+      code
     else
       raise 'Invalid Sanitizer'
     end
