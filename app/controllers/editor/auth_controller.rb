@@ -10,9 +10,9 @@ class Editor::AuthController < ParagraphController
   editor_for :login, :name => 'User Login', :features => ['login']
   editor_for :enter_vip, :name => 'Enter VIP #', :features => ['enter_vip'], :triggers => [['Failed VIP Login','failure'],['Successful VIP Login','success' ],['Repeat Successful VIP Login','repeat']]
 
-  editor_for :user_register, :name => 'User Registration', :feature => 'user_register', :triggers => [ ['View Registration Paragraph','view'], ['Successful Registration','action'] ]
+  editor_for :user_register, :name => 'User Registration', :feature => 'user_register', :triggers => [ ['Successful Registration','action'] ]
 
-  editor_for :user_activation, :name => 'User Activation', :feature => 'user_activation', :triggers => [ ['View Activation Paragraph','view'], ['Successful Activation','action'] ]
+  editor_for :user_activation, :name => 'User Activation', :feature => 'user_activation', :triggers => [ ['Successful Activation','action'] ]
 
   editor_for :edit_account, :name => 'Edit Account', :triggers => [ ['Edit Profile','action' ]] 
 

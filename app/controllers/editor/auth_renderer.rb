@@ -172,16 +172,12 @@ class Editor::AuthRenderer < ParagraphRenderer
           if @options.content_publication.to_i > 0
             fill_entry(@publication,@entry,@user)
             if @entry.save
-              if @publication.update_action_count > 0
-                @publication.run_triggered_actions(entry,'create',myself)
-              end
+              @publication.run_triggered_actions(entry,'create',myself)
             end
           end
           
           # run any triggered actions
-          if paragraph.update_action_count > 0
-            paragraph.run_triggered_actions(@user,'action',@user)
-          end
+          paragraph.run_triggered_actions(@user,'action',@user)
 
           # send mail template if we have one
           if @options.registration_template_id.to_i > 0 && @mail_template = MailTemplate.find_by_id(@options.registration_template_id)
@@ -324,6 +320,8 @@ class Editor::AuthRenderer < ParagraphRenderer
 
         process_login(@user) if @options.login_after_activation
 
+        paragraph.run_triggered_actions(myself,'action',myself)
+
         if @options.redirect_page_id
           redirect_paragraph @options.redirect_page_url
           return
@@ -358,10 +356,7 @@ class Editor::AuthRenderer < ParagraphRenderer
           
           
           paragraph_action('Enter VIP, Success',vip_number)
-          if !editor? && paragraph.update_action_count > 0
-            paragraph.run_triggered_actions(myself,'success',myself)
-          end
-          
+          paragraph.run_triggered_actions(myself,'success',myself)
           
           user.update_attribute(:user_level, 2) if user.user_level < 2
           
