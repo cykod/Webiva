@@ -842,9 +842,18 @@ class ParagraphFeature
             frm.object.send("#{fld.field_options['relation_singular']}_ids")
           end
 
+
           # TODO: Yeah, not so hot - needs to be extract to core_field somehow
           if active_fields[0] && cls = active_fields[0].relation_class
             cm =  active_fields[0].content_model_relation
+
+            if t.attr['display'] && display_field = cm.content_model_fields.detect { |fld| fld.field == t.attr['display'] }
+              display_field = display_field.field
+            else
+              display_field = "identifier_name"
+            end
+              
+
 
             if t.attr['filter_by'] && filter_field = cm.content_model_fields.detect { |fld| fld.field == t.attr['filter_by'] }
               conditions = { filter_field.field => t.attr['filter'] }
@@ -865,7 +874,7 @@ class ParagraphFeature
                 arr.group_by { |elm| group_field.content_display(elm) }.each do |key,arr2|
                   arr2.group_by { |elm|  group_2nd_field.content_display(elm) }.each do |key2,arr3|
                     available_options[key] ||= {}
-                    available_options[key][key2] = arr3.map { |elm| [ elm.identifier_name, elm.id ] }
+                    available_options[key][key2] = arr3.map { |elm| [ elm.send(display_field), elm.id ] }
                   end
                 end
                 arr = available_options.to_a.map do |elm|
@@ -877,12 +886,12 @@ class ParagraphFeature
                 available_options =  {}
                 arr.group_by { |elm| group_field.content_display(elm) }.each do |key,arr|
                   
-                  available_options[key] = arr.map { |elm| [ elm.identifier_name, elm.id ] }
+                  available_options[key] = arr.map { |elm| [  elm.send(display_field), elm.id ] }
                 end
                 arr = available_options.to_a.sort { |a,b| a[0].to_s.downcase <=> b[0].to_s.downcase }.map { |elm| { :name => elm[0], :items => elm[1] } }
               end
             else
-              arr.map! { |elm| [ elm.identifier_name, elm.id ] }
+              arr.map! { |elm| [ elm.send(display_field), elm.id ] }
             end
             output = ''
             output << has_many_field_helper(1,t,arr,0)
