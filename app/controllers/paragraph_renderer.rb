@@ -400,7 +400,7 @@ class ParagraphRenderer < ParagraphFeature
 
     unless editor?
       if obj.is_a?(Array)
-        cls = obj[0].constantize
+        cls = obj[0].is_a?(String) ? obj[0].constantize : obj[0]
         result = cls.cache_fetch(display_string,obj[1])
       elsif obj.is_a?(ActiveRecord::Base)
         result = obj.cache_fetch(display_string)
@@ -419,7 +419,6 @@ class ParagraphRenderer < ParagraphFeature
 
       unless editor?
         if obj.is_a?(Array)
-          cls = obj[0].constantize
           cls.cache_put(display_string,output,obj[1])
         elsif obj.is_a?(ActiveRecord::Base)
           obj.cache_put(display_string,output)
