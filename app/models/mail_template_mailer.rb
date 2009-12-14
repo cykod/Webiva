@@ -21,7 +21,7 @@ class MailTemplateMailer < ActionMailer::Base
 
       part :content_type => 'text/plain',
           :body => options[:text]
-      part :content_type => "text/html",
+      part :content_type => "text/html", :transfer_encoding => '7bit',
           :body => options[:html]
     elsif options[:text]
       content_type 'text/plain'
@@ -69,7 +69,7 @@ class MailTemplateMailer < ActionMailer::Base
         part(:content_type => "multipart/alternative") do |p|
           p.part :content_type => 'text/plain',
             :body => mail_template.render_text(variables)
-          p.part :content_type => "text/html",
+          p.part :content_type => "text/html", :transfer_encoding => '7bit',
             :body => mail_template.render_html(variables)
         end
       elsif mail_template.body_type.include?('text')
@@ -85,7 +85,7 @@ class MailTemplateMailer < ActionMailer::Base
 
         part :content_type => 'text/plain',
             :body => mail_template.render_text(variables)
-        part :content_type => "text/html",
+        part :content_type => "text/html", :transfer_encoding => '7bit',
             :body => mail_template.render_html(variables)
       elsif mail_template.body_type.include?('text')
         content_type 'text/plain'
