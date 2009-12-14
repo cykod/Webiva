@@ -622,7 +622,7 @@ class Content::Field
       header_class = "#{header_type}_header".classify
       header_code =  <<-EOF
       def active_table_header
-        ActiveTable::#{header_class}.new(@model_field.field, :label => @model_field.name)  
+        ActiveTable::#{header_class}.new("`" + @model_field.field + "`", :label => @model_field.name)  
       end
       EOF
       self.class_eval header_code, __FILE__, __LINE__
