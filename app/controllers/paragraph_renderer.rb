@@ -398,7 +398,7 @@ class ParagraphRenderer < ParagraphFeature
     display_string = "#{paragraph.id}_#{display_string}"
     result = nil
 
-    unless editor?
+    unless editor? || options[:skip]
       if obj.is_a?(Array)
         cls = obj[0].is_a?(String) ? obj[0].constantize : obj[0]
         result = cls.cache_fetch(display_string,obj[1])
@@ -417,7 +417,7 @@ class ParagraphRenderer < ParagraphFeature
 
       output = result.to_hash
 
-      unless editor?
+      unless editor? || options[:skip]
         if obj.is_a?(Array)
           cls.cache_put(display_string,output,obj[1])
         elsif obj.is_a?(ActiveRecord::Base)
