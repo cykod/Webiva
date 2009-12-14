@@ -259,7 +259,11 @@ class EndUser < DomainModel
       elsif elm.target
         if elm.target.token_valid?
           arr += elm.access_token.cached_role_ids
+        else
+          arr
         end
+      else
+        arr
       end
     end
     
