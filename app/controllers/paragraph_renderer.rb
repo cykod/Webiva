@@ -392,7 +392,49 @@ class ParagraphRenderer < ParagraphFeature
     end
   end
   
- 
+
+
+  def renderer_cache(obj,display_string=nil,options={ })
+    display_string = "#{paragraph.id}_#{display_string}"
+    result = nil
+
+    unless editor?
+      if obj.is_a?(Array)
+        cls = obj[0].constantize
+        result = cls.cache_fetch(display_string,obj[1])
+      elsif obj.is_a?(ActiveRecord::Base)
+        result = obj.cache_fetch(display_string)
+      else
+        result = obj.cache_fetch_list(display_string)
+      end
+    end
+    
+    if result
+      return DefaultsHashObject.new(result)
+    else
+      result = DefaultsHashObject.new(result)
+      yield result
+
+      output = result.to_hash
+
+      unless editor?
+        if obj.is_a?(Array)
+          cls = obj[0].constantize
+          cls.cache_put(display_string,output,obj[1])
+        elsif obj.is_a?(ActiveRecord::Base)
+          obj.cache_put(display_string,output)
+        else
+          obj.cache_put_list(display_string,output)
+        end
+      end
+      
+      return result
+    end
+
+  end
+  
+  
+
   
   def self.get_editor_features
     # Find all the renderers in the 'editors' subdirectory,
