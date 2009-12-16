@@ -705,6 +705,23 @@ fm_image_img {
   text-decoration:none;
 }
 
+.link_button { 
+  padding:4px 10px; 
+  background-color: #92b3e1;
+  color:white;
+  display:inline-block;
+  font-weight:bold;
+  text-decoration:none;  
+  border:1px solid #CCCCCC;
+  border-radius:3px;        
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+ }
+
+.link_button:hover { 
+   border: 1px solid #666666;
+                     }
+
 .ajax_tabs {
 	width:100%;
 	position:relative;

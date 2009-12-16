@@ -865,7 +865,9 @@ EOF
       parts << part.body
       if(part.zone_position != -1)
         if @mode == 'edit' || @page_information.zone_paragraphs[part.zone_position].is_a?(Array)
+          zone = @active_template.site_template_zones.detect {  |zn| zn.position == part.zone_position } if @mode == 'edit'
           parts.push({:zone_idx => part.zone_position, 
+                       :zone_name => zone ? zone.name : '(Undefined)'.t,
                        :paragraphs => @page_information.zone_paragraphs[part.zone_position] || [],
                        :locked => @page_information.zone_locks[part.zone_position]
                      })
