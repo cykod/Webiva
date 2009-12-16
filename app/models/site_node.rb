@@ -62,6 +62,8 @@ class SiteNode < DomainModel
       [ self ]
     elsif self.node_type == 'M'
       self.dispatcher.menu
+    elsif self.node_type == 'G'
+      self.children
     else
       [ self ]
     end
@@ -193,7 +195,21 @@ class SiteNode < DomainModel
       [ page.node_type != 'R' ? page.node_path : include_root ,page.id ]
     end
   end
+
+  def self.page_and_group_options(include_root = false)
+    node_type = include_root ? 'node_type IN("P","R","M","J","G")' : 'node_type IN ("P","M","J","G"")'
+    SiteNode.find(:all,:conditions => node_type,
+                  :order => 'lft').collect do |page|
+      title = case page.node_type
+              when 'R': include_root
+              when 'P': page.node_path
+              when 'G': "#{page.node_path} (#{page.title})"
+              end
+      [ title, page.id ]
+    end
+  end
   
+
   def self.module_options(mod)
     SiteNode.find(:all,:conditions => [ 'module_name = ? AND node_type = "M" ',mod],
                   :order => 'node_path').collect do |page|
@@ -286,7 +302,7 @@ class SiteNode < DomainModel
   
   def before_save
     node_path = ''
-    if self.parent && self.parent.node_path && self.parent.node_type == 'P'
+    if self.parent && self.parent.node_path && (self.parent.node_type == 'P' || self.parent.node_type == 'G')
       node_path = self.parent.node_path
     end
     
@@ -294,7 +310,9 @@ class SiteNode < DomainModel
       node_path += '/'
     end
     
-    node_path +=  self.title.to_s
+    if self.node_type != 'G'
+      node_path +=  self.title.to_s
+    end
     
     self.node_path = node_path
     self.node_level = self.parent ?  self.parent.node_level.to_i + 1 : 0

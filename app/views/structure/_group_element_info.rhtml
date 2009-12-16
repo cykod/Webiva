@@ -1,0 +1,12 @@
+<% if permit?('editor_structure') %>
+
+<div align='right'>
+  <a href='javascript:void(0);' onclick='StructureEditor.nodeDelete(<%= @node.id %>,"<%= jh "Are you sure you want to delete this group (and all it's members)?" .t %>");'><%= "Delete Group".t %></a>
+</div>  
+
+<% end -%>
+
+
+<b> <%= "Grouping at ".t %> <%= @node.node_path %> ( <%= h @node.title -%> )</a> </b><br/><br/>
+
+<p><%= "Groups allow you to group site elements together without forcing them to be nested together in the site tree.".t -%>
