@@ -1,4 +1,4 @@
-page << "cmsEdit.setPageInfo('#{@container_arg}','#{@page.id}','#{@revision.id}','#{@revision.language}',#{@revision.active},'#{@page.node_path}');"
+page << "cmsEdit.setPageInfo('#{@container_arg}','#{@page.id}','#{@revision.id}','#{@revision.language}',#{@revision.active},null,'#{@page.node_path}');"
 
 page.replace_html :cms_version_list, "Loading Versions...".t
 page.replace_html :cms_info_active, @revision.active ? theme_image_tag('icons/pageeditor/active.gif') + ' ' + 'Active'.t : theme_image_tag('icons/pageeditor/inactive.gif') +  ' ' + 'Inactive'.t
