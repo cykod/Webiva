@@ -1,8 +1,8 @@
 
 <%= render :partial => '/file/details/file_name', :locals => {:file => file } %>
+<div id='details_<%= file.id -%>'>
 
-
-<div id='fm_file_actions'>
+<div id='fm_file_actions'  >
   <% if file.file_type_match(@select) -%>
     <button onclick='FileEditor.callbackFile(<%= file.id %>);'>Select</button>
   <% end -%>
@@ -18,3 +18,4 @@
   <%= v.raw 'Created By', file.creator ? link_to(file.creator.name, :controller => '/members',:action=>'view',:path => [ file.creator_id ]) : h('<Unknown>') %>
 <% end -%>
 
+</div>

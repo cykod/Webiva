@@ -43,7 +43,8 @@ class SiteNodeModifier < DomainModel
   def language_revisions(languages)
     languages.collect do |lang|
       [ lang,
-        self.page_revisions.find(:first,:conditions => ['language=? AND revision_type="real"',lang], :order => 'active DESC, revision DESC')
+        self.page_revisions.find(:first,:conditions => ['language=? AND revision_type="real"',lang], :order => 'active DESC, revision DESC'),
+        self.page_revisions.find(:first,:conditions => ['language=? AND revision_type="real"',lang], :order => 'revision DESC')
       ]
     end
   end

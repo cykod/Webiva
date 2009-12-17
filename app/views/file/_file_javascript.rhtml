@@ -929,6 +929,8 @@ FileEditor = {
     fileInfo: function(file_id) {
       if($('item_' + file_id))
         return $('item_' + file_id).file_info;
+      else if($('details_' + file_id))
+        return $('details_' + file_id).file_info;
       else
         return {};
     },

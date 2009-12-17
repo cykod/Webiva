@@ -69,9 +69,21 @@ class SiteNodeEngine
         name = domain_file.name
       # Otherwise we have a document node (domain file), that needs to be sent
       else
-	      domain_file = page.domain_file
-	      filename = domain_file.filename
-	      name = page.title # domain_file.name
+        domain_file = page.domain_file
+        if domain_file.folder?
+          args = "/" + output.path_args.join("/").to_s.strip
+          domain_file = DomainFile.find_by_file_path(domain_file.file_path + args)
+          
+          if domain_file
+            filename = domain_file.filename
+            name = domain_file.name
+          else
+            raise MissingPageException.new(page,@output.language)
+          end
+        else 
+          filename = domain_file.filename
+          name = page.title # domain_file.name
+        end
       end
       mime_types =  MIME::Types.type_for(filename) 
       if USE_X_SEND_FILE
@@ -382,6 +394,14 @@ EOF
       @options[:domain_file]
     end
 
+    def path_args
+      @options[:path_args]
+    end
+
+    def language
+      @options[:language]
+    end
+
     def data
      @options[:data]
     end
@@ -494,7 +514,7 @@ EOF
     
     # If we are rendering a document node, return it
     if @container.is_a?(SiteNode) && @container.node_type=='D'
-      doc =  DocumentOutput.new
+      doc =  DocumentOutput.new(:path_args => @path_args, :language => @language )
       doc.paction = user.action("/document/download",:identifier => @container.domain_file.file_path)
       return doc
     end
