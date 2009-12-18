@@ -22,32 +22,32 @@ module PageHelper
    tbl_type =options[:type] == 'div' ? 'div' : 'table'
    
    div_id = options[:container_id] || tbl.name
-   concat(register_table_js(tbl,div_id,options[:refresh_url]),block.binding)
-   concat("<form id='#{tbl.name}_update_form' action='' onsubmit='return false;'>",block.binding) unless options[:no_form]
+   concat(register_table_js(tbl,div_id,options[:refresh_url]))
+   concat("<form id='#{tbl.name}_update_form' action='' onsubmit='return false;'>") unless options[:no_form]
    
    if tbl_type == 'table'
-      concat("<#{tbl_type} cellspacing='0' cellpadding='0' class='user_#{tbl_type}' #{style} >",block.binding)
+      concat("<#{tbl_type} cellspacing='0' cellpadding='0' class='user_#{tbl_type}' #{style} >")
    else
-     concat("<#{tbl_type} class='user_#{tbl_type}' #{style} >",block.binding)
+     concat("<#{tbl_type} class='user_#{tbl_type}' #{style} >")
    end
    
    
     unless options[:no_header] || tbl_type == 'div'
-     concat(tbl.header_html,block.binding)
+     concat(tbl.header_html)
     end
    
     if !tbl.generated?
       raise 'Table not generated!'
     end
-    concat("<tbody>",block.binding) if tbl_type == 'table'
+    concat("<tbody>") if tbl_type == 'table'
     if tbl.data.length > 0
       tbl.data.each do |row|
         yield row
       end
     else
-      concat("<tr><td colspan='#{tbl.columns.length}' align='center'>#{options[:empty]}</td></tr>",block.binding) if options[:empty]
+      concat("<tr><td colspan='#{tbl.columns.length}' align='center'>#{options[:empty]}</td></tr>") if options[:empty]
     end
-    concat("</tbody>",block.binding) if tbl_type == 'table'
+    concat("</tbody>") if tbl_type == 'table'
     
     table_actions = options.delete(:actions)
     more_actions = options.delete(:more_actions)
@@ -70,7 +70,7 @@ module PageHelper
       </tbody>
       EOF
     
-      concat(table_actions_str_start,block.binding)
+      concat(table_actions_str_start)
       if(table_actions && table_actions.length > 0)
         concat(table_actions.collect { |act|
           if act[1] == 'js'
@@ -78,33 +78,33 @@ module PageHelper
           else
             "<input type='submit' value='#{vh act[0].t}' onclick='EndUserTable.action(\"#{table_name}\",\"#{act[1]}\",\"#{act[2] ? jvh(act[2]) : ''}\"); return false;'/>"
           end
-        }.join(" "),block.binding)  
+        }.join(" "))  
       end
 
       if(more_actions && more_actions.length > 0)
-        concat("<script>#{table_name}_more_actions = [",block.binding)
-        concat(more_actions.collect { |act| act[2].blank? ? 'null': "'#{jvh act[2]}'" }.join(","),block.binding)
-        concat(" ]; </script>",block.binding)
-        concat(" <select onchange=' EndUserTable.action(\"#{table_name}\",this.value,#{table_name}_more_actions[this.selectedIndex-1]);  this.selectedIndex=0; return false;'><option value=''>#{h '--More Actions--'.t}</option>",block.binding)
+        concat("<script>#{table_name}_more_actions = [")
+        concat(more_actions.collect { |act| act[2].blank? ? 'null': "'#{jvh act[2]}'" }.join(","))
+        concat(" ]; </script>")
+        concat(" <select onchange=' EndUserTable.action(\"#{table_name}\",this.value,#{table_name}_more_actions[this.selectedIndex-1]);  this.selectedIndex=0; return false;'><option value=''>#{h '--More Actions--'.t}</option>")
         concat(more_actions.collect { |act|
           "<option value='#{act[1]}' >#{h act[0].t}</option>"
-        }.join(""),block.binding)
+        }.join(""))
 
-        concat("</select>",block.binding)
+        concat("</select>")
 
       end
 
-      concat(table_actions_str_end,block.binding)
+      concat(table_actions_str_end)
     end
     unless options[:no_pages] || tbl_type =='div'
-      concat(tbl.footer_html(tbl_type),block.binding)
+      concat(tbl.footer_html(tbl_type))
     end
     
-   concat("</#{tbl_type}>",block.binding)
+   concat("</#{tbl_type}>")
     unless options[:no_pages] || tbl_type =='table'
-      concat(tbl.footer_html(tbl_type),block.binding)
+      concat(tbl.footer_html(tbl_type))
     end
-   concat("</form>",block.binding) unless options[:no_form]
+   concat("</form>") unless options[:no_form]
    
   
     
