@@ -5,9 +5,9 @@ class Feedback::CommentsController < ParagraphController
   # Editor for comments
   editor_header "Content Paragraphs", :paragraph_content
   
-  editor_for :comments, :name => 'Comments', :features => ['comments'],
-                          :inputs => [ [ :content_identifier, 'Content ID', :content ] ],
-                          :triggers => [ ['New Comment','action'] ]
+  editor_for :comments, :name => 'Comments', :feature => :comments_page_comments,
+                        :inputs => [[ :content_identifier, 'Content ID', :content]],
+                        :triggers => [['New Comment','action']]
 
   content_model :comments
 
@@ -15,25 +15,11 @@ class Feedback::CommentsController < ParagraphController
     [   {:name => 'Feedback',:url => { :controller => '/feedback' } ,:permission => 'editor_content' } ]
   end
   
-  def comments
-    
-    @options = CommentsOptions.new(params[:comments] || @paragraph.data || {})
-    if handle_paragraph_update(@options)
-      DataCache.expire_content("Comments")
-      return
-    end
-
-    
-  end
-  
-
   class CommentsOptions < HashModel
     attributes :allowed_to_post => 'members', :linked_to_type => 'connection', :order => 'newest', :show => 1, :captcha => false
     
     boolean_options :captcha
 
     integer_options :show
-
   end
-
 end

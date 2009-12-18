@@ -11,25 +11,25 @@ class Feedback::FeedbackController < ModuleController
    include ActiveTable::Controller   
    active_table :comments_table,
                 Comment,
-                [ ActiveTable::IconHeader.new(''),
-                  ActiveTable::OptionHeader.new('target_type', :options => :get_target_types, :label => 'Type', :display => 'select',:noun => 'Type'),
-                  ActiveTable::OptionHeader.new('target_id', :options => :get_target_ids,  :label => 'Item', :display => 'select', :noun => 'Item' ),
-                  ActiveTable::OptionHeader.new('rating', :options => [ ['Unrated',0],['Negative',-1],['Positive',1]], :icon => 'icons/table_actions/rating_none.gif', :width => '32'),
-                  ActiveTable::StringHeader.new('end_user_id', :label => 'Posted By'),
-                  ActiveTable::StringHeader.new('posted_ip', :label => 'Poster IP',:width => '80'),
-                  ActiveTable::DateRangeHeader.new('posted_at',:label => 'Posted At', :width => '100'),
-                  ActiveTable::StringHeader.new('comment',:label=>'Comment') 
+                [ hdr(:icon, ''),
+                  hdr(:options, 'target_type', :options => :get_target_types, :label => 'Type', :display => 'select',:noun => 'Type'),
+                  hdr(:options, 'target_id', :options => :get_target_ids,  :label => 'Item', :display => 'select', :noun => 'Item' ),
+                  hdr(:options, 'rating', :options => [ ['Unrated',0],['Negative',-1],['Positive',1]], :icon => 'icons/table_actions/rating_none.gif', :width => '32'),
+                  hdr(:string, 'end_user_id', :label => 'Posted By'),
+                  hdr(:string, 'posted_ip', :label => 'Poster IP',:width => '80'),
+                  :posted_at,
+                  hdr(:string, 'comment') 
                 ]
                 
    active_table :user_comments_table,
                 Comment,
-                [ ActiveTable::IconHeader.new(''),
-                  ActiveTable::OptionHeader.new('target_type', :options => :get_target_types, :label => 'Type', :display => 'select',:noun => 'Type'),
-                  ActiveTable::OptionHeader.new('target_id', :options => :get_user_target_ids,  :label => 'Item', :display => 'select', :noun => 'Item' ),
-                  ActiveTable::OptionHeader.new('rating', :options => [ ['Unrated',0],['Negative',-1],['Positive',1]], :icon => 'icons/table_actions/rating_none.gif', :width => '32'),
-                  ActiveTable::StringHeader.new('posted_ip', :label => 'Poster IP',:width => '80'),
-                  ActiveTable::DateRangeHeader.new('posted_at',:label => 'Posted At', :width => '100'),
-                  ActiveTable::StringHeader.new('comment',:label=>'Comment') 
+                [ hdr(:icon, ''),
+                  hdr(:options, 'target_type', :options => :get_target_types, :label => 'Type', :display => 'select',:noun => 'Type'),
+                  hdr(:options, 'target_id', :options => :get_user_target_ids,  :label => 'Item', :display => 'select', :noun => 'Item' ),
+                  hdr(:options, 'rating', :options => [ ['Unrated',0],['Negative',-1],['Positive',1]], :icon => 'icons/table_actions/rating_none.gif', :width => '32'),
+                  hdr(:string, 'posted_ip', :label => 'Poster IP',:width => '80'),
+                  :posted_at,
+                  hdr(:string, 'comment') 
                 ]
                 
                 

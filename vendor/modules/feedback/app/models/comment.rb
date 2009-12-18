@@ -7,11 +7,16 @@ class Comment < DomainModel
   belongs_to :end_user
 
   belongs_to :rated_by_user, :foreign_key => 'rated_by_user_id', :class_name => 'EndUser'
-  
-  validates_presence_of :name, :comment
+
+  cached_content
+
+  validates_presence_of :name, :comment, :target_type, :target_id
   
   attr_accessor :captcha_invalid
 
+  named_scope :with_rating, lambda { |r| {:conditions => ['`comments`.rating >= ?', r]} }
+  named_scope :for_target, lambda { |type, id| {:conditions => ['`comments`.target_type = ? AND `comments`.target_id = ?', type, id]} }
+  named_scope :order_by_posted, lambda { |order| order == 'newest' ? {:order => '`comments`.posted_at DESC'} : {:order => '`comments`.posted_at'} }
 
   def validate
     errors.add_to_base("Captcha is invalid") if self.captcha_invalid
@@ -25,9 +30,14 @@ class Comment < DomainModel
     else 
       'icons/table_actions/rating_negative.gif'
     end
-
   end
-  
+
+  def before_validation_on_create
+    if self.name.nil? && self.end_user
+      self.name = self.end_user.name
+    end
+  end
+
   def before_save
     self.posted_at = Time.now if self.posted_at.blank?
   end
