@@ -627,12 +627,18 @@ class ParagraphFeature
     
     def define_captcha_tag(name,options={}) 
       define_tag(name) do |t|
-        options[:field_value] ||= set_simple_captcha_data(options[:code_type])
-        simple_captcha_options = 
-          {:image => simple_captcha_image(options),
-           :label => options[:label] || "(type the code from the image)",
-           :field => simple_captcha_field(options)}
-        render_to_string :partial => '/simple_captcha/simple_captcha_feature', :locals => {:simple_captcha_options  => simple_captcha_options } 
+        
+        show_captcha = block_given? ? yield : true
+        if show_captcha
+          options[:field_value] ||= set_simple_captcha_data(options[:code_type])
+          simple_captcha_options = 
+            {:image => simple_captcha_image(options),
+            :label => options[:label] || "(type the code from the image)",
+            :field => simple_captcha_field(options)}
+          render_to_string :partial => '/simple_captcha/simple_captcha_feature', :locals => {:simple_captcha_options  => simple_captcha_options } 
+        else
+          nil
+        end
       end
     end
     

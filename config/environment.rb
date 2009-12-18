@@ -82,10 +82,10 @@ Rails::Initializer.run do |config|
   config.gem 'rmagick', :lib => 'RMagick'
   config.gem 'libxml-ruby', :lib => 'xml'
   config.gem 'soap4r', :lib => 'soap/soap'
-  config.gem "rspec", :lib => false, :version => ">= 1.2.0"
-  config.gem "rspec-rails", :lib => false, :version => ">= 1.2.0"
   config.gem "json"
   config.gem "system_timer"
+
+
 
   if CMS_CACHE_ACTIVE
     config.gem 'memcache-client', :lib => 'memcache'
