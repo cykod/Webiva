@@ -27,19 +27,18 @@ class ModuleAppController < ApplicationController
     self.skip_after_filter :process_logging, :only => names
   end
 
-  hide_action :set_title
+  protected
+
   def set_title(title,*args)
     @cms_module_page_title = sprintf(title.t,*args)
   end
   
     
-  hide_action :template_root
   def template_root
     :module
   end
 
 
-  hide_action :handle_page
   def handle_page
     process_cookie_login!
 
@@ -139,7 +138,6 @@ class ModuleAppController < ApplicationController
     end
   end
 
-  hide_action :set_robots
   def set_robots!
     @robots = []
     if @page.follow_links == 0
@@ -276,6 +274,13 @@ class ModuleAppController < ApplicationController
       cookies[:remember] = nil
     end
    end
+  end
+
+  helper_method :webiva_post_process_paragraph
+  def webiva_post_process_paragraph(txt)
+    @post_process_form_token_str ||= "<input name='authenticity_token' type='hidden' value='#{ form_authenticity_token.to_s}' />"
+    txt.gsub!("<CMS:AUTHENTICITY_TOKEN/>",@post_process_form_token_str)
+    txt
   end
   
 end

@@ -446,7 +446,10 @@ class ParagraphFeature
               obj = arg_obj
             end
             opts[:url] ||= ''
-            frm_tag =  form_tag(opts.delete(:url), opts.delete(:html) || {}) + opts.delete(:code).to_s
+            frm_opts = options.delete(:html) || { }
+            frm_opts[:method] = 'post'
+            html_options = html_options_for_form(options.delete(:url),frm_opts)
+            frm_tag = tag(:form,html_options) + "<CMS:AUTHENTICITY_TOKEN/>" + opts.delete(:code).to_s
             cms_unstyled_fields_for(arg,obj,opts) do |f|
               tag.locals.send("#{frm_obj}=",f)
               frm_tag + tag.expand + "</form>"
