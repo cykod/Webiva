@@ -20,6 +20,9 @@ task :domain_cron => :environment do |t|
     
     DomainModel.activate_domain(dmn)
     DataCache.reset_local_cache
+    
+    ContentType.update_site_index
+
     active_modules = SiteModule.find(:all,:conditions => "status IN ('active','initializing')")
     active_modules.each do |mod|
       crons = mod.admin_controller_class.get_module_crons

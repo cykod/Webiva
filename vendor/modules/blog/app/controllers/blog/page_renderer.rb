@@ -174,6 +174,7 @@ class Blog::PageRenderer < ParagraphRenderer
     end
 
     set_title(entry_title)
+    set_content_node([ 'Blog::BlogPost',entry_id ])
 
     if !feature_output
       list_page = SiteNode.get_node_path(options.list_page_id,'#')

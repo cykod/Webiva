@@ -17,7 +17,7 @@ describe SiteNode do
     ct = ContentType.find_by_content_type('SiteNode')
     
     ct.content_name.should == 'Static Pages'
-    ct.component.should == 'Editor'
+    ct.component.should == 'editor'
   end
   
   it "should create and destroy a content_node when created" do

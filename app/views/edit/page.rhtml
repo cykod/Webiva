@@ -19,6 +19,7 @@
     <%= stylesheet_link_tag "redbox" %>
     <%= javascript_include_tag "redbox" %>
     <%= javascript_include_tag "menu.js" %>
+    <%= javascript_include_tag "shortcut" %>
 
 <script type="text/javascript">
 
@@ -67,6 +68,8 @@ tinyMCE.init({
        });        
 	
         SCMS.setKeyHandler(cmsEdit.moveKey);
+        shortcut.add('Ctrl+S', function() { cmsEdit.saveChanges(); } );
+
 </script>
 
 </head>
@@ -238,18 +241,11 @@ cmsEdit.setParagraphs({
 <%= render :partial => 'set_template_features' %> 
 
 </script>
-
 <div id='cms_page_content'>
-
 <%= render :partial => 'paragraph_zones' %>
-
-
 </div>
-<div id='tester'>
-
-</div>
-
 </body>
 </html>
+
 
 

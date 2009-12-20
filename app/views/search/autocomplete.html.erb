@@ -1,0 +1,23 @@
+<% if @results.length > 0 %>
+<ul class="autocomplete_list">
+<% @results.each_with_index  do |result,idx| -%>
+  <li class="autocomplete_item" id='result_<%= idx %>'>
+    <div class="name"><%= h result[:title] %></div>
+    <div class="subtext">
+      <%= h result[:subtitle] %>
+    </div>
+    <% if result[:text] %>
+      <input type='hidden' name='autocomplete_text' class='autocomplete_text' value='<%= result[:text] %>'/>
+     <% end -%>
+    <% if result[:url] %>
+      <input type='hidden' name='autocomplete_url' class='autocomplete_url' value='<%= result[:url] %>'/>
+     <% end -%>
+  </li>
+<% end -%>
+</ul>
+<% else -%>
+<ul class="autocomplete_list">
+  <li></li>
+</ul>
+  No Results Found
+<% end -%>

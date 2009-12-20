@@ -103,6 +103,20 @@ class SiteNode < DomainModel
     rev.create_temporary
   end
 
+  def name
+    lang = Configuration.languages[0]
+
+    rev = self.live_revisions.find_by_language(lang)
+    if rev && !rev.title.blank?
+      str = rev.variable_replace(title)
+    else
+      str = self.title.to_s.titleize
+    end
+  end
+
+  def content_description(language)
+    "Site Page - %s" / self.node_path
+  end
  
   
   def active_revision(language)
@@ -327,6 +341,21 @@ class SiteNode < DomainModel
         end
       end
     end
+  end
+
+  def content_node_body(language)
+    rev = self.live_revisions.detect { |rev| rev.language == language }
+    if rev
+      paragraphs = rev.page_paragraphs.find(:all,:conditions => "display_module IS NULL")
+      paragraphs.map { |para| para.display }.join(" ")
+    else
+      nil
+    end
+  end
+
+  def self.content_admin_url(node_id)
+     {:controller => '/edit', :action => 'page',
+      :path => [ 'page', node_id ] }
   end
 
 end

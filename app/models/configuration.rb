@@ -13,6 +13,14 @@ class Configuration < DomainModel
     DataCache.put_container("Config",key,val.options)
     val.options
   end
+
+  def self.put(key,value)
+    entry = self.find_by_config_key(key.to_s) || self.build(:config_key => key.to_s)
+    entry.options = value
+    entry.save
+    DataCache.put_container("Config",key,value)
+    value
+  end
   
   def self.retrieve(key,default_value = {})
     val = self.find_by_config_key(key.to_s) || self.create(:config_key => key.to_s, :options => default_value)
