@@ -93,4 +93,11 @@ class Domain < SystemModel
     Domain.update_all('`primary`=0',['`database`=? AND id!=?',self.database,self.id])
     update_attribute(:primary,true)
   end
+
+  def initial_domain_data
+    UserClass.create_built_in_classes
+    UserClass.add_default_editor_permissions
+    SiteVersion.find(:first).root_node
+    Editor::AdminController.content_node_type_generate
+  end
 end

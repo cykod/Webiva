@@ -100,6 +100,17 @@ class ContentNode < DomainModel
 
 
   def self.search(language,query,options = { })
+    search_handler = Configuration.options.search_handler
+
+    # Run an internal mysql fulltext search if the handler is blank
+    if !handler.blank? &&  handler_info = get_handler_info(:webiva,:search,handler)
+      handler_info[:class].search(language,query,options)
+    else
+      internal_search(language,query,options)
+    end
+  end
+
+  def self.internal_search(language,query,options = { })
     with_scope(:find => { 
                :conditions => ["content_node_values.language = ? AND MATCH (content_node_values.title,content_node_values.body) AGAINST (?)",language,query],
                :include => :node, :joins => :content_node_values,
@@ -107,5 +118,6 @@ class ContentNode < DomainModel
                }) do
       self.find(:all,options)
     end
+    
   end
 end

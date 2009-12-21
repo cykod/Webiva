@@ -22,7 +22,7 @@ class SearchController < CmsController
 
       if @results.length > 0
         @showing = (@page * @@results_per_page)+1
-        @showing_end= @results.length + @showing
+        @showing_end= @results.length + @showing-1
       end
     end
 
@@ -38,12 +38,12 @@ class SearchController < CmsController
 
     @search_handlers = { 
       'members' =>  { 
-        :title => 'members:',
+        :title => 'members: [member name or email address]',
         :subtitle => 'Search members by name or email',
         :text => 'members:'
       },
       'edit' =>  { 
-        :title => 'edit:',
+        :title => 'edit: [/url/to_page]',
         :subtitle => 'Edit a page of the site',
         :text => 'edit:'
       }
@@ -139,7 +139,7 @@ class SearchController < CmsController
     per_page = @@results_per_page
 
     language = Configuration.languages[0]
-    conditions = content_type_id ? [ "content_nodes.content_type_id=?",content_type_id] : "1"
+    conditions = content_type_id ? { :content_type_id => content_type_id } : nil
     @results = ContentNode.search(language,terms,:conditions => conditions ,:limit => per_page+1,:offset => page.to_i * per_page).map do |node|
       content_description =  node.content_description(language)
       admin_url = node.admin_url

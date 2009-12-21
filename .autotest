@@ -5,6 +5,8 @@ modules = []
 
 if ENV['COMPONENT']
   modules = ENV['COMPONENT'].split(",")
+elsif ENV['NO_COMPONENTS']
+  modules = []
 else 
   Dir.glob("#{path}/vendor/modules/[a-z0-9_]*") do |file|
     if file =~ /\/([a-z_0-9-]+)\/{0,1}$/

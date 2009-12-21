@@ -11,6 +11,7 @@
     <%= f.text_field :mailing_default_from_name,:label => 'Site Email Name', :description => 'Name associated with the site email' %>
     <%= f.text_area :company_address, :rows => 4, :cols =>40, :description => 'Company business address used for CAN-SPAM Compliance'  %>
     <%= f.text_field :page_title_prefix, :description => 'Default prefix to use before page titles'  %>
+    <%= f.select :search_handler, @search_handler_options -%>
 <% end -%>
 
 <% t.tabled_tab do -%>

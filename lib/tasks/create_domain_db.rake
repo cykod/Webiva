@@ -85,9 +85,7 @@ task :create_domain_db => [:environment] do |t|
     DomainModel.activate_domain(dmn.attributes,'production')
     
     # And create any initial data as necessary
-    UserClass.create_built_in_classes
-    UserClass.add_default_editor_permissions
-    SiteVersion.find(:first).root_node
+    Domain.initial_domain_data()
   end
   
 

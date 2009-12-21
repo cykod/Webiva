@@ -103,7 +103,7 @@ class OptionsController < CmsController
     
     @options =  Configuration.options(params[:options])
     
-    if request.post? && params[:options]
+    if request.post? && params[:options] && @options.valid?
       @config = Configuration.retrieve(:options)
       
       if @config.options['gallery_folder'] != @options.gallery_folder
@@ -123,6 +123,8 @@ class OptionsController < CmsController
     
     handlers = get_handler_info(:members,:view)
     @member_tabs = handlers.map {|elm| [ elm[:name], elm[:identifier].to_s ] }
+
+    @search_handler_options =  [['--Use Internal Search Engine--',nil]] + get_handler_options(:webiva,:search)
     
   end
   

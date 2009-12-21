@@ -1863,6 +1863,7 @@ table.permission_grid td {
       font-weight:bold;
       font-size:12px;
       line-height:1.2em;
+      color:#666;
     }
     li.autocomplete_item .subtext {
       font-size:10px;
