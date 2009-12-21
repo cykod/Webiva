@@ -85,7 +85,7 @@ task :create_domain_db => [:environment] do |t|
     DomainModel.activate_domain(dmn.attributes,'production')
     
     # And create any initial data as necessary
-    Domain.initial_domain_data()
+    Domain.initial_domain_data
   end
   
 

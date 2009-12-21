@@ -94,7 +94,7 @@ class Domain < SystemModel
     update_attribute(:primary,true)
   end
 
-  def initial_domain_data
+  def self.initial_domain_data
     UserClass.create_built_in_classes
     UserClass.add_default_editor_permissions
     SiteVersion.find(:first).root_node
