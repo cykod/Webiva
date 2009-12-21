@@ -21,6 +21,31 @@ describe ContentModel do
     
       ContentModel.connection.execute('DROP TABLE cms_spec_tests')
     end
+
+    it "should correctly generate valid table names" do
+      cm = ContentModel.create(:name => 'This---is a test of the emergency broadcast system')
+      migrator_mock = mock("ContentMigrator",:update_up => nil, :migrate_domain => nil)
+      ContentMigrator.should_receive(:clone).at_least(:once).and_return(migrator_mock)
+      cm.create_table # Should create a table
+
+      cm.table_name.should == 'cms_this_is_a_test_of_the_emes'
+      
+      cm.name = 'My Model - List of things'
+      cm.create_table
+      cm.table_name.should == 'cms_my_model_list_of_things'
+
+      cm.name = 'ALLUPPERCASE!!!'
+      cm.create_table
+      cm.table_name.should == 'cms_alluppercases'
+
+      cm = ContentModel.create(:name => 'ALLUPPERCASE')
+
+      cm.create_table
+      cm.table_name.should == 'cms_alluppercase_2s'
+
+      
+
+    end
     
     it "should be able to add entries to the table (no fields, just id)" do
       cm = ContentModel.create(:name => 'spec_test')
