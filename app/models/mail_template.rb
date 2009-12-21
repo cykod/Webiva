@@ -49,12 +49,9 @@ class MailTemplate < DomainModel
    end
  end
  
- # Generate text from HTML
+ # Generate text from HTML - moved to util
  def self.text_generator(html)
-   full_sanitizer = HTML::FullSanitizer.new 
-   full_sanitizer.sanitize(CGI::unescapeHTML(html.to_s.gsub(/\<\/(p|br|div)\>/," </\\1>\n ").gsub(/\<(h1|h2|h3|h4)\>(.*?)<\/(h1|h2|h3|h4)\>/) do |mtch|
-        "\n#{$2}\n#{'=' * $2.length}\n\n"
-    end.gsub("<br/>","\n")).gsub("&nbsp;"," "))
+    Util::TextFormatter.text_formatted_generator(html)
  end
  
  

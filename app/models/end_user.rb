@@ -295,6 +295,27 @@ class EndUser < DomainModel
       roles_list.include?(Role.expand_role(role,target))
     end
   end
+
+  # Check if a user has the requested permission to access a piece of content
+  # permission could be: 
+  #   nil - return true
+  #   a string or symbol - check has_role?
+  #   a hash with :model - check ":permission"_granted? on the model and an optional base permission
+  #   a hash with :target - check self.has_role? on the :permission and an optional base permission
+  def has_content_permission?(permission)
+    if !permission
+      true
+    elsif  permission.is_a?(Hash)
+      if permission[:model]
+        permission[:model].send("#{permission[:permission]}_granted?",self) && (!permission[:base] || self.has_role?(permission[:base]) )
+      else
+        self.has_role?(permission[:permission],permission[:target])  && (!permission[:base] || self.has_role?(permission[:base]) )
+      end
+    else
+      self.has_role?(permission)
+    end
+  end
+
   
   def self.default_user
     usr = self.new

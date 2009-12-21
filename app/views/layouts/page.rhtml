@@ -49,9 +49,10 @@
 <body>
 <div id="overDiv" style="position:absolute; left:0px; top:0px; visibility:hidden; z-index:1000;"></div>
 <% if page_editor? -%>
-<div id='cms_edit_page_link'>
-<a href='/website/edit/page/page/<%= @page.id %>'><%= "EDIT".t.split("").join("<br/>") %></a><br/>
-<a href='/website/structure'><%= "ADMIN".t.split("").join("<br/>") %></a><br/>
+<div id='cms_edit_page_link' style='width:0px;' onmouseover='this.style.width="auto";' onmouseout='this.style.width="0px"'>
+  <%= content_node_links(@output.content_nodes) -%>
+<a href='/website/edit/page/page/<%= @page.id %>'><%= "Edit This Page".t %></a><br/>
+<a href='/website/structure'><%= "Edit Website".t %></a><br/>
 </div>
 <% end -%>
 

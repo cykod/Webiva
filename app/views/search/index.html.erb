@@ -1,0 +1,40 @@
+<div class='admin_content'>
+
+<div align='center' class='admin_form'>
+  <%= form_tag :action => 'index' -%>
+    <%= select_tag :content_type_id, options_for_select(@content_types, @content_type_id) -%>
+    <%= text_field_tag(:search,@search,:size => 80) -%> <%= submit_tag("Search")  -%>
+  </form>
+</div>
+
+<% if @results && @results.length > 0 -%>
+<b>Showing Results <%= @showing -%>-<%= @showing_end -%></b><br/><br/>
+
+
+<% @results.each do |result| -%>
+<% if result.is_a?(Hash) -%>
+<div class='search_result'>
+<h2><a href='<%= h result[:url] -%>'><%= h( result[:title].blank? ? "[No Title]".t : result[:title]) -%></a></h2>
+<div class='info'>
+  Created <%= result[:node].created_at.to_s(:short) -%>
+  <% if result[:node].author -%>by <%= result[:node].author.full_name -%><% end -%>
+</div>
+<%= h result[:subtitle] -%>
+</div>
+<% end -%>
+<% end -%>
+
+<% if @page > 0 -%>
+ <%= link_to "&laquo; Previous Results",:action => 'index',:search => @search,:page => @page -1 -%>
+<% end -%>
+<% if @more -%>
+ <%= link_to "More Results &raquo;",:action => 'index',:search => @search,:page => @page+1 -%>
+<% end -%>
+
+
+<% else -%>
+No Results
+
+<% end -%>
+
+</div>

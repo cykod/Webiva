@@ -13,6 +13,14 @@ class Configuration < DomainModel
     DataCache.put_container("Config",key,val.options)
     val.options
   end
+
+  def self.put(key,value)
+    entry = self.find_by_config_key(key.to_s) || Configuration.new(:config_key => key.to_s)
+    entry.options = value
+    entry.save
+    DataCache.put_container("Config",key,value)
+    value
+  end
   
   def self.retrieve(key,default_value = {})
     val = self.find_by_config_key(key.to_s) || self.create(:config_key => key.to_s, :options => default_value)
@@ -182,6 +190,8 @@ class Configuration < DomainModel
   end
 
   class DomainOptions < HashModel
+    include HandlerActions
+
     attributes :domain_title_name => nil, :mailing_contact_email =>nil,
     :mailing_default_from_name => nil, :company_address => nil, 
     :default_image_location => nil, :gallery_folder => nil, 
@@ -189,10 +199,16 @@ class Configuration < DomainModel
     :missing_image_id => nil, :missing_male_image_id => nil, 
     :missing_female_image_id => nil, :theme => 'standard', :member_tabs => [],
     :general_activation_template_id => nil,
-    :general_activation_url => nil
+    :general_activation_url => nil,
+    :search_handler => nil
 
     integer_options :default_image_location, :gallery_folder,:user_image_folder, :missing_image_id, :missing_male_image_id, :missing_female_image_id
 
+    def validate
+       if !search_handler.blank?
+         self.errors.add(:search_handler,'is not valid') unless get_handler_values(:members,:view).include?(search_handler)
+       end
+    end
   end
 
   def self.log_config_error(error,data={})

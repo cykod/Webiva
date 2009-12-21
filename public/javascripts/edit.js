@@ -815,7 +815,7 @@ var cmsEdit = {
 
 
     if(!arrow) {
-       return false;
+       return true;
      }
      else  {
         cmsEdit.pageChanged();
