@@ -1427,13 +1427,13 @@ class ParagraphFeature
       begin
         feature_parser.parse(feature.body_html || feature.body)
       rescue  Radius::MissingEndTagError => err
-        if myself.editor?
+        if RAILS_ENV=='test' || myself.editor?
           "<div><b>#{'Feature Definition Contains an Error'.t}</b><br/>#{err.to_s.t}</div>"
         else
           ""
         end
       rescue Radius::UndefinedTagError => err
-        if myself.editor?
+        if  RAILS_ENV=='test' || myself.editor?
           "<div><b>#{'Feature Definition Contains an Undefined tag:'.t}</b>#{err.to_s.t}</div>"
         else
           ""
