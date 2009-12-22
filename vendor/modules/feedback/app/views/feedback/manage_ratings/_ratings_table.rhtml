@@ -2,10 +2,8 @@
 
 <% active_table_for :ratings_table, @active_table_output,
                     :refresh_url => url_for(:action => 'ratings_table'),
-                    :class => 'active_table',
                     :more_actions => [ ['Delete Ratings','delete','Are you sure you want to permanently delete these ratings?' ] ],
-                    :width => '100%',
-                    :update => 'ratings_table' do |t| %>
+                    :width => '100%' do |t| %>
 <tr <%= highlight_row 'rating',t.id %>>
    <td valign='baseline'>
       <%= entry_checkbox 'rating',t.id -%>
