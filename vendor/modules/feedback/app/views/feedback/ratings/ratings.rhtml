@@ -1,0 +1,15 @@
+<div class='cms_form'>
+<% paragraph_options_form_for "Ratings Options",:ratings ,@options do |f| -%>
+  <% tabled_ajax_tabs ['Options','Triggered Actions'], 'Options' do |t| %>
+    <% t.tabled_tab do -%>
+      <%= f.select :allowed_to_rate, [ ['All Visitors'.t,'all'],['Site Members Only'.t,'members']] %>
+      <%= f.select :max_stars, (3..10).to_a %>
+    <% end -%>
+    <% t.tab do -%>
+       <div id='cms_triggered_actions'>
+        <%= render :partial => '/editor/includes/actions' %>
+       </div>
+    <% end -%>
+  <% end -%>
+<% end -%>
+</div>
