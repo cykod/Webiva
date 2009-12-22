@@ -9,7 +9,7 @@ class Feedback::RatingsRenderer < ParagraphRenderer
   def ratings
     @options = paragraph_options(:ratings)
 
-    @feedback_session = FeedbackSession.new session
+    @feedback_session = create_feedback_session
 
     if editor?
       @end_user_rating = FeedbackEndUserRating.new
@@ -134,5 +134,10 @@ class Feedback::RatingsRenderer < ParagraphRenderer
       return nil if data.nil?
       data[3]
     end
+  end
+
+  private
+  def create_feedback_session
+    @feedback_session = FeedbackSession.new session
   end
 end
