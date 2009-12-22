@@ -38,6 +38,7 @@ class Feedback::RatingsRenderer < ParagraphRenderer
       if ajax?
 	@end_user_rating.rating = params[:rating]
 	@end_user_rating.rated_ip = request.env['REMOTE_ADDR']
+	@end_user_rating.rated_at = Time.now
 	@end_user_rating.save
       end
 
