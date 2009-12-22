@@ -22,6 +22,7 @@ module ModelExtension::ContentNodeExtension
     
     def content_node_type(component,content_type,options = {})
       after_create :content_node_type_create
+      after_update :content_node_type_update
       
       has_one :content_type, :as => 'Container', :dependent => :destroy
       
@@ -83,6 +84,21 @@ module ModelExtension::ContentNodeExtension
                           :title_field => title_field,
                           :url_field => url_field,
                           :search_results => opts[:search] )
+    end
+
+    def content_node_type_update
+      opts = self.content_node_type_options
+       
+       title_field = (opts[:title_field] || 'name').to_s
+       url_field = (opts[:url_field] || 'id').to_s
+       
+       # Get the name of the content
+       content_name = self.resolve_argument(opts[:content_name],:name)
+      
+      if !self.content_type || content_name != self.content_type.content_name
+        self.content_type.update_attributes(:content_name => content_name)
+      end
+
     end
   end
   

@@ -1,10 +1,18 @@
-function mceSetupContent(editor_id, body, doc) {
-    var toolbar = $(editor_id + '_toolbar');
-    toolbar.style.visibility = 'visible';
-    toolbar.parentNode.removeChild(toolbar);
-    $('cms_html_toolbar').appendChild(toolbar);
-    Element.hide(toolbar);
+function mceSetupContent(ed) {
+  var toolbar = $$('.mceExternalToolbar')[0];
+  toolbar.removeClassName('mceExternalToolbar');
+  toolbar.addClassName('defaultSkin');
+  toolbar.style.visibility = 'visible';
+  toolbar.style.display = 'block';
+  toolbar.select('table')[0].style.margin ='0 auto';
+  toolbar.style.top = '0px';
+  toolbar.parentNode.removeChild(toolbar);
+  $('cms_html_toolbar').appendChild(toolbar);
+  Element.hide(toolbar);
+
 }
+
+
 
 var cmsSkipCommands = { mceAddUndoLevel: true,
                         mceInsertAnchor: true,
@@ -61,12 +69,14 @@ function mceEventCallback(e) {
   if(e.type =='focus') {
      cmsEdit.unselectParagraph();
   }
-  tinyMCE.selectedInstance.resizeToContent();
+  mceResizeEditorBox(tinyMCE.activeEditor);
+  //tinyMCE.selectedInstance.resizeToContent();
   return true;
 }
 
 function mceInitInstance(editor) {
-  editor.resizeToContent();
+  //editor.resizeToContent();
+  mceResizeEditorBox(editor);
 
 }
 
@@ -928,10 +938,10 @@ var cmsEdit = {
     var opts = new Array();
 
     if(paragraph_type == 'clear') {
-      opts = new Array([cmsEdit.txt.get('deleteFeatureText'),'js','cmsEdit.removeFrameworkFeature(' + para_index + ');']);
+      opts = new Array([cmsEdit.txt.get('deleteFeatureText'),'js','cClick(); cmsEdit.removeFrameworkFeature(' + para_index + ');']);
     }
     else if(paragraph_type == 'lock') {
-      opts = new Array([cmsEdit.txt.get('deleteFeatureText'),'js','cmsEdit.deleteParagraph(' + para_index + ');']);
+      opts = new Array([cmsEdit.txt.get('deleteFeatureText'),'js','cClick(); cmsEdit.deleteParagraph(' + para_index + ');']);
     }
     else {
 
@@ -942,13 +952,13 @@ var cmsEdit = {
       var p_features= p_info[5];
       if(p_features.length > 0 && p_features[0] != '' ) {
 
-        txt += "<a href='javascript:void(0);' onclick='cmsEdit.createParagraphStyle(\"" + para_index+ "\",\"" + paragraph_type+ "\");'>" +  cmsEdit.txt.get('createStyleText') + "</a><br/>";
+        txt += "<a href='javascript:void(0);' onclick='cClick(); cmsEdit.createParagraphStyle(\"" + para_index+ "\",\"" + paragraph_type+ "\");'>" +  cmsEdit.txt.get('createStyleText') + "</a><br/>";
         if(para.paragraph_feature == 0)
            style_txt = '<b class="selected">*' + cmsEdit.txt.get('currentStyleText') + cmsEdit.txt.get('defaultStyleText') + '</b>';
         else
           style_txt =  cmsEdit.txt.get('selectStyleText') + cmsEdit.txt.get('defaultStyleText');
 
-        txt += "<a href='javascript:void(0);' onclick='cmsEdit.selectParagraphStyle(\"" + para_index+ "\",0);'>" + style_txt + "</a><br/>";
+        txt += "<a href='javascript:void(0);' onclick='cClick(); cmsEdit.selectParagraphStyle(\"" + para_index+ "\",0);'>" + style_txt + "</a><br/>";
 
         var header = false;
           p_features.each(function(feature) {
@@ -960,8 +970,8 @@ var cmsEdit = {
             else
               style_txt =  cmsEdit.txt.get('selectStyleText') + feature[0];
 
-            txt += "<a href='javascript:void(0);' onclick='cmsEdit.selectParagraphStyle(\"" + para_index+ "\"," + feature[1] + ");'>" + style_txt  + "</a>";
-            txt += " (<a href='javascript:void(0);' onclick='cmsEdit.editParagraphStyle(\"" + para_index+ "\"," + feature[1] + ");'>" +  cmsEdit.txt.get('editStyleText') +  "</a>) <br/>";
+            txt += "<a href='javascript:void(0);' onclick='cClick(); cmsEdit.selectParagraphStyle(\"" + para_index+ "\"," + feature[1] + ");'>" + style_txt  + "</a>";
+            txt += " (<a href='javascript:void(0);' onclick='cClick(); cmsEdit.editParagraphStyle(\"" + para_index+ "\"," + feature[1] + ");'>" +  cmsEdit.txt.get('editStyleText') +  "</a>) <br/>";
             });
           });
 
@@ -969,11 +979,11 @@ var cmsEdit = {
 
       if(paragraph_type != '_html' &&  paragraph_type != '_lock' && paragraph_type != '_clear') {
         txt += "<hr/>"
-        txt += "<a href='javascript:void(0);' onclick='cmsEdit.editParagraph(\"" + para_index + "\");'>" + cmsEdit.txt.get('editParagraphText') + "</a><br/>";
+        txt += "<a href='javascript:void(0);' onclick='cClick(); cmsEdit.editParagraph(\"" + para_index + "\");'>" + cmsEdit.txt.get('editParagraphText') + "</a><br/>";
       }
 
       txt += "<hr/>"
-      txt += "<a href='javascript:void(0);' onclick='cmsEdit.deleteParagraph(\"" + para_index + "\");'>" + cmsEdit.txt.get('deleteParagraphText') + "</a><br/>";
+      txt += "<a href='javascript:void(0);' onclick='cClick(); cmsEdit.deleteParagraph(\"" + para_index + "\");'>" + cmsEdit.txt.get('deleteParagraphText') + "</a><br/>";
 
       SCMS.customPopup(txt,"Action");
       return;
@@ -1015,7 +1025,7 @@ var cmsEdit = {
                       feature_type: p_features[0] });
     cmsEdit.styleWin =  openWindow(cmsEdit.templateUrl('popup_feature') + "?" + Object.toQueryString(params),'EditStyle' + cmsEdit.revisionId ,900,600,'yes','yes');
       cmsEdit.styleWin.focus();
-    cClick();
+
   },
 
 
@@ -1405,8 +1415,8 @@ cmsHtmlParagraph.prototype.paragraphData = function() {
 cmsHtmlParagraph.prototype.showPreview = function(drag) {
     var elem_id = this.para_index;
     if(drag) {
-        tinyMCE.triggerSave();
-        tinyMCE.removeMCEControl(tinyMCE.getEditorId('cms_paragraph_html_editor_' + elem_id));
+       tinyMCE.triggerSave();
+      tinyMCE.execCommand('mceRemoveControl',false,'cms_paragraph_html_editor_' + elem_id);
     }
     $('cms_paragraph_display_'+elem_id).innerHTML = $('cms_paragraph_html_editor_' + elem_id).value;
     Element.hide('cms_paragraph_editor_' + elem_id);
@@ -1415,7 +1425,7 @@ cmsHtmlParagraph.prototype.showPreview = function(drag) {
 
 cmsHtmlParagraph.prototype.cleanup = function() {
     var elem_id = this.para_index;
-   tinyMCE.removeMCEControl(tinyMCE.getEditorId('cms_paragraph_html_editor_' + elem_id));
+   tinyMCE.remove(tinyMCE.get('cms_paragraph_html_editor_' + elem_id));
 }
 
 
@@ -1429,7 +1439,6 @@ cmsHtmlParagraph.prototype.endPreview = function(drag) {
     else {
       tinyMCE.execCommand('mceResetDesignMode');
     }
-    //Element.show('cms_paragraph_html_editor_' + elem_id);
 }
 
 function cmsCodeParagraph(paragraph_id, para_index,para_type) {

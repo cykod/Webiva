@@ -26,7 +26,8 @@ class Blog::BlogPost < DomainModel
   
   has_content_tags
   
-  content_node :container_type => 'Blog::BlogBlog', :container_field => 'blog_blog_id'
+  content_node :container_type => 'Blog::BlogBlog', :container_field => 'blog_blog_id',
+  :preview_feature => '/blog/page_feature/blog_post_preview'
 
   def comments_count
     return @comments_count if @comments_count
