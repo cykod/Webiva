@@ -2,15 +2,14 @@
 
 class Feedback::RatingsRenderer < ParagraphRenderer
 
-  MAX_SESSION_RATINGS = 20
-  SESSION_RATINGS_KEY = :feedback_ratings
-
   features '/feedback/ratings_feature'
 
   paragraph :ratings, :ajax => true
 
   def ratings
     @options = paragraph_options(:ratings)
+
+    @feedback_session = FeedbackSession.new session
 
     if editor?
       @end_user_rating = FeedbackEndUserRating.new
@@ -22,8 +21,8 @@ class Feedback::RatingsRenderer < ParagraphRenderer
 
     content_link = nil
     if ajax?
-      return render_paragraph :inline => '' unless params[:target] && params[:rating] && session[SESSION_RATINGS_KEY].has_key?(params[:target])
-      content_link = session[SESSION_RATINGS_KEY][params[:target]]
+      return render_paragraph :inline => '' unless params[:target] && params[:rating] && @feedback_session.has?(params[:target])
+      content_link = @feedback_session.get_target(params[:target])
     end
 
     connection_type, content_link = page_connection() unless content_link
@@ -60,44 +59,79 @@ class Feedback::RatingsRenderer < ParagraphRenderer
   def get_end_user_rating(target_type, target_id)
     return @end_user_rating if @end_user_rating
 
-    session[SESSION_RATINGS_KEY] ||= {}
     target_hash = FeedbackEndUserRating.target_hash(target_type, target_id)
-    if session[SESSION_RATINGS_KEY].has_key?(target_hash)
-      feedback_end_user_rating_id = session[SESSION_RATINGS_KEY][target_hash][2]
+
+    if @feedback_session.has?(target_hash)
+      feedback_end_user_rating_id = @feedback_session.get_feedback_end_user_rating_id(target_hash)
+
       if feedback_end_user_rating_id
+	# in a rare situation where the admin removed a user's rating, just remove the rating from the session and continue
 	@end_user_rating = FeedbackEndUserRating.find_by_id( feedback_end_user_rating_id )
 	return @end_user_rating if @end_user_rating
-	session[SESSION_RATINGS_KEY].delete(target_hash)
+	@feedback_session.delete(target_hash)
       end
     end
 
     if myself.id
       @end_user_rating = FeedbackEndUserRating.with_target(target_type, target_id).find_by_end_user_id(myself.id)
       if @end_user_rating
-	add_session_feedback_ratings(target_hash, target_type, target_id, @end_user_rating.id)
+	@feedback_session.add(target_hash, target_type, target_id, @end_user_rating.id)
 	return @end_user_rating
       end
     end
 
-    add_session_feedback_ratings(target_hash, target_type, target_id)
+    @feedback_session.add(target_hash, target_type, target_id)
+
     @end_user_rating = FeedbackEndUserRating.new :target_type => target_type, :target_id => target_id
     @end_user_rating.end_user_id = myself.id if myself.id
     @end_user_rating
   end
 
-  def add_session_feedback_ratings(target_hash, target_type, target_id, feedback_end_user_rating_id=nil)
-    if session[SESSION_RATINGS_KEY].size >= MAX_SESSION_RATINGS
+  class FeedbackSession
+    MAX_SESSION_RATINGS = 20
+    SESSION_RATINGS_KEY = :feedback_ratings
 
-      # if you are adding a new item or if the size is > MAX_SESSION_RATINGS remove the oldest item
-      if ! session[SESSION_RATINGS_KEY].has_key?(target_hash) || session[SESSION_RATINGS_KEY].size > MAX_SESSION_RATINGS
-	oldest_ratings = session[SESSION_RATINGS_KEY].sort { |a,b| a[1][3] <=> b[1][3] }
-
-	while session[SESSION_RATINGS_KEY].size >= MAX_SESSION_RATINGS
-	  session[SESSION_RATINGS_KEY].delete( oldest_ratings.shift.shift )
-	end
-      end
+    def initialize(session)
+      @session = session
+      @session[SESSION_RATINGS_KEY] ||= []
     end
 
-    session[SESSION_RATINGS_KEY][target_hash] = [target_type, target_id, feedback_end_user_rating_id, Time.now]
+    def has?(target_hash)
+      @session[SESSION_RATINGS_KEY].any? { |ele| ele[0] == target_hash }
+    end
+
+    def add(target_hash, target_type, target_id, feedback_end_user_rating_id=nil)
+      delete(target_hash)
+
+      @session[SESSION_RATINGS_KEY].unshift( [target_hash, target_type, target_id, feedback_end_user_rating_id] )
+
+      @session[SESSION_RATINGS_KEY].slice!( MAX_SESSION_RATINGS - size ) if size > MAX_SESSION_RATINGS
+    end
+
+    def size
+      @session[SESSION_RATINGS_KEY].size
+    end
+
+    def delete(target_hash)
+      @session[SESSION_RATINGS_KEY].reject! { |ele| ele[0] == target_hash }
+      @target = nil
+    end
+
+    def get(target_hash)
+      return @target if @target && @target[0] == target_hash
+      @target = @session[SESSION_RATINGS_KEY].assoc(target_hash)
+    end
+
+    def get_target(target_hash)
+      data = get(target_hash)
+      return nil if data.nil?
+      data[1, 2]
+    end
+
+    def get_feedback_end_user_rating_id(target_hash)
+      data = get(target_hash)
+      return nil if data.nil?
+      data[3]
+    end
   end
 end
