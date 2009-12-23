@@ -372,7 +372,11 @@ class EndUser < DomainModel
     
     self.source = 'import' if self.source.blank?
     self.registered_at = Time.now if self.registered? && self.registered_at.blank?
-    
+
+    %w(first_name middle_name last_name suffix).each do |fld|
+      self.send(fld).strip! unless self.send(fld).blank?
+    end
+
     self.full_name = [ self.first_name, self.middle_name, self.last_name, self.suffix ].select { |elm| !elm.blank? }.join(" ")
     
     if self.gender.blank? && !self.introduction.blank?
