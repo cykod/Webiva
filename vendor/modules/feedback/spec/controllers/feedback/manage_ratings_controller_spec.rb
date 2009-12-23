@@ -15,7 +15,8 @@ describe Feedback::ManageRatingsController do
     @test_class = TestTarget.new
     @test_class.id = 100
 
-    @test_rating = FeedbackEndUserRating.create :end_user => @user, :rating => 5, :target_type => 'TestTarget', :target_id => @test_class.id
+    @test_user_rating = FeedbackEndUserRating.create :end_user => @user, :rating => 5, :target_type => 'TestTarget', :target_id => @test_class.id
+    @test_feedback_rating = FeedbackRating.with_target('TestTarget', @test_class.id).find(:first)
   end
 
   it "should handle table list" do 
@@ -32,4 +33,25 @@ describe Feedback::ManageRatingsController do
     end
   end
 
+  it "should be able to delete a rating from ratings_table" do
+    mock_editor
+
+    assert_difference 'FeedbackEndUserRating.count', -1 do
+      post 'ratings_table', :table_action => 'delete', :rating => {@test_user_rating.id => @test_user_rating.id}
+      @test_feedback_rating.reload
+      @test_feedback_rating.rating_sum.should == 0
+      @test_feedback_rating.rating_count.should == 0
+    end
+  end
+
+  it "should be able to delete a rating from user_ratings_table" do
+    mock_editor
+
+    assert_difference 'FeedbackEndUserRating.count', -1 do
+      post 'user_ratings_table', :path => [@user.id], :table_action => 'delete', :rating => {@test_user_rating.id => @test_user_rating.id}
+      @test_feedback_rating.reload
+      @test_feedback_rating.rating_sum.should == 0
+      @test_feedback_rating.rating_count.should == 0
+    end
+  end
 end
