@@ -25,7 +25,9 @@ namespace "cms" do
       print('Migrating Components: ' + dmn['name'].to_s)
       db_file = YAML.load_file("#{RAILS_ROOT}/config/sites/#{dmn['database']}.yml")
       ActiveRecord::Base.establish_connection(db_file['migrator'])
-      DomainModel.establish_connection(db_file['migrator'])
+      DomainModel.activate_domain(dmn,'migrator')
+      #DomainModel.establish_connection(db_file['migrator'])
+
       ComponentMigrator.handle_migration_update
       
       if force && domain
