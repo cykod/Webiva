@@ -219,4 +219,70 @@ describe Feedback::RatingsRenderer, :type => :controller do
       @feedback_end_user_rating.should be_nil
     end
   end
+
+  it "should not add a new rating if a user is not logged in" do
+    options = {}
+    inputs = {}
+    @rnd = generate_ratings_renderer(options, inputs)
+    @rnd.should_receive(:create_feedback_session).and_return(@feedback_session)
+    @rnd.should_receive(:ajax?).once.and_return(true)
+
+    assert_difference 'FeedbackEndUserRating.count', 0 do
+      renderer_post @rnd, {:target => @test_target_hash, :rating => 5}
+
+      @feedback_end_user_rating = FeedbackEndUserRating.with_target('TestTarget', @test_class.id).find(:last)
+      @feedback_end_user_rating.should be_nil
+
+      @feedback_rating = FeedbackRating.with_target('TestTarget', @test_class.id).find(:last)
+      @feedback_rating.should be_nil
+    end
+  end
+
+  it "should be able to add a rating with non logged in user" do
+    options = { :allowed_to_rate => 'all' }
+    inputs = {}
+    @rnd = generate_ratings_renderer(options, inputs)
+    @rnd.should_receive(:create_feedback_session).and_return(@feedback_session)
+    @rnd.should_receive(:ajax?).any_number_of_times.and_return(true)
+    @rnd.should_receive(:ajax_url).and_return('/test')
+
+    assert_difference 'FeedbackEndUserRating.count', 1 do
+      renderer_post @rnd, {:target => @test_target_hash, :rating => 5}
+
+      @feedback_rating = FeedbackRating.find(:last)
+      @feedback_rating.should_not be_nil
+      @feedback_rating.target_type.should == 'TestTarget'
+      @feedback_rating.target_id.should == 100
+      @feedback_rating.rating_sum.should == 5
+      @feedback_rating.rating_count.should == 1
+
+      @feedback_end_user_rating = FeedbackEndUserRating.find(:last)
+      @feedback_end_user_rating.should_not be_nil
+      @feedback_end_user_rating.target_type.should == 'TestTarget'
+      @feedback_end_user_rating.target_id.should == 100
+      @feedback_end_user_rating.rating.should == 5
+
+      @feedback_session.size.should == 1
+    end
+  end
+
+  it "should not be able to add an invalid rating" do
+    mock_user
+
+    options = { :max_stars => 3 }
+    inputs = {}
+    @rnd = generate_ratings_renderer(options, inputs)
+    @rnd.should_receive(:create_feedback_session).and_return(@feedback_session)
+    @rnd.should_receive(:ajax?).once.and_return(true)
+
+    assert_difference 'FeedbackEndUserRating.count', 0 do
+      renderer_post @rnd, {:target => @test_target_hash, :rating => 5}
+
+      @feedback_rating = FeedbackRating.with_target('TestTarget', @test_class.id).find(:last)
+      @feedback_rating.should be_nil
+
+      @feedback_end_user_rating = FeedbackEndUserRating.with_target('TestTarget', @test_class.id).find_by_end_user_id(@myself.id)
+      @feedback_end_user_rating.should be_nil
+    end
+  end
 end
