@@ -39,9 +39,14 @@ class DataCache
     version_string = container_string + ":" + version.to_s
 
     DefaultsHashObject
-    
-    ret_val = CACHE.get_multi(container_string,version_string)
-    val = ret_val[version_string]
+    rev_val = nil
+    val  =nil
+    begin
+      ret_val = CACHE.get_multi(container_string,version_string)
+      val = ret_val[version_string]
+    rescue MemCache::MemCacheError => e
+      return nil
+    end
     return nil unless val 
     # Find out when the page was last expired
     expires = ret_val[container_string]
