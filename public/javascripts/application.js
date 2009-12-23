@@ -837,6 +837,38 @@ function openWindow(url,name,width,height,resizable,scrollbars) {
   return win;
 }
 
+function mceResizeCallback(e) {
+   mceResizeEditorBox(tinyMCE.activeEditor);
+}
+
+/* Src: http://wiki.moxiecode.com/index.php/TinyMCE:Auto_resize_editor_box */
+function mceResizeEditorBox(editor) {
+    // Have this function executed via TinyMCE's init_instance_callback option!
+    // requires TinyMCE3.x
+
+//    var formObj = document.forms[1], // this might need some adaptation to your site
+
+   var container = editor.contentAreaContainer; /* new in TinyMCE3.x -for TinyMCE2.x you need to retrieve the element differently! */
+   var docFrame = container.children[0];
+  var doc,docHeight;
+
+   if (docFrame.contentDocument) doc = docFrame.contentDocument;
+   else if (docFrame.contentWindow) doc = docFrame.contentWindow.document;
+   else if (docFrame.document) doc = docFrame.document;
+
+  doc.body.style.overflow = "hidden";
+
+    //Firefox
+  if ( doc.height ) docHeight = doc.height;
+  //MSIE
+  else docHeight = parseInt(doc.body.scrollHeight);
+
+  docHeight+=10;
+
+  if(docHeight < 100) docHeight = 100;
+  docFrame.style.height = container.style.height = (docHeight) + "px";
+}
+
 
   // Authenticity token hack
 try {

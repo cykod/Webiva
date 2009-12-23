@@ -23,6 +23,17 @@ class CmsController < ApplicationController
       store_return_location
       redirect_to :controller => '/manage/access', :action => 'denied'
     end
+
+    if params[:return_to_site] 
+      url = request.referer.gsub!(/^https?\:\/\/[^\/]+/,"")
+      unless url =~ /^\/website/
+        session[:return_to_site] = url
+      end
+    end
+
+    if session[:return_to_site]
+      @cms_return_to_site_url = session[:return_to_site]
+    end
   end
 
   def rescue_action_in_public(exception)

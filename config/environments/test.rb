@@ -20,3 +20,12 @@ config.action_mailer.delivery_method = :test
 
 # All your existing stuff
 config.action_controller.allow_forgery_protection  = false
+
+
+config.gem "rspec", :lib => false, :version => ">= 1.2.0"
+config.gem "rspec-rails", :lib => false, :version => ">= 1.2.0"
+config.gem "factory_girl",:lib => false,  :source => "http://gemcutter.org"
+config.gem "webrat",:lib => false,  :version => "0.6.0"
+config.gem "cucumber",:lib => false,  :version => "0.5.1"
+config.gem "nokogiri", :lib => false, :version => ">= 1.2.3"
+

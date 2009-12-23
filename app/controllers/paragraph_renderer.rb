@@ -28,6 +28,7 @@ class ParagraphRenderer < ParagraphFeature
     attr_accessor :page_title
     attr_accessor :paction
     attr_accessor :paction_data
+    attr_accessor :content_nodes
     
     def method_missing(method,args)
       @rnd.send(method)
@@ -251,6 +252,14 @@ class ParagraphRenderer < ParagraphFeature
     @page_title ||= {}
     @page_title[category] = title
   end
+
+  attr_reader :content_object_list
+  def set_content_node(obj)
+    if myself.editor?
+      @content_node_list ||= []
+      @content_node_list << obj
+    end
+  end
   
   def paragraph_page_url
     if editor?
@@ -379,6 +388,7 @@ class ParagraphRenderer < ParagraphFeature
       @paragraph_output.page_connections = @page_connections
       @paragraph_output.paction = @paction
       @paragraph_output.page_title = @page_title
+      @paragraph_output.content_nodes = @content_node_list
     elsif @paragraph_output.is_a?(ParagraphRedirect)
       @paragraph_output.paction = @paction
     end

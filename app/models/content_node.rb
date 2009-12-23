@@ -6,6 +6,7 @@ class ContentNode < DomainModel
   belongs_to :node, :polymorphic => true, :dependent => :destroy
   belongs_to :author,:class_name => 'EndUser',:foreign_key => 'author_id'
   belongs_to :content_type
+  has_many :content_node_values
   
   def update_node_content(user,item,opts={})
     opts = opts.symbolize_keys
@@ -25,6 +26,7 @@ class ContentNode < DomainModel
       val = false if val.blank?
       self.send("#{key}=",val)
     end
+    self.updated_at = Time.now
     
     if opts[:user_id]
       user_id = item.resolve_argument(opts[:user_id])
@@ -42,4 +44,80 @@ class ContentNode < DomainModel
     self.save
   end
 
+
+  def admin_url
+    if self.content_type
+      if self.content_type.container
+        self.content_type.container.content_admin_url(self.node_id)
+      else
+        cls =self.content_type.content_type.constantize
+        cls.content_admin_url(self.node_id)
+      end
+    else
+      nil
+    end
+  end
+
+  # Generate a content_node_value 
+  # used in search results
+  def generate_content_values!(type_preload = nil)
+    return unless node
+    # Don't want to have to reload the type for each 
+    # node we're created
+    type_preload ||= self.content_type
+
+    Configuration.languages.each do |lang|
+      cnv = content_node_values.find_by_language(lang) || content_node_values.build(:language => lang,:content_type_id => self.content_type_id)
+
+      # If we haven't updated this since we last updated the
+      # content node value, just return
+      if !cnv.updated_at || self.updated_at > cnv.updated_at
+        if(self.node.respond_to?(:content_node_body))
+          cnv.body = Util::TextFormatter.text_plain_generator( node.content_node_body(lang))
+        else
+          cnv.body =Util::TextFormatter.text_plain_generator( node.attributes.values.select { |val| val.is_a?(String) }.join(" ") )
+        end
+        
+        if type_preload
+          cnv.title = node.send(content_type.title_field)
+          cnv.link = self.content_url_override || type_preload.content_link(node)
+        else
+          cnv.title = node.name
+          cnv.link = self.content_url_override || nil
+        end
+        cnv.save
+      end
+    end
+  end
+
+  def content_description(language)
+    if self.node.respond_to?(:content_description)
+      self.node.content_description(language)
+    else
+      nil
+    end
+  end
+
+
+  def self.search(language,query,options = { })
+    search_handler = Configuration.options.search_handler
+
+    # Run an internal mysql fulltext search if the handler is blank
+    if !search_handler.blank? &&  handler_info = get_handler_info(:webiva,:search,search_handler)
+      handler_info[:class].search(language,query,options)
+    else
+      internal_search(language,query,options)
+    end
+  end
+
+  def self.internal_search(language,query,options = { })
+    with_scope(:find => { 
+               :conditions => ["content_node_values.language = ? AND MATCH (content_node_values.title,content_node_values.body) AGAINST (?)",language,query],
+               :include => :node, :joins => :content_node_values,
+               :order => ["MATCH (content_node_values.title) AGAINST (",self.quote_value(query), ") DESC, MATCH (content_node_values.title,content_node_values.body) AGAINST (",self.quote_value(query), ") DESC"].join 
+               }) do
+      self.find(:all,options)
+    end
+    
+  end
 end

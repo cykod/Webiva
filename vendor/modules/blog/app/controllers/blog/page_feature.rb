@@ -297,7 +297,20 @@ class Blog::PageFeature < ParagraphFeature
       end
     end
   end
-        
+
+
+  feature :blog_post_preview, :default_feature => <<-DEFAULT_FEATURE
+<cms:entry>
+<cms:img align='left' size='thumb'/><cms:preview/>
+</cms>
+DEFAULT_FEATURE
+
+  def blog_post_preview_feature(data)
+    webiva_renderer(:blog_post_preview) do |c|
+       c.expansion_tag('entry') {  |t| t.locals.entry = data[:entry] }
+       blog_entry_tags(c,data)
+    end
+  end
 
 end
 

@@ -11,7 +11,10 @@
  text-align:center;
  opacity: .4;
  filter: alpha(opacity=40);
-
+ padding:20px 0px 10px 15px;
+ background-color:#AAAAAA;
+ -moz-border-radius-topleft: 10px;
+ -moz-border-radius-bottomleft: 10px;
 }
 
 
@@ -20,12 +23,13 @@
  display:block;
  text-align:center;
  margin:0px;
- padding:5px 10px;
+ padding:10px 20px;
  background-color:#CCCCCC;
  border:1px solid #DDDDDD;
  text-decoration:none;
  font-weight:bold;
  color:black;
+ white-space:nowrap;
 }
 
 #cms_edit_page_link a:hover {

@@ -5,7 +5,7 @@
       <% end -%>
     <% end -%>
     <%= p.link 'Custom Content Models', :action => 'custom', :icon => 'publications.gif' if myself.has_role?('editor_content') %>
-    <%= p.link 'All Content Types', :controller => 'content_types', :icon => 'publications.gif' if myself.has_role?('editor_content_configure') %>
+    <%= p.link 'Configure Content Types', :controller => 'content_types', :icon => 'configure.gif', :right => true if myself.has_role?('editor_content_configure') %>
 <% end -%>
 <hr/>
 

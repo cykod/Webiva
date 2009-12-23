@@ -351,6 +351,7 @@ EOF
     attr_accessor :page_connections
     attr_accessor :meta_description
     attr_accessor :meta_keywords
+    attr_accessor :content_nodes
     
   	def page?
   		true
@@ -590,7 +591,10 @@ EOF
                       @page_information[:includes][inc_type] ||= []
                       @page_information[:includes][inc_type] +=  inc_arr
                     end
-                    
+                    if result.content_nodes
+                      @page_information[:content_nodes] ||= []
+                      @page_information[:content_nodes] += result.content_nodes
+                    end
                     @page_information[:paction] = result.paction if result.paction
                   end
                   
@@ -631,7 +635,7 @@ EOF
     @output.includes = @page_information.includes
     @output.head = @page_information.head
     @output.paction = @page_information.paction
-    
+    @output.content_nodes = @page_information.content_nodes
     @output
   end
 

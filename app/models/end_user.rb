@@ -295,6 +295,27 @@ class EndUser < DomainModel
       roles_list.include?(Role.expand_role(role,target))
     end
   end
+
+  # Check if a user has the requested permission to access a piece of content
+  # permission could be: 
+  #   nil - return true
+  #   a string or symbol - check has_role?
+  #   a hash with :model - check ":permission"_granted? on the model and an optional base permission
+  #   a hash with :target - check self.has_role? on the :permission and an optional base permission
+  def has_content_permission?(permission)
+    if !permission
+      true
+    elsif  permission.is_a?(Hash)
+      if permission[:model]
+        permission[:model].send("#{permission[:permission]}_granted?",self) && (!permission[:base] || self.has_role?(permission[:base]) )
+      else
+        self.has_role?(permission[:permission],permission[:target])  && (!permission[:base] || self.has_role?(permission[:base]) )
+      end
+    else
+      self.has_role?(permission)
+    end
+  end
+
   
   def self.default_user
     usr = self.new
@@ -351,7 +372,11 @@ class EndUser < DomainModel
     
     self.source = 'import' if self.source.blank?
     self.registered_at = Time.now if self.registered? && self.registered_at.blank?
-    
+
+    %w(first_name middle_name last_name suffix).each do |fld|
+      self.send(fld).strip! unless self.send(fld).blank?
+    end
+
     self.full_name = [ self.first_name, self.middle_name, self.last_name, self.suffix ].select { |elm| !elm.blank? }.join(" ")
     
     if self.gender.blank? && !self.introduction.blank?

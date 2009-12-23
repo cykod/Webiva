@@ -14,6 +14,10 @@ module HandlerActions
   def get_handler_options(component,handler_name,initialized=false)
     self.class.get_handler_options(component,handler_name,initialized)
   end
+
+  def get_handler_values(component,handler_name,initialized=false)
+    self.class.get_handler_options(component,handler_name,initialized).map { |elm| elm[1]}
+  end
   
   def get_handler_info(component,handler_name,identifier=nil,initialized=false)
     self.class.get_handler_info(component,handler_name,identifier,initialized)
