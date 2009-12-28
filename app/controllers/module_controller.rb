@@ -2,11 +2,16 @@
 
 class ModuleController < CmsController  # :nodoc: all
   layout "manage"
+
+  include ActiveTable::Controller
   
  # skip_before_filter :validate_paragraph, :only => :admin
     before_filter :validate_module
     layout 'manage'
     
+  
+  protected
+
     def validate_module
       if !get_module(self.class.to_s.include?('AdminController')) && RAILS_ENV != 'test'
         redirect_to :controller => '/modules'
