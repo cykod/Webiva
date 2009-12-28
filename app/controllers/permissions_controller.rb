@@ -75,21 +75,24 @@ class PermissionsController < CmsController # :nodoc: all
         perms = permissions[permission_name]
         @user_classes.each do |cls|
           if perms && perms[cls.id.to_s]
-            cls.has_role(permission_name)
+            cls.has_role(permission_name,nil,true)
           else
-            cls.has_no_role(permission_name)
+            cls.has_no_role(permission_name,nil,true)
           end
         end
 
         @access_tokens.each do |token|
           if perms  && perms["token_" + token.id.to_s]
-            token.has_role(permission_name)
+            token.has_role(permission_name,nil,true)
           else
-            token.has_no_role(permission_name)
+            token.has_no_role(permission_name,nil,true)
           end
         end
       end
     end
+
+    @access_tokens.map(&:save)
+    @user_classes.map(&:save)
     
     render :nothing => true
   end

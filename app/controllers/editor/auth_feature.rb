@@ -34,7 +34,7 @@ You are already registered
 FEATURE
   
   def user_register_feature(data)
-    webiva_feature(:user_register,data) do |c|6
+    webiva_custom_feature(:user_register,data) do |c|6
       c.expansion_tag('registered') { |t| data[:registered] }
       c.form_for_tag('register',:user) { |t| data[:usr] ? data[:usr] : nil }
 
@@ -68,8 +68,16 @@ FEATURE
       end
       
       c.button_tag('register:submit')
+
+      data[:options].register_features.each do |feature|
+        feature.feature_instance.feature_tags(c,data[:feature])
+      end
     end
   end
+
+
+
+
 
   def user_fields_helper(prefix,c,fields_name,data)
     c.loop_tag("#{prefix}:#{fields_name}") do |t|
@@ -95,6 +103,53 @@ FEATURE
       c.form_field_error_tag_helper(t,t.locals.form, t.locals.send(fields_name)[0].to_s)
     end
   end
+
+
+  feature :user_activation, :default_feature => <<-FEATURE
+<cms:activation>
+<cms:acceptance_error>You must accept the terms and conditions to continue</cms:acceptance_error>
+I agree to the terms and conditions of this site <br/><br/>
+
+<cms:check/>
+ <cms:submit/>
+
+</cms:activation>
+<cms:activated>
+Your account has been activated. 
+</cms:activated>
+<cms:already_activated>Your account has already been activated</cms:already_activated>
+<cms:invalid_link>
+ The link you used is not valid. Please contact us to request a new activation link.
+</cms:invalid_link>
+
+FEATURE
+
+  def user_activation_feature(data)
+    webiva_feature(:user_activation) do |c|
+      c.form_for_tag('activation',:activate) do  |t| 
+        if  data[:activation_object]
+        {  :object => data[:activation_object],
+           :code => tag('input',:type => 'hidden',:name => 'activate[code]', :value => data[:activation_object].code )
+        }
+        else
+          nil
+        end
+
+      end
+       c.expansion_tag('activation:acceptance_error') {  |t| data[:acceptance_error]}
+       c.field_tag('activation:check',:field => 'accept',:control => 'check_boxes',:single => true) do  |t| 
+        [ [ t.attr['label'] || 'I accept the terms and conditions', true ]] 
+
+       end
+       c.button_tag('activation:submit',:value => 'Submit')
+      c.expansion_tag('activated') {  |t| data[:status] == 'activated' }
+      c.expansion_tag('already_activated') {  |t| data[:status] == 'already_activated' }
+      c.expansion_tag('invalid_link') {  |t| data[:status] == 'invalid' }
+      
+     
+    end
+  end
+
   
   feature :login, :default_data => { },
   :default_feature => <<-FEATURE
@@ -170,6 +225,8 @@ FEATURE
       c.form_for_tag('login','cms_login') do |t|
         data[:user] ? nil : data[:login_user]
       end
+
+      c.value_tag('logged_in:profile_id') { |t| myself.user_class_id }
 
       c.field_tag('login:email',:size => 20,:field => 'login')
       c.field_tag('login:username',:size => 20)

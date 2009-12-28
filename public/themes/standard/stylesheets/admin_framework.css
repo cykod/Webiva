@@ -67,37 +67,56 @@ h4 {
 }
 
 
-
-  #cms_header_tools {
+  #cms_header_return {
     position:absolute;
-    top:30px;
-    right:5px;
-    color:white;
-    text-align:right;
+    top:14px;
+    left:5px;
+    color:#DDDDDD;
+    text-align:left;
   }
 
-    #cms_header_tools a {
+    #cms_header_return a {
+      display:inline:block;
+      padding:4px 5px;
       color:white;
+      color:#DDDDDD;
       text-decoration:none;
     }
 
-  #cms_webiva_search {
-   position:absolute;
-    top:0px;
-    right:5px;
-    color:white;
-    text-align:right;
+   #cms_header_return a:hover { color:white; }
 
+  #cms_header_tools {
+    position:absolute;
+    top:10px;
+    right:5px;
+    color:#DDDDDD;
+    text-align:right;
   }
-    #cms_webiva_search  input {
+  #cms_header_tools_content { 
+      position:relative;
+      text-align:left;
+ }
+    #cms_header_tools a {
+      color:#DDDDDD;
+      text-decoration:none;
+    }
+   #cms_header_tools a:hover { color:white; }
+
+    #cms_header_tools  input {
       margin-top:5px;
       
       color:black;
-      border:1px solid #000000;
+      border:1px solid #666666;
       padding:1px 5px;
       font-size:11px;
       text-align:right;
+      opacity:0.5;
+      width:150px;
     }
+    #cms_header_tools  input:hover { opacity:0.7; }
+    #cms_header_tools  input:focus {
+      opacity:1.0;
+   }
 
 
   #cms_logo {
@@ -634,7 +653,6 @@ fm_image_img {
 .fm_highlight .fm_cover {
   background-color:#56a1cd;
   opacity: .4;
-  filter: alpha(opacity=40);
  }
 
 
@@ -658,7 +676,6 @@ fm_image_img {
   background-color: #56a1cd;
   z-index: 1000;
   opacity: .6;
-  filter: alpha(opacity=60);
   
 }
 
@@ -704,6 +721,23 @@ fm_image_img {
   background-color:#92b3e1;
   text-decoration:none;
 }
+
+.link_button { 
+  padding:4px 10px; 
+  background-color: #92b3e1;
+  color:white;
+  display:inline-block;
+  font-weight:bold;
+  text-decoration:none;  
+  border:1px solid #CCCCCC;
+  border-radius:3px;        
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+ }
+
+.link_button:hover { 
+   border: 1px solid #666666;
+                     }
 
 .ajax_tabs {
 	width:100%;
@@ -905,7 +939,7 @@ fm_image_img {
  background-color: #edc472;
 }
 
-.active_table .pagination_spacer {
+.pagination_spacer {
   vertical-align:middle;
   height:10px;
   margin:5px 0px;
@@ -913,19 +947,19 @@ fm_image_img {
 }
 
 
-.active_table .pagination_row {
+ .pagination_row {
   vertical-align:middle;
 }
 
 
-.active_table ul.pagination {
+ ul.pagination {
   display:block;
   margin:0px;
   padding:0px;
   float:right;
 }
 
-  .active_table ul.pagination li {
+ ul.pagination li {
     display:block;
     float:left;
     background-color:#a6cdda;
@@ -933,14 +967,14 @@ fm_image_img {
     border:1px solid #557e9f;
   }
   
-    .active_table ul.pagination li.first {
+   ul.pagination li.first {
     }
 
-    .active_table ul.pagination li.highlight {
+   ul.pagination li.highlight {
 
     }
 
-    .active_table ul.pagination li.current {
+   ul.pagination li.current {
         display:block;
         padding:4px;
         background-color:#FFFFFF;
@@ -948,12 +982,12 @@ fm_image_img {
     }
 
 
-    .active_table ul.pagination li.spacer {
+   ul.pagination li.spacer {
         display:block;
         padding:4px;
     }
 
-    .active_table ul.pagination li a {
+    ul.pagination li a {
       display:block;
       padding:4px;
       text-decoration:none;
@@ -1241,8 +1275,6 @@ div.loader {
   top:0px; 
   z-index:2000;
   opacity: .6;
-  filter: alpha(opacity=60);
-
 }
 
 /* Draggables */
@@ -1285,7 +1317,6 @@ td.error {
 
 .deleted_row {
   opacity: .1;
-  filter: alpha(opacity=10);
 }
 
 /* Box listing steps above a page */
@@ -1597,6 +1628,7 @@ ol.admin_list li {
 }
 
 
+.admin_form input[type=text], .admin_form input[type=password],
 .admin_form input.text_field_input, .admin_form textarea,input.formatted, .admin_form  .password_field_control input {
  border:1px solid #a6cdda;
  padding:2px 2px;
@@ -1612,7 +1644,7 @@ ol.admin_list li {
 
 
 
-.admin_form .submit_button, form.admin_form .cancel_button {
+.admin_form input[type=submit], .admin_form .submit_button, form.admin_form .cancel_button {
  border:1px solid #7098b3;
  color:#3b648c;
  background-color:#a6cdda;
@@ -1831,6 +1863,7 @@ table.permission_grid td {
       font-weight:bold;
       font-size:12px;
       line-height:1.2em;
+      color:#666;
     }
     li.autocomplete_item .subtext {
       font-size:10px;
@@ -2012,3 +2045,10 @@ table.permission_grid td {
  #cms_header { display:none; }
  ul.action_panel { display:none; }
 }
+
+
+/* Search */
+
+.search_result { padding-bottom:10px; }
+.search_result h2 {  padding-bottom:0px; margin-bottom:0px; }
+.search_result .info {  font-style:italic; color:#999999; }

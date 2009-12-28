@@ -244,13 +244,18 @@ class MembersController < CmsController # :nodoc: all
 
       @user = EndUser.new(params[:user_options])
       
-      if request.post?
-        @user.source = 'import'
-        @user.admin_edit=true      
-        if(@user.save)
-          @user.tag_names = @tag_names if @tag_names
-          update_subscriptions(@user,params[:subscription])
-          flash[:notice] = 'Created User'.t
+      if request.post? 
+        if params[:commit]
+          @user.source = 'import'
+          @user.admin_edit=true      
+          if(@user.save)
+            @user.tag_names = @tag_names if @tag_names
+            update_subscriptions(@user,params[:subscription])
+            flash[:notice] = 'Created User'.t
+            redirect_to :action => 'index'
+            return
+          end
+        else
           redirect_to :action => 'index'
           return
         end
@@ -367,6 +372,18 @@ class MembersController < CmsController # :nodoc: all
     tabs_to_display = Configuration.options.member_tabs
     if tabs_to_display.length > 0
       handlers = handlers.select { |hndl| tabs_to_display.include?(hndl[:identifier].to_s) }
+
+      handlers = handlers.select do |hndl|
+        hndl[:permit] ? myself.has_role?(hndl[:permit]) : true
+      end
+
+      handlers = handlers.select do |hndl|
+        if hndl[:display]
+          hndl[:class].send(hndl[:display],@user)
+        else
+          true
+        end
+      end
     end
     
     idx=1

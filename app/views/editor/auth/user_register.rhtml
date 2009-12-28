@@ -1,16 +1,62 @@
+<script>
+UserRegisterEditor = {
+   featureIdx: <%= @options.register_features.length -%>,
+
+  
+  submitForm: function() {
+    var arr = Sortable.sequence('user_register_features');
+    $('user_register_features_order').value = arr.join(",");
+
+  },
+  
+ 
+  addFeature: function(feature) {
+    if(feature) {
+      var index = UserRegisterEditor.featureIdx++;
+      new Ajax.Updater('user_register_features',
+                      "<%= url_for :action => 'add_feature', :paragraph => @paragraph.id %>",
+                      { parameters: { feature_handler: feature, index: index },
+                        insertion: 'bottom',
+                        evalScripts: true,
+                        onComplete: function(req) {
+                          UserRegisterEditor.recreateFeatureSortables();
+                        } });
+    
+    }
+  
+  },
+  
+  recreateFeatureSortables: function() {
+    Sortable.create("user_register_features",{ tag: "div", handle: "handle" } ); 
+  },
+  
+  removeFeature: function(idx) {
+    Element.remove($('user_register_feature_' + idx));
+  }
+
+}
+
+</script>
+
+
+
 <div class='cms_form'>
 <% paragraph_options_form_for  'User Registration Options', :user_register, @options do |f| %>
-<% tabled_ajax_tabs ['Options','Fields','Site Policy','Actions'],'Options' do |t| %>
+<% tabled_ajax_tabs ['Options','Fields','Registration Features','Actions'],'Options' do |t| %>
 <% t.tabled_tab do %>
+   <%= f.header 'Registration Control' -%>
    <%= f.radio_buttons :registration_type, [['Account','account'],['Information','info']],
    :description => 'Account registration requires a password' %>
    <%= f.page_selector :success_page_id, :required => true %>
    <%= f.page_selector :already_registered_page_id %>
+   <%= f.radio_buttons :lockout_redirect, [['Yes'.t,true],['No'.t,false]], :label => 'Redirect to lockout', :description => 'Should we redirect back to the page user was originally\nlocked out of (if it exists)' %>
+   <%= f.radio_buttons :require_activation, [['Yes'.t,true],['No'.t,false]], :label => 'Require activation',:description => 'If set to yes, the user will need to click on a link in the registration email\n to activate their account.\nUsers will also not be logged in automatically.'   -%>
+   <%= f.select :registration_template_id, [['--Select Template--'.t,nil]] + MailTemplate.select_options %>
+   <%= f.page_selector :activation_page_id, :description => 'Page to link to in activation template (if require activation is on)' -%>
+   <%= f.header 'User Account Options' -%>
    <%= f.text_field :source %>
    <%= f.select :user_class_id, UserClass.options, :label => 'User Profile' %>
    <%= f.radio_buttons :modify_profile, [['Yes'.t,'modify'],['No'.t,'keep']], :label => 'Modify Profile', :description => 'Modify profile of existing user?' %>
-   <%= f.radio_buttons :lockout_redirect, [['Yes'.t,true],['No'.t,false]], :label => 'Redirect to lockout', :description => 'Should we redirect back to the page user was originally\nlocked out of (if it exists)' %>
-   <%= f.select :registration_template_id, [['--Select Template--'.t,nil]] + MailTemplate.select_options %>
    <%= f.text_field :add_tags, :description => 'Tag Names to add on registrations' %>
 <% end -%>
 <% t.tabled_tab do %>
@@ -22,11 +68,16 @@
  <%= f.ordered_array :work_address_required_fields, @options.available_address_field_options(true), :description => "All address fields are available but the above must be filled out" %> 
  <%= f.select :content_publication_id, ContentPublication.select_options_with_nil('Publication',:conditions => { :publication_type => 'create', :publication_module => 'content/core_publication' }) %>
 <% end -%>
-<% t.tabled_tab do %>
+<% t.tab do %>
+
+  <%= render :partial => 'user_register_features' -%>
+
 
 <% end -%>
-<% t.tabled_tab do %>
-
+<% t.tab do %>
+  <div id='cms_triggered_actions'>
+    <%= render :partial => '/editor/includes/actions' %>
+  </div>
 <% end -%>
 <% end -%>
 

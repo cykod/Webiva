@@ -28,6 +28,7 @@ class ParagraphRenderer < ParagraphFeature
     attr_accessor :page_title
     attr_accessor :paction
     attr_accessor :paction_data
+    attr_accessor :content_nodes
     
     def method_missing(method,args)
       @rnd.send(method)
@@ -251,6 +252,14 @@ class ParagraphRenderer < ParagraphFeature
     @page_title ||= {}
     @page_title[category] = title
   end
+
+  attr_reader :content_object_list
+  def set_content_node(obj)
+    if myself.editor?
+      @content_node_list ||= []
+      @content_node_list << obj
+    end
+  end
   
   def paragraph_page_url
     if editor?
@@ -366,8 +375,9 @@ class ParagraphRenderer < ParagraphFeature
     end
   end
   
-  def renderer_state
-    {:user => myself, :renderer => self, :controller => @controller }
+  # Return state of the renderer, include current user, allowing for override
+  def renderer_state(override={ })
+    {:user => myself, :renderer => self, :controller => @controller }.merge(override)
   end
   
   def output
@@ -378,6 +388,7 @@ class ParagraphRenderer < ParagraphFeature
       @paragraph_output.page_connections = @page_connections
       @paragraph_output.paction = @paction
       @paragraph_output.page_title = @page_title
+      @paragraph_output.content_nodes = @content_node_list
     elsif @paragraph_output.is_a?(ParagraphRedirect)
       @paragraph_output.paction = @paction
     end
@@ -391,7 +402,48 @@ class ParagraphRenderer < ParagraphFeature
     end
   end
   
- 
+
+
+  def renderer_cache(obj,display_string=nil,options={ })
+    display_string = "#{paragraph.id}_#{display_string}"
+    result = nil
+
+    unless editor? || options[:skip]
+      if obj.is_a?(Array)
+        cls = obj[0].is_a?(String) ? obj[0].constantize : obj[0]
+        result = cls.cache_fetch(display_string,obj[1])
+      elsif obj.is_a?(ActiveRecord::Base)
+        result = obj.cache_fetch(display_string)
+      else
+        result = obj.cache_fetch_list(display_string)
+      end
+    end
+    
+    if result
+      return DefaultsHashObject.new(result)
+    else
+      result = DefaultsHashObject.new(result)
+      yield result
+
+      output = result.to_hash
+
+      unless editor? || options[:skip]
+        if obj.is_a?(Array)
+          cls.cache_put(display_string,output,obj[1])
+        elsif obj.is_a?(ActiveRecord::Base)
+          obj.cache_put(display_string,output)
+        else
+          obj.cache_put_list(display_string,output)
+        end
+      end
+      
+      return result
+    end
+
+  end
+  
+  
+
   
   def self.get_editor_features
     # Find all the renderers in the 'editors' subdirectory,

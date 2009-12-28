@@ -185,4 +185,174 @@ class Editor::MenuFeature < ParagraphFeature
         end
     end
   
+
+ # Bread Crumbs Feature
+  feature :bread_crumb, :default_data => { :parents => [ 
+                                      { :title => 'Root',  :link => "/" },
+                                      { :title => 'Parent', :link => "/sub" }
+                                     ],
+                                     :current => { :title => 'Current Page',
+                                                   :link => '/sub/goober' }
+                                  },
+    :default_feature => <<-FEATURE
+  <div>
+    <cms:parent>
+      <cms:level value='1'>
+        <b><a <cms:href/> ><cms:title/></a></b> &gt;
+      </cms:level>
+      <cms:not_level value='1'>
+        <a <cms:href/> ><cms:title/></a> &gt; 
+      </cms:not_level>
+    </cms:parent>
+    <cms:current>
+      <cms:title/>
+    </cms:current>
+  </div>
+FEATURE
+  
+  def bread_crumb_feature(data)
+   webiva_feature('bread_crumb',data) do |c|
+        c.define_tag 'parent' do |tag|
+          # Go through each section
+          # Set the local to this
+          result = ''
+          mnu = (tag.globals.data || data)[:parent]
+          if mnu.is_a?(Array)
+            mnu.each_with_index do |entry,idx|
+              tag.locals.level = idx + 1
+              tag.locals.data = entry
+              tag.locals.first = entry == mnu.first
+              tag.locals.last =  entry == mnu.last
+              result << tag.expand
+            end
+          end
+          result
+        end
+        
+        c.define_tag 'current' do |tag|
+            tag.locals.data = (tag.globals.data || data)[:current]
+            tag.locals.first = true
+            tag.locals.last = true
+            tag.expand
+        end
+        
+        c.define_tag 'href' do |tag|
+          if data[:edit]
+            if tag.locals.data[:page]
+              "href='#{tag.locals.data[:link]}' onclick='cmsEdit.reloadPage(\"page\",#{tag.locals.data[:page]}); return false;'"
+            else
+              "href='#{tag.locals.data[:link]}' onclick='return false;'"
+            end
+          else
+            "href='#{tag.locals.data[:link]}'"
+          end
+        end
+        
+        c.define_tag 'level' do |tag|
+          if tag.locals.level == tag.attr[:value].to_i
+            tag.expand
+          else
+            ''
+          end
+        end
+        
+        c.define_tag 'not_level' do |tag|
+          if tag.locals.level != tag.attr[:value].to_i
+            tag.expand
+          else
+            ''
+          end
+        end
+        
+        c.define_tag 'url' do |tag|
+          tag.locals.data[:link]
+        end
+        
+        c.define_tag 'title' do |tag|
+          tag.locals.data[:title]
+        end
+        
+        c.define_tag 'menu_title' do |tag|
+          tag.locals.data[:menu_title]
+        end 
+        
+        define_position_tags(c)
+      end
+      
+  end
+
+
+
+
+
+  # Site Map Feature
+  feature :site_map, :default_data => { :entries => [ 
+                                      { :title => 'Home Page', :level => 1, :link => "/" },
+                                      { :title => 'Sub Page 1', :level => 2, :link => "/sub" },
+                                      { :title => 'Sub Page 2', :level => 2, :link => "/sub2" }
+                                     ]  
+                                  },
+    :default_feature => <<-FEATURE
+  <div>
+    <cms:entry>
+      <div style="padding-left:<cms:level factor='10'/>px">
+      <a <cms:href/>><cms:title/></a> 
+      <cms:languages>
+        ( <cms:language> <a <cms:href /> ><cms:title/></a> <cms:not_last>,</cms:not_last></cms:language> )
+     </cms:languages>
+      </div>     
+    </cms:entry>
+  </div>
+FEATURE
+  
+  
+  def site_map_feature(data)
+    webiva_feature('site_map',data) do |c|
+      c.define_tag 'entry' do |tag|
+        mnu = (tag.globals.data||data)[:entries]
+        c.each_local_value(mnu,tag,'data')
+      end
+      
+      c.define_tag 'href' do |tag|
+        if data[:edit]
+          if tag.locals.data[:page]
+            "href='#{tag.locals.data[:link]}' onclick='cmsEdit.reloadPage(\"page\",#{tag.locals.data[:page]}); return false;'"
+          else
+            "href='#{tag.locals.data[:link]}' onclick='return false;'"
+          end
+        else
+          "href='#{tag.locals.data[:link]}'"
+        end
+      end
+      
+      
+      c.define_tag 'level' do |tag|
+        if !tag.single?
+          tag.locals.data[:level] == (tag.attr['value'] || 1).to_i  ? tag.expand : nil
+        else
+          tag.locals.data[:level] * (tag.attr['factor'] || 1).to_i
+        end
+      end
+      
+      c.define_tag('url') {  |tag| tag.locals.data[:link] }
+      c.define_tag('title') { |tag|  tag.locals.data[:title] }
+      
+      c.define_value_tag('description') { |tag| tag.locals.data[:description] }
+      c.define_value_tag('keywords') { |tag| tag.locals.data[:keywords] }
+      c.define_value_tag('page_title') { |tag| tag.locals.data[:page_title] }
+      
+      define_value_tag(c)
+      
+      c.define_expansion_tag('languages') { |tag| tag.locals.data[:languages].is_a?(Array) }
+      
+      c.define_tag 'language' do |tag|
+        mnu =tag.locals.data[:languages] 
+        c.each_local_value(mnu,tag,'data')
+      end
+      
+      define_position_tags(c)
+    end
+  end
+
+
 end

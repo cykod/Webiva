@@ -35,6 +35,9 @@
    when "J"
    	node_icon = "icons/redirect.gif"
    	node_title_click = "StructureEditor.redirectPopup('#{path.id}')"
+   when "G"
+   	node_icon = "icons/group.gif"
+   	node_title_click = "StructureEditor.groupPopup('#{path.id}')"
    end
  -%>
    
@@ -56,7 +59,7 @@
 <% end -%>
    
    
-<a href='javascript:void(0);' class='node_title'  id='node_title_<%= path.id %>' ondblclick="StructureEditor.editPageTitle(<%= path.id %>)" onclick="<%= "StructureEditor.selectNode('node',#{path.id});" %>"><%= path.node_type == 'R' ? Configuration.domain : ("/" + path.title) %></a>
+<a href='javascript:void(0);' class='node_title'  id='node_title_<%= path.id %>' ondblclick="StructureEditor.editPageTitle(<%= path.id %>)" onclick="<%= "StructureEditor.selectNode('node',#{path.id});" %>"><%= path.node_type == 'R' ? Configuration.domain : (path.node_type == 'G' ? path.title : "/" + path.title) %></a>
 <span class='node_title_edit' id='node_title_edit_<%= path.id %>' style='display:none;'></span>
 		
 

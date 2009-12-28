@@ -249,8 +249,8 @@ class Content::CoreField < Content::FieldHandler
     
     def modify_entry_parameters(parameters)
       key = @model_field.field
-      if parameters[key.to_s + "_clear"].to_s == '0'
-          parameters[key] = nil
+      if parameters[key.to_s + "_clear"].to_s == '0' && (parameters[key].is_a?(Integer) ||  parameters[key].blank? )
+        parameters[key] = nil
       elsif parameters[key].is_a?(String)
         parameters[key] = parameters[key].to_i
       elsif !parameters[key].is_a?(Integer) &&  !parameters[key].blank? 
@@ -274,7 +274,6 @@ class Content::CoreField < Content::FieldHandler
 
     
     def assign(entry,values)
-      modify_entry_parameters(values)
       entry.send("#{@model_field.field}=",values[@model_field.field]) if values.has_key?(@model_field.field)
     end
 
@@ -359,8 +358,27 @@ class Content::CoreField < Content::FieldHandler
       ActiveTable::OptionHeader.new(@model_field.field, :label => @model_field.name, :options =>self.available_options)
     end
   
-    def available_options
-      @available_opts ||= (@model_field.field_options['options'] || []).collect { |fld| fld=fld.to_s.split(";;");[ fld[0].to_s.strip,fld[-1].to_s.strip] }    
+    def available_options(atr={ })
+      opts = @available_opts ||= (@model_field.field_options['options'] || []).collect { |fld| fld=fld.to_s.split(";;");[ fld[0].to_s.strip,fld[-1].to_s.strip] }    
+      # Let the labels be rewritten
+      unless atr[:labels].blank?
+        labels = atr[:labels].split(",")
+        offset = -1
+        opts = opts.map { |elm| offset +=1; [ labels[offset] || elm[0], elm[1] ] }
+      end
+      unless atr[:offset].blank?
+        offset = atr[:offset].to_i-1
+        offset = 0 if offset < 0
+        opts = opts[offset..-1]
+      end
+
+      unless atr[:limit].blank?
+        limit = atr[:limit].to_i-1
+        limit = 0 if limit < 0
+        opts = opts[0..limit]
+      end
+
+      opts 
     end
     
     
@@ -385,7 +403,7 @@ class Content::CoreField < Content::FieldHandler
 
    
     
-    filter_setup :like, :not_empty, :options
+    filter_setup :options, :not_empty
 
     # Let the publication display as radio, vertical radios or a select
     
@@ -429,7 +447,7 @@ class Content::CoreField < Content::FieldHandler
       ActiveTable::OptionHeader.new(@model_field.field, :label => @model_field.name, :options => available_options)
     end    
   
-    def available_options
+    def available_options(atr={ })
       (@model_field.field_options['options'] || []).collect { |fld| fld=fld.to_s.split(";;");[ fld[0].to_s.strip,fld[-1].to_s.strip] }    
     end
     
@@ -624,9 +642,9 @@ class Content::CoreField < Content::FieldHandler
         else
           order_by = nil
         end
-
         filter = field_opts.delete(:filter_values) || options[:filter]
-        if options[:filter_by_id] && (fltr_field =  ContentModelField.find_by_id(options[:filter_by_id])) && !filter.blank?
+        filter_blank = filter.is_a?(Array) ? filter.map(&:to_s).join('').blank? : filter.blank?
+        if options[:filter_by_id] && (fltr_field =  ContentModelField.find_by_id(options[:filter_by_id])) && !filter_blank
           conditions = { fltr_field.field => filter }
         else
           conditions = nil
@@ -634,21 +652,39 @@ class Content::CoreField < Content::FieldHandler
         
         if options[:group_by_id] && mdl_field = ContentModelField.find_by_id(options[:group_by_id])
 
-          all_elems = cls.find(:all,:conditions => conditions, :order => order_by)
 
-          available_options =  {}
-          all_elems.group_by { |elm| mdl_field.content_display(elm) }.each do |key,arr|
-            available_options[key] = arr.map { |elm| [ elm.identifier_name, elm.id ] }
+          opts = { :conditions => conditions,:order => order_by, :group_by_id => options[:group_by_id] }
+          opt_hsh = cls.hash_hash(opts)
+          
+          available_options =  cls.cache_fetch(opt_hsh,'select_options_grouped')
+
+          if !available_options
+            all_elems = cls.find(:all,:conditions => conditions, :order => order_by)
+            available_options =  {}
+            all_elems.group_by { |elm| mdl_field.content_display(elm) }.each do |key,arr|
+              available_options[key] = arr.map { |elm| [ elm.identifier_name, elm.id ] }
+            end
+            available_options = available_options.to_a.sort { |a,b| a[0] <=> b[0] }
+
+            cls.cache_put(opt_hsh,available_options,'select_options_grouped')
           end
-          available_options = available_options.to_a.sort { |a,b| a[0] <=> b[0] }
+
           control = :grouped_check_boxes
 
         else
-          available_options = cls.select_options(:conditions => conditions,:order => order_by)
+          opts = { :conditions => conditions,:order => order_by }
+          opt_hsh = cls.hash_hash(opts)
+          available_options = cls.cache_fetch(opt_hsh,'select_options')
+          
+          if !available_options
+            available_options = cls.select_options(opts)
+            if !order_by
+              available_options.sort! { |a,b| a[0].downcase <=> b[0].downcase }
+            end
 
-          if !order_by
-            available_options.sort! { |a,b| a[0].downcase <=> b[0].downcase }
+            cls.cache_put(opt_hsh,available_options,'select_options')
           end
+
 
           
           control = :check_boxes
@@ -659,6 +695,12 @@ class Content::CoreField < Content::FieldHandler
 #           "#{@model_field.field_options['relation_singular']}_ids"
           field_opts[:class] = 'check_boxes'
           f.send(control,field_name, available_options, field_opts.merge(options.merge({:integer => true})))
+        when 'multiselect'
+          if control == :grouped_check_boxes
+            f.grouped_select(field_name,available_options, field_opts.merge(options.merge({:integer => true})), :size => 10, :multiple => true)
+          else
+            f.select(field_name, available_options, field_opts.merge(options.merge({:integer => true})), :size => 10, :multiple => true)
+          end
         when 'selects'
           if control == :grouped_check_boxes
             f.multiple_grouped_selects(field_name,[['',[["--Select--".t,nil]]]] + available_options, field_opts.merge(options.merge({:integer => true})))
@@ -704,7 +746,7 @@ class Content::CoreField < Content::FieldHandler
     def form_display_options(pub_field,f)
       mdl  =  pub_field.content_model_field.content_model_relation
       if mdl
-        f.radio_buttons(:control, [ ['Check Boxes','checkbox'], ['Vertical Check Boxes','vertical_checkbox' ], ['Multiple Selects','selects' ]]) + 
+        f.radio_buttons(:control, [ ['Check Boxes','checkbox'], ['Vertical Check Boxes','vertical_checkbox' ], ['Multiple Selects','selects' ],['Multi-select','multiselect']]) + 
           f.select(:group_by_id, [["--Don't Group Fields--".t,nil ]] + mdl.content_model_fields.map { |fld| [fld.name, fld.id ]} ) +
           f.select(:filter_by_id, [["--Don't Allow Filtering--".t,nil ]] + mdl.content_model_fields.map { |fld| [fld.name, fld.id ]} ) +
           f.text_field(:filter_values, :description => "Can be overridden in a site feature by adding a 'filter' attribute to the field") +

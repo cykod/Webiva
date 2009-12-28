@@ -7,7 +7,7 @@ class Editor::AdminController < ModuleController
   # These modules are always active
   skip_before_filter :validate_module
   
-  component_info 'Editor', :description => 'Built In Editor Modules', 
+  component_info 'editor', :description => 'Built In Editor Modules', 
                               :access => :public
 
   

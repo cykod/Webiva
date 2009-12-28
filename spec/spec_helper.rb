@@ -209,7 +209,7 @@ module Spec
  	else
 	  paragraph = mock_model(PageParagraph,:site_feature => nil, :content_publication => nil)
  	end
-        renderer = mock_model(ParagraphRenderer,:get_handler_info => [])
+        renderer = mock_model(ParagraphRenderer,:get_handler_info => [],:protect_against_forgery? => false)
         feature_class.classify.constantize.new(paragraph,renderer)
       end
    end   

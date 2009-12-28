@@ -107,7 +107,7 @@ class Editor::MenuController < ParagraphController
     
 
     
-    @pages = [['---Select Page---'.t,'']] + SiteNode.page_options("Site Root".t)
+    @pages = [['---Select Page---'.t,'']] + SiteNode.page_and_group_options("Site Root".t)
     @levels = [ ["1 Level",1] ] + 
       ( 2..5 ).to_a.collect do |num|
          [sprintf("%d Levels".t,num), num ]

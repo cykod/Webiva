@@ -1,11 +1,11 @@
+@paragraph_object = @paragraph
+
 page.replace_html "cms_paragraph_editor_#{@paragraph_index}", "<div class='cms_paragraph_editor_cover'></div>" + render_paragraph(@site_node,@revision,@paragraph, :editor => true)
 
-#page.replace_html "cms_paragraph_#{@paragraph_index}", :partial => '/edit/paragraph', :locals => { :para => @paragraph }  
-
-if @paragraph.content_publication_id
-  page << "cmsEdit.registerParagraph(#{@paragraph_index},new cmsPublicationParagraph(#{@paragraph.id},#{@paragraph_index},'#{@paragraph.display_module_identifier}_#{@paragraph.display_type}','#{@paragraph.display_module}',#{@paragraph.content_publication_id},'#{@paragraph.site_feature_id.to_i}'));"
+if(@paragraph_object.content_publication_id)
+  page << "cmsEdit.registerParagraph(#{@paragraph_index},new cmsPublicationParagraph(#{@paragraph_object.id},#{@paragraph_index},'#{@paragraph_object.display_module_identifier}_#{@paragraph_object.display_type}','#{@paragraph_object.display_module}',#{@paragraph_object.content_publication_id},'#{@paragraph_object.site_feature_id.to_i}'));"
 else
-  page <<  "cmsEdit.registerParagraph(#{@paragraph_index},new cmsEditorParagraph(#{@paragraph.id},#{@paragraph_index},'#{@paragraph.display_module_identifier}_#{@paragraph.display_type}','#{@paragraph.display_module}','#{@paragraph.site_feature_id.to_i}'));"
+  page <<  "cmsEdit.registerParagraph(#{@paragraph_index},new cmsEditorParagraph(#{@paragraph_object.id},#{@paragraph_index},'#{@paragraph_object.display_module_identifier}_#{@paragraph_object.display_type}','#{@paragraph_object.display_module}','#{@paragraph_object.site_feature_id.to_i}'));"
 end
 
 

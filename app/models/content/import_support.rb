@@ -23,13 +23,13 @@ def export_xml(output,options = {})
   end
   
   def export_csv(writer,options = {})
-     fields = [ ContentModelField.new(:name => 'Identifier', :field => 'id')] + self.content_model_fields
+     fields =  self.content_model_fields
   
-     writer << fields.collect do |fld|
+     writer << ["Identifier"] + fields.collect do |fld|
       fld.name
      end
      self.content_model.find(:all,options).each_with_index do |row,idx|
-    	writer << fields.collect do |fld|
+    	writer << [ row.id ] + fields.collect do |fld|
 	      fld.text_value(row)
     	end
      end

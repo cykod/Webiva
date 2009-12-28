@@ -4,15 +4,20 @@
 <div id='cms_header'>
   <% if myself.id %>
 
-    <% if false %>
-  <div id='cms_webiva_search'>
-    <input type='text' name='search' size='20' value='Search Webiva' onclick='this.value="";'/>
-  </div>
+  <div id='cms_header_return'>
+    <a href='/'>&laquo; View Site</a> 
+    <% if @cms_return_to_site_url -%> |
+      <a href='<%= h @cms_return_to_site_url -%>'>&laquo; Return to site</a>
     <% end -%>
+  </div>
   <div id='cms_header_tools'>
-      
-      <a href='<%= url_for :controller => "/account" %>'><%= "my account".t %></a> | <a href='<%= url_for :controller => '/manage/access', :action => 'logout' %>'><%= "logout".t %></a>
-      
+    <div id='cms_header_tools_content'>
+    <a href='<%= url_for :controller => "/account" %>'><%= "my account".t %></a>
+      | 
+    <a href='<%= url_for :controller => '/manage/access', :action => 'logout' %>'><%= "logout".t %></a>
+      | 
+      <%= webiva_search_widget -%>
+     </div>
   </div>
   <% end -%>
   <div id='cms_logo'><a href='/website'><img src='<%= WEBIVA_LOGO_FILE || theme_src("framework/logo.gif") %>'></a></div>

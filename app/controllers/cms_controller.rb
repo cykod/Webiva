@@ -24,10 +24,23 @@ class CmsController < ApplicationController
   # editor user class. Skip this filters to get around the requirement.
   def validate_is_editor
     if myself && myself.user_class
-      myself.user_class.editor?
+      if !myself.user_class.editor?
+        redirect_to :controller => '/manage/access', :action => 'denied'
+      end
     else
       store_return_location
       redirect_to :controller => '/manage/access', :action => 'denied'
+    end
+
+    if params[:return_to_site] 
+      url = request.referer.gsub!(/^https?\:\/\/[^\/]+/,"")
+      unless url =~ /^\/website/
+        session[:return_to_site] = url
+      end
+    end
+
+    if session[:return_to_site]
+      @cms_return_to_site_url = session[:return_to_site]
     end
   end
 

@@ -22,7 +22,8 @@ var StructureEditor = {
 	addNodeTypes: {
 		add_page: 'P',
 		add_document: 'D',
-		add_redirect: 'J'
+		add_redirect: 'J',
+                add_group: 'G'
 	},
 
         closedElements: [ <%= @closed.join(",") %> ],
@@ -632,8 +633,14 @@ var StructureEditor = {
 		if(elem && !elem.editing_title) {
 			elem.editing_title = 1;
 			var txt = elem.innerHTML;
-			txt = elem.innerHTML.substr(1);
-			edit_elem.innerHTML = '/';
+                        if(node.node_type != 'G') {
+		          txt = elem.innerHTML.substr(1);
+		          edit_elem.innerHTML = '/';
+                        } 
+                        else {
+		          txt = elem.innerHTML;
+		          edit_elem.innerHTML = '';
+                        }                          
 			
 			Element.hide(elem);
 			Element.show(edit_elem);
@@ -667,14 +674,16 @@ var StructureEditor = {
 		var txt = this.value;
 		
 		var reg = /^[a-zA-Z\-_.0-9]*$/
-		if(submitData && !reg.match(txt)) {
+
+		var edit_elem = this.parentNode;
+		var node_line = edit_elem.parentNode;
+		var node = node_line.parentNode;
+
+		if(submitData && node.node_type != 'G' && !reg.match(txt)) {
 		  alert('<%= jh "Page url should only include Letters, Numbers, Dashes (-), Periods (.) and Underscores (_)".t %>');
 		  return;
 		}
 		
-		var edit_elem = this.parentNode;
-		var node_line = edit_elem.parentNode;
-		var node = node_line.parentNode;
 		var elem = getChild(node_line,'node_title');  
 		
 		Element.remove(this);

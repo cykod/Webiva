@@ -248,9 +248,15 @@ module EnhancedFormElements
 
     def grouped_select(field,choices,options ={}, html_options = {})
       obj_val = @object.send(field) if @object
+
+      if html_options[:multiple]
+        obj_val = [obj_val] unless obj_val.is_a?(Array)
+        obj_val = obj_val.map(&:to_i) if options.delete(:integer)
+      end
+
       opts = @template.grouped_options_for_select(choices,obj_val)
 
-      name = "#{@object_name}[#{field}]#"
+      name = "#{@object_name}[#{field}]"
       select_tag(name,opts,html_options)
     end
 
@@ -586,6 +592,7 @@ class TabledForm < StyledForm
     
     cols = (options.delete(:columns) || 1)
     
+    valign = options[:valign] || 'baseline'
     
     required = opts.delete(:required) ? "*" : ""
     
@@ -600,7 +607,7 @@ class TabledForm < StyledForm
       else
           description = "<tr><td/><td class='description'>#{options[:description]}</td></tr>" if !options[:description].blank?
       
-	error + "<tr><td class='label'  valign='baseline' >" + vals[:label] + required + "</td><td class='data #{options[:control]}_control' colspan='#{cols}'>" + vals[:output] + '</td></tr>' + description.to_s
+	error + "<tr><td class='label'  valign='#{valign}' >" + vals[:label] + required + "</td><td valign='baseline' class='data #{options[:control]}_control' colspan='#{cols}'>" + vals[:output] + '</td></tr>' + description.to_s
       end
     else
       vertical = options.delete(:vertical)
@@ -610,7 +617,7 @@ class TabledForm < StyledForm
 	@template.concat("<tr><td colspan='#{cols+1}' class='label_vertical'>" + emit_label(label) + required + '</td></tr>' + error + "<tr><td colspan='#{cols+1}' class='data " + options[:control].to_s + "_control'>")
       else
          description = "<tr><td/><td class='description' colspan='#{cols}'>#{options[:description]}</td></tr>" if !options[:description].blank?
-        @template.concat(error + '<tr><td  class="label" valign="baseline" >' + emit_label(label) + required + "</td><td class='data' colspan='#{cols}' valign='baseline'>")
+         @template.concat(error + "<tr><td  class='label' valign='#{valign}' >" + emit_label(label) + required + "</td><td valign='baseline' class='data' colspan='#{cols}'>")
       end
       yield
       @template.concat("</td></tr>" + description.to_s)
@@ -1016,10 +1023,14 @@ module CmsFormElements
     current_doc= nil
     if doc_file && !doc_file.url.to_s.empty?
       current_doc = <<-DOC_SOURCE
+      <input type='hidden' name='#{@object_name}[#{field}_clear]' id='#{@object_name}_#{field}_clear' value='#{doc_file ? doc_file.id : ''}' />
+      <span id="#{@object_name}_#{field}_file">
       <a href='#{doc_file.url}' target='_blank' >
       <img src='/images/site/document.gif' style='width:16px;height:16px;padding:0px;margin:0px;border:0px;' />
       #{h doc_file.name}
-      </a><br/>
+      </a>&nbsp;
+      <a href='javascript:void(0);' onclick='document.getElementById("#{@object_name}_#{field}_clear").value="0"; document.getElementById("#{@object_name}_#{field}_file").innerHTML="";'>(Remove)</a>
+      </span><br/>
     DOC_SOURCE
    end
     <<-SRC
@@ -1425,6 +1436,10 @@ module CmsFormElements
  
   def page_selector(field,opts = {})
     self.select(field,[['--Select Page--'.t,nil]] + SiteNode.page_options,opts)
+  end
+
+  def url_selector(field,opts = {})
+    self.select(field,[['--Select Page--'.t,nil]] + SiteNode.page_options.map {  |elm| [elm[0],elm[0]] },opts)
   end
 
 

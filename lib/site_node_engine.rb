@@ -69,9 +69,21 @@ class SiteNodeEngine
         name = domain_file.name
       # Otherwise we have a document node (domain file), that needs to be sent
       else
-	      domain_file = page.domain_file
-	      filename = domain_file.filename
-	      name = page.title # domain_file.name
+        domain_file = page.domain_file
+        if domain_file.folder?
+          args = "/" + output.path_args.join("/").to_s.strip
+          domain_file = DomainFile.find_by_file_path(domain_file.file_path + args)
+          
+          if domain_file
+            filename = domain_file.filename
+            name = domain_file.name
+          else
+            raise MissingPageException.new(page,@output.language)
+          end
+        else 
+          filename = domain_file.filename
+          name = page.title # domain_file.name
+        end
       end
       mime_types =  MIME::Types.type_for(filename) 
       if USE_X_SEND_FILE
@@ -339,6 +351,7 @@ EOF
     attr_accessor :page_connections
     attr_accessor :meta_description
     attr_accessor :meta_keywords
+    attr_accessor :content_nodes
     
   	def page?
   		true
@@ -380,6 +393,14 @@ EOF
     
     def domain_file
       @options[:domain_file]
+    end
+
+    def path_args
+      @options[:path_args]
+    end
+
+    def language
+      @options[:language]
     end
 
     def data
@@ -460,6 +481,7 @@ EOF
                                            @page_information.revision,
                                            paragraph,
                                            :ajax => @mode=='edit' ? false : true,
+                                           :editor => @mode == 'edit',
                                            :language => @language,
                                            :capture => @capture_data
                                            )
@@ -493,7 +515,7 @@ EOF
     
     # If we are rendering a document node, return it
     if @container.is_a?(SiteNode) && @container.node_type=='D'
-      doc =  DocumentOutput.new
+      doc =  DocumentOutput.new(:path_args => @path_args, :language => @language )
       doc.paction = user.action("/document/download",:identifier => @container.domain_file.file_path)
       return doc
     end
@@ -503,7 +525,7 @@ EOF
     if @mode != 'edit'
       # See how many page argument the page paragraphs are expecting
       max_path_level = calculate_max_path_level
-      if max_path_level < @path_args.length 
+      if max_path_level < @path_args.length  && @container.node_type != 'M'
         raise MissingPageException.new(@container,@language), "Page Not Found" 
       end
 
@@ -569,7 +591,10 @@ EOF
                       @page_information[:includes][inc_type] ||= []
                       @page_information[:includes][inc_type] +=  inc_arr
                     end
-                    
+                    if result.content_nodes
+                      @page_information[:content_nodes] ||= []
+                      @page_information[:content_nodes] += result.content_nodes
+                    end
                     @page_information[:paction] = result.paction if result.paction
                   end
                   
@@ -610,7 +635,7 @@ EOF
     @output.includes = @page_information.includes
     @output.head = @page_information.head
     @output.paction = @page_information.paction
-    
+    @output.content_nodes = @page_information.content_nodes
     @output
   end
 
@@ -864,7 +889,9 @@ EOF
       parts << part.body
       if(part.zone_position != -1)
         if @mode == 'edit' || @page_information.zone_paragraphs[part.zone_position].is_a?(Array)
+          zone = @active_template.site_template_zones.detect {  |zn| zn.position == part.zone_position } if @mode == 'edit'
           parts.push({:zone_idx => part.zone_position, 
+                       :zone_name => zone ? zone.name : '(Undefined)'.t,
                        :paragraphs => @page_information.zone_paragraphs[part.zone_position] || [],
                        :locked => @page_information.zone_locks[part.zone_position]
                      })
@@ -959,6 +986,8 @@ EOF
     
     if @page_information.title && @page_information.title.length > 0
       @page_information.title.stringify_keys!
+      @page_information.title['title'] = @page_information.title['default'] if  @page_information.title['default']
+
       if title_str.blank?
         title_str = @page_information.title['default'] || @page_information.title.values.join(" ")
       else

@@ -104,6 +104,13 @@ class ContentModel < DomainModel
       {}
     end
   end
+
+  def content_admin_url(content_id)
+    {  :controller => '/content',
+       :action => 'edit_entry',
+       :path => [ self.id, content_id ],
+       :title => "#{self.name} Content Model"}
+  end
   
   def self.dynamic_field_info(field_name)
     info = field_name.split(":")

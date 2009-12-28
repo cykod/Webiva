@@ -56,30 +56,30 @@ class ContentPublication < DomainModel
   end
   
   def add_all_fields!
-    self.content_model.content_model_fields.each do |fld|
+    self.content_model.content_model_fields.find(:all,:order => 'position').each_with_index do |fld,idx|
     self.content_publication_fields.create(
 				:label => fld.name,
 				:field_type => self.field_type_options[0][1],
 				:data => {},
-				:content_model_field_id => fld.id
+				:content_model_field_id => fld.id,
+                                 :position => idx
 				)
   	end
   end
   
-  
-  def update_entry(entry,values = {},application_state = {})
+  def assign_entry(entry,values = {},application_state = {})
     application_state = application_state.merge({:values => values })
     values = self.content_model.entry_attributes(values) 
     self.content_publication_fields.each do |fld|
       val = nil
       case fld.field_type
       when 'dynamic':
-        val = fld.content_model_field.dynamic_value(fld.data[:dynamic],entry,application_state)
+          val = fld.content_model_field.dynamic_value(fld.data[:dynamic],entry,application_state)
         fld.content_model_field.assign_value(entry,val)
       when 'input':
-        fld.content_model_field.assign(entry,values)
+          fld.content_model_field.assign(entry,values)
       when 'preset':
-        fld.content_model_field.assign_value(entry,fld.data[:preset])
+          fld.content_model_field.assign_value(entry,fld.data[:preset])
       end
     end
     entry.valid?
@@ -93,6 +93,16 @@ class ContentPublication < DomainModel
     end
 
     entry
+  end
+  
+  def update_entry(entry,values = {},application_state = {})
+    entry = assign_entry(entry,values,application_state)
+
+    if entry.errors.length == 0
+      entry.save 
+    else
+      false
+    end
   end
   
   
@@ -218,10 +228,12 @@ class ContentPublication < DomainModel
       :values => [],
       :includes => [],
       :score => [],
-      :count => []
+      :count => [],
+      :select => []
     }
 
     filter[:joins] = [ options[:joins] ] if options[:joins]
+    filter[:select] = [ options[:select] ] if options[:select]
 
     if options[:conditions]
       if options[:conditions].is_a?(Array)
@@ -294,7 +306,8 @@ class ContentPublication < DomainModel
       score_sym = "score_#{fuzzy_filter}".to_sym
       if filter[score_sym] && filter[score_sym].length > 0
         score = filter[score_sym].uniq.join(" + ")
-        filter_output[:select] = "`#{content_model.table_name}`.id, (#{score}) as content_score_#{fuzzy_filter}"
+        filter_output[:select] ||=  [] 
+        filter_output[:select] << "`#{content_model.table_name}`.id, (#{score}) as content_score_#{fuzzy_filter}" 
 
         extra_conditions = []
         if filter["count_conditions_#{fuzzy_filter}".to_sym]
@@ -327,9 +340,32 @@ class ContentPublication < DomainModel
 
     filter_output[:offset] = options[:offset] if options[:offset]
 
+    filter_output[:select] ||= []
+    filter_output[:select] += [ options[:select] ] if options[:select]
+    if filter_output[:select].length > 0
+      filter_output[:select] = filter_output[:select].join(',') 
+    else
+      filter_output.delete(:select)
+    end
+    
+
 
     return filter_output
   end
+
+  def get_full_data(options={ },form_options={ })
+
+    return nil  unless %w(list admin_list data).include?(self.publication_type)
+    
+    filter_options = filter_conditions(options,form_options)
+
+    mdl = self.content_model.content_model
+    
+    data = mdl.find(:all, filter_options)
+
+    resolve_filtered_data(data,filter_options) || []
+  end
+
   
   def get_list_data(page = 1,options = {},form_options = {})
     return nil  unless %w(list admin_list data).include?(self.publication_type)
@@ -342,6 +378,7 @@ class ContentPublication < DomainModel
     per_page = :all if per_page == 0
     
     filter_options[:per_page] =  per_page
+
 
     pages,data = mdl.paginate(page, filter_options)
 

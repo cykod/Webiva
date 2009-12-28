@@ -18,39 +18,53 @@
   MCE_Popup = {
   
     imageCallback: function(field,file_type,id,path,url,thumb,name,opts) {
-    var inst = tinyMCE.getInstanceById(field);
-    var elm = inst.getFocusElement();
-    var src = url
 
-    var selectedText = inst.selection.getSelectedText();
+    var ed = tinyMCEPopup.editor;
+    var elm = ed.selection.getNode();
+    var src = url;
+
+    // Fixes crash in Safari
+     if (tinymce.isWebKit)
+       ed.getWin().focus();
+
+    var selectedText = ed.selection.getContent({format:'text'});
 
     var currentSelection = (selectedText && selectedText.length > 0);
     
-    tinyMCEPopup.execCommand("mceBeginUndoLevel");
     if(file_type == 'img') {
-      file_opts = '';
+      file_opts = {};
+
+   
       
       if(opts) {
         if(opts['align']) {
-          file_opts += " align='" + opts['align'] + "' ";
+          file_opts['align'] = opts['align'];
         } 
       
       }
+      tinymce.extend(file_opts, {
+        src: src,
+        mce_src: src,
+      });
     
-      var html = "<img src='" + src + "' mce_src='" + src + "'" + file_opts + " />";
-      
       if (elm != null && elm.nodeName.toLowerCase() == "img") {
         if(src == '')
-          tinyMCEPopup.execCommand("mceRemoveNode");
+          ed.execCommand("mceRemoveNode");
         else {
-          tinyMCEPopup.execCommand("mceRemoveNode");
-          tinyMCEPopup.execCommand("mceInsertContent", false, html);
+          ed.dom.setAttribs(elm,file_opts);
 	}
       } else {
-	tinyMCEPopup.execCommand("mceInsertContent", false, html);
+	ed.execCommand("mceInsertContent", false,  '<img id="__mce_tmp" />', {skip_undo : 1});
+        ed.dom.setAttribs('__mce_tmp', file_opts);
+	ed.dom.setAttrib('__mce_tmp', 'id', '');
+        ed.undoManager.add();
       }
     }
     else if(file_type == 'doc' || file_type == 'thm') {
+      file_opts = {
+                  target: '_blank',
+                  href: url
+                  }
       var html = "<a target='_blank' href='" + url + "'>" + name + "</a>";
       
       if (elm != null && elm.nodeName == "A") {
@@ -63,13 +77,11 @@
       } else {
         if(currentSelection) 
           html = "<a target='_blank' href='" + url + "'>" + selectedText + "</a>";
-	tinyMCEPopup.execCommand("mceInsertContent", false, html);
+	ed.execCommand("mceInsertContent", false, html);
       }
     }
   
-  
-    tinyMCE._setEventsEnabled(inst.getBody(), false);
-    tinyMCEPopup.execCommand("mceEndUndoLevel");
+    tinyMCEPopup.close();
   }
   
 

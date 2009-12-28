@@ -1,7 +1,8 @@
+
 result = "if(FileEditor.iconLoadRequest == #{@load_request}) {\n"
-@folder.children.each do |file| 
+@elements.each do |file| 
   if file.file_type == 'img' || file.file_type == 'thm'
-    result +=  " $('thumb_image_#{file.id}').src = '#{file.url(@icon_size)}?#{file.stored_at.to_i}';\n"
+    result +=  " $('thumb_image_#{file.id}').src = '#{file.thumbnail_url(theme,@image_size)}?#{file.stored_at.to_i}';\n"
   end
 end
 result += "}"

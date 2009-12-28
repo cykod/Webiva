@@ -62,12 +62,21 @@ class DomainModel < ActiveRecord::Base
     
     page_size = args.delete(:per_page).to_i
     page_size = 20 if page_size <= 0
-    
+
     count_args = args.slice( :conditions, :joins, :include, :distinct, :having)
     
     if page_size.is_a?(Integer)
+      
+      if args[:group]
+        count_by = args[:group]
+        count_args[:distinct] = true
+      end
 
-      total_count = self.count(count_args)
+      if count_by
+        total_count = self.count(count_by,count_args)
+      else
+        total_count = self.count(count_args)
+      end
       pages = (total_count.to_f / (page_size || 10)).ceil
       pages = 1 if pages < 1
       page = (page ? page.to_i : 1).clamp(1,pages)
@@ -83,8 +92,15 @@ class DomainModel < ActiveRecord::Base
     end
 
     items = self.find(:all,args)
-    
-    [ { :pages => pages, :page => page, :window_size => window_size, :total => total_count }, items ]
+
+    [ { :pages => pages, 
+        :page => page, 
+        :window_size => window_size, 
+        :total => total_count,
+        :per_page => page_size,
+        :first => offset+1,
+        :last => offset + items.length
+      }, items ]
     
       
   end
@@ -126,9 +142,11 @@ class DomainModel < ActiveRecord::Base
     
     self.module_eval(<<-SRC)
     def run_triggered_actions(data = {},trigger_name = nil,user = nil)
-      actions = trigger_name ?  self.triggered_actions.find(:all,:conditions => ['action_trigger=?',trigger_name]) :  self.triggered_actions
-      actions.each do |act|
-	act.perform(data,user)
+      if (trigger_name.to_s == 'view' && self.view_action_count > 0) || (trigger_name.to_s != 'view' && self.update_action_count > 0)
+        actions = trigger_name ?  self.triggered_actions.find(:all,:conditions => ['action_trigger=?',trigger_name]) :  self.triggered_actions
+        actions.each do |act|
+          act.perform(data,user)
+        end
       end
     end    
     SRC
@@ -255,6 +273,13 @@ class DomainModel < ActiveRecord::Base
      Digest::SHA1.hexdigest(Time.now.to_i.to_s + rand(1e100).to_s)
   end
 
+  def self.hash_hash(hsh)
+    arr = hsh.to_a.sort { |a,b| a[0].to_s<=>b[0].to_s }
+    Digest::SHA1.hexdigest(arr.to_s)[0..63]
+  end
+
+ 
+
   def self.find_select_options(val=:all,opts={})
     self.find(val,opts).collect do |itm|
       [ itm.name, itm.id ]
@@ -296,7 +321,7 @@ class DomainModel < ActiveRecord::Base
  # %%VARIABLE{!Happy,Sad,Friendly}[[ This is what should be when we're not happy, ARE sad, or ARE Friendly]]%%
  # %%VARIABLE[[Replacement text]]%%
  def self.variable_replace(txt,vars = {})
-  
+   vars = vars.symbolize_keys
     txt.gsub(/\%\%(\w+)\%\%/) do |mtch|
       var_name =$1.downcase.to_sym
       vars[var_name] ? vars[var_name] : ''
@@ -304,6 +329,7 @@ class DomainModel < ActiveRecord::Base
   end  
   
  def variable_replace(txt,vars = {})
+   vars = vars.symbolize_keys
    txt.gsub(/\%\%(\w+)\%\%/) do |mtch|
      var_name =$1.downcase.to_sym
 #     raise var_name.to_s + vars[var_name].inspect
@@ -385,14 +411,14 @@ class DomainModel < ActiveRecord::Base
 #    end
 #  end
 #  
-#  alias_method :destroy_active_record, :destroy
-#  
-#  def destroy
-#    post_handlers(self,:pre_destroy)
-#    if destroy_active_record
-#        post_handlers(self,:post_destroy)
-#    end
-#  end
+  alias_method :destroy_active_record, :destroy
+  
+  def destroy
+    post_handlers(self,:pre_destroy)
+    if destroy_active_record
+        post_handlers(self,:post_destroy)
+    end
+  end
   
   def post_handlers(record,action)
     DomainModel.get_handlers(:model,record.class.to_s.underscore.to_sym).each do |handler|
@@ -564,12 +590,15 @@ class DomainModel < ActiveRecord::Base
      idx = 2
      permalink_try = permalink_try_partial[0..60]
      
-     while(self.class.send("find_by_#{field}",permalink_try,:conditions => ['id != ?',self.id || 0] ))
-       permalink_try = permalink_try_partial + '-' + idx.to_s
-       idx += 1
+     if !field.blank?
+       while(self.class.send("find_by_#{field}",permalink_try,:conditions => ['id != ?',self.id || 0] ))
+         permalink_try = permalink_try_partial + '-' + idx.to_s
+         idx += 1
+       end
+       self.send("#{field}=",permalink_try)
+     else
+       permalink_try
      end
-     
-     self.send("#{field}=",permalink_try)
   end
   
   def expire_site

@@ -30,6 +30,10 @@ class ParagraphFeature
       end
     end
   end
+
+  def self.standalone_feature(site_feature_id=nil)
+    self.new(PageParagraph.new(:site_feature_id => site_feature_id),dummy_renderer)
+  end
   
   def self.dummy_renderer(controller=nil)
     ParagraphRenderer.new(UserClass.get_class('domain_user'),controller || ApplicationController.new,PageParagraph.new,SiteNode.new,PageRevision.new)
@@ -270,7 +274,8 @@ class ParagraphFeature
       define_value_tag("#{name_base}:last_name") { |t| t.locals.send(local).last_name }
       define_value_tag("#{name_base}:salutation") { |t| t.locals.send(local).salutation }
       define_value_tag("#{name_base}:name") { |t| t.locals.send(local).name }
-      define_value_tag("#{name_base}:email") { |t| t.locals.send(local).email }
+      define_value_tag("#{name_base}:email") { |t| t.locals.send(local).email } 
+      define_value_tag("#{name_base}:cell_phone") { |t| t.locals.send(local).cell_phone }
       define_image_tag("#{name_base}:img") { |t| t.locals.send(local).image }
       define_image_tag("#{name_base}:second_img") { |t| t.locals.send(local).second_image }
       define_image_tag("#{name_base}:fallback_img") { |t| t.locals.send(local).second_image || t.locals.send(local).image }
@@ -436,12 +441,15 @@ class ParagraphFeature
           if obj || !block_given?
             opts = options.clone
             if obj.is_a?(Hash)
-              arg = obj.delete(:object)
+              arg_obj = obj.delete(:object)
               opts = opts.merge(obj)
-              obj = arg
+              obj = arg_obj
             end
             opts[:url] ||= ''
-            frm_tag =  form_tag(opts.delete(:url), opts.delete(:html) || {}) + opts.delete(:code).to_s
+            frm_opts = options.delete(:html) || { }
+            frm_opts[:method] = 'post'
+            html_options = html_options_for_form(options.delete(:url),frm_opts)
+            frm_tag = tag(:form,html_options) + "<CMS:AUTHENTICITY_TOKEN/>" + opts.delete(:code).to_s
             cms_unstyled_fields_for(arg,obj,opts) do |f|
               tag.locals.send("#{frm_obj}=",f)
               frm_tag + tag.expand + "</form>"
@@ -619,12 +627,18 @@ class ParagraphFeature
     
     def define_captcha_tag(name,options={}) 
       define_tag(name) do |t|
-        options[:field_value] ||= set_simple_captcha_data(options[:code_type])
-        simple_captcha_options = 
-          {:image => simple_captcha_image(options),
-           :label => options[:label] || "(type the code from the image)",
-           :field => simple_captcha_field(options)}
-        render_to_string :partial => '/simple_captcha/simple_captcha_feature', :locals => {:simple_captcha_options  => simple_captcha_options } 
+        
+        show_captcha = block_given? ? yield : true
+        if show_captcha
+          options[:field_value] ||= set_simple_captcha_data(options[:code_type])
+          simple_captcha_options = 
+            {:image => simple_captcha_image(options),
+            :label => options[:label] || "(type the code from the image)",
+            :field => simple_captcha_field(options)}
+          render_to_string :partial => '/simple_captcha/simple_captcha_feature', :locals => {:simple_captcha_options  => simple_captcha_options } 
+        else
+          nil
+        end
       end
     end
     
@@ -717,7 +731,7 @@ class ParagraphFeature
       
      
       define_tag "#{pre_tag}#{tag_name}" do |t|
-        form_field_tag_helper(t,t.locals.send(frm_obj),control_type,field_name,options)
+        form_field_tag_helper(t,t.locals.send(frm_obj),control_type,field_name,options,&block)
       end
     
       define_value_tag "#{pre_tag}#{tag_name}_error" do |t|
@@ -817,7 +831,7 @@ class ParagraphFeature
               t.locals.send(frm_obj).output_error_message(fld.label,fld.content_model_field.field)
             end
           elsif fld.field_type == 'value'
-            fld.content_model_field.site_feature_value_tags(c,prefix,:full)
+            fld.content_model_field.site_feature_value_tags(c,prefix,:full,:local => frm_obj  )
           end
         end
       end
@@ -837,9 +851,18 @@ class ParagraphFeature
             frm.object.send("#{fld.field_options['relation_singular']}_ids")
           end
 
+
           # TODO: Yeah, not so hot - needs to be extract to core_field somehow
           if active_fields[0] && cls = active_fields[0].relation_class
             cm =  active_fields[0].content_model_relation
+
+            if t.attr['display'] && display_field = cm.content_model_fields.detect { |fld| fld.field == t.attr['display'] }
+              display_field = display_field.field
+            else
+              display_field = "identifier_name"
+            end
+              
+
 
             if t.attr['filter_by'] && filter_field = cm.content_model_fields.detect { |fld| fld.field == t.attr['filter_by'] }
               conditions = { filter_field.field => t.attr['filter'] }
@@ -860,7 +883,7 @@ class ParagraphFeature
                 arr.group_by { |elm| group_field.content_display(elm) }.each do |key,arr2|
                   arr2.group_by { |elm|  group_2nd_field.content_display(elm) }.each do |key2,arr3|
                     available_options[key] ||= {}
-                    available_options[key][key2] = arr3.map { |elm| [ elm.identifier_name, elm.id ] }
+                    available_options[key][key2] = arr3.map { |elm| [ elm.send(display_field), elm.id ] }
                   end
                 end
                 arr = available_options.to_a.map do |elm|
@@ -872,12 +895,12 @@ class ParagraphFeature
                 available_options =  {}
                 arr.group_by { |elm| group_field.content_display(elm) }.each do |key,arr|
                   
-                  available_options[key] = arr.map { |elm| [ elm.identifier_name, elm.id ] }
+                  available_options[key] = arr.map { |elm| [  elm.send(display_field), elm.id ] }
                 end
                 arr = available_options.to_a.sort { |a,b| a[0].to_s.downcase <=> b[0].to_s.downcase }.map { |elm| { :name => elm[0], :items => elm[1] } }
               end
             else
-              arr.map! { |elm| [ elm.identifier_name, elm.id ] }
+              arr.map! { |elm| [ elm.send(display_field), elm.id ] }
             end
             output = ''
             output << has_many_field_helper(1,t,arr,0)
@@ -946,9 +969,31 @@ class ParagraphFeature
       end
 
     end
+
+    def define_results_tags(tag_base,options ={ },&block)
+      
+      define_pagelist_tag("#{tag_base}:pages",options,&block)
+
+      self.value_tag("#{tag_base}:total_results") do |tag|
+        page_data = yield(tag)
+        page_data[:total]
+      end
+
+      self.value_tag("#{tag_base}:first_result") do |tag|
+        page_data = yield(tag)
+        page_data[:first]
+      end
+
+      self.value_tag("#{tag_base}:last_result") do |tag|
+        page_data = yield(tag)
+        page_data[:last]
+      end
+      
+    end
     
     def define_pagelist_tag(tag_name,options = {}) 
       
+
       self.define_tag tag_name do |tag|
         page_data = yield(tag)
         if page_data
@@ -1248,7 +1293,7 @@ class ParagraphFeature
       
     end
 
-    def define_h_tag(tg,options={})
+    def define_h_tag(tg,field='value',options={})
       @method_list << [ "Escaped value tag",tg ]
     end
 
@@ -1382,13 +1427,13 @@ class ParagraphFeature
       begin
         feature_parser.parse(feature.body_html || feature.body)
       rescue  Radius::MissingEndTagError => err
-        if myself.editor?
+        if RAILS_ENV=='test' || myself.editor?
           "<div><b>#{'Feature Definition Contains an Error'.t}</b><br/>#{err.to_s.t}</div>"
         else
           ""
         end
       rescue Radius::UndefinedTagError => err
-        if myself.editor?
+        if  RAILS_ENV=='test' || myself.editor?
           "<div><b>#{'Feature Definition Contains an Undefined tag:'.t}</b>#{err.to_s.t}</div>"
         else
           ""
@@ -1410,10 +1455,12 @@ class ParagraphFeature
   end
   
    def ajax_url(options={})
-    opts = options.merge(:site_node => @renderer.paragraph.page_revision.revision_container_id, 
-                         :page_revision => @renderer.paragraph.page_revision.id,
-                         :paragraph => @renderer.paragraph.id)
-    paragraph_action_url(opts)
+     if @renderer.paragraph &&  @renderer.paragraph.page_revision
+       opts = options.merge(:site_node => @renderer.paragraph.page_revision.revision_container_id, 
+                            :page_revision => @renderer.paragraph.page_revision.id,
+                            :paragraph => @renderer.paragraph.id)
+       paragraph_action_url(opts)
+     end
   end  
    
 end

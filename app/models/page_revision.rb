@@ -174,6 +174,9 @@ class PageRevision < DomainModel
                               :revision_type => 'real')
       self.page_paragraphs.map(&:regenerate_file_instances)
     end
+    if container.is_a?(SiteNode)
+      container.save_content(self.created_by) 
+    end
   
   end
   

@@ -1,0 +1,20 @@
+<div class='cms_form'>
+<% paragraph_options_form_for 'User Activation Options', :user_activation, @options do |f| %>
+<% tabled_ajax_tabs ['Options','Triggered Actions'],'Options' do |t| -%>
+<% t.tabled_tab do  -%>
+  <%= f.radio_buttons :require_acceptance, [['Yes'.t,true],['No'.t,false]], :description => "Require aceptence of the site terms and conditions"  -%>
+  <%= f.radio_buttons :login_after_activation, [['Yes'.t,true],['No'.t,false]], :description => 'Login a user automatically after activation.'   -%>
+  <%= f.page_selector :redirect_page_id, :description => 'Optional Redirect page after activation (leavel blank stay on this page)' -%>
+  <%= f.page_selector :already_activated_redirected_page_id, :description => 'Page to redirect to if already activated (leave blank to stay on this page)' -%>
+<% end -%>
+<% t.tab do %>
+  <div id='cms_triggered_actions'>
+    <%= render :partial => '/editor/includes/actions' %>
+  </div>
+<% end -%>
+
+<% end -%>
+
+
+<% end -%>
+</div>

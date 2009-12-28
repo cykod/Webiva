@@ -39,7 +39,7 @@
     
     <%= @extra_header.uniq.join("\n") if @extra_header %>
     <link href="/stylesheet/<%= @output.css_site_template_id.to_s + ".css"  %>" rel="Stylesheet" type="text/css" />
-    <%= stylesheet_link_tag 'edit_page_link' if page_editor? -%>
+    <%= stylesheet_link_tag 'edit_page_link', :media => :all if page_editor? -%>
     
    
     
@@ -49,25 +49,26 @@
 <body>
 <div id="overDiv" style="position:absolute; left:0px; top:0px; visibility:hidden; z-index:1000;"></div>
 <% if page_editor? -%>
-<div id='cms_edit_page_link'>
-<a href='/website/edit/page/page/<%= @page.id %>'><%= "EDIT".t.split("").join("<br/>") %></a><br/>
-<a href='/website/structure'><%= "ADMIN".t.split("").join("<br/>") %></a><br/>
+<div id='cms_edit_page_link' style='width:0px;' onmouseover='this.style.width="auto";' onmouseout='this.style.width="0px"'>
+  <%= content_node_links(@output.content_nodes) -%>
+<a href='/website/edit/page/page/<%= @page.id %>'><%= "Edit This Page".t %></a><br/>
+<a href='/website/structure'><%= "Edit Website".t %></a><br/>
 </div>
 <% end -%>
 
 <% end -%>
 <% @output.html  do |blk| -%>
 <% if blk.is_a?(String) -%>
-<%= blk %>
+<%= webiva_post_process_paragraph(blk) %>
 <% elsif blk.is_a?(Hash) -%>
 <% blk[:paragraphs].each do |para| -%>
 <% if para.is_a?(String) -%>
-<%= para %>
+<%= webiva_post_process_paragraph(para) %>
 <% elsif para.is_a?(ParagraphRenderer::ParagraphOutput) && para.rnd.is_a?(Editor::AppRenderer)  -%>
 <%= yield %>
 <% else -%>
 <div class='paragraph' >
-<%= render_paragraph @page, @output.revision, para  %>
+<%= webiva_post_process_paragraph(render_paragraph(@page, @output.revision, para))  %>
 </div>
 <% end -%>
 <% end -%>
@@ -76,18 +77,21 @@
 
 <% unless @partial_page -%>
 
-<% if @google_analytics[:enabled] == 'enabled'  %>
-<script type="text/javascript">
-var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+  <% if @google_analytics[:enabled] == 'enabled'  %>
+<script type='text/javascript'>
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', '<%= @google_analytics[:code] %>']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script');
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 
+        'http://www') + '.google-analytics.com/ga.js';
+    ga.setAttribute('async', 'true');
+    document.documentElement.firstChild.appendChild(ga);
+  })();
 </script>
-<script type="text/javascript">
-try {
-var pageTracker = _gat._getTracker("<%= @google_analytics[:code] %>");
-pageTracker._trackPageview();
-} catch(err) {}
-</script>
-<% end -%>
+  <% end -%>
 
 </body>
 </html>

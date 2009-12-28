@@ -254,8 +254,10 @@ class StructureController < CmsController  # :nodoc: all
     @revision_info = @node.language_revisions(@languages)
     
     expire_site
+
+    info = @revision_info.detect { |elm| elm[1] == @revision }
     
-    render :partial => 'revision_info', :locals => { :info => [ @revision.language, @revision ] }
+    render :partial => 'revision_info', :locals => { :info => [ @revision.language, @revision,info[2]] }
   end
   
   def update_site_node_options
@@ -346,6 +348,12 @@ class StructureController < CmsController  # :nodoc: all
     @node = node
     
   	render :partial => 'page_element_info'
+  end
+
+  # Group Element Information
+  def g_element_info(node)
+    @node = node
+    render :partial => 'group_element_info'
   end
   
   # document (File) Element information

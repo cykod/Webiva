@@ -5,6 +5,7 @@ class Editor::AuthRenderer < ParagraphRenderer
   features '/editor/auth_feature'
 
   paragraph :user_register
+  paragraph :user_activation
   paragraph :login
   paragraph :enter_vip
   paragraph :edit_account
@@ -34,6 +35,10 @@ class Editor::AuthRenderer < ParagraphRenderer
       if @options.publication
         @model = @options.publication.content_model.content_model.new
       end
+    end
+
+    @options.register_features.each do |feature|
+      feature.feature_instance.generate(params)
     end
 
     if request.post? && params[:user] && !@registered
@@ -91,9 +96,14 @@ class Editor::AuthRenderer < ParagraphRenderer
       end
 
       if @model
-        @options.publication.update_entry(@model,params[:model],renderer_state)
+        @options.publication.assign_entry(@model,params[:model],renderer_state)
         all_valid = false unless @model.errors.length == 0
       end
+      
+      @options.register_features.each do |feature|
+        all_valid=false unless feature.feature_instance.valid?
+      end
+
 
       # if there are no errors on anything
       # save the user,
@@ -120,6 +130,11 @@ class Editor::AuthRenderer < ParagraphRenderer
           @usr.work_address_id = @business.id
         end
 
+        if @options.require_activation
+          @usr.activated = false
+          @usr.generate_activation_string
+        end
+
         # Make sure save is sucessful - will recheck validation and
         # rescan for uniques
         if(@usr.save)
@@ -138,11 +153,17 @@ class Editor::AuthRenderer < ParagraphRenderer
             update_subscriptions(@usr,@options.include_subscriptions,params[:subscription])
           end
 
-          process_login(@usr)
+          @options.register_features.each do |feature|
+            feature.feature_instance.post_process(@usr)
+          end
+
+          if !@options.require_activation
+            process_login(@usr)
+          end
 
           if @model
             # Re-update entry as we now have a user object
-            @options.publication.update_entry(@model,params[:model],renderer_state)
+            @options.publication.assign_entry(@model,params[:model],renderer_state(:myself => @usr))
             @model.save
           end
 
@@ -151,21 +172,24 @@ class Editor::AuthRenderer < ParagraphRenderer
           if @options.content_publication.to_i > 0
             fill_entry(@publication,@entry,@user)
             if @entry.save
-              if @publication.update_action_count > 0
-                @publication.run_triggered_actions(entry,'create',myself)
-              end
+              @publication.run_triggered_actions(entry,'create',myself)
             end
           end
           
           # run any triggered actions
-          if paragraph.update_action_count > 0
-            paragraph.run_triggered_actions(@user,'action',@user)
-          end
+          paragraph.run_triggered_actions(@user,'action',@user)
 
           # send mail template if we have one
-          if @options.registration_template.to_i > 0 && @mail_template = MailTemplate.find_by_id(opts.registration_template.to_i)
-            MailTemplateMailer.deliver_to_user(@user,@mail_template)
+          if @options.registration_template_id.to_i > 0 && @mail_template = MailTemplate.find_by_id(@options.registration_template_id)
+            vars = { 
 
+            }
+            if @options.require_activation
+              url = Configuration.domain_link(@options.activation_page_url + "?code=#{@usr.activation_string}")
+              vars['ACTIVATION_URL'] = url
+              vars['ACTIVATION_LINK'] = "<a href='#{url}'>#{url}</a>"
+            end
+            @mail_template.deliver_to_user(@usr,vars)
           end
           
           paragraph_action('User Registration',@usr.email)
@@ -188,6 +212,12 @@ class Editor::AuthRenderer < ParagraphRenderer
     end
 
     @field_list = @options.field_list
+
+    @feature = { }
+    
+    @options.register_features.each do |feature|
+      feature.feature_instance.feature_data(@feature)
+    end
     
     render_paragraph :feature => :user_register
   end
@@ -251,6 +281,60 @@ class Editor::AuthRenderer < ParagraphRenderer
     
     render_paragraph :text => login_feature(data)
   end
+
+  def user_activation
+    @options = paragraph_options(:user_activation)
+
+    code = params[:activate] ? params[:activate][:code]  : params[:code]
+
+    @user = EndUser.find_by_activation_string(code) unless code.to_s.strip.blank?
+    if editor? 
+      @user = EndUser.find(:first,:conditions => {  :activated => false })
+    end
+    if @user && @user.activated?
+      @status = 'already_activated'
+      if @options.already_activated_redirect_page_id
+        redirect_paragraph @options.already_activated_redirect_page_url
+        return
+      end
+    elsif @user
+      @status = 'activation'
+      
+      if !@options.require_acceptance
+        @status ='activated'
+      end
+
+    elsif code.blank?
+      @status = 'invalid'
+    else
+      @status = 'invalid'
+    end
+
+    if @user && ( (request.post? && params[:activate]) || @status == 'activated' )
+      if @status == 'activation' && params[:activate][:accept].blank?
+        @acceptance_error = true
+      
+      elsif @user.update_attributes(:activated => true,
+                                 :activation_string => nil)
+        @status ='activated'
+
+        process_login(@user) if @options.login_after_activation
+
+        paragraph.run_triggered_actions(myself,'action',myself)
+
+        if @options.redirect_page_id
+          redirect_paragraph @options.redirect_page_url
+          return
+        end
+      end
+    end
+
+    if @status == 'activation'
+      @activation_object = DefaultsHashObject.new(:code => code, :accept => false )
+    end
+    
+    render_paragraph :feature => :user_activation
+  end
   
   
   def enter_vip
@@ -272,10 +356,7 @@ class Editor::AuthRenderer < ParagraphRenderer
           
           
           paragraph_action('Enter VIP, Success',vip_number)
-          if !editor? && paragraph.update_action_count > 0
-            paragraph.run_triggered_actions(myself,'success',myself)
-          end
-          
+          paragraph.run_triggered_actions(myself,'success',myself)
           
           user.update_attribute(:user_level, 2) if user.user_level < 2
           

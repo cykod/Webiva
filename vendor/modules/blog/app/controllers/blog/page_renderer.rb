@@ -174,6 +174,7 @@ class Blog::PageRenderer < ParagraphRenderer
     end
 
     set_title(entry_title)
+    set_content_node([ 'Blog::BlogPost',entry_id ])
 
     if !feature_output
       list_page = SiteNode.get_node_path(options.list_page_id,'#')
@@ -186,7 +187,7 @@ class Blog::PageRenderer < ParagraphRenderer
       data = { :entry => entry, :list_page => list_page, :blog => blog }
       feature_output = blog_entry_detail_feature(data)
 
-      entry.cache_put(display_string, [ entry_id,entry_title,feature_output ], entry.permalink) unless editor? || !entry
+      entry.cache_put(display_string, [ entry_id,entry_title,feature_output ], options.blog_post_id.to_i > 0 ? options.blog_post_id :  entry.permalink) unless editor? || !entry
     end
     
     require_css('gallery')

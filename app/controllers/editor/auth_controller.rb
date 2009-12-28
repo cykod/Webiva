@@ -3,13 +3,16 @@
 class Editor::AuthController < ParagraphController
   permit 'editor_editor'
   
+  user_actions [:add_feature ]
+
   # Editor for authorization paragraphs
   editor_header "Member Paragraphs", :paragraph_member
   editor_for :login, :name => 'User Login', :features => ['login']
   editor_for :enter_vip, :name => 'Enter VIP #', :features => ['enter_vip'], :triggers => [['Failed VIP Login','failure'],['Successful VIP Login','success' ],['Repeat Successful VIP Login','repeat']]
 
-  editor_for :user_register, :name => 'User Registration', :feature => 'user_register', :triggers => [ ['View Registration Paragraph','view'], ['Successful Registration','action'] ]
+  editor_for :user_register, :name => 'User Registration', :feature => 'user_register', :triggers => [ ['Successful Registration','action'] ]
 
+  editor_for :user_activation, :name => 'User Activation', :feature => 'user_activation', :triggers => [ ['Successful Activation','action'] ]
 
   editor_for :edit_account, :name => 'Edit Account', :triggers => [ ['Edit Profile','action' ]] 
 
@@ -24,12 +27,13 @@ class Editor::AuthController < ParagraphController
   
   editor_for :register, :name => 'Legacy User Registration', :triggers => [ ['View Registration Paragraph','view'], ['Successful Registration','action'] ], :legacy => true
 
-  def user_register
-    @options = UserRegisterOptions.new(params[:user_register]||paragraph.data||{})
-    handle_paragraph_update(@options)
-  end
+
   
   class UserRegisterOptions < HashModel
+    
+    # For feature stuff
+    include HandlerActions
+
     
     attributes :registration_type => 'account',
     :required_fields => [ ], :optional_fields => [ 'first_name','last_name'],
@@ -38,13 +42,29 @@ class Editor::AuthController < ParagraphController
     :include_subscriptions => [], :country => 'United States', :add_tags => '',
     :work_address_required_fields => [],
     :address_required_fields => [],
-    :content_publication_id => nil, :source => nil, :lockout_redirect => false
+    :content_publication_id => nil, :source => nil, :lockout_redirect => false,
+    :require_activation => false, :activation_page_id => nil,
+    :features => []
 
-    boolean_options :lockout_redirect
+    boolean_options :lockout_redirect, :require_activation
 
-    page_options :success_page_id
+    page_options :success_page_id, :activation_page_id 
    
     validates_presence_of :success_page_id, :user_class_id
+
+
+    def validate
+      if !self.features.is_a?(Array)
+        self.features = self.features.to_a.sort {  |a,b| a[0] <=> b[0]  }.map {  |elm| obj = Handlers::ParagraphFeature.new(elm[1]);  obj.to_hash }
+
+        self.register_features.each do |feature|
+          if !feature.options.valid?
+            self.errors.add_to_base('Feature Error')
+          end
+        end
+       
+      end
+    end
 
     def available_field_list
       { :email => [ 'Email'.t,:text_field, :email ],
@@ -53,7 +73,8 @@ class Editor::AuthController < ParagraphController
         :first_name => ['First Name'.t,:text_field,:first_name],
         :middle_name => ['Middle Name'.t,:text_field,:middle_name],
         :last_name => ['Last Name'.t,:text_field,:last_name],
-        :gender => ['Gender'.t, :radio_buttons,  { :options => [ ['Mr.'.t,'m'],['Mrs.'.t,'f' ] ] } ],
+        :gender => ['Gender'.t, :radio_buttons, :gender, { :options => [ ['Male'.t,'m'],['Female'.t,'f' ] ] } ],
+        :introduction => ['Introduction'.t, :radio_buttons, :gender, { :options => [ ['Mr.'.t,'Mr.'],['Mrs.'.t,'Mrs' ], ['Ms.'.t, 'Ms'] ] } ],
         :username => [ 'Username'.t,:text_field, :username ],
         :salutation => [ 'Salutation'.t,:text_field, :salutation ]
       }
@@ -147,8 +168,26 @@ class Editor::AuthController < ParagraphController
       @pub ||= ContentPublication.find_by_id(self.content_publication_id)
     end
     
+    def available_features
+      [['--Select a feature to add--','']] + get_handler_options(:editor,:auth_user_register_feature)
+     end
+
+    def register_features
+      @register_features ||= self.features.map do |feature|
+        Handlers::ParagraphFeature.new(feature.merge({ :feature_type => 'editor_auth_user_register_feature'}))
+      end
+    end
+
   end
-  
+
+  class UserActivationOptions < HashModel
+    attributes :require_acceptance => false, :redirect_page_id => nil, 
+      :already_activated_redirect_page_url => nil, :login_after_activation => false
+
+    page_options :redirect_page_id, :already_activated_redirect_page_id
+    boolean_options :require_acceptance, :login_after_activation
+  end
+
 
   def login
       @options = LoginOptions.new(params[:login] || @paragraph.data || {})
@@ -311,7 +350,19 @@ class Editor::AuthController < ParagraphController
   end
 
 
-
+  def add_feature
+    @info = get_handler_info(:editor,:auth_user_register_feature,params[:feature_handler])
+    
+    if @info && myself.editor?
+      @feature = Handlers::ParagraphFeature.new({ })
+      @feature.feature_handler = @info[:identifier]   
+      @feature.feature_type = 'editor_auth_user_register_feature'
+      render :partial => 'user_register_feature', :locals => { :feature => @feature, :idx => params[:index] }
+    else
+      render :nothing => true
+    end  
+    
+  end
 
 
 

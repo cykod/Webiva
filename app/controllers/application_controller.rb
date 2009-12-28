@@ -9,7 +9,7 @@ require 'pp'
 # Likewise, all the methods added will be available for all controllers.
 class ApplicationController < ActionController::Base 
    protect_from_forgery
-  
+   filter_parameter_logging :payment, :contribute
   
   @@domains = {}
   
@@ -38,6 +38,7 @@ class ApplicationController < ActionController::Base
   # The user object is cached in the response object so it is only generated once
   # per request
   def myself
+    return EndUser.default_user unless response
     if response.data[:user]
       if response.data[:user].is_a?(ClientUser) 
         return response.data[:end_user]
@@ -325,7 +326,6 @@ class ApplicationController < ActionController::Base
   end
 
   include SimpleCaptcha::ControllerHelpers
-  
 
   def debug_raise(obj)
     raise render_to_string(:inline =>  '<%= debug object -%>', :locals => { :object => obj})
@@ -373,10 +373,12 @@ class ApplicationController < ActionController::Base
            end
     
     btrace = sanitize_backtrace(exception.backtrace)
-    
-    error_data = render_to_string :partial => '/application/backtrace', 
+
+     
+    error_data = render_to_string :partial => 'application/backtrace', 
     :locals => { 
       :controller => self, 
+      :parameters => filter_parameters(request.parameters),
       :request => request,
       :exception => exception, 
       :host => request.env["HTTP_HOST"],

@@ -30,7 +30,7 @@ class SiteNode < DomainModel
   
   has_one :page_modifier, :class_name => 'SiteNodeModifier', :conditions => 'modifier_type IN ("P","page")'
 
-  content_node
+  content_node :except => Proc.new { |sn| sn.node_type == 'P' }
 
   acts_as_nested_set :scope => :site_version_id 
   
@@ -62,6 +62,8 @@ class SiteNode < DomainModel
       [ self ]
     elsif self.node_type == 'M'
       self.dispatcher.menu
+    elsif self.node_type == 'G'
+      self.children
     else
       [ self ]
     end
@@ -101,6 +103,20 @@ class SiteNode < DomainModel
     rev.create_temporary
   end
 
+  def name
+    lang = Configuration.languages[0]
+
+    rev = self.live_revisions.find_by_language(lang)
+    if rev && !rev.title.blank?
+      str = rev.variable_replace(title)
+    else
+      str = self.title.to_s.titleize
+    end
+  end
+
+  def content_description(language)
+    "Site Page - %s" / self.node_path
+  end
  
   
   def active_revision(language)
@@ -125,7 +141,8 @@ class SiteNode < DomainModel
   def language_revisions(languages)
     languages.collect do |lang|
       [ lang,
-        self.page_revisions.find(:first,:conditions => ['language=? AND revision_type="real"',lang], :order => 'active DESC, revision DESC')
+        self.page_revisions.find(:first,:conditions => ['language=? AND revision_type="real"',lang], :order => 'active DESC, revision DESC'),
+        self.page_revisions.find(:first,:conditions => ['language=? AND revision_type="real"',lang], :order => 'revision DESC')
       ]
     end
   end
@@ -192,7 +209,21 @@ class SiteNode < DomainModel
       [ page.node_type != 'R' ? page.node_path : include_root ,page.id ]
     end
   end
+
+  def self.page_and_group_options(include_root = false)
+    node_type = include_root ? 'node_type IN("P","R","M","J","G")' : 'node_type IN ("P","M","J","G"")'
+    SiteNode.find(:all,:conditions => node_type,
+                  :order => 'lft').collect do |page|
+      title = case page.node_type
+              when 'R': include_root
+              when 'P': page.node_path
+              when 'G': "#{page.node_path} (#{page.title})"
+              end
+      [ title, page.id ]
+    end
+  end
   
+
   def self.module_options(mod)
     SiteNode.find(:all,:conditions => [ 'module_name = ? AND node_type = "M" ',mod],
                   :order => 'node_path').collect do |page|
@@ -285,7 +316,7 @@ class SiteNode < DomainModel
   
   def before_save
     node_path = ''
-    if self.parent && self.parent.node_path && self.parent.node_type == 'P'
+    if self.parent && self.parent.node_path && (self.parent.node_type == 'P' || self.parent.node_type == 'G')
       node_path = self.parent.node_path
     end
     
@@ -293,7 +324,9 @@ class SiteNode < DomainModel
       node_path += '/'
     end
     
-    node_path +=  self.title.to_s
+    if self.node_type != 'G'
+      node_path +=  self.title.to_s
+    end
     
     self.node_path = node_path
     self.node_level = self.parent ?  self.parent.node_level.to_i + 1 : 0
@@ -308,6 +341,21 @@ class SiteNode < DomainModel
         end
       end
     end
+  end
+
+  def content_node_body(language)
+    rev = self.live_revisions.detect { |rev| rev.language == language }
+    if rev
+      paragraphs = rev.page_paragraphs.find(:all,:conditions => "display_module IS NULL")
+      paragraphs.map { |para| para.display }.join(" ")
+    else
+      nil
+    end
+  end
+
+  def self.content_admin_url(node_id)
+     {:controller => '/edit', :action => 'page',
+      :path => [ 'page', node_id ] }
   end
 
 end

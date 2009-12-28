@@ -27,16 +27,10 @@ class ContentModelField < DomainModel
   
   
   def text_value(data)
-    val = data.send(self.field)
-    case self.field_type
-    when 'multi_select':
-      if val.is_a?(Array)
-        val.find_all() { |elem| !elem.blank?}.join(", ")
-      else
-        ''
-      end
+    if self.module_class
+      content_display(data)
     else
-      val.to_s
+      ''
     end
   end
   
@@ -148,6 +142,10 @@ class ContentModelField < DomainModel
     elsif filter_opts[:filter] == 'fuzzy'
       self.module_class.fuzzy_filter_conditions(options,filter_opts)
     end
+  end
+
+  def filter_display(opts)
+    self.module_class.filter_display(opts)
   end
 
   def escaped_field

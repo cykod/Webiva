@@ -94,7 +94,8 @@ module ModelExtension::ContentCacheExtension
       if opts[:update]
         opts[:update].each do |relationship|
           if elm = self.send(relationship)
-            elm.to_a.each do |chld|
+            elm = [ elm ] unless elm.respond_to?(:each)
+            elm.each do |chld|
               chld.content_cache_expire
               # Call content cache expire on
               # any of those relationships
@@ -168,7 +169,7 @@ module ModelExtension::ContentCacheExtension
         if identifier.is_a?(Integer)
           ident = "ID#{identifier}"
         else
-          ident = "ATR#{identifier.to_s[0.45]}"
+          ident = "ATR#{identifier.to_s[0..45]}"
         end
         
         logger.warn("Content Cache Put: #{self.to_s} #{ident} #{display_string} (#{content.to_s.length})") unless RAILS_ENV == 'production'

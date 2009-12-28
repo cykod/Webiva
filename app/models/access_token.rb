@@ -20,12 +20,25 @@ class AccessToken < DomainModel
   has_many :end_user_tokens, :dependent => :destroy
   has_many :end_users, :through => :end_user_tokens
 
-  has_many :roles, :through => :user_roles
+  serialize :role_cache
 
   # Alias for token_name
   def name
     self.token_name
   end
+
+  def cached_role_ids
+    if self.role_cache.is_a?(Array)
+      self.role_cache
+    else
+      self.role_ids
+    end
+  end
+
+  def before_save
+    self.role_cache = self.role_ids
+  end
+  
 
   # returns a select-friendly list of options for editor tokens
   def self.editor_token_options

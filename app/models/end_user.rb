@@ -53,7 +53,8 @@ class EndUser < DomainModel
   has_many :email_friends, :dependent => :delete_all
   has_many :end_user_actions, :dependent => :delete_all
 
-  has_many :end_user_tokens, :dependent => :delete_all
+  has_many :end_user_tokens, :dependent => :delete_all, :include => [ :access_token ]
+
   has_many :access_tokens, :through => :end_user_tokens
   
   acts_as_taggable :join_table => 'end_user_tags', :join_class_name => 'EndUserTag'
@@ -146,9 +147,15 @@ class EndUser < DomainModel
     end
   end
 
-  def add_token!(tkn)
-    self.end_user_tokens.find_by_access_token_id(tkn) ||
+  def add_token!(tkn,options = { })
+    eut = self.end_user_tokens.find_by_access_token_id(tkn) ||
       self.end_user_tokens.create(:access_token_id => tkn.id)
+
+    # If we are setting any additional options,
+    # then override the existing endusertoken
+    if options.has_key?(:valid_until) || options.has_key?(:target) || options.has_key?(:valid_at)
+      eut.update_attributes(options.slice(:valid_until,:target,:valid_at))
+    end
   end
   
   def self.select_options(editor=false)
@@ -197,25 +204,32 @@ class EndUser < DomainModel
   ## Login Functions
   
   def self.login_by_email(email,password)
-    hashed_password = EndUser.hash_password(password || "")
-    find(:first,
-         :conditions => ["email != '' AND email = ? and registered = 1 AND hashed_password =?", email.to_s.downcase,hashed_password ])
-
+    usr = find(:first,:conditions => ["email != '' AND email = ? AND activated = 1 AND registered = 1",email.to_s.downcase] )
+    
+    hashed_password = EndUser.hash_password(password || "",usr.salt) if usr
+    if usr && usr.hashed_password == hashed_password
+        usr
+    else
+      nil
+    end
   end  
   
   def self.login_by_username(username,password)
-    hashed_password = EndUser.hash_password(password || "")
-    find(:first,
-         :conditions => ["username != '' AND username = ? and registered = 1 AND hashed_password =?", username,hashed_password ])
-
+    usr = find(:first,
+         :conditions => ["username != '' AND username = ? and activated = 1 AND registered = 1", username])
+    hashed_password = EndUser.hash_password(password || "",usr.salt) if usr
+    if usr && usr.hashed_password  == hashed_password
+      usr
+    else
+      nil
+    end
   end  
-  
-  
+
   def self.login_by_verification(verification)
     return nil if verification.blank?
     usr=nil
     EndUser.transaction do
-      usr = EndUser.find_by_verification_string(verification)
+      usr = EndUser.find_by_verification_string(verification,:conditions => {  :activated => 1, :registered => 1 })
       if usr
         usr.update_attribute(:verification_string,nil)
       end
@@ -238,12 +252,22 @@ class EndUser < DomainModel
   def roles_list
     return @roles_list if @roles_list
 
-    @roles_list = self.user_profile.role_ids
-    @roles_list += self.access_tokens.inject([]) { |arr,elm| arr += elm.role_ids }
+    @roles_list = self.user_profile.cached_role_ids
+    @roles_list += self.end_user_tokens.active.inject([]) do |arr,elm| 
+      if elm.target_type.blank?
+        arr += elm.access_token.cached_role_ids
+      elsif elm.target
+        if elm.target.token_valid?
+          arr += elm.access_token.cached_role_ids
+        else
+          arr
+        end
+      else
+        arr
+      end
+    end
     
     @roles_list
-    # add in individual user roles
-    # add in token roles
   end
   
   
@@ -271,6 +295,27 @@ class EndUser < DomainModel
       roles_list.include?(Role.expand_role(role,target))
     end
   end
+
+  # Check if a user has the requested permission to access a piece of content
+  # permission could be: 
+  #   nil - return true
+  #   a string or symbol - check has_role?
+  #   a hash with :model - check ":permission"_granted? on the model and an optional base permission
+  #   a hash with :target - check self.has_role? on the :permission and an optional base permission
+  def has_content_permission?(permission)
+    if !permission
+      true
+    elsif  permission.is_a?(Hash)
+      if permission[:model]
+        permission[:model].send("#{permission[:permission]}_granted?",self) && (!permission[:base] || self.has_role?(permission[:base]) )
+      else
+        self.has_role?(permission[:permission],permission[:target])  && (!permission[:base] || self.has_role?(permission[:base]) )
+      end
+    else
+      self.has_role?(permission)
+    end
+  end
+
   
   def self.default_user
     usr = self.new
@@ -314,7 +359,11 @@ class EndUser < DomainModel
   end
   
   def before_save
-    self.hashed_password = EndUser.hash_password(self.password) if self.password && !self.password.empty?
+    
+    if self.password && !self.password.empty?
+      self.salt = EndUser.generate_hash if self.salt.blank?
+      self.hashed_password = EndUser.hash_password(self.password,self.salt) if self.password && !self.password.empty?
+    end
     self.options ||= {}
     
     if self.user_level < 3 && self.registered?
@@ -323,7 +372,11 @@ class EndUser < DomainModel
     
     self.source = 'import' if self.source.blank?
     self.registered_at = Time.now if self.registered? && self.registered_at.blank?
-    
+
+    %w(first_name middle_name last_name suffix).each do |fld|
+      self.send(fld).strip! unless self.send(fld).blank?
+    end
+
     self.full_name = [ self.first_name, self.middle_name, self.last_name, self.suffix ].select { |elm| !elm.blank? }.join(" ")
     
     if self.gender.blank? && !self.introduction.blank?
@@ -400,6 +453,11 @@ class EndUser < DomainModel
   
   attr_reader :tag_cache
   
+  # Model issue 
+  def clear_tags!
+    connection.execute("DELETE FROM end_user_tags WHERE end_user_id=" + quote_value(self.id))
+  end
+
   def tag(tags_list, options = {})
      if !self.id
       if !@tag_cache.to_s.blank?
@@ -813,8 +871,16 @@ class EndUser < DomainModel
     end
   end
   
-  def self.hash_password(pw) 
-    Digest::SHA1.hexdigest(pw)
+  def self.hash_password(pw,salt=nil) 
+    if !salt.blank?
+      Digest::SHA1.hexdigest(salt.to_s + pw)
+    else
+      Digest::SHA1.hexdigest(pw)
+    end
+  end
+
+  def generate_activation_string
+    self.activation_string =  self.class.generate_hash[0..48]
   end
   
   def self.generate_password

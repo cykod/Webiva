@@ -8,6 +8,16 @@ docFileSelectCallback = function(field,file_type,id,name,url) {
   				   	parameters: params.toQueryString()
   				   });
 }
+
+docFolderSelectCallback = function(field,file_type,id,name,url) {
+  $('file_link').innerHTML = name;
+  var params =$H({ node_id: "<%= @node.id %>",
+  				   file_id: id });
+  new Ajax.Request("<%= url_for :action => 'update_document_file' %>",
+  				   { 
+  				   	parameters: params.toQueryString()
+  				   });
+}
 </script>
 <% if permit?('editor_structure') %>
 
@@ -26,7 +36,10 @@ docFileSelectCallback = function(field,file_type,id,name,url) {
 <%= "Selected File:".t %>
  
  <% if permit?('editor_structure') %>
-  <%= link_to ( @node.domain_file ? @node.domain_file.file_path : 'No File Selected'.t ) , { :controller => 'file', :select => 'all', :action => 'popup' , :popup_type => 'callback', :callback => 'docFileSelectCallback', :path => @node.domain_file ? @node.domain_file.parent_id : 0 }, :popup => ['file_manager', 'height=400,width=600' ], :id => 'file_link', :class => 'ajax_link'  %>
+   <span id='file_link'> <%=  ( @node.domain_file ? @node.domain_file.file_path : 'No File Selected'.t ) -%> </span><br/><br/>
+  <%= link_to "Select a File".t, { :controller => 'file', :select => 'all', :action => 'popup' , :popup_type => 'callback', :callback => 'docFileSelectCallback', :path => @node.domain_file ? @node.domain_file.parent_id : 0 }, :popup => ['file_manager', 'height=400,width=600' ], :class => 'link_button'  %>
+  <%= link_to "Select a Folder".t, { :controller => 'file', :select => 'all', :action => 'popup' ,:select => 'fld', :popup_type => 'callback', :callback => 'docFolderSelectCallback', :path => @node.domain_file ? @node.domain_file.parent_id : 0 }, :popup => ['file_manager', 'height=400,width=600' ], :class => 'link_button'  %>
+  <p><%= "If you select a file it will be available a this url, if you select a folder all files in that folder will be available below this location".t -%></p>
  <% else %>
   <%=   ( @node.domain_file ? @node.domain_file.file_path : 'No File Selected'.t ) %>
  <% end -%>

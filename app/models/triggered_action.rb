@@ -66,6 +66,7 @@ class TriggeredAction < DomainModel
   end
 
   def action_options(opts)
+    opts = data if opts.blank?
     act_class = self.action_type + "_trigger"
     "#{self.action_module.classify}::#{act_class.classify}::#{(self.action_type + "_options").camelcase}".constantize.new(opts)
   end

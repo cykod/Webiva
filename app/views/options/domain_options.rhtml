@@ -3,7 +3,7 @@
     <b><%= "Updated Options".t %></b>
   <% end -%>
   <% admin_form_for :options,@options, :html => { :class => 'admin_form' } , :update => 'domain_options' do |f| %>
-<% tabled_ajax_tabs ['Options','Default Folders &amp; Images','Backend Configuration'],'Options' do |t| %>
+<% tabled_ajax_tabs ['Options','Member Configuration','Default Folders &amp; Images','Backend Configuration'],'Options' do |t| %>
 
 <% t.tabled_tab do %>
     <%= f.text_field :domain_title_name, :description => 'This is the title that appears at the top of the page in the CMS backend' %>
@@ -11,7 +11,16 @@
     <%= f.text_field :mailing_default_from_name,:label => 'Site Email Name', :description => 'Name associated with the site email' %>
     <%= f.text_area :company_address, :rows => 4, :cols =>40, :description => 'Company business address used for CAN-SPAM Compliance'  %>
     <%= f.text_field :page_title_prefix, :description => 'Default prefix to use before page titles'  %>
+    <%= f.select :search_handler, @search_handler_options -%>
 <% end -%>
+
+<% t.tabled_tab do -%>
+    <%= f.select :general_activation_template_id, [['--Select a template--'.t,nil]] + MailTemplate.site_template_options,
+        :description => "Mail Template to use site-wide user activation (%%ACTIVATION_LINK%% and %%ACTIVATION_URL%%)"
+        -%>
+    <%= f.url_selector :general_activation_url, 
+        :description => "Site-wide page for general activation link" -%>
+<% end  -%>
 
 <% t.tabled_tab do %>
     <%= f.filemanager_folder :default_image_location, :label => 'Folder For Member Uploaded Files', :description => 'Folder that holds files uploaded from the front end of the website' %>

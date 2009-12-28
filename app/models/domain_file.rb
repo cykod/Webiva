@@ -225,7 +225,7 @@ class DomainFile < DomainModel
        
        if current_file_name
          ext = File.extname(current_file_name)[1..-1]
-         self.extension= ext.downcase if ext.length > 0 
+         self.extension= ext.downcase if ext.to_s.length > 0 
        end    
      end
      
@@ -378,7 +378,14 @@ class DomainFile < DomainModel
       
       # Only allow valid file sizes
       size = nil unless force || !size || @@image_sizes[size.to_sym] || DomainFileSize.custom_sizes[size.to_sym]
-      self.storage_directory + (size ? "#{size}/" : '') +  atr
+
+     # Special case handling for thumbnails
+     if size && self.file_type == 'thm'
+       
+       self.storage_directory + "#{size}/" + (File.basename(atr,".#{extension}") + ".jpg")
+     else
+       self.storage_directory + (size ? "#{size}/" : '') +  atr
+     end
    end
    
    # Return the absolute storage directory - valid for opening a file  on the server 
@@ -645,8 +652,8 @@ class DomainFile < DomainModel
     return false
   end
   
-  def ordered_children(order)
-    self.children.find(:all,:order => DomainFile.order_sql(order))
+  def ordered_children(order,page=1)
+    DomainFile.paginate(page,:conditions => ['parent_id=?',self.id],:order => DomainFile.order_sql(order),:per_page => 40) 
   end
   
   def self.run_search(src,order = 'name')

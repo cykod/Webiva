@@ -22,7 +22,7 @@ module Content::MigrationSupport
     
     # get a prefix from the name
     # replace spaces with underscores, but get rid of everything else
-    table_name_prefix = "cms_" + self.name.downcase.gsub(/[ _]+/,"_").gsub(/[^a-z+0-9_]/,"")[0..24]
+    table_name_prefix = "cms_" + self.name.downcase.gsub(/[ _\-]+/,"_").gsub(/[^a-z+0-9_]/,"").gsub(/__+/,"_")[0..24]
     # use an index if necessary, (e.g. blog_2, etc if necessary )
     table_name_index = 1
     

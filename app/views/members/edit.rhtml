@@ -77,6 +77,7 @@ MemberEditor = {
 <table>
   <%= f.text_field :username %>
   <%= f.text_field :membership_id, :label => 'Membership Number' %>
+  <%= f.radio_buttons :activated, [ ['Yes',true], ['No',false] ] %>
   <%= f.radio_buttons :registered, [ ['Yes',true], ['No',false] ], :onchange => 'MemberEditor.updatePassword();' %>
   <%= f.password_field :password, :disabled => !@user.registered?, :label => @user.hashed_password ? 'Reset Password' : 'Password' %>
   <%= f.password_field :password_confirmation, :label => 'Confirm', :disabled => !@user.registered?, :label => @user.hashed_password ? 'Confirm Reset' : 'Confirm' %>
@@ -88,6 +89,10 @@ MemberEditor = {
 
 <% t.tab do -%>
 <table>
+  <%= f.text_field :salutation -%>
+  <%= f.text_field :middle_name -%>
+  <%= f.text_field :suffix -%>
+  <%= f.text_field :cell_phone -%>
   <%= f.filemanager_image :domain_file_id, :label => 'Image' %>
   <%= f.date_field :dob, :label => 'Date of Birth', :blank => true %>
   <%= render :partial => 'subscriptions', :locals => { :f => f } %>

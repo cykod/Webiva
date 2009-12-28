@@ -30,13 +30,7 @@ class ContentController < ModuleController #:nodoc: all
     @content_models,@content_actions = CmsController.get_content_models_and_actions
 
     @content_models = @content_models.select do |model|
-      if !model[:permission]
-        true
-      elsif  model[:permission].is_a?(Hash)
-        model[:permission][:model].send("#{model[:permission][:permission]}_granted?",myself) && (!model[:permission][:base] || myself.has_role?(model[:permission][:base]) )
-      else
-        myself.has_role?(model[:permission])
-      end
+      myself.has_content_permission?(model[:permission])
     end
 
     if myself.has_role?(:editor_content)

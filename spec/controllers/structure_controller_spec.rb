@@ -37,6 +37,29 @@ describe StructureController do
     nd.children[1].site_version.should == @version
   end
 
+  it "should be able to add in a group" do
+
+    put(:add_node,
+        { :parent_id => @version.root_node, :node_type => 'G',
+          :title => 'Test Group' })
+
+    controller.should render_template('structure/_path')
+
+    nd = @version.root_node
+    nd.reload
+
+    # Should have the home page and the new page
+    nd.children.length.should == 2
+
+    nd.children[1].title.should == 'Test Group'
+
+    
+    # Make sure we're in the right site version
+    nd.children[1].site_version.should == @version
+  end
+
+
+
   describe "Should be able to adjust nodes" do
 
     before(:each) do

@@ -587,7 +587,7 @@ class EditController < ModuleController # :nodoc: all
       :path => [
                 [ 0, 'Page', :page_arg_0, "Argument #1 - " + @page.node_path + "/XXX", :path ], 
                 [ 0, 'Page', :page_arg_1, "Argument #2 - " + @page.node_path + "/xxx/YYY", :path ],  
-                [ 0, 'Page', :page_arg_1, "Argument #2 - " + @page.node_path + "/xxx/yyy/ZZZ", :path ]
+                [ 0, 'Page', :page_arg_2, "Argument #2 - " + @page.node_path + "/xxx/yyy/ZZZ", :path ]
 
               ],
       :title => [ [  0, 'Page Title', :title, 'Page Title', :title ]],

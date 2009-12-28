@@ -337,7 +337,8 @@ module ActiveTable
     # Create the classes directly
      def hdr(type,*opts)
       begin
-        cls = "ActiveTable::#{type.to_s.classify}Header".constantize
+        type = :option if type.to_s == 'options'
+        cls = "ActiveTable::#{type.to_s.camelcase}Header".constantize
         opts[0] = opts[0].to_s
         cls.new(*opts)
       rescue Exception => e

@@ -112,21 +112,32 @@ class Content::Field
     end 
   
   def self.text_value(val,size,options={})
+    options.symbolize_keys!
     if size == :excerpt
       content_smart_truncate(val)
     elsif options[:format] && options[:format] == 'html'
       val
+    elsif options[:format] && options[:format] == 'simple'
+      simple_format(h(val))
     else
-      h val
+      if options[:limit]
+       Content::Field.snippet(h(val),options[:limit].to_i,options[:omission] || '...')
+      else
+        h val
+      end
     end
   end  
-  
+
+  def self.snippet(text, wordcount, omission)
+    text.split[0..(wordcount-1)].join(" ") + (text.split.size > wordcount ? " " + omission : "")
+  end
+
 
   def self.white_list_sanitizer
     @@white_list_sanitizer ||= HTML::WhiteListSanitizer.new
   end
   
-  class << self; include ActionView::Helpers::TextHelper; end
+  class << self; include ActionView::Helpers::TextHelper; include ActionView::Helpers::TagHelper end
   
   def self.content_smart_truncate(val)
       val = val.to_s
@@ -262,6 +273,13 @@ class Content::Field
       val  = [ val ] unless val.is_a?(Array)
       val = val.reject(&:blank?)
       val.length == 0 ? nil :{ :score => "IF( " +  values.map { |elm| "(#{fld.escaped_field} LIKE #{DomainModel.quote_value(elm)})" }.join(" OR ") + ",1,0)" }
+    end,
+    :display => Proc.new do |field_name,fld,options|
+      val =  options[(field_name + "_options").to_sym]
+      val  = [ val ] unless val.is_a?(Array)
+      val = val.reject(&:blank?)
+      val.length == 0 ? nil : val.map {  |elm| "\"#{elm}\"" }.join(", ")
+      
     end
   }
 
@@ -278,6 +296,10 @@ class Content::Field
     :conditions => Proc.new do |field_name,fld,options|
       val = options[(field_name + "_not_empty").to_sym]
       val.blank? ? nil : {:conditions =>  "#{fld.escaped_field} != ''" }
+    end,
+    :display => Proc.new do |field_name,fld,options|
+      val = options[(field_name + "_not_empty").to_sym]
+      val.blank? ? nil : 'No Empty'
     end
   }
 
@@ -294,7 +316,11 @@ class Content::Field
     :conditions => Proc.new do |field_name,fld,options|
       val = options[(field_name + "_like").to_sym].to_s.strip
       val.empty? ? nil : { :conditions =>  "#{fld.escaped_field} LIKE ?", :values=> '%' + val + '%' }
-    end              
+    end,
+    :display => Proc.new do |field_name,fld,options|
+      val = options[(field_name + "_like").to_sym].to_s.strip
+      val.empty? ? nil :  "\"#{val}\"" 
+    end
   }
 
   @@filter_procs[:equal] = {
@@ -308,8 +334,12 @@ class Content::Field
       val.empty? ? nil :{ :conditions =>  "#{fld.escaped_field} = ?", :values => val }
     end ,
     :fuzzy =>  Proc.new do |field_name,fld,options|
-      val =  options[(field_name + "_like").to_sym].to_s.strip
-      val.empty? ? nil : { :score =>  "IF(#{fld.escaped_field} = " + DomainModel.quote_value(val) + ",1,0)" }
+      val =  options[(field_name + "_equal").to_sym].to_s.strip
+      val.empty? ? nil :  { :score =>  "IF(#{fld.escaped_field} = " + DomainModel.quote_value(val) + ",1,0)" }
+    end,
+    :display => Proc.new do |field_name,fld,options|
+      val = options[(field_name + "_equal").to_sym].to_s.strip
+      val.empty? ? nil :  "\"#{val}\"" 
     end
   }
 
@@ -317,6 +347,9 @@ class Content::Field
     :variables => Proc.new { |field_name,fld|  [ (field_name + '_include').to_sym  ]  },
     :options => Proc.new do |field_name,fld,f,attr|
       label_name = fld.model_field.name + " Filter".t
+      if attr && attr[:control] == 'selects'
+        attr[:number]||=3
+      end
       fld.form_field(f,field_name + "_include",{},attr)
     end,
     :conditions => Proc.new do |field_name,fld,options|
@@ -325,7 +358,7 @@ class Content::Field
         val = val.reject(&:blank?).map(&:to_i)
         if val.length > 0
           join = "`#{fld.model_field.field}`"
-          { :joins =>  "INNER JOIN content_relations as #{join} ON (#{join}.content_model_id = #{fld.model_field.content_model_id} AND #{join}.content_model_field_id = #{fld.model_field.id} AND entry_id = `#{fld.model_field.content_model.table_name}`.id)",
+          { :joins =>  "INNER JOIN content_relations as #{join} ON (#{join}.content_model_id = #{fld.model_field.content_model_id} AND #{join}.content_model_field_id = #{fld.model_field.id} AND #{join}.entry_id = `#{fld.model_field.content_model.table_name}`.id)",
             :conditions => "#{join}.relation_id IN (?)",
             :values => [ val ]
           }
@@ -352,6 +385,24 @@ class Content::Field
       else
         nil
       end
+    end,
+    :display => Proc.new  do |field_name,fld,options|
+      val = options[(field_name + "_include").to_sym]
+      if val && val.is_a?(Array) && val.length > 0
+        val = val.reject(&:blank?).map(&:to_i)
+        if val.length > 0
+          cls = fld.model_field.relation_class
+          if cls
+            cls.find(:all,:conditions => {  :id => val}).map(&:identifier_name).join(", ")
+          else
+            nil
+          end
+        else
+          nil
+        end
+      else
+        nil
+      end
     end
 
 
@@ -361,10 +412,11 @@ class Content::Field
     :variables => Proc.new { |field_name,fld| [ (field_name + '_options').to_sym  ]  },
     :options => Proc.new do |field_name,fld,f,attr|
       label_name = fld.model_field.name + " Filter".t
-      if attr[:single]
-        f.radio_buttons(field_name + "_options",fld.available_options, { :label => label_name}.merge(attr))
+      option_attr = { :labels => attr.delete(:labels), :limit => attr.delete(:limit), :offset => attr.delete(:offset) }
+      if attr.delete(:single)
+        f.radio_buttons(field_name + "_options",fld.available_options(option_attr), { :label => label_name}.merge(attr))
       else
-        f.check_boxes(field_name + "_options",fld.available_options, { :label => label_name}.merge(attr))
+        f.check_boxes(field_name + "_options",fld.available_options(option_attr), { :label => label_name}.merge(attr))
       end
     end,
     :conditions => Proc.new do |field_name,fld,options|
@@ -378,6 +430,12 @@ class Content::Field
       val  = [ val ] unless val.is_a?(Array)
       val = val.reject(&:blank?)
       val.length == 0 ? nil : { :score =>  "IF(#{fld.escaped_field} IN (" + val.map { |elm| DomainModel.quote_value(elm) }.join(",") + "),1,0)" }
+    end,
+     :display => Proc.new do |field_name,fld,options|
+      val = options[(field_name + "_options").to_sym]
+      val  = [ val ] unless val.is_a?(Array)
+      val = val.reject(&:blank?)
+      val.length == 0 ? nil : fld.available_options.map {  |opt| val.include?(opt[1]) ? opt[0] : nil  }.compact.join(", ")
     end
 
   }
@@ -434,6 +492,19 @@ class Content::Field
           ''
         end
       end.join
+    end
+
+    define_method(:filter_display) do |filter|
+      field_name = "filter_" + self.model_field.feature_tag_name
+
+      display = options.map do |opt|
+        if opt.is_a?(Hash) 
+          opt[:display].call(field_name,self,filter).to_s
+        else
+          @@filter_procs[opt][:display].call(field_name,self,filter).to_s
+        end
+      end.reject(&:blank?).join(", ")
+      display.blank? ? nil : display
     end
 
     define_method(:filter_names) do
@@ -551,7 +622,7 @@ class Content::Field
       header_class = "#{header_type}_header".classify
       header_code =  <<-EOF
       def active_table_header
-        ActiveTable::#{header_class}.new(@model_field.field, :label => @model_field.name)  
+        ActiveTable::#{header_class}.new("`" + @model_field.field + "`", :label => @model_field.name)  
       end
       EOF
       self.class_eval header_code, __FILE__, __LINE__

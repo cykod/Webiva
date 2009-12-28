@@ -61,13 +61,19 @@ class ContentPublicationField < DomainModel
     txt
   end
   
+  def filter_display(opts)
+    self.content_model_field.filter_display(opts)
+  end
+  
   def publication_module_class
     @publication_module_class  ||= self.publication_field_module.classify.constantize
   end
 
   def filter_options(f,name=nil,attr={})
     if self.content_model_field && self.options.filter 
-      self.content_model_field.filter_options(f,name,(self.data||{}).merge(attr.symbolize_keys))
+      opts = (self.data||{ }).clone
+      opts.delete(:filter)
+      self.content_model_field.filter_options(f,name,opts.merge(attr.symbolize_keys))
     else 
       ''
     end

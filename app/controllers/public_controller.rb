@@ -57,7 +57,15 @@ class PublicController < ApplicationController  # :nodoc: all
     prefix = params[:path][0..-3].join("/")
     
     
-    df = DomainFile.find_by_prefix_and_filename(prefix,filename)
+    df = DomainFile.find_by_prefix(prefix)
+
+    # Special case for thumbs
+    if df && df.name != filename
+      unless df.file_type == 'thm' && filename.gsub(/\.[^.]+$/,".#{df.extension}")
+        df = nil
+      end
+    end
+
     sz = DomainFileSize.find_by_size_name(size)
     
     if df && sz 

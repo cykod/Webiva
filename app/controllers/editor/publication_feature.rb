@@ -113,7 +113,7 @@ def display_feature(publication,data)
        end
      end
 
-     c.publication_filter_form_tags("filter","filter_#{paragraph.id}", publication) { |t| [ data[:filter], data[:searching]] }
+     c.publication_filter_fields_tags("filter","filter_#{paragraph.id}", publication) { |t| [ data[:filter], data[:searching]] }
      
     c.pagelist_tag('pages') { |t| data[:pages] }
    end

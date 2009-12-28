@@ -23,6 +23,11 @@ class Blog::BlogBlog < DomainModel
     self.create(:name => name, :target => target, :is_user_blog => true)
   end
 
+  def content_admin_url(blog_entry_id)
+    {  :controller => '/blog/manage', :action => 'post', :path => [ self.id, blog_entry_id ],
+       :title => 'Edit Blog Entry'.t}
+  end
+
 
   def paginate_posts_by_category(page,cat,items_per_page)
     Blog::BlogPost.paginate(page,

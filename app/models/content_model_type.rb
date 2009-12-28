@@ -11,9 +11,9 @@ class ContentModelType < DomainModel
       self.content_score_c.to_f 
   end
   
-  def self.select_options(options = {})
-       self.find(:all,options).collect { |itm| [ itm.identifier_name, itm.id ] }
-  end
+#  def self.select_options(options = {})
+#       self.find(:all,options).collect { |itm| [ itm.identifier_name, itm.id ] }
+#  end
   
   def after_save
     #
@@ -21,6 +21,19 @@ class ContentModelType < DomainModel
 
   def after_destroy
     self.connection.execute("DELETE FROM content_relations WHERE content_model_id=" + quote_value(self.content_model_id) + "  AND entry_id=" + quote_value(self.id))
+  end
+
+# Need to rewrite select options to skip making AR objects
+  def self.select_options(opts = { })
+    if fld = identifier_field
+      opts = opts.clone
+      opts[:select] = "`#{fld}`, id"
+      opts[:order] ||= "`#{fld}`"
+      sql = construct_finder_sql(opts)
+      self.connection.select_all(sql).map { |elm| [ elm[fld], elm['id'].to_i] }
+    else
+      self.find(:all,opts).collect { |itm| [ itm.identifier_name, itm.id ] }
+    end
   end
   
   
@@ -34,6 +47,16 @@ class ContentModelType < DomainModel
   
   def self.human_attribute_name(attribute)
     attribute.to_s.humanize
+  end
+
+
+  def self.identifier_field; nil; end
+
+  def self.set_identifier_field(val)
+    sing = class << self; self; end
+    sing.send(:define_method, :identifier_field) do
+      val
+    end
   end
 
   def self.set_class_name(val)

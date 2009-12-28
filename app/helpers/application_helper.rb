@@ -582,6 +582,59 @@ JAVASCRIPT
       result  
   
   end
+
+  def admin_pagination(callback,pages,options = {})
+    output = ''
+    if pages[:pages] > 1
+
+        window_size = options[:window_size] || 5
+
+        page = (pages[:page] || 1).to_i
+        pages_count = pages[:pages]
+        pages_count = 1 if pages_count < 1
+        
+        if(page < 1)
+          page = 1
+        elsif page > pages_count
+          page = pages_count
+        end
+        
+        # Find out the first page to show
+        start_page = (page - window_size - 1) > 1 ? (page - window_size - 1) : 1
+        end_page = (start_page + (window_size*2) + 1)
+        if end_page > pages_count - 1
+          start_page -= end_page - pages_count 
+          start_page = 1 if start_page < 1 
+          end_page = pages_count
+        end
+
+      pages_list = (start_page..end_page).to_a
+
+      output << "<ul class='pagination'>"
+      initial = true
+      if(pages[:page] > 1)
+        initial = false
+        output <<   "<li class='first highlight'><a href='javascript:void(0);' onclick='#{callback.call(pages[:page]-1)}'>&lt;</a></li>"
+      end
+      output <<  pages_list.collect  {  |number| 
+               first = true if initial
+               initial = false
+               if number.to_i == pages[:page].to_i 
+                 "<li class='#{first ? "first " : ""}current'>#{number.to_s}</li>"
+               elsif number.is_a?(String)
+                 "<li class='spacer'>#{number}</li>"
+               else
+                 "<li class='#{first ? "first " :  ""}'><a href='javascript:void(0);' onclick='#{callback.call(number)}'>#{number}</a></li>"
+               end
+               
+             }.to_s 
+      if(pages[:page] < pages[:pages])
+        output <<  "<li class='highlight'><a href='javascript:void(0);' onclick='#{callback.call(pages[:page]+1)}')'>&gt;</a></li>"
+      end
+      output << '</ul>'
+    end
+    output
+  end
   
   def ago_format(sec_diff)
     min_diff = (sec_diff / 60).floor

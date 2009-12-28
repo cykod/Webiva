@@ -128,7 +128,7 @@
         <%= "Template Type:".t %><br/>
         <%= f.radio_buttons :template_type, MailTemplate.template_type_select_options, :separator => "<br/>" %><br/>
         <%= "Template Language:".t %><br/>
-        <%= f.select :language, Configuration.languages if Configuration.languages.length > 1  %><br/>
+        <%= f.select :language, Configuration.languages   %><br/>
         <%= "Template Category:".t %><br/>
         <%= f.text_field :category, :size => 20 %><br/>
         <%= "Published:".t %><br/>

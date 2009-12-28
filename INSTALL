@@ -16,7 +16,7 @@ and you'll need to compile some gems to make it work so you'll need some dev
 libraries as well:
 
 $ sudo apt-get install mysql-server mysql-client ruby1.8 ruby1.8-dev rdoc1.8 \
-    libmagick9-dev libimage-size-ruby1.8 \
+    libmagick9-dev libimage-size-ruby1.8  libxslt1-dev \
     g++ gcc  libmysql-ruby1.8 irb openssl zip unzip libopenssl-ruby \
     apache2 memcached libmysqlclient15-dev build-essential \
     git-core rubygems rake

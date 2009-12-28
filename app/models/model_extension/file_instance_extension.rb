@@ -119,10 +119,12 @@ module ModelExtension::FileInstanceExtension
     destroy_file_instances(column_name)
     value_str = ",'#{self.class.class_name}','#{self.id}','#{column_name}')"
 
-
-    if  @file_instance_affected && @file_instance_affected[column_name.to_s] && @file_instance_affected[column_name.to_s].length > 0 
-      DomainFileInstance.connection.execute("INSERT INTO domain_file_instances (`domain_file_id`,`target_type`,`target_id`,`column`) VALUES " + 
-        @file_instance_affected[column_name.to_s].map { |fid| "(#{fid}" + value_str }.join(",") )
+    if  @file_instance_affected && @file_instance_affected[column_name.to_s] 
+      @file_instance_affected[column_name.to_s].reject!(&:blank?)
+      if @file_instance_affected[column_name.to_s].length > 0 
+        DomainFileInstance.connection.execute("INSERT INTO domain_file_instances (`domain_file_id`,`target_type`,`target_id`,`column`) VALUES " + 
+                                              @file_instance_affected[column_name.to_s].map { |fid| "(#{fid}" + value_str }.join(",") )
+      end
     end
   end
   
