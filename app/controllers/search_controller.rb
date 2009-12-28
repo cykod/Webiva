@@ -140,7 +140,8 @@ class SearchController < CmsController
 
     language = Configuration.languages[0]
     conditions = content_type_id ? { :content_type_id => content_type_id } : nil
-    @results = ContentNode.search(language,terms,:conditions => conditions ,:limit => per_page+1,:offset => page.to_i * per_page).map do |node|
+    @results, @total_results = ContentNode.search(language,terms,:conditions => conditions ,:limit => per_page+1,:offset => page.to_i * per_page)
+    @results.map! do |node|
       content_description =  node.content_description(language)
       admin_url = node.admin_url
       if admin_url
@@ -152,7 +153,7 @@ class SearchController < CmsController
 
       if myself.has_content_permission?(permission)
         { 
-          :title => node.content_node_values.language(language)[0].title,
+          :title => node.title,
           :subtitle => content_description || node.content_type.content_name,
           :url => url_for(admin_url),
           :node => node
@@ -160,9 +161,9 @@ class SearchController < CmsController
       else 
         nil
       end
-
       
-    end
+    end.compact!
+
     if @results.length > per_page
       @more = true
       @results.pop

@@ -111,13 +111,6 @@ class ContentNode < DomainModel
   end
 
   def self.internal_search(language,query,options = { })
-    with_scope(:find => { 
-               :conditions => ["content_node_values.language = ? AND MATCH (content_node_values.title,content_node_values.body) AGAINST (?)",language,query],
-               :include => :node, :joins => :content_node_values,
-               :order => ["MATCH (content_node_values.title) AGAINST (",self.quote_value(query), ") DESC, MATCH (content_node_values.title,content_node_values.body) AGAINST (",self.quote_value(query), ") DESC"].join 
-               }) do
-      self.find(:all,options)
-    end
-    
+    ContentNodeValue.search language, query, options
   end
 end

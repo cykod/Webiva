@@ -206,7 +206,7 @@ class Configuration < DomainModel
 
     def validate
        if !search_handler.blank?
-         self.errors.add(:search_handler,'is not valid') unless get_handler_values(:members,:view).include?(search_handler)
+         self.errors.add(:search_handler,'is not valid') unless get_handler_values(:webiva,:search).include?(search_handler)
        end
     end
   end
