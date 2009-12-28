@@ -3,7 +3,7 @@
 
 class ContentNode < DomainModel
 
-  belongs_to :node, :polymorphic => true, :dependent => :destroy
+  belongs_to :node, :polymorphic => true #, :dependent => :destroy
   belongs_to :author,:class_name => 'EndUser',:foreign_key => 'author_id'
   belongs_to :content_type
   has_many :content_node_values
