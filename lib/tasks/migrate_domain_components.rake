@@ -35,14 +35,14 @@ namespace "cms" do
         ComponentMigrator.current_component = component
     	  ComponentMigrator.migrate(dir,version)
       else
-        active_modules = SiteModule.find(:all,:conditions => "status IN ('active','initializing')")
+        active_modules = SiteModule.find(:all,:conditions => "status IN ('active','initializing','initialized','error')")
         active_modules.each do |mod|
           dir = "#{RAILS_ROOT}/vendor/modules/#{mod.name}/db"
           if(File.directory?(dir) && (!component || component == mod.name))
             begin
               ComponentMigrator.current_component = mod.name
               ComponentMigrator.migrate(dir,version)
-              mod.update_attribute(:status,'initialized') if mod.status == 'initializing'
+              mod.update_attribute(:status,'initialized') if mod.status == 'initializing' || mod.status == 'error'
             rescue Exception => e
               if mod.status == 'initializing'
                 mod.update_attribute(:status,'error')
