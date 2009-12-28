@@ -23,7 +23,7 @@ class WebivaRendererGenerator < Rails::Generator::NamedBase
       
       @paragraphs.each do |para|
         m.directory "/vendor/modules/#{module_path}/app/views/#{module_path}/#{renderer_path}"
-        m.template 'renderer/view.rhtml', "/vendor/modules/#{module_path}/app/views/#{module_path}/#{renderer_path}/#{para}.rhtml", :assigns => { :paragraph => para} 
+        m.template 'renderer/view.rhtml', "/vendor/modules/#{module_path}/app/views/#{module_path}/#{renderer_path}/#{para}.html.erb", :assigns => { :paragraph => para} 
       end
     end
   
