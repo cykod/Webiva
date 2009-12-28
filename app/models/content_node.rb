@@ -6,7 +6,7 @@ class ContentNode < DomainModel
   belongs_to :node, :polymorphic => true #, :dependent => :destroy
   belongs_to :author,:class_name => 'EndUser',:foreign_key => 'author_id'
   belongs_to :content_type
-  has_many :content_node_values, :dependent => :delete_all
+  has_many :content_node_values
   
   def update_node_content(user,item,opts={})
     opts = opts.symbolize_keys
