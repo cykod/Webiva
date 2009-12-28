@@ -440,13 +440,15 @@ class ParagraphFeature
           obj = yield tag if block_given?
           if obj || !block_given?
             opts = options.clone
+            opts.symbolize_keys!
             if obj.is_a?(Hash)
               arg_obj = obj.delete(:object)
               opts = opts.merge(obj)
               obj = arg_obj
+              opts.symbolize_keys!
             end
             opts[:url] ||= ''
-            frm_opts = options.delete(:html) || { }
+            frm_opts = opts.delete(:html) || { }
             frm_opts[:method] = 'post'
             html_options = html_options_for_form(options.delete(:url),frm_opts)
             frm_tag = tag(:form,html_options) + "<CMS:AUTHENTICITY_TOKEN/>" + opts.delete(:code).to_s
