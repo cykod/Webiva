@@ -10,7 +10,9 @@ class ContentTypesController < CmsController # :nodoc: all
 
   include ActiveTable::Controller
   active_table :content_types_table, ContentType,
-               [ :check,:content_name,
+               [ :check,
+                 "Type",
+                 :content_name,
                  hdr(:string,:list_site_node_url, :label => 'List Page'),
                  hdr(:string,:detail_site_node_url, :label => 'Detail Page'),
                  hdr(:boolean,:search_results, :label => 'Search'),
@@ -46,6 +48,21 @@ class ContentTypesController < CmsController # :nodoc: all
           redirect_to :action => 'index'
       end
     end
+  end
+
+  def rebuild_all_types
+    if !request.post?
+      redirect_to :action => 'index'
+    end
+
+    nodes = SiteNode.find(:all,:include => { :live_revisions => :page_paragraphs })
+    paragraph = nodes.each do |node| 
+      node.live_revisions.each do |rev| 
+        rev.page_paragraphs.map { |para| para.link_canonical_type!(true) }
+      end
+    end
+    flash[:notice] = 'Rebuilt all types'
+    redirect_to :action => 'index'
   end
 
 end

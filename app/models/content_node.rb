@@ -26,6 +26,7 @@ class ContentNode < DomainModel
       val = false if val.blank?
       self.send("#{key}=",val)
     end
+
     self.updated_at = Time.now
     
     if opts[:user_id]
@@ -75,7 +76,7 @@ class ContentNode < DomainModel
         if(self.node.respond_to?(:content_node_body))
           cnv.body = Util::TextFormatter.text_plain_generator( node.content_node_body(lang))
         else
-          cnv.body =Util::TextFormatter.text_plain_generator( node.attributes.values.select { |val| val.is_a?(String) }.join(" ") )
+          cnv.body =Util::TextFormatter.text_plain_generator( node.attributes.values.select { |val| val.is_a?(String) }.join("\n\n") )
         end
         
         if type_preload

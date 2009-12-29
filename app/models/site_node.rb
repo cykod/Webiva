@@ -30,7 +30,7 @@ class SiteNode < DomainModel
   
   has_one :page_modifier, :class_name => 'SiteNodeModifier', :conditions => 'modifier_type IN ("P","page")'
 
-  content_node :except => Proc.new { |sn| sn.node_type == 'P' }
+  content_node :except => Proc.new { |sn| sn.node_type != 'P' }, :content_url_override => :node_path
 
   acts_as_nested_set :scope => :site_version_id 
   

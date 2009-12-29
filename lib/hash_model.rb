@@ -250,5 +250,27 @@ class HashModel
   
   def self.human_attribute_name(attribute)
     attribute.to_s.humanize
-  end      
+  end  
+
+
+  def self.current_canonical_opts; []; end
+  
+  def self.meta_canonical_paragraph(container_type,options ={ })
+    obj = [ 'ContentMetaType',container_type,options ]
+    objs = current_canonical_opts + [ obj ]
+    
+    class << self; self end.send(:define_method,"current_canonical_opts") do
+      objs
+    end  
+  end
+
+  def self.canonical_paragraph(container_type,container_field_id,options ={ })
+    obj = [ 'ContentType',container_type,container_field_id,options ]
+    objs = current_canonical_opts + [ obj ]
+    
+    class << self; self end.send(:define_method,"current_canonical_opts") do
+      objs
+    end
+  end
+
 end

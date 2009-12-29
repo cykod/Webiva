@@ -173,6 +173,8 @@ class PageRevision < DomainModel
       self.update_attributes( :created_at => Time.now,
                               :revision_type => 'real')
       self.page_paragraphs.map(&:regenerate_file_instances)
+
+      self.page_paragraphs.map(&:link_canonical_type!)
     end
     if container.is_a?(SiteNode)
       container.save_content(self.created_by) 

@@ -5,14 +5,22 @@
 class ContentType < DomainModel
 
   has_many :content_nodes
+  has_many :content_node_values
+
+  belongs_to :content_meta_type
   
   belongs_to :container, :polymorphic => true
   
-  belongs_to :detail_site_node, :class_name => 'SiteNode',:foreign_key => 'detail_site_node_id'
-  belongs_to :list_site_node, :class_name => 'SiteNode',:foreign_key => 'list_site_node_id'
-  
   def after_destroy
     ContentNode.destroy_all({ :content_type_id => self.id })
+  end
+
+  def self.fetch(container_type,container_id)
+    self.find_by_container_type_and_container_id(container_type,container_id)
+  end
+
+  def after_update
+    self.content_node_values.delete
   end
 
   def name
@@ -23,8 +31,7 @@ class ContentType < DomainModel
 
 
   def content_link(obj)
-    if self.detail_site_node
-      path =self.detail_site_node.node_path
+    if !(path = self.detail_site_node_url).blank?
       if self.container && self.container.respond_to?(:content_detail_link_url)
         self.container.content_detail_link_url(path,obj)
       else

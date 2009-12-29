@@ -55,7 +55,7 @@ module ModelExtension::ContentNodeExtension
       self.content_node_skip = true
       
       if skip_save || (saved_content = self.save)
-        if !self.content_node_options[:except] || resolve_argument(self.content_node_options[:except],nil)
+        if !self.content_node_options[:except] || !resolve_argument(self.content_node_options[:except],nil)
           cn = self.content_node || self.build_content_node
           cn.update_node_content(user,self,self.content_node_options)
         end
@@ -68,22 +68,26 @@ module ModelExtension::ContentNodeExtension
   module NodeTypeInstanceMethods 
   
     def content_node_type_create
-       opts = self.content_node_type_options
-       
-       title_field = (opts[:title_field] || 'name').to_s
-       url_field = (opts[:url_field] || 'id').to_s
-       
-       # Get the name of the content
-       content_name = self.resolve_argument(opts[:content_name],:name)
-       content_type = resolve_argument(opts[:content_type])
-       
-       ContentType.create(:component => opts[:component],
-                          :container => self, 
-                          :content_name => content_name,
-                          :content_type => content_type,
-                          :title_field => title_field,
-                          :url_field => url_field,
-                          :search_results => opts[:search] )
+
+      if !self.content_node_type_options[:except] || !resolve_argument(self.content_node_type_options[:except],nil)
+
+        opts = self.content_node_type_options
+        
+        title_field = (opts[:title_field] || 'name').to_s
+        url_field = (opts[:url_field] || 'id').to_s
+        
+        # Get the name of the content
+        content_name = self.resolve_argument(opts[:content_name],:name)
+        content_type = resolve_argument(opts[:content_type])
+        
+        ContentType.create(:component => opts[:component],
+                           :container => self, 
+                           :content_name => content_name,
+                           :content_type => content_type,
+                           :title_field => title_field,
+                           :url_field => url_field,
+                           :search_results => opts[:search] )
+      end
     end
 
     def content_node_type_update

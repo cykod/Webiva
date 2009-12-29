@@ -101,7 +101,7 @@ class PageParagraph < DomainModel
     end
   end
   
-  def editor_info
+  def editor_class
     return nil unless self.display_module
     
     disp = display_module.split("/") 
@@ -111,6 +111,11 @@ class PageParagraph < DomainModel
     # Get us Editor::MenuController
     className = display_module.map { |elem| elem.camelcase }.join("::") + 'Controller' 
     cls = className.constantize
+  end
+
+  def editor_info
+    cls = editor_class
+    return unless cls
     
     cls.send(self.display_type.to_s + "_info")
   end
@@ -186,6 +191,77 @@ class PageParagraph < DomainModel
   
   def display
     self.display_body_html.blank? ? self.display_body : self.display_body_html
+  end
+
+  def paragraph_options
+    return nil unless display_module
+    self.editor_class.paragraph_options(display_type,self.data)
+  end
+  
+
+  def link_canonical_type!(override = false)
+    opts = paragraph_options
+    return nil unless opts
+    opts.class.current_canonical_opts.each do |opt|
+      canonical_type = opt[0]
+      if canonical_type == 'ContentType'
+        link_canonical_content_type!(opts,opt,override)
+      elsif canonical_type == 'ContentMetaType'
+        link_canonical_meta_type!(opts,opt,override)
+      end
+    end
+  end
+
+  private
+
+  def link_canonical_content_type!(opts,opt,override)
+    container_type = opt[1]
+    container_id = opts.send(opt[2])
+
+    content_type  = ContentType.fetch(container_type,container_id)
+    if content_type
+      if (override || content_type.detail_site_node_url.blank?) &&  self.page_revision.revision_container.is_a?(SiteNode)
+        content_type.detail_site_node_url = self.page_revision.revision_container.node_path
+      end
+      if  (override || content_type.list_site_node_url.blank?) && opt[3][:list_page_id] 
+        if  opt[3][:list_page_id]  == :node
+          content_type.list_site_node_url = self.page_revision.revision_container.node_path
+        elsif list_page_site_node = SiteNode.find_by_id(opts.send( opt[3][:list_page_id]))
+          content_type.list_site_node_url = list_page_site_node.node_path
+        end
+      end
+
+      content_type.save if content_type.changed?
+    end
+  end
+
+  def link_canonical_meta_type!(opts,opt,override)
+    container_type = opt[1]
+
+    options = opt[2].clone
+
+    if self.page_revision.revision_container.is_a?(SiteNode)
+
+      # If we should only match a limited subset of 
+      # content types, check if we have a category_value
+      if options[:category_value]
+        options[:category_value] = opts.send(options[:category_value])
+        
+        # If we don't have a category_value, then we don't match all
+        if options[:category_value].blank?
+          options.delete(:category_field)
+        end
+      end
+
+      content_meta_type  = ContentMetaType.generate(self.identity_hash,container_type,options)
+
+      content_meta_type.detail_url = self.page_revision.revision_container.node_path
+      if  options[:list_page_id] && list_page_site_node = SiteNode.find_by_id(opts.send(options[:list_page_id]))
+        content_meta_type.list_url = list_page_site_node.node_path 
+      end
+
+      content_meta_type.save if content_meta_type.new_record? || content_meta_type.changed?
+    end
   end
   
 end

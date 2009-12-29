@@ -4,7 +4,7 @@
 
 
 class WebivaModuleGenerator < Rails::Generator::NamedBase
-  
+
   def manifest 
     @name = @name.underscore
           
