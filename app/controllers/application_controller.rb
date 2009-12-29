@@ -30,6 +30,13 @@ class ApplicationController < ActionController::Base
   after_filter :save_anonymous_tags
   
   hide_action :myself
+
+  # Returns an EndUser object representing the currently logged in user
+  # Anonymous users still return an EndUser object except with a special user class
+  # and without a valid ID
+  #
+  # The user object is cached in the response object so it is only generated once
+  # per request
   def myself
     return EndUser.default_user unless response
     if response.data[:user]
@@ -63,8 +70,9 @@ class ApplicationController < ActionController::Base
     
   end   
   
-
+  hide_action :theme_src
   helper_method :theme_src
+  # Returns a relative link for an image using the currently active theme
   def theme_src(img=nil) 
     if img.to_s[0..6] == "/images"
       "/themes/#{theme}" + img.to_s
@@ -73,7 +81,9 @@ class ApplicationController < ActionController::Base
     end
   end
   
-  def url_for(opts = {})
+  hide_action :url_for
+  # Override method to convert path into an array if necessary
+  def url_for(opts = {}) # :nodoc: 
     if(opts.is_a?(Hash) && opts[:path] && !opts[:path].is_a?(Array)) 
       if opts[:path].blank?
         opts.delete(:path)
@@ -89,21 +99,22 @@ class ApplicationController < ActionController::Base
 
   protected
 
-  def clear_cache
+  def clear_cache #:nodoc:
     DataCache.reset_local_cache
-#    ContentModelType.remove_subclasses
   end
   
-  def template_root
+  def template_root #:nodoc:
     :application
   end
   
+  # Helper method to sanitize html
   def sanitize(html,options={})
     @html_sanitizer ||= HTML::Sanitizer.new
     
     @html_sanitizer.sanitize(html,options)
   end
   
+  # Helper method to strip all tags from any html
   def strip_tags(html,options={})
     @full_sanitizer ||= HTML::FullSanitizer.new
     
@@ -111,7 +122,7 @@ class ApplicationController < ActionController::Base
   end
   
   
-  def save_anonymous_tags
+  def save_anonymous_tags #:nodoc:
     if !session[:user_id] 
       session[:user_tags] = myself.tag_cache unless myself.tag_cache.blank?
       session[:user_referrer] = myself.referrer unless myself.referrer.blank?
@@ -122,17 +133,23 @@ class ApplicationController < ActionController::Base
     
   end
   
-  def check_ssl
+  def check_ssl #:nodoc:
     if @cms_domain_info  && @cms_domain_info[:ssl_enabled] && !request.ssl?
       redirect_to  'https://' + request.domain(10) + request.request_uri
       return false
     end
   end
 
+  # helper method to redirect a user to the access denied page
+  # call from a controller method with :
+  #
+  #    return deny_access!
+  #
   def deny_access!
     redirect_to :controller => '/manage/access', :action => 'denied'
   end
   
+  # Activate the appropriate database for the current request
   def activate_domain(domain=nil)
     
     # Cancel out of domain activations
@@ -180,23 +197,47 @@ class ApplicationController < ActionController::Base
     
     session[:domain] = domain
     
-    unless session[:cms_language]
-      session[:cms_language] = Configuration.languages[0]    
-    end
-    
-    Locale.set(session[:cms_language])
+    set_language
     
     return true
   end
-  
-  def current_user 
-    myself.user_profile
-  end
-  
-  def my_access
-    myself.user_profile
-  end
-  
+
+
+
+
+  def set_language #:nodoc:
+    # Setup language handling
+    domain_languages = Configuration.languages
+    
+    client_accept_language = nil
+    # Check if there is a user requested language
+    if(!session[:cms_language] && request.env['HTTP_ACCEPT_LANGUAGE']) 
+      # Check languages by order of importance
+      langs = request.env['HTTP_ACCEPT_LANGUAGE'].split(",")
+      langs.each do |lang|
+        # get just the language, ignore the locale
+        lang = lang[0..1]
+        if domain_languages.include?(lang)
+          client_accept_language = lang
+          break
+        end
+      end
+    
+    end
+    
+    
+    session[:cms_language] ||= client_accept_language || domain_languages[0]
+    
+    if(params[:set_language] && domain_languages.include?(params[:set_language]))
+      session[:cms_language] = params[:set_language]
+    end
+    
+    Locale.set(session[:cms_language]) unless RAILS_ENV == 'test'
+    
+  end   
+
+  # Convenience method to log a user in 
+  # sets the session and remember cookie 
   def process_login(usr,remember = false)
     session[:user_id] = usr.id
     session[:user_model] = usr.class.to_s
@@ -208,6 +249,7 @@ class ApplicationController < ActionController::Base
     end
   end
   
+  # Convenience method to log a user out
   def process_logout
     EndUserCookie.kill_user_cookies(myself)
     session[:user_id] = nil
@@ -217,13 +259,15 @@ class ApplicationController < ActionController::Base
     session = {}
   end
   
+  # Convenience method to check whether a user can edit pages
   def page_editor?
     usr = myself
     usr.id && usr.editor? && usr.has_role?('editor_editor')
   end
   
 
-
+  # Returns a piece of domain configuration
+  # Caching config in the response
   def domain_config(key)
     if response.data[:config]
       return response.data[:config][key]
@@ -234,14 +278,14 @@ class ApplicationController < ActionController::Base
   end  
 
   helper_method :theme
+  # Returns the current theme
   def theme
     return response.data[:theme] if response.data[:theme]
     return response.data[:theme] = (domain_config('theme') || 'standard')
   end
 
 
-
-
+  # Resets the cached myself object to allow a user change
   def reset_myself
     response.data[:user] = nil
   end
@@ -249,34 +293,33 @@ class ApplicationController < ActionController::Base
   
   
   hide_action :denied_access
-  hide_action :verify_site_access
   hide_action :override_client
   
   before_filter :context_translate_before
   after_filter :context_translate_after
   after_filter :set_cset
   
-  def set_cset
+  def set_cset #:nodoc:
     headers['Content-Type'] ||= 'text/html'
     if headers['Content-Type'].starts_with?('text/') and !headers['Content-Type'].include?('charset=')
       headers['Content-Type'] += '; charset=utf-8'
     end
   end
   
-  def context_translate_before
+  def context_translate_before #:nodoc:
     
     if session[:context_translation] && permit?('translator')
       Locale.save_requests
     end
   end
   
-  def context_translate_after
+  def context_translate_after #:nodoc:
     if session[:context_translation] && permit?('translator')
       session[:context_translation_requests] = Locale.retrieve_requests
     end
   end
   
-  def denied_access
+  def denied_access #:nodoc:
     flash[:notice] = "Access Denied"
 
     redirect_to(:controller => "/manage/access", :action => "login")
@@ -284,133 +327,6 @@ class ApplicationController < ActionController::Base
 
   include SimpleCaptcha::ControllerHelpers
 
-  def self.register_permission_category(type,name,desc)
-    
-    cats = self.registered_permission_categories;
-    cats += [ type, name, desc ]
-    
-    sing = class << self; self; end
-    sing.send :define_method, :registered_permission_categories do 
-      return cats
-    end    
-  end
-  
-  def self.register_permissions(cat,new_permissions)
-    perms = self.registered_permissions;
-    
-    perms[cat] ||= []
-    perms[cat] += new_permissions
-    
-    sing = class << self; self; end
-    sing.send :define_method, :registered_permissions do 
-      perms
-    end    
-  end
-  
-  def self.registered_permissions; {}; end;
-  def self.registered_permission_categories; []; end
-  
-  def verify_site_access
-    #raise request.env['SERVER_NAME']
-  end
-
-  def cms_page_info(title,section=nil,menu_js = nil)
-    @cms_page_info = { :title => title, 
-      :section => section,
-      :menu_js => menu_js }
-    
-    if title.is_a?(Array)
-      if title.last.is_a?(Array)
-        title_info = title.last
-        if(title_info .length > 2)
-          page_title = sprintf(title_info [0].t,*title_info [2..-1])
-        else
-          page_title = title_info[0].t
-        end
-      else
-        page_title = title.last.t
-      end
-    else
-      page_title=title.t
-    end
-    
-    title = Configuration.options.domain_title_name || "CMS"
-    @cms_page_info[:page_title] = title.to_s + ": " +  page_title.to_s
-  end
-  
-  def self.cms_admin_paths(section,pages = {})
-    pages['Content'] ||= { :controller => '/content' }
-    pages['Options'] ||= { :controller => '/options' } 
-    pages['Modules'] ||= { :controller => '/modules' }
-    pages['People'] ||= { :controller => '/members' } 
-    pages['System'] ||= { :controller => '/manage/system' }
-    sing = class << self; self; end
-    sing.send :define_method, "cms_page_path_info" do
-      { :section => section, :pages => pages }
-    end
-  end
-  
-  
-  def cms_css(css)
-    @header ||= ''
-    @header += "<link href='#{css}' media='screen' rel='stylesheet' type='text/css' />\n"
-  end
-  
-  def cms_js(js)
-    @header ||= ''
-    @header += "<script src='#{js}' type='text/javascript'></script>\n"
-  end
-  
-  private 
-  def cms_page_url_from_opts(opts)
-    ctrler = opts.delete(:controller)
-    act = opts.delete(:action)
-    url_hash = {}
-    url_hash[:controller] = ctrler if ctrler
-    url_hash[:action] = act if act
-    opts.each do |key,val|
-      url_hash[key] = params[val]
-    end
-    url_for(url_hash)
-  end
-  
-  
-  def handle_session_parameter(parameter_name,default_val = nil,options = {})
-
-    parameter_name = parameter_name.to_sym
-    # Show return to be explicit what we are doing (setting session value & returning)
-    if params.has_key?(parameter_name)
-      return session[parameter_name] = params[parameter_name]
-    else
-      return session[parameter_name] || default_val
-    end
-  end
-  
-  def cms_page_path(pages,info,menu_js=nil,section=nil)
-    ap = self.class.cms_page_path_info
-    output_pages = []
-    pages.each do |page_name|
-      if page_name.is_a?(Array)
-        output_pages << page_name
-      else
-        raise 'Invalid Page:' + page_name unless ap[:pages][page_name]
-        opts = ap[:pages][page_name].clone
-        output_pages << [ page_name,cms_page_url_from_opts(opts)  ]
-      end
-    end
-    
-    output_pages << info
-    cms_page_info(output_pages,section || ap[:section],menu_js)
-  end 
-  
-  def cms_page_redirect(page_name)
-    ap = self.class.cms_page_path_info
-    page = ap[:pages][page_name]
-    
-    raise 'Invalid cms_page_direct:' + page_name unless page
-    redirect_to cms_page_url_from_opts(page.clone)
-  end
-  
   def debug_raise(obj)
     raise render_to_string(:inline =>  '<%= debug object -%>', :locals => { :object => obj})
   end

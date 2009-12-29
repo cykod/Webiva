@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class MembersController < CmsController
+class MembersController < CmsController # :nodoc: all
 
   permit 'editor_members', :only => [ :index, :create, :edit, :view, :delete_member ]
 

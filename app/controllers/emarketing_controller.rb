@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class EmarketingController < CmsController
+class EmarketingController < CmsController # :nodoc: all
   layout 'manage'
   
   permit ['editor_visitors','editor_members','editor_mailing'], :only => :index

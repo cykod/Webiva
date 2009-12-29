@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class Manage::UsersController < CmsController
+class Manage::UsersController < CmsController # :nodoc: all
 
   # need to be at least a client admin
   permit 'client_admin'

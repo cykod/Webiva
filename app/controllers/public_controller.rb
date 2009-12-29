@@ -2,7 +2,7 @@
 
 require 'mime/types'
 
-class PublicController < ApplicationController
+class PublicController < ApplicationController  # :nodoc: all
   skip_before_filter :context_translate_before
   skip_after_filter :context_translate_after
   skip_before_filter :check_ssl

@@ -2,7 +2,7 @@
 
 require 'csv'
 
-class ContentImportController < WizardController
+class ContentImportController < WizardController # :nodoc: all
   permit 'editor_content'
   
   @@deliminators = { 'semicolon' => ';', 'comma' => ',', 'colon' => ':', 'tab' => "\t" }

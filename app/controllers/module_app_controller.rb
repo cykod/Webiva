@@ -3,6 +3,17 @@
 
 require 'singleton' 
 
+
+# Base class for displaying SiteNode content renderered by the 
+# SiteNodeEngine
+#
+# classes that inherit from ModuleAppController can run like normal Rails controllers
+# except the system will wrap the Webiva content around the controllers output, including
+# support for locks and other page modifiers.
+#
+# The CMS site tree needs to have a valid page at the url that is set up in routes.rb
+# (or the init.rb of the appropriate modules) and a "Module Application Paragraph" dropped into
+# the appropriate zone.
 class ModuleAppController < ApplicationController
   protect_from_forgery
 
@@ -71,8 +82,6 @@ class ModuleAppController < ApplicationController
       @page,path_args = find_page_from_path(params[:path],DomainModel.active_domain[:site_version_id])
       @path =  params[:path].join("/")
     end
-
-    set_language
 
     @page = get_error_page unless @page
     
@@ -180,38 +189,7 @@ class ModuleAppController < ApplicationController
     end
   end
   
-  
-  def set_language
-    # Setup language handling
-    domain_languages = Configuration.languages
-    
-    client_accept_language = nil
-    # Check if there is a user requested language
-    if(!session[:cms_language] && request.env['HTTP_ACCEPT_LANGUAGE']) 
-      # Check languages by order of importance
-      langs = request.env['HTTP_ACCEPT_LANGUAGE'].split(",")
-      langs.each do |lang|
-        # get just the language, ignore the locale
-        lang = lang[0..1]
-        if domain_languages.include?(lang)
-          client_accept_language = lang
-          break
-        end
-      end
-    
-    end
-    
-    
-    session[:cms_language] ||= client_accept_language || domain_languages[0]
-    
-    if(params[:set_language] && domain_languages.include?(params[:set_language]))
-      session[:cms_language] = params[:set_language]
-    end
-    
-    Locale.set(session[:cms_language]) unless RAILS_ENV == 'test'
-    
-  end
-  
+
     
   def validate_module
     info = self.class.get_component_info
@@ -250,6 +228,8 @@ class ModuleAppController < ApplicationController
   def self.get_modules_for
     []
   end
+
+  protected
   
   def javascript_defaults
     require_js('prototype')

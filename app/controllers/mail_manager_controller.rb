@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class MailManagerController < CmsController
+class MailManagerController < CmsController # :nodoc: all
   
   layout 'manage'
   

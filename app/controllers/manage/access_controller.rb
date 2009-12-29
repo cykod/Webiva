@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class Manage::AccessController < CmsController
+class Manage::AccessController < CmsController # :nodoc: all
   layout "manage"
 
   skip_before_filter :validate_is_editor

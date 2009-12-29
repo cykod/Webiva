@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class ContentExportController < CmsController
+class ContentExportController < CmsController # :nodoc: all
   layout 'manage'
   permit 'editor_content'
   

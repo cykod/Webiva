@@ -3,7 +3,7 @@
 require 'maruku'
 
 # The page editor controller
-class EditController < ModuleController
+class EditController < ModuleController # :nodoc: all
 
   # This isn't a real module controller, it just acts like one
   skip_before_filter :validate_module

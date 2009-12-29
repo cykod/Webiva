@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class Manage::ClientsController < CmsController
+class Manage::ClientsController < CmsController # :nodoc: all
 
   # Only system administrators can access this controller
   permit 'client_user'

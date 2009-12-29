@@ -11,11 +11,10 @@ class DataCache
     classes.each do |cls|
      Object.send(:remove_const,cls[1]) if Object.const_defined?(cls[1])
     end
+    ContentModelType.subclasses
     classes = {}
 
     @@local_cache = {}
-
-    ContentModelType.subclasses
   end
   
   def self.local_cache(key)

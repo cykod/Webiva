@@ -8,7 +8,7 @@ module ApplicationHelper
   
   include EscapeHelper
 
-   class PopupMenuBuilder 
+   class PopupMenuBuilder #:nodoc:all
       include ActionView::Helpers::JavaScriptHelper
      
      def link(name,options = {})
@@ -24,6 +24,7 @@ module ApplicationHelper
      end  
    end
    
+   # Builds a popup menu
    def popup_menu(id,image,options={},&block)
       options = options.clone
       options[:class] = 'line_icon'
@@ -36,7 +37,9 @@ module ApplicationHelper
       concat("[] )); }</script>")
    end
 
-   def action_panel(options = {},&block)
+   # Creates an action panel (the set of links at the top of an admin page)
+  
+   def action_panel(options = {},&block)  # :yields: ActionPanelBuilder.new
       concat("<div class='admin_content'><ul class='action_panel'>")
       
       apb = ActionPanelBuilder.new(self)
@@ -741,7 +744,31 @@ JAVASCRIPT
   def list_format(txt)
     "<ul>" + txt.split("\n").map { |elm| "<li>#{h elm}</l1>" }.join("\n") + "</ul>"
   end
+
+  class ActiveTableRowBuilder
+    def initialize(name,entry_id)
+      @name = name
+      @entry_id =entry_id
+    end
+
+    def checkbox
+      <<-JAVASCRIPT
+        <input type='checkbox' class='entry_checkbox' name='#{@name}[#{@entry_id}]' value='#{@entry_id}' id='elem_#{@name}_#{@entry_id}' onclick='this.checked = !this.checked;'  />    
+    JAVASCRIPT
+    end
+  end
   
+  def active_tr(name,entry_id)
+    builder = ActiveTableRowBuilder.new(name,entry_id)
+    
+    concat("<tr #{highlight_row(name,entry_id)}>")
+    yield builder
+    concat("</tr>")
+  end
+
+  def active_table_render(table_name)
+    "<div id='#{table_name}'>#{render :partial => table_name.to_s}</div>"
+  end
   
 def active_table_for(name,active_table_output,options={},&block)
       options = options.clone 

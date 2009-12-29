@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class Manage::SystemController < CmsController
+class Manage::SystemController < CmsController # :nodoc: all
 
   permit ['system_admin','client_admin']
   layout 'manage'

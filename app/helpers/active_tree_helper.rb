@@ -1,10 +1,15 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 
+=begin rdoc
+
+Helper methods for generating a drag-and-drop sortable list of elements, 
+used in the book module to generate the chapter / page list.
+
+=end
 module ActiveTreeHelper
 
-
-  class ActiveTreeBuilder
+  class ActiveTreeBuilder # :nodoc:all
     def initialize(element,tpl,options={})
       @opts = options
       @template = tpl
@@ -38,7 +43,32 @@ module ActiveTreeHelper
   end
 
   
-  
+  # Output an active tree.
+  #
+  # === Supported options
+  # [:tg]
+  #   Tag to use for container - defaults to ul
+  # [:leaf_tag]    
+  #   Tag to use for leaf, defaults to li
+  # [:clss] 
+  #   CSS class name to us - defaults to 'active_tree'
+  # [:leaf_class]
+  #   CSS class to use for leafs defaults to clss option + "_leaf"
+  # [:wrapper_class]
+  #   CSS class to use for leafs defaults to clss option + "_line"
+  # [:branch_class]
+  #   CSS class to use for leafs defaults to clss option + "_branch"
+  # [:leaf_content_class]
+  #   CSS class to use for leafs defaults to clss option + "_leaf_content"
+  # [:children]
+  #   attribute of the objects that contains an Array of children
+  # [:js_obj]
+  #   name of the javascript object - defaults to the [Element]Tree 
+  # [:partial]
+  #    name of the partial to render for each element, should render the title of element, 
+  #    defaults to name of the element
+  #
+  # see vendor/modules/book/app/views/manage/edit.rhtml for an example usage
   def active_tree(element,objects,options = {})
     options = options.symbolize_keys
 
