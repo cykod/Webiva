@@ -49,10 +49,14 @@ class ParagraphController < CmsController
     end
   end
 
+
+  def self.paragraph_options(paragraph_name,data)
+    options_class = self.to_s + "::" + paragraph_name.to_s.camelcase + "Options"
+    options_class.constantize.new(data)
+  end
+
   def paragraph_options(paragraph_name)
-  
-    options_class = self.class.to_s + "::" + paragraph_name.to_s.camelcase + "Options"
-    options_class.constantize.new(@paragraph.data)
+    self.class.paragraph_options(paragraph_name,@paragraph.data)
   end
 
   def validate_paragraph

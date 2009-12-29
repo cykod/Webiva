@@ -2,8 +2,8 @@
 <% admin_form_for :content_type, @content_type do |f| -%>
   <%= f.label_field :content_name %>
   <% if @content_type.editable? -%>
-    <%= f.url_selector :list_site_node_url, :label => 'List Page' %>
-    <%= f.url_selector :detail_site_node_url, :label => 'Detail Page' %>
+    <%= f.text_field :list_site_node_url, :label => 'List Url' %>
+    <%= f.text_field :detail_site_node_url, :label => 'Detail Url' %>
   <% else -%>
     <%= f.custom_field :none, :label => '', :value => 'This is a system content type' %>
   <% end -%>
