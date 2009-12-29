@@ -1,0 +1,28 @@
+<% target_cache = {} -%>
+
+<% active_table_for :ratings_table, @active_table_output,
+                    :refresh_url => url_for(:action => 'ratings_table'),
+                    :more_actions => [ ['Delete Ratings','delete','Are you sure you want to permanently delete these ratings?' ] ],
+                    :width => '100%' do |t| %>
+<tr <%= highlight_row 'rating',t.id %>>
+   <td valign='baseline'>
+      <%= entry_checkbox 'rating',t.id -%>
+    </td>
+   <td valign='baseline'>
+      <%= t.target_type.constantize.get_content_description -%>
+   </td>
+    <td valign='baseline'>
+      <% unless target_cache[t.target_type] && target_cache[t.target_type][t.target_id]
+            target_cache[t.target_type] ||= {}
+            target_cache[t.target_type][t.target_id] = t.target
+         end 
+      -%>
+        <%= truncate(target_cache[t.target_type][t.target_id].title,35) if target_cache[t.target_type][t.target_id] %>
+    </td>
+    <td valign='baseline' align='center'><%= t.rating %></td>
+    <td valign='baseline' nowrap='1'><%= v(t.end_user.name) if t.end_user -%></td>
+    <td valign='baseline' align='right'><%= t.rated_ip -%></td>    
+    <td valign='baseline' nowrap='1'><%= t.rated_at.localize(DEFAULT_DATETIME_FORMAT.t) if t.rated_at -%></td>
+</tr>
+
+<% end -%>

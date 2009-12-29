@@ -8,6 +8,7 @@ class Feedback::AdminController < ModuleController
   content_model :feedback
   
   register_handler :members, :view, "Feedback::FeedbackController"
+  register_handler :members, :view, "Feedback::ManageRatingsController"
   
   register_permission_category :feedback, "Feedback" ,"Feedback & Comments Permissions"
   register_permissions :feedback, [  [ :manage, 'Manage Feedback','Manage Feedback'   ]]
@@ -17,7 +18,8 @@ class Feedback::AdminController < ModuleController
   protected
   def self.get_feedback_info
       [
-      {:name => "Feedback",:url => { :controller => '/feedback/feedback' } ,:permission => 'feedback_manage', :icon => 'icons/content/feedback.gif' }
+      {:name => "Feedback",:url => { :controller => '/feedback/feedback' } ,:permission => 'feedback_manage', :icon => 'icons/content/feedback.gif' },
+      {:name => "Ratings",:url => { :controller => '/feedback/manage_ratings' } ,:permission => 'feedback_manage', :icon => 'icons/content/feedback.gif' }
       ]
   end
 
