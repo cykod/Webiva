@@ -52,7 +52,12 @@ class ParagraphController < CmsController
 
   def self.paragraph_options(paragraph_name,data)
     options_class = self.to_s + "::" + paragraph_name.to_s.camelcase + "Options"
-    options_class.constantize.new(data)
+    begin
+      options_class.constantize.new(data)
+    rescue NameError
+      logger.error "class not found #{options_class}"
+      nil
+    end
   end
 
   def paragraph_options(paragraph_name)

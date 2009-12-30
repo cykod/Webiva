@@ -79,7 +79,13 @@ class ParagraphFeature
     
     
     def url_for(opts)
-      ''
+      if opts.nil?
+	nil
+      elsif opts.is_a? String
+	opts
+      else
+	super opts
+      end
     end
     
     def initialize(renderer=nil)
