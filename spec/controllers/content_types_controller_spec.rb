@@ -4,6 +4,8 @@ describe ContentTypesController, "handle content types" do
 
  integrate_views
  
+ reset_domain_tables :content_types
+
  before(:each) do 
       @myself = EndUser.push_target('test@webiva.com')
       @myself.user_class = UserClass.client_user_class

@@ -37,6 +37,10 @@ class ContentModel < DomainModel
   include Content::ImportSupport         # Support for import/export functionality
 
 
+  def content_type_name
+    "Custom Content Model"
+  end
+
   def can_edit?(user)
     if self.edit_access_control?
       user.has_role?(:edit_access_control,self)
