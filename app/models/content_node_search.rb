@@ -67,6 +67,31 @@ class ContentNodeSearch < HashModel
     [@results, @total_results]
   end
 
-  def update_attributes(attributes)
+  def backend_search
+    return [@results, @total_results] if @results
+
+    conditions = {:search_result => 1}
+    conditions[:content_type_id] = self.content_type_id if self.content_type_id
+
+    @results, @total_results = ContentNode.search(self.language, self.terms,
+						  :conditions => conditions,
+						  :limit => self.per_page,
+						  :offset => self.page * self.per_page
+						  )
+    @results.map! do |node|
+      content_description =  node.content_description(language)
+
+      { 
+	:title => node.title,
+	:subtitle => content_description || node.content_type.content_name,
+	:url => node.link,
+	:link => node.link,
+	:preview => node.preview,
+	:excerpt => node.excerpt,
+	:node => node
+      }
+    end
+    
+    [@results, @total_results]
   end
 end

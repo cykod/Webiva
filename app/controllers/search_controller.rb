@@ -18,7 +18,7 @@ class SearchController < CmsController
     @page = (params[:page]||0).to_i
 
     if !@search.blank?
-        @results = content_search_handler(@search,@content_type_id==0 ? nil : @content_type_id,@page)
+        @results, @total_results = content_search_handler(@search,@content_type_id==0 ? nil : @content_type_id,@page)
 
       if @results.length > 0
         @showing = (@page * @@results_per_page)+1
@@ -87,7 +87,7 @@ class SearchController < CmsController
         @results = search_handlers.values
       end
      else
-      @results = content_search_handler(search.strip)
+      @results, @total_results = content_search_handler(search.strip)
     end
     
     render :action => 'autocomplete', :layout => false
@@ -138,12 +138,13 @@ class SearchController < CmsController
   def content_search_handler(terms,content_type_id=nil,page=0)
     per_page = @@results_per_page
 
-    language = Configuration.languages[0]
-    conditions = content_type_id ? { :content_type_id => content_type_id } : nil
-    @results, @total_results = ContentNode.search(language,terms,:conditions => conditions ,:limit => per_page+1,:offset => page.to_i * per_page)
-    @results.map! do |node|
-      content_description =  node.content_description(language)
-      admin_url = node.admin_url
+    @node_search = ContentNodeSearch.new :terms => terms, :content_type_id => content_type_id, :per_page => per_page, :page => page.to_i
+    @results, @total_results = @node_search.backend_search
+
+    @more = @total_results > per_page && @result.length == per_page
+    
+    @results.map! do |result|
+      admin_url = result[:node].admin_url
       if admin_url
         edit_title = admin_url.delete(:title)
         permission = admin_url.delete(:permission)
@@ -152,23 +153,14 @@ class SearchController < CmsController
       end
 
       if myself.has_content_permission?(permission)
-        { 
-          :title => node.title,
-          :subtitle => content_description || node.content_type.content_name,
-          :url => url_for(admin_url),
-          :node => node
-        }
+	result[:url] = url_for(admin_url)
+	result
       else 
         nil
       end
       
     end.compact!
 
-    if @results.length > per_page
-      @more = true
-      @results.pop
-    end
-    
-    @results
+    [@results, @total_results]
   end
 end
