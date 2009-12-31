@@ -1,14 +1,18 @@
 # Copyright (C) 2009 Pascal Rettig.
 
+# Form For generator for creating different styled forms
 module StyledFormBuilderGenerator
         
 
-  module FormFor
+  module FormFor #:nodoc:
 
   end
 
   module Generator
     module ClassMethods
+      
+      # Meta method which wraps a fields in a in a wrapper method,
+      # allowing different styled of forms
       def generate_styled_fields(options_func,
                                       field_helpers,
                                       &proc)
@@ -73,6 +77,7 @@ module StyledFormBuilderGenerator
           end
       end
       
+      # Generates fields for, see generate_form_for for more details
       def generate_fields_for(pre='',post='',options = {})
 		    class_name = self.to_s
 		    display_only = options[:display]  || false
@@ -97,7 +102,7 @@ module StyledFormBuilderGenerator
       end
     end
     
-    def self.included(mod)
+    def self.included(mod) # :nodoc:
       mod.class_eval do
         extend ClassMethods
       end 
@@ -109,6 +114,7 @@ module StyledFormBuilderGenerator
 end
 
 
+# A set of enhanced (but not CMS specific form elements)
 module EnhancedFormElements
   include ActionView::Helpers::TagHelper
   include ActionView::Helpers::TextHelper
@@ -116,7 +122,7 @@ module EnhancedFormElements
   include ActionView::Helpers::AssetTagHelper
  
   
-    class TranslatedCountries
+    class TranslatedCountries #:nodoc:all
       include Singleton
       
       def initialize
@@ -170,7 +176,8 @@ module EnhancedFormElements
           "Viet Nam", "Virgin Islands, British", "Virgin Islands, U.S.", "Wallis and Futuna", "Western Sahara",
           "Yemen", "Zambia", "Zimbabwe"] unless const_defined?("COUNTRIES")
 
-
+    # Returns a list of translated countries, caching the translations
+    # if possible
     def translated_countries_for_select(priority_countries = nil)
       
       countries = COUNTRIES
@@ -198,25 +205,30 @@ module EnhancedFormElements
       return country_options
     end
     
+    
+    # Overrides default by adding a submit_button class
     def submit_tag(name,options = {}) 
       options[:class] ||= 'submit_button'
       @template.submit_tag(emit_label(name), options)
     end
     
-    def image_submit_tag(src,options = {}) 
+    # Overrides default by adding a image_submit_button class
+    def image_submit_tag(src,options = {})  
       options[:class] ||= 'image_submit_button'
       @template.image_submit_tag(src, options)
     end
     
-    
+    # Just outputs a string 
     def header(name,options = {})
       emit_label(name)
     end 
     
+    # Outputs a line break
     def spacer()
       '<br/>'
     end
     
+    # Displays the value of a attribute of the form object
     def label_field(field,options={})
       val = @object.send(field) || ''
       if options[:format] == 'simple'
@@ -228,6 +240,7 @@ module EnhancedFormElements
       end
     end  
     
+    # Custom field prototype that outputs a :value or a block
     def custom_field(field,options={},&block)
       if options[:value]
         options[:value] || ''
@@ -236,6 +249,7 @@ module EnhancedFormElements
       end    
     end
     
+    # Field that outputs a the display name of an option 
     def label_option_field(field,tag_values,options={})
       val = @object.send(field)
       tag_values.each do |fld|
@@ -245,7 +259,8 @@ module EnhancedFormElements
       end
       return options[:default] || ''
     end
-
+    
+    # Grouped select, displays optheader groups using grouped_options_for_select
     def grouped_select(field,choices,options ={}, html_options = {})
       obj_val = @object.send(field) if @object
 
@@ -260,6 +275,7 @@ module EnhancedFormElements
       select_tag(name,opts,html_options)
     end
 
+    # Displays multiple selects, can be used like checkboxes to assign multiple values
     def multiple_selects(field,choices,options={},html_options={})
       labels = options[:labels].to_s.split(",").map { |elm| elm.to_s.strip }
       number = (options.delete(:number)||1).to_i
@@ -276,6 +292,7 @@ module EnhancedFormElements
       end.join(separator)
     end
 
+    # Displays multiple selects, with grouped options
     def multiple_grouped_selects(field,choices,options={},html_options={})
       labels = options[:labels].to_s.split(",").map { |elm| elm.to_s.strip }
       number = (options.delete(:number)||1).to_i
@@ -292,6 +309,7 @@ module EnhancedFormElements
       end.join(separator)
     end
     
+    # Displays a list of labeled radio buttons
     def radio_buttons(field,tag_values,options = {})
       output = ""
       opts = options.clone
@@ -326,6 +344,7 @@ module EnhancedFormElements
 
     alias_method :radio_buttons_flat, :radio_buttons
 
+    # Displays a list of grouped radio buttons, each set separated by a option_header div
     def grouped_radio_buttons(field,tag_values,options={})
       output = ''
       tag_values.each do |header,opts|
@@ -336,6 +355,7 @@ module EnhancedFormElements
 
     end
     
+    # Displays a list of checkboxes for a multi-value select
     def check_boxes(field,tag_values,options = {})
       output = ""
       opts = options.clone
@@ -382,6 +402,7 @@ module EnhancedFormElements
 
     alias_method :check_boxes_flat, :check_boxes
 
+    # Displays a set of grouped checkboxes separated by option_header div
     def grouped_check_boxes(field,tag_values,options={})
       output = ''
       tag_values.each do |header,opts|
@@ -392,8 +413,8 @@ module EnhancedFormElements
 
     end    
     
-    
-    def submit_cancel_tags(submit_name,cancel_name,submit_options={},cancel_options={}) 
+    # deprecated
+    def submit_cancel_tags(submit_name,cancel_name,submit_options={},cancel_options={})  #:nodoc:
        submit_options[:class] ||= 'submit_button'
        submit_options[:name] ||= 'submit_form'
        if cancel_options.is_a?(String)
@@ -405,6 +426,7 @@ module EnhancedFormElements
       @template.submit_tag(emit_label(submit_name),submit_options) + "&nbsp;&nbsp;" + @template.submit_tag(emit_label(cancel_name),cancel_options)
     end
     
+    # Displays a set of buttons, one of which is a submit and the other of which is a button
     def cancel_submit_buttons(cancel_name,submit_name,cancel_options={},submit_options={}) 
        submit_options[:class] ||= 'submit_button'
        submit_options[:name] ||= 'commit'
@@ -417,6 +439,7 @@ module EnhancedFormElements
       @template.tag('input',cancel_options) + "&nbsp;&nbsp;" + @template.submit_tag(emit_label(submit_name),submit_options)
     end    
     
+    # Emits a label - translated and turning newlines into line break
     def emit_label(txt)
       if @frm_options[:no_translate]
         h(txt)
@@ -427,38 +450,39 @@ module EnhancedFormElements
       end
     end
     
-  def output_error_message(label,field)
-    return nil unless @object && @object.errors
-    begin
-      errs = @object.errors.on(field)
-    rescue Exception =>e
-      raise @object.errors.inspect + errs.inspect
-    end
-    if errs.is_a?(Array)
-      label = label.gsub(/\:$/,'') # get rid of ending : if there
-      opts = errs.pop if errs.last.is_a?(Hash)
-      errs.pop if errs.last.nil?
-      
-
-      errs = errs.uniq
-      return errs.collect do |msg|
-        msg = @object.errors.generate_message(field,msg) if msg.is_a?(Symbol)
-        label + " " + emit_label(msg) + "<br/>"
+    # Output the error message for a specific field given a label and the field
+    def output_error_message(label,field)
+      return nil unless @object && @object.errors
+      begin
+        errs = @object.errors.on(field)
+      rescue Exception =>e
+        raise @object.errors.inspect + errs.inspect
       end
-    elsif errs
-      label = label.gsub(/\:$/,'') # get rid of ending : if there
-      errs = @object.errors.generate_message(field,errs) if errs.is_a?(Symbol)
+      if errs.is_a?(Array)
+        label = label.gsub(/\:$/,'') # get rid of ending : if there
+        opts = errs.pop if errs.last.is_a?(Hash)
+        errs.pop if errs.last.nil?
         
-      return label + " " + emit_label(errs)
-    end
-    
-    nil
-  end  
+
+        errs = errs.uniq
+        return errs.collect do |msg|
+          msg = @object.errors.generate_message(field,msg) if msg.is_a?(Symbol)
+          label + " " + emit_label(msg) + "<br/>"
+        end
+      elsif errs
+        label = label.gsub(/\:$/,'') # get rid of ending : if there
+        errs = @object.errors.generate_message(field,errs) if errs.is_a?(Symbol)
+        
+        return label + " " + emit_label(errs)
+      end
+      
+      nil
+    end  
  
 
 end
 
-class StyledForm < ActionView::Helpers::FormBuilder
+class StyledForm < ActionView::Helpers::FormBuilder #:nodoc:all
 
   
     include StyledFormBuilderGenerator::Generator
@@ -473,7 +497,7 @@ class StyledForm < ActionView::Helpers::FormBuilder
     
 end
 
-class SimpleForm < StyledForm
+class SimpleForm < StyledForm # :nododc:all
   include StyledFormBuilderGenerator::Generator
   
   include EnhancedFormElements

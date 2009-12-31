@@ -65,6 +65,8 @@ class EditController < ModuleController # :nodoc: all
     
     @page = cls.find_page(container_id)
     
+    raise ActiveRecord::RecordNotFound.new("Page Not Found") unless @page
+
     if container_type == 'site_node'
       @site_node = @page
     else

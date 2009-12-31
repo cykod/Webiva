@@ -27,6 +27,7 @@ class AccessToken < DomainModel
     self.token_name
   end
 
+  # Return the role ids from the cache if possible
   def cached_role_ids
     if self.role_cache.is_a?(Array)
       self.role_cache
@@ -35,7 +36,7 @@ class AccessToken < DomainModel
     end
   end
 
-  def before_save
+  def before_save # :nodoc: 
     self.role_cache = self.role_ids
   end
   

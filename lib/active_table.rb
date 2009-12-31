@@ -71,11 +71,11 @@ _user_table.erb.html
 
   <% active_table_for :user_table, @tbl,
      :actions => [['Delete','delete','Are you sure you want to delete these users?']] do |t| -%>
-  <tr <%= highlight_row('user',t.id) %>>
-    <td><%= entry_checkbox('user',t.id) %></td>
+   <% active_tr 'user', t.id do |tr| %>
+    <td><%= tr.checkbox %></td>
     <td><%= h t.first_name %></td>
     ...
-  </tr>
+   <% end -%>
   <% end -%>
 
 
@@ -147,7 +147,7 @@ module ActiveTable
    
     # Method that actually generates the data for the table, only called directly in the 
     # case of a non-classes level tables.
-    # This method is with [:table_name]_generate when the active_table singleton method is used
+    # This method is called with [:table_name]_generate when the active_table singleton method is used
     def active_table_generate(table_name,model_class,columns,options,opts,find_options = {})
  
         opts ||= {}
@@ -316,7 +316,7 @@ module ActiveTable
     end
 
     
-    def Controller.append_features(mod)
+    def Controller.append_features(mod )  # :nodoc: 
       super
       mod.extend ActiveTable::ClassFunctions
 #      mod.send(:helper_method, "active_table_for".to_sym)
@@ -432,7 +432,7 @@ module ActiveTable
   
 
   # Parent class representing a header of the table, subclass this to define new
-  # header types. See active_record.rb
+  # header types. See active_table.rb for example of existing headers
   class ColumnHeader 
     attr_reader :field
     attr_reader :name
