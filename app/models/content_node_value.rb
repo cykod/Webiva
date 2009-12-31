@@ -28,11 +28,13 @@ class ContentNodeValue < DomainModel
     total_results = 0
     with_scope(:find => {
                :conditions => ["language = ? AND MATCH (title,body) AGAINST (?)",language,query],
-               :include => [:content_node, :content_type],
-               :order => ["MATCH (title) AGAINST (",self.quote_value(query), ") DESC, MATCH (title,body) AGAINST (",self.quote_value(query), ") DESC"].join
-               }) do
+		 :include => [:content_node, :content_type],
+		 :order => ["MATCH (title) AGAINST (",self.quote_value(query), ") DESC, MATCH (title,body) AGAINST (",self.quote_value(query), ") DESC"].join
+	       }) do
       values = self.find(:all,options)
-      total_results = self.count options[:conditions]
+      options.delete(:limit)
+      options.delete(:offset)
+      total_results = self.count options
     end
 
     [values, total_results]
