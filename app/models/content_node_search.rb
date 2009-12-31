@@ -68,14 +68,14 @@ class ContentNodeSearch < HashModel
   end
 
   def backend_search
-    return [@results, @total_results] if @results
+    return [@results, @more] if @results
 
     conditions = {:search_result => 1}
     conditions[:content_type_id] = self.content_type_id if self.content_type_id
 
     @results, @total_results = ContentNode.search(self.language, self.terms,
 						  :conditions => conditions,
-						  :limit => self.per_page,
+						  :limit => self.per_page + 1,
 						  :offset => self.page * self.per_page
 						  )
     @results.map! do |node|
@@ -91,7 +91,9 @@ class ContentNodeSearch < HashModel
 	:node => node
       }
     end
-    
-    [@results, @total_results]
+
+    @more = @results.length > self.per_page
+
+    [@results, @more]
   end
 end

@@ -2,8 +2,8 @@
 
 <div align='center' class='admin_form'>
   <%= form_tag :action => 'index' -%>
-    <%= select_tag :content_type_id, options_for_select(@content_types, @content_type_id) -%>
-    <%= text_field_tag(:search,@search,:size => 80) -%> <%= submit_tag("Search")  -%>
+    <%= select_tag :content_type_id, options_for_select(@search.content_types_options, @search.content_type_id) -%>
+    <%= text_field_tag(:search,@search.terms,:size => 80) -%> <%= submit_tag("Search")  -%>
   </form>
 </div>
 
@@ -24,11 +24,11 @@
 <% end -%>
 <% end -%>
 
-<% if @page > 0 -%>
- <%= link_to "&laquo; Previous Results",:action => 'index',:search => @search,:page => @page -1 -%>
+<% if @search.page > 0 -%>
+ <%= link_to "&laquo; Previous Results",:action => 'index',:search => @search.terms,:content_type_id => @search.content_type_id,:page => @search.page-1 -%>
 <% end -%>
 <% if @more -%>
- <%= link_to "More Results &raquo;",:action => 'index',:search => @search,:page => @page+1 -%>
+ <%= link_to "More Results &raquo;",:action => 'index',:search => @search.terms,:content_type_id => @search.content_type_id,:page => @search.page+1 -%>
 <% end -%>
 
 

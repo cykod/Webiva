@@ -9,24 +9,16 @@ class SearchController < CmsController
   def index
     cms_page_path ['Content'], 'Search'
     
-    @search = params[:search]
+    @search = self.content_search_node
 
-    @content_type_id = params[:content_type_id].to_i
-
-    @content_types = [['--All Content Types--',nil]] + ContentType.select_options
-
-    @page = (params[:page]||0).to_i
-
-    if !@search.blank?
-        @results, @total_results = content_search_handler(@search,@content_type_id==0 ? nil : @content_type_id,@page)
+    if self.update_search && @search.search?
+      @results, @more = content_search_handler
 
       if @results.length > 0
-        @showing = (@page * @@results_per_page)+1
+        @showing = (@search.page * @@results_per_page)+1
         @showing_end= @results.length + @showing-1
       end
     end
-
-    
 
     render :action => 'index'
   end
@@ -86,8 +78,11 @@ class SearchController < CmsController
       else
         @results = search_handlers.values
       end
-     else
-      @results, @total_results = content_search_handler(search.strip)
+    else
+      @search = self.content_search_node
+      if self.update_search && @search.search?
+	@results, @more = content_search_handler
+      end
     end
     
     render :action => 'autocomplete', :layout => false
@@ -135,14 +130,9 @@ class SearchController < CmsController
 
   end
 
-  def content_search_handler(terms,content_type_id=nil,page=0)
-    per_page = @@results_per_page
+  def content_search_handler
+    @results, @more = @search.backend_search
 
-    @node_search = ContentNodeSearch.new :terms => terms, :content_type_id => content_type_id, :per_page => per_page, :page => page.to_i
-    @results, @total_results = @node_search.backend_search
-
-    @more = @total_results > per_page && @result.length == per_page
-    
     @results.map! do |result|
       admin_url = result[:node].admin_url
       if admin_url
@@ -161,6 +151,29 @@ class SearchController < CmsController
       
     end.compact!
 
-    [@results, @total_results]
+    @results.pop if @results.length > @search.per_page
+
+    [@results, @more]
+  end
+
+  def content_search_node
+    return @search if @search
+    @search = ContentNodeSearch.new :per_page => @@results_per_page, :max_per_page => @@results_per_page, :page => 0
+  end
+
+  def searched
+    return @searched if ! @searched.nil?
+    @searched = params[:search]
+  end
+
+  def update_search
+    return false unless self.searched
+
+    @search.terms = params[:search]
+    @search.page = params[:page] if params[:page]
+    @search.per_page = params[:per_page] if params[:per_page]
+    @search.content_type_id = params[:content_type_id] if params[:content_type_id]
+
+    @search.valid?
   end
 end
