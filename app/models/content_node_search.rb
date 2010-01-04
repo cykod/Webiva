@@ -1,11 +1,12 @@
 
 class ContentNodeSearch < HashModel
-  attributes :terms => nil, :per_page => 10, :content_type_id => nil, :page => 0, :max_per_page => 50, :protected_results => false
+  attributes :terms => nil, :per_page => 10, :content_type_id => nil, :page => 1, :max_per_page => 50, :protected_results => false
 
   integer_options :per_page, :page, :content_type_id, :max_per_page
   boolean_options :protected_results
 
   def validate
+    errors.add(:page) if self.page < 1
     errors.add(:per_page) if self.per_page > self.max_per_page || self.per_page < 1
     errors.add(:content_type_id) if ! self.valid_content_type?
   end
@@ -30,6 +31,11 @@ class ContentNodeSearch < HashModel
     @content_types_options = ContentType.select_options_with_nil 'Everything', opts
   end
 
+  def self.content_types_options
+    opts = { :conditions => {:search_results => 1} }
+    ContentType.select_options_with_nil 'Everything', opts
+  end
+
   def language
     return @language if @language
     @language = Configuration.languages[0]
@@ -46,10 +52,12 @@ class ContentNodeSearch < HashModel
     conditions[:content_type_id] = self.content_type_id if self.content_type_id
     conditions[:protected_result] = 0 if self.protected_results.blank?
 
+    offset = (self.page - 1) * self.per_page
+
     @results, @total_results = ContentNode.search(self.language, self.terms,
 						  :conditions => conditions,
 						  :limit => self.per_page,
-						  :offset => self.page * self.per_page
+						  :offset => offset
 						  )
     @results.map! do |node|
       content_description =  node.content_description(language)
@@ -63,8 +71,16 @@ class ContentNodeSearch < HashModel
 	:node => node
       }
     end
-    
-    [@results, @total_results]
+
+    # taken from DomainModel.paginate, makes using the pagelist_tag easier
+    [{ :pages => (@total_results.to_f / self.per_page.to_f).ceil,
+       :page => self.page, 
+       :window_size => window_size, 
+       :total => @total_results,
+       :per_page => self.per_page,
+       :first => offset+1,
+       :last => offset + @results.length
+      }, @results]
   end
 
   def backend_search

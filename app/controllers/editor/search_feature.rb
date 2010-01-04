@@ -1,9 +1,10 @@
 
 class Editor::SearchFeature < ParagraphFeature
+  include ActionView::Helpers::FormOptionsHelper
 
   feature :search_page_search_box, :default_feature => <<-FEATURE
     <cms:search_box>
-      Search: <cms:terms/> <cms:content_type_id/> <cms:per_page/>
+      Search: <cms:q/>
       <cms:submit/>
     </cms:search_box>
   FEATURE
@@ -25,6 +26,7 @@ class Editor::SearchFeature < ParagraphFeature
             <cite><cms:display_url/></cite>
           </div>
         </cms:result>
+        <cms:pages/>
       </cms:results>
       <cms:no_results>
         <div class="search_result">
@@ -42,15 +44,29 @@ class Editor::SearchFeature < ParagraphFeature
       c.value_tag('search:total_results') { |t| data[:total_results] }
       c.loop_tag('search:result') { |t| data[:results] }
         add_result_features(c, data, 'search:result')
+      c.pagelist_tag('search:results:pages') { |t| data[:pages] }
     end
   end
 
   def add_search_box_feature(context, data, base='search_box')
-    context.form_for_tag('search_box','search', :url => data[:options].search_results_page_url) { |t| t.locals.search = data[:search] }
+    context.define_tag('search_box') do |t|
+      t.locals.form = data[:search]
+      "<form method='get' action='#{data[:options].search_results_page_url}'>" + t.expand + '</form>'
+    end
+
       context.form_error_tag('search_box:errors')
-      context.field_tag('search_box:terms')
-      context.field_tag('search_box:content_type_id', :options => data[:search].content_types_options, :control => 'select')
-      context.field_tag('search_box:per_page', :options => [10, 20, 30, 50], :control => 'select')
+
+      context.define_tag('search_box:q') { |t| text_field_tag(:q, t.locals.form.terms, t.attr) }
+
+      context.define_tag('search_box:type') { |t| select_tag(:type, options_for_select(data[:search].content_types_options, t.locals.form.content_type_id), t.attr) }
+
+      context.define_tag('search_box:per_page') do |t|
+        options = t.attr['options'] ? t.attr['options'].split(',') : [10, 20, 30, 50]
+        opts = t.attr.clone
+        opts.delete('options')
+        select_tag :per_page, options_for_select(options, t.locals.form.per_page), opts
+      end
+
       context.submit_tag('search_box:submit', :default => 'Submit')
   end
 

@@ -20,9 +20,9 @@ class Editor::SearchController < ParagraphController
   end
 
   class SearchResultsOptions < HashModel
-    attributes :default_per_page => 10, :max_per_page => 50, :search_results_page_id => nil
+    attributes :default_per_page => 10, :max_per_page => 50, :search_results_page_id => nil, :content_type_id => nil
 
-    integer_options :default_per_page, :max_per_page
+    integer_options :default_per_page, :max_per_page, :content_type_id
 
     page_options :search_results_page_id
   end

@@ -105,7 +105,12 @@ class ContentNode < DomainModel
 
     # Run an internal mysql fulltext search if the handler is blank
     if !search_handler.blank? &&  handler_info = get_handler_info(:webiva,:search,search_handler)
-      handler_info[:class].search(language,query,options)
+      begin
+	handler_info[:class].search(language,query,options)
+      rescue Exception => e
+	raise e unless RAILS_ENV == 'production'
+	return internal_search(language,query,options)
+      end
     else
       internal_search(language,query,options)
     end
