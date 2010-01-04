@@ -7,6 +7,8 @@ class ContentNodeValue < DomainModel
 
   attr_accessor :excerpt
 
+  cached_content
+
   def node
     self.content_node.node
   end

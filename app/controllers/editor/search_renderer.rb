@@ -12,7 +12,11 @@ class Editor::SearchRenderer < ParagraphRenderer
 
     self.update_search
 
-    render_paragraph :feature => :search_page_search_box
+    result = renderer_cache(ContentNodeValue, nil, :skip => self.searched) do |cache|
+      cache[:output] = search_page_search_box_feature
+    end
+
+    render_paragraph :text => result.output
   end
 
   def search_results
