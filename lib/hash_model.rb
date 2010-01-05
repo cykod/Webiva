@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-module Validateable
+module Validateable #:nodoc:
   [:save, :save!, :update_attribute].each{|attr| define_method(attr){}}
   
   def new_record?; false; end
@@ -17,7 +17,12 @@ module Validateable
   
 end
 
-class HashModel
+=begin rdoc
+HashModel's are used throughout webiva 
+
+
+=end
+class HashModel 
   include Validateable
   include WebivaValidationExtension
   include ModelExtension::OptionsExtension
@@ -130,6 +135,38 @@ class HashModel
       end
     end
     #self.integer_options(*atrs)
+  end
+
+  def self.domain_file_options(*atrs)
+    atrs.each do |atr|
+      if atr.to_s =~ /^(.*)_id$/
+        name = $1
+        self.class_eval <<-EOF
+        def #{name}_file(force=false)
+          return @#{name}_file if @#{name}_file && !force
+          @#{name}_file = DomainFile.find_by_id(self.#{atr})
+        end
+
+        def #{name}_url(size=nil)
+          fl = #{name}_file
+          if fl
+            fl.url(size)
+          else
+            nil
+          end
+        end
+
+        def #{name}_full_url(size=nil)
+          fl = #{name}_file
+          if fl
+            fl.full_url(size)
+          else
+            nil
+          end
+         end
+        EOF
+      end
+    end
   end
   
   def initialize(hsh)
