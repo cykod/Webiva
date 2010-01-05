@@ -1,8 +1,13 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 
-
-class Content::CoreField < Content::FieldHandler
+# Core fields available in the Custom Content Model system
+# See Content::FieldHandler and Content::Field for information on
+# how to create your own field handlers extending the ContentModel system
+#
+# See the source for this file for examples of how to use the existing
+# filter and field set up options
+class Content::CoreField < Content::FieldHandler 
 
   # Get these into the class as class methods
   class << self;
@@ -10,7 +15,7 @@ class Content::CoreField < Content::FieldHandler
    end
   
 
-  def self.content_fields_handler_info
+  def self.content_fields_handler_info #:nodoc:
     { :name => 'Core Field Types' }
   end
   
@@ -116,7 +121,7 @@ class Content::CoreField < Content::FieldHandler
                      
 
   
-  class StringField < Content::Field
+  class StringField < Content::Field # :nodoc:all
     field_options :required, :unique, :regexp
     setup_model :required, :unique, :regexp
     table_header :string
@@ -125,12 +130,12 @@ class Content::CoreField < Content::FieldHandler
     filter_setup :like, :not_empty
     
     def form_field(f,field_name,field_opts,options={})
-      field_opts[:class] = 'field_sring_field'
+      field_opts[:class] = 'field_string_field'
       f.text_field field_name, field_opts.merge(options)
     end
   end
   
-  class IntegerField < Content::Field
+  class IntegerField < Content::Field # :nodoc:all
     field_options :required, :regexp
     setup_model :required, :validates_numericality, :regexp
     table_header :number
@@ -145,7 +150,7 @@ class Content::CoreField < Content::FieldHandler
   end  
   
   # Same as integer, just with a different currency
-  class CurrencyField < Content::CoreField::IntegerField
+  class CurrencyField < Content::CoreField::IntegerField #:nodoc:all
 
     def form_field(f,field_name,field_opts,options={})
       field_opts[:class] = 'field_currency_field'
@@ -154,7 +159,7 @@ class Content::CoreField < Content::FieldHandler
     
   end
   
-  class TextField < Content::CoreField::StringField
+  class TextField < Content::CoreField::StringField #:nodoc:all
     # Everything the same as StringField except the form field  
     def form_field(f,field_name,field_opts,options={})
       field_opts[:class] = 'field_text_area'
@@ -163,7 +168,7 @@ class Content::CoreField < Content::FieldHandler
   end
   
 
-  class HtmlField < Content::Field
+  class HtmlField < Content::Field #:nodoc:all
     field_options :required
     setup_model :required
     table_header :string
@@ -177,7 +182,7 @@ class Content::CoreField < Content::FieldHandler
     end
   end  
   
-  class EditorField < Content::CoreField::HtmlField
+  class EditorField < Content::CoreField::HtmlField #:nodoc:all
     # Everything the same as StringField that we want to display an editor area
     def form_field(f,field_name,field_opts,options={})
       field_opts[:class] = 'field_editor_area'
@@ -185,7 +190,7 @@ class Content::CoreField < Content::FieldHandler
     end
   end  
   
-  class EmailField < Content::Field
+  class EmailField < Content::Field #:nodoc:all
     field_options :required, :unique
     setup_model :required, :validates_as_email, :unique
     table_header :string
@@ -199,7 +204,7 @@ class Content::CoreField < Content::FieldHandler
     end
   end
   
-  class UsStateField < Content::Field
+  class UsStateField < Content::Field #:nodoc:all
     field_options :required
     setup_model :required
     table_header :string
@@ -216,7 +221,7 @@ class Content::CoreField < Content::FieldHandler
     filter_setup :like, :not_empty  
   end
   
-  class ImageField < Content::Field
+  class ImageField < Content::Field #:nodoc:all
     field_options :required
     table_header :has_relation
     filter_setup :not_empty
@@ -295,7 +300,7 @@ class Content::CoreField < Content::FieldHandler
     end
   end
   
-  class DocumentField < Content::CoreField::ImageField
+  class DocumentField < Content::CoreField::ImageField #:nodoc:all
     # Inherits from ImageField - modify_entry_parameters already checks for field type
     
     def content_display(entry,size=:full,options={})
@@ -348,8 +353,8 @@ class Content::CoreField < Content::FieldHandler
   
     
   
-  class OptionsField < Content::Field
-    field_options :options, :required
+  class OptionsField < Content::Field #:nodoc:all
+    field_options :options, :required 
     setup_model :required do |cls,fld|
        cls.has_options fld.model_field.field.to_sym, fld.available_options.clone
     end  
@@ -415,7 +420,7 @@ class Content::CoreField < Content::FieldHandler
   
   end
 
-  class BooleanField < Content::Field
+  class BooleanField < Content::Field #:nodoc:all
     field_options :on_off_value, :required
     setup_model :required
 
@@ -437,7 +442,7 @@ class Content::CoreField < Content::FieldHandler
   end
   
   
-  class MultiSelectField < Content::Field
+  class MultiSelectField < Content::Field #:nodoc:all
     field_options :options, :required
     setup_model :required, :serialize do |cls,fld|
        cls.has_options fld.model_field.field.to_sym, fld.available_options
@@ -476,7 +481,7 @@ class Content::CoreField < Content::FieldHandler
   end
   
   
-  class DateField < Content::Field
+  class DateField < Content::Field #:nodoc:all
     field_options :required
     setup_model :required,:validates_date
     
@@ -496,7 +501,7 @@ class Content::CoreField < Content::FieldHandler
   
   end
   
-  class DatetimeField < Content::Field
+  class DatetimeField < Content::Field #:nodoc:all
     field_options :required
     setup_model :required,:validates_datetime
     
@@ -518,7 +523,7 @@ class Content::CoreField < Content::FieldHandler
   
   end
   
-  class BelongsToField < Content::Field
+  class BelongsToField < Content::Field #:nodoc:all
     field_options :required, :belongs_to
     setup_model :required  do |cls,fld|
       if fld.model_field.field_options['relation_name'] && fld.model_field.field_options['relation_class']
@@ -619,7 +624,7 @@ class Content::CoreField < Content::FieldHandler
     
   end
 
-  class HasManyField < Content::Field
+  class HasManyField < Content::Field #:nodoc:all 
     field_options :required, :has_many
 
     setup_model  do |cls,fld|
@@ -767,7 +772,7 @@ class Content::CoreField < Content::FieldHandler
   end
 
 
-  class HeaderField < Content::Field
+  class HeaderField < Content::Field #:nodoc:all
     field_options
     setup_model 
     table_header :none
@@ -797,21 +802,21 @@ class Content::CoreField < Content::FieldHandler
     end    
   end
   
-  def self.dynamic_current_value(entry,fld,state = {})
+  def self.dynamic_current_value(entry,fld,state = {}) #:nodoc:
     Time.now
   end
   
 
   
-  def self.dynamic_ip_address_value(entry,fld,state = {})
+  def self.dynamic_ip_address_value(entry,fld,state = {}) #:nodoc:
     state[:controller].request.remote_ip if state[:controller]
   end
   
-  def self.dynamic_email_value(entry,fld,state = {})
+  def self.dynamic_email_value(entry,fld,state = {}) #:nodoc:
     state[:user].email
   end
   
-  def self.dynamic_user_identifier_value(entry,fld,state = {})
+  def self.dynamic_user_identifier_value(entry,fld,state = {}) #:nodoc:
     if state[:user].id 
       "#{state[:user].email} (#{state[:user].id})"
     else
@@ -819,7 +824,7 @@ class Content::CoreField < Content::FieldHandler
     end
   end
   
-  def self.dynamic_city_value(entry,fld,state = {})
+  def self.dynamic_city_value(entry,fld,state = {}) #:nodoc:
     begin
       MapZipcode.find_by_zip(entry.zipcode).city
     rescue Exception => e
@@ -827,7 +832,7 @@ class Content::CoreField < Content::FieldHandler
     end
   end
   
-  def self.dynamic_state_value(entry,fld,state ={})
+  def self.dynamic_state_value(entry,fld,state ={}) #:nodoc:
     begin
       MapZipcode.find_by_zip(entry.zipcode).state
     rescue Exception => e
@@ -835,13 +840,13 @@ class Content::CoreField < Content::FieldHandler
     end
   end
 
-  def self.dynamic_user_id_value(entry,fld,state={})
+  def self.dynamic_user_id_value(entry,fld,state={}) #:nodoc:
     if state[:user]
       state[:user].id
     end
   end
   
-  def self.dynamic_page_connection_value(entry,fld,state = {})
+  def self.dynamic_page_connection_value(entry,fld,state = {}) #:nodoc:
     val = state[:page_connection]
     if fld.content_model_field.field_type == 'options' # validate input if it's an option
       fnd = fld.content_model_field.module_class.options

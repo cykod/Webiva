@@ -1,8 +1,7 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 
-
-class Content::CoreFeature::FieldFormat <  Content::Feature
+class Content::CoreFeature::FieldFormat <  Content::Feature #:nodoc:all
 
    def self.content_feature_handler_info
     { 

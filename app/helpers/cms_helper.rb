@@ -120,7 +120,7 @@ SEARCH_WIDGET
    end
    
    # Builds a popup menu
-   def popup_menu(id,image,options={},&block)
+   def popup_menu(id,image,options={},&block) # :nodoc:
       options = options.clone
       options[:class] = 'line_icon'
     
@@ -175,7 +175,8 @@ images/icons/actions directory of the current theme.
       
       concat("</ul></div>")
    end   
-   
+
+   # This class usually isn't instantiated directly, see CmsHelper#action_panel for usage
    class ActionPanelBuilder 
       def initialize(ctrl) #:nodoc:
         @ctrl = ctrl
@@ -212,7 +213,7 @@ images/icons/actions directory of the current theme.
    end
    
   
-   
+    # This class usually isn't instantiated directly, see CmsHelper#ajax_tabs for usage
     class AjaxTabBuilder
       include ActionView::Helpers::TextHelper
       def initialize(view,tab_cnt,selected) # :nodoc:
@@ -718,6 +719,7 @@ EOF
 
   # Display a list of subpages in a management controller,
   # adding an additional pages that match the name
+  # see app/views/options/index.rhtml and OptionsController#index for an example
  def subpage_display(name,pages)
     output = "<table class='action_icon_table'><tr>"
     

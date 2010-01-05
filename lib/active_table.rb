@@ -85,50 +85,49 @@ can be overridden with the :refresh_url option. :more_actions will display a lis
 will appear in a drop down to the right of :actions. 
 
 === Header options 
- [:label]
-   Will use this instead of the humanized field name as a label
- [:options]
-   Either an select-friendly array of options [[name,id],...] or a symbol that maps to a instance
-   method that returns a select-friendly array of options
- [:width] 
-   A width in pixels for the header column to display
- [:icon]
+[:label]
+  Will use this instead of the humanized field name as a label
+[:options]
+  Either an select-friendly array of options [[name,id],...] or a symbol that maps to a instance
+  method that returns a select-friendly array of options
+[:width] 
+  A width in pixels for the header column to display
+[:icon]
   An icon image to display in-front of the label (except the icon header, which uses this instead of a field name)
 
-
 === Header Types
- [:blank]
-   Create an empty header used for filler columns
- [:boolean]
-   Create a header appropriate for boolean fields - orderable and searchable
- [:date]
-   Create a header with an orderable and searchable date (however date_range is often a better choice)
- [:date_range]
-   Create a header that lets the user enter a range of dates to display
- [:exists]
-   Used for columns to determine whether they are null or not 
- [:has_relation]
-   Used for belongs_to fields, checks if the value is > 0 or not > 0, useful for foreign keys
- [:icon]
-   Header that isn't sortable or searchable but displays and icon image
- [:multi_option_header]
-   Uses a LIKE search to searches for multiple options in a serialized area in a text field (used by the content system)
- [:number_header]
-   Used to search on an integer
- [:join_header]
-   Advanced header that searches for available options doing a join with some custom join sql. Pass an :options argument to 
-   the options has for the searchable values (or pass a symbol to use a callback)
- [:option_header]
-   Header that searches among available options. Pass an :options argument to 
-   the options has for the searchable values (or pass a symbol to use a callback)
- [:order_header]
-   Header is is only orderable and not searchable
- [:static_header]
-   Header that is neither orderable nor searchable
- [:string_header]
-   Header that is orderable and allows a LIKE search on the contents of the value
- [:two_string_header]
-   Header that does a like search on two fields. Pass :second_field as an option to the options hash
+[:blank]
+  Create an empty header used for filler columns
+[:boolean]
+  Create a header appropriate for boolean fields - orderable and searchable
+[:date]
+  Create a header with an orderable and searchable date (however date_range is often a better choice)
+[:date_range]
+  Create a header that lets the user enter a range of dates to display
+[:exists]
+  Used for columns to determine whether they are null or not 
+[:has_relation]
+  Used for belongs_to fields, checks if the value is > 0 or not > 0, useful for foreign keys
+[:icon]
+  Header that isn't sortable or searchable but displays and icon image
+[:multi_option_header]
+  Uses a LIKE search to searches for multiple options in a serialized area in a text field (used by the content system)
+[:number_header]
+  Used to search on an integer
+[:join_header]
+  Advanced header that searches for available options doing a join with some custom join sql. Pass an :options argument to 
+  the options has for the searchable values (or pass a symbol to use a callback)
+[:option_header]
+  Header that searches among available options. Pass an :options argument to 
+  the options has for the searchable values (or pass a symbol to use a callback)
+[:order_header]
+  Header is is only orderable and not searchable
+[:static_header]
+  Header that is neither orderable nor searchable
+[:string_header]
+  Header that is orderable and allows a LIKE search on the contents of the value
+[:two_string_header]
+  Header that does a like search on two fields. Pass :second_field as an option to the options hash
 =end
 module ActiveTable 
 

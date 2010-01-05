@@ -16,12 +16,25 @@ class Editor::ActionController < ParagraphController
   class HtmlHeadersOptions < HashModel
     attributes :css => nil, :javascript => nil, :html_header => nil
 
-    def css_files
-      @css_files ||= self.css.to_s.split("\n").select { |elm| !elm.blank? }.uniq
-    end
+    def validate
+      css_files.each do |file|
+        if(file =~ /^images\/(.*)$/)
+          df = DomainFile.find_by_file_path("/#{$1}")
+          if !df 
+            self.errors.add(:css,'is an invalid file manager file:' + $1)
+          end
+        end
+      end
 
-    def js_files
-      @js_files ||= self.javascript.to_s.split("\n").select { |elm| !elm.blank? }.uniq
+      js_files.each do |file|
+        if(file =~ /^images\/(.*)$/)
+          df = DomainFile.find_by_file_path("/#{$1}")
+          if !df
+            self.errors.add(:javascript,'is an invalid file manager file:' + $1)
+          end
+        end
+      end
+
     end
   end
   

@@ -23,6 +23,20 @@ module HandlerActions
     self.class.get_handler_info(component,handler_name,identifier,initialized)
   end
   
+  # Returns an array of instances for all supported handlers of a certain type
+  # and passes initialize_args to the handler class new method
+  def get_handler_instances(component,handler_name,*initialize_args)
+    get_handler_info(component,handler_name).map { |h| h[:class].new(*initialize_args) }
+  end
+  
+  def get_handler_instance(component,handler_name,identifier,*initialize_args)
+    h = get_handler_info(component,handler_name,identifier)
+    if h
+      h[:class].new(*initialize_args)
+    else
+      nil
+    end
+  end
   
   module  ClassMethods
 

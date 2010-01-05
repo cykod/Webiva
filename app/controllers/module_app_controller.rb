@@ -15,8 +15,6 @@ require 'singleton'
 # (or the init.rb of the appropriate modules) and a "Module Application Paragraph" dropped into
 # the appropriate zone.
 class ModuleAppController < ApplicationController
-  protect_from_forgery
-
   layout "page"
 
   skip_before_filter :context_translate_before

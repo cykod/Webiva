@@ -2,6 +2,8 @@
 
 # Parent class for all Webiva backend controllers. All controllers which 
 # expose backend functionality should inherit from this class (or one of it's children)
+#
+# 
 class CmsController < ApplicationController
      
   layout 'manage'
@@ -42,6 +44,8 @@ class CmsController < ApplicationController
     if session[:return_to_site]
       @cms_return_to_site_url = session[:return_to_site]
     end
+
+    @cms_titlebar_handlers = get_handler_instances(:webiva,:titlebar,self)
   end
 
 
@@ -267,6 +271,7 @@ class CmsController < ApplicationController
   def self.cms_admin_paths(section,pages = {})
     pages['Content'] ||= { :controller => '/content' }
     pages['Options'] ||= { :controller => '/options' }
+    pages['Modules'] ||= { :controller => '/options/modules' }
     sing = class << self; self; end
     sing.send :define_method, "cms_page_path_info" do
       { :section => section, :pages => pages }

@@ -3,7 +3,7 @@
 require 'csv'
 
 
-module Content::ImportSupport
+module Content::ImportSupport #:nodoc:all
 
 def export_xml(output,options = {}) 
   

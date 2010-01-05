@@ -1,7 +1,7 @@
 # Copyright (C) 2009 Pascal Rettig.
 
       
-class Content::CorePublication::ListPublication < Content::PublicationType
+class Content::CorePublication::ListPublication < Content::PublicationType #:nodoc:all
 
 
   class ListOptions < HashModel

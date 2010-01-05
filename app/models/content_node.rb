@@ -1,6 +1,75 @@
 # Copyright (C) 2009 Pascal Rettig.
 
+=begin rdoc
+This is a meta-class that represents an individual piece of content in the system
 
+Not all DomainModel's create ContentNode's - only those that need to be system-wide
+indexable. 
+ContentNode's generally belong to ContentType's which allows searching by individual
+types of content
+
+### Adding content node support to a model
+
+To add ContentNode support into a model, you should add a `content_node` call somehwere
+inside your class, for example:
+
+     content_node :container_type => 'BookBook', 
+     :container_field => 'book_book_id',
+     :except => Proc.new { |pg| pg.parent_id.blank? }, 
+     :published => :published
+
+and then you must add a content_description method that describes the piece of content
+(in addition to it's title field), such as:
+
+      def content_description(language)
+        "Page in \"%s\" Book" / self.book_book.name
+       end
+
+See ModelExtension::ContentNodeExtension for the exact options passed to `content_node`
+This allows the system to describe the piece of content to administrators.
+
+If you want to customize what attributes show up in a search of this content node, you should
+also define a method called content_node_body which takes a language as a parameter and
+returns HTML or plaintext with the content that should be indexed. for example BookPage could
+implement:
+
+      def content_node_body(language)
+        self.body
+      end
+
+Otherwise the system will use all string & text attributes by default
+
+### Adding content type support to a container model
+
+If this ContentNode has a :container_type - then the container type (in this case
+BookBook) needs to call at the class level of `content_node_type` and define some additional 
+methods.
+
+For example, the BookBook class defines adds the following call to content_node_type
+
+      content_node_type :book, "BookPage", 
+          :content_name => :name,
+          :title_field => :name, 
+          :url_field => :url
+
+What this means is that each BookBook that is created will add an entry to the ContentType table
+and it will contain a number of BookPages. BookBook now must implement two instance methods
+to provide more information about the type:
+
+
+      def content_admin_url(book_page_id)
+        {  :controller => '/book/manage', :action => 'edit', :path => [ self.id, book_page_id ],
+           :title => 'Edit Book Page'.t}
+      end
+
+      def content_type_name
+        "Book"
+      end
+
+The former returns a url_for hash for a specific piece of content while the later returns
+an translatable english name for the Content Type. 
+
+=end
 class ContentNode < DomainModel
 
   belongs_to :node, :polymorphic => true #, :dependent => :destroy
@@ -8,7 +77,8 @@ class ContentNode < DomainModel
   belongs_to :content_type
   has_many :content_node_values
   
-  def update_node_content(user,item,opts={})
+  
+  def update_node_content(user,item,opts={}) #:nodoc:
     opts = opts.symbolize_keys
     if self.content_type_id.blank?
       if opts[:container_type] # If there is a container field
@@ -46,6 +116,8 @@ class ContentNode < DomainModel
   end
 
 
+  # Returns the administration url for this content node, either
+  # by querying the container or the node itself
   def admin_url
     if self.content_type
       if self.content_type.container
@@ -91,7 +163,8 @@ class ContentNode < DomainModel
     end
   end
 
-  def content_description(language)
+  
+  def content_description(language) #:nodoc:
     if self.node.respond_to?(:content_description)
       self.node.content_description(language)
     else
@@ -100,6 +173,9 @@ class ContentNode < DomainModel
   end
 
 
+  # Search content in a given language given a query string
+  # Will reteurn a list of ContentNodeValues using whatever search
+  # handler is active
   def self.search(language,query,options = { })
     search_handler = Configuration.options.search_handler
 
@@ -111,7 +187,7 @@ class ContentNode < DomainModel
     end
   end
 
-  def self.internal_search(language,query,options = { })
+  def self.internal_search(language,query,options = { }) #:nodoc:
     with_scope(:find => { 
                :conditions => ["content_node_values.language = ? AND MATCH (content_node_values.title,content_node_values.body) AGAINST (?)",language,query],
                :include => :node, :joins => :content_node_values,

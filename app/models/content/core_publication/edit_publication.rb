@@ -1,7 +1,7 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 
-class Content::CorePublication::EditPublication < Content::CorePublication::CreatePublication
+class Content::CorePublication::EditPublication < Content::CorePublication::CreatePublication #:nodoc:all
   # All the same options as the edit publication 
   
   register_triggers :view, :edit, :create

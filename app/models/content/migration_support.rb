@@ -1,7 +1,7 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 
-module Content::MigrationSupport 
+module Content::MigrationSupport  #:nodoc:
 
  def delete_table
     
