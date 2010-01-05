@@ -999,7 +999,7 @@ Not doing so could allow a user to change their user profile (for example) and e
      num
   end
   
-  # Return an HTML description of this user
+  # Return an HTML-formatted description of this user
   def html_description
    output = '<table>'
    %w(email first_name last_name vip_number).each do |fld| 
@@ -1019,6 +1019,7 @@ Not doing so could allow a user to change their user profile (for example) and e
    output
   end
   
+  # Return a text-formatted description of the user
   def text_description
    output = ''
    %w(email first_name last_name vip_number).each do |fld| 
@@ -1039,13 +1040,16 @@ Not doing so could allow a user to change their user profile (for example) and e
   end
     
   
-  def gallery_can_upload(usr); usr.id == self.id; end
-  def gallery_can_edit(usr); usr.id == self.id; end    
-  def is_admin?(usr); usr.id == self.id; end
+  def gallery_can_upload(usr) #:nodoc:
+    usr.id == self.id; end
+  def gallery_can_edit(usr) #:nodoc:
+    usr.id == self.id; end    
+  def is_admin?(usr); #:nodoc:
+    usr.id == self.id; end
   
   private
   
-  def self.process_import_field(entry,field,value)
+  def self.process_import_field(entry,field,value) #:nodoc:
     case field
     when 'gender':
       if ['m','male','m'.t,'male'.t].include?(value.to_s.downcase)
@@ -1071,7 +1075,7 @@ Not doing so could allow a user to change their user profile (for example) and e
     end
   end
   
-  def self.process_import_address(entry,entry_addresses,field,value)
+  def self.process_import_address(entry,entry_addresses,field,value) #:nodoc:
     address,field = field.split("_")
     adr = case address
       when 'work':
