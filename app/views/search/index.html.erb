@@ -24,7 +24,7 @@
 <% end -%>
 <% end -%>
 
-<% if @search.page > 0 -%>
+<% if @search.page > 1 -%>
  <%= link_to "&laquo; Previous Results",:action => 'index',:search => @search.terms,:content_type_id => @search.content_type_id,:page => @search.page-1 -%>
 <% end -%>
 <% if @more -%>
