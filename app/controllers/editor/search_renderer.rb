@@ -5,6 +5,8 @@ class Editor::SearchRenderer < ParagraphRenderer
 
   paragraph :search_box
   paragraph :search_results
+  paragraph :opensearch
+  paragraph :opensearch_auto_discovery
 
   def search_box
     @options = paragraph_options(:search_box)
@@ -48,6 +50,49 @@ class Editor::SearchRenderer < ParagraphRenderer
     end
 
     render_paragraph :feature => :search_page_search_results
+  end
+
+  def opensearch
+    return render_paragraph :text => 'Reconfigure Data Output' unless paragraph.data
+    return render_paragraph :text => 'Search results page not set' if paragraph.data[:search_results_page_id].blank?
+
+    data = paragraph.data
+
+    site_node = SiteNode.find data[:search_results_page_id]
+    data[:search_results_page_url] = Configuration.domain_link site_node.node_path
+
+    if data[:icon_id]
+      domain_file = DomainFile.find_by_id data[:icon_id]
+      if domain_file
+	data[:icon] = { :url => Configuration.domain_link(domain_file.url), :width => 16, :height => 16, :type => 'image/x-icon' }
+      end
+    end
+
+    if data[:image_id]
+      domain_file = DomainFile.find_by_id data[:image_id]
+      if domain_file
+	data[:image] = { :url => Configuration.domain_link(domain_file.url), :width => 64, :height => 64, :type => domain_file.mime_type }
+      end
+    end
+
+    data_paragraph :disposition => '', :type => 'text/xml', :data => render_to_string(:partial => '/editor/search/opensearch', :locals => { :data => data })
+  end
+
+  def opensearch_auto_discovery
+    @options = (paragraph.data || {}).symbolize_keys
+
+    if !@options[:module_node_id].blank? && @options[:module_node_id].to_i > 0
+      @nodes = [ SiteNode.find_by_id(@options[:module_node_id]) ]
+    else
+      @nodes = SiteNode.find(:all,:conditions =>  ['node_type = "M" AND module_name = "/editor/opensearch"' ],:include => :page_modifier)
+    end
+    
+    output = @nodes.collect do |nd|
+          "<link rel='search' type='application/opensearchdescription+xml' title='#{vh nd.page_modifier.modifier_data[:title]}' href='#{vh nd.node_path}' />"
+      end.join("\n")
+    
+    include_in_head(output)
+    render_paragraph :nothing => true
   end
 
   protected

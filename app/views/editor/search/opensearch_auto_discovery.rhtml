@@ -1,0 +1,6 @@
+<div class='cms_form'>
+  <% paragraph_options_form_for "OpenSearch Auto Discovery Options",:opensearch_auto_discovery ,@options do |f| -%>
+  
+    <%= f.select :module_node_id, @opensearches,:label => 'Select OpenSearch', :description => 'which feed would you like to add autodiscovery for' %>
+  <% end -%>
+</div>
