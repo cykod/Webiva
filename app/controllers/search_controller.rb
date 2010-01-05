@@ -3,10 +3,16 @@ class SearchController < CmsController
   cms_admin_paths :content,
     'Search' => { :action => 'index'} 
   
+  skip_before_filter :validate_is_editor, :only => [:index, :suggestions]
 
   @@results_per_page = 20
 
   def index
+    if myself.id.nil? || ! myself.editor?
+      session[:lockout_current_url] = self.request.request_uri
+      return deny_access!
+    end
+
     cms_page_path ['Content'], 'Search'
     
     @search = self.content_search_node
@@ -121,10 +127,12 @@ class SearchController < CmsController
   end
 
   def suggestions
-    
     search = params[:search]
+    return render :json => [search, ['Not logged in']] unless myself.id && myself.editor?
 
     case search
+    when /^:$/
+     @results = search_handlers.values
     when /^(\/.*)/
       @results = SiteNode.find(:all,:conditions => ['node_path LIKE ? AND node_type="P"', "%#{$1}%" ],:order => "LENGTH(node_path)").map do |node|
         { :title => node.node_path,

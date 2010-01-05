@@ -86,10 +86,11 @@ class Editor::SearchRenderer < ParagraphRenderer
     else
       @nodes = SiteNode.find(:all,:conditions =>  ['node_type = "M" AND module_name = "/editor/opensearch"' ],:include => :page_modifier)
     end
-    
+
     output = @nodes.collect do |nd|
-          "<link rel='search' type='application/opensearchdescription+xml' title='#{vh nd.page_modifier.modifier_data[:title]}' href='#{vh nd.node_path}' />"
-      end.join("\n")
+      modifier_data = nd.page_modifier.modifier_data
+      modifier_data ? "<link rel='search' type='application/opensearchdescription+xml' title='#{vh nd.page_modifier.modifier_data[:title]}' href='#{vh nd.node_path}' />" : ''
+    end.join("\n")
     
     include_in_head(output)
     render_paragraph :nothing => true
