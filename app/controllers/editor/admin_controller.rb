@@ -35,7 +35,7 @@ class Editor::AdminController < ModuleController
     page_options :search_results_page_id
 
     validates_presence_of :title, :search_results_page_id
-    validates_length_of :title, :maximum => 16
+    validates_length_of :title, :maximum => 64
     validates_length_of :description, :maximum => 1024
 
     def validate

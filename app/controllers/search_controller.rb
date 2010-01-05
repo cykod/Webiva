@@ -20,6 +20,8 @@ class SearchController < CmsController
       end
     end
 
+    opensearch_auto_discovery_header
+
     render :action => 'index'
   end
 
@@ -47,6 +49,14 @@ class SearchController < CmsController
     end
 
     @search_handlers
+  end
+
+  def opensearch_auto_discovery_header
+    @domain = Domain.find DomainModel.active_domain_id
+
+    opensearch_url = url_for :action => 'opensearch'
+    title = "Backend search for %s" / @domain.name.humanize
+    @header = "<link rel='search' type='application/opensearchdescription+xml' title='#{vh title}' href='#{vh opensearch_url}' />"
   end
 
   public
@@ -86,6 +96,56 @@ class SearchController < CmsController
     end
     
     render :action => 'autocomplete', :layout => false
+  end
+
+  def suggestions
+    
+    search = params[:search]
+
+    case search
+    when /^:$/
+     @results = search_handlers.values
+    when /^(\/.*)/
+      @results = SiteNode.find(:all,:conditions => ['node_path LIKE ? AND node_type="P"', "%#{$1}%" ],:order => "LENGTH(node_path)").map do |node|
+        { :title => node.node_path }
+      end
+    when /^([a-zA-Z0-9]+)\:(.*)$/
+      search_handler = $1
+      search_terms = $2.strip
+
+      # Check if we match a search handler, if not show the handlers
+
+      if !search_terms.blank? && handler = search_handlers[search_handler]
+        if !handler[:class]
+          @results = self.send("#{handler[:name]}_search_handler",search_terms)
+        else
+          @results = handler[:class].send("#{handler[:name]}_search_handler",search_terms)
+        end
+      else
+        @results = search_handlers.values
+      end
+    end
+
+    suggestions = []
+    @results.each { |result| suggestions.push result[:title] } if @results
+
+    render :json => [search, suggestions]
+  end
+
+  def opensearch
+    search_url = url_for :action => 'index'
+    suggest_url = url_for :action => 'suggestions'
+    icon_url = Configuration.domain_link '/favicon.ico'
+
+    @domain = Domain.find DomainModel.active_domain_id
+    domain_name = @domain.name.humanize
+    title = '%s Admin Search' / domain_name
+    description = "Backend search for #{domain_name}"
+    data = { :title => title, :description => description, :search_url => search_url, :suggest_url => suggest_url,
+             :icon => {:url => icon_url, :width => 16, :height => 16, :type => 'image/x-icon'}
+           }
+
+    render :partial => 'opensearch', :locals => { :data => data }
   end
 
   protected
