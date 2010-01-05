@@ -178,8 +178,9 @@ h4 {
 
 a img {
  border:0px;
-
 }
+
+a:active {  outline:none; }
 
 
 /* Additional Site Styles */
