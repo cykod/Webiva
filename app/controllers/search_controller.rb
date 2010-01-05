@@ -158,7 +158,7 @@ class SearchController < CmsController
 
   def content_search_node
     return @search if @search
-    @search = ContentNodeSearch.new :per_page => @@results_per_page, :max_per_page => @@results_per_page, :page => 0
+    @search = ContentNodeSearch.new :per_page => @@results_per_page, :max_per_page => @@results_per_page, :page => 1
   end
 
   def searched

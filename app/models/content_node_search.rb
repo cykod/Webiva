@@ -89,10 +89,12 @@ class ContentNodeSearch < HashModel
     conditions = {:search_result => 1}
     conditions[:content_type_id] = self.content_type_id if self.content_type_id
 
+    offset = (self.page - 1) * self.per_page
+
     @results, @total_results = ContentNode.search(self.language, self.terms,
 						  :conditions => conditions,
 						  :limit => self.per_page + 1,
-						  :offset => self.page * self.per_page
+						  :offset => offset
 						  )
     @results.map! do |node|
       content_description =  node.content_description(language)
