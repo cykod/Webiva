@@ -12,6 +12,28 @@ class SearchController < CmsController
     @search = self.content_search_node
 
     if self.update_search && @search.search?
+
+      case @search.terms
+      when /^(\/.*)/
+	node = SiteNode.find(:first, :conditions => ['node_path = ? AND node_type="P"', "#{$1}" ])
+	return redirect_to SiteNode.content_admin_url(node.id) if node
+
+      when /^([a-zA-Z0-9]+)\:(.*)$/
+	search_handler = $1
+	search_terms = $2.strip
+
+	if !search_terms.blank? && handler = search_handlers[search_handler]
+	  if !handler[:class]
+	    @results = self.send("#{handler[:name]}_search_handler",search_terms)
+	  else
+	    @results = handler[:class].send("#{handler[:name]}_search_handler",search_terms)
+	  end
+
+	  return redirect_to @results[0][:url] if @results && @results.length > 0
+	end
+
+      end
+
       @results, @more = content_search_handler
 
       if @results.length > 0
@@ -103,11 +125,12 @@ class SearchController < CmsController
     search = params[:search]
 
     case search
-    when /^:$/
-     @results = search_handlers.values
     when /^(\/.*)/
       @results = SiteNode.find(:all,:conditions => ['node_path LIKE ? AND node_type="P"', "%#{$1}%" ],:order => "LENGTH(node_path)").map do |node|
-        { :title => node.node_path }
+        { :title => node.node_path,
+	  :suggestion => node.node_path,
+	  :subtitle => node.title,
+	  :url => SiteNode.content_admin_url(node.id) }
       end
     when /^([a-zA-Z0-9]+)\:(.*)$/
       search_handler = $1
@@ -121,15 +144,24 @@ class SearchController < CmsController
         else
           @results = handler[:class].send("#{handler[:name]}_search_handler",search_terms)
         end
-      else
-        @results = search_handlers.values
+
+	@results.map do |result|
+	  result[:suggestion] = "#{search_handler}:#{result[:title]}"
+	  result
+	end if @results
       end
     end
 
     suggestions = []
-    @results.each { |result| suggestions.push result[:title] } if @results
+    descriptions = []
+    urls = []
+    @results.each do |result|
+      suggestions.push result[:suggestion]
+      descriptions.push result[:subtitle]
+      urls.push result[:url]
+    end if @results
 
-    render :json => [search, suggestions]
+    render :json => [search, suggestions, descriptions, urls]
   end
 
   def opensearch
