@@ -56,6 +56,10 @@ class ContentModel < DomainModel
       user.has_role?(:editor_content)
     end
   end
+
+  def content_type_name
+    self.name
+  end
   
    # Return a list of content fields with their modules added in
   def self.content_fields

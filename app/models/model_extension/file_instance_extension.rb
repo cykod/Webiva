@@ -17,10 +17,12 @@ module ModelExtension::FileInstanceExtension
 
   module ClassMethods
 
+    # Will add domain file instance tracking to a column of this model
     def domain_file_column(column_name)
       after_save "pre_process_domain_file_instance_#{column_name}"
       after_save "post_process_file_instance_#{column_name}"
-      
+      after_destroy "destroy_file_instances"
+
       define_method("pre_process_domain_file_instance_#{column_name}")  do
         file_instance_column_replace(column_name)
       end
@@ -29,7 +31,17 @@ module ModelExtension::FileInstanceExtension
         file_instance_update(column_name)
       end     
     end
-  
+    
+    # Will process file instances with editor_url's in column_name
+    # and turn them into actual file urls while keeping track
+    # of the failes associated with this column
+    #
+    # For example:
+    #
+    #     process_file_instance :body, :body_html
+    #
+    # will render the column `body` auto-mago-matically on save into `body_html`
+    # and put live urls into body_html
     def process_file_instance(column_name,rendered_column_name)
       before_save "pre_process_file_instance_#{column_name}"
       after_save "post_process_file_instance_#{column_name}"
@@ -43,6 +55,16 @@ module ModelExtension::FileInstanceExtension
       end      
     end
 
+    # Accepts a hash of the form :field_name => :rendered_field_name 
+    # and will apply the filter options specified in options[:filter] to 
+    # during the conversion process. Also processes any filter instances
+    # 
+    # If apply_content_filter is passed a block, it will call that block
+    # if options[:filter] does not exist to return the filter details.
+    # 
+    # see ContentFilter#self.filter for avilable filter options (these
+    # are the equivalent of the options hash with an extra :filter key
+    # specifying the name of the filter)
     def apply_content_filter(fields,options={},&block)
       if options[:filter]
         filter_details = options[:filter]
@@ -65,12 +87,12 @@ module ModelExtension::FileInstanceExtension
     
   end
   
-  def self.append_features(mod)
+  def self.append_features(mod) #:nodoc:
     super
     mod.extend ModelExtension::FileInstanceExtension::ClassMethods
   end
   
-  def file_instance_search(column_name,html=nil)
+  def file_instance_search(column_name,html=nil) #:nodoc:
     file_ids = []
     html = self.send(column_name).to_s if html.blank?
     html.scan(/\/__fs__\/([0-9a-fA-F\/]+)(\:([a-zA-Z_]+)){0,1}/) do |prefix,slash,size|
@@ -86,7 +108,7 @@ module ModelExtension::FileInstanceExtension
     
   end
   
-  def file_instance_replace(column_name,rendered_column_name,content_filter={})
+  def file_instance_replace(column_name,rendered_column_name,content_filter={}) #:nodoc:
     html = self.send(column_name).to_s
     if content_filter
       content_filter.symbolize_keys!
@@ -108,14 +130,14 @@ module ModelExtension::FileInstanceExtension
     self.send("#{rendered_column_name}=",html)
   end
 
-  def file_instance_column_replace(column_name)
+  def file_instance_column_replace(column_name) #:nodoc:
     if self.send("#{column_name}_changed?")
       @file_instance_affected ||={}
       @file_instance_affected[column_name.to_s] = [ self.send(column_name) ]
     end
   end
   
-  def file_instance_update(column_name,rendered_column_name=nil)
+  def file_instance_update(column_name,rendered_column_name=nil) #:nodoc:
     destroy_file_instances(column_name)
     value_str = ",'#{self.class.class_name}','#{self.id}','#{column_name}')"
 
@@ -128,7 +150,7 @@ module ModelExtension::FileInstanceExtension
     end
   end
   
-  def destroy_file_instances(column_name=nil)
+  def destroy_file_instances(column_name=nil) #:nodoc:
     if(column_name)
       DomainFileInstance.delete_all({ :target_type => self.class.to_s, :target_id => self.id,:column => column_name.to_s })
     else
