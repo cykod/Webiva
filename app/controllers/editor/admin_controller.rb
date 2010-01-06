@@ -34,11 +34,20 @@ class Editor::AdminController < ModuleController
 
     page_options :search_results_page_id
 
-    validates_presence_of :title, :search_results_page_id
+    validates_presence_of :search_results_page_id
     validates_length_of :title, :maximum => 64
     validates_length_of :description, :maximum => 1024
 
     def validate
+      if self.title.blank?
+	@config = Configuration.retrieve(:options)
+	self.title = @config.options[:domain_title_name]
+	if self.title.blank?
+	  @domain = Domain.find DomainModel.active_domain_id
+	  self.title = @domain.name.humanize
+	end
+      end
+
       if self.description.blank?
 	self.description = 'Search using %s' / self.title
       end
