@@ -40,8 +40,8 @@ class Editor::AdminController < ModuleController
 
     def validate
       if self.title.blank?
-	@config = Configuration.retrieve(:options)
-	self.title = @config.options[:domain_title_name]
+	@config = Configuration.options
+	self.title = @config.domain_title_name
 	if self.title.blank?
 	  @domain = Domain.find DomainModel.active_domain_id
 	  self.title = @domain.name.humanize

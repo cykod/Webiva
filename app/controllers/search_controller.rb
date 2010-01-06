@@ -93,8 +93,8 @@ class SearchController < CmsController
 
     opensearch_url = url_for :action => 'opensearch'
 
-    @config = Configuration.retrieve(:options)
-    domain_name = @config.options[:domain_title_name]
+    @config = Configuration.options
+    domain_name = @config.domain_title_name
     if domain_name.blank?
       @domain = Domain.find DomainModel.active_domain_id
       domain_name = @domain.name.humanize
@@ -194,8 +194,8 @@ class SearchController < CmsController
     suggest_url = url_for :action => 'suggestions'
     icon_url = Configuration.domain_link '/favicon.ico'
 
-    @config = Configuration.retrieve(:options)
-    domain_name = @config.options[:domain_title_name]
+    @config = Configuration.options
+    domain_name = @config.domain_title_name
     if domain_name.blank?
       @domain = Domain.find DomainModel.active_domain_id
       domain_name = @domain.name.humanize
