@@ -3,18 +3,35 @@ class SearchController < CmsController
   cms_admin_paths :content,
     'Search' => { :action => 'index'} 
   
-  skip_before_filter :validate_is_editor, :only => [:index, :suggestions]
+  skip_before_filter :validate_is_editor, :only => [:feeling_lucky, :suggestions]
 
   @@results_per_page = 20
 
   def index
+    cms_page_path ['Content'], 'Search'
+    
+    @search = self.content_search_node
+
+    if self.update_search && @search.search?
+      @results, @more = content_search_handler
+
+      if @results.length > 0
+        @showing = (@search.page * @@results_per_page)+1
+        @showing_end= @results.length + @showing-1
+      end
+    end
+
+    opensearch_auto_discovery_header
+
+    render :action => 'index'
+  end
+
+  def feeling_lucky
     if myself.id.nil? || ! myself.editor?
       session[:lockout_current_url] = self.request.request_uri
       return deny_access!
     end
 
-    cms_page_path ['Content'], 'Search'
-    
     @search = self.content_search_node
 
     if self.update_search && @search.search?
@@ -40,17 +57,9 @@ class SearchController < CmsController
 
       end
 
-      @results, @more = content_search_handler
-
-      if @results.length > 0
-        @showing = (@search.page * @@results_per_page)+1
-        @showing_end= @results.length + @showing-1
-      end
     end
 
-    opensearch_auto_discovery_header
-
-    render :action => 'index'
+    redirect_to :action => 'index', :search => @search.terms
   end
 
   protected 
@@ -83,7 +92,15 @@ class SearchController < CmsController
     @domain = Domain.find DomainModel.active_domain_id
 
     opensearch_url = url_for :action => 'opensearch'
-    title = "Backend search for %s" / @domain.name.humanize
+
+    @config = Configuration.retrieve(:options)
+    domain_name = @config.options[:domain_title_name]
+    if domain_name.blank?
+      @domain = Domain.find DomainModel.active_domain_id
+      domain_name = @domain.name.humanize
+    end
+
+    title = "Backend search for %s" / domain_name
     @header = "<link rel='search' type='application/opensearchdescription+xml' title='#{vh title}' href='#{vh opensearch_url}' />"
   end
 
@@ -173,7 +190,7 @@ class SearchController < CmsController
   end
 
   def opensearch
-    search_url = url_for :action => 'index'
+    search_url = url_for :action => 'feeling_lucky'
     suggest_url = url_for :action => 'suggestions'
     icon_url = Configuration.domain_link '/favicon.ico'
 
