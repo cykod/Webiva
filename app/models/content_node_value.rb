@@ -25,6 +25,11 @@ class ContentNodeValue < DomainModel
     self.content_node.author
   end
 
+
+  class << self
+    include ActionView::Helpers::TextHelper
+  end
+
   def self.search(language, query, options)
     values = []
     total_results = 0
@@ -34,6 +39,13 @@ class ContentNodeValue < DomainModel
 		 :order => ["MATCH (title) AGAINST (",self.quote_value(query), ") DESC, MATCH (title,body) AGAINST (",self.quote_value(query), ") DESC"].join
 	       }) do
       values = self.find(:all,options)
+      values.each do |val|
+        val.excerpt = excerpt(val.body,query)
+        if val.excerpt.blank?
+          val.excerpt = truncate(val.body,:length => 100)
+        end
+        val.excerpt = highlight(val.excerpt,query.to_s.split(" "))
+      end
       options.delete(:limit)
       options.delete(:offset)
       total_results = self.count options

@@ -16,7 +16,7 @@ class SearchController < CmsController #:nodoc:all
       @results, @more = content_search_handler
 
       if @results.length > 0
-        @showing = (@search.page * @@results_per_page)+1
+        @showing = ((@search.page-1) * @@results_per_page)+1
         @showing_end= @results.length + @showing-1
       end
     end

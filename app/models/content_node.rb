@@ -146,7 +146,7 @@ class ContentNode < DomainModel
 
       # If we haven't updated this since we last updated the
       # content node value, just return
-      if !cnv.updated_at || self.updated_at > cnv.updated_at
+      if !cnv.updated_at || self.updated_at > cnv.updated_at || type_preload.updated_at > cnv.updated_at
         if(self.node.respond_to?(:content_node_body))
           cnv.body = Util::TextFormatter.text_plain_generator( node.content_node_body(lang))
         else
@@ -160,6 +160,8 @@ class ContentNode < DomainModel
           cnv.title = "Unknown"
           cnv.link = self.content_url_override || nil
         end
+        cnv.search_result = type_preload.search_results? ? true : false
+        cnv.protected_result = type_preload.protected_results? ? true : false
         cnv.save
       end
     end
