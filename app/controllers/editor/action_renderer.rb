@@ -20,7 +20,7 @@ class Editor::ActionRenderer < ParagraphRenderer
 
   def html_headers
 
-    @options = paragraph_options(:html_header)
+    @options = paragraph_options(:html_headers)
     
     if !editor?
     @options.css_files.each do |file|

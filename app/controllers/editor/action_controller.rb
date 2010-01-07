@@ -16,6 +16,8 @@ class Editor::ActionController < ParagraphController
   class HtmlHeadersOptions < HashModel
     attributes :css => nil, :javascript => nil, :html_header => nil
 
+    
+
     def validate
       css_files.each do |file|
         if(file =~ /^images\/(.*)$/)
@@ -34,7 +36,14 @@ class Editor::ActionController < ParagraphController
           end
         end
       end
+    end
+    
+    def css_files
+      @css_files ||= self.css.to_s.split("\n").select { |elm| !elm.blank? }.uniq
+    end
 
+    def js_files
+      @js_files ||= self.javascript.to_s.split("\n").select { |elm| !elm.blank? }.uniq
     end
   end
   
