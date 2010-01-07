@@ -1,0 +1,69 @@
+--- !ruby/object:Gem::Specification 
+name: SyslogLogger
+version: !ruby/object:Gem::Version 
+  version: 1.4.0
+platform: ruby
+authors: 
+- Eric Hodel
+autorequire: 
+bindir: bin
+cert_chain: 
+date: 2007-05-08 00:00:00 -04:00
+default_executable: 
+dependencies: 
+- !ruby/object:Gem::Dependency 
+  name: hoe
+  type: :runtime
+  version_requirement: 
+  version_requirements: !ruby/object:Gem::Requirement 
+    requirements: 
+    - - ">="
+      - !ruby/object:Gem::Version 
+        version: 1.2.0
+    version: 
+description: SyslogLogger is a Logger replacement that logs to syslog.  It is almost drop-in with a few caveats.
+email: drbrain@segment7.net
+executables: []
+
+extensions: []
+
+extra_rdoc_files: []
+
+files: 
+- History.txt
+- Manifest.txt
+- README.txt
+- Rakefile
+- lib/analyzer_tools/syslog_logger.rb
+- lib/syslog_logger.rb
+- test/test_syslog_logger.rb
+has_rdoc: true
+homepage: http://seattlerb.rubyforge.org/SyslogLogger
+licenses: []
+
+post_install_message: 
+rdoc_options: []
+
+require_paths: 
+- lib
+required_ruby_version: !ruby/object:Gem::Requirement 
+  requirements: 
+  - - ">"
+    - !ruby/object:Gem::Version 
+      version: 0.0.0
+  version: 
+required_rubygems_version: !ruby/object:Gem::Requirement 
+  requirements: 
+  - - ">="
+    - !ruby/object:Gem::Version 
+      version: "0"
+  version: 
+requirements: []
+
+rubyforge_project: seattlerb
+rubygems_version: 1.3.5
+signing_key: 
+specification_version: 1
+summary: SyslogLogger is a Logger replacement that logs to syslog.  It is almost drop-in with a few caveats.
+test_files: 
+- test/test_syslog_logger.rb
