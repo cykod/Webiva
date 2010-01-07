@@ -29,6 +29,10 @@ class Blog::BlogPost < DomainModel
   content_node :container_type => 'Blog::BlogBlog', :container_field => 'blog_blog_id',
   :preview_feature => '/blog/page_feature/blog_post_preview'
 
+  def content_node_body(language)
+    self.active_revision.body_html if self.active_revision
+  end
+
   def comments_count
     return @comments_count if @comments_count
     @comments_count = self.comments.size

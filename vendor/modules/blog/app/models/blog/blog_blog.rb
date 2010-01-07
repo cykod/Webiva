@@ -81,4 +81,8 @@ class Blog::BlogBlog < DomainModel
                         :order => 'published_at DESC',
                         :conditions => ["blog_posts.status = \"published\" AND blog_blog_id=? AND blog_posts.permalink=?",self.id,permalink])
   end
+
+  def content_type_name
+    "Blog"
+  end
 end
