@@ -1,0 +1,7 @@
+<div class='admin_content'>
+<% cms_form_for :options, @options, :html => {:class =>'admin_form' } do |f| -%>
+<%= f.select :media_video_handler, @options.media_video_handlers, :vertical => true %>
+<%= f.select :media_audio_handler, @options.media_audio_handlers, :vertical => true %>
+<%= f.submit_tag 'Save' %>
+<%  end -%>
+</div>

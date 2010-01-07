@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <tt xml:lang="en" xmlns="http://www.w3.org/2006/04/ttaf1"  xmlns:tts="http://www.w3.org/2006/04/ttaf1#styling">
+  <head>
+   <styling>
+		<style id="basics" tts:fontSize="16" tts:backgroundColor="#BBBBBB" tts:color="#000000" tts:fontFamily="Verdana"/>
+ 		<style id="main" style="basics" tts:textAlign="center"/>
+		<style id="hinweis" style="basics" tts:backgroundColor="red"/>
+   </styling>
+  </head>
+ 
+  <body>
+   <div xml:lang="en">
+  	<p begin="00:00:01.00" style="main">FLV Flash Fullscreen Player</p>  
+ 	<p begin="00:00:03.00" style="hinweis">www.video-flash.de</p>
+   </div>
+  </body>
+</tt>

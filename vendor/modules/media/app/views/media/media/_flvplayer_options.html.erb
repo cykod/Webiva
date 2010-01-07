@@ -1,0 +1,5 @@
+<%= f.select(:skin, @options.handler_options.skin_options, :vertical => true) %>
+<%= f.text_field :color, :label => 'Color', :maxlength => 6, :vertical => true %>
+<%= f.select :volume, @options.handler_options.volume_options, :vertical => true %>
+<%= f.filemanager_image :preview_file_id, :label => 'Preview image', :vertical => true %>
+<%= f.filemanager_file :preroll_file_id, :label => 'Preroll video', :vertical => true %>
