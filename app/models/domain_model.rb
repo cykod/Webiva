@@ -5,33 +5,35 @@ require 'digest/sha1'
 # Master ActiveRecord::Base class for all per-domain tables
 class DomainModel < ActiveRecord::Base
   self.abstract_class = true
-  @@domain_db_connections = {} ## Not used in Backgroundrb
   @@active_domain = {} # Made Thread safe for Backgroundrb
-  @@active_file = nil
   
   include HandlerActions
   include ModelExtension::OptionsExtension
   
   cattr_accessor :logger
 
+  def self.process_id
+    Thread.current.object_id
+  end
+
   # Returns the active domain information hash
   def self.active_domain
-    @@active_domain[Process.pid]  || {}
+    @@active_domain[process_id]  || {}
   end
   
   # Returns the active domain id from the Domain table
   def self.active_domain_id
-    (@@active_domain[Process.pid]  || {})[:id].to_s
+    (@@active_domain[process_id]  || {})[:id].to_s
   end
   
   # Returns the name of the active domain
   def self.active_domain_name
-    (@@active_domain[Process.pid]  ||{})[:name].to_s
+    (@@active_domain[process_id]  ||{})[:name].to_s
   end
   
   # Returns the database of the active domain
   def self.active_domain_db
-    (@@active_domain[Process.pid]  ||{})[:database].to_s
+    (@@active_domain[process_id]  ||{})[:database].to_s
   end
   
   # Returns the name of the class
@@ -190,7 +192,7 @@ class DomainModel < ActiveRecord::Base
   
     domain_info.symbolize_keys!
     
-    @@active_domain[Process.pid] = domain_info
+    @@active_domain[process_id] = domain_info
     
     file = "#{RAILS_ROOT}/config/sites/#{domain_info[:database]}.yml"
     
@@ -216,37 +218,21 @@ class DomainModel < ActiveRecord::Base
   class << self
     alias_method :connection_active_record, :connection # :nodoc:
   end
-  
-  def self.connection #:nodoc:
-    @@webiva_connection ||= self.connection_active_record
-  end
-  
-  def self.connection=(val) # :nodoc:
-    @@webiva_connection = val
-  end
-  
-  
-  def self.activate_database_file(file,environment = 'production',save_connection = true) # :nodoc:
-    if (file + environment )== @@active_file
-      return 
-    end
-    
-    pid = Process.pid
-    
-    if save_connection && @@domain_db_connections[pid] && @@domain_db_connections[pid][file] && @@domain_db_connections[pid][file][environment]
-      DomainModel.connection = @@domain_db_connections[pid][file][environment]
-      begin
-        if !DomainModel.connection.active?
-          DomainModel.connection.reconnect!
-        end
-      rescue Mysql::Error
-        DomainModel.connection.reconnect!
-      end
+
+  @@database_connection_pools = {}
+  def self.connection
+    if  @@database_connection_pools[self.process_id]
+       @@database_connection_pools[self.process_id].connection
     else
-      @@domain_db_connections[pid] ||= {}
-      @@domain_db_connections[pid][file] ||= {}
-      # If domain doesn't exist anymore
-      # return an error
+      connection_active_record
+    end
+  end
+  
+  def self.activate_database_file(file,environment = 'production',save_connection = true)
+    
+    delegate_class_name = File.basename(file,'.yml').classify
+
+    if !Object.const_defined?(delegate_class_name)
       begin
         db_config_file = YAML.load_file(file)
       rescue 
@@ -254,38 +240,33 @@ class DomainModel < ActiveRecord::Base
       end
       db_config = db_config_file[ environment ]
 
+      cls = Object.const_set(delegate_class_name.to_s, Class.new(ActiveRecord::Base))
+      cls.abstract_class = true
+      cls.establish_connection(db_config)
+
+      @@database_connection_pools[self.process_id] = cls
+
       # Modify the base connection for AR Base if we're testing
       ActiveRecord::Base.establish_connection(db_config) if RAILS_ENV == 'test'
-      
-      @@webiva_connection = nil
-      DomainModel.establish_connection(db_config)
-      # DomainModel.connection.reconnect!
-      
-      # Only save connection if variable set (in single threaded environment)
-      if save_connection
-        @@domain_db_connections[pid][file][environment] = DomainModel.connection
-      end
+      return true
+    else
+      @@database_connection_pools[self.process_id] = delegate_class_name.constantize
+      return true
     end
-    @@active_file = file + environment
-    
-    @@webiva_connection = nil if RAILS_ENV == 'test' # Clear out the webiva connection in test
-    return true
   end
   
   # Run a worker on a specific DomainModel
   # see DomainModel#run_worker if you already have the ActiveRecord object
   def self.run_worker(class_name,entry_id,method,parameters = {})
-      worker_key = MiddleMan.new_worker(
-        :class => :domain_model_worker,
-				:args => { :class_name => class_name,
-					    :entry_id => entry_id,
-					    :domain_id => DomainModel.active_domain_id,
-					    :params => parameters,
-					    :method => method,
-              :language => Locale.language_code  }
+     DomainModelWorker.async_do_work(
+                                     :class_name => class_name,
+                                     :entry_id => entry_id,
+                                     :domain_id => DomainModel.active_domain_id,
+                                     :params => parameters,
+                                     :method => method,
+                                     :language => Locale.language_code  
 					  )
 
-      worker_key  
   end
   
   # Runs a background process worker that will 
@@ -297,7 +278,7 @@ class DomainModel < ActiveRecord::Base
   # Fetches results out of memcached for a specific worker key
   # returns from run_worker
   def self.worker_results(key)
-    Cache.get("domain_worker:" + key.to_s)
+    Workling.return.get(key)
   end 
 
   # Generates a random hexdigest hash

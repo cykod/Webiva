@@ -160,22 +160,18 @@ class FileController < CmsController # :nodoc: all
     calculate_image_size
     
     if session[:upload_file_worker]
-      file_processor =  MiddleMan.worker(session[:upload_file_worker])
-      if file_processor
-        if file_processor.finished?
+      file_processor =  Workling.return.get(session[:upload_file_worker])
+      logger.error(file_processor.inspect)
+      if file_processor && file_processor[:processed]
           @files = []
-          @files = DomainFile.find(:all,:conditions => { :id => file_processor.uploaded_ids })
-          file_processor.delete
+          @files = DomainFile.find(:all,:conditions => { :id => file_processor[:uploaded_ids] })
           session[:upload_file_worker] = nil
           calculate_image_size
           @hide_item = true
           @file_manager_update = true
           render :partial => 'file_manager_update'
-        else
-          render :partial => 'file_manager_processing'
-        end
       else
-        render :nothing => true
+        render :partial => 'file_manager_processing'
       end
     else
     	render :nothing => true
@@ -189,17 +185,14 @@ class FileController < CmsController # :nodoc: all
   
     dir,file_name = DomainFile.save_uploaded_file(params[:upload_file][:filename])
     
-    
-    worker_key = MiddleMan.new_worker(:class => :file_worker,
-                                      :args => { :filename => file_name,
-                                                 :domain_id => DomainModel.active_domain_id,
-                                                 :parent_id => params[:upload_file][:parent_id],
-                                                 :creator_id => myself.id,
-                                                 :tmp_dir => dir,
-                                                 :extract_archive => params[:extract_archive],
-                                                 :replace_same => params[:replace_same]
-                                                })
-    #worker = MiddleMan.worker(worker_key)
+    worker_key = FileWorker.async_do_work(:filename => file_name,
+                                          :domain_id => DomainModel.active_domain_id,
+                                          :parent_id => params[:upload_file][:parent_id],
+                                          :creator_id => myself.id,
+                                          :tmp_dir => dir,
+                                          :extract_archive => params[:extract_archive],
+                                          :replace_same => params[:replace_same]
+                                        )
     session[:upload_file_worker] = worker_key
 
     render :nothing => true

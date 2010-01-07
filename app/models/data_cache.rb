@@ -4,6 +4,15 @@
 class DataCache
 
   @@local_cache = {}
+
+  def self.process_id
+    DomainModel.process_id
+  end
+
+  def self.local_cache_store
+    @@local_cache[process_id] ||= {}
+  end
+
   
   def self.reset_local_cache
     # Reset the locally cached custom content models as well
@@ -13,16 +22,16 @@ class DataCache
     end
     ContentModelType.subclasses
     classes = {}
+    @@local_cache[process_id] = { }
 
-    @@local_cache = {}
   end
   
   def self.local_cache(key)
-    @@local_cache[key]
+    local_cache_store[key]
   end
   
   def self.put_local_cache(key,value)
-    @@local_cache[key] = value
+    local_cache_store[key] = value
   end
 
   # Get a specific version of an object
@@ -66,10 +75,10 @@ class DataCache
   end
   
   def self.get_cached_container(container,version)
-    @@local_cache[container] ||= {}
-    return @@local_cache[container][version] if @@local_cache[container][version]
+    local_cache_store[container] ||= {}
+    return local_cache_store[container][version] if local_cache_store[container][version]
     
-    @@local_cache[container][version] = get_container(container,version)
+    local_cache_store[container][version] = get_container(container,version)
   end
   
   # Put a specific version of an object

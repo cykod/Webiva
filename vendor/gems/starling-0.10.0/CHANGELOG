@@ -1,0 +1,60 @@
+== 0.10.0
+* Solved compatibility issues with the new (and awesome, thanks mperham) Memcache client
+* Fixed the old rspec tests.
+
+== 0.9.9
+* remove dependency on SyslogLogger so that starling works on windows.
+* fix config file loading so relative paths are expanded properly <jacob@jacobatzen.dk>
+* clean up redhat init.d script <gaffneyc@gmail.com>
+* add a 'fetch' command that is non-blocking equivalent to 'get' <aaron.hawkins@shawkvalue.com>
+* implement the 'delete' method to allow queues to be deleted <timshadel@gmail.com>
+
+== 0.9.8
+* add fix to enable relative paths <david@motorator.com>
+* fix tests so they don't run 10 times due to a stupid bug with how the server is forked <seth@mojodna.net>
+* fix some other tests <romeda@gmail.com>
+* fix some error messages <romeda@gmail.com>
+* probably some other things <romeda@gmail.com>
+
+== 0.9.7.9
+* properly complain if the spool directory isn't writable <seth@mojodna.net>
+* assume group and user privileges in a working order <seth@mojodna.net>
+* support string user / group names in addition to uid/gids <seth@mojodna.net>
+
+== 0.9.7.7
+* added init.d scripts for redhat and ubuntu by Mike Perham <mperham@gmail.com>
+* fixed dependencies for SyslogLogger, eventmachine and memcache-client by Mike Perham <mperham@gmail.com>
+* added starling_top script to monitor starling server by Mike Perham <mperham@gmail.com>
+* fixed starling_top to use 22122 as port by Abdul-Rahman Advany <abdulrahman@advany.com>
+
+== 0.9.7.6 2008-06-24
+* removed client code (will be added to different project) by Abdul-Rahman Advany <abdulrahman@advany.com>
+
+== 0.9.7.5 2008-05-04
+* added worker class, using starling client you can now run them in background by Abdul-Rahman Advany <abdulrahman@advany.com>
+ - handles creation of threadpool
+ - handles fetching of messages and passing these to the threads
+ - handles pushing of processed messages to starling again if needed
+
+== 0.9.7 2008-05-03
+* merged branch of AnotherBritt and Glenn Rempe by Abdul-Rahman Advany <abdulrahman@advany.com>
+* rspeced tests by Abdul-Rahman Advany <abdulrahman@advany.com>
+
+==  0.9.6 2008-04-30
+* logging of message lifecycle as :age by AnotherBritt <?>
+* added some extra logging options by AnotherBritt <?>
+* added some test for epoll by AnotherBritt <?>
+
+== 0.9.5.4 2008-04-28
+
+* Bumped version number by Glenn Rempe <glenn.rempe@gmail.com>
+* Purged all old RubyForge config.  Now GitHub friendly by Glenn Rempe <glenn.rempe@gmail.com>
+* New gemspec for GitHub gem auto-build-serve by Glenn Rempe <glenn.rempe@gmail.com>
+
+== 0.9.4 2008-01-31 ==
+* Evented code added using EventMachine by Chris Wanstrath <chris@ozmm.org>
+
+== 2007-11-02
+
+* Initial release
+
