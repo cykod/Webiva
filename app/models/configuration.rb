@@ -21,7 +21,7 @@ class Configuration < DomainModel
     entry = self.find_by_config_key(key.to_s) || Configuration.new(:config_key => key.to_s)
     entry.options = value
     entry.save
-    DataCache.put_container("Config",key,value)
+    DataCache.put_cached_container("Config",key,value)
     value
   end
   

@@ -108,6 +108,12 @@ class DataCache
     
     local_cache_store[container][version] = get_container(container,version)
   end
+
+  def self.put_cached_container(container,version,data)
+    @@local_cache[container] ||= {}
+    @@local_cache[container][version] = data
+    self.put_container(container,version,data)
+  end
   
   # Put a specific version of an object into the remote cache
   # with an optional expiration in seconds
