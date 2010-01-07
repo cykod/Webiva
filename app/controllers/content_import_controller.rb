@@ -159,8 +159,7 @@ class ContentImportController < WizardController # :nodoc: all
                                                  :deliminator => @deliminator,
                                                  :data => session[:content_import_wizard][:fields]
                                                 }
-       worker_key = MiddleMan.new_worker(:class => :content_import_worker,
-                                      :args => worker_args)
+       worker_key =  ContentImportWorker.async_do_work(worker_args)
       session[:content_import_worker_key] = worker_key
       # Start a worker that will create any necessary fields
       # and actually import the data
@@ -205,29 +204,26 @@ class ContentImportController < WizardController # :nodoc: all
   def status
     if session[:content_import_worker_key]
       begin 
-	      worker = MiddleMan.worker(session[:content_import_worker_key])
-	      @initialized = worker.results[:initialized]
-	      @completed = worker.results[:completed]
-	      @entries = worker.results[:entries]
-	      @imported = worker.results[:imported]
+        results = Workling.return.get(session[:content_import_worker_key])
+        results ||= { }
+        @initialized = results[:initialized]
+        @completed = results[:completed]
+        @entries = results[:entries]
+        @imported = results[:imported]
 	
-	      if @initialized
-	       @percentage = (@imported.to_f / (@entries.to_i < 1 ? 1 : @entries) *100).to_i
-        	 if @entries < 1
-	         @entries = 1
-	       end
+        if @initialized
+          @percentage = (@imported.to_f / (@entries.to_i < 1 ? 1 : @entries) *100).to_i
+          if @entries < 1
+            @entries = 1
+          end
 
-	      else
-	       @entries = nil
-	       @percentage = 0
-	      end
+        else
+          @entries = nil
+          @percentage = 0
+        end
 	
 	
-	      if @completed
-	        worker.delete
-	      end
       rescue Exception => e
-        raise e
         @invalid_worker = true
       end
     else
