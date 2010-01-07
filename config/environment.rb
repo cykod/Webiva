@@ -16,15 +16,6 @@ ENV['HOME'] ||= '/home/webiva'
 # Specifies gem version of Rails to use when vendor/rails is not present
 # RAILS_GEM_VERSION = '2.3.4'
 
-# Concurrency required from backgroundrb,
-# But required to not be on for 
-#if ENV['RAILS_ENV'] == 'backgroundrb' ||  ENV['RAILS_ENV'] == 'backgroundrb_development'
-#  ActiveRecord::Base.allow_concurrency = true
-#  raise 'AllowingConcurreny!!'
-#else
-#  ActiveRecord::Base.allow_concurrency = false
-#end
-
 
 require 'yaml'
 
@@ -54,6 +45,25 @@ require 'yaml'
 #RAILS_ROOT = File.dirname(__FILE__) + "../" unless defined?(RAILS_ROOT)
 
 require File.join(File.dirname(__FILE__), 'boot')
+
+
+class Rails::Plugin
+
+  def webiva_remove_load_paths(file)
+    dir =  File.dirname(file)
+    begin
+      load_paths.each do |path|
+        ActiveSupport::Dependencies.load_once_paths.delete(path) if  path.include?(dir)
+      end
+    rescue Exception => e
+      load_paths.each do |path|
+        Dependencies.load_once_paths.delete(path) if  path.include?(dir)
+      end
+    end
+
+  end
+
+end
 
 Rails::Initializer.run do |config|
 
@@ -86,11 +96,29 @@ Rails::Initializer.run do |config|
   config.gem "rspec-rails", :lib => false, :version => ">= 1.2.0"
   config.gem "json"
   config.gem "system_timer"
+  config.gem 'starling'
 
   if CMS_CACHE_ACTIVE
     config.gem 'memcache-client', :lib => 'memcache'
   end
+  
 end
+
+ memcache_options = {
+    :c_threshold => 10_000,
+    :compression => true,
+    :debug => false,
+    :namespace => 'Webiva',
+    :readonly => false,
+    :urlencode => false
+  }
+
+CACHE = MemCache.new memcache_options
+
+# Workling::Remote.dispatcher = Workling::Remote::Runners::StarlingRunner.new
+Workling::Remote.dispatcher = Workling::Remote::Runners::StarlingRunner.new
+Workling::Return::Store::Base # Load the base module first
+Workling::Return::Store.instance = CACHE
 
 
 ActionMailer::Base.logger = nil unless RAILS_ENV == 'development'
@@ -132,18 +160,13 @@ end
 Globalize::ModelTranslation.set_table_name('globalize_translations')
 
   
-  memcache_options = {
-    :c_threshold => 10_000,
-    :compression => true,
-    :debug => false,
-    :namespace => 'Webiva',
-    :readonly => false,
-    :urlencode => false
-  }
+ 
   
-  CACHE = MemCache.new memcache_options
   CACHE.servers =  [ 'localhost:11211' ]
   ActionController::Base.session_options[:cache] = CACHE
+
+
+
 
 
 # Globalize Setup

@@ -284,19 +284,17 @@ class ContentController < ModuleController
         # Run in a worker as migrations don't seem to really be web safe
         # We also muck with db connections, so better to just offload from the
         # web server
-        worker_key = MiddleMan.new_worker(:class => :migration_handler_worker,
-                                          :args => { :content_model_id =>  @content_model.id,
-                                                    :domain_id => DomainModel.active_domain_id,
-                                                    :action => 'create_table'
-                                                  }
-                                          )
-        worker = MiddleMan.worker(worker_key)
+        worker_key = MigrationHandlerWorker.async_do_work(
+                                                          :content_model_id =>  @content_model.id,
+                                                          :domain_id => DomainModel.active_domain_id,
+                                                          :action => 'create_table')
         
-        while !worker.finished?
+       results = Workling.return.get(worker_key)
+        
+        while !results
           sleep(1)
+          results = Workling.return.get(worker_key)
         end
-        
-        worker.delete
         
         expire_content(@content_model)
         if @content_model.customized?
@@ -345,22 +343,20 @@ class ContentController < ModuleController
     @fields, fields_valid = @content_model.process_fields(params[:model_fields].map { |idx| params[:field][idx] })
     
     if request.post? && fields_valid
-     worker_key = MiddleMan.new_worker(:class => :migration_handler_worker,
-                                        :args => { :content_model_id =>  @content_model.id,
+       worker_key = MigrationHandlerWorker.async_do_work( :content_model_id =>  @content_model.id,
                                                 :domain_id => DomainModel.active_domain_id,
                                                   :fields => @fields.map { |fld| fld.attributes },
                                                   :field_deletions => params[:delete],
                                                   :action => 'update_table'
-                                                }
-                                        )
-      worker = MiddleMan.worker(worker_key)
+                                                )
+      results = Workling.return.get(worker_key)
       
-      while !worker.finished?
+      while !results
         sleep(1)
+        results = Workling.return.get(worker_key)
       end
       expire_content(@content_model)
       
-      worker.delete          
     else
       @fields_errors=true
     end
@@ -378,19 +374,17 @@ class ContentController < ModuleController
 
      logger.warn(params[:destroy])
      logger.warn(session[:destroy_content_hash])
-      worker_key = MiddleMan.new_worker(:class => :migration_handler_worker,
-                                        :args => { :content_model_id =>  @content_model.id,
-                                                  :domain_id => DomainModel.active_domain_id,
-                                                  :action => 'destroy_table'
-                                                }
-                                        )
-      worker = MiddleMan.worker(worker_key)
+      worker_key =  MigrationHandlerWorker.async_do_work(
+                                                         :content_model_id =>  @content_model.id,
+                                                         :domain_id => DomainModel.active_domain_id,
+                                                         :action => 'destroy_table'
+                                                         )
+      results = Workling.return.get(worker_key)
       
-      while !worker.finished?
+      while !results
         sleep(1)
+        results = Workling.return.get(worker_key)
       end
-      
-      worker.delete
       
       
       expire_content(content_id)

@@ -176,8 +176,7 @@ class MemberImportController < WizardController
                                                  :options => session[:member_import_wizard][:options],
                                                  :deliminator => @deliminator
                                                 }
-       worker_key = MiddleMan.new_worker(:class => :member_import_worker,
-                                      :args => worker_args)
+      worker_key = MemberImportWorker.async_do_work(worker_args)
       session[:member_import_worker_key] = worker_key
       # Start a worker that will create any necessary fields
       # and actually import the data
@@ -218,11 +217,11 @@ class MemberImportController < WizardController
   def status
     if session[:member_import_worker_key]
       begin 
-	worker = MiddleMan.worker(session[:member_import_worker_key])
-	@initialized = worker.results[:initialized]
-	@completed = worker.results[:completed]
-	@entries = worker.results[:entries]
-	@imported = worker.results[:imported]
+	results = Workling.return.get(session[:member_import_worker_key]) || { }
+	@initialized = results[:initialized]
+	@completed = results[:completed]
+	@entries = results[:entries]
+	@imported = results[:imported]
 	
 	if @initialized
 	 @percentage = (@imported.to_f / (@entries < 1 ? 1 : @entries) *100).to_i
@@ -232,11 +231,6 @@ class MemberImportController < WizardController
 	else
 	 @enties = nil
 	 @percentage = 0
-	end
-	
-	
-	if @completed
-	  worker.delete
 	end
       rescue Exception => e
         @invalid_worker = true

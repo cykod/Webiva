@@ -31,11 +31,10 @@ class MemberExportController < CmsController
      session[:members_table_segment] ||= {} 
   
     
-     worker_key = MiddleMan.new_worker(:class => :member_export_worker,
-                                      :args => { :domain_id => DomainModel.active_domain_id,
-                                                 :export_options => (params[:export] || {})[:include],
-                                                 :export_segmentation => session[:members_table_segment]
-                                               })
+     worker_key = MemberExportWorker.async_do_work( :domain_id => DomainModel.active_domain_id,
+                                      :export_options => (params[:export] || {})[:include],
+                                      :export_segmentation => session[:members_table_segment]
+                                      )        
     session[:member_download_worker_key] = worker_key
     
     render :nothing => true
@@ -43,25 +42,24 @@ class MemberExportController < CmsController
   
   def status
     if(session[:member_download_worker_key]) 
-      worker = MiddleMan.worker(session[:member_download_worker_key])
+      results = Workling.return.get(session[:member_download_worker_key])
       
-      @completed = worker.results[:completed] || false
+      @completed = results ? (results[:completed] || false) : false
     end
   end
   
   def download_file
     if(session[:member_download_worker_key]) 
-      worker = MiddleMan.worker(session[:member_download_worker_key])
-      send_file(worker.results[:filename],
+      results = Workling.return.get(session[:member_download_worker_key])
+      send_file(results[:filename],
           :stream => true,
-	  :type => "text/" + worker.results[:type],
+	  :type => "text/" + results[:type],
 	  :disposition => 'attachment',
-	  :filename => sprintf("%s_%d.%s",'Email_Targets'.t,Time.now.strftime("%Y_%m_%d"),worker.results[:type])
+	  :filename => sprintf("%s_%d.%s",'Email_Targets'.t,Time.now.strftime("%Y_%m_%d"),results[:type])
 	  )
 	  
 	  
       session[:member_download_worker_key] = nil
-      worker.delete
     else
       render :nothing => true
     end
