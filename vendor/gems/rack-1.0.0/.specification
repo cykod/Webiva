@@ -210,6 +210,8 @@ files:
 - rack.gemspec
 has_rdoc: true
 homepage: http://rack.rubyforge.org
+licenses: []
+
 post_install_message: 
 rdoc_options: []
 
@@ -230,7 +232,7 @@ required_rubygems_version: !ruby/object:Gem::Requirement
 requirements: []
 
 rubyforge_project: rack
-rubygems_version: 1.3.1
+rubygems_version: 1.3.5
 signing_key: 
 specification_version: 2
 summary: a modular Ruby webserver interface

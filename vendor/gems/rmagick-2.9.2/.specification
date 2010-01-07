@@ -386,8 +386,10 @@ files:
 - doc/scripts/doc.js
 - doc/scripts/stripeTables.js
 - doc/ilist.html
-has_rdoc: false
+has_rdoc: true
 homepage: http://rubyforge.org/projects/rmagick
+licenses: []
+
 post_install_message: 
 rdoc_options: []
 
@@ -409,7 +411,7 @@ required_rubygems_version: !ruby/object:Gem::Requirement
 requirements: 
 - ImageMagick 6.3.0 or later
 rubyforge_project: rmagick
-rubygems_version: 1.3.1
+rubygems_version: 1.3.5
 signing_key: 
 specification_version: 2
 summary: Ruby binding to ImageMagick

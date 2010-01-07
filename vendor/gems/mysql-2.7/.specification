@@ -30,8 +30,10 @@ files:
 - test.rb
 - tommy.css
 - mysql.gemspec
-has_rdoc: false
+has_rdoc: true
 homepage: http://www.tmtm.org/en/mysql/ruby/
+licenses: []
+
 post_install_message: 
 rdoc_options: []
 
@@ -52,7 +54,7 @@ required_rubygems_version: !ruby/object:Gem::Requirement
 requirements: []
 
 rubyforge_project: 
-rubygems_version: 1.3.1
+rubygems_version: 1.3.5
 signing_key: 
 specification_version: 1
 summary: MySQL/Ruby provides the same functions for Ruby programs that the MySQL C API provides for C programs.
