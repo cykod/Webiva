@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class Editor::MenuRenderer < ParagraphRenderer
+class Editor::MenuRenderer < ParagraphRenderer #:nodoc:all
 
   features '/editor/menu_feature'
   

@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class Editor::AuthRenderer < ParagraphRenderer
+class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
 
   features '/editor/auth_feature'
 

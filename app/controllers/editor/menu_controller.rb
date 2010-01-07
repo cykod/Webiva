@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class Editor::MenuController < ParagraphController
+class Editor::MenuController < ParagraphController #:nodoc:all
 
   
   # Make sure we are the editor for menu and automenu paragraphs as well as site maps 

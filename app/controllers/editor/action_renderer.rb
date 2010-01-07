@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class Editor::ActionRenderer < ParagraphRenderer
+class Editor::ActionRenderer < ParagraphRenderer #:nodoc:all
 
   paragraph :triggered_action
   paragraph :html_headers, :cache => true

@@ -1,6 +1,7 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-
+# DataCache is the class used to store pieces of data in a temporary
+# cache, either locally for the duration of 1 request or via Memcached
 class DataCache
 
   @@local_cache = {}
