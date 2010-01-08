@@ -78,7 +78,7 @@ class Media::Players::Video::FlvPlayer < Media::Players::Video::Base
   end
 
   class Options < HashModel
-    attributes :skin => nil, :color => '555555', :skinscalemaximum => 1, :volume => 100,
+    attributes :skin => 'defaultskin.swf', :color => '555555', :skinscalemaximum => 1, :volume => 100,
                :preview_file_id => nil, :preroll_file_id => nil, :captions_file_id => nil,
                :autoscale => false, :smoothing => true,
                :buttonoverlay => 'defaultbuttonoverlay.swf', :preloader => 'defaultpreloader.swf', :ending => 'defaultending.swf'

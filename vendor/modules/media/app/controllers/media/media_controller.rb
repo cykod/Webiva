@@ -27,6 +27,10 @@ class Media::MediaController < ParagraphController
       @media_file ||= DomainFile.find_by_id self.media_file_id
     end
 
+    def media_file=(file)
+      @media_file = file
+    end
+
     def valid_media?(file=nil)
       self.handler_info[:class].valid_media?(file)
     end
@@ -64,6 +68,8 @@ class Media::MediaController < ParagraphController
 
     validates_presence_of :width, :height
 
+    def media_type ; 'video' ; end
+
     def handler_info
       module_options.media_video_handler_info
     end
@@ -74,6 +80,8 @@ class Media::MediaController < ParagraphController
   end
 
   class AudioOptions < Media::MediaController::BaseMediaOptions
+    def media_type ; 'audio' ; end
+
     def handler_info
       module_options.media_audio_handler_info
     end
