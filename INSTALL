@@ -21,7 +21,13 @@ $ sudo apt-get install mysql-server mysql-client ruby1.8 ruby1.8-dev rdoc1.8 \
     apache2 memcached libmysqlclient15-dev build-essential \
     git-core rubygems rake
 
-Next clone the repository:
+
+Starling (the background-process-queue) currently needs to be installed 
+separately, it can be via a:
+
+$ sudo gem install starling
+
+Next clone the Webiva repository:
 
 $ git clone git://github.com/cykod/Webiva.git
 $ cd Webiva/
@@ -43,10 +49,9 @@ $ ./script/server
 
 (You may need to edit your hosts file so that you can pull up iniital website that you created)
 
-Then start up the background server process:
+Then start up the background processes:
 
-$ ./script/backgroundrb start
-
+$ ./script/background.rb start
 
 ======== Apache2 / Passenger Install ================
 
@@ -81,7 +86,7 @@ Either modify or replace with:
 
 Then start up the background server process
 
-$ ./script/backgroundrb start
+$ ./script/background.rb start
 
 Finally restart apache and you should be good to go:
 
