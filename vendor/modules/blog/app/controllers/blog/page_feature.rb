@@ -3,6 +3,7 @@
 
 
 class Blog::PageFeature < ParagraphFeature
+  include SwfObjectHelper
 
   feature :blog_entry_list, :default_feature => <<-FEATURE
     <cms:entries>
@@ -108,23 +109,31 @@ class Blog::PageFeature < ParagraphFeature
           case ext
           when 'mp3'
             width = (tag.attr['width'] || 320).to_i
-           "<div id='blog_media_#{tag.locals.entry.id}'></div>
-            <script>
-              var so = new SWFObject('/javascripts/jw_player/mp3player.swf','mpl','#{width}','20','7');
-              so.addVariable('file','#{med.url}');
-              so.addVariable('autostart','false');
-              so.write('blog_media_#{tag.locals.entry.id}');
+	    container_id = "blog_media_#{tag.locals.entry.id}"
+
+	    options = { :flash_version => 7,
+	                :flash_vars => {:file => med.url, :autostart => false}
+	              }
+	    <<-MP3
+	    #{render_swf_container(container_id, '')}
+            <script type='text/javascript'>
+	      #{render_swf_object(container_id, '/javascripts/jw_player/mp3player.swf', width, 20, options)}
             </script>"
+            MP3
           when 'flv'
            width = (tag.attr['width'] || 320).to_i
            height = (tag.attr['height'] || 260).to_i
-           "<div id='blog_media_#{tag.locals.entry.id}'></div>
-            <script>
-              var so = new SWFObject('/javascripts/jw_player/mediaplayer.swf','mpl','#{width}','#{height}','7');
-              so.addVariable('file','#{med.url}');
-              so.addVariable('autostart','false');
-              so.write('blog_media_#{tag.locals.entry.id}');
+           container_id = "blog_media_#{tag.locals.entry.id}"
+	   options = { :flash_version => 7,
+	               :flash_vars => {:file => med.url, :autostart => false}
+	             }
+
+           <<-FLV
+	    #{render_swf_container(container_id, '')}
+            <script type='text/javascript'>
+	      #{render_swf_object(container_id, '/javascripts/jw_player/mediaplayer.swf', width, height, options)}
             </script>"
+           FLV
           when 'mov'
            width = (tag.attr['width'] || 320).to_i
            height = (tag.attr['height'] || 260).to_i

@@ -29,8 +29,7 @@ class Media::Players::Video::FlvPlayer < Media::Players::Video::Base
   end
 
   def flash_options
-    { :background_color => "##{@options.background_color}",
-      :flash_version => 9,
+    { :flash_version => 9,
       :flash_vars => self.flash_vars,
       :flash_params => self.flash_params
     }
@@ -43,10 +42,10 @@ class Media::Players::Video::FlvPlayer < Media::Players::Video::Base
                     :skin => @options.handler_options.skin,
                     :skincolor => @options.handler_options.skincolor,
                     :skinscalemaximum => @options.handler_options.skinscalemaximum,
-                    :autoscale => @options.handler_options.autoscale ? 'true' : 'false',
-                    :smoothing => @options.handler_options.smoothing ? 'true' : 'false',
-                    :autoplay => @options.autoplay ? 'true' : 'false',
-                    :loop => @options.loop ? 'true' : 'false',
+                    :autoscale => @options.handler_options.autoscale,
+                    :smoothing => @options.handler_options.smoothing,
+                    :autoplay => @options.autoplay,
+                    :loop => @options.loop,
                     :buttonoverlay => @options.handler_options.buttonoverlay,
                     :preloader => @options.handler_options.preloader,
                     :ending => @options.handler_options.ending

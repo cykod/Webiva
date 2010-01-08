@@ -3,59 +3,36 @@ module SwfObjectHelper
   include EscapeHelper
 
   def swf_object_default_options
-    @swf_object_default_options ||= { :background_color => '#FFFFFF',
-                                      :flash_version => 8,
-                                      :quality => 'high',
-                                      :xi_redirect_url => nil,
-                                      :redirect_url => nil,
-                                      :detect_key => 'detectflash',
-                                      :flash_params => { :wmode => 'transparent'
-                                                       }
+    @swf_object_default_options ||= { :flash_version => 9,
+                                      :express_install_swf_url => '/javascripts/swfobject/plugins/expressInstall.swf',
+                                      :flash_params => { :wmode => 'transparent', :quality => 'high' },
+                                      :flash_vars => {},
+                                      :flash_attributes => {},
+                                      :callback => nil
                                     }
   end
 
   def render_swf_object(container_id, swf_url, width, height, opts=nil)
     options = opts ? self.swf_object_default_options.deep_merge(opts) : self.swf_object_default_options
 
-    swf_object_name = "swf_#{container_id}"
+    express_install_swf_url = options[:express_install_swf_url] ? "'#{options[:express_install_swf_url]}'" : 'false'
+    callback = options[:callback] ? "'#{options[:callback]}'" : 'false'
 
-    xi_redirect_url = options[:xi_redirect_url] ? "'#{options[:xi_redirect_url]}'" : 'false'
-    redirect_url = options[:redirect_url] ? "'#{options[:redirect_url]}'" : 'false'
+    flash_params_json = options[:flash_params].to_json
 
-    output = "var #{swf_object_name} = new SWFObject('#{swf_url}', '#{swf_object_name}_name', '#{width}', '#{height}', '#{options[:flash_version]}', '#{options[:background_color]}', '#{options[:quality]}', #{xi_redirect_url}, #{redirect_url}, '#{options[:detect_key]}');\n";
-
-
-    if options[:flash_params]
-      if options[:flash_params][:scale]
-	value = options[:flash_params][:scale]
-	output << "#{swf_object_name}.addParam('scale', '#{jh value}');\n" if value
-	options[:flash_params].delete(:scale)
-      end
-
-      options[:flash_params].each do |key,value|
-	output << "#{swf_object_name}.addParam('#{jh key}', '#{jh value}');\n" if value
-      end
+    # if scale is specified, make sure it is the first element
+    if flash_params_json =~ /,("scale":"[^"]+")/
+      scale = $1
+      flash_params_json = flash_params_json.sub(",#{scale}", '').sub('{', "{#{scale},")
     end
 
-    options[:flash_vars].each do |key,value|
-      output << "#{swf_object_name}.addVariable('#{jh key}', '#{jh value}');\n" if value
-    end if options[:flash_vars]
-
-    options[:flash_attributes].each do |key,value|
-      output << "#{swf_object_name}.setAttribute('#{jh key}', '#{jh value}');\n" if value
-    end if options[:flash_attributes]
-
-    output << "#{swf_object_name}.write('#{container_id}');\n"
+    output = "swfobject.embedSWF('#{swf_url}', '#{container_id}', '#{width}', '#{height}', '#{options[:flash_version]}', #{express_install_swf_url}, #{options[:flash_vars].to_json}, #{flash_params_json}, #{options[:flash_attributes].to_json}, #{callback});\n";
   end
 
   def render_swf_container(container_id, notice=nil)
     notice = self.default_flash_notice unless notice
 
-    <<-CONTAINER
-    <div id='#{container_id}'>
-      #{notice}
-    </div>
-    CONTAINER
+    "<div id='#{container_id}'>#{notice}</div>"
   end
 
   def default_flash_notice

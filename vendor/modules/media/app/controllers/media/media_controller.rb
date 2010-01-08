@@ -8,7 +8,7 @@ class Media::MediaController < ParagraphController
 
   class BaseMediaOptions < HashModel
     attributes :media_file_id => nil, :align => 'center', :handler_data => {},
-               :autoplay => false, :loop => false, :background_color => 'FFFFFF'
+               :autoplay => false, :loop => false
 
     integer_options :media_file_id
     boolean_options :autoplay, :loop
@@ -45,8 +45,6 @@ class Media::MediaController < ParagraphController
 
     def validate
       errors.add(:align) unless self.alignment_options.include?(self.align)
-
-      errors.add(:background_color) unless self.background_color =~ /^[0-9A-F]{6}$/i
 
       if self.media_file_id
 	errors.add(:media_file_id, 'missing') unless self.media_file
