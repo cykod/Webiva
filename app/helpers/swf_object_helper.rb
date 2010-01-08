@@ -25,9 +25,17 @@ module SwfObjectHelper
     output = "var #{swf_object_name} = new SWFObject('#{swf_url}', '#{swf_object_name}_name', '#{width}', '#{height}', '#{options[:flash_version]}', '#{options[:background_color]}', '#{options[:quality]}', #{xi_redirect_url}, #{redirect_url}, '#{options[:detect_key]}');\n";
 
 
-    options[:flash_params].each do |key,value|
-      output << "#{swf_object_name}.addParam('#{jh key}', '#{jh value}');\n" if value
-    end if options[:flash_params]
+    if options[:flash_params]
+      if options[:flash_params][:scale]
+	value = options[:flash_params][:scale]
+	output << "#{swf_object_name}.addParam('scale', '#{jh value}');\n" if value
+	options[:flash_params].delete(:scale)
+      end
+
+      options[:flash_params].each do |key,value|
+	output << "#{swf_object_name}.addParam('#{jh key}', '#{jh value}');\n" if value
+      end
+    end
 
     options[:flash_vars].each do |key,value|
       output << "#{swf_object_name}.addVariable('#{jh key}', '#{jh value}');\n" if value
