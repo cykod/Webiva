@@ -1,5 +1,7 @@
 class Media::MediaFeature < ParagraphFeature
 
+  include SwfObjectHelper
+
   feature :media_media_video, :default_feature => <<-FEATURE
     <cms:wrapper>
       <cms:video/>
@@ -35,13 +37,23 @@ class Media::MediaFeature < ParagraphFeature
   end
 
   feature :media_media_swf, :default_feature => <<-FEATURE
-    Swf Feature Code...
-  FEATURE
+    <cms:wrapper>
+      <cms:swf/>
+    </cms:wrapper>
+   FEATURE
 
   def media_media_swf_feature(data)
     webiva_feature(:media_media_swf,data) do |c|
       c.define_tag('wrapper') { |t| "<div align='#{data[:options].align}'>#{t.expand}</div>" }
-      c.define_tag('swf') { |t| '' }
+      c.define_tag('swf') do |t|
+	container_id = "swf_#{paragraph.id}"
+	<<-SWF
+	#{self.render_swf_container(container_id)}
+	<script type='text/javascript'>
+	  #{self.render_swf_object(container_id, data[:options].swf_url, data[:options].flash_width, data[:options].flash_height, data[:options].flash_options)}
+	</script>
+	SWF
+      end
     end
   end
 

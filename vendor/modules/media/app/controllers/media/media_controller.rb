@@ -92,22 +92,81 @@ class Media::MediaController < ParagraphController
   end
 
   class SwfOptions < HashModel
-    attributes :align => 'center', :swf_file_id => nil
+    attributes :align => 'center', :swf_file_id => nil, :width => nil, :height => nil,
+               :play => true, :loop => false, :quality => 'high', :bgcolor => nil,
+               :flash_align => nil, :salign => nil, :menu => true, :wmode => 'transparent',
+               :flash_vars => nil
 
     integer_options :swf_file_id
+    boolean_options :play, :loop, :menu
 
-    validates_presence_of :swf_file_id
+    validates_presence_of :swf_file_id, :width, :height
 
     def alignment_options
-      @alignment_options ||= %w( left center right )
+      @alignment_options ||= %w( left center right ).map { |a| [a.titleize, a] }
+    end
+
+    def flash_align_options
+      @flash_align_options ||= [['Not Set', nil], ['Left', 'l'], ['Right', 'r'], ['Top', 't'], ['Bottom', 'b']]
+    end
+
+    def salign_options
+      @salign_options ||= self.flash_align_options + [['Top Left', 'tl'], ['Top Right', 'tr'], ['Bottom Left', 'bl'], ['Bottom Right', 'br']]
+    end
+
+    def quality_options
+      @quality_options ||= %w(low high autolow autohigh best).map { |q| [q.titleize, q] }
+    end
+
+    def wmode_options
+      @wmode_options ||= [['Window', 'window'], ['Opaque', 'opaque'], ['Transparent', 'transparent']]
     end
 
     def swf
       @swf ||= DomainFile.find_by_id(self.swf_file_id)
     end
 
+    def swf_url
+      self.swf.url
+    end
+
+    def flash_width
+      self.width
+    end
+
+    def flash_height
+      self.height
+    end
+
+    def flash_options
+      opts = self.to_h
+      align = opts.delete(:flash_align)
+      opts[:align] = align
+      opts.delete(:swf_file_id)
+
+      flash_vars = opts.delete(:flash_vars)
+
+      opts
+    end
+
     def validate
-      errors.add(:align) unless self.alignment_options.include?(self.align)
+      errors.add(:align) unless self.alignment_options.rassoc(self.align)
+      errors.add(:flash_align) unless self.flash_align_options.rassoc(self.flash_align) if ! self.flash_align.blank?
+      errors.add(:salign) unless self.salign_options.rassoc(self.salign) if ! self.salign.blank?
+      errors.add(:quality) unless self.quality_options.rassoc(self.quality)
+      errors.add(:wmode) unless self.wmode_options.rassoc(self.wmode)
+
+      if ! self.bgcolor.blank?
+	errors.add(:bgcolor) unless self.bgcolor =~ /^[0-9A-F]{6}$/i
+      end
+
+      if self.width
+	errors.add(:width) unless self.width =~ /^\d+%?$/
+      end
+
+      if self.height
+	errors.add(:height) unless self.height =~ /^\d+%?$/
+      end
 
       if self.swf_file_id
 	errors.add(:swf_file_id) unless self.swf
