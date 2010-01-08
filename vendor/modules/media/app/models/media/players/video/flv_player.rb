@@ -72,10 +72,10 @@ class Media::Players::Video::FlvPlayer < Media::Players::Video::Base
   class Options < HashModel
     attributes :skin => nil, :color => '555555', :skinscalemaximum => 1, :volume => 100,
                :preview_file_id => nil, :preroll_file_id => nil, :captions_file_id => nil,
-               :autoscale => false, :smoothing => true, :videowidth => nil, :videoheight => nil,
+               :autoscale => false, :smoothing => true,
                :buttonoverlay => 'defaultbuttonoverlay.swf', :preloader => 'defaultpreloader.swf', :ending => 'defaultending.swf'
 
-    integer_options :preview_file_id, :preroll_file_id, :captions_file_id, :videowidth, :videoheight, :volume
+    integer_options :preview_file_id, :preroll_file_id, :captions_file_id, :volume
     boolean_options :autoscale, :smoothing
 
     validates_numericality_of :volume, :greater_than_or_equal_to => 0, :less_than_or_equal_to => 100
