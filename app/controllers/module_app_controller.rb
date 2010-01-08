@@ -19,7 +19,8 @@ class ModuleAppController < ApplicationController
   
   after_filter :process_logging
   before_filter :validate_module
-  
+
+  before_filter :nocache
   include SiteNodeEngine::Controller
 
   def self.user_actions(names)
@@ -37,6 +38,16 @@ class ModuleAppController < ApplicationController
   def template_root
     :module
   end
+
+  hide_action :nocache
+
+  def nocache
+    headers['Expires'] = "Thu, 19 Nov 1981 08:52:00 GM"
+    headers['Cache-Control'] =  "no-store, no-cache, must-revalidate, post-check=0, pre-check=0"
+    headers['Pragma'] = "no-cache"
+
+  end
+  
 
 
   hide_action :handle_page
