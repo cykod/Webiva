@@ -10,7 +10,8 @@ class Media::MediaFeature < ParagraphFeature
     webiva_feature(:media_media_video,data) do |c|
       c.define_tag('wrapper') { |t| "<div align='#{data[:options].align}'>#{t.expand}</div>" }
       c.define_tag('video') do |t|
-	container_id = "video_#{paragraph.id}"
+	container_id = "#{data[:options].media_type}_#{paragraph.id}"
+	data[:options].player.headers(self)
 	data[:options].player.render_player(container_id)
       end
     end
@@ -26,7 +27,8 @@ class Media::MediaFeature < ParagraphFeature
     webiva_feature(:media_media_audio,data) do |c|
       c.define_tag('wrapper') { |t| "<div align='#{data[:options].align}'>#{t.expand}</div>" }
       c.define_tag('audio') do |t|
-	container_id = "audio_#{paragraph.id}"
+	container_id = "#{data[:options].media_type}_#{paragraph.id}"
+	data[:options].player.headers(self)
 	data[:options].player.render_player(container_id)
       end
     end

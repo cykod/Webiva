@@ -7,7 +7,7 @@ module SwfObjectHelper
                                       :express_install_swf_url => '/javascripts/swfobject/plugins/expressInstall.swf',
                                       :flash_params => { :wmode => 'transparent', :quality => 'high' },
                                       :flash_vars => {},
-                                      :flash_attributes => {},
+                                      :flash_attributes => {:style => 'outline: none'},
                                       :callback => nil
                                     }
   end

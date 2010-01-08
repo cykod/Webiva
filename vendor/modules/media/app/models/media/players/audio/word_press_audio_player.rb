@@ -32,7 +32,7 @@ class Media::Players::Audio::WordPressAudioPlayer < Media::Players::Audio::Base
 
     output = self.render_word_press_audio_player_container(container_id)
     output << "\n<script type='text/javascript'>\n";
-    output << self.render_word_press_audio_player_embed(container_id, self.sound_file, @options.handler_options.width)
+    output << self.render_word_press_audio_player_embed(container_id, self.sound_file, @options.handler_options.width, self.audio_player_options)
     output << "</script>\n";
   end
 
@@ -40,9 +40,19 @@ class Media::Players::Audio::WordPressAudioPlayer < Media::Players::Audio::Base
     true
   end
 
+  def audio_player_options
+    options = @options.handler_options.to_h
+    options.delete(:width)
+    options[:initialvolume] = options.delete(:volume).to_i
+    options[:autostart] = @options.autoplay
+    options[:loop] = @options.loop
+    options[:noinfo] = @options.handler_options.titles ? false : true
+    options
+  end
+
   class Options < HashModel
-    attributes :width => 290, :titles => nil, :artists => nil,
-               :animation => true, :remaining => false, :noinfo => false, :volume => 60,
+    attributes :width => 290, :titles => 'Title 1', :artists => 'Artist 1',
+               :animation => false, :remaining => false, :volume => 60,
                :buffer => 5, :encode => false, :checkpolicy => false, :rtl => false,
                :transparentpagebg => true, :pagebg => nil,
                :bg => 'E5E5E5', :leftbg => 'CCCCCC', :lefticon => '333333', :voltrack => 'F2F2F2',

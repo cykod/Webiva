@@ -9,8 +9,6 @@ class Media::MediaRenderer < ParagraphRenderer
   def video
     @options = paragraph_options(:video)
 
-    @options.player.headers(self)
-
     @options.autoplay = false if editor?
 
     render_paragraph :feature => :media_media_video
@@ -18,8 +16,6 @@ class Media::MediaRenderer < ParagraphRenderer
 
   def audio
     @options = paragraph_options(:audio)
-
-    @options.player.headers(self)
 
     @options.autoplay = false if editor?
 
