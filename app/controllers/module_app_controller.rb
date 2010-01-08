@@ -28,7 +28,8 @@ class ModuleAppController < ApplicationController
   
   after_filter :process_logging
   before_filter :validate_module
-  
+
+  before_filter :nocache
   include SiteNodeEngine::Controller
 
   # Specifies actions that shouldn't use the CMS for authentication layout or login
@@ -50,8 +51,17 @@ class ModuleAppController < ApplicationController
     :module
   end
 
+  hide_action :nocache
+  def nocache
+    headers['Expires'] = "Thu, 19 Nov 1981 08:52:00 GM"
+    headers['Cache-Control'] =  "no-store, no-cache, must-revalidate, post-check=0, pre-check=0"
+    headers['Pragma'] = "no-cache"
+
+  end
   
-  def handle_page  #:nodoc:
+
+
+  def handle_page
     process_cookie_login!
 
     # Handle inactive domains

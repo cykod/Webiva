@@ -159,7 +159,7 @@ class ContentImportController < WizardController # :nodoc: all
                                                  :deliminator => @deliminator,
                                                  :data => session[:content_import_wizard][:fields]
                                                 }
-       worker_key =  ContentImportWorker.async_do_work(worker_args)
+      worker_key =  ContentImportWorker.async_do_work(worker_args)
       session[:content_import_worker_key] = worker_key
       # Start a worker that will create any necessary fields
       # and actually import the data
@@ -191,7 +191,6 @@ class ContentImportController < WizardController # :nodoc: all
     @content_model = ContentModel.find(content_id)
   
     status
-    #expire_content(@content_model)
   
     @back_button_url = url_for :action => 'confirm', :path => @content_model.id
   
@@ -204,9 +203,8 @@ class ContentImportController < WizardController # :nodoc: all
   def status
     if session[:content_import_worker_key]
       begin 
-        results = Workling.return.get(session[:content_import_worker_key])
-        results ||= { }
-        @initialized = results[:initialized]
+        results = Workling.return.get(session[:content_import_worker_key]) || { }
+        @initialized = true
         @completed = results[:completed]
         @entries = results[:entries]
         @imported = results[:imported]
@@ -222,8 +220,11 @@ class ContentImportController < WizardController # :nodoc: all
           @percentage = 0
         end
 	
-	
+	if @completed
+          session[:content_import_worker_key]
+        end
       rescue Exception => e
+        raise e
         @invalid_worker = true
       end
     else

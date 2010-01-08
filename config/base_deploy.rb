@@ -17,7 +17,7 @@ namespace :webiva do
         run "ln -s #{deploy.shared_path}/config/cms.yml #{deploy.release_path}/config/cms.yml"
         run "ln -s #{deploy.shared_path}/config/cms_migrator.yml #{deploy.release_path}/config/cms_migrator.yml"
         run "ln -s #{deploy.shared_path}/config/defaults.yml #{deploy.release_path}/config/defaults.yml"
-        run "ln -s #{deploy.shared_path}/config/backgroundrb.yml #{deploy.release_path}/config/backgroundrb.yml"
+        run "ln -s #{deploy.shared_path}/config/workling.yml #{deploy.release_path}/config/workling.yml"
       
   end
 
@@ -29,12 +29,13 @@ namespace :webiva do
             modules_install     
 	    deploy.web.disable
 	    config
-            run "cd #{deploy_to}/current; ./script/backgroundrb stop; true"
+            run "cd #{deploy_to}/current; ./script/background.rb stop; true"
+            run "cd #{deploy.release_path}; rake gems:build"
 	    deploy.symlink
 	    run "cd #{deploy.release_path}; rake -f #{deploy.release_path}/Rakefile cms:migrate_system_db"
 	    run "cd #{deploy.release_path}; rake -f #{deploy.release_path}/Rakefile cms:migrate_domain_dbs"
 	    run "cd #{deploy.release_path}; rake -f #{deploy.release_path}/Rakefile cms:migrate_domain_components"
-            run "cd #{deploy_to}/current; ./script/backgroundrb start; true"
+            run "cd #{deploy_to}/current; ./script/background.rb start; true"
 	    sudo "nohup /etc/init.d/memcached restart"
     end
 
@@ -48,7 +49,7 @@ namespace :webiva do
 	(webiva_modules||[]).each do |mod|
           execute = []
           execute << "cd #{deploy.release_path}/vendor/modules"
-          execute << "git clone #{module_repository}#{mod}.git #{mod.downcase}}"
+          execute << "git clone #{module_repository}#{mod}.git #{mod.downcase}"
           run execute.join(" && ")
         end
   end 
@@ -66,7 +67,7 @@ namespace :webiva do
       run "cp #{deploy.release_path}/config/cms.yml.example #{deploy.shared_path}/config/cms.yml; true"
       run "cp #{deploy.release_path}/config/backup.yml.example #{deploy.shared_path}/config/backup.yml; true"
       run "cp #{deploy.release_path}/config/cms_migrator.yml.example #{deploy.shared_path}/config/cms_migrator.yml; true"
-      run "cp #{deploy.release_path}/config/backgroundrb.yml.example #{deploy.shared_path}/config/backgroundrb.yml; true"
+      run "cp #{deploy.release_path}/config/workling.yml.example #{deploy.shared_path}/config/workling.yml; true"
       run "cp #{deploy.release_path}/config/defaults.yml.example #{deploy.shared_path}/config/defaults.yml; true"
       run "mkdir #{deploy.shared_path}/config/sites; true"
       config

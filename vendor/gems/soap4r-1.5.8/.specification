@@ -534,8 +534,10 @@ files:
 - test/soap/fault/test_customfault.rb
 - test/soap/test_mapping.rb
 - test/16runner.rb
-has_rdoc: false
+has_rdoc: true
 homepage: http://dev.ctor.org/soap4r
+licenses: []
+
 post_install_message: 
 rdoc_options: []
 
@@ -556,7 +558,7 @@ required_rubygems_version: !ruby/object:Gem::Requirement
 requirements: []
 
 rubyforge_project: 
-rubygems_version: 1.3.1
+rubygems_version: 1.3.5
 signing_key: 
 specification_version: 1
 summary: An implementation of SOAP 1.1 for Ruby.

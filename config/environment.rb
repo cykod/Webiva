@@ -93,8 +93,6 @@ Rails::Initializer.run do |config|
   config.gem 'libxml-ruby', :lib => 'xml'
   config.gem 'soap4r', :lib => 'soap/soap'
   config.gem "json"
-  config.gem "system_timer"
-  config.gem 'starling'
 
 
 

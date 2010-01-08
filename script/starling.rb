@@ -12,6 +12,6 @@ config = config[env]
 
 port = config['listens_on'].split(":")[1]
 
-cmd = "ruby #{path}/../vendor/gems/starling-0.10.0/bin/starling -d -P #{path}/../tmp/pids/starling.pid -q  #{path}/../tmp/starling/ -p #{port}"
-puts("Running:" + cmd)
+cmd = "starling -d -P #{path}/../tmp/pids/starling.pid -q  #{path}/../tmp/starling/ -p #{port}"
+puts("Running #{env}:" + cmd)
 `#{cmd}`
