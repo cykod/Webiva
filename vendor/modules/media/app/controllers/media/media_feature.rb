@@ -1,7 +1,5 @@
 class Media::MediaFeature < ParagraphFeature
 
-  include SwfObjectHelper
-
   feature :media_media_video, :default_feature => <<-FEATURE
     <cms:wrapper>
       <cms:video/>
@@ -12,12 +10,8 @@ class Media::MediaFeature < ParagraphFeature
     webiva_feature(:media_media_video,data) do |c|
       c.define_tag('wrapper') { |t| "<div align='#{data[:options].align}'>#{t.expand}</div>" }
       c.define_tag('video') do |t|
-	player = data[:options].player
 	container_id = "video_#{paragraph.id}"
-	output = self.render_swf_container(container_id)
-	output << "<script type='text/javascript'>\n";
-	output << self.render_swf_object(container_id, player.swf_url, player.flash_width, player.flash_height, player.flash_options)
-	output << "</script>\n";
+	data[:options].player.render_player(container_id)
       end
     end
   end
@@ -31,7 +25,10 @@ class Media::MediaFeature < ParagraphFeature
   def media_media_audio_feature(data)
     webiva_feature(:media_media_audio,data) do |c|
       c.define_tag('wrapper') { |t| "<div align='#{data[:options].align}'>#{t.expand}</div>" }
-      c.define_tag('audio') { |t| data[:options].player.render("audio_#{paragraph.id}") }
+      c.define_tag('audio') do |t|
+	container_id = "audio_#{paragraph.id}"
+	data[:options].player.render_player(container_id)
+      end
     end
   end
 

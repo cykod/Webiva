@@ -1,14 +1,39 @@
 
 class Media::Players::Audio::WordPressAudioPlayer < Media::Players::Audio::Base
 
+  include WordPressAudioPlayerHelper
+
   def self.media_audio_handler_info
     {
       :name => 'Word Press Audio Player',
-      :partial => nil
+      :partial => 'word_press_audio_player_options'
     }
   end
 
-  def render(container_id)
+  def component_path ; '/components/media/audio-player'; end
+  def swf_url ; "#{self.component_path}/player.swf"; end
+
+  def sound_file
+    @options.media_file.full_url if @options.media_file
+  end
+
+  def headers(renderer)
+    renderer.require_js "#{self.component_path}/audio-player-uncompressed.js"
+
+    output = "<script type='text/javascript'>\n";
+    output << self.render_word_press_audio_player_setup(self.swf_url)
+    output << "</script>\n";
+
+    renderer.header_html output
+  end
+
+  def render_player(container_id)
+    return 'Audio file not set' unless @options.media_file
+
+    output = self.render_word_press_audio_player_container(container_id)
+    output << "\n<script type='text/javascript'>\n";
+    output << self.render_word_press_audio_player_embed(container_id, self.sound_file, @options.handler_options.width)
+    output << "</script>\n";
   end
 
   def self.valid_media?(file)
@@ -16,5 +41,51 @@ class Media::Players::Audio::WordPressAudioPlayer < Media::Players::Audio::Base
   end
 
   class Options < HashModel
+    attributes :width => 290, :titles => nil, :artists => nil,
+               :animation => true, :remaining => false, :noinfo => false, :volume => 60,
+               :buffer => 5, :encode => false, :checkpolicy => false, :rtl => false,
+               :transparentpagebg => true, :pagebg => nil,
+               :bg => 'E5E5E5', :leftbg => 'CCCCCC', :lefticon => '333333', :voltrack => 'F2F2F2',
+               :volslider => '666666', :rightbg => 'B4B4B4', :rightbghover => '999999', :righticon => '333333',
+               :righticonhover => 'FFFFFF', :loader => '009900', :track => 'FFFFFF',
+               :tracker => 'DDDDDD', :border => 'CCCCCC', :skip => '666666', :text => '333333'
+
+    validates_presence_of :width, :volume, :bg, :leftbg, :lefticon, :voltrack, :volslider, :rightbg,
+                          :rightbghover, :righticon, :righticonhover, :loader, :track, :tracker, :border, :skip, :text
+
+    boolean_options :animation, :remaining, :noinfo, :encode, :checkpolicy, :rtl, :transparentpagebg
+
+    validates_numericality_of :volume, :greater_than_or_equal_to => 0, :less_than_or_equal_to => 100
+
+    def width_options
+      @width_options ||= [290, '100%']
+    end
+
+    def volume_options
+      @volume_options ||= (0..10).to_a.map { |n| [n, n*10] }
+    end
+
+    def width
+      return @width if @width.to_s == '100%'
+      @width.to_i
+    end
+
+    def validate
+      [:bg, :leftbg, :lefticon, :voltrack,
+       :volslider, :rightbg, :rightbghover, :righticon,
+       :righticonhover, :loader, :track,
+       :tracker, :border, :skip, :text].each do |attr|
+	color = self.send(attr)
+	if color
+	  errors.add(attr, 'invalid color') unless color =~ /^[0-9A-F]{6}$/i
+	end
+      end
+
+      if ! self.transparentpagebg
+	errors.add(:pagebg, 'invalid color') unless self.pagebg =~ /^[0-9A-F]{6}$/i
+      end
+
+      true
+    end
   end
 end

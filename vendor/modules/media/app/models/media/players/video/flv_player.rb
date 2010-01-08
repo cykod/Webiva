@@ -1,11 +1,20 @@
 
 class Media::Players::Video::FlvPlayer < Media::Players::Video::Base
 
+  include SwfObjectHelper
+
   def self.media_video_handler_info
     {
       :name => 'FLV Player',
       :partial => 'flvplayer_options'
     }
+  end
+
+  def render_player(container_id)
+    output = self.render_swf_container(container_id)
+    output << "<script type='text/javascript'>\n";
+    output << self.render_swf_object(container_id, self.swf_url, self.flash_width, self.flash_height, self.flash_options)
+    output << "</script>\n";
   end
 
   def component_path ; '/components/media/flvplayer'; end

@@ -3,10 +3,11 @@ class Media::Players::Base
     @options = options
   end
 
-  def render(container_id)
+  def render_player(container_id)
   end
 
   def headers(renderer)
+    nil
   end
 
   def self.valid_media?(file)
