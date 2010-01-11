@@ -388,6 +388,27 @@ module Content
       end
     }
 
+
+   @@filter_procs[:empty] = {
+      :variables => Proc.new { |field_name,fld| [ (field_name + '_empty').to_sym  ]  },
+      :options => Proc.new do |field_name,fld,f,attr|
+        label_name = fld.model_field.name + " Filter".t
+        f.check_boxes(field_name + "_empty",[ [attr[:label] || 'Empty'.t,'value']], :label => label_name, :single => true )    
+      end,
+      :fuzzy => Proc.new do |field_name,fld,options|
+        val = options[(field_name + "_empty").to_sym]
+        val.blank? ? nil : {:score =>  "IF(#{fld.escaped_field} = '' OR #{fld.escaped_field} IS NULL,1,0) " }
+      end,
+      :conditions => Proc.new do |field_name,fld,options|
+        val = options[(field_name + "_empty").to_sym]
+        val.blank? ? nil : {:conditions =>  "(#{fld.escaped_field} = '' OR #{fld.escaped_field} IS NULL)" }
+      end,
+      :display => Proc.new do |field_name,fld,options|
+        val = options[(field_name + "_empty").to_sym]
+        val.blank? ? nil : 'Empty'
+      end
+    }
+
     @@filter_procs[:like] = {
       :variables => Proc.new { |field_name,fld| [ (field_name + '_like').to_sym  ]  },
       :options => Proc.new do |field_name,fld,f,attr|
