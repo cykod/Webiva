@@ -64,7 +64,7 @@ Webiva Quick Installer
 ======================
 
 This script will create the initial configuration files for Webiva
-( cms.yml, cms_migrator.yml, backgroundrb.yml and defaults.yml )
+( cms.yml, cms_migrator.yml, workling.yml and defaults.yml )
 and initialize the mater database and an initial site database to get
 you started.
 
@@ -108,10 +108,10 @@ INTRODUCTION
 
   def create_initial_yml_files
 
-    if File.exists?("#{RAILS_ROOT}/config/backgroundrb.yml")
-      puts('backgroundrb.yml already exists, not overwriting')
+    if File.exists?("#{RAILS_ROOT}/config/workling.yml")
+      puts('workling.yml already exists, not overwriting')
     else
-      FileUtils.cp("#{RAILS_ROOT}/config/backgroundrb.yml.example","#{RAILS_ROOT}/config/backgroundrb.yml")
+      FileUtils.cp("#{RAILS_ROOT}/config/workling.yml.example","#{RAILS_ROOT}/config/workling.yml")
     end
 
     if File.exists?("#{RAILS_ROOT}/config/defaults.yml")

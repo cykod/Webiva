@@ -1,6 +1,0 @@
-#!/usr/bin/env ruby
-
-require File.dirname(__FILE__) +  '/../lib/starling/server_runner'
-
-StarlingServer::Runner.run
-
