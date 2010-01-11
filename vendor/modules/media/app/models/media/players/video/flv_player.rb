@@ -6,7 +6,8 @@ class Media::Players::Video::FlvPlayer < Media::Players::Video::Base
   def self.media_video_handler_info
     {
       :name => 'FLV Player',
-      :partial => 'flvplayer_options'
+      :partial => 'flvplayer_options',
+      :defaults_partial => 'flvplayer_default_options'
     }
   end
 
@@ -112,6 +113,10 @@ class Media::Players::Video::FlvPlayer < Media::Players::Video::Base
       @volume.to_i
     end
 
+    def skinscalemaximum
+      @skinscalemaximum.to_f
+    end
+
     def skincolor
       "0x#{self.color}"
     end
@@ -133,17 +138,14 @@ class Media::Players::Video::FlvPlayer < Media::Players::Video::Base
     end
 
     def get_file_options(folder, file_type='swf')
-      return @skin_options if @skin_options
-
-      @skin_options = []
+      options = []
       Dir.glob("#{folder}/*.#{file_type}") do |file|
 	file.sub!("#{folder}/", '')
 	name = file.sub(".#{file_type}", '').gsub('-', ' ').titleize
 	name = 'Default' if name =~ /^Default/
-	@skin_options.unshift [name, file]
+	options.unshift [name, file]
       end
-
-      @skin_options
+      options
     end
 
     def validate
@@ -152,7 +154,9 @@ class Media::Players::Video::FlvPlayer < Media::Players::Video::Base
       end
 
       errors.add(:skin) unless self.skin_options.rassoc(self.skin)
-
+      errors.add(:buttonoverlay) unless self.buttonoverlay_options.rassoc(self.buttonoverlay)
+      errors.add(:preloader) unless self.preloader_options.rassoc(self.preloader)
+      errors.add(:ending) unless self.ending_options.rassoc(self.ending)
       errors.add(:skinscalemaximum) unless self.skin_scale_maximum_options.include?(self.skinscalemaximum)
 
       if self.preroll_file_id

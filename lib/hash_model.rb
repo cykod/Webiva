@@ -138,6 +138,7 @@ class HashModel
     hsh.each do |key,val| 
       sym_hsh[key.to_sym] = val
     end
+    @passed_hash = sym_hsh
     @hsh = self.defaults.merge(sym_hsh)
     @hsh.each do |key,value|
       self.send("#{key.to_s}=",value) if defaults.has_key?(key.to_sym) || self.respond_to?("#{key.to_s}=")
@@ -158,6 +159,10 @@ class HashModel
       
       self.instance_variable_set "@#{key}",val
     end
+  end
+
+  def to_passed_hash
+    to_h.slice( *@passed_hash.keys )
   end
   
   def to_h

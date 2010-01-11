@@ -6,7 +6,8 @@ class Media::Players::Audio::WordPressAudioPlayer < Media::Players::Audio::Base
   def self.media_audio_handler_info
     {
       :name => 'Word Press Audio Player',
-      :partial => 'word_press_audio_player_options'
+      :partial => 'word_press_audio_player_options',
+      :defaults_partial => 'word_press_audio_player_default_options'
     }
   end
 
@@ -51,7 +52,7 @@ class Media::Players::Audio::WordPressAudioPlayer < Media::Players::Audio::Base
   end
 
   class Options < HashModel
-    attributes :width => 290, :titles => 'Title 1', :artists => 'Artist 1',
+    attributes :width => 290, :titles => nil, :artists => nil,
                :animation => false, :remaining => false, :volume => 60,
                :buffer => 5, :encode => false, :checkpolicy => false, :rtl => false,
                :transparentpagebg => true, :pagebg => nil,
@@ -75,6 +76,10 @@ class Media::Players::Audio::WordPressAudioPlayer < Media::Players::Audio::Base
       @volume_options ||= (0..10).to_a.map { |n| [n, n*10] }
     end
 
+    def volume
+      @volume.to_i
+    end
+
     def width
       return @width if @width.to_s == '100%'
       @width.to_i
@@ -90,6 +95,8 @@ class Media::Players::Audio::WordPressAudioPlayer < Media::Players::Audio::Base
 	  errors.add(attr, 'invalid color') unless color =~ /^[0-9A-F]{6}$/i
 	end
       end
+
+      errors.add(:width) unless self.width_options.include?(self.width)
 
       if ! self.transparentpagebg
 	errors.add(:pagebg, 'invalid color') unless self.pagebg =~ /^[0-9A-F]{6}$/i

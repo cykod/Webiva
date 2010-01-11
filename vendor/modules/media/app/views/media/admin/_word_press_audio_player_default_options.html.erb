@@ -1,0 +1,24 @@
+<%= f.select :volume, @options.handler_options.volume_options, :vertical => true %>
+<%= f.select :width, @options.handler_options.width_options, :vertical => true %>
+<%= f.text_field :buffer, :vertical => true %>
+<%= f.check_boxes :animation, [['player opens when started', true]], :vertical => true, :single => true %>
+<%= f.check_boxes :remaining, [['shows remaining track time rather than ellapsed time', true]], :vertical => true, :single => true %>
+<%= f.check_boxes :checkpolicy, [['look for a policy file when loading mp3 files', true]], :label => 'Check Policy', :vertical => true, :single => true %>
+<%= f.check_boxes :rtl, [['switch layout right to left', true]], :label => 'Right to Left', :vertical => true, :single => true %>
+<%= f.check_boxes :transparentpagebg, [['player background is transparent', true]], :label => 'Transparent', :vertical => true, :single => true %>
+<%= f.text_field :pagebg, :label => 'Background color of the page (only used when transparent is not set)', :maxlength => 6, :vertical => true %>
+<%= f.text_field :bg, :label => 'Background color', :maxlength => 6, :vertical => true %>
+<%= f.text_field :leftbg, :label => 'Volume control background', :maxlength => 6, :vertical => true %>
+<%= f.text_field :lefticon, :label => 'Speaker icon', :maxlength => 6, :vertical => true %>
+<%= f.text_field :voltrack, :label => 'Volume track', :maxlength => 6, :vertical => true %>
+<%= f.text_field :volslider, :label => 'Volume slider', :maxlength => 6, :vertical => true %>
+<%= f.text_field :rightbg, :label => 'Play/Pause button background', :maxlength => 6, :vertical => true %>
+<%= f.text_field :rightbghover, :label => 'Play/Pause button background (hover)', :maxlength => 6, :vertical => true %>
+<%= f.text_field :righticon, :label => 'Play/Pause icon', :maxlength => 6, :vertical => true %>
+<%= f.text_field :righticonhover, :label => 'Play/Pause icon (hover)', :maxlength => 6, :vertical => true %>
+<%= f.text_field :loader, :label => 'Loading bar', :maxlength => 6, :vertical => true %>
+<%= f.text_field :track, :label => 'Loading/Progress bar track backgrounds', :maxlength => 6, :vertical => true %>
+<%= f.text_field :tracker, :label => 'Progress track', :maxlength => 6, :vertical => true %>
+<%= f.text_field :border, :label => 'Progress bar border', :maxlength => 6, :vertical => true %>
+<%= f.text_field :skip, :label => 'Previous/Next skip buttons', :maxlength => 6, :vertical => true %>
+<%= f.text_field :text, :label => 'Text', :maxlength => 6, :vertical => true %>

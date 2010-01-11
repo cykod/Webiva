@@ -13,7 +13,15 @@ class Media::MediaController < ParagraphController
     integer_options :media_file_id
     boolean_options :autoplay, :loop
 
-    validates_presence_of :media_file_id
+    validates_presence_of :media_file_id, :unless => :default_options
+
+    def default_options
+      @default_options
+    end
+
+    def default_options=(default_options)
+      @default_options = default_options
+    end
 
     def alignment_options
       @alignment_options ||= %w( left center right )
@@ -37,14 +45,20 @@ class Media::MediaController < ParagraphController
 
     def handler_options
       return @handler_options if @handler_options
-      info = self.handler_info
-      options_class_name = info[:class_name] + '::Options'
-      options_class = options_class_name.constantize
-      @handler_options = options_class.new(self.handler_data)
+      default_handler_data = Media::AdminController.send("#{self.media_type}_options").handler_data
+      @handler_options = self.handler_class.new( default_handler_data.deep_merge(self.handler_data) )
     end
 
     def handler_partial
       @handler_partial ||= self.handler_info[:partial]
+    end
+
+    def handler_defaults_partial
+      @handler_defaults_partial ||= self.handler_info[:defaults_partial]
+    end
+
+    def handler_class
+      "#{self.handler_info[:class_name]}::Options".constantize
     end
 
     def validate
@@ -57,7 +71,11 @@ class Media::MediaController < ParagraphController
 	end
       end
 
-      errors.add(:handler_data) unless self.handler_options.valid?
+      if self.handler_options.valid?
+	self.handler_data = self.handler_class.new(self.handler_data).to_passed_hash
+      else
+	errors.add(:handler_data)
+      end
     end
   end
 

@@ -24,7 +24,9 @@ class Media::AdminController < ModuleController
                   'Content' => { :controller => '/content' },
                   'Options' =>   { :controller => '/options' },
                   'Modules' =>  { :controller => '/modules' },
-                  'Media Options' => { :action => 'options' }
+                  'Media Options' => { :action => 'options' },
+                  'Video Options' => { :action => 'video_options' },
+                  'Audio Options' => { :action => 'audio_options' }
 
   protected
   def self.get_galleries_info
@@ -48,8 +50,46 @@ class Media::AdminController < ModuleController
     end    
   end
 
+  def video_options
+    @options = self.class.video_options(params[:options])
+    @options.default_options = true
+
+    cms_page_path ['Options','Modules','Media Options'], "#{@options.handler_info[:name]} Default Options"
+
+    if request.post? && @options.valid?
+      Configuration.set_config_model(@options)
+      flash[:notice] = "Updated video options".t 
+      redirect_to :action => 'options'
+      return
+    end    
+  end
+
+  def audio_options
+    @options = self.class.audio_options(params[:options])
+    @options.default_options = true
+
+    cms_page_path ['Options','Modules','Media Options'], "#{@options.handler_info[:name]} Default Options"
+
+    if request.post? && @options.valid?
+      Configuration.set_config_model(@options)
+      flash[:notice] = "Updated audio options".t 
+      redirect_to :action => 'options'
+      return
+    end    
+  end
+
   def self.module_options(vals=nil)
     Configuration.get_config_model(Options,vals)
+  end
+
+  def self.video_options(vals=nil)
+    vals = nil if vals && vals.length == 0
+    Configuration.get_config_model(Media::MediaController::VideoOptions,vals)
+  end
+
+  def self.audio_options(vals=nil)
+    vals = nil if vals && vals.length == 0
+    Configuration.get_config_model(Media::MediaController::AudioOptions,vals)
   end
 
   class Options < HashModel
