@@ -54,6 +54,11 @@ class Media::AdminController < ModuleController
     @options = self.class.video_options(params[:options])
     @options.default_options = true
 
+    if @options.handler_info.nil?
+      flash[:error] = 'Must set video handler first'
+      return redirect_to :action => 'options'
+    end
+
     cms_page_path ['Options','Modules','Media Options'], "#{@options.handler_info[:name]} Default Options"
 
     if request.post? && @options.valid?
@@ -67,6 +72,11 @@ class Media::AdminController < ModuleController
   def audio_options
     @options = self.class.audio_options(params[:options])
     @options.default_options = true
+
+    if @options.handler_info.nil?
+      flash[:error] = 'Must set audio handler first'
+      return redirect_to :action => 'options'
+    end
 
     cms_page_path ['Options','Modules','Media Options'], "#{@options.handler_info[:name]} Default Options"
 
