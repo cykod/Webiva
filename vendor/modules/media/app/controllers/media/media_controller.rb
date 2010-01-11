@@ -95,7 +95,7 @@ class Media::MediaController < ParagraphController
     attributes :align => 'center', :swf_file_id => nil, :width => nil, :height => nil,
                :play => true, :loop => false, :quality => 'high', :bgcolor => nil,
                :flash_align => nil, :salign => nil, :menu => true, :wmode => 'transparent',
-               :flash_vars => nil
+               :flash_vars => nil, :scale => nil
 
     integer_options :swf_file_id
     boolean_options :play, :loop, :menu
@@ -126,6 +126,10 @@ class Media::MediaController < ParagraphController
       @swf ||= DomainFile.find_by_id(self.swf_file_id)
     end
 
+    def scale_options
+      @scale_options ||= [['Not Set', nil], ['Show all', 'showall'], ['No border', 'noborder'], ['Exact fit', 'exactfit'], ['No scale', 'noscale']]
+    end
+
     def swf_url
       self.swf.url
     end
@@ -138,15 +142,30 @@ class Media::MediaController < ParagraphController
       self.height
     end
 
+    def flash_vars_hash
+      return @flash_vars_hash if @flash_vars_hash
+
+      @flash_vars_hash = {}
+      self.flash_vars.split("\n").each do |line|
+	key, value = line.split('=', 2)
+	@flash_vars_hash[key] = value
+      end if ! self.flash_vars.blank?
+
+      @flash_vars_hash
+    end
+
     def flash_options
       opts = self.to_h
-      align = opts.delete(:flash_align)
-      opts[:align] = align
+      opts[:align] = opts.delete(:flash_align)
       opts.delete(:swf_file_id)
+      opts.delete(:width)
+      opts.delete(:height)
+      opts.delete(:flash_vars)
+      opts.delete_if { |key, value| value.nil? || value == '' }
 
-      flash_vars = opts.delete(:flash_vars)
-
-      opts
+      {:flash_params => opts,
+       :flash_vars => self.flash_vars_hash
+      }
     end
 
     def validate
@@ -155,6 +174,7 @@ class Media::MediaController < ParagraphController
       errors.add(:salign) unless self.salign_options.rassoc(self.salign) if ! self.salign.blank?
       errors.add(:quality) unless self.quality_options.rassoc(self.quality)
       errors.add(:wmode) unless self.wmode_options.rassoc(self.wmode)
+      errors.add(:scale) unless self.wmode_options.rassoc(self.scale) if ! self.scale.blank?
 
       if ! self.bgcolor.blank?
 	errors.add(:bgcolor) unless self.bgcolor =~ /^[0-9A-F]{6}$/i

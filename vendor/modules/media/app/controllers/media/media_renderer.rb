@@ -25,6 +25,8 @@ class Media::MediaRenderer < ParagraphRenderer
   def swf
     @options = paragraph_options(:swf)
   
+    @options.wmode = 'transparent' if editor?
+
     render_paragraph :feature => :media_media_swf
   end
 
