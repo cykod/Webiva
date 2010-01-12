@@ -127,6 +127,11 @@ module SiteAuthorizationEngine
     def user_roles(name)
       access_role(name).user_roles
     end
+
+    def user_roles_display(name)
+      user_roles(name).map(&:name)
+      
+    end
   end
 
   module TargetClassMethods

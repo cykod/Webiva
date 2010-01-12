@@ -141,7 +141,38 @@ end
 module Spec
  module Rails
   module Example
+    class ModelExampleGroup
+     
+      
+      def mock_editor(email = 'test@webiva.com',permissions = nil)
+        # get me a client user to ignore any permission issues    
+        @myself = EndUser.push_target('test@webiva.com')
+
+        if permissions.nil?
+          @myself.user_class = UserClass.client_user_class
+          @myself.client_user_id = 1
+          @myself.save
+        else
+          @myself.user_class = UserClass.domain_user_class
+          @myself.save
+          permissions = [ permissions ] unless permissions.is_a?(Array)
+          permissions.map! { |perm| perm.to_sym } 
+          
+          permissions.each do |perm|
+            @myself.user_class.has_role(perm)
+          end
+        end
+        @myself
+      end
+      
+      def mock_user(email = 'test@webiva.com')
+        # get me a client user to ignore any permission issues    
+        @myself = EndUser.push_target(email)
+      end
+    end
+
     class ControllerExampleGroup < FunctionalExampleGroup
+ 
 
       def mock_editor(email = 'test@webiva.com',permissions = nil)
         # get me a client user to ignore any permission issues    
@@ -161,7 +192,7 @@ module Spec
             @myself.user_class.has_role(perm)
           end
         end
-    
+        
         controller.should_receive('myself').at_least(:once).and_return(@myself)
       end
       
@@ -170,7 +201,7 @@ module Spec
         @myself = EndUser.push_target(email)
         controller.should_receive('myself').at_least(:once).and_return(@myself)
       end
-      
+
       def build_renderer_helper(user_class,site_node_path,display_module_type,data={},page_connections={},extra_attributes = {})
         display_parts = display_module_type.split("/")
         para = PageParagraph.create(:display_type => display_parts[-1], :display_module => display_parts[0..-2].join("/"),:data=>data)

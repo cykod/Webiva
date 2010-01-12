@@ -1,0 +1,106 @@
+
+
+class DashboardController < CmsController
+
+  permit :editor_site_management, :only => [ :site_widgets, :site_widget, :widget_options ]
+
+  cms_admin_paths :dashboard,
+    "Dashboard" => { :action => "index" },
+    "Site Widgets" => {  :action =>"site_widgets"}
+
+
+  def index
+    cms_page_info 'Dashboard', 'dashboard','CMSDashboard.pagePopup();'
+
+    @widget_columns = EditorWidget.assemble_widgets(myself)
+    @widget_columns.map do |column|
+      column.map {  |widget| widget.render_widget(self) }
+    end
+  end
+
+  def positions
+    columns = [ params[:column_0]||[], params[:column_1]||[], params[:column_2]||[] ]
+    EditorWidget.update_widget_positions(myself,columns)
+    render :nothing => true
+  end
+
+  def edit
+    @widget = EditorWidget.find_by_id(params[:widget_id]) || EditorWidget.new(:column => params[:column], :end_user_id => myself.id,:position => 0)
+    @options = @widget.options if @widget.module
+    
+    if request.post? && params[:widget]
+      @new_widget = @widget.new_record?
+      if params[:commit] && @widget.update_attributes(params[:widget])
+        @widget.render_widget(self)
+        render :action => 'update_widget', :locals => { :widget => @widget }
+        return
+      end
+    end
+    
+    @widget_modules = [['--Select Widget--',nil]] +  SiteWidget.widget_options(myself)
+    render :action => 'edit', :layout => false
+  end
+
+  def remove
+    @widget = EditorWidget.find_by_id_and_end_user_id(params[:widget_id],myself.id)
+    if @widget.site_widget && !@widget.required?(myself)
+      @widget.update_attributes(:hide => true)
+      
+    elsif !@widget.site_widget
+      @widget.destroy
+    else
+      render :nothing => true
+    end
+   
+  end
+
+  def show
+    @widget = EditorWidget.find_by_id(params[:widget_id],myself.id)
+    @widget.update_attributes(:hide => false)
+    @widget.render_widget(self)
+    render :action => 'show'
+  end
+
+  active_table :site_widgets_table, SiteWidget, [ :check, "Name", "Widget", :created_at, hdr(:number,:column), 
+                                    hdr(:number,:weight),hdr(:boolean,:required),"Who" ]
+
+  def display_site_widgets_table(display=true)
+
+    @tbl = site_widgets_table_generate(params, :order => "created_at DESC")
+
+    render :partial => 'site_widgets_table' if display
+  end
+
+  def site_widgets
+    cms_page_path ["Dashboard"], "Site Widgets"
+
+    display_site_widgets_table(false)
+  end
+
+  def site_widget
+    @widget = SiteWidget.find_by_id(params[:path][0]) || SiteWidget.new(:required => false)
+    @options = @widget.options if @widget.module
+    cms_page_path ["Dashboard", "Site Widgets"], @widget.new_record? ? "Add a Widget" : ["Edit %s Widget",nil,@widget.widget_description ]
+    
+    if request.post? && params[:widget]
+      if params[:commit] && @widget.update_attributes(params[:widget])
+        redirect_to :action => 'site_widgets'
+      end
+    end
+    
+    @widget_modules = [['--Select Widget--',nil]] +  SiteWidget.widget_options
+  end
+
+  def widget_options
+    @options = SiteWidget.widget_options_from_identifier(params[:identifier])
+    if @widget = SiteWidget.widget_from_identifier(params[:identifier])
+      @widget_title = @widget[2][:title]
+    end
+    render :partial => 'widget_options', :locals => {  :options => @options }
+  end
+
+  def widget
+    
+  end
+
+end

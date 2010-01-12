@@ -253,8 +253,8 @@ background-repeat:repeat-y;
 hr {
  clear:both;
   height:8px;
-  background-color:#efc475;
-  color:#efc475;
+ background-color:#6a95b4;  
+  color:#6a95b4;  
   border:0px;
   margin:4px 0px;
 }
@@ -731,7 +731,7 @@ fm_image_img {
   font-weight:bold;
   text-decoration:none;  
   border:1px solid #CCCCCC;
-  border-radius:3px;        
+  border-radius:5px;        
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
  }
@@ -2053,3 +2053,91 @@ table.permission_grid td {
 .search_result { padding-bottom:10px; }
 .search_result h2 {  padding-bottom:0px; margin-bottom:0px; }
 .search_result .info {  font-style:italic; color:#999999; }
+
+
+/* Dashboard */
+
+
+.dashboard_widget_column { 
+  height:auto !important;
+  min-height:500px;
+  height:500px;
+  padding:0px 5px;
+}
+
+.dashboard_widget_column_add { 
+  color:#df5323;
+  background-color:#d4a451;
+  text-align:center;
+  padding:5px 10px;
+   border-radius:10px;        
+  -moz-border-radius: 10px;
+  -webkit-border-radius: 10px;
+  cursor:pointer;
+  margin:5px 5px;
+}
+
+
+.dashboard_widget { 
+  padding:0px 0px; 
+  background-color: #92b3e1;
+  color:white;
+  display:block;
+  font-weight:bold;
+  text-decoration:none;  
+  border:1px solid #CCCCCC;
+  border-radius:10px;        
+  -moz-border-radius: 10px;
+  -webkit-border-radius: 10px;
+  margin:5px 0px;
+                    }
+
+.dashboard_widget_titlebar { 
+  background-color:#5f7ca4;
+  -moz-border-radius-topleft: 10px;
+  -moz-border-radius-topright: 10px;
+  -webkit-border-radius-topleft: 10px;
+  -webkit-border-radius-topright: 10px;
+  border-radius-topleft:10px;
+  border-radius-topright:10px;
+  padding:5px 10px;
+  height:12px;
+  position:relative;
+
+}
+
+.dashboard_widget_hidden { 
+  background-color:#CCCCCC;
+  opacity:0.5;
+ }
+
+.dashboard_widget_titlebar_move { 
+ cursor:pointer;
+
+}
+
+
+.dashboard_widget_titlebar a { 
+     color:white;
+ }
+
+.dashboard_widget_tools { 
+  position:absolute;
+  right:10px;
+  top:5px;
+                        }
+
+.dashboard_widget_body { 
+  overflow:hidden;
+  background:white;
+  margin:3px 3px;
+  padding:10px;
+  color:black;
+  font-weight:normal;
+  -moz-border-radius-bottomleft: 10px;
+  -moz-border-radius-bottomright: 10px;
+  -webkit-border-radius-bottomleft: 10px;
+  -webkit-border-radius-bottomright: 10px;
+  border-radius-bottomleft:10px;
+  border-radius-bottomright:10px;
+ }

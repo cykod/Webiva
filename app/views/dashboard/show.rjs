@@ -1,0 +1,2 @@
+page.replace "widget_#{@widget.id}", :partial => 'widget', :locals => {  :widget => @widget }
+page << "CMSDashboard.editWidgets();"

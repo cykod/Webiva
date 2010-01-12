@@ -36,6 +36,8 @@ module ModelExtension::ContentCacheExtension
     #   method to check the cache without needing to do a find for the actual object if it's not needed
     # [:update]
     #   These are the names of relations whose cache should expire when this objects cache expires
+    # [:update_list]
+    #   These are the names of classes whose list cache should expire when this objects cache expires
     def cached_content(options = {})
 
       # After create - only the list should be expired
@@ -55,6 +57,11 @@ module ModelExtension::ContentCacheExtension
       # relationships that need to be expired when we expire
       if options[:update] && !options[:update].is_a?(Array)
         options[:update] = [ options[:update] ]
+      end      
+
+      # relationships that need to be expired when we expire
+      if options[:update_list] && !options[:update_list].is_a?(Array)
+        options[:update_list] = [ options[:update_list] ]
       end      
 
       self.send(:include, ModelExtension::ContentCacheExtension::InstanceMethods)
@@ -96,7 +103,7 @@ module ModelExtension::ContentCacheExtension
 
     # Expire any lists data cache elements
     def content_cache_expire_list 
-      DataCache.expire_content(self.class.to_s,'LIST')
+      self.class.content_cache_expire_list
     end
 
     # Expire this content element manually
@@ -117,6 +124,13 @@ module ModelExtension::ContentCacheExtension
          
           
         end
+      end
+      
+      if opts[:update_list]
+        opts[:update_list].each do |lst|
+          lst.constantize.content_cache_expire_list
+        end
+          
       end
 
       # Go through and update any relationships
@@ -173,8 +187,17 @@ module ModelExtension::ContentCacheExtension
     end
 
     module CacheClassMethods
+
+      # Expire any lists data cache elements
+      def content_cache_expire_list 
+        logger.warn("Content Cache Expire List: #{self.to_s}") unless RAILS_ENV == 'production'
+        DataCache.expire_content(self.to_s,'LIST')
+      end
+
+
       # Put data into the cache associated with the content_cache'd class
       def cache_put_list(display_string,content,expiration=0)
+        logger.warn("Content Cache Put List: #{self.to_s} #{display_string}") unless RAILS_ENV == 'production'
         DataCache.put_content(self.to_s,
                               "LIST",
                               display_string,
@@ -184,6 +207,8 @@ module ModelExtension::ContentCacheExtension
       
       # Pull data out of the list cache given a display string
       def cache_fetch_list(display_string)
+        logger.warn("Content Cache Fetch List: #{self.to_s} #{display_string}") unless RAILS_ENV == 'production'
+
         DataCache.get_content(self.to_s,
                               'LIST',
                               display_string)

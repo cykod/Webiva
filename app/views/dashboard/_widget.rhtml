@@ -1,0 +1,27 @@
+<div class='dashboard_widget<%= " dashboard_widget_hidden" if widget.hide? -%>' id='widget_<%= widget.id -%>' <% if widget.hide? -%>style='display:none;'<% end -%>>
+<div class='dashboard_widget_titlebar'>
+  <div class='dashboard_widget_title'>
+     <%= widget.title -%>
+     <% if widget.editable?(myself) -%>
+     <span class='dashboard_widget_title_edit' style='display:none;'>
+       <a href='javascript:void(0);' onclick='CMSDashboard.editWidget(<%= widget.id -%>)'>(edit)</a>
+     </span>
+     <% end -%>
+  </div
+  <div class='dashboard_widget_tools' style='display:none;'>
+    <% if !widget.site_widget -%>
+      <a  href='javascript:void(0);' onclick='CMSDashboard.deleteWidget(<%= widget.id -%>)'>(Delete)</a>
+    <% elsif widget.hide? -%>
+      <a  href='javascript:void(0);' onclick='CMSDashboard.showWidget(<%= widget.id -%>)'>(Show)</a>
+    <% elsif !widget.required?(myself) -%>
+      <a  href='javascript:void(0);' onclick='CMSDashboard.hideWidget(<%= widget.id -%>)'>(Hide)</a>
+    <% end -%>
+  </div>
+</div>
+<% if !widget.hide? -%>
+<div class='dashboard_widget_body'>
+  <%= widget.output -%>
+</div>
+<% end -%>
+
+</div>

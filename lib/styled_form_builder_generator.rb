@@ -541,6 +541,21 @@ module TabledFormElements
     "<tr><th colspan='2' align='center'>" + tg + "</th></tr>"
   end 
 
+
+  def section(name=nil,options = { },&block)
+    if block_given?
+      @template.concat(tag("tbody",:id => name))
+      yield
+      @template.concat("</tbody>")
+    else
+      output = tag("tbody",:id => name)
+      if !options.has_key?(:display) || options[:display]
+        output << @template.render(:partial => options[:partial], :locals => options[:locals])
+      end
+      output << "</tbody>"
+      output
+    end
+  end
   
   def header(name,options = {})
     cols = (options.delete(:columns) || 1)+1
