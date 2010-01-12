@@ -4,9 +4,16 @@ class DomainLogEntry < DomainModel
   
   belongs_to :user,:class_name => "EndUser",:foreign_key => 'user_id'
   belongs_to :end_user_action
-  
-  def self.create_entry(user,site_node,path,ip_address,session_id,status,action=nil )
-  
+  belongs_to :domain_log_session
+
+  def self.create_entry_from_request(user, site_node, path, request, session, output)
+    return nil unless request.session_options
+
+    action = output.paction if output && output.paction
+    self.create_entry(user, site_node, path, session[:domain_log_session][:id], output ? output.status.to_i : nil, action)
+  end
+
+  def self.create_entry(user,site_node,path,domain_log_session_id,http_status,action=nil)
   
     # Don't track ClientUser access
     unless user.is_a?(ClientUser)
@@ -17,9 +24,8 @@ class DomainLogEntry < DomainModel
           :node_path => site_node ? site_node.node_path : nil,
           :page_path => path,
           :occurred_at => Time.now(),
-          :ip_address => ip_address,
-          :session_id => session_id,
-          :status => status,
+          :domain_log_session_id => domain_log_session_id,
+          :http_status => http_status,
           :end_user_action_id => action.is_a?(EndUserAction) ? action.id : nil)
     end
   end
@@ -43,17 +49,17 @@ class DomainLogEntry < DomainModel
     entry_sessions = 
         DomainLogEntry.find(:all,
             :conditions => ["user_id=?",user.id],
-            :group => 'session_id',
-            :select => 'session_id',
+            :group => 'domain_log_session_id',
+            :select => 'domain_log_session_id',
             :order => 'occurred_at DESC').map do |entry|
-              entry.session_id
+              entry.domain_log_session_id
         end
     
     find_session_helper(entry_sessions)
   end
   
-  def self.find_anonymous_session(session_id)      
-    entry_sessions = [ session_id ]
+  def self.find_anonymous_session(domain_log_session_id)      
+    entry_sessions = [ domain_log_session_id ]
   
     find_session_helper(entry_sessions)
   end    
@@ -65,12 +71,12 @@ class DomainLogEntry < DomainModel
     
     entries = []
     page_count = 0
-    entry_sessions.each_with_index do |session_id,idx|
-      session_entries = DomainLogEntry.find(:all,:conditions => ['session_id=?',session_id],:order => 'occurred_at')
+    entry_sessions.each_with_index do |domain_log_session_id,idx|
+      session_entries = DomainLogEntry.find(:all,:conditions => {:domain_log_session_id => domain_log_session_id},:order => 'occurred_at')
       page_count += session_entries.length
       entries << { :session =>  (entry_sessions.length - idx).to_i,
                    :occurred_at => session_entries[0].occurred_at, 
-                   :session_id => session_id ,
+                   :domain_log_session_id => domain_log_session_id,
                    :pages => session_entries.length,
                    :last_page_at => session_entries[-1].occurred_at
                   }
@@ -79,28 +85,30 @@ class DomainLogEntry < DomainModel
     
     [ {:page_count => page_count, :session_count => entry_sessions.length }, entries ]
   end
-  
-  def self.create_sessions!
-    offset = 0
-    limit = 100
-    done = false
-    while(!done)
-      entries = self.find(:all,:offset => offset,:limit => limit,:order => 'occurred_at')
-      DomainLogSession.record_timestamps = false
 
-      entries.each do |entry|
-        ses = DomainLogSession.session(entry.session_id,entry.user_id,entry.ip_address,false)
-        ses.created_at = entry.occurred_at if ses.created_at.blank?
-        ses.save
-      end
-      offset+=limit
-      DomainLogSession.record_timestamps = true
-    
-      done = true if entries.length < limit
-    end
-    
-    
-    
-    
-  end
+# No longer works, the actual session_id is not in the entries table anymore
+#
+#  def self.create_sessions!
+#    offset = 0
+#    limit = 100
+#    done = false
+#    while(!done)
+#      entries = self.find(:all,:offset => offset,:limit => limit,:order => 'occurred_at')
+#      DomainLogSession.record_timestamps = false
+#
+#      entries.each do |entry|
+#        ses = DomainLogSession.session(entry.domain_log_session_id,entry.user_id,entry.ip_address,false)
+#        ses.created_at = entry.occurred_at if ses.created_at.blank?
+#        ses.save
+#      end
+#      offset+=limit
+#      DomainLogSession.record_timestamps = true
+#    
+#      done = true if entries.length < limit
+#    end
+#    
+#    
+#    
+#    
+#  end
 end
