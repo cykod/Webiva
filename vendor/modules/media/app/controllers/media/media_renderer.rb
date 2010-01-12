@@ -17,7 +17,7 @@ class Media::MediaRenderer < ParagraphRenderer
   def audio
     @options = paragraph_options(:audio)
 
-    @options.autoplay = false if editor?
+    return render_paragraph :text => 'Audio player not shown in editor'.t if editor?
 
     render_paragraph :feature => :media_media_audio
   end
