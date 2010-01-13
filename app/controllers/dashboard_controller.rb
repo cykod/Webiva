@@ -14,7 +14,7 @@ class DashboardController < CmsController
 
     @widget_columns = EditorWidget.assemble_widgets(myself)
     @widget_columns.map do |column|
-      column.map {  |widget| widget.render_widget(self) }
+      column.map {  |widget| widget.render_widget(self) unless widget.hide? }
     end
   end
 

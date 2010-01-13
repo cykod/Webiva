@@ -115,6 +115,8 @@ module ApplicationHelper
     stylesheet_link_tag "/themes/#{theme}/stylesheets/#{stylesheet}" ,options
   end
 
+  def active_table_javascript # :nodoc:
+  end
 
   # Displays an image from the active theme
   def theme_image_tag(img,options = {})
@@ -137,6 +139,10 @@ module ApplicationHelper
     end
   end
 
+  # Return the 2 character identifier for the current language
+  def current_language
+    session[:cms_language]
+  end
   
   
   # Display an escaped value or a default value

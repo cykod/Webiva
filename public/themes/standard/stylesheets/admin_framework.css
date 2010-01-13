@@ -2101,10 +2101,13 @@ table.permission_grid td {
   border-radius-topleft:10px;
   border-radius-topright:10px;
   padding:5px 10px;
-  height:12px;
   position:relative;
 
 }
+
+.dashboard_widget_title { 
+   padding-right:40px;
+ }
 
 .dashboard_widget_hidden { 
   background-color:#CCCCCC;
@@ -2131,7 +2134,7 @@ table.permission_grid td {
   overflow:hidden;
   background:white;
   margin:3px 3px;
-  padding:10px;
+  padding:3px 7px;
   color:black;
   font-weight:normal;
   -moz-border-radius-bottomleft: 10px;
@@ -2141,3 +2144,11 @@ table.permission_grid td {
   border-radius-bottomleft:10px;
   border-radius-bottomright:10px;
  }
+
+
+/* Mini Table */
+
+table.mini_table {  }
+
+table.mini_table th { padding:2px 4px; text-align:left; }
+table.mini_table td { padding:2px 4px;  }

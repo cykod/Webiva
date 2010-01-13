@@ -4,9 +4,6 @@ class Dashboard::CoreWidget < Dashboard::WidgetBase
 
   widget :information, :name => "Display Static Information", :title => "Site Info"
 
-  widget :statistics, :name => "Display Website Statistics"
-
-
   def information
     render_widget :text => @options.body_html
   end

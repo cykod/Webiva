@@ -318,14 +318,9 @@ module ActiveTable
     def Controller.append_features(mod )  # :nodoc: 
       super
       mod.extend ActiveTable::ClassFunctions
-#      mod.send(:helper_method, "active_table_for".to_sym)
-      mod.send(:helper_method, "active_table_javascript".to_sym)
     end
     
-    def active_table_javascript # :nodoc: 
-      # dummy function - moved to active_table.js
-    end
-    
+  
   end
   
   

@@ -6,6 +6,8 @@ class Dashboard::WidgetBase
 
   attr_reader :controller 
 
+  include ActiveTable::Controller
+
   def initialize(options)
     @options = options
   end
@@ -46,6 +48,10 @@ class Dashboard::WidgetBase
 
   def render_widget(args)
     @output = @controller.send(:render_to_string,args)
+  end
+
+  def render
+    raise "Use render_widget to render a widget"
   end
 
   def method_missing(method,*args)

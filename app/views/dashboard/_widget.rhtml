@@ -2,11 +2,13 @@
 <div class='dashboard_widget_titlebar'>
   <div class='dashboard_widget_title'>
      <%= widget.title -%>
-     <% if widget.editable?(myself) -%>
      <span class='dashboard_widget_title_edit' style='display:none;'>
+     <% if widget.editable?(myself) -%>
        <a href='javascript:void(0);' onclick='CMSDashboard.editWidget(<%= widget.id -%>)'>(edit)</a>
-     </span>
+     <% else  -%>
+       (site widget)
      <% end -%>
+     </span>
   </div
   <div class='dashboard_widget_tools' style='display:none;'>
     <% if !widget.site_widget -%>

@@ -74,6 +74,7 @@ class ContentNode < DomainModel
 
   belongs_to :node, :polymorphic => true #, :dependent => :destroy
   belongs_to :author,:class_name => 'EndUser',:foreign_key => 'author_id'
+  belongs_to :last_editor,:class_name => 'EndUser',:foreign_key => 'last_editor_id'
   belongs_to :content_type
   has_many :content_node_values
   
@@ -155,7 +156,7 @@ class ContentNode < DomainModel
           cnv.title = node.send(content_type.title_field)
           cnv.link = self.content_url_override || type_preload.content_link(node)
         else
-          cnv.title = node.name
+          cnv.title = "Unknown"
           cnv.link = self.content_url_override || nil
         end
         cnv.save
@@ -163,6 +164,13 @@ class ContentNode < DomainModel
     end
   end
 
+  def title
+    if self.content_type
+      node.send(content_type.title_field)
+    else
+      "Unknown"
+    end
+  end
   
   def content_description(language) #:nodoc:
     if self.node.respond_to?(:content_description)

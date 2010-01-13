@@ -1,5 +1,5 @@
 <% fields.each do |field| -%>
-  <% if %w(radio_buttons select grouped_radio_buttons check_boxes).include?(field.field_type.to_s)  -%>
+  <% if %w(radio_buttons select grouped_radio_buttons check_boxes ordered_array).include?(field.field_type.to_s)  -%>
     
     <%= opts = field.options.delete(:options); 
         opts = options.send(opts) if opts.is_a?(Symbol);

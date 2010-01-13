@@ -86,6 +86,10 @@ module CmsHelper
 SEARCH_WIDGET
   end
 
+  def member_url(user_id)
+    url_for(:controller => '/members',:action => 'view', :path => [user_id])
+  end
+
 
   # Form for helper that wraps cms_form_for with an admin_form class
   def admin_form_for(name,obj=nil,options={},&block)
