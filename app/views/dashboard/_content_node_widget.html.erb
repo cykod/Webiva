@@ -1,8 +1,12 @@
 
 <% table_for  content_nodes, ["Name","Updated","By"], :class => 'mini_table', :width => '100%' do |t| -%>
 <tr>
-  <td><%= link_to h(truncate(t.title,:length => 40)), t.admin_url -%><br/>
-      <em><%= t.content_description(current_language) -%></em></td>
+  <td><%= link_to h(truncate(t.title,:length => 40)), t.admin_url -%>
+      <% if options.show_description -%>
+      <br/>
+      <em><%= t.content_description(current_language) -%></em>
+      <% end -%>
+  </td>
   <td><%= t.updated_at.to_s(:short) -%></td>
   <td><%= t.last_editor ? link_to(t.last_editor.first_name,member_url(t.last_editor_id)) : '-' -%></td>
 </tr>
