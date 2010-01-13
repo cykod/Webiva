@@ -13,8 +13,14 @@ class DashboardController < CmsController
     cms_page_info 'Dashboard', 'dashboard','CMSDashboard.pagePopup();'
 
     @widget_columns = EditorWidget.assemble_widgets(myself)
-    @widget_columns.map do |column|
-      column.map {  |widget| widget.render_widget(self) unless widget.hide? }
+    @widget_columns.each do |column|
+      column.each do  |widget| 
+        widget.render_widget(self) unless widget.hide? 
+        if widget.includes
+          widget.includes[:js].each { |js| require_js(js) } if widget.includes[:js]
+          widget.includes[:css].each { |css| require_js(css) } if widget.includes[:css]
+        end
+      end
     end
   end
 
@@ -52,6 +58,13 @@ class DashboardController < CmsController
       render :nothing => true
     end
    
+  end
+
+  def widget
+    @widget = EditorWidget.find_by_id(params[:path][0],myself.id)
+    @widget.update_attributes(:hide => false)
+    @widget.render_widget(self)
+    render :action => 'widget'
   end
 
   def show
@@ -99,8 +112,5 @@ class DashboardController < CmsController
     render :partial => 'widget_options', :locals => {  :options => @options }
   end
 
-  def widget
-    
-  end
 
 end

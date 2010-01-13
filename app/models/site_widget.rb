@@ -48,7 +48,11 @@ class SiteWidget < DomainModel
   end
 
   def self.handler_widgets
-    []
+    widgets = []
+    get_handler_info(:webiva,:widget).each do |handler|
+      widgets += handler[:class].available_widgets if handler[:class].respond_to?(:available_widgets)
+    end
+    widgets
   end
 
   def self.all_widgets

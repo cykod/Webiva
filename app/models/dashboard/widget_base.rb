@@ -2,18 +2,25 @@
 
 class Dashboard::WidgetBase
 
-  attr_reader :output_title, :output, :includes, :options
+  attr_reader :output_title, :output, :includes, :options, :editor_widget
 
   attr_reader :controller 
 
   include ActiveTable::Controller
 
-  def initialize(options)
+  def initialize(options,editor_widget)
     @options = options
+    @editor_widget = editor_widget
   end
 
   def self.available_widgets
     []
+  end
+
+  # We don't use the handler info for widgets
+  # so just return a dummy
+  def self.webiva_widget_handler_info  #:nodoc:
+    {  :name => "Widget Handler"}
   end
 
   def controller_render_widget(widget_name,controller)
@@ -47,6 +54,8 @@ class Dashboard::WidgetBase
   end
 
   def render_widget(args)
+    args[:locals] ||= { }
+    args[:locals][:widget] = editor_widget
     @output = @controller.send(:render_to_string,args)
   end
 

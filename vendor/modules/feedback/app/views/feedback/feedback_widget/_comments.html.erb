@@ -1,0 +1,20 @@
+<% if rated_comment -%>
+  <div class='notice'>
+    Rated Comment #<%= rated_comment -%>
+ </div>
+<% end -%>
+
+
+<% comments.each do |comment| -%>
+<div>
+<%= theme_image_tag(comment.rating_icon) %> <em><%= comment.end_user_id ? link_to(h(comment.name),member_url(comment.end_user_id)) : h(comment.name) -%></em> : <%= h(truncate(comment.comment,:length => 60)) -%> (<%= distance_of_time_in_words_to_now(comment.posted_at) -%> ago 
+  <%= link_to(theme_image_tag(comment.rating_icon(1)),'javascript:void(0);',
+                              :onclick => "Widget.update(#{widget.id},{ comment_id: #{comment.id}, rating: 1});" ) if comment.rating <= 0 -%>
+  <%= link_to(theme_image_tag(comment.rating_icon(-1)),'javascript:void(0);',
+                              :onclick => "Widget.update(#{widget.id},{ comment_id: #{comment.id}, rating: -1});" ) if comment.rating >= 0 -%>
+  <%= link_to(theme_image_tag(comment.rating_icon(0)),'javascript:void(0);',
+                              :onclick => "Widget.update(#{widget.id},{ comment_id: #{comment.id}, rating: 0});" ) if comment.rating != 0 -%>
+ )
+
+</div>
+<% end -%>

@@ -16,10 +16,6 @@ module Dashboard::WidgetMethods
     self.widget_class_name.constantize
   end
 
-  def widget_instance
-    @widget_instance ||= self.widget_class.new(self.options)
-  end
-
   def widget_class_name
     self.module.camelcase
   end

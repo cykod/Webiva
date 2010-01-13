@@ -1,5 +1,11 @@
 <script type='text/javascript'>
+Widget = {
+ 
+ update: function(id,params) {
+    new Ajax.Request("<%= url_for :action => 'widget' -%>/" + id, { parameters: params } );
+ }
 
+}
 CMSDashboard = {
   editing: false,
 
@@ -18,6 +24,10 @@ CMSDashboard = {
 <% end -%>
               )
      );
+  },
+
+  updateWidgets:function() {
+   this.editing ? this.editWidgets() : this.stopEditingWidgets();
   },
 
   editWidgets: function() {

@@ -64,7 +64,9 @@ class EditorWidget < DomainModel
     self.site_widget ? false : true
   end
 
-
+  def widget_instance
+    @widget_instance ||= self.widget_class.new(self.options,self)
+  end
   
   def render_widget(controller)
     self.widget_instance.controller_render_widget(self.widget,controller)

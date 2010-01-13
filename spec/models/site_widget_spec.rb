@@ -6,7 +6,7 @@ describe SiteWidget do
   reset_domain_tables :site_widgets
 
   it "should return the list of core widgets" do
-
+ 
     widgets = SiteWidget.core_widgets
 
     # Make sure we have some core widgets in there
