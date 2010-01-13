@@ -13,6 +13,8 @@ class EmarketingController < CmsController # :nodoc: all
     @subpages = [
        [ "Visitor Statistics", :editor_visitors, "emarketing_statistics.gif", { :action => 'visitors' }, 
           "View and Track Visitors to your site" ],
+       [ "Real Time Statistics", :editor_visitors, "emarketing_statistics.gif", { :action => 'stats' }, 
+          "View Real Time Visits to your site" ],
        [ "Tell-a-Friend Emails", :editor_content, "emarketing_members.gif",  { :controller => "/subscription",:action => "tell_friends" },
           "See emails sent with Tell-a-friend" ],
        [ "Subscriptions", :editor_mailing,"emarketing_subscriptions.gif", { :controller => '/subscription' },
@@ -91,10 +93,10 @@ class EmarketingController < CmsController # :nodoc: all
   
     @stats = DefaultsHashObject.new(
       { 
-        :unique_ips => DomainLogEntry.count('ip_address',:distinct => true,:conditions => conditions),
+        :unique_ips => DomainLogSession.count('ip_address',:distinct => true,:conditions => conditions),
         :unique_sessions => DomainLogEntry.count('domain_log_session_id',:distinct => true,:conditions => conditions),
         :registered_users => DomainLogEntry.count('user_id',:distinct => true,:conditions => conditions + " AND user_id IS NOT NULL"),
-        :anonymous_users => DomainLogEntry.count('ip_address',:distinct => true,:conditions => conditions + " AND user_id IS NULL"),
+        :anonymous_users => DomainLogSession.count('ip_address',:distinct => true,:conditions => conditions + " AND end_user_id IS NULL"),
         :total_hits => DomainLogEntry.count(:conditions => conditions)
       }
     )
@@ -108,5 +110,36 @@ class EmarketingController < CmsController # :nodoc: all
                 
     render :partial => 'site_statistics'
   end
-  
+
+  def stats
+    cms_page_info([ ['E-marketing',url_for(:action => 'index') ], 'Real Time Statistics' ],'e_marketing')
+
+    @onload = 'RealTimeStatsViewer.onLoad();'
+  end
+
+  def site_playback
+    now = Time.now
+    from = params[:from] ? Time.at(params[:from].to_i) : (now - 1.minute)
+
+    @entries = DomainLogEntry.find(:all, :limit => 50, :conditions => ['occurred_at between ? and ?', from, now], :order => 'occurred_at', :include => [:domain_log_session, :user, :end_user_action])
+    @remaining = DomainLogEntry.count(:all, :conditions => ['occurred_at between ? and ?', from, now])
+    @remaining -= 50
+    @remaining = 0 if @remaining < 0
+
+    last_occurred_at = nil
+    @entries.map! do |entry|
+      last_occurred_at = entry.occurred_at.to_i
+
+      { :occurred_at => entry.occurred_at.to_i,
+	:url => entry.url,
+	:ip => entry.domain_log_session.ip_address,
+	:user => entry.username,
+	:status => entry.http_status,
+	:action => entry.action
+      }
+    end
+
+    @entries << {:occurred_at => nil, :remaining => @remaining} if @remaining > 0
+    render :json => [now.to_i, @entries]
+  end
 end

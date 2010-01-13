@@ -1,0 +1,123 @@
+<script>
+RealTimeStatsViewer = {
+  from: null,
+  stats: new Array(),
+  current: null,
+  playbackTicker: 60,
+  realTimeStatsLayer: null,
+  maxStats: 1000,
+  playbackTickerStart: 60,
+
+  addStats: function(stats) {
+    var div = document.createElement( 'div' );
+    div.setAttribute( 'class', 'stats' );
+    var url = document.createElement( 'div' );
+    url.setAttribute( 'class', 'url' );
+    url.appendChild( document.createTextNode(stats.url) );
+
+    var d = new Date( stats.occurred_at*1000 );
+    var occurred_at = document.createElement( 'div' );
+    occurred_at.setAttribute( 'class', 'occurred' );
+    occurred_at.appendChild( document.createTextNode(d.toLocaleTimeString()) );
+
+    div.appendChild( url );
+    div.appendChild( occurred_at );
+
+    while( RealTimeStatsViewer.realTimeStatsLayer.children.length >= RealTimeStatsViewer.maxStats ) {
+      RealTimeStatsViewer.realTimeStatsLayer.children[0].remove();
+    }
+
+    RealTimeStatsViewer.realTimeStatsLayer.insert( div );
+  },
+
+  scrollToBottom: function() {
+    var scrollHeight = RealTimeStatsViewer.realTimeStatsLayer.scrollHeight;
+    var height = RealTimeStatsViewer.realTimeStatsLayer.getHeight();
+    scrollTop = scrollHeight - height;
+    if( scrollTop < 0 ) { return; }
+    RealTimeStatsViewer.realTimeStatsLayer.scrollTop = scrollTop;
+  },
+
+  playback: function() {
+    occurred_at = RealTimeStatsViewer.stats[0].occurred_at;
+
+    if( occurred_at == null ) {
+      var remainingData = RealTimeStatsViewer.stats.shift();
+      if( remainingData.remaining > 0 ) {
+        var div = document.createElement( 'div' );
+        div.setAttribute( 'class', 'remaining' );
+        div.appendChild( document.createTextNode(remainingData.remaining + ' remaining') );
+	RealTimeStatsViewer.realTimeStatsLayer.insert( div );
+      }
+    } else {
+      RealTimeStatsViewer.playbackTicker--;
+
+      var scrollTop = RealTimeStatsViewer.realTimeStatsLayer.scrollTop;
+      var scrollHeight = RealTimeStatsViewer.realTimeStatsLayer.scrollHeight;
+      var height = RealTimeStatsViewer.realTimeStatsLayer.getHeight();
+      var scrollToBottom = (scrollTop == 0 && scrollHeight <= height) || (scrollTop+height) == scrollHeight;
+
+      while( occurred_at != null ) {
+	var diff = RealTimeStatsViewer.current - occurred_at;
+
+        if( diff < RealTimeStatsViewer.playbackTicker ) { break; }
+
+        RealTimeStatsViewer.addStats( RealTimeStatsViewer.stats.shift() );
+
+        if( RealTimeStatsViewer.stats.length == 0 ) {
+   	  break;
+        }
+
+        occurred_at = RealTimeStatsViewer.stats[0].occurred_at;
+     }
+
+      if( scrollToBottom ) {
+        setTimeout( 'RealTimeStatsViewer.scrollToBottom();', 10 );
+      }
+    }
+
+    if( RealTimeStatsViewer.stats.length > 0 ) {
+      setTimeout( 'RealTimeStatsViewer.playback();', 1000 );
+    } 
+  },
+
+  realTimeStatsUrl: function() {
+    var url = "<%= url_for :action => 'site_playback' %>";
+    if( RealTimeStatsViewer.current != null )
+      url += '?from=' + RealTimeStatsViewer.current;
+    return url;
+  },
+
+  realTimeStatsOnComplete: function(transport) {
+    data = eval( transport.responseText );
+    RealTimeStatsViewer.playbackTicker = RealTimeStatsViewer.playbackTickerStart;
+
+    var startPlaybackTimer = RealTimeStatsViewer.stats.length == 0;
+    RealTimeStatsViewer.current = data[0];
+
+    for( var i=0; i<data[1].length; i++ ) {
+      RealTimeStatsViewer.stats.push(data[1][i]);
+    }
+
+    if( startPlaybackTimer && RealTimeStatsViewer.stats.length > 0 ) {
+      setTimeout( 'RealTimeStatsViewer.playback();', 5000 );
+    }
+
+    setTimeout( 'RealTimeStatsViewer.requestRealTimeStats();', RealTimeStatsViewer.playbackTickerStart*1000 );
+  },
+
+  requestRealTimeStats: function() {
+    new Ajax.Request(RealTimeStatsViewer.realTimeStatsUrl(),
+		     { method: 'get',
+		       onComplete: RealTimeStatsViewer.realTimeStatsOnComplete
+		     });
+  },
+
+  onLoad: function () {
+    RealTimeStatsViewer.realTimeStatsLayer = $('real_time_stats');
+    RealTimeStatsViewer.requestRealTimeStats();
+  }
+}
+</script>
+
+<div id="real_time_stats" style="width:300px; height:100px; overflow-x:hidden; overflow-y:auto;"></div>

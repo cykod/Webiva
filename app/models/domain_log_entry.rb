@@ -6,6 +6,8 @@ class DomainLogEntry < DomainModel
   belongs_to :end_user_action
   belongs_to :domain_log_session
 
+  named_scope :recent, lambda { |from| from ||= 1.minute.ago; {:conditions => ['occurred_at > ?', from]} }
+
   def self.create_entry_from_request(user, site_node, path, request, session, output)
     return nil unless request.session_options
 
@@ -42,8 +44,15 @@ class DomainLogEntry < DomainModel
   def user?
     return self.user_id != nil
   end
-  
-  
+
+  def username
+    user? ? self.user.name : 'Anonymous'.t
+  end
+
+  def url
+    self.node_path.to_s + self.page_path.to_s
+  end
+
   def self.find_user_sessions(user)
     # If we have a user, find any other sessions
     entry_sessions = 
