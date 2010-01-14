@@ -76,11 +76,10 @@ class EmarketingController < CmsController # :nodoc: all
   def visitor_detail
     session_id = params[:path][0]
     
-    @entry = DomainLogEntry.find_by_session_id(session_id,:order => 'occurred_at DESC')
+    @entry = DomainLogEntry.find_by_domain_log_session_id(session_id,:order => 'occurred_at DESC')
     if @entry && @entry.user
       @user = @entry.user
     end
-
     
     @entry_info,@entries = DomainLogEntry.find_anonymous_session(session_id)
     
@@ -93,7 +92,7 @@ class EmarketingController < CmsController # :nodoc: all
     @stats = DefaultsHashObject.new(
       { 
         :unique_ips => DomainLogEntry.count('ip_address',:distinct => true,:conditions => conditions),
-        :unique_sessions => DomainLogEntry.count('session_id',:distinct => true,:conditions => conditions),
+        :unique_sessions => DomainLogEntry.count('domain_log_session_id',:distinct => true,:conditions => conditions),
         :registered_users => DomainLogEntry.count('user_id',:distinct => true,:conditions => conditions + " AND user_id IS NOT NULL"),
         :anonymous_users => DomainLogEntry.count('ip_address',:distinct => true,:conditions => conditions + " AND user_id IS NULL"),
         :total_hits => DomainLogEntry.count(:conditions => conditions)

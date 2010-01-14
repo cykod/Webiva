@@ -5,7 +5,7 @@
 <b><%= sprintf("User #%s".t,@user.id.to_s) %>:
  <a href='<%= url_for :controller => "/members", :action => 'view', :path => @user.id %>'><%= @user.name %></a> </b><br/><br/>
 <% else -%>
-<b><%= sprintf("Anonymous user from %s".t,@entry.ip_address.to_s) %></b><br/><br/>
+<b><%= sprintf("Anonymous user from %s".t,@entry.domain_log_session.ip_address.to_s) %></b><br/><br/>
 <% end -%>
 
 <% table_for @entries, [ 'Date Started','Time','Pages','Action'], :class=>'admin_table',:cellspacing => '0' do |entry| %>

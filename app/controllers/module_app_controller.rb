@@ -144,16 +144,9 @@ class ModuleAppController < ApplicationController
   
   def process_logging
    if Configuration.logging
-    	user_agent = request.user_agent.to_s.downcase
-      unless ['msnbot','yahoo! slurp','googlebot','bot','spider','crawler'].detect { |b| user_agent.include?(b) }
-        # log the paragraph action if there is one
-        paction = @output.paction if @output && @output.paction
-        
-      	if !session[:domain_log_session] || session[:domain_log_session][:end_user_id] != myself.id
-      	  ses = DomainLogSession.session(request.session_options[:id] ,myself,request.remote_ip) if request.session_options
-      	  session[:domain_log_session] = { :id => ses.id, :end_user_id => myself.id } if request.session_options
-      	end
-        DomainLogEntry.create_entry(myself,@page,@path,request.remote_ip,request.session_options[:id],@output ? @output.status : nil,paction) if request.session_options
+      unless request.bot?
+	DomainLogSession.start_session(myself, session, request)
+	DomainLogEntry.create_entry_from_request(myself, @page, params[:path].join('/'), request, session, @output)
       end
     end
   end
