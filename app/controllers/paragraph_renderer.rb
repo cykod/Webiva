@@ -156,7 +156,7 @@ class ParagraphRenderer < ParagraphFeature
   end 
 
   # Set a number of page connections of the form :name => value
-  def set_page_connection(cons)
+  def set_page_connections(cons)
     cons.each do |key,val|
       set_page_connection(key,val)
     end
