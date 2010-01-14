@@ -1,6 +1,8 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 class EmarketingController < CmsController # :nodoc: all
+  include ActionView::Helpers::DateHelper
+
   layout 'manage'
   
   permit ['editor_visitors','editor_members','editor_mailing'], :only => :index
@@ -115,14 +117,17 @@ class EmarketingController < CmsController # :nodoc: all
     cms_page_info([ ['E-marketing',url_for(:action => 'index') ], 'Real Time Statistics' ],'e_marketing')
 
     @onload = 'RealTimeStatsViewer.onLoad();'
+
+    @chart_html = open_flash_chart_object_from_hash(url_for(:action => 'site_counts'), :div_name => 'site_counts', :width => 600, :height => 400)
   end
 
   def site_playback
     now = Time.now
     from = params[:from] ? Time.at(params[:from].to_i) : (now - 1.minute)
 
-    @entries = DomainLogEntry.find(:all, :limit => 50, :conditions => ['occurred_at between ? and ?', from, now], :order => 'occurred_at', :include => [:domain_log_session, :user, :end_user_action])
-    @remaining = DomainLogEntry.count(:all, :conditions => ['occurred_at between ? and ?', from, now])
+    conditions = ['occurred_at between ? and ?', from, now]
+    @entries = DomainLogEntry.find(:all, :limit => 50, :conditions => conditions, :order => 'occurred_at', :include => [:domain_log_session, :user, :end_user_action])
+    @remaining = DomainLogEntry.count(:all, :conditions => conditions)
     @remaining -= 50
     @remaining = 0 if @remaining < 0
 
@@ -141,5 +146,78 @@ class EmarketingController < CmsController # :nodoc: all
 
     @entries << {:occurred_at => nil, :remaining => @remaining} if @remaining > 0
     render :json => [now.to_i, @entries]
+  end
+
+  def site_counts
+    range = (params[:range] || 60).to_i
+    intervals = (params[:intervals] || 10).to_i
+
+    now = Time.now
+    from = now.to_i - (now.to_i % range.minutes)
+
+    uniques = [0]
+    hits = [0]
+    labels = ['']
+    max_hits = 10
+    (1..intervals).each do |interval|
+      conditions = ['occurred_at between ? and ?', Time.at(from), Time.at(now)]
+      uniques << DomainLogEntry.count('ip_address', :distinct => true, :joins => :domain_log_session, :conditions => conditions)
+      page_views = DomainLogEntry.count(:all, :conditions => conditions)
+      hits << page_views
+      labels << Time.at(from).strftime('%I:%M')
+      max_hits = page_views if page_views > max_hits
+      now = from
+      from -= range.minutes
+    end
+
+    from = now
+
+    uniques << 0
+    hits << 0
+    labels << ''
+
+    max_hits = (max_hits + (10 - (max_hits%10))) if (max_hits%10) != 0
+
+    uniques_bar = OpenFlashChart::BarGlass.new
+    uniques_bar.text = "Uniques"
+    uniques_bar.colour = '#CC0000'
+    uniques_bar.set_values uniques
+    hits_bar = OpenFlashChart::BarGlass.new
+    hits_bar.text = "Page Views"
+    hits_bar.colour = '#0000CC'
+    hits_bar.set_values hits
+
+    x = OpenFlashChart::XAxis.new
+    x.set_offset(false)
+    x.set_labels(labels)
+    x.rotate = 90
+
+    x_legend = OpenFlashChart::XLegend.new("Every #{range} minutes")
+    x_legend.set_style('{font-size: 12px; color: #000000}')
+
+    y = OpenFlashChart::YAxis.new
+    y.set_range(0,max_hits, max_hits/10)
+
+    y_legend = OpenFlashChart::YLegend.new("Uniques / Page Views")
+    y_legend.set_style('{font-size: 12px; color: #000000}')
+
+    labels = OpenFlashChart::XAxisLabels.new
+    labels.steps = range
+    labels.visible_steps = range
+
+    format = '%b %e, %Y %I:%M%P'
+    title = OpenFlashChart::Title.new("#{Time.now.strftime(format)}   -   #{Time.at(from).strftime(format)}")
+    title.set_style('{font-size: 14px; color: #000000; font-weight:bold}')
+
+    @chart = OpenFlashChart::OpenFlashChart.new
+    @chart.set_x_legend(x_legend)
+    @chart.set_y_legend(y_legend)
+    @chart.set_title(title)
+    @chart.add_element(uniques_bar)
+    @chart.add_element(hits_bar)
+    @chart.x_axis = x
+    @chart.y_axis = y
+
+    render :text => @chart.render
   end
 end
