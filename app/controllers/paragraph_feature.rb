@@ -2,6 +2,136 @@
 
 require 'radius'
 
+=begin rdoc
+ParagraphFeatures's are used to render paragraph output
+in a highly user-customizable way
+
+They are the view part of the trinty of classes used for 
+configuring and rendering paragraphs (ParagraphController and ParagraphRenderer
+are the other two).
+
+ParagraphFeature's generally define a number of features using the ParagraphFeature#feature class method
+and then define a method called [feature_name]_feature(data) that actually renders the feature.
+
+=== Example
+
+For example, a (abbreviated) feature for the poll demo might look like:
+
+    class PollDemo::PageFeature < ParagraphFeature
+       feature :poll_demo_page_view, :default_feature => <<-FEATURE
+                  <cms:poll>
+                     <cms:responded><cms:graph/></cms:responded>
+                     <cms:form>
+                       <b><cms:question/></b><br/>
+                       <cms:response/><br/><cms:submit/>
+                     </cms:form>
+                  </cms:poll>
+                  <cms:no_poll>Invalid Poll</cms:no_poll>
+                FEATURE
+       
+       
+       def poll_demo_page_view_feature(data)
+             webiva_feature(:poll_demo_page_view,data) do |c|
+               c.expansion_tag('poll') {  |t| data[:poll] }
+               c.expansion_tag('responded') {  |t| data[:state] == 'responded'}
+                  c.value_tag('responded:graph') do |t| 
+                     data[:poll].results_graph(data[:options].graph_width,
+                                           data[:options].graph_height)
+                  end
+              
+               c.form_for_tag('form','poll') do |t|
+                 if data[:state] == 'question'
+                   { 
+                     :object => data[:response],
+                     :code => hidden_field_tag('poll[poll_demo_poll_id]',data[:poll].id)
+                   }
+                 end
+               end
+               c.h_tag('question') {  |t| data[:poll].question }
+               c.field_tag('form:response',
+                 :control => :radio_buttons, 
+                 :separator => '<br/>') { |t| data[:poll].answer_options }
+               c.submit_tag('form:submit',:default => 'Submit')
+             end
+           end
+       
+       ...
+    end  
+
+
+=== Naming Convention
+
+A couple of things to note, first the feature names aren't namespaced, so you need to 
+manually name space them. The standard method is [module_name]_[renderer_name]_[paragraph_name]
+In the case about the module's name is "poll_demo", the renderer name is "page" and the paragraph
+name is "view", so the feature is called :poll_demo_page_view.
+
+== webiva_feature and webiva_custom_feature
+
+Inside of the actual feature method is usually a call to webiva_feature or webiva_custom_feature,
+which yields a context, inside of which you can define tags for the feature to use. The end
+result of the webiva_feature (or webiva_custom_feature) call is the html that the feature renders,
+using either the default feature or the customized feature defined by the site integrator.
+
+When should you use which? Well, if you the tags that you define don't depend on the data variable
+being passed in, then you can use webiva_feature. If they do depend on the data (for example in a custom 
+content model publication you'll have different tags depending on the content mode) You should
+use webiva_custom_feature so the system knows not to cache the generated tags.
+
+Note: the caching is planned for the future, so using the correct call is only important for
+future proofing your module
+
+=== Defining Tags: Basic Radius
+
+The "c" that webiva_feature passes to the block is called a FeatureContext. You can use it to define
+tags that will be available in the feature. Webiva uses the excellent (Radius Gem)[http://github.com/jlong/radius]
+to render features and the webiva class ParagraphFeature::FeatureContext inherits from Radius::Context. 
+
+At the most basic level you can define tags using 'define_tag' - which is the standard radius method.
+
+For example to create a tag that will be available as "<cms:name/>" in your ParagraphFeature you could write:
+
+      c.define_tag('name') { |t| h(data[:object].name) }
+
+If you wanted to be able to write something like: "<cms:object>We have an object!</cms:object>" that only
+displays the text "We have an object!" you could define a tag like:
+
+     c.define_tag('object') { |t| data[:object] ? t.expand : nil }
+
+Radius also supports some local variables and nested tags. For example the above two tags could be written 
+like:
+
+     c.define_tag('object') do |t|
+        t.locals.object = data[:object]
+        t.locals.object ? t.expand : nil
+     end
+     c.define_tag('object:name') { |t| h(t.locals.object.name) }
+
+This would allow a site feature like "<cms:object>Name: <cms:name/></cms:object>" which would only
+display: "Name: .." if the object existed, and only allow the use of the <cms:name/> tag inside of
+a <cms:object/> tag.
+
+=== FeatureContext Tags
+
+Writing define_tag and a whole bunch of display logic gets old quickly, so FeatureContext adds
+a whole slew of tags that you can use in lieu of define_tag that add one or more tag with
+specific functionality. The above could also be written:
+
+    c.expansion_tag('object') { |t| t.locals.object = data[:object] }
+    c.h_tag('object:name') { |t| t.locals.object.name }
+        
+See ParagraphFeature::FeatureContext for more information.
+
+=== Usings features
+
+Features are made available in ParagraphRenderer's by calling the 'feature /module/feature' class 
+method and then either calling the feature directly via it's method name or by calling:
+
+        render_paragraph :feature => :feature_name                                        
+
+See ParagraphRenderer for more information.
+
+=end
 class ParagraphFeature
 
   # Include some helpers needed for
@@ -14,12 +144,12 @@ class ParagraphFeature
   include ActionView::Helpers::FormTagHelper
 
 
-  def initialize(paragraph,renderer)
+  def initialize(paragraph,renderer) #:nodoc:
     @para = paragraph
     @renderer = renderer
   end
   
-  def method_missing(method,*args)
+  def method_missing(method,*args) #:nodoc:
     if method.to_s =~ /feature$/
       raise 'Undefined feature:' + method.to_s
     else
@@ -31,14 +161,17 @@ class ParagraphFeature
     end
   end
 
+  # Creates a new standalone feature that can be called with a 
+  # data hash directly. 
   def self.standalone_feature(site_feature_id=nil)
     self.new(PageParagraph.new(:site_feature_id => site_feature_id),dummy_renderer)
   end
   
-  def self.dummy_renderer(controller=nil)
+  def self.dummy_renderer(controller=nil) #:nodoc:
     ParagraphRenderer.new(UserClass.get_class('domain_user'),controller || ApplicationController.new,PageParagraph.new,SiteNode.new,PageRevision.new)
   end
 
+  # Returns a list of tags that are defined in this feature
   def self.document_feature(name,data={},controller=nil,publication=nil)
     rnd = self.dummy_renderer(controller)
     feature = self.new(PageParagraph.new,rnd)
@@ -46,6 +179,9 @@ class ParagraphFeature
     feature.send(name,data)
   end
   
+  # Registers a feature named type.
+  # Should be called with :default_feature option to show the markup for 
+  # the default feature (otherwise by nothing will render)
   def self.feature(type,opts = {})
     features = self.available_features
     features << type
@@ -66,7 +202,20 @@ class ParagraphFeature
   end
   
   
-  
+=begin rdoc
+FeatureContext is the context passed to site features when they call ParagraphFeathre#webiva_feature.
+It includes most of the basic view helpers, allow you to call standard rails methods like
+"tag" to generate an html tag. 
+
+It also defines a number of custom tags methods for Webiva. All custom tag
+methods are aliased without the leading "define", so define_expansion_tag is
+also available as expansion_tag.
+
+Most of the Webiva custom tags accept a block that returns the object on which the tag should 
+act. For example - expansion_tag accepts a block and will only expand the tag if the value of
+block is non-nil
+
+=end  
   class FeatureContext < Radius::Context 
     include ActionView::Helpers::TagHelper
     include EscapeMethods
@@ -78,36 +227,52 @@ class ParagraphFeature
     include EscapeHelper
     
     
-    def url_for(opts)
+    def url_for(opts) #:nodoc:
       ''
     end
     
-    def initialize(renderer=nil)
+    def initialize(renderer=nil) #:nodoc:
       @renderer = renderer
       super()
     end
     
-  def method_missing(method,*args)
+  def method_missing(method,*args) #:nodoc:
     if args.length > 0
       @renderer.send(method,*args)
     else
       @renderer.send(method)
-    end
+    end 
   end
     
-  def define_attribute_tags(name,tag_names,&block)
+  # Defines a set of tags of the form [name]:[tag_name] for each
+  # element of the array tag_names making it easy to expose a number
+  # of attributes in an object. For example if we had an object in
+  # t.locals.person with a first_name,last_name, and email attribute
+  # we could write:
+  #
+  #     c.attribute_tags("person",["first_name","last_name","email"]) { |t| t.locals.person }
+  #
+  # which would add three tags:
+  #
+  #     <cms:person:first_name/>, <cms:person:last_name/>, <cms:person:email_name/>
+  #
+  def define_attribute_tags(name,tag_names,&block) 
     tag_names.each do |tag_name|
       define_attribute_tag_helper("#{name}:#{tag_name}",tag_name,block)
     end
   end
         
-        def define_attribute_tag_helper(name,tag_name,block)
+        def define_attribute_tag_helper(name,tag_name,block) #:nodoc:
           define_value_tag(name) do |t|
               h(block.call(t).send(tag_name))
           end
         end
     
-    # Wrap a value tag in an escape
+    # Define a value tag and escape the output with a h call
+    #
+    # === Options
+    # [:format]
+    #   Set to :simple to call Rail's simple_format method around the returned, escaped value
     def define_h_tag(name,field='value',options={},&block)
       case options[:format]
       when :simple
@@ -117,7 +282,7 @@ class ParagraphFeature
       end
     end
 
-    def value_tag_helper(t,field,val)
+    def value_tag_helper(t,field,val) #:nodoc:
       t.locals.send("#{field}=",val)
       if t.attr['equals']
         eql = val.is_a?(Integer) ? t.attr['equals'].to_i : t.attr['equals']
@@ -148,6 +313,18 @@ class ParagraphFeature
       end
     end
     
+    # Defines a value tag, which is the standard tag that 
+    # is used to output a piece of content. Using value_tag
+    # instead of just define_tag allows for some additional functionality
+    # including using the value tag as a block.
+    # 
+    # For example, if you defined a value tag called 'name' you could write:
+    #
+    #     <cms:name>Name: <cms:value/></cms:name>
+    #
+    # Which would only display the Name: .. text if the return value of the block
+    # isn't blank.
+    #
     def define_value_tag(name,field='value',&block)
       define_tag(name) do |tag|
         val = yield(tag)
@@ -170,6 +347,41 @@ class ParagraphFeature
       end
     end
     
+    # Loop tags are used to loop over a list of items, assign each item to a local
+    # and then expand the interior of the tag.
+    # For example lets say you had a list of "posts" in data[:posts] that you wanted
+    # to iterate over, you could define a loop tag and a couple of attribute tags:
+    #
+    #       c.loop_tag('post') { |t| data[:posts] }
+    #       c.attribute_tags('post',%w(name body)) { |t| t.locals.post }
+    #
+    # This would create a number of tags:
+    # 
+    # [<cms:posts>]
+    #   Block tag that is expanded only if data[:posts] is non-nil and has a length > 0
+    # [<cms:no_posts> or <cms:not_posts>]
+    #   Block tags that are expanded only if data[:posts] is nil or has a length == 0
+    # [<cms:post>]
+    #   Block tag that is called once for each element of data[:posts], it will assign a local
+    #   variable called t.locals.post that will contain the individual post
+    # [<cms:post:name/>]
+    #   h tag that will display the name for each post
+    # [<cms:post:body/>]
+    #   h that will display the body of each post
+    # 
+    # An example code usage would be:
+    #
+    #      <cms:posts>
+    #      <div class='posts'>
+    #        <cms:post>
+    #        <div class='post'>     
+    #          <h2><cms:name/></h2>
+    #          <cms:body/>
+    #        </div>
+    #        </cms:post>
+    #      </div>
+    #      </cms:posts>
+    #      <cms:no_posts><h2>No Posts</h2></cms:no_posts>
     def define_loop_tag(name,plural=nil)
       name_parts = name.split(":")
       name_base = name_parts[-1]
@@ -181,6 +393,15 @@ class ParagraphFeature
       define_expansion_tag(expansion_tag) { |t| arr = yield(t); arr && arr.length > 0 }
     end
     
+    # Expansion tags are block tags that will expand the value of the tag
+    # if the block returns a non-nil value
+    # a common usage is to assign a local in the yielded block
+    #
+    # For example:
+    #
+    #      c.expansion_tag('item') { |t| t.locals.item = data[:item] } 
+    #      ..Now defines some tags underneath item:, like item:name, item:price, etc...
+    # 
     def define_expansion_tag(name) 
       define_tag(name) do |tag|
         yield(tag) ? tag.expand : nil
@@ -199,6 +420,12 @@ class ParagraphFeature
 
     end
     
+    # Creates a tag that expects a date or time object to be returned by the yielded block.
+    #
+    # For example:
+    #
+    #     c.date_tag('current_time') { |t| Time.now }
+    #
     def define_date_tag(name,default_format = '%m/%d/%Y',&block)
       define_value_tag(name) do |tag|
         val = yield(tag)
@@ -213,17 +440,19 @@ class ParagraphFeature
       end
     end
 
-    def reset_output
+    def reset_output #:nodoc:
       @output_buffer = ""
     end
     
-    def concat(txt,binding=nil)
+    def concat(txt,binding=nil) #:nodoc:
       @output_buffer += txt
     end
     
     attr_reader :output_buffer
 
-    
+    # Creates an end user table, see EndUserTable for more information
+    # (EndUserTable's are the equivalent of ActiveTable but for the front end
+    # of the site)
     def define_end_user_table_tag(tag_name,field,options = {},&block) 
       options.symbolize_keys!
       define_tag(tag_name) do |t|
@@ -248,18 +477,50 @@ class ParagraphFeature
       end
     end
     
+    # Helper method that defines a number of tags that provide information
+    # about the current user.
+    #
+    #     user_tags('user') { |t| t.locals.user }
+    #
+    # Would define the following tags:
+    # [<cms:user>]
+    #   Expansion tag that only expands if the yield block returns non-nil
+    # [<cms:user:logged_in>]
+    #   Expansion tag that only expands if the user is logged in
+    # [<cms:user:name/>]
+    #   h tag that returns the full name of the user
+    # [<cms:user:first_name/>]
+    #   h tag the returns the users first name
+    # [<cms:user:last_name/>]
+    #   h tag the returns the users last name
+    # [<cms:user:profile/>]
+    #   value tag the returns the user's profile id
+    # [<cms:user:myself>]
+    #   expansion tag that expands only if the user is the currently logged in user
     def define_user_tags(tag_name)
     
       define_expansion_tag(tag_name) { |t| yield t }
       define_expansion_tag(tag_name + ":logged_in") { |t| usr = yield t; !usr.id.blank? }
-      define_value_tag(tag_name + ":name") { |t| usr = yield t; usr.name if usr }
-      define_value_tag(tag_name + ":first_name") { |t| usr = yield t; usr.first_name if usr }
-      define_value_tag(tag_name + ":last_name") { |t| usr = yield t; usr.last_name if usr }
+      define_h_tag(tag_name + ":name") { |t| usr = yield t; usr.name if usr }
+      define_h_tag(tag_name + ":first_name") { |t| usr = yield t; usr.first_name if usr }
+      define_h_tag(tag_name + ":last_name") { |t| usr = yield t; usr.last_name if usr }
       define_value_tag(tag_name + ":profile") { |t| usr = yield t; usr.profile_id if usr }
       define_expansion_tag(tag_name + ":myself") { |t| usr = yield t; usr == myself if usr }
     
     end
 
+    # Similar to define_user_tags but it defines a whole bunch of tags
+    # with detailed information about the user.
+    #
+    # the only option that is currently accepted is :local, which is the name
+    # of the local variable to find the user object (defaults to the name of the tag)
+    #
+    #     user_details_tags('user') { |t| t.locals.user }
+    #
+    # Would define expansion tags for: myself,male,female,address,work_address
+    # and would define value tag for:
+    # user_id,first_name,last_name,salutation,name,email,cell_phone,img,second_img,fallback_img
+    # it also defines address tags (see #define_user_address_tags) for the address and work_address
     def define_user_details_tags(name_base,options={})
       local=options[:local]
       if !local
@@ -270,12 +531,12 @@ class ParagraphFeature
       expansion_tag("#{name_base}:male") { |t| t.locals.send(local).gender == 'm' }
       expansion_tag("#{name_base}:female") { |t| t.locals.send(local).gender == 'f' }
       define_value_tag("#{name_base}:user_id") { |t| t.locals.send(local).id }
-      define_value_tag("#{name_base}:first_name") { |t| t.locals.send(local).first_name }
-      define_value_tag("#{name_base}:last_name") { |t| t.locals.send(local).last_name }
-      define_value_tag("#{name_base}:salutation") { |t| t.locals.send(local).salutation }
-      define_value_tag("#{name_base}:name") { |t| t.locals.send(local).name }
-      define_value_tag("#{name_base}:email") { |t| t.locals.send(local).email } 
-      define_value_tag("#{name_base}:cell_phone") { |t| t.locals.send(local).cell_phone }
+      define_h_tag("#{name_base}:first_name") { |t| t.locals.send(local).first_name }
+      define_h_tag("#{name_base}:last_name") { |t| t.locals.send(local).last_name }
+      define_h_tag("#{name_base}:salutation") { |t| t.locals.send(local).salutation }
+      define_h_tag("#{name_base}:name") { |t| t.locals.send(local).name }
+      define_h_tag("#{name_base}:email") { |t| t.locals.send(local).email } 
+      define_h_tag("#{name_base}:cell_phone") { |t| t.locals.send(local).cell_phone }
       define_image_tag("#{name_base}:img") { |t| t.locals.send(local).image }
       define_image_tag("#{name_base}:second_img") { |t| t.locals.send(local).second_image }
       define_image_tag("#{name_base}:fallback_img") { |t| t.locals.send(local).second_image || t.locals.send(local).image }
@@ -288,6 +549,7 @@ class ParagraphFeature
 
     end
 
+    # Defines address tags
     def define_user_address_tags(name_base,options={})
        local=options[:local]
       if !local
@@ -303,7 +565,7 @@ class ParagraphFeature
       
     end
 
-    def image_tag_helper(tag,img,tag_opts)
+    def image_tag_helper(tag,img,tag_opts) #:nodoc:
       # Handle rollovers
       if img.is_a?(Array)
         rollover = img[1]
@@ -384,127 +646,133 @@ class ParagraphFeature
 
     end
     
-      def define_image_tag(tag_name,local_obj=nil,attribute=nil,tag_opts={})
-        define_tag tag_name + ":value" do |tag|
-          tag.locals.value
-        end
-        
-        obj_value = Proc.new() do |tag|
-          if local_obj
-            obj = tag.locals.send(local_obj)
-            if(obj)
-              if block_given?
-                if attribute
-                  img = yield obj.send(attribute), tag
-                else
-                  img = yield obj,tag
-                end
-              elsif attribute
-                img = obj.send(attribute)
+    # Defines an image tag that expects a DomainFile to be returned from
+    # the yielded block and will create an html img tag 
+    def define_image_tag(tag_name,local_obj=nil,attribute=nil,tag_opts={})
+      define_tag tag_name + ":value" do |tag|
+        tag.locals.value
+      end
+      
+      obj_value = Proc.new() do |tag|
+        if local_obj
+          obj = tag.locals.send(local_obj)
+          if(obj)
+            if block_given?
+              if attribute
+                img = yield obj.send(attribute), tag
               else
-                img = obj
+                img = yield obj,tag
               end
+            elsif attribute
+              img = obj.send(attribute)
+            else
+              img = obj
             end
-          else
-            img = yield tag
           end
+        else
+          img = yield tag
         end
-        tag_parts = tag_name.split(":")
-        tag_parts[-1] = "no_" + tag_parts[-1]
-        define_tag tag_parts.join(":") do |tag|
-          img = obj_value.call(tag)
-          img ? nil : tag.expand
-        end
-        
-        define_tag tag_name do |tag|
-          img = obj_value.call(tag)
-          image_tag_helper(tag,img,tag_opts)
-        end
+      end
+      tag_parts = tag_name.split(":")
+      tag_parts[-1] = "no_" + tag_parts[-1]
+      define_tag tag_parts.join(":") do |tag|
+        img = obj_value.call(tag)
+        img ? nil : tag.expand
+      end
+      
+      define_tag tag_name do |tag|
+        img = obj_value.call(tag)
+        image_tag_helper(tag,img,tag_opts)
+      end
     end
     
-      def define_form_tag(frm,name)
+    def define_form_tag(frm,name) #:nodoc:
       define_tag name do |tag|
         expand = block_given? ? yield : true
         if expand
           tag.locals.form = frm
-          "<form action='' method='post'>" + tag.expand + "</form>"
+          "<form action='' method='post'><CMS:AUTHENTICITY_TOKEN/>" + tag.expand + "</form>"
         else
           nil
         end
       end
     end
     
-      def define_form_for_tag(name,arg,options = {})
-        frm_obj = options[:local] || 'form'
-        define_tag name do |tag|
-          obj = yield tag if block_given?
-          if obj || !block_given?
-            opts = options.clone
-            opts.symbolize_keys!
-            if obj.is_a?(Hash)
-              arg_obj = obj.delete(:object)
-              opts = opts.merge(obj)
-              obj = arg_obj
-              opts.symbolize_keys!
-            end
-            opts[:url] ||= ''
-            frm_opts = opts.delete(:html) || { }
-            frm_opts[:method] = 'post'
-            html_options = html_options_for_form(options.delete(:url),frm_opts)
-            frm_tag = tag(:form,html_options) + "<CMS:AUTHENTICITY_TOKEN/>" + opts.delete(:code).to_s
-            cms_unstyled_fields_for(arg,obj,opts) do |f|
-              tag.locals.send("#{frm_obj}=",f)
-              frm_tag + tag.expand + "</form>"
-            end
-          else
-            nil
-          end
-        end
-      end
-      
-      def define_fields_for_tag(name,arg,options = {})
-        frm_obj = options.delete(:local) || 'form'
-        define_tag name do |tag|
-          obj = yield tag
+    # Creates a cms_unstyled_form_for object that can be used 
+    # in combination with define_field_tag to allows users to 
+    # custom style a form
+    def define_form_for_tag(name,arg,options = {})
+      frm_obj = options[:local] || 'form'
+      define_tag name do |tag|
+        obj = yield tag if block_given?
+        if obj || !block_given?
           opts = options.clone
+          opts.symbolize_keys!
+          if obj.is_a?(Hash)
+            arg_obj = obj.delete(:object)
+            opts = opts.merge(obj)
+            obj = arg_obj
+            opts.symbolize_keys!
+          end
           opts[:url] ||= ''
-          if obj || !block_given?
-            cms_unstyled_fields_for(arg,obj,opts) do |f|
-              tag.locals.send("#{frm_obj}=",f)
-              opts.delete(:code).to_s + tag.expand
-            end
-          else
-            nil
+          frm_opts = opts.delete(:html) || { }
+          frm_opts[:method] = 'post'
+          html_options = html_options_for_form(options.delete(:url),frm_opts)
+          frm_tag = tag(:form,html_options) + "<CMS:AUTHENTICITY_TOKEN/>" + opts.delete(:code).to_s
+          cms_unstyled_fields_for(arg,obj,opts) do |f|
+            tag.locals.send("#{frm_obj}=",f)
+            frm_tag + tag.expand + "</form>"
           end
+        else
+          nil
         end
       end
-
-      def define_publication_form_error_tag(name,publication,options={})
-        frm_obj = options.delete(:local) || 'form'
-        define_value_tag name do |t|
-          output = []
-          frm = t.locals.send(frm_obj)
-          publication.content_publication_fields.each do |fld|
-            err = frm.output_error_message(fld.label,fld.content_model_field.field)
-            output << err if err
-          end
-          output.join()
-        end
-      end
+    end
     
-      def define_form_error_tag(name,options={})
-        frm_obj = options.delete(:local) || 'form'
-        define_tag name do |tag|
-          frm = tag.locals.send(frm_obj)
-          if frm && frm.object && frm.object.errors && frm.object.errors.length > 0
-            if tag.single?
-              frm.object.errors.full_messages.join(tag.attr['separator'] || "<br/>")
-            else
-              tag.locals.value = frm.object.errors.full_messages.join(tag.attr['separator'] || "<br/>")
-              tag.expand           
-            end          
+    def define_fields_for_tag(name,arg,options = {}) #:nodoc:
+      frm_obj = options.delete(:local) || 'form'
+      define_tag name do |tag|
+        obj = yield tag
+        opts = options.clone
+        opts[:url] ||= ''
+        if obj || !block_given?
+          cms_unstyled_fields_for(arg,obj,opts) do |f|
+            tag.locals.send("#{frm_obj}=",f)
+            opts.delete(:code).to_s + tag.expand
+          end
+        else
+          nil
+        end
+      end
+    end
+
+    def define_publication_form_error_tag(name,publication,options={})#:nodoc:
+      frm_obj = options.delete(:local) || 'form'
+      define_value_tag name do |t|
+        output = []
+        frm = t.locals.send(frm_obj)
+        publication.content_publication_fields.each do |fld|
+          err = frm.output_error_message(fld.label,fld.content_model_field.field)
+          output << err if err
+        end
+        output.join()
+      end
+    end
+    
+    # Allows users to display the full error messages of a form_for_tag
+    def define_form_error_tag(name,options={})
+      frm_obj = options.delete(:local) || 'form'
+      define_tag name do |tag|
+        frm = tag.locals.send(frm_obj)
+        if frm && frm.object && frm.object.errors && frm.object.errors.length > 0
+          if tag.single?
+            frm.object.errors.full_messages.join(tag.attr['separator'] || "<br/>")
           else
-            nil
+            tag.locals.value = frm.object.errors.full_messages.join(tag.attr['separator'] || "<br/>")
+            tag.expand           
+          end          
+        else
+          nil
         end
       end
       
@@ -513,6 +781,7 @@ class ParagraphFeature
       end
     end
     
+    # Defines a submit button tag
     def define_button_tag(name,options={})
       onclick = options.delete(:onclick)
       define_tag name do |t|
@@ -529,13 +798,13 @@ class ParagraphFeature
                 :align => :absmiddle,
                 :onclick => onclick )
           else
-              tag('input', { :type => 'submit',
-                    :class => 'submit_tag',
-                    :name => name,
-                    :id => t.attr['id'] || options[:id],
-                    :value => t.single? ?
-                    (t.attr['value'] || options[:value] || 'Submit') : t.expand,
-                    :onclick => onclick })
+            tag('input', { :type => 'submit',
+                  :class => 'submit_tag',
+                  :name => name,
+                  :id => t.attr['id'] || options[:id],
+                  :value => t.single? ?
+                  (t.attr['value'] || options[:value] || 'Submit') : t.expand,
+                  :onclick => onclick })
           end
         else
           nil
@@ -543,7 +812,7 @@ class ParagraphFeature
       end
     end
     
-    def define_delete_button_tag(name,options={})
+    def define_delete_button_tag(name,options={}) #:nodoc:
       frm_obj = options[:local] || 'form'
       define_tag name do |t|
         if t.locals.send(frm_obj).object.id.blank?
@@ -557,7 +826,7 @@ class ParagraphFeature
       end
     end
     
-  def define_submit_tag(tag_name,options = {:default => 'Submit'.t })
+  def define_submit_tag(tag_name,options = {:default => 'Submit'.t }) #:nodoc:
 
     self.define_tag tag_name do |tag|
       output =''
@@ -588,47 +857,60 @@ class ParagraphFeature
     end
   end
     
+  # Defines a link tag that expects either a string representing the
+  # href of a link or a hash with additional tag attributes (like :noclick)
+  # 
+  # For example:
+  #
+  #     define_link_tag('result') { |t| '/result' }
+  #
+  # would define 3 tags:
+  # [<cms:result_link>]
+  #   Block tag that creates s <a>..</a> tag wrapping it's content
+  # [<cms:result_url/>]
+  #   Value tag that returns the url of the link tag
+  # [<cms:result_href/>]
+  #   Value tag that returns a href="url.." tag
+  def define_link_tag(name,options={})
+    name_base = name[-1..-1] == ":" ? name : name + "_"
     
-    def define_link_tag(name,options={})
-      name_base = name[-1..-1] == ":" ? name : name + "_"
-    
-      define_value_tag(name_base + "url") do |tg| 
-        url = yield tg  
-        if url.is_a?(Hash)
-          url[:href]
-        else
-          url
-        end
-      end
-      
-      define_tag(name_base + "link") do |tg|
-        attr = tg.attr.clone
-        selected = attr.delete('selected_class')
-        url = yield(tg)
-        if url.blank?
-          nil
-        elsif url.is_a?(Hash)
-          url_selected = url.delete(:selected)
-          url[:class] = selected if selected && url_selected
-          tag('a',attr.merge(options).merge(url),true) + tg.expand + "</a>" 
-        else
-          tag('a',attr.merge(options).merge({ :href => url }),true) + tg.expand + "</a>" 
-        end
-      end
-      define_value_tag(name_base + "href") do |tg| 
-        url = yield tg  
-        if url.is_a?(Hash)
-          url.to_a.map { |elm| "#{elm[0]}='#{vh elm[1]}'" }.join(" ")
-        else
-          "href='#{url}'"
-        end
+    define_value_tag(name_base + "url") do |tg| 
+      url = yield tg  
+      if url.is_a?(Hash)
+        url[:href]
+      else
+        url
       end
     end
     
+    define_tag(name_base + "link") do |tg|
+      attr = tg.attr.clone
+      selected = attr.delete('selected_class')
+      url = yield(tg)
+      if url.blank?
+        nil
+      elsif url.is_a?(Hash)
+        url_selected = url.delete(:selected)
+        url[:class] = selected if selected && url_selected
+        tag('a',attr.merge(options).merge(url),true) + tg.expand + "</a>" 
+      else
+        tag('a',attr.merge(options).merge({ :href => url }),true) + tg.expand + "</a>" 
+      end
+    end
+    define_value_tag(name_base + "href") do |tg| 
+      url = yield tg  
+      if url.is_a?(Hash)
+        url.to_a.map { |elm| "#{elm[0]}='#{vh elm[1]}'" }.join(" ")
+      else
+        "href='#{url}'"
+      end
+    end
+  end
+  
     include SimpleCaptcha::ViewHelpers 
     
-    def define_captcha_tag(name,options={}) 
-      define_tag(name) do |t|
+    def define_captcha_tag(name,options={})  #:nodoc:
+      define_tag(name) do |t| 
         
         show_captcha = block_given? ? yield : true
         if show_captcha
@@ -644,11 +926,19 @@ class ParagraphFeature
       end
     end
     
+    # Defines a field tag used with define_form_for_tag
+    # Most options are passed directly through to the appropriate field options
+    # with the exception of the :control option which defines that control
+    # that should be used (any of the controls in StyleFormBuilderGenenerator,
+    # :text_field, :text_area, :radio_buttons, etc )
+    #
+    # If the control type expects options. Those can be returned via a block
+    # or from the :options option
     def define_field_tag(name,options={},&block)
       define_form_field_tag(name,options,&block)    
     end
 
-    def form_field_tag_helper(t,frm,control_type,field_name,options={},&block)
+    def form_field_tag_helper(t,frm,control_type,field_name,options={},&block) #:nodoc:
       options=options.clone
       atr = t.attr.symbolize_keys
       # Block contains the options for an options control 
@@ -702,7 +992,7 @@ class ParagraphFeature
       end
     end
     
-
+    # Defines an error tag for an individual field
     def form_field_error_tag_helper(t,frm,field_name)
       errs = frm.object.errors.on(field_name)
       if errs.is_a?(Array)
@@ -717,7 +1007,7 @@ class ParagraphFeature
       val
     end
     
-    def define_form_field_tag(name,options={},&block)
+    def define_form_field_tag(name,options={},&block) #:nodoc:
       options = options.clone
       
       name_parts = name.split(":")
@@ -741,7 +1031,7 @@ class ParagraphFeature
       end
     end
 
-    def has_many_field_helper(level,t,value,idx)
+    def has_many_field_helper(level,t,value,idx) #:nodoc:
       output = ''
      
       if value.is_a?(Hash)
@@ -769,7 +1059,9 @@ class ParagraphFeature
       output
     end
 
-    def define_publication_filter_fields_tags(prefix,arg,publication,options={})
+    # Defines a list of fields that represent the exposed filters
+    # in a publication - should be used only in webiva_custom_feature
+    def define_publication_filter_fields_tags(prefix,arg,publication,options={}) 
 
       if block_given?
         define_expansion_tag("#{prefix}_search") { |t| yield(t) }
@@ -799,6 +1091,7 @@ class ParagraphFeature
     end
 
 
+    # Defines a list of tags based on a passed-in publication
     # Can only be used in webiva_custom_feature
     def define_publication_field_tags(prefix,publication,options = {})
       c = self
@@ -972,6 +1265,8 @@ class ParagraphFeature
 
     end
 
+    # Defines a page_list tag called pages on the base as well as tags for 
+    # total_results, first_results and last_result
     def define_results_tags(tag_base,options ={ },&block)
       
       define_pagelist_tag("#{tag_base}:pages",options,&block)
@@ -992,7 +1287,10 @@ class ParagraphFeature
       end
       
     end
-    
+
+    # Given the pages hash output of DomainModel#self.paginate 
+    # it will display a list of pages 
+    # TODO: rewrite for customization
     def define_pagelist_tag(tag_name,options = {}) 
       
 
@@ -1064,7 +1362,7 @@ class ParagraphFeature
     end
     
     
-    def define_pages_tag(tag_name,path,page,pages,options = {})
+    def define_pages_tag(tag_name,path,page,pages,options = {}) #:nodoc:
       page ||= 1
       # Display the page tags
       
@@ -1126,6 +1424,7 @@ class ParagraphFeature
       end
     end
     
+    # Defines the a list of tags that are available in a loop tag
     def define_position_tags(prefix=nil)
         prefix += ':' if prefix
         prefix = prefix.to_s
@@ -1144,6 +1443,7 @@ class ParagraphFeature
   
     end    
     
+    # Called inside of a define_tag for a customized iteratation over a list
     def each_local_value(arr,tag,field = 'value')
       output = ''
       return nil unless arr.is_a?(Array)
@@ -1163,7 +1463,7 @@ class ParagraphFeature
       output
     end
     
-    def define_post_button_tag(tag_name,options = {})
+    def define_post_button_tag(tag_name,options = {}) #:nodoc:
       button_value = options[:button] || 'Submit'
       method = options[:method] || 'post'
       define_tag tag_name do |tag|
@@ -1183,7 +1483,7 @@ class ParagraphFeature
       end
     end
     
-    def define_login_block(tag_name,login_error)
+    def define_login_block(tag_name,login_error) #:nodoc:
       define_expansion_tag(tag_name) do |tag|
         user = yield
         user.id ? false : true
@@ -1215,15 +1515,16 @@ class ParagraphFeature
     end
   end  
   
+  # Class used to automatically document the tags available in a feature
   class FeatureDocumenter
     attr_reader :method_list 
     
-    def initialize(renderer)
+    def initialize(renderer) #:nodoc:
       @method_list = []
       yield self
     end
     
-    def define_loop_tag(name,plural=nil)
+    def define_loop_tag(name,plural=nil) #:nodoc:
       name_parts = name.split(":")
       name_base = name_parts[-1]
       plural = name_base.pluralize unless plural
@@ -1234,7 +1535,7 @@ class ParagraphFeature
       define_expansion_tag(expansion_tag)
     end
     
-    def define_link_tag(name,options={})
+    def define_link_tag(name,options={})#:nodoc:
       name_base = name[-1..-1] == ":" ? name : name + "_"
     
       define_value_tag(name_base + "url")
@@ -1242,7 +1543,7 @@ class ParagraphFeature
       define_value_tag(name_base + "href")
     end
 
-    def define_user_details_tags(name_base,options={})
+    def define_user_details_tags(name_base,options={}) #:nodoc:
       expansion_tag("#{name_base}:myself")
       expansion_tag("#{name_base}:male")
       expansion_tag("#{name_base}:female")
@@ -1263,7 +1564,7 @@ class ParagraphFeature
 
     end
 
-    def define_publication_filter_fields_tags(prefix,arg,publication,options={})
+    def define_publication_filter_fields_tags(prefix,arg,publication,options={}) #:nodoc:
 
       define_form_for_tag(prefix)
       define_expansion_tag("#{prefix}_search")
@@ -1286,7 +1587,7 @@ class ParagraphFeature
       end
     end
     
-    def define_user_address_tags(name_base,options={})
+    def define_user_address_tags(name_base,options={}) #:nodoc:
       define_value_tag("#{name_base}:display")
       
       %w(address address_2 company phone fax city state zip country).each do |fld|
@@ -1295,12 +1596,12 @@ class ParagraphFeature
       
     end
 
-    def define_h_tag(tg,field='value',options={})
+    def define_h_tag(tg,field='value',options={}) #:nodoc:
       @method_list << [ "Escaped value tag",tg ]
     end
 
 
-    def define_publication_field_tags(prefix,publication,options={})
+    def define_publication_field_tags(prefix,publication,options={}) #:nodoc:
       c = self
       local = options.delete(:local) || 'entry'
       
@@ -1328,7 +1629,7 @@ class ParagraphFeature
     end
     
     
-    def method_missing(method,*args)
+    def method_missing(method,*args) #:nodoc:
       method = method.to_s
       if method == 'define_tag'
         @method_list << [ 'tag', args[0] ]
@@ -1352,15 +1653,16 @@ class ParagraphFeature
     end    
   end
   
-  def self.available_features
+  def self.available_features #:nodoc:
     []
   end
   
+  # Is this feature currently displaying documentation or actually rendering the feature
   def documentation
     @display_documentation ? true : false
   end
   
-  def set_documentation(val)
+  def set_documentation(val) #:nodoc:
    @display_documentation = val
   end
 
@@ -1399,7 +1701,7 @@ class ParagraphFeature
 # end
     
   
- def get_feature(type,options = {})
+ def get_feature(type,options = {}) #:nodoc:
     if @para.site_feature && (@para.site_feature.feature_type == :any || @para.site_feature.feature_type == type.to_s)
       feat = @para.site_feature
       feat
@@ -1417,7 +1719,7 @@ class ParagraphFeature
   end
   
   
-  def parse_feature(feature,context)
+  def parse_feature(feature,context) #:nodoc:
       options = feature.options || {}
         
       SiteTemplate.add_standard_parsing!(context,:values => options[:values],
@@ -1444,18 +1746,20 @@ class ParagraphFeature
   end
   
   
-  def variable_replace(txt,vars = {})
+  def variable_replace(txt,vars = {}) #:nodoc:
     txt.gsub(/\%\%(\w+)\%\%/) do |mtch|
       var_name =$1.downcase.to_sym
       vars[var_name] ? vars[var_name] : ''
     end
   end
   
-  def module_options(md)
+  # Return options for the named module
+  def module_options(md) 
     cls = "#{md.to_s.camelcase}::AdminController".constantize
     cls.module_options
   end
   
+  # Return a paragraphs ajax url for the current paragraph
    def ajax_url(options={})
      if @renderer.paragraph &&  @renderer.paragraph.page_revision
        opts = options.merge(:site_node => @renderer.paragraph.page_revision.revision_container_id, 

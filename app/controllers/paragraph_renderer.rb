@@ -6,7 +6,7 @@ require 'erb'
 class ParagraphRenderer < ParagraphFeature
 
   
-  class ParagraphRedirect
+  class ParagraphRedirect #:nodoc:all
       attr_accessor :paction
       attr_accessor :args
       def initialize(args)
@@ -14,7 +14,7 @@ class ParagraphRenderer < ParagraphFeature
       end
     end
   
-  class ParagraphOutput
+  class ParagraphOutput #:nodoc:all
     def initialize(rnd,args)
       @rnd = rnd
       @render_args = args
@@ -35,7 +35,7 @@ class ParagraphRenderer < ParagraphFeature
     end
   end
   
-  class ParagraphData
+  class ParagraphData #:nodoc:all
     def initialize(rnd,args)
       @rnd = rnd
       @render_args = args
@@ -53,7 +53,7 @@ class ParagraphRenderer < ParagraphFeature
     end
   end
   
-  class CachedOutput
+  class CachedOutput #:nodoc:all
     def initialize(output,includes,page_connections,page_title=nil)
       @output = output
       @includes = includes
@@ -75,13 +75,13 @@ class ParagraphRenderer < ParagraphFeature
     end
   end
   
-  def instance_variable_hash
+  def instance_variable_hash #:nodoc:
     data = {}
     self.instance_variables.each { |var| data[var[1..-1].to_sym] = self.instance_variable_get(var) }
     data
   end
   
-  def self.features(feature_name)
+  def self.features(feature_name)#:nodoc:
     cls_name =  feature_name.to_s.classify
     cls = cls_name.constantize
 
@@ -110,18 +110,22 @@ class ParagraphRenderer < ParagraphFeature
   end
   
   
-  def self.template_root
-    :editor
+  def self.template_root  #:nodoc:
+    :editor 
   end
   
-  def self.module_renderer
+  def self.module_renderer  #:nodoc:
     sing = class << self; self; end
     sing.send :define_method, :template_root do 
       :component
     end
   end
   
- 
+  # Adds a paragraph that this class is the renderer of
+  # 
+  # === Available Opts
+  # [:cache] 
+  #    Set to true is this paragraph can be cached
   def self.paragraph(type,opts = {})
     sing = class << self; self; end
     opts[:cache] ||= false
@@ -145,17 +149,26 @@ class ParagraphRenderer < ParagraphFeature
     connection
   end
   
+  # Set a page connection of a given name
   def set_page_connection(connection_name,connection_value)
     @page_connections[paragraph.identity_hash] ||= {}
     @page_connections[paragraph.identity_hash][connection_name] = connection_value
   end 
+
+  # Set a number of page connections of the form :name => value
+  def set_page_connection(cons)
+    cons.each do |key,val|
+      set_page_connection(key,val)
+    end
+  end 
+
   
   attr_reader :user_class
   attr_reader :language
   attr_reader :controller
   attr_reader :opts
 
-  def initialize(user_class,ctrl,para,site_node,revision,opts = {})
+  def initialize(user_class,ctrl,para,site_node,revision,opts = {}) #:nodoc:
     @user_class = user_class
     @language = opts[:language]
     @controller = ctrl
@@ -173,11 +186,12 @@ class ParagraphRenderer < ParagraphFeature
     @page_title = nil
   end
   
+  # Return a dummy renderer of this class
   def self.dummy_renderer(ctrl=nil)
       self.new(UserClass.get_class('domain_user'),ctrl || ApplicationController.new,PageParagraph.new,SiteNode.new,PageRevision.new)
   end
   
-  def self.document_feature(name,data={},controller=nil,publication=nil)
+  def self.document_feature(name,data={},controller=nil,publication=nil) #:nodoc:
     rnd = self.dummy_renderer(controller)
     rnd.set_documentation(true)
     if publication
@@ -188,7 +202,7 @@ class ParagraphRenderer < ParagraphFeature
   end
 
 
-  class CaptureDataException < Exception
+  class CaptureDataException < Exception #:nodoc:
     def initialize(pub,data=nil)
       if data
         @data = data
@@ -203,29 +217,35 @@ class ParagraphRenderer < ParagraphFeature
   attr_accessor :capture_data
     
   
+  # Is this an ajax call to the paragraph
   def ajax?
     @opts[:ajax]
   end
   
   
+  # Current the path of the current page
   def page_path
     @opts[:page_path] || @site_node.node_path
   end
   
+  # Are we currently in the page editor
   def editor?
     @opts[:editor] ? true : false
   end 
   
+  # return the current paragraph
   def paragraph
     @para
   end
   
+  # return an instance of of the options for the current paragraph
   def paragraph_options(paragraph_name)
   
     options_class = self.class.to_s.gsub(/Renderer$/,"Controller") + "::" + paragraph_name.to_s.camelcase + "Options"
     options_class.constantize.new(@para.data)
   end
   
+  # return the current site node
   def site_node
     unless !@site_node || @site_node.is_a?(SiteNode)
       @site_node= SiteNode.find_by_id(@site_node.id)
@@ -234,6 +254,7 @@ class ParagraphRenderer < ParagraphFeature
   
   end
   
+  # return the current revision
   def revision
     unless !@revision || @revision.is_a?(PageRevision)
       @revision = PageRevision.find_by_id(@revision.id)
@@ -242,18 +263,21 @@ class ParagraphRenderer < ParagraphFeature
   end
 
   
-  
-
+  # Has this paragraph already been rendered
   def paragraph_rendered?
     @paragraph_output ? true : false
   end
 
+  # Set the title for the page, can set specific categories as well
   def set_title(title,category = 'default')
     @page_title ||= {}
     @page_title[category] = title
   end
 
   attr_reader :content_object_list
+
+  # Sets a content node associated with this paragraph, 
+  # used by the editor to display edit links
   def set_content_node(obj)
     if myself.editor?
       @content_node_list ||= []
@@ -261,6 +285,7 @@ class ParagraphRenderer < ParagraphFeature
     end
   end
   
+  # Returns the url for the current page (including page connections)
   def paragraph_page_url
     if editor?
       site_node.node_path
@@ -269,6 +294,7 @@ class ParagraphRenderer < ParagraphFeature
     end
   end
 
+  # Redirects a to different page
   def redirect_paragraph(args)
     if args == :page
           args = paragraph_page_url
@@ -287,6 +313,7 @@ class ParagraphRenderer < ParagraphFeature
     @paragraph_output = ParagraphRedirect.new(args)
   end
   
+  # Renders a paragraph
   def render_paragraph(args)
     if @paragraph_output
       raise 'Only 1 paragraph output function can be called per paragraph'

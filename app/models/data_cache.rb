@@ -1,19 +1,41 @@
 # Copyright (C) 2009 Pascal Rettig.
 
+=begin rdoc
+The DataCache class is a singleton like class that should be used for
+all cached storage inside of Webiva. 
 
+It provides two main functions - the first is as an interface for 
+interacting with memcache and the second as a single-request storage for
+anything that should be cached for the duration of the request (like a piece 
+of configuration data read from the database or memcache) 
+
+Class level memoization or the use of class variables is not allowed in rails as
+runs for many requests, so setting a class variable will stick around for a while 
+and could possibly leak data accross domains. 
+
+As the local data stored in DataCache is cleared at the beginning of each request,
+it can be used to store class level data temporarily.
+
+The local cache can be used to store whatever objects needs to be stored - 
+DomainModels/etc. - while the normal cache should be used only for simple types:
+hashs, arrays, numbers, strings and dates, as these are marshalled and stored
+in memcache. 
+=end
 class DataCache
 
   @@local_cache = {}
 
-  def self.process_id
+  def self.process_id #:nodoc:
     DomainModel.process_id
   end
 
-  def self.local_cache_store
+  def self.local_cache_store #:nodoc:
     @@local_cache[process_id] ||= {}
   end
 
   
+  # Resets the local cache store and is a called
+  # automatically at the beginning of each request
   def self.reset_local_cache
     # Reset the locally cached custom content models as well
     classes = (DataCache.local_cache("content_models_list") || {}).values
@@ -26,15 +48,17 @@ class DataCache
 
   end
   
+  # Returns a value from the local cache or nil if no key exists
   def self.local_cache(key)
     local_cache_store[key]
   end
   
+  # Puts a value into the local cache and returns that value
   def self.put_local_cache(key,value)
     local_cache_store[key] = value
   end
 
-  # Get a specific version of an object
+  # Get a container from the remote cache
   def self.get_container(container,version)
     return nil if RAILS_ENV == 'test'
     
@@ -66,14 +90,18 @@ class DataCache
     end
   end
 
-  def self.set_domain_info(domain,values)
+  
+  def self.set_domain_info(domain,values) #:nodoc:
     CACHE.set("Domain:#{domain}",values)
   end
 
-  def self.get_domain_info(domain)
+  def self.get_domain_info(domain) #:nodoc:
     CACHE.get("Domain:#{domain}")
   end
   
+  # Return a container from the remote cached, store it in
+  # the local cache and return it. Subsequent calls will
+  # hit only the local cache.
   def self.get_cached_container(container,version)
     local_cache_store[container] ||= {}
     return local_cache_store[container][version] if local_cache_store[container][version]
@@ -81,7 +109,8 @@ class DataCache
     local_cache_store[container][version] = get_container(container,version)
   end
   
-  # Put a specific version of an object
+  # Put a specific version of an object into the remote cache
+  # with an optional expiration in seconds
   def self.put_container(container,version,data,expiration=0)
     unless container.is_a?(String)
       version = container.id.to_s + ":" + version
@@ -90,19 +119,28 @@ class DataCache
     CACHE.set("#{DomainModel.active_domain_db}::#{container}:#{version}",[ Time.now.to_f,  data ],expiration )
   end
   
+  # Expire all versions of a container
   def self.expire_container(container_class)
     CACHE.set("#{DomainModel.active_domain_db}::" + container_class,Time.now.to_f)
   end
   
-
+  # Put a piece of content into the remote cache. See
+  # ModelExtension::ContentCacheExtension::ClassMethods#cached_content
+  # as using cached_content will prevent you from need to expire the cache
+  # manually (it will be expired automatically when the model is saved)
+  #
   # content_type = the content type, like "Blog", "BlogPost" or "Comments"
   # content_target = the affected content like the blog.id or blogpost.id
   # display_location = the specific display instance (like a paragraph / etc )
-  
   def self.put_content(content_type,content_target,display_location,data,expiration = 0) 
     CACHE.set("#{DomainModel.active_domain_db}::Content::#{content_type}::#{content_target}::#{display_location}",[ Time.now.to_f,  data ],expiration )
   end
 
+  # Pull a piece of content into the remote cache. The cache can be expired
+  # by content_type or content_target. See
+  # ModelExtension::ContentCacheExtension::ClassMethods#cached_content
+  # as using cached_content will prevent you from need to expire the cache
+  # manually (it will be expired automatically when the model is saved)
  def self.get_content(content_type,content_target,display_location)
     return nil if RAILS_ENV == 'test'
 
@@ -136,17 +174,22 @@ class DataCache
     end
   end
 
-
-  def self.expire_content(content_type = nil,content_target = nil)
-    if content_type
-      if content_target
-        CACHE.set("#{DomainModel.active_domain_db}::Content::#{content_type}::#{content_target}", Time.now.to_f)
-      else
-        CACHE.set("#{DomainModel.active_domain_db}::Content::#{content_type}", Time.now.to_f)
-      end
-    else
-      CACHE.set("#{DomainModel.active_domain_db}::Content", Time.now.to_f)
-    end
-  end
+ # Expires a piece of content in the remote cache by content_type
+ # or by target. This allows you to store many display instances of 
+ # a model in the cache, and then expire all of them at once.
+ #
+ # See ModelExtension::ContentCacheExtension::ClassMethods#cached_content
+ # as using cached_content will handle the expiration automatically
+ def self.expire_content(content_type = nil,content_target = nil)
+   if content_type
+     if content_target
+       CACHE.set("#{DomainModel.active_domain_db}::Content::#{content_type}::#{content_target}", Time.now.to_f)
+     else
+       CACHE.set("#{DomainModel.active_domain_db}::Content::#{content_type}", Time.now.to_f)
+     end
+   else
+     CACHE.set("#{DomainModel.active_domain_db}::Content", Time.now.to_f)
+   end
+ end
 
 end
