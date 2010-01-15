@@ -6,6 +6,19 @@ module ModelExtension::ContentNodeExtension
 
   module ClassMethods
   
+    # See ContentNode for an overview of the content node system
+    # and how to use this method
+    #
+    # Options:
+    # 
+    # [:skip_has_one]
+    #   Skips the polymorphic has_one relationship with content_node 
+    # [:except]
+    #   symbol or proc the is resolved to determine whether or not to create a content node
+    # [:container_type]
+    #   string representing the class that is the ContentType container for this class
+    # [:container_field]
+    #   symbol with the name of the attribute that is the belong_to foreign key for the container
     def content_node(options = {})
       attr_accessor :content_node_skip
       after_save :content_node_save
@@ -20,6 +33,24 @@ module ModelExtension::ContentNodeExtension
       end
     end
     
+    # See ContentType for an overview of content types.
+    # 
+    # content_node_type will add any entry to the ContentType table every time
+    # a new object of this class is created.
+    #
+    # content_type is a string representing the class to create content nodes
+    # e.g. you could call content_type on a BookBook with a content_type of BookPage
+    #
+    # Options:
+    #
+    # [:except]
+    #   symbol or proc that is resolved to determine whether or not to create a content type
+    # [:title_field]
+    #   field that represents the title of the content node (deafults to name)
+    # [:url_field]
+    #   field that represents the url of the content node (deafults to id)
+    # [:content_name]
+    #   name of the content type
     def content_node_type(component,content_type,options = {})
       after_create :content_node_type_create
       after_update :content_node_type_update
@@ -38,18 +69,21 @@ module ModelExtension::ContentNodeExtension
     
   end
   
-  def self.append_features(mod)
+  def self.append_features(mod) #:nodoc:
     super
     mod.extend ModelExtension::ContentNodeExtension::ClassMethods
   end
   
   module InstanceMethods
 
-    def content_node_save
+    def content_node_save #:nodoc:
       # Only save if we aren't already inside of save_content
       save_content(nil,{},true) if(!content_node_skip)
     end
     
+    # This is added to all content nodes, and should ideally be used
+    # to save the object as it will record the last author into the content node
+    # table (otherwise it is called automatically after save)
     def save_content(user,atr={},skip_save = false)
       self.attributes = atr 
       self.content_node_skip = true
@@ -65,9 +99,9 @@ module ModelExtension::ContentNodeExtension
     end
   end
   
-  module NodeTypeInstanceMethods 
+  module NodeTypeInstanceMethods  #:nodoc:all
   
-    def content_node_type_create
+    def content_node_type_create #:nodoc:
 
       if !self.content_node_type_options[:except] || !resolve_argument(self.content_node_type_options[:except],nil)
 
@@ -90,7 +124,7 @@ module ModelExtension::ContentNodeExtension
       end
     end
 
-    def content_node_type_update
+    def content_node_type_update #:nodoc:
       opts = self.content_node_type_options
        
        title_field = (opts[:title_field] || 'name').to_s

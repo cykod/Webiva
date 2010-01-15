@@ -82,12 +82,12 @@ class DataCache
   end
   
   # Put a specific version of an object
-  def self.put_container(container,version,data)
+  def self.put_container(container,version,data,expiration=0)
     unless container.is_a?(String)
       version = container.id.to_s + ":" + version
       container = container.class.to_s
     end
-    CACHE.set("#{DomainModel.active_domain_db}::#{container}:#{version}",[ Time.now.to_f,  data ] )
+    CACHE.set("#{DomainModel.active_domain_db}::#{container}:#{version}",[ Time.now.to_f,  data ],expiration )
   end
   
   def self.expire_container(container_class)
@@ -99,8 +99,8 @@ class DataCache
   # content_target = the affected content like the blog.id or blogpost.id
   # display_location = the specific display instance (like a paragraph / etc )
   
-  def self.put_content(content_type,content_target,display_location,data) 
-    CACHE.set("#{DomainModel.active_domain_db}::Content::#{content_type}::#{content_target}::#{display_location}",[ Time.now.to_f,  data ] )
+  def self.put_content(content_type,content_target,display_location,data,expiration = 0) 
+    CACHE.set("#{DomainModel.active_domain_db}::Content::#{content_type}::#{content_target}::#{display_location}",[ Time.now.to_f,  data ],expiration )
   end
 
  def self.get_content(content_type,content_target,display_location)

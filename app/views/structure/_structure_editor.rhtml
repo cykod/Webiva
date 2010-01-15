@@ -282,12 +282,12 @@ var StructureEditor = {
   
   editTemplate: function(template_id) {
       var url = "<%= url_for(:controller => 'structure', :action =>'template_info') %>/" + template_id;
-      <%= js_execute_overlay("url") %>
+      new Ajax.Updater('boxcontent', "url", {asynchronous:true, evalScripts:true, onComplete:function(request){showBox()}, onLoading:function(request){showLoader()}});
   },
   
   editModule: function(module_id) {
       var url = "<%= url_for(:controller => 'structure', :action =>'module_info') %>/" + module_id;
-      <%= js_execute_overlay("url") %>
+      new Ajax.Updater('boxcontent', "url", {asynchronous:true, evalScripts:true, onComplete:function(request){showBox()}, onLoading:function(request){showLoader()}});
   },
   
   

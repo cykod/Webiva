@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class Content::CorePublication::DataPublication < Content::PublicationType
+class Content::CorePublication::DataPublication < Content::PublicationType #:nodoc:all
   
   class DataOptions < HashModel
     default_options :content_type => 'text/xml',:entries_displayed => 0

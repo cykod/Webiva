@@ -2,7 +2,7 @@
 
 
 
-class Content::CoreFeature::KeywordGenerator <  Content::Feature
+class Content::CoreFeature::KeywordGenerator <  Content::Feature #:nodoc:all
 
    def self.content_feature_handler_info
     { 

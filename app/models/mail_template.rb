@@ -2,6 +2,41 @@
 
 require 'hpricot'
 
+=begin rdoc
+MailTemplate's are used to store custom admin-defined messages that
+can be sent by the system. Paragraphs options and triggered actions can store
+the id of a MailTemplate template to use, alternatively custom modules
+can use MailTemplate#fetch to fetch templates by name so that templates id
+don't need to be configured.
+
+=== Variable substituion
+MailTemplate's support variable substitution using the standard %%var_name%% variables.
+Which variables are used are custom by actual usage and should be described in the location
+where the email template can be selected (TODO: Add in registration for mail handler types 
+with lists of variables used) 
+
+
+=== Using Mail Templates
+MailTemplates are generally created in e-marketing => Email Templates, but to
+use one you can use MailTemplate#deliver_to_address  or MailTemplate#deliver_to_user 
+for example:
+
+     @mail_template = MailTemplate.find_by_id(@options.mail_template_id)
+     @replacement_variables = { :url => url,
+                               :link => "<a href='#{url}'>#{url}</a>" }
+
+     @mail_template.deliver_to_email('test@domain.com',@replacement_variables)
+                             OR
+     @mail_template.deliver_to_user(myself,@replacement_variables)
+
+=== Template Types
+There are two types of templates - site and campaign - the former are for usage in the site,
+the later are for usage in the mailing module to send email campaigns. In general if you are
+asking a user to select a template you used use MailTemplate#self.site_template_options to 
+have them pick a template.
+
+
+=end
 class MailTemplate < DomainModel
  validates_presence_of :subject,  :on => :update
  validates_presence_of :name
@@ -28,7 +63,7 @@ class MailTemplate < DomainModel
  
  private
  
- def invalid_variable(var)
+ def invalid_variable(var) #:nodoc:
   '' #var 
   
   #@invalid_variable || 'Invalid Variable'.t
@@ -38,10 +73,13 @@ class MailTemplate < DomainModel
  
  public
  
+ # Returns a select-friendly list of site templates
  def self.site_template_options; self.find_select_options(:all,:conditions => 'template_type = "site" AND archived=0');  end
+
+ # Returns a select-friendly list of campaign templates
  def self.campaign_template_options; self.find_select_options(:all,:conditions => 'template_type = "campaign" AND archived=0');  end
  
- def before_save
+ def before_save #:nodoc:
   self.body_html.gsub!('/website/mail_manager/edit_template/','') unless self.body_html.blank?
   self.body_text.gsub!('/website/mail_manager/edit_template/','') unless self.body_text.blank?
   if(self.body_text.blank? && self.generate_text_body && self.generate_text_body.to_s != "0")
@@ -50,12 +88,12 @@ class MailTemplate < DomainModel
  end
  
  # Generate text from HTML - moved to util
- def self.text_generator(html)
+ def self.text_generator(html) #:nodoc:
     Util::TextFormatter.text_formatted_generator(html)
  end
  
  
- def validate_on_create
+ def validate_on_create #:nodoc:
   if self.create_type
     case create_type
     when 'master':
@@ -66,14 +104,14 @@ class MailTemplate < DomainModel
   end
  end  
  
- def render_subject(vars)
+ def render_subject(vars) #:nodoc:
   subject.gsub(@@text_regexp) do |mtch|
         vars[$1]  || invalid_variable($1)
   end
  
  end
  
- 
+ # Create and save a deep clone of this template - with a modified title
  def duplicate
   new_tpl = self.clone
   new_tpl.name += ' (Copy)'.t
@@ -87,20 +125,24 @@ class MailTemplate < DomainModel
   
  end
  
+ # Find a template by name (optionally by language)
  def self.fetch(name,options={})
   order = options[:language] ? 'language=' + self.connection.quote(options[:language].downcase) + ' DESC, language="en" DESC' : nil
   self.find(:first,:conditions => ['name = ?',name.to_s],:order => order)
  end
  
+ # Deliver this template to an email address
  def deliver_to_address(email,variables={})
   MailTemplateMailer.deliver_to_address(email,self,variables)
  end
  
+ # Deliver this template to a EndUser (first_name,last_name,etc will be available as variables)
  def deliver_to_user(usr,variables={})
   MailTemplateMailer.deliver_to_user(usr,self,variables)
  end
  
- def attachments
+ # Return a list of attachments
+ def attachments 
   if @attachment_list.is_a?(Array)
     @attachment_list.length > 0 ?  DomainFile.find(:all,:conditions => "id IN (#{@attachment_list.collect { |df| connection.quote(df) }.join(",")})") : []
   else
@@ -108,6 +150,7 @@ class MailTemplate < DomainModel
   end
  end
  
+ # Return the body format string - text, html, both or none
  def body_format
   if is_html && is_text
       'both'
@@ -120,15 +163,17 @@ class MailTemplate < DomainModel
   end
  end
  
+ # Is this an html email ?
  def is_html
   self.body_type.include?('html')
  end
  
+ # is this a text email
  def is_text
   self.body_type.include?('text')
  end
  
- def render_text(vars)
+ def render_text(vars) #:nodoc:
   prepare_template
   
   @prepared_body[:text_sections].inject('') do |output,item|
@@ -141,7 +186,7 @@ class MailTemplate < DomainModel
  end
  
  # HTML allows both types of variables
- def render_html(vars)
+ def render_html(vars) #:nodoc:
   vars ||= {}
   prepare_template
   
@@ -156,7 +201,7 @@ class MailTemplate < DomainModel
  end
 
  
- def get_variables
+ def get_variables #:nodoc:
   vars = []
   subject.to_s.scan(@@text_regexp) do |mtch|
     vars << $1
@@ -174,7 +219,7 @@ class MailTemplate < DomainModel
   vars.uniq.sort
  end
  
- def get_links
+ def get_links #:nodoc:
     links = []
     body_html.scan(@@href_regexp) do |mtch|
       href = $3
@@ -187,7 +232,7 @@ class MailTemplate < DomainModel
  end
  
  
- def prepare_to_send
+ def prepare_to_send #:nodoc:
   if !@prepared_body
     @prepared_body = {}
     @prepared_body[:html] ||= body_html if is_html
@@ -233,7 +278,7 @@ class MailTemplate < DomainModel
  
  
  @@src_href = /\<img([^\>]+?)src\=(\'|\")([^\'\"]+)(\'|\")([^\>]*?)\>/mi 
- def replace_image_sources
+ def replace_image_sources #:nodoc:
   prepare_to_send
   if is_html
     @prepared_body[:html].to_s.gsub!(@@src_href) do |mtch|
@@ -249,7 +294,7 @@ class MailTemplate < DomainModel
  
  # Add in a variable for a tracking image
  # add in a spacer if necessary
- def replace_tracking_image
+ def replace_tracking_image #:nodoc:
   prepare_to_send
   if is_html
     replaced_variable = false
@@ -271,7 +316,7 @@ class MailTemplate < DomainModel
   return nil
  end
  
- def view_online_href
+ def view_online_href #:nodoc:
   prepare_to_send
   # View online only makes sense for HTML email
   if is_html
@@ -283,11 +328,11 @@ class MailTemplate < DomainModel
  
  end
  
- def unsubscribe_text
+ def unsubscribe_text #:nodoc:
     "Remove your name from any future %s mailing: " / Configuration.domain
  end
  
- def add_unsubscribe_links
+ def add_unsubscribe_links #:nodoc:
   prepare_to_send
   unsubscribe_var ="track_unsubscribe:link"
   if is_html
@@ -302,7 +347,7 @@ class MailTemplate < DomainModel
   unsubscribe_var
  end
  
- def track_link_hrefs
+ def track_link_hrefs #:nodoc:
   prepare_to_send
   if is_html
     links = []
@@ -330,7 +375,7 @@ class MailTemplate < DomainModel
  
  # Replace all site links with full http:// links
  # Only necessary if not tracking links
- def replace_link_hrefs
+ def replace_link_hrefs #:nodoc:
   prepare_to_send
   if is_html
     @prepared_body[:html].gsub!(@@href_regexp) do |mtch|
@@ -344,7 +389,7 @@ class MailTemplate < DomainModel
   end
  end
  
- def prepare_template
+ def prepare_template #:nodoc:
    return if @prepared_body && (@prepared_body[:html_sections] || @prepared_body[:text_sections])
    prepare_to_send
    replace_link_hrefs
@@ -381,7 +426,7 @@ class MailTemplate < DomainModel
   
  end
  
- def transform_html(html)
+ def transform_html(html) #:nodoc:
    return html if !self.site_template
     
    styles = SiteTemplate.css_styles(self.site_template_id,(Locale.language_code||'en').downcase)  
@@ -399,7 +444,8 @@ class MailTemplate < DomainModel
  end
  
  private
-  def transform_tag(tag,styles)
+
+ def transform_tag(tag,styles) #:nodoc:
     begin
       if !tag.bogusetag? && !tag.comment?
         styles_txt = ''
@@ -432,7 +478,7 @@ class MailTemplate < DomainModel
     end
   end
  
-  def parseValues(body,regexp_delim)
+ def parseValues(body,regexp_delim) #:nodoc:
     re = Regexp.new("#{regexp_delim}([^#{regexp_delim}]+?)#{regexp_delim}",Regexp::IGNORECASE | Regexp::MULTILINE)
     
     while(mtch = re.match(body) )

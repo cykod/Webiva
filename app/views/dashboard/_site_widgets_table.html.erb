@@ -1,0 +1,12 @@
+<% active_table_for :site_widgets_table, @tbl do |t| -%>
+<% active_tr "widget",t.id do |tr| -%>
+ <td><%= tr.checkbox -%></td>
+ <td><%= link_to h(t.title), :action => 'site_widget', :path => t.id -%>
+ <td><%= t.widget_description -%></td>
+ <td><%= t.created_at.to_s(:short) -%></td>
+ <td><%= t.column -%></td>
+ <td><%= t.weight -%></td>
+ <td><%= t.required? ? 'Yes' : 'No' -%></td>
+ <td><%= t.view_permission? ? t.user_roles_display('view_permission').join(", ") : 'Everyone' -%>
+<% end -%>
+<% end -%>

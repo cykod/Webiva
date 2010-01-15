@@ -16,6 +16,25 @@ require 'digest/sha1'
 # import
 # referrel
 
+=begin rdoc
+EndUser's are the primary user class inside of Webiva and 
+are the primary class you interact with when dealing with 
+site users. 
+an EndUser doesn't necessarily need to be someone who is
+registered w/ an active account on the system - they can be
+added via email lists, manually via imports, or via online registration.
+
+The only real required field is an email address, all other fields are
+optional. Although they can be made required at signup.
+
+The easiest way to create an EndUser is to use the EndUser#self.push_target method,
+for example:
+
+        @user = EndUser.push_target('example@domain.com', :name => 'Svend Karlson')
+
+This will return either an existing user with the specified email address or a newly-saved
+user object. See the method's description for more details.
+=end
 class EndUser < DomainModel
   validates_confirmation_of :password
 
@@ -95,29 +114,31 @@ class EndUser < DomainModel
   
   
   
-  def before_validation
+  def before_validation #:nodoc:
     self.email = self.email.downcase unless self.email.blank?
   end
 
-  def validate
+  def validate #:nodoc:
     if self.registered? && !self.hashed_password && (!self.password || self.password.empty?)
       errors.add(:password, 'is missing')
     end  
   end
 
-  def validate_password(pw)
+  def validate_password(pw) #:nodoc:
     return EndUser.hash_password(pw) == self.hashed_password
   end
 
-  def update_verification_string!
+  def update_verification_string! #:nodoc:
     self.update_attribute(:verification_string, Digest::SHA1.hexdigest(Time.now.to_s + rand(1000000000000).to_s)[0..12])
   end
 
-  
+  # Is this a administrative ClientUser
   def client_user?
     client_user_id.to_i > 0
   end
 
+  # return an associated ClientUser object if one exists
+  # (ClientUser is a SystemModel class)
   def client_user
     return nil unless client_user_id
     return @client_user if @client_user
@@ -131,23 +152,32 @@ class EndUser < DomainModel
 
 
   ## Access Token Stuff
-  def tokens
+
+  def tokens #:nodoc:
     through_connection_cache(:end_user_tokens,@access_token_cache)
   end
 
-  def tokens=(val)
+  def tokens=(val) #:nodoc:
     @access_token_cache = val
   end
 
   after_save :token_cache_update
 
-  def token_cache_update
+  def token_cache_update #:nodoc:
     if(@access_token_cache)
       set_through_collection_with_attributes(:end_user_tokens,:access_token_id,@access_token_cache)
     end
   end
 
-  def add_token!(tkn,options = { })
+  # Immediately add a token to a user
+  # valid options are:
+  # [:valid_until]
+  #   Date the token should be valid until
+  # [:target]
+  #   Target to check for access on this token
+  # [:valid_at]
+  #   Date this token will start being valid
+  def add_token!(tkn,options = { }) 
     eut = self.end_user_tokens.find_by_access_token_id(tkn) ||
       self.end_user_tokens.create(:access_token_id => tkn.id)
 
@@ -158,22 +188,24 @@ class EndUser < DomainModel
     end
   end
   
+  # Return a list of select options of all users
   def self.select_options(editor=false)
     self.find(:all, :order => 'last_name, first_name',:include => :user_class,
               :conditions => [ 'user_classes.editor = ?',editor ] ).collect { |usr| [ "#{usr.last_name}, #{usr.first_name} (##{usr.id})", usr.id ] } 
   end
   
-  
+  # Return the image associated with this user or return the missing_image configured
+  # in Website contribution
   def image
     self.domain_file ? self.domain_file : Configuration.missing_image(self.gender)
   end
   
   
-  def identifier_name
+  def identifier_name #:nodoc:
     self.name + " (#{self.id})"
   end
   
-  
+  # Is this user a site editor?
   def editor?
     self.user_profile.editor?
   end
@@ -187,22 +219,30 @@ class EndUser < DomainModel
     self.user_class || UserClass.anonymous_class
   end
 
+  # Return this users UserClass id, otherwise return the anonymous id
   def user_profile_id
     self.user_class_id || UserClass.anonymous_class_id
   end
 
 
   ## Action Functionality
+
+  # Log an action taken by this user
+  # see EndUserAction for more details
   def action(action_path,opts = {})
     opts[:level] ||= 3
     EndUserAction.log_action(self,action_path,opts)
   end
 
-  def custom_action(action_name,descriptions, opts = {})
-    EndUserAction.log_custom_action(self,action_name,opts)
+  # Log a custom action taken by this user (this can have a custom identifier string)
+  def custom_action(action_name,description, opts = {})
+    EndUserAction.log_custom_action(self,action_name,description,opts)
   end
   ## Login Functions
   
+
+  # Given a email and a password, return a registered and active EndUser 
+  # that matches those account details
   def self.login_by_email(email,password)
     usr = find(:first,:conditions => ["email != '' AND email = ? AND activated = 1 AND registered = 1",email.to_s.downcase] )
     
@@ -214,6 +254,8 @@ class EndUser < DomainModel
     end
   end  
   
+  # Given a username and a password, return a registered and active EndUser 
+  # that matches those account details
   def self.login_by_username(username,password)
     usr = find(:first,
          :conditions => ["username != '' AND username = ? and activated = 1 AND registered = 1", username])
@@ -225,6 +267,7 @@ class EndUser < DomainModel
     end
   end  
 
+  # Login via a one-time verification string - used to reset a users password via an email ink
   def self.login_by_verification(verification)
     return nil if verification.blank?
     usr=nil
@@ -237,18 +280,20 @@ class EndUser < DomainModel
     usr
   end
   
-  
-  def self.find_visited_target(email)
+  # deprecated
+  def self.find_visited_target(email) #:nodoc:
     EndUser.find_by_email(email) || EndUser.create( :email => email,
                                                     :user_level => 2,
                                                     :source => 'website',
                                                     :registered => false )
   end
   
-  def update_domain_emails
+  def update_domain_emails #:nodoc:
     self.domain_emails.each { |email| email.save }
   end
 
+  # Returns a list of role ids representing the 
+  # roles this user has
   def roles_list
     return @roles_list if @roles_list
 
@@ -270,7 +315,8 @@ class EndUser < DomainModel
     @roles_list
   end
   
-  
+  # Checks if a user has end of the expanded roles passed in
+  # as an array of Role objects
   def has_any_role?(expanded_roles)
     # Client users have all roles
     if(self.client_user_id && self.user_class_id == UserClass.client_user_class_id)
@@ -288,6 +334,7 @@ class EndUser < DomainModel
     end
   end
 
+  # Checks if this user has a certain role (not expanded) on an optional target
   def has_role?(role,target=nil)
     if(self.client_user_id && self.user_class_id == UserClass.client_user_class_id)
       true
@@ -316,12 +363,13 @@ class EndUser < DomainModel
     end
   end
 
-  
+  # Returns a default anonymous user
   def self.default_user
     usr = self.new
     return usr
   end
 
+  # Returns the full name of the user
   def name
     if !self.full_name.blank?
       self.full_name
@@ -334,6 +382,7 @@ class EndUser < DomainModel
     end
   end
   
+  # Sets individual name components (first_name, middle_name, last_name) from a single string
   def name=(val)
     name = val.to_s.strip.split(" ")
     if name.length > 1
@@ -347,6 +396,8 @@ class EndUser < DomainModel
     end  
   end
   
+  # Returns an introduction string, either from
+  # the attribute or based on gender
   def introduction
     intro = read_attribute(:introduction)
     if !intro.blank?
@@ -358,7 +409,7 @@ class EndUser < DomainModel
     end
   end
   
-  def before_save
+  def before_save #:nodoc:
     
     if self.password && !self.password.empty?
       self.salt = EndUser.generate_hash if self.salt.blank?
@@ -388,7 +439,7 @@ class EndUser < DomainModel
     end
   end
   
-  def update_editor_login
+  def update_editor_login #:nodoc:
     if self.editor?
       editor_login= EditorLogin.find_by_domain_id_and_email(Configuration.domain_id,self.email) || EditorLogin.new
       editor_login.update_attributes(:domain_id => Configuration.domain_id,
@@ -400,7 +451,14 @@ class EndUser < DomainModel
   
   alias_method :tag_names_original, :tag_names=
   
-  
+  # Finds a target given an email address or returns a new EndUser object
+  # that is saved by default (doesn't push any additional attributes)
+  #
+  # Options
+  # [:no_create]
+  #   Do not create save the user if we don't have an existing record
+  # [:user_class_id]
+  #  Set the user class to the option specified, or use the default class
   def self.find_target(email,options = {})
     target = self.find_by_email(email)
     if !target && !options[:no_create]
@@ -411,6 +469,29 @@ class EndUser < DomainModel
     target
   end
   
+=begin rdoc
+This is the easiest way to create an EndUser, for example:
+
+        @user = EndUser.push_target('example@domain.com', :name => 'Svend Karlson')
+
+This will return either an existing user with the specified email address or a newly-saved
+user object. 
+
+Addresses are stored separately in the EndUserAddress model, but push_target can pass through
+phone, fax, address, address_2, city, state, zip and country.
+
+The :no_register option will not return a user object if the found target is already registered.
+
+WARNING: push_target does not sanitize any inputs, so in theory all attributes can be modified,
+so be careful when allowing user submitted arguments in.
+
+User the Hash#slice method to only select the fields you actually want to let in, for example:
+
+     @user = EndUser.push_target(params[:user][:email],params[:user].slice(:first_name,:last_name))
+
+Not doing so could allow a user to change their user profile (for example) and elevate their permissions.
+
+=end
   def self.push_target(email,options = {})
     target = self.find_target(email,:no_create => true)
     opts = options.clone
@@ -425,7 +506,7 @@ class EndUser < DomainModel
     adr_values = {}
     address_fields.each do |fld|
       val = opts.delete(fld.to_sym)
-      if val
+      if !val.blank?
         adr_values[fld.to_sym] = val
       end
     end 
@@ -454,10 +535,12 @@ class EndUser < DomainModel
   attr_reader :tag_cache
   
   # Model issue 
-  def clear_tags!
+  def clear_tags! #:nodoc:
     connection.execute("DELETE FROM end_user_tags WHERE end_user_id=" + quote_value(self.id))
   end
 
+  # Immediately tag this user with the listed tags, saving them to the tag cache
+  # if the user hasn't been saved yet
   def tag(tags_list, options = {})
      if !self.id
       if !@tag_cache.to_s.blank?
@@ -474,23 +557,27 @@ class EndUser < DomainModel
 
   end
 
+  # Immediately remove the listed tags from the user
   def tag_remove(tags, options = {})
     super
     update_tag_cache(self.tag_names(true).join(","))
   end
 
-  def update_tag_cache(names)
+  def update_tag_cache(names) #:nodoc:
     (self.tag_cache || self.build_tag_cache).update_attribute(:tags,names)
   end
 
-  def tag_names_add(tag_list,options={})
+  
+  def tag_names_add(tag_list,options={})  #:nodoc:
     self.tag(tag_list,options.merge({:separator => ',', :clear => false}))
   end 
   
+  # Immediately tag a user given the a string of comma-separated tags
   def tag_names=(tags,options={})
     self.tag_names_original(tags,options.merge({:separator => ',', :clear => true}))
   end
 
+  # returns a list of tag_cached_tags, optionally joined on find
   def tag_cache_tags
     if self.attributes.has_key?('tag_cache_tags')
       self.attributes['tag_cache_tags']
@@ -499,6 +586,11 @@ class EndUser < DomainModel
     end
   end
 
+  # Finds end userse that are tagged with 
+  # [:any]
+  #   Any of the named tags
+  # [:all]
+  #   All of the named tags
   def self.find_tagged_with(options = {}) 
           options = { :separator => ' ' }.merge(options)
           
@@ -524,6 +616,7 @@ class EndUser < DomainModel
           find_by_sql(sql)
   end
 
+  # Counts the number of users tagged with :any or :all of certain tags
   def self.count_tagged_with(options = {}) 
           options = { :separator => ' ' }.merge(options)
           
@@ -545,6 +638,7 @@ class EndUser < DomainModel
           count_by_sql(sql)
   end  
   
+  # Same as EndUser#find_tagged_with except it returns users not tagged with certain tags
   def self.find_not_tagged_with(options = {})
     options = { :separator => ',' }.merge(options)
 
@@ -575,7 +669,8 @@ class EndUser < DomainModel
 
     find_by_sql(sql)
   end
-
+  
+  # Same as EndUser#count_tagged_with except it counts users not tagged with certain tags
   def self.count_not_tagged_with(options = {})
     options = { :separator => ',' }.merge(options)
 
@@ -608,7 +703,7 @@ class EndUser < DomainModel
   end
   
   
-
+  # Validates a users registration given a list of required fields
   def validate_registration(opts = {})
     fields = %w(gender first_name last_name dob username)
     fields.each do |fld|
@@ -620,7 +715,8 @@ class EndUser < DomainModel
   
   end
 
-  def self.import_fields
+  # Return a list of available import fields for matching
+  def self.import_fields #:nodoc:
     
     fields = [ [ 'email', 'Email'.t, ['email','e-mail' ], :field ],
       [ 'language', 'Language'.t, ['language' ], :field ],
@@ -652,7 +748,8 @@ class EndUser < DomainModel
     fields
   end 
   
-  def self.import_csv(filename,data,options={})
+  
+  def self.import_csv(filename,data,options={}) #:nodoc:
     actions = data[:actions]
     matches = data[:matches]
     create = data[:create]
@@ -824,7 +921,7 @@ class EndUser < DomainModel
   
   end
   
-  def export_csv(writer,options = {})
+  def export_csv(writer,options = {}) #:nodoc:
     fields = [ ['email', 'Email'.t ],
                ['first_name', 'First name'.t ],
                ['last_name', 'Last name'.t ],
@@ -871,6 +968,7 @@ class EndUser < DomainModel
     end
   end
   
+  # Return a hashed password given an optional salt
   def self.hash_password(pw,salt=nil) 
     if !salt.blank?
       Digest::SHA1.hexdigest(salt.to_s + pw)
@@ -879,14 +977,17 @@ class EndUser < DomainModel
     end
   end
 
+  # Generate and assign a random activation_string
   def generate_activation_string
     self.activation_string =  self.class.generate_hash[0..48]
   end
   
+  # Generate a random password
   def self.generate_password
     self.generate_vip
   end
 
+  # Generate a random VIP string
   def self.generate_vip 
      letters = '123456789ACEFGHKMNPQRSTWXYZ'.split('')
      unique = false
@@ -898,7 +999,7 @@ class EndUser < DomainModel
      num
   end
   
-  
+  # Return an HTML-formatted description of this user
   def html_description
    output = '<table>'
    %w(email first_name last_name vip_number).each do |fld| 
@@ -918,6 +1019,7 @@ class EndUser < DomainModel
    output
   end
   
+  # Return a text-formatted description of the user
   def text_description
    output = ''
    %w(email first_name last_name vip_number).each do |fld| 
@@ -938,13 +1040,16 @@ class EndUser < DomainModel
   end
     
   
-  def gallery_can_upload(usr); usr.id == self.id; end
-  def gallery_can_edit(usr); usr.id == self.id; end    
-  def is_admin?(usr); usr.id == self.id; end
+  def gallery_can_upload(usr) #:nodoc:
+    usr.id == self.id; end
+  def gallery_can_edit(usr) #:nodoc:
+    usr.id == self.id; end    
+  def is_admin?(usr); #:nodoc:
+    usr.id == self.id; end
   
   private
   
-  def self.process_import_field(entry,field,value)
+  def self.process_import_field(entry,field,value) #:nodoc:
     case field
     when 'gender':
       if ['m','male','m'.t,'male'.t].include?(value.to_s.downcase)
@@ -970,7 +1075,7 @@ class EndUser < DomainModel
     end
   end
   
-  def self.process_import_address(entry,entry_addresses,field,value)
+  def self.process_import_address(entry,entry_addresses,field,value) #:nodoc:
     address,field = field.split("_")
     adr = case address
       when 'work':

@@ -34,10 +34,12 @@ class DomainFile < DomainModel
   
   attr_accessor :skip_transform
     
+  # Returns the list of built in image sizes
   def self.image_sizes
     @@image_size_array
   end
 
+  # Returns a hash of built in image sizes indexed by name
   def self.image_sizes_hash
     @@image_sizes
   end
@@ -52,7 +54,7 @@ class DomainFile < DomainModel
    # Core File Methods
    ###########
    
-   def self.save_uploaded_file(file)
+   def self.save_uploaded_file(file) #:nodoc:
      dir = self.generate_temporary_directory
      filename = File.join(dir,File.basename(DomainFile.sanitize_filename(file.original_filename)))
      File.open(filename, "wb") { |f| f.write(file.read) }
@@ -60,7 +62,8 @@ class DomainFile < DomainModel
      return dir,filename
    end
    
-   # Set the file data   
+   # Set the file data, you can update the data stored in a DomainFile
+   # by assigning a File object to filename and resaving the DomainFile object
    def filename=(file_data)
     @file_data = file_data
     if @file_data.is_a? File
@@ -69,7 +72,7 @@ class DomainFile < DomainModel
     end
    end
    
-   # Replace this file with a different file
+   # Replace this DomainFile with a different DomainFile
    def replace(file)
     return false if self.folder?
     self.reload(:lock => true)
@@ -84,6 +87,7 @@ class DomainFile < DomainModel
     return false
    end
    
+   # Copy this DomainFile to a new DomainFile in the same directory
    def copy_file(user_id=nil)
     return false if self.folder?
     
@@ -97,14 +101,17 @@ class DomainFile < DomainModel
     return nil
    end
    
-   def find_match
+
+   def find_match #:nodoc:
      DomainFile.find_by_parent_id_and_name(self.parent_id,self.name,:conditions => ['domain_files.id != ? AND file_type !="fld"',self.id])
    end
    
-   def find_folder_match
+   def find_folder_match #:nodoc:
      DomainFile.find_by_parent_id_and_name(self.parent_id,self.name,:conditions => ['domain_files.id != ? AND file_type ="fld"',self.id])
    end
    
+   # Find any matching files (including those nested in sub-folders) and replace them
+   # with any matching folders
    def replace_same
    
     # folders need to try to find a folder match and move all their nested children to the matched folder
@@ -134,6 +141,8 @@ class DomainFile < DomainModel
    end
    
    # Copy copy this file to a new file
+   # This file actually rename the file 
+   # on the file system
    def rename(new_name)
    
     return false if new_name.blank?
@@ -173,7 +182,7 @@ class DomainFile < DomainModel
    
    after_destroy :cleanup_file
    
-   def process_file_update
+   def process_file_update #:nodoc:
     if @file_data && self.id
       # if we already have a file,
       # save the older version in a subdirectory (with a unguessable hash)
@@ -193,7 +202,7 @@ class DomainFile < DomainModel
     update_file_path
    end
    
-   def update_image_instances
+   def update_image_instances #:nodoc:
     if @file_change
       if self.instances.length > 0
         grouped_targets = self.instances.group_by(&:target_type)
@@ -211,7 +220,7 @@ class DomainFile < DomainModel
    
    
    # This is called before the file is saved for the first time (we don't have an id)
-   def preprocess_file
+   def preprocess_file #:nodoc:
 
      current_file_name = nil
      if @file_data
@@ -255,6 +264,7 @@ class DomainFile < DomainModel
      
    end
 
+   # Regenerate built in thumbnails and optionally resave the file
    def generate_thumbnails(save_file=true)
      info = {}
      
@@ -291,7 +301,7 @@ class DomainFile < DomainModel
    # This is called after the file is saved for the first time
    # It will save the file and perform any necessary transforms in images
    # updating the meta data as necessary
-   def process_file(update=false)
+   def process_file(update=false) #:nodoc:
     if @file_data
     
       # Set the prefix
@@ -335,7 +345,7 @@ class DomainFile < DomainModel
     post_process! unless @@disable_file_processing 
    end
    
-   def set_size(size_name,width,height)
+   def set_size(size_name,width,height) #:nodoc:
     meta_info[:image_size] ||= {}
     meta_info[:image_size][size_name.to_sym] = [ width, height ]
    end
@@ -360,7 +370,7 @@ class DomainFile < DomainModel
     end
    end
    
-   def destroy_thumbs
+   def destroy_thumbs #:nodoc:
     # Need to destroy thumbs and get image size for the domain file version
     if self.meta_info && self.meta_info[:image_size]
       self.meta_info[:image_size].each do |size,vals|
@@ -371,6 +381,8 @@ class DomainFile < DomainModel
    end
    
    
+   # Return the relative file name of this DomainFile under
+   # the storage directroy
    def relative_filename(size=nil,force=nil)
       # unless we have a filename, return false
       atr = self.read_attribute(:filename)
@@ -387,24 +399,33 @@ class DomainFile < DomainModel
        self.storage_directory + (size ? "#{size}/" : '') +  atr
      end
    end
-   
-   # Return the absolute storage directory - valid for opening a file  on the server 
-   # Return the relative storage directory
+
+   # Return the absolute filename, valid for opening a file on the server
    # Thumbnails are stored in subdirectories prefixed with the file size (../small/file.jpg)
    def abs_filename(size=nil,force=false); "#{RAILS_ROOT}/public" + self.relative_filename(size,force); end
    alias_method :filename, :abs_filename
-   
-   
+
+      
+   # Return the relative storage directory
    def storage_directory; self.storage_base + "/" + self.prefix + "/"; end
+
+   # Return the absolute storage directory - valid for opening a file  on the server 
    def abs_storage_directory; "#{RAILS_ROOT}/public" + self.storage_base + "/" + self.prefix + "/"; end
    
 
    # Return the base storage subdirectory (under public)
    def self.storage_subdir; DomainModel.active_domain[:file_store].to_s; end
    
+   # Return the storage base based on whether this is a private or public file
    def storage_base; self.private? ? DomainFile.private_storage_base : DomainFile.public_storage_base; end
+
+   # Private storage directory
    def self.private_storage_base; "/system/private/#{DomainFile.storage_subdir}"; end
+
+   # Absolute path to private storage directory
    def self.abs_private_storage_base; "#{RAILS_ROOT}/public" + self.private_storage_base; end
+
+   # Public storage base
    def self.public_storage_base;  "/system/storage/#{DomainFile.storage_subdir}"; end
    
    
@@ -414,7 +435,7 @@ class DomainFile < DomainModel
    
    private
    
-  def update_file_path
+  def update_file_path #:nodoc:
     pth = ''
     if self.parent(true) && self.parent.file_path
       pth = self.parent.file_path
@@ -432,13 +453,22 @@ class DomainFile < DomainModel
    ###########
    # Convenience Methods
    ###########
+
+  # Returns the root folder of the filte system
    def self.root_folder
       DomainFile.find(:first,:conditions => 'parent_id is NULL') || DomainFile.create(:name => '',:file_type => 'fld') 
    end
    
+   # Is this an image
    def image?; self.file_type == 'img'; end
+
+   # Is this a thumbnail
    def thumb?; self.file_type == 'thm'; end
+
+   # Is this a document
    def document?;  self.file_type == 'doc'; end
+
+   # Is this a folder
    def folder?;  self.file_type == 'fld'; end
    
    
@@ -481,6 +511,7 @@ class DomainFile < DomainModel
     lst.reverse
    end
 
+   # Return a select-friendly list of available built-in and custom image size options
    def image_size_options
     opts = [ [ sprintf("Original Image (%dx%d)".t,self.width(:original),self.height(:original)),'' ]  ]
     @@image_size_array.each do |sz|
@@ -523,11 +554,12 @@ class DomainFile < DomainModel
      df
    end
    
-   def mini_icon
+   
+   def mini_icon #:nodoc:
     "/images/icons/filemanager/mini_folder#{!self.special.blank? ? "_#{self.special}" : ''}.gif"
    end
    
-   def folder_icon
+   def folder_icon #:nodoc:
     "/images/icons/filemanager/folder#{!self.special.blank? ? "_#{self.special}" : ''}.gif"
    end
   
@@ -544,7 +576,7 @@ class DomainFile < DomainModel
 
   end
    
-  # Return a url for a file at a specific size
+  # Return a relative url for a file at a specific size
   def url(size=nil)
     return self.processor_handler.url(size) unless self.processor == 'local'
     if self.private?
@@ -559,9 +591,10 @@ class DomainFile < DomainModel
     "/__fs__/#{self.prefix}" + (size ? ":#{size}" : '') 
   end
     
+  # Returns a full domain name prefixed url
   def full_url(size=nil)
     return self.processor_handler.full_url(size) unless self.processor == 'local'
-    "http://#{Configuration.domain}#{self.url(size)}"
+    Configuration.domain_link(self.url(size))
   end
     
   # Return the size of the actual image
@@ -575,6 +608,7 @@ class DomainFile < DomainModel
     self.meta_info[:image_size][size] || [1,1]
   end
   
+  # Return a list of built thumb size names
   def thumb_size_names
     sizes = []
     (self.meta_info[:image_size]||{}).each do |size,val|
@@ -593,18 +627,18 @@ class DomainFile < DomainModel
   end
     
   # Return the file's extension
-	def extension
-	  ext = self.read_attribute(:extension)
-	  return ext if ext;
-		return unless self.meta_info.is_a?(Hash)
-		return self.meta_info[:file_extension] if self.file_type != 'fld'
-		return nil
-	end
+  def extension
+    ext = self.read_attribute(:extension)
+    return ext if ext;
+    return unless self.meta_info.is_a?(Hash)
+    return self.meta_info[:file_extension] if self.file_type != 'fld'
+    return nil
+  end
 	
-	# Is this file an archive file
-	def is_archive?
-		return @@archive_extensions.include?(self.extension)
-	end    
+  # Is this file an archive file that we could extract?
+  def is_archive?
+    return @@archive_extensions.include?(self.extension)
+  end    
   
  # Return the thumb adjusted size
   # that fits in a box of dimension X dimension
@@ -621,8 +655,9 @@ class DomainFile < DomainModel
   # File Manager methods
   #########
 
+  # Return a partial that contains the details for this file
+  # TODO check for a handler first - folder can have special as well
   def details_partial
-    # TODO check for a handler first - folder can have special as well
     case self.file_type
     when 'img': '/file/details/file_image'
     when 'thm': '/file/details/file_thumb'
@@ -631,7 +666,7 @@ class DomainFile < DomainModel
     end
   end
 
-  
+  # Return a file-type appropriate thumbnail-url
   def thumbnail_url(theme,size)
     case self.file_type
     when 'img','thm' : url(size)
@@ -640,7 +675,14 @@ class DomainFile < DomainModel
     end
   end
   
-  
+  # Check if this file matches the type sent in
+  # valid types are: 
+  # ['all']
+  #   All types
+  # ['doc']
+  #   Document and thumbs
+  # ['img']
+  #   Images
   def file_type_match(type)
     if type == 'all' 
       return true if !self.folder?
@@ -652,25 +694,31 @@ class DomainFile < DomainModel
     return false
   end
   
+  # Return a list of children ordered by a user-suplied field
   def ordered_children(order,page=1)
     DomainFile.paginate(page,:conditions => ['parent_id=?',self.id],:order => DomainFile.order_sql(order),:per_page => 40) 
   end
   
+  # Run a search given a file name
   def self.run_search(src,order = 'name')
     order_details = DomainFile.order_sql(order)
     DomainFile.find(:all,:conditions => ['name LIKE ?',"%#{src}%"],:order => order_details)
   end
   
+  # Is this an editable text field?
   def editable?
     self.mime_type.to_s.include?('text') || self.mime_type == 'application/javascript'
   end
   
+  # Return the text contents of this file
   def contents
     File.open(self.filename,'r') do |f|
       return f.read
     end
   end
   
+  # Set the contents of this file to val, creating a new revision
+  # in the process (used for text editing)
   def contents=(val)
     dir = DomainFile.generate_temporary_directory
     
@@ -690,7 +738,7 @@ class DomainFile < DomainModel
   
   protected 
   
-  def self.order_sql(order)
+  def self.order_sql(order) #:nodoc:
    if(order =~ /^([a-z_]+)(\_desc)$/) 
       desc = ' DESC'
       order = $1
@@ -724,15 +772,16 @@ class DomainFile < DomainModel
   
   protected
   
-  def thumbnail_document_icon(theme,size)
+
+  def thumbnail_document_icon(theme,size) #:nodoc:
     theme_src(theme,"icons/filemanager/document.gif") # TODO - replace with handler to manage different document types
   end
   
-  def thumbnail_folder_icon(theme,size)
+  def thumbnail_folder_icon(theme,size) #:nodoc:
     theme_src(theme,self.folder_icon)
   end
   
-  def theme_src(theme,img=nil) 
+  def theme_src(theme,img=nil) #:nodoc:
     if img.to_s[0..6] == "/images"
      "/themes/#{theme}" + img.to_s
     else
@@ -746,8 +795,8 @@ class DomainFile < DomainModel
    #########
    #  Non Local file processing functions
    #########
- 
-    def post_process!(background=true)
+  
+    def post_process!(background=true) #:nodoc:
       return if self.file_type == 'fld'
       opts = Configuration.file_types
       ext = self.extension
@@ -766,29 +815,29 @@ class DomainFile < DomainModel
     
     # Disable file processing in the back end so that 
     # 
-    def self.disable_post_processing
+    def self.disable_post_processing #:nodoc:
       @@disable_file_processing = true
     end
     
-    def self.enable_post_processing
+    def self.enable_post_processing #:nodoc:
       @@disable_file_processing = true
     end
     
-  def update_private!(value)
+  def update_private!(value) #:nodoc:
     return false if value != true && value != false
     if value != self.private?
       self.processor_handler.update_private!(value)
     end
   end
   
-  def self.update_processor_all(options = {})
+  def self.update_processor_all(options = {}) #:nodoc:
     files = DomainFile.find(:all,:conditions => ['file_type != "fld" AND processor != ?',options[:processor]])
     files.each do |file|
       file.update_processor(:processor => options[:processor])
     end
   end
   
-  def update_processor(options = {})
+  def update_processor(options = {}) #:nodoc:
     existing_url = self.url
     if(self.processor_handler.copy_local!)
       self.processor_handler.destroy_remote!
@@ -813,6 +862,8 @@ class DomainFile < DomainModel
    self.update_attributes(:processor => 'local',:processor_status => 'ok')
   end
     
+  # LocalProcess is the default File processor - it stores
+  # files locally on the same machine as the server
   class LocalProcessor 
     def initialize(df); @df = df; end 
     
@@ -832,7 +883,7 @@ class DomainFile < DomainModel
     
   end  	
   
-  
+  # Return an instance of the processor object
   def processor_handler
     
     if(self.processor.blank? || self.processor == 'local')
@@ -877,7 +928,7 @@ class DomainFile < DomainModel
   
   protected 
   
-  def children_cp(dir)
+  def children_cp(dir) #:nodoc:
     self.children.each do |child|
       if child.file_type == 'fld'
         new_dir = dir + "/" + child.name
@@ -889,60 +940,60 @@ class DomainFile < DomainModel
     end
   end
   
-	public
-	
-	# Extract an archive into a bunch of files, creating 
-	def extract(options = {})
+  public
+  
+  # Extract an archive into a bunch of files, creating a bunch of files and folders in the same directory
+  def extract(options = {})
     single_folder = options[:single_folder] ? true : false
     extraction_type = options[:file_types] ?  options[:file_types] : nil
     
-		files = []
-	
-		if self.is_archive?
-			@dir =  DomainFile.generate_temporary_directory
-			 
-			m = { 
-				"\.tar\.gz" => "tar xzf", 
-				"\.tar\.bz2" => "tar xjf", 
-				"\.tar" => "tar xf", 
-				"\.zip" => "unzip -o" 
-			} 
-			# Collection Extraction Code used from:
-			# http://www.atmos.org/2005/12/14/rails-file-collection-uploads
-			# Create the Directory
-			
-			Dir.chdir(@dir) do 
-				filename = self.abs_filename
-				# Find which way we need to extract the file,
-				# and run the appropriate command
-				m.each do |pattern,cmd|
-					if filename =~ /#{pattern}$/i 
-						IO.popen("#{cmd} #{filename}") { |io| } 
-						break
-					end 
-				end
-				# Create a new domain file  for each file in the directory
-				files = self.extract_directory(@dir,self.parent_id,single_folder,extraction_type)
-			end
+    files = []
+    
+    if self.is_archive?
+      @dir =  DomainFile.generate_temporary_directory
+      
+      m = { 
+        "\.tar\.gz" => "tar xzf", 
+        "\.tar\.bz2" => "tar xjf", 
+        "\.tar" => "tar xf", 
+        "\.zip" => "unzip -o" 
+      } 
+      # Collection Extraction Code used from:
+      # http://www.atmos.org/2005/12/14/rails-file-collection-uploads
+      # Create the Directory
+      
+      Dir.chdir(@dir) do 
+        filename = self.abs_filename
+        # Find which way we need to extract the file,
+        # and run the appropriate command
+        m.each do |pattern,cmd|
+          if filename =~ /#{pattern}$/i 
+            IO.popen("#{cmd} #{filename}") { |io| } 
+            break
+          end 
+        end
+        # Create a new domain file  for each file in the directory
+        files = self.extract_directory(@dir,self.parent_id,single_folder,extraction_type)
+      end
       FileUtils.rm_rf(@dir)   
-		end 
-		return files
-	end
-	
-   def extract_directory(dir,parent_id,single_folder = false,extraction_type = nil)
-   		files = []
-   		Dir.chdir(dir) do 
-   		filenames = []
-			Dir.foreach('.') do |file|
-			  filenames << file
-			end
-			filenames.sort!
-			filenames.each do |file|
-				if File.file?(file)
-					# Open the file
-					# Create a new domain file and save it
+    end 
+    return files
+  end
+  
+  def extract_directory(dir,parent_id,single_folder = false,extraction_type = nil) #:nodoc:
+    files = []
+    Dir.chdir(dir) do 
+      filenames = []
+      Dir.foreach('.') do |file|
+        filenames << file
+      end
+      filenames.sort!
+      filenames.each do |file|
+        if File.file?(file)
+          # Open the file
+          # Create a new domain file and save it
           begin     
-					 File.open(file) do |filename|
+            File.open(file) do |filename|
               df = DomainFile.new(:filename => filename,:parent_id => parent_id)
               df.save
               
@@ -959,33 +1010,33 @@ class DomainFile < DomainModel
           rescue Exception 
             ''
           end
-				elsif File.directory?(file) && file  != '.' && file != '..' 
+        elsif File.directory?(file) && file  != '.' && file != '..' 
           if !single_folder    
-  					df = DomainFile.new(:name => file, :parent_id => parent_id, :file_type => 'fld',:creator_id => self.creator_id)
-					  df.save
-					  files << df.id
+            df = DomainFile.new(:name => file, :parent_id => parent_id, :file_type => 'fld',:creator_id => self.creator_id)
+            df.save
+            files << df.id
             self.extract_directory(File.join(dir,file),df.id,single_folder,extraction_type)
           else
             files += self.extract_directory(File.join(dir,file),parent_id,single_folder,extraction_type)
           end     
-				end
-			end
-		end
-		files
-   end
-   	
-	
-   def self.generate_temporary_directory
-      fl = DomainFile.new()
-   
-      time = Time.now.to_s+(Process.pid + Process.pid + fl.object_id).to_s
-      dir = File.join(abs_private_storage_base,
-                     'tmp',
-                      Digest::SHA1.hexdigest(time))   
-      FileUtils.mkpath(dir)
-      
-      dir
-   end
+        end
+      end
+    end
+    files
+  end
+  
+  
+  def self.generate_temporary_directory
+    fl = DomainFile.new()
+    
+    time = Time.now.to_s+(Process.pid + Process.pid + fl.object_id).to_s
+    dir = File.join(abs_private_storage_base,
+                    'tmp',
+                    Digest::SHA1.hexdigest(time))   
+    FileUtils.mkpath(dir)
+    
+    dir
+  end
 
   def generate_csv
     if self.extension == 'xls'
@@ -996,16 +1047,16 @@ class DomainFile < DomainModel
       nil
     end
   end
-	
-	
+  
+  
 
- protected 
+  protected 
 
   def self.generate_prefix
     digest  = Digest::SHA1.hexdigest(Time.now.to_s + rand(1000000000000).to_s)
     "#{digest[0..1]}/#{digest[2..2]}"
   end
- 
+  
   # From File Column
   # Safely generate a temporary name
   def self.generate_temp_name
@@ -1022,9 +1073,9 @@ class DomainFile < DomainModel
     filename = "unnamed" if filename.size == 0
     filename
   end
-   
+  
 
-   
+  
   # Attribution: 
   # This Code and Comment Taken From file_column plugin Verbatim
   #
@@ -1034,8 +1085,7 @@ class DomainFile < DomainModel
   # to file objects if necessary by extending them with this module. This
   # avoids opening up the standard File class which might result in
   # naming conflicts.
-
-  module FileCompat # :nodoc:
+  module FileCompat
     def original_filename
       File.basename(path)
     end
