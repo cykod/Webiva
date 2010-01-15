@@ -237,10 +237,10 @@ RealTimeStatsViewer = {
   },
 
   detailOverlay: function(transport) {
-    var html = '<div class="visitor-details">';
+    var html = '<div class="cms_form"><div class="visitor-details">';
     html += '<div class="close"><a href="javascript:void(0);" onclick="RealTimeStatsViewer.closeDetailOverlay();">[x] close</a></div>';
     html += transport.responseText;
-    html += '</div>';
+    html += '</div></div>';
     SCMS.overlay( html );
   },
 
