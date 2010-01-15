@@ -52,6 +52,19 @@ h4 {
 
 }
 
+.clearfix:after {
+  content: ".";
+  display: block;
+  height: 0;
+  clear: both;
+  visibility: hidden;
+}
+
+<!--[if IE]>
+.clearfix { display: inline-block; }
+.clearfix { zoom: 1; display: block; }
+<![endif]-->
+
 #cms_container {
   width: auto !important;
   min-width:850px;

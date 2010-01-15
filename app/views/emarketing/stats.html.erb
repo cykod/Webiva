@@ -6,22 +6,34 @@ RealTimeStatsViewer = {
   playbackTicker: 60,
   realTimeStatsLayer: null,
   maxStats: 1000,
-  playbackTickerStart: 60,
+  playbackTickerStart: 10,
+  chart: { range: 5, intervals: 10, from: null, to: null, uniques: new Array(), hits: new Array(), labels: new Array() },
+  chartTimer: null,
 
   addStats: function(stats) {
     var div = document.createElement( 'div' );
-    div.setAttribute( 'class', 'stats' );
-    var url = document.createElement( 'div' );
-    url.setAttribute( 'class', 'url' );
-    url.appendChild( document.createTextNode(stats.url) );
+    div.setAttribute( 'class', 'stats clearfix' );
 
-    var d = new Date( stats.occurred_at*1000 );
+    var who = document.createElement( 'div' );
+    who.setAttribute( 'class', 'who' );
+    who.appendChild( document.createTextNode(stats.user || stats.ip) );
+
     var occurred_at = document.createElement( 'div' );
-    occurred_at.setAttribute( 'class', 'occurred' );
-    occurred_at.appendChild( document.createTextNode(d.toLocaleTimeString()) );
+    occurred_at.setAttribute( 'class', 'when' );
+    occurred_at.appendChild( document.createTextNode(stats.occurred_at) );
 
-    div.appendChild( url );
+    var page = document.createElement( 'div' );
+    page.setAttribute( 'class', 'page' );
+    page.appendChild( document.createTextNode(stats.url) );
+
+    var action = document.createElement( 'div' );
+    action.setAttribute( 'class', 'action' );
+    action.appendChild( document.createTextNode(stats.action) );
+
+    div.appendChild( who );
     div.appendChild( occurred_at );
+    div.appendChild( page );
+    div.appendChild( action );
 
     while( RealTimeStatsViewer.realTimeStatsLayer.children.length >= RealTimeStatsViewer.maxStats ) {
       RealTimeStatsViewer.realTimeStatsLayer.children[0].remove();
@@ -39,9 +51,9 @@ RealTimeStatsViewer = {
   },
 
   playback: function() {
-    occurred_at = RealTimeStatsViewer.stats[0].occurred_at;
+    occurred = RealTimeStatsViewer.stats[0].occurred;
 
-    if( occurred_at == null ) {
+    if( occurred == null ) {
       var remainingData = RealTimeStatsViewer.stats.shift();
       if( remainingData.remaining > 0 ) {
         var div = document.createElement( 'div' );
@@ -57,8 +69,8 @@ RealTimeStatsViewer = {
       var height = RealTimeStatsViewer.realTimeStatsLayer.getHeight();
       var scrollToBottom = (scrollTop == 0 && scrollHeight <= height) || (scrollTop+height) == scrollHeight;
 
-      while( occurred_at != null ) {
-	var diff = RealTimeStatsViewer.current - occurred_at;
+      while( occurred != null ) {
+	var diff = RealTimeStatsViewer.current - occurred;
 
         if( diff < RealTimeStatsViewer.playbackTicker ) { break; }
 
@@ -68,7 +80,7 @@ RealTimeStatsViewer = {
    	  break;
         }
 
-        occurred_at = RealTimeStatsViewer.stats[0].occurred_at;
+        occurred = RealTimeStatsViewer.stats[0].occurred;
      }
 
       if( scrollToBottom ) {
@@ -82,14 +94,14 @@ RealTimeStatsViewer = {
   },
 
   realTimeStatsUrl: function() {
-    var url = "<%= url_for :action => 'site_playback' %>";
+    var url = "<%= url_for :action => 'real_time_stats_request' %>";
     if( RealTimeStatsViewer.current != null )
       url += '?from=' + RealTimeStatsViewer.current;
     return url;
   },
 
   realTimeStatsOnComplete: function(transport) {
-    data = eval( transport.responseText );
+    data = transport.responseText.evalJSON();
     RealTimeStatsViewer.playbackTicker = RealTimeStatsViewer.playbackTickerStart;
 
     var startPlaybackTimer = RealTimeStatsViewer.stats.length == 0;
@@ -113,13 +125,183 @@ RealTimeStatsViewer = {
 		     });
   },
 
+  changeChartRange: function(range) {
+    if( RealTimeStatsViewer.chart.range == range )
+      return;
+
+    if( RealTimeStatsViewer.chartTimer ) {
+      clearTimeout( RealTimeStatsViewer.chartTimer );
+      RealTimeStatsViewer.chartTimer = null;
+    }
+
+    RealTimeStatsViewer.chart.range = range;
+    RealTimeStatsViewer.requestRealTimeCharts();
+  },
+
+  renderChart: function() {
+    $('real_time_charts').update('');
+    var r = Raphael("real_time_charts");
+    var data = [RealTimeStatsViewer.chart.uniques, RealTimeStatsViewer.chart.hits];
+    var chartX = 30;
+    var chartY = 15;
+    var width = 600;
+    var height = 280;
+
+    var max_hits = Math.max.apply(Math, RealTimeStatsViewer.chart.hits);
+    max_hits += 10 - (max_hits % 10);
+    var labelDim = r.g.textBox(max_hits.toString());
+    chartX += labelDim.width;
+    r.g.txtattr.font = "12px Arial, sans-serif";
+    r.g.text(chartX+(width/2), chartY/2, RealTimeStatsViewer.chart.from + ' - ' + RealTimeStatsViewer.chart.to );
+    r.g.text(chartX+(width/2), chartY + height + chartY/2, 'Every ' + RealTimeStatsViewer.chart.range + ' minutes' );
+    r.g.text(12, chartY + height/2, 'Uniques / Page Views').rotate(270);
+    var chart = r.g.barchart(chartX, chartY, width, height, data, {to: max_hits});
+    r.g.txtattr.font = "10px 'Arial, sans-serif";
+    chart.xlabels( RealTimeStatsViewer.chart.labels, true );
+    chart.ylabels();
+
+    var fin = function () {
+      this.flag = this.flag || r.g.popup(this.bar.x, this.bar.y, this.bar.value || "0").insertBefore(this);
+      this.flag.show();
+    };
+    var fout = function () {
+      if( this.flag )
+        this.flag.hide();
+    };
+
+    chart.hover(fin, fout);
+  },
+
+  realTimeChartsOnComplete: function(transport) {
+    data = transport.responseText.evalJSON();
+
+    if( typeof(data.range) == 'undefined' ) { return; }
+    if( data.range != RealTimeStatsViewer.chart.range ) { return; }
+
+    RealTimeStatsViewer.chart.from = data.from;
+    RealTimeStatsViewer.chart.to = data.to;
+
+    while( data.uniques.length > 0 )
+      RealTimeStatsViewer.chart.uniques.unshift(data.uniques.pop());
+    while( RealTimeStatsViewer.chart.uniques.length > RealTimeStatsViewer.chart.intervals )
+      RealTimeStatsViewer.chart.uniques.pop();
+
+    while( data.hits.length > 0 )
+      RealTimeStatsViewer.chart.hits.unshift(data.hits.pop());
+    while( RealTimeStatsViewer.chart.hits.length > RealTimeStatsViewer.chart.intervals )
+      RealTimeStatsViewer.chart.hits.pop();
+
+    while( data.labels.length > 0 )
+      RealTimeStatsViewer.chart.labels.unshift(data.labels.pop());
+    while( RealTimeStatsViewer.chart.labels.length > RealTimeStatsViewer.chart.intervals )
+      RealTimeStatsViewer.chart.labels.pop();
+
+    RealTimeStatsViewer.renderChart();
+
+    if( RealTimeStatsViewer.chartTimer ) {
+      clearTimeout(RealTimeStatsViewer.chartTimer);
+      RealTimeStatsViewer.chartTimer = null;
+    }
+    RealTimeStatsViewer.chartTimer = setTimeout( 'RealTimeStatsViewer.requestRealTimeCharts(true);', RealTimeStatsViewer.chart.range*60*1000 );
+  },
+
+  realTimeChartsUrl: function(update) {
+    var url = "<%= url_for :action => 'real_time_charts_request' %>";
+    url += '?range=' + RealTimeStatsViewer.chart.range;
+
+    if( typeof(update) != 'undefined' )
+      url += '&update=1';
+
+    return url;
+  },
+
+  requestRealTimeCharts: function(update) {
+    new Ajax.Request(RealTimeStatsViewer.realTimeChartsUrl(update),
+		     { method: 'get',
+		       onComplete: RealTimeStatsViewer.realTimeChartsOnComplete
+		     });
+  },
+
   onLoad: function () {
     RealTimeStatsViewer.realTimeStatsLayer = $('real_time_stats');
     RealTimeStatsViewer.requestRealTimeStats();
+    RealTimeStatsViewer.requestRealTimeCharts();
   }
 }
 </script>
 
-<div id="real_time_stats" style="width:300px; height:100px; overflow-x:hidden; overflow-y:auto;"></div>
+<style>
 
-<%= @chart_html %>
+.real-time-stats {
+  width:530px;
+}
+
+.real-time-stats-block {
+  height:335px;
+  overflow-x:hidden;
+  overflow-y:auto;
+}
+
+.real-time-stats div div {
+  float: left;
+  width: 200px;
+  height: 20px;
+  overflow: hidden;
+}
+
+.real-time-stats .stats .who {
+  width: 130px;
+}
+
+.real-time-stats .stats .when {
+  width: 110px;
+}
+
+.real-time-stats .stats .page {
+  width: 150px;
+}
+
+.real-time-stats .stats .action {
+  width: 100px;
+}
+
+.real-time-stats .headers div {
+  height: 25px;
+  text-align: left;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+</style>
+
+<br />
+<br />
+
+<div class="clearfix" style="width:1210px;">
+
+<div style="float:left; width:530px; padding-left:10px;">
+  <div class="real-time-stats">
+    <div class="stats headers clearfix">
+      <div class="who">Who</div>
+      <div class="when">When</div>
+      <div class="page">Where</div>
+      <div class="action">Actions</div>
+    </div>
+  </div>
+  <div id="real_time_stats" class="real-time-stats real-time-stats-block">
+  </div>
+</div>
+
+<div style="float:left; width:660px; padding-left:10px;">
+  <% ajax_tabs [ ['5 Minutes', 'RealTimeStatsViewer.changeChartRange(5);'], [ '30 Minutes', 'RealTimeStatsViewer.changeChartRange(30);' ],['60 Minutes', 'RealTimeStatsViewer.changeChartRange(60);'] ], '5 Minutes' do |t| -%>
+    <% t.tab do -%>
+    <% end -%>
+    <% t.tab do -%>
+    <% end -%>
+    <% t.tab do -%>
+    <% end -%>
+  <% end -%>
+  <div id="real_time_charts"></div>
+</div>
+
+</div>
