@@ -126,8 +126,7 @@ RealTimeStatsViewer = {
 
   requestRealTimeStats: function() {
     new Ajax.Request(RealTimeStatsViewer.realTimeStatsUrl(),
-		     { method: 'get',
-		       onComplete: RealTimeStatsViewer.realTimeStatsOnComplete
+		     { onComplete: RealTimeStatsViewer.realTimeStatsOnComplete
 		     });
   },
 
@@ -223,8 +222,7 @@ RealTimeStatsViewer = {
 
   requestRealTimeCharts: function(update) {
     new Ajax.Request(RealTimeStatsViewer.realTimeChartsUrl(update),
-		     { method: 'get',
-		       onComplete: RealTimeStatsViewer.realTimeChartsOnComplete
+		     { onComplete: RealTimeStatsViewer.realTimeChartsOnComplete
 		     });
   },
 
