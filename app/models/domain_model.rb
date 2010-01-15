@@ -523,7 +523,9 @@ class DomainModel < ActiveRecord::Base
   after_update  DomainModel::CallbackHandlers.new
   after_destroy   DomainModel::CallbackHandlers.new
   
-  
+  def self.get_content_description
+    self.to_s.titleize
+  end
   
    
   # Adds content tag support to a model

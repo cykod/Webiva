@@ -10,7 +10,7 @@ class DashboardController < CmsController
 
 
   def index
-    cms_page_info 'Dashboard', 'dashboard','CMSDashboard.pagePopup();'
+    cms_page_info 'Dashboard', 'dashboard',  myself.has_role?(:editor_site_management) ? 'CMSDashboard.pagePopup();' : nil
 
     @widget_columns = EditorWidget.assemble_widgets(myself)
     @widget_columns.each do |column|
@@ -22,7 +22,18 @@ class DashboardController < CmsController
         end
       end
     end
+
+    @cms_titlebar_handlers||=[]
+    @cms_titlebar_handlers.unshift(self)
   end
+
+  protected
+
+  def titlebar_html
+    "<a href='javascript:void(0);' onclick='CMSDashboard.toggleEdit();'><img title='Toggle Widget Editing' src='#{theme_src('framework/page_title_edit_icon.gif')}' align='absmiddle'/></a>"
+  end
+
+  public 
 
   def positions
     columns = [ params[:column_0]||[], params[:column_1]||[], params[:column_2]||[] ]
@@ -37,7 +48,7 @@ class DashboardController < CmsController
     if request.post? && params[:widget]
       @new_widget = @widget.new_record?
       if params[:commit] && @widget.update_attributes(params[:widget])
-        @widget.render_widget(self)
+        @widget.render_widget(self,@new_widget)
         render :action => 'update_widget', :locals => { :widget => @widget }
         return
       end
@@ -70,7 +81,7 @@ class DashboardController < CmsController
   def show
     @widget = EditorWidget.find_by_id(params[:widget_id],myself.id)
     @widget.update_attributes(:hide => false)
-    @widget.render_widget(self)
+    @widget.render_widget(self,true)
     render :action => 'show'
   end
 

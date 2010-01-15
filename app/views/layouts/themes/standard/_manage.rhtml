@@ -66,7 +66,7 @@
           </a>
         <% end -%>
         <% if @cms_titlebar_handlers && @cms_titlebar_handlers.length > 0 -%>
-          <%= @cms_titlebar_handlers.map { |h| h.titlebar_html }.join("") -%>
+          <%= @cms_titlebar_handlers.map { |h| h.send(:titlebar_html) }.join("") -%>
         <% end -%>
         <% if @cms_page_info[:menu_js] %>
         <a href='javascript:void(0);' onclick='<%= @cms_page_info[:menu_js] %>'><img src='<%= theme_src("framework/page_title_menu_icon.gif")%>' width='28' height='29'  align='absmiddle' /></a>

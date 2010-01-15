@@ -2,7 +2,8 @@
 
 class Dashboard::WidgetBase
 
-  attr_reader :output_title, :output, :includes, :options, :editor_widget, :icon
+  attr_reader :output_title, :output, :includes, :options, :editor_widget, :icon, :first
+  attr_writer :first
 
   attr_reader :controller 
 
@@ -11,6 +12,11 @@ class Dashboard::WidgetBase
   def initialize(options,editor_widget)
     @options = options
     @editor_widget = editor_widget
+    @first = first
+  end
+
+  def first?
+    @first
   end
 
   def self.available_widgets
