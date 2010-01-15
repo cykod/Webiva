@@ -2062,19 +2062,19 @@ table.permission_grid td {
   height:auto !important;
   min-height:500px;
   height:500px;
-  padding:0px 5px;
+  padding:10px 5px;
 }
 
 .dashboard_widget_column_add { 
-  color:#df5323;
+  color:#c84800;
   background-color:#d4a451;
   text-align:center;
-  padding:5px 10px;
-   border-radius:10px;        
-  -moz-border-radius: 10px;
-  -webkit-border-radius: 10px;
+  padding:5px 5px;
+   border-radius:5px;        
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
   cursor:pointer;
-  margin:5px 5px;
+  margin:5px 5px 10px 5px;
 }
 
 
@@ -2094,7 +2094,6 @@ table.permission_grid td {
                     }
 
 .dashboard_widget_titlebar { 
-  background-color:#bbd6e1;
   color:#3b648c;
   -moz-border-radius-topleft: 4px;
   -moz-border-radius-topright: 4px;
@@ -2106,6 +2105,8 @@ table.permission_grid td {
 
 }
 
+.dashboard_widget_hidden .dashboard_widget_icon {  display:none;  }
+ 
 .dashboard_widget_icon { 
   position:absolute;
   left:0px;

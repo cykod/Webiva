@@ -68,7 +68,8 @@ class EditorWidget < DomainModel
     @widget_instance ||= self.widget_class.new(self.options,self)
   end
   
-  def render_widget(controller)
+  def render_widget(controller,first = false)
+    self.widget_instance.first = first
     self.widget_instance.controller_render_widget(self.widget,controller)
   end
 

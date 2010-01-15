@@ -10,18 +10,10 @@ CMSDashboard = {
   editing: false,
 
   pagePopup:function() {
-    var editop = !this.editing ? ['Edit, Move & Delete Widgets','js','CMSDashboard.editWidgets();'] :
-                                ['Done Editing Widgets','js','CMSDashboard.stopEditingWidgets();'] 
-
-
-
     SCMS.popup(
 
       new Array(editop,
-<% if myself.has_role?(:editor_site_management) -%>
-                [],
                 ['Edit Site Widgets','<%= url_for :action => :site_widgets  -%>' ]
-<% end -%>
               )
      );
   },
@@ -49,6 +41,10 @@ CMSDashboard = {
     $$('.dashboard_widget_hidden').invoke('hide');
     this.destroySortables();
     this.editing = false;
+  },
+
+  toggleEdit: function() {
+     this.editing ? this.stopEditingWidgets() : this.editWidgets();
   },
   
   destroySortables: function() {
