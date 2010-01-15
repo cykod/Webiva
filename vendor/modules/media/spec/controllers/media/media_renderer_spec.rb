@@ -11,6 +11,10 @@ describe Media::MediaRenderer, :type => :controller do
   reset_domain_tables :configurations
 
   before(:each) do
+
+    mod = SiteModule.activate_module(Domain.find(DomainModel.active_domain_id),'media')
+    mod.update_attributes(:status => 'active')
+
     opts = {}
     @options = Media::AdminController.module_options
     @options.media_video_handler = @options.media_video_handlers[0][1]

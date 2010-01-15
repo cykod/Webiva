@@ -505,12 +505,16 @@ class EditController < ModuleController # :nodoc: all
     
     @paragraph = @revision.page_paragraphs.find(params[:paragraph_id])
     @paragraph.attributes = params[:paragraph].slice(:display_body)
-    @paragraph.save
+
+    @errors = @paragraph.validate_markup
+    
+    if @errors.length == 0 || params[:skip_validation]
+      @paragraph.save
+      @errors=nil
+    end
 
     @para_index = params[:para_index]
-
     render :action => 'update_code'
-
   end
   
   def page_info

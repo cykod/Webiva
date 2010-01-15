@@ -6,7 +6,12 @@ describe Media::AdminController do
 
   include MediaTestHelper
 
-  reset_domain_tables :configurations
+  reset_domain_tables :configurations, :site_modules
+
+  before(:each) do
+    mod = SiteModule.activate_module(Domain.find(DomainModel.active_domain_id),'media')
+    mod.update_attributes(:status => 'active')
+  end
 
   it "should be able to set audio and video handlers" do
     mock_editor

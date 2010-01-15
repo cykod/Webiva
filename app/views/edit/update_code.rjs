@@ -1,4 +1,16 @@
 
-page.CodeEditor.updateCode(@para_index,@paragraph.display_body_html);
+if @errors
+  page.replace_html "save_notice", "There was a problem with this code: <br/>#{@errors.join("<br/>").gsub("\n","<br/>\n")}"
+  page.show :save_notice
+  page.show :ignore_xml
 
-page.replace_html 'saving', 'Updated'
+else
+
+  page.CodeEditor.updateCode(@para_index,@paragraph.display_body_html);
+
+  page.replace_html "save_notice", ""
+  page.replace_html 'saving', 'Updated'
+  page.hide :ignore_xml
+  page.hide :save_notice
+
+end

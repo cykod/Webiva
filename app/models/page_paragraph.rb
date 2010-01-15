@@ -26,6 +26,7 @@ class PageParagraph < DomainModel
   belongs_to :site_module
   belongs_to :content_publication
 
+
   
   # PageParagraph file instance support is in PageRevisions
   # process_file_instance :display_body, :display_body_html
@@ -40,6 +41,15 @@ class PageParagraph < DomainModel
       when 'textile' : 'textile'
       when'markdown' : 'markdown'
       end
+    else
+      nil
+    end
+  end
+
+  def validate_markup
+    if self.paragraph_filter
+      validator = Util::HtmlValidator.new(self.display_body)
+      validator.validate
     else
       nil
     end
