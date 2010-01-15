@@ -146,7 +146,7 @@ class ModuleAppController < ApplicationController
    if Configuration.logging
       unless request.bot?
 	DomainLogSession.start_session(myself, session, request)
-	DomainLogEntry.create_entry_from_request(myself, @page, params[:path].join('/'), request, session, @output)
+	DomainLogEntry.create_entry_from_request(myself, @page, (params[:path]||[]).join('/'), request, session, @output)
       end
     end
   end
