@@ -7,8 +7,9 @@ class Blog::BlogPostRevision < DomainModel
   validates_presence_of :title, :body
 
   belongs_to :blog_post, :class_name => 'Blog::BlogPost', :foreign_key => 'blog_post_id'
-  belongs_to :domain_file
-  belongs_to :media_file, :class_name => 'DomainFile'
+
+  has_domain_file :domain_file_id
+  has_domain_file :media_file_id
   
   def before_save
     if self.blog_post.blog_blog.is_user_blog?

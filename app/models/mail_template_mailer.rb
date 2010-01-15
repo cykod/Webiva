@@ -2,9 +2,33 @@
 
 require 'mime/types'
 
+
+# MailTemplateMailer is used to send MailTemplate's
+# 
+# See MailTemplate for a more detailed description, 
+# MailTemplate#deliver_to_user and MailTemplate#deliver_to_address
+# should be used in most cases. 
+#
+# If you don't have a MailTemplate however, you can use
+# MailTemplateMailer#message_to_address to send a message directly without
+# mail template 
 class MailTemplateMailer < ActionMailer::Base
 
-  def message_to_address(email,subj,options ={}) 
+  # Send a message inline to an email address
+  #
+  # Usage:
+  #
+  #     MailTemplateMailer.delivery_message_to_address(
+  #                    'test@domain.com',
+  #                    "This is the email subject",
+  #                    :text => 'Text body',
+  #                    :html => "<b>Html Body!</b>",
+  #                    :from => 'Svend@karlson.com')
+  #
+  # Either :text or :html (or both) must be specified,
+  # :from is optional and will use the default or the
+  # Configuration reply to email
+  def message_to_address(email,subj,options ={})
     subject subj
     recipients email
     
@@ -26,7 +50,7 @@ class MailTemplateMailer < ActionMailer::Base
     elsif options[:text]
       content_type 'text/plain'
       body options[:text]
-    else options[:html]
+    elsif options[:html]
       content_type "text/html"
       body options[:html]
     end 
@@ -34,7 +58,7 @@ class MailTemplateMailer < ActionMailer::Base
     true
   end
 
-  def to_address(email,mail_template,variables = {},queue_hash=nil)
+  def to_address(email,mail_template,variables = {},queue_hash=nil) #:nodoc:
     variables = variables.clone
     variables.stringify_keys!
     
@@ -115,7 +139,7 @@ class MailTemplateMailer < ActionMailer::Base
   end
 
   # user should have  email and name
-  def to_user(user,mail_template,variables = {})
+  def to_user(user,mail_template,variables = {}) #:nodoc:
     if user.is_a?(Integer)
       user = EndUser.find(user)
     end

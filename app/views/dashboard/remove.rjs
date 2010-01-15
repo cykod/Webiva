@@ -1,0 +1,6 @@
+if @widget.site_widget
+  page.replace "widget_#{@widget.id}", :partial => 'widget', :locals => {  :widget => @widget }
+  page << "CMSDashboard.editWidgets();"
+else    
+  page.remove("widget_#{@widget.id}")
+end

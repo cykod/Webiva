@@ -3,6 +3,9 @@ path = File.expand_path(File.dirname(__FILE__))
 
 modules = []
 
+files = ARGV
+files = nil if files.length == 0
+
 if ENV['COMPONENT']
   modules = ENV['COMPONENT'].split(",")
 elsif ENV['NO_COMPONENTS']
@@ -17,7 +20,7 @@ end
 
 Autotest.add_hook :initialize do |at|
   %w{.hg .git tmtags Rakefile Capfile README spec/spec.opts spec/rcov.opts}.each {|exception|at.add_exception(exception)}
-  if ENV['COMPONENT']
+  if ENV['COMPONENT'] || files
     at.clear_mappings()
   end
   at.remove_exception("log/") # f-ing blog
@@ -28,16 +31,29 @@ Autotest.add_hook :initialize do |at|
   at.add_exception("backup/")
   at.add_exception('log/test.log')
   
-  modules.each do |mod|
-  %w(controllers models views).each do |type|
-     at.add_mapping  %r%^vendor/modules/#{mod}/app/#{type}/(.*)\.rb$% do |filename,matches|
-      at.files_matching(/^vendor\/modules\/#{mod}\/spec\/#{type}\/#{matches[1]}_spec.rb$/)
-     end
-     
-     at.add_mapping  %r%^vendor/modules/#{mod}/spec/#{type}/(.*)_spec\.rb$% do |filename,matches|
-      at.files_matching(/^vendor\/modules\/#{mod}\/spec\/#{type}\/#{matches[1]}_spec.rb$/)
-     end
+
+  if files
+    files.each do |file|
+      at.add_mapping  %r%^#{file}$%  do |filename,matches|
+        file =~ /^app\/(.*)\.rb$/
+        partfile = $1
+        at.files_matching( %r%^spec/#{partfile}_spec.rb$% )
+      end
     end
+  else 
+
+    modules.each do |mod|
+      %w(controllers models views).each do |type|
+        at.add_mapping  %r%^vendor/modules/#{mod}/app/#{type}/(.*)\.rb$% do |filename,matches|
+          at.files_matching(/^vendor\/modules\/#{mod}\/spec\/#{type}\/#{matches[1]}_spec.rb$/)
+        end
+        
+        at.add_mapping  %r%^vendor/modules/#{mod}/spec/#{type}/(.*)_spec\.rb$% do |filename,matches|
+          at.files_matching(/^vendor\/modules\/#{mod}\/spec\/#{type}\/#{matches[1]}_spec.rb$/)
+        end
+      end
+    end
+
   end
 end
 

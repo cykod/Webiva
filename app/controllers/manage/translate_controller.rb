@@ -6,6 +6,8 @@ class Manage::TranslateController < CmsController # :nodoc: all
   skip_before_filter :context_translate_before
   skip_after_filter :context_translate_after
 
+  helper :translate
+
   # need to be at least a client admin
   permit 'client_admin'
   layout 'manage'

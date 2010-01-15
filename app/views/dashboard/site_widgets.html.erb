@@ -1,0 +1,11 @@
+<% action_panel do |p| -%>
+  <%= p.link "Add new Widget", :action => 'site_widget', :icon =>'add.gif' -%>
+<% end -%>
+
+<hr/>
+
+<div class='admin_content'>
+
+<%= active_table_render :site_widgets_table -%>
+
+</div>

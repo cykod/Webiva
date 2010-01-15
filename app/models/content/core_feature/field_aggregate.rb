@@ -2,7 +2,7 @@
 
 
 
-class Content::CoreFeature::FieldAggregate <  Content::Feature
+class Content::CoreFeature::FieldAggregate <  Content::Feature #:nodoc:all
 
    def self.content_feature_handler_info
     { 

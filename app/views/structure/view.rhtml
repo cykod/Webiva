@@ -12,7 +12,7 @@
 			<% else -%>
 				menu_options.push(["<%= jh 'Advanced View'.t %>","<%= url_for(:controller => 'structure', :action =>'index', :modifiers => 'show') %>"]);
 			<% end -%>
-
+                        menu_options.push([]);
 			<% if @display_modules == 'show' -%>
 				menu_options.push(['<%= jh "Hide Modules".t %>',"<%= url_for(:controller => 'structure', :action =>'index', :modules => 'hide') %>"]);
 			<% else -%>

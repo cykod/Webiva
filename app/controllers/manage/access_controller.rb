@@ -43,10 +43,7 @@ class Manage::AccessController < CmsController # :nodoc: all
         if  session[:lockout_current_url]
           redirect_to session[:lockout_current_url]
           session[:lockout_current_url] = nil
-        elsif myself.has_role?('editor_website') ||  myself.has_role?('editor_structure') 
-        	redirect_to(:controller => "/structure", :action => 'index')
-        else
-        	redirect_to(:controller => "/content", :action => 'index')
+        elsif redirect_to(:controller => "/dashboard", :action => 'index')
         end
         return
       else

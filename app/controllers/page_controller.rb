@@ -2,6 +2,9 @@
 
 require 'singleton' 
 
+# Page controller is the class the runs the majority of front end pages.
+# If you are looking to create your own custom front end controller you should
+# override ModuleAppController instead
 class PageController < ModuleAppController
   
   skip_before_filter :validate_module
@@ -11,13 +14,13 @@ class PageController < ModuleAppController
   
   helper :paragraph
 
-  def view
+  def view #:nodoc:
     session[:cms_language] = params[:language] if Configuration.languages.include?(params[:language])
     index
   end
   
 
-  def paragraph
+  def paragraph #:nodoc:
     
     revision = PageRevision.find(params[:page_revision],:conditions => ['revision_type IN ("real","old") AND revision_container_id=?',params[:site_node]])
     container = revision.revision_container
@@ -34,18 +37,18 @@ class PageController < ModuleAppController
     end
   end
   
-  def index
+  def index #:nodoc:
       # Handled by module app controller before filter
       render :action => 'index'
   end
 
   if RAILS_ENV == 'test'
-    def set_test_renderer(rnd)
+    def set_test_renderer(rnd) #:nodoc:
       @test_renderer = rnd
     end
     
     
-    def renderer_test
+    def renderer_test #:nodoc:
       output = @test_renderer.send(@test_renderer.paragraph.display_type)   
       
       if output.is_a?(ParagraphRenderer::ParagraphOutput)

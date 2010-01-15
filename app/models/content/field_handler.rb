@@ -2,9 +2,12 @@
 
 
 
+# Defines a content model FieldHandler which allows the addition of
+# additional fields onto the custom content model system
 class Content::FieldHandler 
 
 
+  # Registers new field types with the system. See core_field.rb for an example
   def self.register_content_fields(field_info)
   
     module_name = self.to_s.underscore
@@ -28,6 +31,9 @@ class Content::FieldHandler
   
   end
   
+  # Regiters new dynamic fields with the system (which allow publications
+  # to automatically assign values to fields dynamically) see
+  # core_field.rb for an example
   def self.register_dynamic_fields(dynamic_field_info_raw)
     module_name = self.to_s.underscore
 
@@ -57,22 +63,5 @@ class Content::FieldHandler
       
   
   end
-
-# # Returns a hash of options for a specific field type
-# def self.set_field_options(field_type,options)
-#  {}
-# end  
-
-# # Modifies the parameters field based on the attributes of the field
-# def self.modify_entry_parameteres(fld,parameters)
-#   nil # Don't do anything by default
-# end
-# 
-# 
-# 
-# def self.filter_variables(field_type,publication_field)
-#   [ ('filter_' + publication_field.id.to_s).to_sym ]
-# end
- 
 
 end

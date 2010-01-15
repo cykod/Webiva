@@ -2,10 +2,12 @@
 
 
 
+# Methods for generating the actual content model class 
+# from a ContentModel object
 module Content::ContentModelGenerator
 
-
-  
+  # Generates a subclass of ContentModelType that behaves like a 
+  # standard DomainModel class for a CustomContentModel
   def content_model
     clses = DataCache.local_cache("content_models_list") || {}
     cls = clses[self.table_name]

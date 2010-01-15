@@ -38,7 +38,8 @@ class Feedback::FeedbackController < ModuleController
 
   def get_target_types
     Comment.find(:all,:select => 'DISTINCT(target_type) as target_type',:group => 'target_type',:order => 'name').collect do |type|
-      [ type.target_type.constantize.get_content_description, type.target_type ]
+      target_type = type.target_type.constantize
+      [ target_type.respond_to?(:get_content_description) ? target_type.get_content_description : target_type.to_s.titleize, type.target_type ]
     end
   end
 

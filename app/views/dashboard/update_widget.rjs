@@ -1,0 +1,9 @@
+
+
+if @new_widget
+  page.insert_html :top, "column_#{@widget.column}",  :partial => 'widget', :locals => {  :widget => @widget }
+else
+  page.replace "widget_#{@widget.id}", :partial => 'widget', :locals => {  :widget => @widget }
+end
+  page << "CMSDashboard.editWidgets();"
+  page << "RedBox.close();"
