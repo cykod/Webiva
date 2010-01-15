@@ -16,7 +16,11 @@ RealTimeStatsViewer = {
 
     var who = document.createElement( 'div' );
     who.setAttribute( 'class', 'who' );
-    who.appendChild( document.createTextNode(stats.user || stats.ip) );
+    var who_link = document.createElement( 'a' );
+    who_link.href = 'javascript:void(0);';
+    who_link.setAttribute( 'onclick','RealTimeStatsViewer.detail("' + stats.id + '");' );
+    who_link.appendChild( document.createTextNode(stats.user || stats.ip) );
+    who.appendChild( who_link );
 
     var occurred_at = document.createElement( 'div' );
     occurred_at.setAttribute( 'class', 'when' );
@@ -226,6 +230,25 @@ RealTimeStatsViewer = {
     RealTimeStatsViewer.realTimeStatsLayer = $('real_time_stats');
     RealTimeStatsViewer.requestRealTimeStats();
     RealTimeStatsViewer.requestRealTimeCharts();
+  },
+
+  closeDetailOverlay: function() {
+    SCMS.closeOverlay();
+  },
+
+  detailOverlay: function(transport) {
+    var html = '<div class="visitor-details">';
+    html += '<div class="close"><a href="javascript:void(0);" onclick="RealTimeStatsViewer.closeDetailOverlay();">[x] close</a></div>';
+    html += transport.responseText;
+    html += '</div>';
+    SCMS.overlay( html );
+  },
+
+  detail: function(entry_id) {
+    new Ajax.Request("<%= url_for :action => 'visitor_detail' %>/" + entry_id,
+		     { method: 'get',
+		       onComplete: RealTimeStatsViewer.detailOverlay
+		     });
   }
 }
 </script>
@@ -270,6 +293,17 @@ RealTimeStatsViewer = {
   text-align: left;
   font-weight: bold;
   font-size: 14px;
+}
+
+.visitor-details {
+  height: 400px;
+  overflow-x:hidden;
+  overflow-y:auto;
+  padding: 10px;
+}
+
+.visitor-details .close {
+  text-align: right;
 }
 
 </style>

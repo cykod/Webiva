@@ -142,7 +142,8 @@ class EmarketingController < CmsController # :nodoc: all
     @entries.map! do |entry|
       last_occurred_at = entry.occurred_at.to_i
 
-      { :occurred => entry.occurred_at.to_i,
+      { :id => entry.domain_log_session.id,
+	:occurred => entry.occurred_at.to_i,
 	:occurred_at => entry.occurred_at.strftime('%I:%M:%S %p'),
 	:url => entry.url,
 	:ip => entry.domain_log_session.ip_address,
