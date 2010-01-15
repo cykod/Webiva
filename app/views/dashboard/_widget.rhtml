@@ -1,5 +1,8 @@
 <div class='dashboard_widget<%= " dashboard_widget_hidden" if widget.hide? -%>' id='widget_<%= widget.id -%>' <% if widget.hide? -%>style='display:none;'<% end -%>>
 <div class='dashboard_widget_titlebar'>
+  <div class='dashboard_widget_icon'>
+    <%= theme_image_tag('icons/content/' + widget.icon, :align => 'none') -%>
+  </div>
   <div class='dashboard_widget_title'>
      <%= widget.title -%>
      <span class='dashboard_widget_title_edit' style='display:none;'>

@@ -16,6 +16,7 @@ class Feedback::FeedbackWidget < Dashboard::WidgetBase
       end
     end
     
+    set_icon 'feedback_icon.png'
     conditions = { }
     if !options.show_rating.blank?
       conditions[:rating] = options.show_rating

@@ -76,6 +76,10 @@ class EditorWidget < DomainModel
     self.widget_instance.includes
   end
 
+  def icon
+    self.widget_instance.icon || "content_general_icon.png"
+  end
+
   def output
     self.widget_instance.output
   end

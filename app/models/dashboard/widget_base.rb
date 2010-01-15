@@ -2,7 +2,7 @@
 
 class Dashboard::WidgetBase
 
-  attr_reader :output_title, :output, :includes, :options, :editor_widget
+  attr_reader :output_title, :output, :includes, :options, :editor_widget, :icon
 
   attr_reader :controller 
 
@@ -35,6 +35,10 @@ class Dashboard::WidgetBase
     class << self; self; end.send(:define_method,:available_widgets) do
       widgets
     end
+  end
+
+  def set_icon(val)
+    @icon = val
   end
 
   def self.widget_information(name)

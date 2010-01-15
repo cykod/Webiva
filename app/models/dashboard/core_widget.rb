@@ -5,6 +5,8 @@ class Dashboard::CoreWidget < Dashboard::WidgetBase
   widget :information, :name => "Display Static Information", :title => "Site Info"
 
   def information
+    set_icon 'news_icon.png'
+
     render_widget :text => @options.body_html
   end
 

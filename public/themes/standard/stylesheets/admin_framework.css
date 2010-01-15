@@ -2080,33 +2080,43 @@ table.permission_grid td {
 
 .dashboard_widget { 
   padding:0px 0px; 
-  background-color: #92b3e1;
+  background-color: #bbd6e1;
   color:white;
   display:block;
   font-weight:bold;
   text-decoration:none;  
-  border:1px solid #CCCCCC;
-  border-radius:10px;        
-  -moz-border-radius: 10px;
-  -webkit-border-radius: 10px;
-  margin:5px 0px;
+  -moz-border-radius-topleft: 4px;
+  -moz-border-radius-topright: 4px;
+  -webkit-border-radius-topleft: 4px;
+  -webkit-border-radius-topright: 4px;
+  margin:10px 0px 15px 0px;
+  padding-bottom:10px;
                     }
 
 .dashboard_widget_titlebar { 
-  background-color:#5f7ca4;
-  -moz-border-radius-topleft: 10px;
-  -moz-border-radius-topright: 10px;
-  -webkit-border-radius-topleft: 10px;
-  -webkit-border-radius-topright: 10px;
-  border-radius-topleft:10px;
-  border-radius-topright:10px;
-  padding:5px 10px;
+  background-color:#bbd6e1;
+  color:#3b648c;
+  -moz-border-radius-topleft: 4px;
+  -moz-border-radius-topright: 4px;
+  -webkit-border-radius-topleft: 4px;
+  -webkit-border-radius-topright: 4px;
+  padding:5px 10px 6px 10px;
   position:relative;
+  
 
 }
 
+.dashboard_widget_icon { 
+  position:absolute;
+  left:0px;
+  top:-15px;
+  
+ }
+
 .dashboard_widget_title { 
    padding-right:40px;
+   padding-top: 0px;
+   padding-left: 35px;
  }
 
 .dashboard_widget_hidden { 
@@ -2134,15 +2144,10 @@ table.permission_grid td {
   overflow:hidden;
   background:white;
   margin:3px 3px;
-  padding:3px 7px;
+  padding:10px 10px 10px 10px;
   color:black;
   font-weight:normal;
-  -moz-border-radius-bottomleft: 10px;
-  -moz-border-radius-bottomright: 10px;
-  -webkit-border-radius-bottomleft: 10px;
-  -webkit-border-radius-bottomright: 10px;
-  border-radius-bottomleft:10px;
-  border-radius-bottomright:10px;
+  margin-bottom:10px;
  }
 
 
@@ -2150,5 +2155,8 @@ table.permission_grid td {
 
 table.mini_table {  }
 
-table.mini_table th { padding:2px 4px; text-align:left; }
-table.mini_table td { padding:2px 4px;  }
+table.mini_table th { padding:4px 4px; text-align:left; color:#3b648c; font-weight:bold }
+table.mini_table td { color: #808080; padding:2px 4px;  }
+table.mini_table td a { color:#3b648c; text-decoration:none;  }
+table.mini_table td a:hover { text-decoration:underline;  }
+table.mini_table td em { color:#b3b3b3; }
