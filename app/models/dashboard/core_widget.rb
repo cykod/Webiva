@@ -3,6 +3,8 @@
 class Dashboard::CoreWidget < Dashboard::WidgetBase
 
   widget :information, :name => "Display Static Information", :title => "Site Info"
+  widget :emarketing_stats, :name => "Emarketing: Display Real Time Page Views", :title => "Real Time Page Views"
+  widget :emarketing_charts, :name => "Emarketing: Uniques / Page Views Chart", :title => "Uniques / Page Views"
 
   def information
     set_icon 'news_icon.png'
@@ -28,4 +30,31 @@ class Dashboard::CoreWidget < Dashboard::WidgetBase
     end
   end
 
+  def emarketing_stats
+    require_js 'emarketing.js'
+
+    return render_widget :text => 'Must reload widget to activate.'.t if first?
+
+    render_widget :partial => '/emarketing/stats_widget'
+  end
+
+  class EmarketingStatsOptions < HashModel
+  end
+
+  def emarketing_charts
+    require_js 'raphael/raphael-min.js'
+    require_js 'raphael/g.raphael.js'
+    require_js 'raphael/g.line.js'
+    require_js 'raphael/g.bar.js'
+    require_js 'raphael/g.dot.js'
+    require_js 'raphael/g.pie.js'
+    require_js 'emarketing.js'
+
+    return render_widget :text => 'Must reload widget to activate.'.t if first?
+
+    render_widget :partial => '/emarketing/charts_widget'
+  end
+
+  class EmarketingChartsOptions < HashModel
+  end
 end
