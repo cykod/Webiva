@@ -200,7 +200,7 @@ class ContentNode < DomainModel
     end
   end
 
-  def self.internal_search(language,query,options = { })
+  def self.internal_search(language,query,options = { }) #:nodoc:
     ContentNodeValue.search language, query, options
   end
 end

@@ -32,7 +32,11 @@ class DomainLogSession < DomainModel
     end 
     
   end
-  
+
+  def username
+    self.end_user_id ? self.end_user.name : 'Anonymous'.t
+  end
+
   def page_count(force = false)
     atr =  self.read_attribute(:page_count)
     if atr.blank? || force

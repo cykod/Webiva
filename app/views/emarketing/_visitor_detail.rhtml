@@ -14,23 +14,24 @@
 <tr>
 <td></td>
 <td><%= entry.occurred_at.localize @time_format %></td>
-<td>/<%= entry.page_path %></td>
+<td><%= entry.url %></td>
 <td><%= entry.action || '-' %> </td>
 
    
 
-</td>
+<td style="width:20px;"></td>
 </tr>
 <% else -%>
 <tr  class='highlighted_row'>
 <td>
   <%= entry[:occurred_at].localize @date_format %>
 </td> 
-<td colspan='3'>
+<td colspan='4'>
   
 </td>
 
 </tr>
+<tbody style="overflow-x:hidden; overflow-y:auto; height: 400px;">
 <% end -%>
 
 <% end -%>

@@ -1,0 +1,22 @@
+<div style="width:405px;">
+  <% ajax_tabs [ ['5 Minutes', 'RealTimeStatsViewer.changeChartRange(5);'], [ '30 Minutes', 'RealTimeStatsViewer.changeChartRange(30);' ],['60 Minutes', 'RealTimeStatsViewer.changeChartRange(60);'] ], '5 Minutes' do |t| -%>
+    <% t.tab do -%>
+    <% end -%>
+    <% t.tab do -%>
+    <% end -%>
+    <% t.tab do -%>
+    <% end -%>
+  <% end -%>
+  <div id="real_time_charts"></div>
+</div>
+
+<script>
+Event.observe(window, 'load', function() {
+  if( RealTimeStatsViewer && Raphael ) {
+    RealTimeStatsViewer.chart.intervals = 6;
+    RealTimeStatsViewer.requestRealTimeCharts();
+  } else {
+    $('real_time_charts').update( '<p>Must reload page to activate widget.</p>' );
+  }
+});
+</script>
