@@ -2243,7 +2243,6 @@ table.mini_table td a:hover { text-decoration:underline;  }
 table.mini_table td em { color:#b3b3b3; }
 
 
-<<<<<<< .merge_file_GTlZd1
 /* Realtime Stats */
  
 .real-time-stats {  width:530px; }
@@ -2276,6 +2275,8 @@ table.mini_table td em { color:#b3b3b3; }
 .visitor-details .close {
   text-align: right;
 }
+
+
 /* Progress Bar */
 
 .progress_bar { 
