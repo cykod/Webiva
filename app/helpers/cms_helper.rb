@@ -353,8 +353,8 @@ Usage:
 
 
 =end
-   def stat_view(&block) # :yields: StatViewer.new
-    concat("<table cellspacing='0' cellpadding='0' class='stat_viewer'>")
+   def stat_view(options={},&block) # :yields: StatViewer.new
+     concat("<table cellspacing='0' cellpadding='0' class='stat_viewer #{options[:class]}'>")
     yield StatViewer.new
     concat("</table>")
    end

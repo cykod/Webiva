@@ -110,7 +110,13 @@ class Configuration < DomainModel
   
   # Return the domain options DomainOptions hash model 
   def self.options(opts=nil)
-    DomainOptions.new(opts ||self.get(:options, { } ))
+    if opts
+      DomainOptions.new(opts)
+    else
+      cached_opts = DataCache.local_cache('configuration_domain_options')
+      return cached_opts if cached_opts 
+      DataCache.put_local_cache('configuration_domain_options',DomainOptions.new(self.get(:options, { } )))
+    end
   end
   
   # Return the list of available image sizes
@@ -120,6 +126,11 @@ class Configuration < DomainModel
   
   def self.logging #:nodoc:
     true
+  end
+
+  # Return the current time zone
+  def self.time_zone
+    self.options.site_timezone || CMS_DEFAULT_TIME_ZONE
   end
   
   # return a DomainFile for the gender-appropriate missing image
@@ -229,7 +240,8 @@ class Configuration < DomainModel
     :missing_female_image_id => nil, :theme => 'standard', :member_tabs => [],
     :general_activation_template_id => nil,
     :general_activation_url => nil,
-    :search_handler => nil
+    :search_handler => nil,
+    :site_timezone => nil
 
     integer_options :default_image_location, :gallery_folder,:user_image_folder, :missing_image_id, :missing_male_image_id, :missing_female_image_id
 
