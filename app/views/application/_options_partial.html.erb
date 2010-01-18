@@ -2,7 +2,13 @@
   <% if %w(radio_buttons select grouped_radio_buttons check_boxes ordered_array).include?(field.field_type.to_s)  -%>
     
     <%= opts = field.options.delete(:options); 
-        opts = options.send(opts) if opts.is_a?(Symbol);
+        if opts.is_a?(Symbol)
+         if options.class.respond_to?(opts)
+            opts = options.class.send(opts)
+         else 
+            opts = options.send(opts) 
+         end
+        end
         f.send(field.field_type,field.name,opts,field.options) -%>
   <% else -%>
     <%= f.send(field.field_type,field.name,field.options) -%>

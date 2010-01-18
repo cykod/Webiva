@@ -3,7 +3,7 @@
 
 class Feed::RssController < ParagraphController
 
-  editor_header "Feed Paragraph"
+  editor_header "Feed Paragraphs"
 
   editor_for :view_rss, :name => 'RSS Feed Display',  :features => ['rss_feed_view']
   editor_for :rss_auto_discovery, :name => 'RSS Autodiscovery Paragraph'
