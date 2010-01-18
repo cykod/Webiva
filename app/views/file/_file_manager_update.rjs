@@ -1,5 +1,5 @@
-page.replace_html 'upload_processing_area', "Processing Finished".t
-page << "Element.show('upload_processing_area');"
+page.replace_html 'upload_progress', "Processing Finished".t
+page << 'setTimeout("FileEditor.finishedProcessing();",300);'
 
 @files.each do |file|
   page << "FileEditor.removeItem(#{file.id});"

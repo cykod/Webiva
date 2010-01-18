@@ -53,7 +53,10 @@ class EditorWidget < DomainModel
   end
 
   def permission?(user)
-    if permission =  self.widget_class.widget_information(self.widget)[:permission]
+    info =  self.widget_class.widget_information(self.widget)
+    if !info
+      false
+    elsif permission =  info[:permission]
       user.has_role?(permission)
     else
       true

@@ -48,7 +48,8 @@ class Dashboard::WidgetBase
   end
 
   def self.widget_information(name)
-    self.available_widgets.detect { |widget| widget[1] == name }[2]
+    w = self.available_widgets.detect { |widget| widget[1] == name }
+    w[2] if w
   end
 
   def require_js(*js_files)
