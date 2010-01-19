@@ -4,10 +4,6 @@ class MailManagerController < CmsController # :nodoc: all
   
   layout 'manage'
   
-  helper 'campaigns'
-  
-  include CampaignsHelper
-  
   permit 'editor_mailing'
   
    cms_admin_paths "e_marketing",

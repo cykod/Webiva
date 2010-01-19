@@ -21,7 +21,7 @@ class Editor::MenuController < ParagraphController
   
   def menu_save
      # Save the incoming paragraph
-     item_keys = params[:item].keys
+     item_keys = params[:item] ? params[:item].keys : []
      item_keys.sort!
      
      
@@ -101,7 +101,7 @@ class Editor::MenuController < ParagraphController
     data[:excluded] = ( data[:excluded] || []).collect { |elm| elm.to_i }.uniq
     data[:root_page] = data[:root_page].to_i if data[:root_page]
     data[:levels] = (data[:levels] || 0).to_i 
-    @menu = AutoMenuOptions.new(data)
+    @menu = AutomenuOptions.new(data)
 
     @preview, @elem_ids = build_preview(data[:root_page],data[:levels].to_i,data[:excluded] || []) if data[:root_page]
     
