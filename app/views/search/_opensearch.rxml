@@ -1,0 +1,21 @@
+xml.instruct!
+
+xml.OpenSearchDescription "xmlns" => "http://a9.com/-/spec/opensearch/1.1/", "xmlns:moz" => "http://www.mozilla.org/2006/browser/search/" do
+  xml.ShortName data[:title]
+  xml.Description data[:description]
+  xml.InputEncoding 'UTF-8'
+
+  if data[:icon]
+    xml.Image data[:icon][:url], :width => data[:icon][:width], :height => data[:icon][:height], :type => data[:icon][:type]
+  end
+
+  if data[:image]
+    xml.Image data[:image][:url], :width => data[:image][:width], :height => data[:image][:height], :type => data[:image][:type]
+  end
+
+  xml.Url :type => "text/html", :method => 'get', :template => "#{data[:search_url]}?search={searchTerms}"
+
+  if data[:suggest_url]
+    xml.Url :type => "application/x-suggestions+json", :method => 'get', :template => "#{data[:suggest_url]}?search={searchTerms}"
+  end
+end

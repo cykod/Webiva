@@ -1,0 +1,13 @@
+<div class='admin_content'>
+<% cms_form_for :options, @options, :html => {:class =>'admin_form' } do |f| -%>
+  <% f.custom_field :media_video_handler, :vertical => true do %>
+    <%= f.select :media_video_handler, @options.media_video_handlers, :unstyled => true %>
+    <%= link_to 'set defaults', :action => :video_options %>
+  <% end %>
+  <% f.custom_field :media_audio_handler, :vertical => true do %>
+    <%= f.select :media_audio_handler, @options.media_audio_handlers, :unstyled => true %>
+    <%= link_to 'set defaults', :action => :audio_options %>
+  <% end %>
+<%= f.submit_tag 'Save' %>
+<%  end -%>
+</div>

@@ -6,7 +6,7 @@
                     :update => 'entries_table' do |t| -%>
 <tr id='entry_<%= t.id %>'>
 <td nowrap='1'>
-<a href='javascript:void(0);' onclick='VisitorViewer.detail("<%= t.session_id %>")'>
+<a href='javascript:void(0);' onclick='VisitorViewer.detail("<%= t.id %>")'>
 <% if !t.end_user %>
    <%= t.ip_address %>
 <% else %>

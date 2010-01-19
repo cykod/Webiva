@@ -541,6 +541,21 @@ module TabledFormElements
     "<tr><th colspan='2' align='center'>" + tg + "</th></tr>"
   end 
 
+
+  def section(name=nil,options = { },&block)
+    if block_given?
+      @template.concat(tag("tbody",:id => name))
+      yield
+      @template.concat("</tbody>")
+    else
+      output = tag("tbody",:id => name)
+      if !options.has_key?(:display) || options[:display]
+        output << @template.render(:partial => options[:partial], :locals => options[:locals])
+      end
+      output << "</tbody>"
+      output
+    end
+  end
   
   def header(name,options = {})
     cols = (options.delete(:columns) || 1)+1
@@ -794,7 +809,7 @@ class CmsForm < TabledForm
 
   include WebivaFormElements
   generate_styled_fields('form_options',
-                          %w(access_control filemanager_image filemanager_folder filemanager_file price_classes price_range color_field date_field datetime_field upload_image upload_document unsorted_selector content_selector multi_content_selector image_list end_user_selector autocomplete_field ordered_selection_list ordered_array)) do 
+                          %w(access_control filemanager_image filemanager_folder filemanager_file price_classes price_range color_field date_field time_zone_select datetime_field upload_image upload_document unsorted_selector content_selector multi_content_selector image_list end_user_selector autocomplete_field ordered_selection_list ordered_array)) do 
                           field(@options)
                           end
 

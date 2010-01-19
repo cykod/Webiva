@@ -1,0 +1,18 @@
+<% if flash[:notice] %>
+<div align='center'>
+  Updated Options
+</div>
+<% end -%>
+<div align='right'>
+  <a href='javascript:void(0);' onclick='StructureEditor.nodeDelete(<%= @node.id %>,"<%= jh "Are you sure you want to delete this OpenSearch?" .t %>");'><%= "Remove OpenSearch Module".t %></a>
+</div>  
+<b> <%= "OpenSearch Options:".t %><a href='<%= @node.node_path %>' target='_blank'><%= @node.node_path %></a></b><br/><br/>
+
+<% remote_cms_form_for :options, @options, :update => 'element_info',:html => {:class => 'admin_form' }, :url => { :action => 'opensearch', :path => @node.id } do |f| -%>
+  <%= f.page_selector :search_results_page_id, :label => 'Search Results Page'.t %>
+  <%= f.text_field :title %>
+  <%= f.text_field :description %>
+  <%= f.filemanager_file :icon_id %>
+  <%= f.filemanager_image :image_id %>
+  <%= f.submit_tag 'Update Options' %>
+<% end -%>

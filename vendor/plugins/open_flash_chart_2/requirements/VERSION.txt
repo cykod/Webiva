@@ -1,2 +1,0 @@
-VERSION: open-flash-chart-2-hyperion
-DATE: 11.12.2008

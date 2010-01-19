@@ -12,6 +12,14 @@ module ActionController  #:nodoc:all
       @response_data
     end
   end
+
+  class Request #:nodoc:
+    def bot?
+      return @is_bot if ! @is_bot.nil?
+      agent = user_agent.downcase
+      @is_bot = ['msnbot','yahoo! slurp','googlebot','bot','spider','crawler'].detect { |b| agent.include?(b) }
+    end
+  end
 end
 
 ActionView::Base.field_error_proc = Proc.new{ |html_tag, instance| html_tag.match(/type=(\'|\")radio(\'|\")/i) ? "<span class=\"radioWithErrors\">#{html_tag}</span>" : "<span class=\"fieldWithErrors\">#{html_tag}</span

@@ -224,7 +224,7 @@ class Content::CoreField < Content::FieldHandler
   class ImageField < Content::Field #:nodoc:all
     field_options :required
     table_header :has_relation
-    filter_setup :not_empty
+    filter_setup :not_empty, :empty
     
     
     setup_model :required do |cls,fld|

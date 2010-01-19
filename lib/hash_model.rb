@@ -137,6 +137,39 @@ class HashModel
     #self.integer_options(*atrs)
   end
 
+  def self.registered_options_form_fields()
+    nil
+  end
+
+  def self.options_form(*fields)
+    fields = (self.registered_options_form_fields||[]) + fields
+    class << self; self; end.send(:define_method,:registered_options_form_fields) do
+      fields
+    end
+  end
+  
+  def options_locals(f)
+    if self.class.registered_options_form_fields
+      {  :f => f, :fields => self.class.registered_options_form_fields, :options => self }
+    else
+      { }
+    end
+  end
+
+  def options_partial
+    if self.class.registered_options_form_fields
+      "/application/options_partial"
+    else
+      nil
+    end
+  end
+
+  FormField = Struct.new(:name,:field_type,:options)
+
+  def self.fld(name,field_type,options={ })
+    FormField.new(name,field_type,options)
+  end
+
   def self.domain_file_options(*atrs)
     atrs.each do |atr|
       if atr.to_s =~ /^(.*)_id$/
@@ -175,6 +208,7 @@ class HashModel
     hsh.each do |key,val| 
       sym_hsh[key.to_sym] = val
     end
+    @passed_hash = sym_hsh
     @hsh = self.defaults.merge(sym_hsh)
     @hsh.each do |key,value|
       self.send("#{key.to_s}=",value) if defaults.has_key?(key.to_sym) || self.respond_to?("#{key.to_s}=")
@@ -195,6 +229,10 @@ class HashModel
       
       self.instance_variable_set "@#{key}",val
     end
+  end
+
+  def to_passed_hash
+    to_h.slice( *@passed_hash.keys )
   end
   
   def to_h

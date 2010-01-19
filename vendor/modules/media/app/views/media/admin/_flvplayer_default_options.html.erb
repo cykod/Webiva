@@ -1,0 +1,10 @@
+<%= f.select(:skin, @options.handler_options.skin_options, :vertical => true) %>
+<%= f.text_field :color, :label => 'Color', :maxlength => 6, :vertical => true %>
+<%= f.select :skinscalemaximum, @options.handler_options.skin_scale_maximum_options, :label => 'Skin Scale Maximum', :vertical => true %>
+<%= f.select :volume, @options.handler_options.volume_options, :vertical => true %>
+<%= f.filemanager_image :preview_file_id, :label => 'Preview image', :vertical => true %>
+<%= f.filemanager_file :preroll_file_id, :label => 'Preroll video', :vertical => true %>
+<%= f.check_boxes :smoothing, [['video should be smoothed (interpolated) when it is scaled', true]], :vertical => true, :single => true %>
+<%= f.select :buttonoverlay, @options.handler_options.buttonoverlay_options, :label => 'Play Button', :vertical => true %>
+<%= f.select :preloader, @options.handler_options.preloader_options, :vertical => true %>
+<%= f.select :ending, @options.handler_options.ending_options, :vertical => true %>

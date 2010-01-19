@@ -3,32 +3,63 @@ class SearchController < CmsController
   cms_admin_paths :content,
     'Search' => { :action => 'index'} 
   
+  skip_before_filter :validate_is_editor, :only => [:feeling_lucky, :suggestions]
 
   @@results_per_page = 20
 
   def index
     cms_page_path ['Content'], 'Search'
     
-    @search = params[:search]
+    @search = self.content_search_node
 
-    @content_type_id = params[:content_type_id].to_i
-
-    @content_types = [['--All Content Types--',nil]] + ContentType.select_options
-
-    @page = (params[:page]||0).to_i
-
-    if !@search.blank?
-        @results = content_search_handler(@search,@content_type_id==0 ? nil : @content_type_id,@page)
+    if self.update_search && @search.search?
+      @results, @more = content_search_handler
 
       if @results.length > 0
-        @showing = (@page * @@results_per_page)+1
+        @showing = (@search.page * @@results_per_page)+1
         @showing_end= @results.length + @showing-1
       end
     end
 
-    
+    opensearch_auto_discovery_header
 
     render :action => 'index'
+  end
+
+  def feeling_lucky
+    if myself.id.nil? || ! myself.editor?
+      session[:lockout_current_url] = self.request.request_uri
+      return deny_access!
+    end
+
+    @search = self.content_search_node
+
+    if self.update_search && @search.search?
+
+      case @search.terms
+      when /^(\/.*)/
+	node = SiteNode.find(:first, :conditions => ['node_path = ? AND node_type="P"', "#{$1}" ])
+	return redirect_to SiteNode.content_admin_url(node.id) if node
+
+      when /^([a-zA-Z0-9]+)\:(.*)$/
+	search_handler = $1
+	search_terms = $2.strip
+
+	if !search_terms.blank? && handler = search_handlers[search_handler]
+	  if !handler[:class]
+	    @results = self.send("#{handler[:name]}_search_handler",search_terms)
+	  else
+	    @results = handler[:class].send("#{handler[:name]}_search_handler",search_terms)
+	  end
+
+	  return redirect_to @results[0][:url] if @results && @results.length > 0
+	end
+
+      end
+
+    end
+
+    redirect_to :action => 'index', :search => @search.terms
   end
 
   protected 
@@ -55,6 +86,22 @@ class SearchController < CmsController
     end
 
     @search_handlers
+  end
+
+  def opensearch_auto_discovery_header
+    @domain = Domain.find DomainModel.active_domain_id
+
+    opensearch_url = url_for :action => 'opensearch'
+
+    @config = Configuration.options
+    domain_name = @config.domain_title_name
+    if domain_name.blank?
+      @domain = Domain.find DomainModel.active_domain_id
+      domain_name = @domain.name.humanize
+    end
+
+    title = "Backend search for %s" / domain_name
+    @header = "<link rel='search' type='application/opensearchdescription+xml' title='#{vh title}' href='#{vh opensearch_url}' />"
   end
 
   public
@@ -86,11 +133,81 @@ class SearchController < CmsController
       else
         @results = search_handlers.values
       end
-     else
-      @results = content_search_handler(search.strip)
+    else
+      @search = self.content_search_node
+      if self.update_search && @search.search?
+	@results, @more = content_search_handler
+      end
     end
     
     render :action => 'autocomplete', :layout => false
+  end
+
+  def suggestions
+    search = params[:search]
+    return render :json => [search, ['Not logged in']] unless myself.id && myself.editor?
+
+    case search
+    when /^:$/
+     @results = search_handlers.values
+    when /^(\/.*)/
+      @results = SiteNode.find(:all,:conditions => ['node_path LIKE ? AND node_type="P"', "%#{$1}%" ],:order => "LENGTH(node_path)").map do |node|
+        { :title => node.node_path,
+	  :suggestion => node.node_path,
+	  :subtitle => node.title,
+	  :url => SiteNode.content_admin_url(node.id) }
+      end
+    when /^([a-zA-Z0-9]+)\:(.*)$/
+      search_handler = $1
+      search_terms = $2.strip
+
+      # Check if we match a search handler, if not show the handlers
+
+      if !search_terms.blank? && handler = search_handlers[search_handler]
+        if !handler[:class]
+          @results = self.send("#{handler[:name]}_search_handler",search_terms)
+        else
+          @results = handler[:class].send("#{handler[:name]}_search_handler",search_terms)
+        end
+
+	@results.map do |result|
+	  result[:suggestion] = "#{search_handler}:#{result[:title]}"
+	  result
+	end if @results
+      end
+    end
+
+    suggestions = []
+    descriptions = []
+    urls = []
+    @results.each do |result|
+      suggestions.push result[:suggestion]
+      descriptions.push result[:subtitle]
+      urls.push result[:url]
+    end if @results
+
+    render :json => [search, suggestions, descriptions, urls]
+  end
+
+  def opensearch
+    search_url = url_for :action => 'feeling_lucky'
+    suggest_url = url_for :action => 'suggestions'
+    icon_url = Configuration.domain_link '/favicon.ico'
+
+    @config = Configuration.options
+    domain_name = @config.domain_title_name
+    if domain_name.blank?
+      @domain = Domain.find DomainModel.active_domain_id
+      domain_name = @domain.name.humanize
+    end
+
+    title = '%s Search' / domain_name
+    description = "Backend search for #{domain_name}"
+    data = { :title => title, :description => description, :search_url => search_url, :suggest_url => suggest_url,
+             :icon => {:url => icon_url, :width => 16, :height => 16, :type => 'image/x-icon'}
+           }
+
+    render :partial => 'opensearch', :locals => { :data => data }
   end
 
   protected
@@ -135,14 +252,11 @@ class SearchController < CmsController
 
   end
 
-  def content_search_handler(terms,content_type_id=nil,page=0)
-    per_page = @@results_per_page
+  def content_search_handler
+    @results, @more = @search.backend_search
 
-    language = Configuration.languages[0]
-    conditions = content_type_id ? { :content_type_id => content_type_id } : nil
-    @results = ContentNode.search(language,terms,:conditions => conditions ,:limit => per_page+1,:offset => page.to_i * per_page).map do |node|
-      content_description =  node.content_description(language)
-      admin_url = node.admin_url
+    @results.map! do |result|
+      admin_url = result[:node].admin_url
       if admin_url
         edit_title = admin_url.delete(:title)
         permission = admin_url.delete(:permission)
@@ -151,23 +265,37 @@ class SearchController < CmsController
       end
 
       if myself.has_content_permission?(permission)
-        { 
-          :title => node.content_node_values.language(language)[0].title,
-          :subtitle => content_description || node.content_type.content_name,
-          :url => url_for(admin_url),
-          :node => node
-        }
+	result[:url] = url_for(admin_url)
+	result
       else 
         nil
       end
-
       
-    end
-    if @results.length > per_page
-      @more = true
-      @results.pop
-    end
-    
-    @results
+    end.compact!
+
+    @results.pop if @results.length > @search.per_page
+
+    [@results, @more]
+  end
+
+  def content_search_node
+    return @search if @search
+    @search = ContentNodeSearch.new :per_page => @@results_per_page, :max_per_page => @@results_per_page, :page => 1
+  end
+
+  def searched
+    return @searched if ! @searched.nil?
+    @searched = params[:search]
+  end
+
+  def update_search
+    return false unless self.searched
+
+    @search.terms = params[:search]
+    @search.page = params[:page] if params[:page]
+    @search.per_page = params[:per_page] if params[:per_page]
+    @search.content_type_id = params[:content_type_id] if params[:content_type_id]
+
+    @search.valid?
   end
 end

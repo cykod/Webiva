@@ -1,0 +1,31 @@
+<br />
+<br />
+
+<div class="clearfix" style="width:1210px;">
+
+<div style="float:left; width:530px; padding-left:10px;">
+  <div class="real-time-stats">
+    <div class="stats headers clearfix">
+      <div class="who">Who</div>
+      <div class="when">When</div>
+      <div class="page">Where</div>
+      <div class="action">Actions</div>
+    </div>
+  </div>
+  <div id="real_time_stats" class="real-time-stats real-time-stats-block">
+  </div>
+</div>
+
+<div style="float:left; width:660px; padding-left:10px;">
+  <% ajax_tabs [ ['5 Minutes', 'RealTimeStatsViewer.changeChartRange(5);'], [ '30 Minutes', 'RealTimeStatsViewer.changeChartRange(30);' ],['60 Minutes', 'RealTimeStatsViewer.changeChartRange(60);'] ], '5 Minutes' do |t| -%>
+    <% t.tab do -%>
+    <% end -%>
+    <% t.tab do -%>
+    <% end -%>
+    <% t.tab do -%>
+    <% end -%>
+  <% end -%>
+  <div id="real_time_charts"></div>
+</div>
+
+</div>

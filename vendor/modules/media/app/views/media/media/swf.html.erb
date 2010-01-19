@@ -1,0 +1,20 @@
+<div class='cms_form'>
+<%  paragraph_options_form_for 'Swf Options', :swf do |f| -%>
+
+<%= f.filemanager_file :swf_file_id, :vertical => true, :required => true %>
+<%= f.text_field :width, :vertical => true, :required => true %>
+<%= f.text_field :height, :vertical => true, :required => true %>
+<%= f.select :align, @options.alignment_options, :label => 'Paragraph Alignment', :vertical => true %>
+<%= f.select :quality, @options.quality_options, :vertical => true %>
+<%= f.text_field :bgcolor, :label => 'Background color', :vertical => true %>
+<%= f.select :wmode, @options.wmode_options, :vertical => true %>
+<%= f.check_boxes :play, [['Automatic Start of animation', true]], :vertical => true, :single => true %>
+<%= f.check_boxes :loop, [['Repeat infinitely', true]], :vertical => true, :single => true %>
+<%= f.select :flash_align, @options.flash_align_options, :label => 'Flash Alignment', :vertical => true %>
+<%= f.select :salign, @options.salign_options, :vertical => true %>
+<%= f.select :scale, @options.scale_options, :vertical => true %>
+<%= f.check_boxes :menu, [['Context menu over the animation', true]], :vertical => true, :single => true %>
+<%= f.text_area :flash_vars, :vertical => true %>
+
+<% end -%>
+</div>

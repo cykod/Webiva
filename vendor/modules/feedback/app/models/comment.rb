@@ -22,10 +22,11 @@ class Comment < DomainModel
     errors.add_to_base("Captcha is invalid") if self.captcha_invalid
   end
   
-  def rating_icon
-    if rating == 0
+  def rating_icon(override=nil)
+    override = rating unless override
+    if override == 0
       'icons/table_actions/rating_none.gif'
-    elsif rating > 0
+    elsif override > 0
       'icons/table_actions/rating_positive.gif'
     else 
       'icons/table_actions/rating_negative.gif'

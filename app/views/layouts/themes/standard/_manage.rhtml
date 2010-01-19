@@ -20,7 +20,7 @@
      </div>
   </div>
   <% end -%>
-  <div id='cms_logo'><a href='/website'><img src='<%= WEBIVA_LOGO_FILE || theme_src("framework/logo.gif") %>'></a></div>
+  <div id='cms_logo'><a href='/website/dashboard'><img src='<%= WEBIVA_LOGO_FILE || theme_src("framework/logo.gif") %>'></a></div>
   <div id='cms_menu'>
 <%  # Foreground, Background
     @menu_colors = { 'website' => [ '#29974e', '#add4b8' ],
@@ -66,7 +66,7 @@
           </a>
         <% end -%>
         <% if @cms_titlebar_handlers && @cms_titlebar_handlers.length > 0 -%>
-          <%= @cms_titlebar_handlers.map { |h| h.titlebar_html }.join("") -%>
+          <%= @cms_titlebar_handlers.map { |h| h.send(:titlebar_html) }.join("") -%>
         <% end -%>
         <% if @cms_page_info[:menu_js] %>
         <a href='javascript:void(0);' onclick='<%= @cms_page_info[:menu_js] %>'><img src='<%= theme_src("framework/page_title_menu_icon.gif")%>' width='28' height='29'  align='absmiddle' /></a>

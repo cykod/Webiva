@@ -133,7 +133,7 @@ class ParagraphController < CmsController
         @paragraph.site_feature_id = params[:site_feature_id]
         @paragraph.save
         render_paragraph_update
-        return
+        return true
       end
     end
   end
@@ -141,7 +141,12 @@ class ParagraphController < CmsController
   # Class level method to return paragraph options for this class
   def self.paragraph_options(paragraph_name,data)
     options_class = self.to_s + "::" + paragraph_name.to_s.camelcase + "Options"
-    options_class.constantize.new(data)
+    begin
+      options_class.constantize.new(data)
+    rescue NameError
+      logger.error "class not found #{options_class}"
+      nil
+    end
   end
 
   # Returns paragraph options for a paragraph (either pulling from params of the same
@@ -203,6 +208,7 @@ class ParagraphController < CmsController
     editors = self.get_editor_for || []
     args[:features] = [ args[:feature] ] if args[:feature]
     args[:feature] = args[:features][0] if args[:features].is_a?(Array)
+    args[:name] ||= paragraph.to_s.titleize
     editors << [ paragraph, args ]
     sing = class << self; self; end
     sing.send :define_method, :get_editor_for do 
@@ -221,8 +227,13 @@ class ParagraphController < CmsController
     else
       method_src = <<-METHOD
       def #{paragraph}
-       @options = #{paragraph.to_s.camelcase}Options.new(params[:#{paragraph}] || paragraph.data || {})
-       return if handle_module_paragraph_update(@options)
+        @options = self.class.paragraph_options(:#{paragraph},params[:#{paragraph}] || paragraph.data)
+       return if handle_paragraph_update(@options)
+
+       if @options.options_partial
+         render :template => '/edit/edit_paragraph', :locals => {:paragraph_title => "#{args[:name]} Options",
+                                         :paragraph_action => "#{paragraph}" }
+       end 
       end
       METHOD
     end

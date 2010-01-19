@@ -99,7 +99,7 @@ class ContentFilter < DomainModel
       alt_text = $2
       full_url = $3
       image_path,size = full_url.strip.split("::")
-      if image_path =~ /^http(s|)\:\/\// && full_url[0..0] == '/'
+      if image_path =~ /^http(s|)\:\/\// || full_url[0..0] == '/'
         url = full_url
       else
         df = DomainFile.find_by_file_path(image_folder_path + "/" + image_path)

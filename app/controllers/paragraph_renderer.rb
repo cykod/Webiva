@@ -431,12 +431,15 @@ class ParagraphRenderer < ParagraphFeature
   
 
 
-  def renderer_cache(obj,display_string=nil,options={ })
+  def renderer_cache(obj=nil,display_string=nil,options={ })
+    expiration = options[:expires] || 0
     display_string = "#{paragraph.id}_#{display_string}"
     result = nil
 
     unless editor? || options[:skip]
-      if obj.is_a?(Array)
+      if obj.nil?
+        result = DataCache.get_content("Paragraph",paragraph.id.to_s,display_string)
+      elsif obj.is_a?(Array)
         cls = obj[0].is_a?(String) ? obj[0].constantize : obj[0]
         result = cls.cache_fetch(display_string,obj[1])
       elsif obj.is_a?(ActiveRecord::Base)
@@ -455,12 +458,14 @@ class ParagraphRenderer < ParagraphFeature
       output = result.to_hash
 
       unless editor? || options[:skip]
-        if obj.is_a?(Array)
-          cls.cache_put(display_string,output,obj[1])
+        if obj.nil?
+          DataCache.put_content("Paragraph",paragraph.id.to_s,display_string,output,expiration)
+        elsif obj.is_a?(Array)
+          cls.cache_put(display_string,output,obj[1],expiration)
         elsif obj.is_a?(ActiveRecord::Base)
-          obj.cache_put(display_string,output)
+          obj.cache_put(display_string,output,nil,expiration)
         else
-          obj.cache_put_list(display_string,output)
+          obj.cache_put_list(display_string,output,expiration)
         end
       end
       

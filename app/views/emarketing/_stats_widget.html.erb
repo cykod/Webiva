@@ -1,0 +1,19 @@
+<div class="real-time-stats">
+  <div class="stats headers clearfix">
+    <div class="who">Who</div>
+    <div class="when">When</div>
+    <div class="page">Where</div>
+    <div class="action">Actions</div>
+  </div>
+</div>
+<div id="real_time_stats" class="real-time-stats real-time-stats-block">
+</div>
+
+<script>
+Event.observe(window, 'load', function() {
+  if( RealTimeStatsViewer )
+    RealTimeStatsViewer.requestRealTimeStats();
+  else
+    $('real_time_stats').update( '<p>Must reload page to activate widget.</p>' );
+});
+</script>

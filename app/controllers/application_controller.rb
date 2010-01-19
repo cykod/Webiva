@@ -197,11 +197,15 @@ class ApplicationController < ActionController::Base
     session[:domain] = domain
     
     set_language
+
+    set_timezone
     
     return true
   end
 
-
+  def set_timezone
+    Time.zone  = myself.time_zone.blank? ? Configuration.time_zone : myself.time_zone
+  end
 
 
   def set_language #:nodoc:
@@ -238,6 +242,7 @@ class ApplicationController < ActionController::Base
   # Convenience method to log a user in 
   # sets the session and remember cookie 
   def process_login(usr,remember = false)
+    reset_session
     session[:user_id] = usr.id
     session[:user_model] = usr.class.to_s
     reset_myself
@@ -254,8 +259,8 @@ class ApplicationController < ActionController::Base
     session[:user_id] = nil
     session[:user_model] = nil
     reset_myself
+    reset_session
     myself
-    session = {}
   end
   
   # Convenience method to check whether a user can edit pages

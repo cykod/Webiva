@@ -1,0 +1,16 @@
+<div class='cms_form'>
+<%  paragraph_options_form_for :video do |f| -%>
+
+<%= f.filemanager_file :media_file_id, :label => 'Video', :vertical => true %>
+<%= f.text_field :width, :label => 'Video Width', :vertical => true %>
+<%= f.text_field :height, :label => 'Video Height (+ 38 pixels for flash player height)', :vertical => true %>
+<%= f.select :align, @options.alignment_options, :label => 'Alignment', :vertical => true %>
+<%= f.check_boxes :autoplay, [['start playing immediately', true]], :vertical => true, :single => true %>
+<%= f.check_boxes :loop, [['automatically restart', true]], :vertical => true, :single => true %>
+
+<% cms_subfields_for 'video[handler_data]', @options.handler_options do |sf| %>
+<%= render(:partial => @options.handler_partial, :locals => {:f => sf}) -%>
+<% end -%>
+
+<% end -%>
+</div>

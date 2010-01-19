@@ -43,8 +43,13 @@ CodeEditor = {
 
 
 </script>
-
 <form action='' onsubmit='CodeEditor.saveChanges(); return false;' method='post' id='code_form'>
+<div id='save_notice' class='flash_notice' style='display:none;'></div>
+<div id='ignore_xml' style='display:none; text-align:center;'>
+<label for='ignore_xml_errors'>
+  <input type='checkbox' name='skip_validation' id='ignore_xml_errors' value='1'  /> <%= "Ignore XML Validation Errors (This is not recommended and may break your site)".t %>
+</label>
+</div>
 <input type='hidden' name='paragraph_id' value='<%= @paragraph.id %>' />
 <input type='hidden' name='para_index' value='<%= @para_index %>' />
 

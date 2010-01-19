@@ -46,6 +46,10 @@ class ContentModel < DomainModel
   include Content::ContentModelGenerator # Support for creating the Anonymous content model classes
   include Content::ImportSupport         # Support for import/export functionality
 
+  def content_type_name
+    "Custom Content Model"
+  end
+
   # Can a user edit this content model 
   # Checks if the model has edit access control enabled
   # otherwise sees if the usre has :editor_content permission

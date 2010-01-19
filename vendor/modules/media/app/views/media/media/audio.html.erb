@@ -1,0 +1,14 @@
+<div class='cms_form'>
+<%  paragraph_options_form_for :audio do |f| -%>
+
+<%= f.filemanager_file :media_file_id, :label => 'Audio', :vertical => true %>
+<%= f.select :align, @options.alignment_options, :label => 'Alignment', :vertical => true %>
+<%= f.check_boxes :autoplay, [['start playing immediately', true]], :vertical => true, :single => true %>
+<%= f.check_boxes :loop, [['automatically restart', true]], :vertical => true, :single => true %>
+
+<% cms_subfields_for 'audio[handler_data]', @options.handler_options do |sf| %>
+<%= render(:partial => @options.handler_partial, :locals => {:f => sf}) -%>
+<% end -%>
+
+<% end -%>
+</div>

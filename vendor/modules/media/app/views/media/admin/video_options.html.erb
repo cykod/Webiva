@@ -1,0 +1,10 @@
+<div class='admin_content'>
+<% cms_form_for :options, @options, :html => {:class =>'admin_form' } do |f| -%>
+
+<% cms_subfields_for 'options[handler_data]', @options.handler_options do |sf| %>
+<%= render(:partial => @options.handler_defaults_partial, :locals => {:f => sf}) -%>
+<% end -%>
+
+<%= f.submit_tag 'Save' %>
+<%  end -%>
+</div>

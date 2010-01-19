@@ -3,6 +3,7 @@
 
 
 class Blog::PageFeature < ParagraphFeature
+  include SwfObjectHelper
 
   feature :blog_entry_list, :default_feature => <<-FEATURE
     <cms:entries>
@@ -100,42 +101,7 @@ class Blog::PageFeature < ParagraphFeature
   
       c.value_tag('entry:embedded_media') { |tag| tag.locals.entry.active_revision.embedded_media }
       
-      c.define_tag 'entry:media_file' do |tag|
-        med = tag.locals.entry.active_revision.media_file
-        if med
-          ext = med.extension.to_s.downcase
-          
-          case ext
-          when 'mp3'
-            width = (tag.attr['width'] || 320).to_i
-           "<div id='blog_media_#{tag.locals.entry.id}'></div>
-            <script>
-              var so = new SWFObject('/javascripts/jw_player/mp3player.swf','mpl','#{width}','20','7');
-              so.addVariable('file','#{med.url}');
-              so.addVariable('autostart','false');
-              so.write('blog_media_#{tag.locals.entry.id}');
-            </script>"
-          when 'flv'
-           width = (tag.attr['width'] || 320).to_i
-           height = (tag.attr['height'] || 260).to_i
-           "<div id='blog_media_#{tag.locals.entry.id}'></div>
-            <script>
-              var so = new SWFObject('/javascripts/jw_player/mediaplayer.swf','mpl','#{width}','#{height}','7');
-              so.addVariable('file','#{med.url}');
-              so.addVariable('autostart','false');
-              so.write('blog_media_#{tag.locals.entry.id}');
-            </script>"
-          when 'mov'
-           width = (tag.attr['width'] || 320).to_i
-           height = (tag.attr['height'] || 260).to_i
-            "<embed src='#{med.url}' width='#{width}' height='#{height}' autoplay='false' />"
-          else
-            "<a href='#{med.url}'>Download Media</a>"
-          end
-        else
-          nil
-        end
-      end
+      c.media_tag('entry:media_file') { |tag| tag.locals.entry.active_revision.media_file }
       
       c.date_tag('entry:published_at',"%H:%M%p on %B %d %Y".t) { |t|  t.locals.entry.published_at }
       c.image_tag('entry:image') { |t| t.locals.entry.image }

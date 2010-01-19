@@ -15,7 +15,7 @@ class Util::HtmlValidator
   
   def valid?
     self.validate if !@errors.is_a?(Array)
-    !@errors || @errors.length == 0
+    @errors.length == 0
   end
   
   attr_reader :errors
@@ -36,8 +36,8 @@ class Util::HtmlValidator
     rescue Exception => e
       @errors = msgs.map { |e| e.to_s }
       @errors = @errors.select { |err| !(err =~ /Entity \'(.*)' not defined/) }
-      @errors = nil if @errors.length == 0
     end
+    @errors = [] if !@errors ||  @errors.length == 0
     @errors
   end
 

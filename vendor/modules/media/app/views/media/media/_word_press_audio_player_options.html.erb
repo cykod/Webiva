@@ -1,0 +1,6 @@
+<%= f.select :volume, @options.handler_options.volume_options, :vertical => true %>
+<%= f.text_field :titles, :label => 'Title', :vertical => true %>
+<%= f.text_field :artists, :label => 'Artist', :vertical => true %>
+<%= f.select :width, @options.handler_options.width_options, :vertical => true %>
+<%= f.check_boxes :animation, [['player opens when started', true]], :vertical => true, :single => true %>
+<%= f.check_boxes :remaining, [['shows remaining track time rather than ellapsed time', true]], :vertical => true, :single => true %>

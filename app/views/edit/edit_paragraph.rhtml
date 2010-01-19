@@ -1,0 +1,6 @@
+<div class='cms_form'>
+<% paragraph_options_form_for paragraph_title,paragraph_action do |f| -%>
+  <%= render :partial => @options.options_partial, :locals => @options.options_locals(f) -%>
+<% end -%>
+
+</div>

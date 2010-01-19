@@ -9,7 +9,7 @@ class Feedback::RatingsRenderer < ParagraphRenderer
   def ratings
     @options = paragraph_options(:ratings)
 
-    @feedback_session = FeedbackSession.new session
+    @feedback_session = create_feedback_session
 
     if editor?
       @end_user_rating = FeedbackEndUserRating.new
@@ -21,7 +21,7 @@ class Feedback::RatingsRenderer < ParagraphRenderer
 
     content_link = nil
     if ajax?
-      return render_paragraph :inline => '' unless params[:target] && params[:rating] && @feedback_session.has?(params[:target])
+      return render_paragraph :inline => '' unless can_rate? && params[:target] && params[:rating] && valid_rating?(params[:rating]) && @feedback_session.has?(params[:target])
       content_link = @feedback_session.get_target(params[:target])
     end
 
@@ -43,7 +43,7 @@ class Feedback::RatingsRenderer < ParagraphRenderer
       end
 
       @feedback_rating = @end_user_rating.feedback_rating
-      @can_rate = @options.allowed_to_rate == 'all' || myself.id ? true : false
+      @can_rate = can_rate?
       @rating_url = ajax_url
 
       cache[:output] = ratings_page_ratings_feature
@@ -86,6 +86,14 @@ class Feedback::RatingsRenderer < ParagraphRenderer
     @end_user_rating = FeedbackEndUserRating.new :target_type => target_type, :target_id => target_id
     @end_user_rating.end_user_id = myself.id if myself.id
     @end_user_rating
+  end
+
+  def can_rate?
+    @can_rate ||= @options.allowed_to_rate == 'all' || myself.id ? true : false
+  end
+
+  def valid_rating?(rating)
+    rating.to_i <= @options.max_stars && rating.to_i >= 0
   end
 
   class FeedbackSession
@@ -134,5 +142,10 @@ class Feedback::RatingsRenderer < ParagraphRenderer
       return nil if data.nil?
       data[3]
     end
+  end
+
+  private
+  def create_feedback_session
+    @feedback_session = FeedbackSession.new session
   end
 end

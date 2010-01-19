@@ -161,7 +161,6 @@ class FileController < CmsController # :nodoc: all
     
     if session[:upload_file_worker]
       file_processor =  Workling.return.get(session[:upload_file_worker])
-      logger.error(file_processor.inspect)
       if file_processor && file_processor[:processed]
           @files = []
           @files = DomainFile.find(:all,:conditions => { :id => file_processor[:uploaded_ids] })
@@ -178,9 +177,6 @@ class FileController < CmsController # :nodoc: all
     end
   end
   
-  upload_status_for :upload 
-  
-  
   def upload
   
     dir,file_name = DomainFile.save_uploaded_file(params[:upload_file][:filename])
@@ -193,9 +189,14 @@ class FileController < CmsController # :nodoc: all
                                           :extract_archive => params[:extract_archive],
                                           :replace_same => params[:replace_same]
                                         )
-    session[:upload_file_worker] = worker_key
+    @processing_key  = session[:upload_file_worker] = worker_key
+    respond_to_parent do 
+      render :action => 'upload.rjs'
+    end
+  end
 
-    render :nothing => true
+  def progress
+    render :text => "{ state: 'not_configured' }"
   end
   
   def rename_file

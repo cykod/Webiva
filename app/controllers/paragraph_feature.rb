@@ -228,7 +228,13 @@ block is non-nil
     
     
     def url_for(opts) #:nodoc:
-      ''
+      if opts.nil?
+	nil
+      elsif opts.is_a? String
+	opts
+      else
+	super opts
+      end
     end
     
     def initialize(renderer=nil) #:nodoc:
@@ -303,7 +309,9 @@ block is non-nil
         max = val.is_a?(Integer) ? t.attr['max'].to_i : tar.attr['max']
         val <= max ? t.expand : nil
       elsif t.attr['link']
-        
+        attributes = t.attr.clone
+        attributes.delete('link')
+        content_tag('a',t.expand, attributes.merge({ :href => val}))
       else
         if val.is_a?(Array)
           val.length == 0 || val[0].blank? ? nil : t.expand
@@ -1506,6 +1514,41 @@ block is non-nil
       define_button_tag(tag_name + ":button")
     end 
     
+    def define_media_tag(name, options={}, &block)
+      define_tag(name) do |tag|
+        file = yield(tag)
+
+	if SiteModule.module_enabled?('media') && file
+	  opts = options.clone.merge(tag.attr.symbolize_keys)
+	  ext = file.extension.to_s.downcase
+
+	  case ext
+	  when 'mp3'
+	    media_options = Media::MediaController::AudioOptions.new(opts)
+	    media_options.media_file_id = file.id
+	    media_options.media_file = file
+	    container_id = "#{media_options.media_type}_#{paragraph.id}"
+	    media_options.player.headers(self)
+	    media_options.player.render_player(container_id)
+	  when 'flv'
+	    media_options = Media::MediaController::VideoOptions.new(opts)
+	    media_options.media_file_id = file.id
+	    media_options.media_file = file
+	    container_id = "#{media_options.media_type}_#{paragraph.id}"
+	    media_options.player.headers(self)
+	    media_options.player.render_player(container_id)
+	  when 'mov'
+	    width = (tag.attr['width'] || 320).to_i
+	    height = (tag.attr['height'] || 260).to_i
+	    "<embed src='#{file.url}' width='#{width}' height='#{height}' autoplay='false' />"
+	  else
+	    message = tag.single? ? 'Download Media'.t : tag.expand
+	    "<a href='#{med.url}'>#{message}</a>"
+	  end
+	end
+      end
+    end
+
     # get versions of all the define_... methods without the define
     skip_methods = %w(define_form_tag define_tag)
     instance_methods.each do |method_name|
@@ -1627,7 +1670,6 @@ block is non-nil
         define_value_tag("#{prefix}:field:error")
       end
     end
-    
     
     def method_missing(method,*args) #:nodoc:
       method = method.to_s

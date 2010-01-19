@@ -74,6 +74,7 @@ class ContentNode < DomainModel
 
   belongs_to :node, :polymorphic => true #, :dependent => :destroy
   belongs_to :author,:class_name => 'EndUser',:foreign_key => 'author_id'
+  belongs_to :last_editor,:class_name => 'EndUser',:foreign_key => 'last_editor_id'
   belongs_to :content_type
   has_many :content_node_values
   
@@ -155,7 +156,7 @@ class ContentNode < DomainModel
           cnv.title = node.send(content_type.title_field)
           cnv.link = self.content_url_override || type_preload.content_link(node)
         else
-          cnv.title = node.name
+          cnv.title = "Unknown"
           cnv.link = self.content_url_override || nil
         end
         cnv.save
@@ -163,6 +164,13 @@ class ContentNode < DomainModel
     end
   end
 
+  def title
+    if self.content_type
+      node.send(content_type.title_field)
+    else
+      "Unknown"
+    end
+  end
   
   def content_description(language) #:nodoc:
     if self.node.respond_to?(:content_description)
@@ -181,20 +189,18 @@ class ContentNode < DomainModel
 
     # Run an internal mysql fulltext search if the handler is blank
     if !search_handler.blank? &&  handler_info = get_handler_info(:webiva,:search,search_handler)
-      handler_info[:class].search(language,query,options)
+      begin
+	handler_info[:class].search(language,query,options)
+      rescue Exception => e
+	raise e unless RAILS_ENV == 'production'
+	return internal_search(language,query,options)
+      end
     else
       internal_search(language,query,options)
     end
   end
 
   def self.internal_search(language,query,options = { }) #:nodoc:
-    with_scope(:find => { 
-               :conditions => ["content_node_values.language = ? AND MATCH (content_node_values.title,content_node_values.body) AGAINST (?)",language,query],
-               :include => :node, :joins => :content_node_values,
-               :order => ["MATCH (content_node_values.title) AGAINST (",self.quote_value(query), ") DESC, MATCH (content_node_values.title,content_node_values.body) AGAINST (",self.quote_value(query), ") DESC"].join 
-               }) do
-      self.find(:all,options)
-    end
-    
+    ContentNodeValue.search language, query, options
   end
 end

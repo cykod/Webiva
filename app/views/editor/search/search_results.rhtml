@@ -1,0 +1,8 @@
+<div class='cms_form'>
+<%  paragraph_options_form_for :search_results do |f| -%>
+    <%= f.page_selector :search_results_page_id, :label => 'Search Results Page'.t %>
+    <%= f.select :default_per_page, (1..50).to_a %>
+    <%= f.select :max_per_page, (1..50).to_a %>
+    <%= f.select :content_type_id, ContentNodeSearch.content_types_options %>
+<% end -%>
+</div>
