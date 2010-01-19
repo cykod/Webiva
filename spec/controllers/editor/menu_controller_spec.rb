@@ -4,11 +4,12 @@ describe Editor::MenuController do
 
   reset_domain_tables :end_users, :site_versions, :page_revisions, :site_nodes, :page_paragraphs
 
-  it "should be able to render menu paragraph" do
+  it "should be able to render all paragraphs" do
     mock_editor
-    paragraph_controller_helper('/page', '/editor/menu/menu')
-    @output = paragraph_controller_get 'menu'
-    @output.status.should == '200 OK'
+
+    display_all_editors_for do |paragraph, output|
+      output.status.should == '200 OK'
+    end
   end
 
   it "should be able to add a links to a menu" do
@@ -23,27 +24,6 @@ describe Editor::MenuController do
     @output = paragraph_controller_post 'menu_save', args
     @paragraph.reload
     @paragraph.data.should == {:menu => [link1.merge(:menu => [link2.merge(:menu => [link3])]), link4]}
-  end
-
-  it "should be able to render automenu paragraph" do
-    mock_editor
-    paragraph_controller_helper('/page', '/editor/menu/automenu')
-    @output = paragraph_controller_get 'automenu'
-    @output.status.should == '200 OK'
-  end
-
-  it "should be able to render bread_crumbs paragraph" do
-    mock_editor
-    paragraph_controller_helper('/page', '/editor/menu/bread_crumbs')
-    @output = paragraph_controller_get 'bread_crumbs'
-    @output.status.should == '200 OK'
-  end
-
-  it "should be able to render site_map paragraph" do
-    mock_editor
-    paragraph_controller_helper('/page', '/editor/menu/site_map')
-    @output = paragraph_controller_get 'site_map'
-    @output.status.should == '200 OK'
   end
 
   it "should be able to build menu preview" do
