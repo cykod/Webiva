@@ -1,12 +1,15 @@
 
-
-<% table_for file.versions, ['','Name','Size','Created At','By',''], :class => 'active_table' do |t| -%>
+<% if file.versions.length == 0 -%>
+ <b>No Previous Revisions</b>
+<% else -%>
+<% table_for file.versions, ['','Name','Size','Date','By',''], :class => 'active_table' do |t| -%>
 <tr>
-  <td nowrap='1'><a href='javascript:void(0);' onclick='FileEditor.extractRevision(<%= t.id %>);'><%= theme_image_tag('icons/actions/upload.gif') %></a></td>
+  <td nowrap='1'><a href='javascript:void(0);' title='Extract to own file' onclick='FileEditor.extractRevision(<%= t.id %>);'><%= theme_image_tag('icons/actions/upload.gif') %></a></td>
   <td nowrap='1'><%= link_to t.name, t.url, :target => '_blank' %></td>
   <td nowrap='1'><%= number_to_human_size(t.file_size) if t.file_size %></td>
   <td nowrap='1'><%= t.stored_at.localize(DEFAULT_DATETIME_FORMAT).t if t.stored_at %></td>
   <td nowrap='1'><%= t.creator ? link_to(t.creator.name, :controller => '/members',:action=>'view',:path => [ t.creator_id ]) : h('<Unknown>') %></td>
   <td nowrap='1'><a href='javascript:void(0);' onclick='FileEditor.deleteRevision(<%= t.id %>);'><%= theme_image_tag('icons/actions/delete.gif') %></a></td>
 </tr>
+<% end -%>
 <% end -%>

@@ -1,0 +1,40 @@
+<div class='cms_form'>
+<h3>Widget Settings</h3>
+<script type='text/javascript'>
+WidgetEditor = {
+ titleModified: false,
+ 
+ titleChanged:function() {
+   this.titleModified = true;
+ },
+ selectWidget:function(val) {
+  new Ajax.Updater("widget_options","<%=url_for :action => 'widget_options' -%>",
+          { parameters: { identifier:val }, evalScripts: true,
+            onComplete: function(req) { RedBox.windowResize();   }});
+
+ }
+
+}
+</script>
+
+  <% admin_form_for :widget, @widget, :html => { :onsubmit => 'CMSDashboard.submitWidgetForm(Form.serialize(this)); return false;' } do |f| -%>
+<%= hidden_field_tag :widget_id, @widget.id -%>
+<%= hidden_field_tag :column, @widget.column -%>
+<% f.section do -%>
+    <% if @widget.new_record? -%>
+      <%= f.select :widget_identifier, @widget_modules, {}, :label => 'Widget',:onchange => 'WidgetEditor.selectWidget(this.value);' -%>
+    <% else -%>
+      <%= f.custom_field :widget, :value => @widget.widget_description -%>
+    <% end -%>
+    <%= f.text_field :title, :onkeyup => "WidgetEditor.titleChanged();",:onchange => "WidgetEditor.titleChanged()" -%>
+    <%= f.spacer -%>
+
+<% end -%>
+<%= f.section 'widget_options', :partial => 'widget_options', :display => @widget.module, :locals => {:options => @widget.options } -%>
+
+    <%= f.cancel_submit_buttons "Cancel","Submit", { :onclick => 'RedBox.close(); return false;' } -%>
+ 
+<% end -%>
+</div>
+
+</div>

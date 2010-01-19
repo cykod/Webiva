@@ -1,7 +1,48 @@
 # Copyright (C) 2009 Pascal Rettig.
 
+=begin rdoc
+EndUserAction's log actions that users have taken in the system, these are logged
+by category and date / time and can be used to segment users into different groups
+(TODO)
+
+EndUserAction's are normally not created manually, but are accessed through a EndUser
+object with the EndUser#action or EndUser#custom_action commands.
+
+Actions are registered with the ModuleController#register_action method in a module's
+admin controller. Registering actions allows extra information such as a custom description 
+as well as link that contains more details to be added. For example:
+
+        register_action '/shop/processor/item', 
+             :description => 'Item Purchase', 
+             :controller => '/shop/catalog', 
+             :action => 'edit', :level => 5, :path => :target
 
 
+### Levels 
+
+The different levels are as follows:
+["Admin Action (0)]
+  Any actions taken by an administrator
+[Data Action (1)]
+  Additional data associated with a user can be stored here
+[Access Action (2)]
+  Any actions that log login / logout / access denied
+[User Actions (3)]
+  Any non-conversion actions the user takes on their own behalf
+[Informational (4)]
+  Informational actions, such as notes, admin notes, legacy user actions from other systems / etc
+[Conversion (5)]
+  Any conversions - purchases/etc             
+
+
+###  Example actions
+
+ myself.action("/editor/auth/login')
+ myself.action("/shop/processor/order",:target => @order)
+ myself.action("/shop/processor/item", :target => @product)
+ myself.custom_action("legacy_purchase","User did this...") 
+ 
+=end
 class EndUserAction < DomainModel
 
   belongs_to :end_user
@@ -9,25 +50,7 @@ class EndUserAction < DomainModel
   belongs_to :target,:polymorphic => true
   
   validates_presence_of :end_user_id,:level,:renderer,:action
-  
-#      t.integer :end_user_id
-#      t.integer :admin_user_id
-#      t.integer :level, :default => 1 #0-admin, #1 - data, #2-login/access,  #3-action, #4 - information,  #5-conversion
-#      t.datetime :created_at    
-#      t.datetime :action_at
-#      t.string :target_type 
-#      t.integer :target_id
-#      t.boolean :custom,:default => false
-#      t.string :renderer # beginning of the path
-#      t.string :action # end of the action path
-#      t.string :path # path to send to the detail page
-#      t.string :identifier # Additional identifier besides target
-#  
-# Example Actions:
-# myself.action("/editor/auth/login')
-# myself.action("/shop/processor/order",:target => @order)
-# myself.action("/shop/processor/item", :target => @product)
-# myself.custom_action("legacy_purchase","User did this...") 
+ 
 
    has_options :level, 
            [ [ "Admin Action (0)", 0 ],
@@ -38,7 +61,7 @@ class EndUserAction < DomainModel
             [ "Conversion (5)",5 ] ]
             
 
-    
+  # Log an action on a user
   def self.log_action(user,action_path,opts={})
     act = DomainModel.get_handlers(:action,action_path.to_sym)[0]
     opts=opts.clone.symbolize_keys!
@@ -57,6 +80,7 @@ class EndUserAction < DomainModel
     self.create(opts)
   end
   
+  # Log a custom action on a user - there's no registered action associated with this
   def self.log_custom_action(user,action_name,identifier,opts={})
     opts=opts.clone.symbolize_keys!
     opts=opts.slice(:admin_user_id,:admin_user,:level,:action_at)
@@ -71,18 +95,13 @@ class EndUserAction < DomainModel
     self.create(opts)  
   end
 
-
-  
-  #0-admin, #1 - data, #2-login/access,  #3-action, #4 - information,  #5-conversion  
-  
-  # register_action '/editor/auth/login', :description => 'Logged in'
-  # register_action '/shop/processor/order', :description => 'Purchase', :controller => '/shop/manage', :action => 'view', :level => 4, :path => :target
-  # register_action '/shop/processor/item', :description => 'Item Purchase', :controller => '/shop/catalog', :action => 'edit', :level => 4, :path => :target
-
+  # reteurn the full action path
   def action_path
     "/#{self.renderer}/#{self.action}"
   end
 
+  # generate a textual description of the action, either by pulling a handler
+  # or by humanizing the renderer and action
   def description
     act = DomainModel.get_handlers(:action,self.action_path.to_sym)[0]
     act = act[1] if act
@@ -95,7 +114,7 @@ class EndUserAction < DomainModel
 
   private
   
-  def self.split_name(action_path)
+  def self.split_name(action_path) #:nodoc:
     if action_path =~ /^\/(.*)\/([^\/]+)$/
       [ $1,$2 ]
     else

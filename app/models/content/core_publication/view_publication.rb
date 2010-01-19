@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
- class Content::CorePublication::ViewPublication < Content::PublicationType         
+ class Content::CorePublication::ViewPublication < Content::PublicationType  #:nodoc:all
 
     class ViewOptions < HashModel
       default_options :title_field => nil, :description_field => nil, :published_at_field => nil, :url_field => nil

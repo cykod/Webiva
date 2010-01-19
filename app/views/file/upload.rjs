@@ -1,0 +1,2 @@
+
+page << "FileEditor.uploadFinished('#{@processing_key}');  "

@@ -15,8 +15,6 @@ require 'singleton'
 # (or the init.rb of the appropriate modules) and a "Module Application Paragraph" dropped into
 # the appropriate zone.
 class ModuleAppController < ApplicationController
-  protect_from_forgery
-
   layout "page"
 
   skip_before_filter :context_translate_before
@@ -34,6 +32,8 @@ class ModuleAppController < ApplicationController
   before_filter :nocache
   include SiteNodeEngine::Controller
 
+  # Specifies actions that shouldn't use the CMS for authentication layout or login
+  # (Often used for ajax actions)
   def self.user_actions(names)
     self.skip_before_filter :handle_page, :only => names
     self.skip_after_filter :process_logging, :only => names
@@ -41,17 +41,17 @@ class ModuleAppController < ApplicationController
 
   protected
 
+  # Set the title of the page 
   def set_title(title,*args)
     @cms_module_page_title = sprintf(title.t,*args)
   end
   
     
-  def template_root
+  def template_root #:nodoc:
     :module
   end
 
   hide_action :nocache
-
   def nocache
     headers['Expires'] = "Thu, 19 Nov 1981 08:52:00 GM"
     headers['Cache-Control'] =  "no-store, no-cache, must-revalidate, post-check=0, pre-check=0"
@@ -142,7 +142,7 @@ class ModuleAppController < ApplicationController
 
   end
   
-  def process_logging
+  def process_logging #:nodoc:
    if Configuration.logging
       unless request.bot?
 	DomainLogSession.start_session(myself, session, request)
@@ -151,7 +151,7 @@ class ModuleAppController < ApplicationController
     end
   end
 
-  def set_robots!
+  def set_robots! #:nodoc:
     @robots = []
     if @page.follow_links == 0
       @robots << 'NOFOLLOW'
@@ -169,8 +169,9 @@ class ModuleAppController < ApplicationController
       @robots << 'NOARCHIVE'
     end
   end
+
   
-  def display_missing_page
+  def display_missing_page #:nodoc:
     page,path_args = find_page_from_path(["404"],DomainModel.active_domain[:site_version_id])
     engine = SiteNodeEngine.new(page,:display => session[:cms_language], :path => path_args)
     @output = engine.run(self,myself)
@@ -179,7 +180,7 @@ class ModuleAppController < ApplicationController
     return  
   end
   
-  def rescue_action_in_public(exception)
+  def rescue_action_in_public(exception) #:nodoc:
     super
     begin
       page,path_args = find_page_from_path(["500"],DomainModel.active_domain[:site_version_id])
@@ -195,11 +196,11 @@ class ModuleAppController < ApplicationController
   
 
     
-  def validate_module
+  def validate_module #:nodoc:
     info = self.class.get_component_info
     
     if !SiteModule.find_by_name_and_status(info[0],'active')
-      redirect_to :controller => '/manage/access', :action => 'denied'
+      deny_access!
       return false
     else
       return true
@@ -207,6 +208,16 @@ class ModuleAppController < ApplicationController
     
   end
     
+  # Specifies the component that this controller is a part of.
+  # Only the admin controller needs to specify the additional options
+  #
+  # ===Options
+  # [:access]
+  #   :public, :private or :hidden. :public modules are available to all domains, :private modules
+  #   need to be made available from System Domains while :hidden modules must be activated directly
+  #   via the DB.
+  # [:description]
+  #   Description of this module that appears on the options => modules page
   def self.component_info(name,options = {})
     options[:access] ||= :private
     options[:description] ||= ''
@@ -218,7 +229,7 @@ class ModuleAppController < ApplicationController
   end
 
 
-   
+  # Register a named site module (draggable onto the site from the structure page)
   def self.module_for(mod,name,args = {})
     modules = self.get_modules_for || []
     modules  << { :module => mod, :name => name, :options => args }
@@ -229,12 +240,14 @@ class ModuleAppController < ApplicationController
     end 
   end
   
-  def self.get_modules_for
+  def self.get_modules_for #:nodoc:
     []
   end
 
   protected
   
+  # Includes all the standard Webiva/rails front-end javascripts 
+  # prototype, user_application, redbox, scriptaculous, end_user_table
   def javascript_defaults
     require_js('prototype')
     require_js('user_application')
@@ -248,7 +261,7 @@ class ModuleAppController < ApplicationController
     require_css('end_user_table')
   end  
   
-  def process_cookie_login!
+  def process_cookie_login! #:nodoc:
    if !myself.id && cookies[:remember]
     usr = EndUserCookie.use_cookie(cookies[:remember])
     if usr
@@ -261,7 +274,7 @@ class ModuleAppController < ApplicationController
   end
 
   helper_method :webiva_post_process_paragraph
-  def webiva_post_process_paragraph(txt)
+  def webiva_post_process_paragraph(txt) #:nodoc:
     @post_process_form_token_str ||= "<input name='authenticity_token' type='hidden' value='#{ form_authenticity_token.to_s}' />"
     txt.gsub!("<CMS:AUTHENTICITY_TOKEN/>",@post_process_form_token_str)
     txt

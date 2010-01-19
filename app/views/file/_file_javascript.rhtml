@@ -26,15 +26,15 @@ FileEditor = {
   
   view: function(view_type) {
     if(view_type == 'list') {
-        $('view_icon').className = 'ajax_link';
-        $('view_list').className = 'ajax_link_selected';
+        $('view_icon').className = 'image_icon';
+        $('view_list').className = 'image_icon_selected';
         FileEditor.display = 'list';
         $('file_manager').className = 'file_manager_list';
         FileEditor.updateIconSizes();
     }
     else if(view_type == 'icon') {
-        $('view_icon').className = 'ajax_link_selected';
-        $('view_list').className = 'ajax_link';
+        $('view_icon').className = 'image_icon_selected';
+        $('view_list').className = 'image_icon';
         FileEditor.display = 'icon';
         $('file_manager').className = 'file_manager_icon';
         FileEditor.updateIconSizes();
@@ -242,18 +242,18 @@ FileEditor = {
 	
 	createSizeSlider:function() {
 
-		var slider = new Control.Slider('size_slider', 'size_slider_container', 
-												{ 
-												increment:16,
-												range:$R(FileEditor.minIconSize,FileEditor.maxIconSize),
-												alignX: 0, 
-												alignY: -5,
-												sliderValue: FileEditor.iconSize,
-												values: FileEditor.iconSizes,
-												onChange: function(v) {  FileEditor.adjustIconSize(v.toFixed(),true); } ,
-												onSlide:  function(v) {  FileEditor.adjustIconSize(v.toFixed(),false); } 
-												});	
-	
+		                         var slider = new Control.Slider('size_slider', 'size_slider_container', 
+					 { 
+					 increment:16,
+					 range:$R(FileEditor.minIconSize,FileEditor.maxIconSize),
+					 alignX: 0, 
+					 alignY: 0,
+					 sliderValue: FileEditor.iconSize,
+					 values: FileEditor.iconSizes,
+					 onChange: function(v) {  FileEditor.adjustIconSize(v.toFixed(),true); } ,
+					 onSlide:  function(v) {  FileEditor.adjustIconSize(v.toFixed(),false); } 
+					 });	
+	                                 
 	
 	},
 	
@@ -504,6 +504,15 @@ FileEditor = {
 			$('toggle_' + node_id).src = (Element.getStyle('children_' + node_id,'display') == 'block')?FileEditor.themeSrc + 'icons/menu/last_open.gif':FileEditor.themeSrc + 'icons/menu/last_closed.gif';
 		}
 	},
+
+	
+	openFolder: function(node) {
+		var node_id = node.node_id;
+		if(node.select(".node").length > 0) {
+			Element.show('children_' + node_id);
+			$('toggle_' + node_id).src = (Element.getStyle('children_' + node_id,'display') == 'block')?FileEditor.themeSrc + 'icons/menu/last_open.gif':FileEditor.themeSrc + 'icons/menu/last_closed.gif';
+		}
+	},
 	
 	toggleVisible: function(elem) {
 		var node_id = elem.parentNode.node_id;
@@ -525,7 +534,12 @@ FileEditor = {
 		
 		var title_elem = $('node_line_' + folder_id);
 		if(title_elem) {
-			Element.addClassName(title_elem,'node_selected')
+		   Element.addClassName(title_elem,'node_selected');
+                   var ancestors = title_elem.ancestors();
+                   ancestors.each(function(elm) {
+                     if(elm.className == 'node')
+                        FileEditor.openFolder(elm);
+                   });
 		}
 		
 		FileEditor.nodeSelected = folder_id;
@@ -703,10 +717,9 @@ FileEditor = {
     	var filename = $('file_column').value;
     	$('upload_extra').checked='false';
     	Element.hide('upload_status_area');
-      Element.hide('upload_processing_area'); 
     	var compressed_extensions = ['.gz','.zip','.tar'];
     	if(compressed_extensions.indexOf(SCMS.get_file_extension(filename)) != -1) {
-	    	new Effect.Appear('upload_extra');
+	    	new Effect.Appear('upload_extra', { duration: 0.5 } );
     	}
     	else {
     		Element.hide('upload_extra');
@@ -714,11 +727,66 @@ FileEditor = {
     	$('upload_button').disabled = false;
 
     },
+
+    uploadProgressID: null,
     
-    startUpload:function() {
-    	Element.show('upload_status_area');
-    	$('upload_button').disabled = true;
+    startUpload:function(form) {
+        var uuid = "";
+	for (i = 0; i < 32; i++) { uuid += Math.floor(Math.random() * 16).toString(16); }
+        form.action = "<%= url_for :action => 'upload' -%>?X-Progress-ID=" + uuid;
+        $('upload_identifier').value = uuid;
+        FileEditor.uploadProgressID = uuid;
+                       
+        Element.hide('upload_action');
+    	Element.show('upload_progress');
+        $('upload_progress').innerHTML = 'Starting Upload...'
+        setTimeout("FileEditor.uploadProgress()",100);
     },
+
+   
+
+    uploadProgress: function()  {
+      var progress_url = "/website/file/progress?X-Progress-ID=" + FileEditor.uploadProgressID;
+             
+      new Ajax.Request(progress_url, { method:'get', onComplete: FileEditor.progressUpdated });
+    },
+
+    progressUpdated: function(req) {
+      var progress = req.responseText.evalJSON();
+
+      
+
+      if(progress.state == 'uploading') {
+          var received = Number(progress.received);
+          var size = Number(progress.size);
+          if(size > 0) {
+            var percent = Math.round(100 * received / size);
+            var width = percent * 4;
+            if(percent == 100) {
+               $('upload_progress').innerHTML = "<%= 'Writing File...'.t -%>";
+            } else {
+              percent = percent + "%"
+              var progress_html  = "<div class='progress_bar'><div class='progress' style='width:" + width + "px;'></div>";
+              progress_html += "<div class='progress_indicator'>" + percent + "</div></div>";
+              $('upload_progress').innerHTML = progress_html;
+              setTimeout(FileEditor.uploadProgress,1000);
+            }
+          }
+      }
+    },
+
+    finishedProcessing: function() {
+        Element.show('upload_action');
+    	Element.hide('upload_progress');
+    },
+
+    processingKey: null,
+      
+    uploadFinished:function(key) {
+      FileEditor.processingKey = key;
+      $('upload_progress').innerHTML = 'Processing Upload...';
+      FileEditor.updateProcessing();
+   },
 
     manageUploads: function(errors) {
       $('file_column').value = '';
@@ -739,6 +807,7 @@ FileEditor = {
     var params = $H({ field: '<%= @field %>',
               select: '<%= @select %>',
               callback: '<%= @callback %>',
+              upload_key: FileEditor.processingKey
             });    
       new Ajax.Request( '<%= url_for :controller => "file", :action => "file_manager_update" %>',
                         { parameters: params.toQueryString()  + FileEditor.sizeParameters() }   );
@@ -935,13 +1004,20 @@ FileEditor = {
         return {};
     },
     
+    disabledCookie: true,
+ 
     init:function() {
       <% if @popup %>
       var dim = SCMS.getCookie("fm_dim");
       if(dim) {
         var dims = dim.split(",");
         FileEditor.disabledCookie = true;
-        setTimeout("window.resizeTo(" + dims[0] + "," + dims[1] + ");",20);
+        dims[0] = 20 + Number(dims[0]);
+        dims[1] = 60 + Number(dims[1]);
+        setTimeout("window.resizeTo(" + dims[0] + "," + dims[1] + ");  setTimeout('FileEditor.disabledCookie = false;',500);",5);
+      } 
+      else { 
+        FileEditor.disabledCookie  = false; 
       }
       <% end -%>
       FileEditor.createSizeSlider();
@@ -954,7 +1030,6 @@ FileEditor = {
             var dim = document.viewport.getDimensions();
             SCMS.setCookie("fm_dim",dim.width + "," + dim.height);
         }
-        FileEditor.disabledCookie = false;
     },
     
     dragX:0,
@@ -1259,9 +1334,32 @@ FileEditor = {
      
      
      // Search Functions
+
+     selectSearch: function() {
+        $('folder_action_area').hide();
+        $('search_action_area').show();
+        $('search_search').focus();                                                                     
+        if(this.searchRun) {
+         $('filemanager_files').hide();
+         $('filemanager_search').show();
+        }                                 
+                                               
+     },
+
+     selectUpload: function() {
+        $('folder_action_area').show();
+        $('search_action_area').hide();
+        $('filemanager_files').show();
+        $('filemanager_search').hide();
+     },
+
+     searchRun: false,
      
      runSearch: function(frm) {
+      this.searchRun = true;                                                    
       var params = Form.serialize(frm);
+      $('filemanager_files').hide();
+      $('filemanager_search').show();
       $('search_results').innerHTML = 'Running Search...';
       $('search_results').show();
       new Ajax.Updater('search_results','<%= url_for :action => 'search' %>', { parameters: params + FileEditor.sizeParameters() });

@@ -1,7 +1,9 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 
-
+# This defines the core publications types supported by the system
+# See PublicationTypeHandler for details on how to create your own
+# publications
 class Content::CorePublication < Content::PublicationTypeHandler
 
   

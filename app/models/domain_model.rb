@@ -2,15 +2,11 @@
 
 require 'digest/sha1'
 
-# require 'model_extension/editor_change_extension'
-# require 'model_extension/file_instance_extension'
-
+# Master ActiveRecord::Base class for all per-domain tables
 class DomainModel < ActiveRecord::Base
   self.abstract_class = true
   @@active_domain = {} # Made Thread safe for Backgroundrb
   
-#  extend ActiveSupport::Memoizable 
-
   include HandlerActions
   include ModelExtension::OptionsExtension
   
@@ -20,44 +16,83 @@ class DomainModel < ActiveRecord::Base
     Thread.current.object_id
   end
 
+  # Returns the active domain information hash
   def self.active_domain
     @@active_domain[process_id]  || {}
   end
   
+  # Returns the active domain id from the Domain table
   def self.active_domain_id
     (@@active_domain[process_id]  || {})[:id].to_s
   end
   
+  # Returns the name of the active domain
   def self.active_domain_name
     (@@active_domain[process_id]  ||{})[:name].to_s
   end
   
+  # Returns the database of the active domain
   def self.active_domain_db
     (@@active_domain[process_id]  ||{})[:database].to_s
   end
   
-  def self.inspect_values
-    self.object_id.to_s + ":" + @@active_domain.inspect
-  end
-
+  # Returns the name of the class
+  #  (overridden in ContentModelType where self.to_s doesn't work)
   def self.class_name
     self.to_s
   end
   
+  # Allow update to all attributes via a Hash, even 
+  # protected attributes
   def update_all_attributes(atr = {})
     self.send("attributes=",atr,false)
     self.save
   end
 
-  # use instead of belongs_to :domain_file
+  # Creates a belongs_to relationship with DomainFile
+  # and adds DomainFileInstance support
+  #
+  # Use instead of belongs_to :domain_file
   def self.has_domain_file(field_name,options={})
-    field = field_name.to_s.gsub(/_id$/,'')
+    field = options[:relation] || field_name.to_s.gsub(/_id$/,'')
 
-    belongs_to field, :class_name => 'DomainFile', :foreign_key => field_name
-
+    belongs_to field, :class_name => 'DomainFile', :foreign_key => options[:foreign_key] || field_name
+    domain_file_column(field_name)
   end
 
-  
+  # Used to paginate a list of entries, returns a pagination information hash
+  # and a list of entries
+  # 
+  # Usage (Using BlogPost as an example)
+  #    
+  #   @pages, @posts = BlogPost.paginate(params[:page],:per_page => 10,:conditions => ...)
+  #
+  # Where @pages is a Hash with the following keys:
+  #
+  # [:pages]
+  #   total number of pages
+  # [:page]
+  #   current page
+  # [:window_size] 
+  #   size of the pagination window
+  # [:total]
+  #  total number of entries (on all pages)
+  # [:per_page]
+  #  number of entries per page we are showing
+  # [:first]
+  #  index of the first entry returned
+  # [:last]
+  #  index of the last entry returned
+  # [:count]
+  #  number of entries returned
+  # 
+  # === Options
+  # (All regular find options are accepted)
+  # 
+  # [:per_page] 
+  #   Number of entries per page
+  # [:window_size]
+  #   Size of page window - passed through to pagination hash (used by CmsHelper#admin_pagination for example
   def self.paginate(page,args = {})
     args = args.clone.symbolize_keys!
     window_size =args.delete(:window) || 2
@@ -101,44 +136,23 @@ class DomainModel < ActiveRecord::Base
         :total => total_count,
         :per_page => page_size,
         :first => offset+1,
-        :last => offset + items.length
+        :last => offset + items.length,
+        :count => items.length
       }, items ]
     
       
   end
 
-  def self.paginate_helper(page,count,args = {})
-      window_size =args.delete(:window) || 2
-      
-      page_size = args.delete(:per_page).to_i
-      page_size = 20 if page_size <= 0
-      
-      if page_size.is_a?(Integer)
-	total_count = count
-	pages = (total_count.to_f / (page_size || 10)).ceil
-	pages = 1 if pages < 1
-	page = (page ? page.to_i : 1).clamp(1,pages)
-	
-	offset = (page-1) * page_size
-	
-	offset
-	page_size
-      else
-        page = 1
-        pages = 1
-      end
-
-      { :pages => pages, :page => page, :window_size => window_size, :offset => offset, :page_size => page_size }
-  end
-  
-  
   include WebivaValidationExtension
   include ModelExtension::EditorChangeExtension
   include ModelExtension::FileInstanceExtension
   include ModelExtension::ContentNodeExtension
   include ModelExtension::ContentCacheExtension
   
-  
+  # Adds support for triggered actions to this object
+  # 
+  # adds a method called run_triggered_actions(data,trigger_name,user)
+  # which will run all the triggered actions associated with this object
   def self.has_triggered_actions
     has_many :triggered_actions, :as => :trigger, :conditions => 'comitted = 1', :dependent => :destroy
     
@@ -152,9 +166,19 @@ class DomainModel < ActiveRecord::Base
       end
     end    
     SRC
-
   end
-  
+
+  # Activates a specific domain as the active domain 
+  # 
+  # This method can be used to access domain models via the Rails console
+  #     
+  #    $ ./script/console
+  #    Loading development environment (Rails 2.3.4)
+  #    >> DomainModel.activate_domain(1)
+  #    => true
+  #    >> EndUser.find(:first,:email => ...
+  #
+  # This would activate the domain with id 1 from the Domain table
   def self.activate_domain(domain_info,environment='production',save_connection = true)
     DataCache.reset_local_cache
   
@@ -177,6 +201,8 @@ class DomainModel < ActiveRecord::Base
     return true
   end
   
+
+  # Used to access and memoize a 1-way relationship
   def has(name)
     @extra_relations ||= {}
     return @extra_relations[name] if @extra_relations[name]
@@ -184,12 +210,13 @@ class DomainModel < ActiveRecord::Base
   end
   
   
+  # Returns a full unique identifier for a class
   def full_identifier
     "#{self.class.to_s.underscore}_#{self.id}"
   end
   
   class << self
-    alias_method :connection_active_record, :connection
+    alias_method :connection_active_record, :connection # :nodoc:
   end
 
   @@database_connection_pools = {}
@@ -228,6 +255,8 @@ class DomainModel < ActiveRecord::Base
     end
   end
   
+  # Run a worker on a specific DomainModel
+  # see DomainModel#run_worker if you already have the ActiveRecord object
   def self.run_worker(class_name,entry_id,method,parameters = {})
      DomainModelWorker.async_do_work(
                                      :class_name => class_name,
@@ -240,50 +269,65 @@ class DomainModel < ActiveRecord::Base
 
   end
   
-  def run_worker(method,parameters = {})
+  # Runs a background process worker that will 
+  # issue a find command on this object and then run the specified method
+  def run_worker(method,parameters = {}) 
     self.class.run_worker(self.class.to_s,self.id,method,parameters)
   end
   
+  # Fetches results out of memcached for a specific worker key
+  # returns from run_worker
   def self.worker_results(key)
     Workling.return.get(key)
   end 
-  
-  public
-  
+
+  # Generates a random hexdigest hash
   def self.generate_hash
      Digest::SHA1.hexdigest(Time.now.to_i.to_s + rand(1e100).to_s)
   end
 
+  # Generates a hexdigest hash on a hash
+  # by turning the hash into an array, sorting the keys
+  # and hashing the resultant array - allows Hash's with the same
+  # keys and values to generate consistent Hash's
   def self.hash_hash(hsh)
     arr = hsh.to_a.sort { |a,b| a[0].to_s<=>b[0].to_s }
     Digest::SHA1.hexdigest(arr.to_s)[0..63]
   end
 
- 
-
-  def self.find_select_options(val=:all,opts={})
+  # Deprecated in favor of select_options or select_options_with_nil
+  def self.find_select_options(val=:all,opts={}) #:nodoc:
     self.find(val,opts).collect do |itm|
       [ itm.name, itm.id ]
     end
   end
 
+  # Same as DomainModel#self.select_options execpt adds an initial
+  # nil valued option that defaults to the humanized class domain.
+  #
+  # For Example: BlogPost.select_options_with_nil would return
+  # an array of all BlogPosts names and ids with the first element set to:
+  # [ "--Select Blog post--",nil ]
   def self.select_options_with_nil(name=nil,opts={})
     obj_name = name || self.to_s.underscore.humanize
     [["--Select %s--" / obj_name,nil ]] + self.select_options(opts)
   end
   
+  # Returns a Array of select or radio_buttons friendly options
+  # using the objects name attribute and id
   def self.select_options(opts={})
     self.find(:all,opts).collect do |itm|
       [ itm.name, itm.id ]
     end
   end
   
-  def self.find_options(val=:all,opts={})
+  # Deprecated in favor of select_options
+  def self.find_options(val=:all,opts={}) #:nodoc:
     self.find_select_options(val,opts)
   end
   
 
-  # Resolve an argument that may be a Proc, a Symbol or Blank (use default attribute)
+  # Resolve an argument that may be a Proc, a String, a Symbol or Blank (use default attribute)
   def resolve_argument(arg,default = :name)
    if arg.is_a?(Proc) 
       arg.call(self)
@@ -296,11 +340,9 @@ class DomainModel < ActiveRecord::Base
    end
   end       
   
- # %%VARIABLE%%
- # %%VARIABLE{Happy}[[ This is what should be there instead of just %s ]]%%
- # %%VARIABLE{!Happy}[[ This is what should be when we're not happy ]]%%
- # %%VARIABLE{!Happy,Sad,Friendly}[[ This is what should be when we're not happy, ARE sad, or ARE Friendly]]%%
- # %%VARIABLE[[Replacement text]]%%
+ # Does variable replacement of strings surrounded by two percent signs
+ # for example: %%VARIABLE%% with elements from the vars hash
+ #
  def self.variable_replace(txt,vars = {})
    vars = vars.symbolize_keys
     txt.gsub(/\%\%(\w+)\%\%/) do |mtch|
@@ -309,99 +351,108 @@ class DomainModel < ActiveRecord::Base
     end
   end  
   
+ # Does variable replacement of strings surrounded by two percent signs
+ # for example: %%VARIABLE%% with elements from the
+ #
+ # Same as the class level method except for support of Proc's in vars that are 
+ # evaluated with the current object as a parameter
+ # 
+ # TODO:
+ # %%VARIABLE{Happy}[[ This is what should be there instead of just %s ]]%%
+ # %%VARIABLE{!Happy}[[ This is what should be when we're not happy ]]%%
+ # %%VARIABLE{!Happy,Sad,Friendly}[[ This is what should be when we're not happy, ARE sad, or ARE Friendly]]%%
+ # %%VARIABLE[[Replacement text]]%%
  def variable_replace(txt,vars = {})
    vars = vars.symbolize_keys
    txt.gsub(/\%\%(\w+)\%\%/) do |mtch|
      var_name =$1.downcase.to_sym
-#     raise var_name.to_s + vars[var_name].inspect
      vars[var_name] ? (vars[var_name].is_a?(Proc) ? vars[var_name].call(self,var_name) : vars[var_name]) : ''
    end
   end
   
-  def set_through_collection(collection,foreign_key,ids)
-    # get id's into the right format => array of ints
+ # Deprecated in favor of built in nested_attribute support
+ def set_through_collection(collection,foreign_key,ids) #:nodoc:
+   # get id's into the right format => array of ints
 
-    ids ||= []
-    ids = ids.find_all { |elm| !elm.blank? }.collect { |elm| elm.to_i }
-    
-    # get the current collection of elements
-    current_collection = self.send(collection,true)
-    
-    # Remove the elements no longer in the ids array
-    current_collection.find_all { |cur_elm| !ids.include?(cur_elm.send(foreign_key)) }.each { |elm| elm.destroy }
-    
-    # find the elements to add
-    ids.each do |cur_id|
-      elm = current_collection.detect { |elm| elm.send(foreign_key) == cur_id }
-      current_collection.create(foreign_key => cur_id) unless elm
-    end
-  end
+   ids ||= []
+   ids = ids.find_all { |elm| !elm.blank? }.collect { |elm| elm.to_i }
+   
+   # get the current collection of elements
+   current_collection = self.send(collection,true)
+   
+   # Remove the elements no longer in the ids array
+   current_collection.find_all { |cur_elm| !ids.include?(cur_elm.send(foreign_key)) }.each { |elm| elm.destroy }
+   
+   # find the elements to add
+   ids.each do |cur_id|
+     elm = current_collection.detect { |elm| elm.send(foreign_key) == cur_id }
+     current_collection.create(foreign_key => cur_id) unless elm
+   end
+ end
 
-  def set_through_collection_with_attributes(collection,foreign_key,data)
-    # get id's into the right format => array of ints
-    data ||= []
-    ids ||= []
-    data = data.find_all { |elm| !elm.blank? }.collect do |elm|
-      if !elm[foreign_key].blank?
-        elm[foreign_key] = elm[foreign_key].to_i
-        ids << elm[foreign_key]
-        elm
-      else
-        nil
-      end
-    end.compact
-    
-    # get the current collection of elements
-    current_collection = self.send(collection,true)
-    
-    # Remove the elements no longer in the ids array
-    current_collection.find_all { |cur_elm| !ids.include?(cur_elm.send(foreign_key)) }.each { |elm| elm.destroy }
-    
-    # find the elements to add
-    data.each do |data_elem|
-      cur_id = data_elem[foreign_key]
-      elm = current_collection.detect { |elm| elm.send(foreign_key) == cur_id }
-      if elm
-        elm.update_attributes(data_elem)
-      else
-        current_collection.create(data_elem) 
-      end
-    end
-  end
+ # Deprecated in favor of built in  nested_attribute support
+ def set_through_collection_with_attributes(collection,foreign_key,data) #:nodoc:
+   # get id's into the right format => array of ints
+   data ||= []
+   ids ||= []
+   data = data.find_all { |elm| !elm.blank? }.collect do |elm|
+     if !elm[foreign_key].blank?
+       elm[foreign_key] = elm[foreign_key].to_i
+       ids << elm[foreign_key]
+       elm
+     else
+       nil
+     end
+   end.compact
+   
+   # get the current collection of elements
+   current_collection = self.send(collection,true)
+   
+   # Remove the elements no longer in the ids array
+   current_collection.find_all { |cur_elm| !ids.include?(cur_elm.send(foreign_key)) }.each { |elm| elm.destroy }
+   
+   # find the elements to add
+   data.each do |data_elem|
+     cur_id = data_elem[foreign_key]
+     elm = current_collection.detect { |elm| elm.send(foreign_key) == cur_id }
+     if elm
+       elm.update_attributes(data_elem)
+     else
+       current_collection.create(data_elem) 
+     end
+   end
+ end
 
-  def through_connection_cache(collection,data)
-    if(data)
-      col = self.send(collection.to_sym)
-      data.map { |elm| col.build(elm) }
-    else
-      self.send(collection.to_sym)
-    end
-  end
+ # Deprecated in favor of built in nested attribute support
+ def through_connection_cache(collection,data) #:nodoc:
+   if(data)
+     col = self.send(collection.to_sym)
+     data.map { |elm| col.build(elm) }
+   else
+     self.send(collection.to_sym)
+   end
+ end
 
-  
  
-
+  alias_method :save_active_record, :save # :nodoc:
   
+  def save(validate=true) #:nodoc:
+    post_handlers(self,:pre_save)
+    if save_active_record(validate)
+        post_handlers(self,:post_save)
+    end
+  end
   
-#  alias_method :save_active_record, :save
-#  
-#  def save(validate=true)
-#    post_handlers(self,:pre_save)
-#    if save_active_record(validate)
-#        post_handlers(self,:post_save)
-#    end
-#  end
-#  
-  alias_method :destroy_active_record, :destroy
+  alias_method :destroy_active_record, :destroy # :nodoc:
   
-  def destroy
+  def destroy #:nodoc:
     post_handlers(self,:pre_destroy)
     if destroy_active_record
         post_handlers(self,:post_destroy)
     end
   end
   
-  def post_handlers(record,action)
+  def post_handlers(record,action) #:nodoc:
     DomainModel.get_handlers(:model,record.class.to_s.underscore.to_sym).each do |handler|
       if handler[1] && handler[1][:actions] && handler[1][:actions].include?(action)
         hndl = handler[0].constantize.new(handler)
@@ -412,7 +463,7 @@ class DomainModel < ActiveRecord::Base
 
   
   
- class CallbackHandlers
+ class CallbackHandlers #:nodoc:all
 
     def before_save(record)
       handlers(record,:before_save)
@@ -472,9 +523,13 @@ class DomainModel < ActiveRecord::Base
   after_update  DomainModel::CallbackHandlers.new
   after_destroy   DomainModel::CallbackHandlers.new
   
-  
+  def self.get_content_description
+    self.to_s.titleize
+  end
   
    
+  # Adds content tag support to a model
+  # includes ContentTagFunctionality methods into the class
   def self.has_content_tags
     has_many :content_tag_tags, :as => :content, :include => :content_tag
     has_many :content_tags, :through => :content_tag_tags, :order => 'content_tags.name'
@@ -482,20 +537,25 @@ class DomainModel < ActiveRecord::Base
     include ContentTagFunctionality
   end
   
-  module ContentTagFunctionality
+  # Instance Methods added via DomainModel#has_content_tags
+  module ContentTagFunctionality 
   
-    module ClassMethods
+    # Class methods added via DomainModel#has_content_tags
+    module ClassMethods 
     
+      # Returns a tag cloud for this class
       def tag_cloud(sizes=[])
         ContentTag.get_tag_cloud(self.to_s,sizes)
       end
       
+      # Returns a list of existing tags for this class
       def tag_options
         ContentTag.find_select_options(:all,:conditions => { :content_type =>  self.to_s })
       end
       
     end
     
+    # Returns an array of tag names this object is tagged with
     def tags_array
       if @tag_name_cache.is_a?(Array)
         @tag_name_cache
@@ -504,20 +564,25 @@ class DomainModel < ActiveRecord::Base
       end
     end
   
+    # returns a string fo tag names this object is tagged with
     def tag_names
       self.tags_array.join(", ")
     end
     
-    def tag_name_helper(values)
+    def tag_name_helper(values) #:nodoc:
       values.split(",").collect { |nm| nm.strip.downcase.capitalize }.find_all { |tg| !tg.blank? }
     end
     
+    # sets the tags on this object from a comma separated string
+    # current tags not appearing in values string will be removed.
+    # Note: tags are not saved until after the object is saved
     def tag_names=(values)
       tags = tag_name_helper(values)
       
       @tag_name_cache = tags
     end
     
+    # adds tags immediately to this object from a comma separated string 
     def add_tags(values)
       tags = tag_name_helper(values)
       
@@ -525,6 +590,7 @@ class DomainModel < ActiveRecord::Base
       tag_cache_after_save
     end
     
+    # removes tags immediately from this object from a comma separated string
     def remove_tags(values)
       tags_del = tag_name_helper(values)
       
@@ -532,7 +598,7 @@ class DomainModel < ActiveRecord::Base
       tag_cache_after_save
     end
     
-    def tag_cache_after_save
+    def tag_cache_after_save #:nodoc:
       if @tag_name_cache.is_a?(Array)
         @tag_name_cache.uniq!
         tags = self.content_tag_tags
@@ -566,22 +632,26 @@ class DomainModel < ActiveRecord::Base
     end
   
   end
-   def generate_url(field,value)
-     permalink_try_partial = value.to_s.downcase.gsub(/[ _]+/,"-").gsub(/[^a-z+0-9\-]/,"")
-     idx = 2
-     permalink_try = permalink_try_partial[0..60]
-     
-     if !field.blank?
-       while(self.class.send("find_by_#{field}",permalink_try,:conditions => ['id != ?',self.id || 0] ))
-         permalink_try = permalink_try_partial + '-' + idx.to_s
-         idx += 1
-       end
-       self.send("#{field}=",permalink_try)
-     else
-       permalink_try
-     end
+
+  # Generats a url-friendly string from value and assigns it to field if field is blank
+  # if the field is not blank, returns the value
+  def generate_url(field,value)
+    permalink_try_partial = value.to_s.downcase.gsub(/[ _]+/,"-").gsub(/[^a-z+0-9\-]/,"")
+    idx = 2
+    permalink_try = permalink_try_partial[0..60]
+    
+    if !field.blank?
+      while(self.class.send("find_by_#{field}",permalink_try,:conditions => ['id != ?',self.id || 0] ))
+        permalink_try = permalink_try_partial + '-' + idx.to_s
+        idx += 1
+      end
+      self.send("#{field}=",permalink_try)
+    else
+      permalink_try
+    end
   end
   
+  # Expires the entire website from the cache
   def expire_site
     DataCache.expire_container('SiteNode')
     DataCache.expire_container('Handlers')

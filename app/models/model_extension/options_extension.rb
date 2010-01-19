@@ -5,7 +5,35 @@ module ModelExtension::OptionsExtension
 
 
   module ClassMethods 
-    def has_options(field,options_select)
+
+    # same as calling has_options(..,..,:validate => true)
+    # add validates_inclusion_of to the field
+    def validating_options(field,options_select,options={ })
+      options[:validate] = true
+      has_options(field,options_select,options)
+    end
+
+    # Allows you to specify the valid options for an attribute,
+    # making it easier to keep those options in one place
+    # 
+    # Usage:
+    #
+    #       has_options(:example_field, [['Human Name 1','db_name1'],['Human Name 2','db_name2']])
+    #
+    # This will add a number of class methods, including:
+    #
+    # [self.example_field_options]
+    #   Return a hash with db_name => original human name (not translated)
+    # [self.example_field_options_hash]
+    #   Same as above, except the human name is translated
+    # [self.example_field_select_options]
+    #   Will return a translated list of select-friendly options
+    # [self.example_field_original_options]
+    #   Will return a clone of original options_select passed in
+    #
+    # This will also add a instance method called example_field_display that will
+    # return the translated human name of the attribute
+    def has_options(field,options_select,opts={ })
     
       options_select = options_select.collect do |opt|
         if opt.is_a?(Array)
@@ -45,10 +73,18 @@ module ModelExtension::OptionsExtension
         options[self.send(field)].t if options[self.send(field)]
       end
       
+
+      if opts[:validate]
+        validates_inclusion_of( field, 
+                                :in =>  options_select.map { |elm| elm[1] },
+                                :message => opts[:message] || "is invalid"
+                                )
+        
+      end
     end 
   end
   
-  def self.append_features(mod)
+  def self.append_features(mod) #:nodoc:
     super
     mod.extend ModelExtension::OptionsExtension::ClassMethods
   end

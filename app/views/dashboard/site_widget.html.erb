@@ -1,0 +1,37 @@
+<script type='text/javascript'>
+WidgetEditor = {
+ titleModified: false,
+ 
+ titleChanged:function() {
+   this.titleModified = true;
+ },
+ selectWidget:function(val) {
+  new Ajax.Updater("widget_options","<%=url_for :action => 'widget_options' -%>",{ parameters: { identifier:val }, evalScripts: true });
+
+ }
+
+}
+</script>
+
+<div class='admin_content'>
+  <% admin_form_for :widget, @widget do |f| -%>
+<% f.section do -%>
+    <% if @widget.new_record? -%>
+      <%= f.select :widget_identifier, @widget_modules, {}, :label => 'Widget',:onchange => 'WidgetEditor.selectWidget(this.value);' -%>
+    <% else -%>
+      <%= f.custom_field :name, :value => @widget.widget_description -%>
+    <% end -%>
+    <%= f.text_field :title, :onkeyup => "WidgetEditor.titleChanged();",:onchange => "WidgetEditor.titleChanged()" -%>
+    <%= f.select :column, [[1,0],[2,1],[3,2]] -%>
+    <%= f.text_field :weight -%>
+    <%= f.radio_buttons :required, [["Yes",true],["No",false]], :description => "Required widgets cannot be removed by users"  -%>
+    <%= f.access_control :view_permission, "Limit who will see this widget" -%>
+    <%= f.spacer -%>
+
+<% end -%>
+<%= f.section 'widget_options', :partial => 'widget_options', :display => @widget.module, :locals => {:options => @widget.options } -%>
+
+    <%= f.cancel_submit_buttons "Cancel","Submit" -%>
+ 
+<% end -%>
+</div>

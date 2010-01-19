@@ -93,6 +93,7 @@ MemberEditor = {
   <%= f.text_field :middle_name -%>
   <%= f.text_field :suffix -%>
   <%= f.text_field :cell_phone -%>
+  <%= f.select :time_zone, [['--None Selected--',nil]] + ActiveSupport::TimeZone.all.map { |z| [z.to_s,z.name ] } -%>
   <%= f.filemanager_image :domain_file_id, :label => 'Image' %>
   <%= f.date_field :dob, :label => 'Date of Birth', :blank => true %>
   <%= render :partial => 'subscriptions', :locals => { :f => f } %>

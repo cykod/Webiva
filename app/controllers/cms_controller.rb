@@ -2,6 +2,8 @@
 
 # Parent class for all Webiva backend controllers. All controllers which 
 # expose backend functionality should inherit from this class (or one of it's children)
+#
+# 
 class CmsController < ApplicationController
      
   layout 'manage'
@@ -42,6 +44,8 @@ class CmsController < ApplicationController
     if session[:return_to_site]
       @cms_return_to_site_url = session[:return_to_site]
     end
+
+    @cms_titlebar_handlers = get_handler_instances(:webiva,:titlebar,self)
   end
 
 
@@ -145,11 +149,23 @@ class CmsController < ApplicationController
       [ content_models, content_actions ]
     end
 
-
-  def self.register_permission_category(type,name,desc)
+  # Register a new permission category, which coresponds
+  # to a new tab in the permissions list. Should only be used in AdminControllers
+  #
+  # Usage:
+  #
+  #   register_permission_category :category_type, "Humane Name" ,"Short Descriptions"
+  #
+  # for example:
+  #
+  #   register_permission_category :blog, "Blog" ,"Permissions for Writing Blogs"
+  #
+  # Will cause a new tab to appear in permissions called blog
+  #
+  def self.register_permission_category(category,name,desc)
     
     cats = self.registered_permission_categories;
-    cats += [ type, name, desc ]
+    cats += [ category, name, desc ]
     
     sing = class << self; self; end
     sing.send :define_method, :registered_permission_categories do 
@@ -157,6 +173,37 @@ class CmsController < ApplicationController
     end    
   end
   
+  # Register a set of permissions for a module should be only called from AdminController
+  #
+  # Accepts a category name, and a list of permissions in the following format:
+  #        [ [ :perm_1, "Perm 1 Name", "Perm 1 Description" ],
+  #          [ :perm_2, "Perm 2 Name", "Perm 2 Description" ] ]
+  #
+  # Example
+  #
+  #    register_permissions :blog, [ [ :config, 'Blog Configure', 'Can Configure Blogs'],
+  #                              [ :writer, 'Blog Writer', 'Can Write Blogs'],
+  #                              [ :user_blogs, 'User Blog Editor', 'Can Edit User Blogs' ]
+  #                           ]
+  #
+  # When they are used in the system, all permissions are reference with their category, so this 
+  # registers 3 permissions inside the blog category called :blog_config, :blog_writer, 
+  # and :blog_user_blogs.
+  #
+  # Permissions can be used at the class level (inside cms_controllers), by adding class level
+  # permit calls, e.g.:
+  #
+  #      permit :blog_config
+  #
+  # Will prevent access to any pages of that controller unless the user has the blog_config permission
+  # in their profile or in an access token.
+  #
+  # Permissions can also be accessed directly on user objects, for example:
+  #      
+  #      if myself.has_role?(:blog_writer) 
+  #          ... Stuff only blog writers can do or see ...
+  #      end
+  #
   def self.register_permissions(cat,new_permissions)
     perms = self.registered_permissions;
     
@@ -169,12 +216,17 @@ class CmsController < ApplicationController
     end    
   end
   
-  def self.registered_permissions; {}; end;
-  def self.registered_permission_categories; []; end
+  def self.registered_permissions # :nodoc
+    {}
+  end
+
+  def self.registered_permission_categories # :nodoc:
+    []
+  end
 
 
-  
-  def cms_page_info(title,section=nil,menu_js = nil)
+  # Deprecated in favor of cms_page_paths
+  def cms_page_info(title,section=nil,menu_js = nil) # :nodoc:
     @cms_page_info = { :title => title, 
       :section => section,
       :menu_js => menu_js }
@@ -198,16 +250,38 @@ class CmsController < ApplicationController
     @cms_page_info[:page_title] = title.to_s + ": " +  page_title.to_s
   end
   
+  # Class level method that registers admin paths into the controller
+  # by default the Options and Content paths are available.
+  # 
+  # The section argument defines the tab that a this controller appears in
+  # while pages is a hash consisting of human page names as keys and 
+  # a url_for arguments hash as a value
+  # 
+  #      "Human Page Name" => { :action => 'page_action' },
+  #      "Human Page Name 2" => { :controller => "other_controller", :action => "other action" }
+  #
+  # These can be used in controller methods by calling cms_page_path, for example:
+  # 
+  #     def method_name
+  #       cms_page_path [ "Content", "Human Page Name" ], "Current Page Title" 
+  #       ...
+  #
+  # The last page title does not need to exist in cms_admin_paths unless it 
+  # is referenced somewhere else in the controller.
   def self.cms_admin_paths(section,pages = {})
     pages['Content'] ||= { :controller => '/content' }
     pages['Options'] ||= { :controller => '/options' }
+    pages['Modules'] ||= { :controller => '/options/modules' }
     sing = class << self; self; end
     sing.send :define_method, "cms_page_path_info" do
       { :section => section, :pages => pages }
     end
   end
 
-
+  # Checks if a parameter exists in parms, then the session, otherwise sets it to the
+  # default value, sets the session and returns the value
+  #
+  # Used primarily for toggles on the backend (like archived in structure)
   def handle_session_parameter(parameter_name,default_val = nil,options = {})
 
     parameter_name = parameter_name.to_sym
@@ -219,7 +293,8 @@ class CmsController < ApplicationController
     end
   end
 
-
+  # Sets the current page title and breadcrumbs 
+  # in each controller method
   def cms_page_path(pages,info,menu_js=nil)
     ap = self.class.cms_page_path_info
     output_pages = []
@@ -236,7 +311,8 @@ class CmsController < ApplicationController
     output_pages << info
     cms_page_info(output_pages,ap[:section],menu_js)
   end
-
+  
+  # Redirects to another page defined in cms_admin_paths
   def cms_page_redirect(page_name)
      ap = self.class.cms_page_path_info
      page = ap[:pages][page_name]
@@ -245,10 +321,9 @@ class CmsController < ApplicationController
      redirect_to cms_page_url_from_opts(page.clone)
   end
 
-
-
   private 
-  def cms_page_url_from_opts(opts)
+
+  def cms_page_url_from_opts(opts) #:nodoc:
     ctrler = opts.delete(:controller)
     act = opts.delete(:action)
     url_hash = {}

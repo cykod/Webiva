@@ -1,0 +1,13 @@
+<% if options -%>
+<% cms_subfields_for 'widget[data]', options do |f| -%>
+ <%= render :partial => options.options_partial, :locals => options.options_locals(f) -%>
+<% end -%>
+<% if @widget_title -%>
+<script type='text/javascript'>
+  if((!WidgetEditor.titleModified || $('widget_title').value=='') && $('widget_title'))  {
+    $('widget_title').value = "<%= jh @widget_title -%>";
+  }
+</script>
+<% end -%>
+
+<% end -%>

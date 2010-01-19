@@ -4,9 +4,8 @@ require "yaml"
 require 'singleton'
 require 'pp'
 
-
-# Filters added to this controller will be run for all controllers in the application.
-# Likewise, all the methods added will be available for all controllers.
+# Parent controller class for all Webiva Controllers
+# However
 class ApplicationController < ActionController::Base 
    protect_from_forgery
    filter_parameter_logging :payment, :contribute
@@ -198,11 +197,15 @@ class ApplicationController < ActionController::Base
     session[:domain] = domain
     
     set_language
+
+    set_timezone
     
     return true
   end
 
-
+  def set_timezone
+    Time.zone  = myself.time_zone.blank? ? Configuration.time_zone : myself.time_zone
+  end
 
 
   def set_language #:nodoc:
@@ -239,6 +242,7 @@ class ApplicationController < ActionController::Base
   # Convenience method to log a user in 
   # sets the session and remember cookie 
   def process_login(usr,remember = false)
+    reset_session
     session[:user_id] = usr.id
     session[:user_model] = usr.class.to_s
     reset_myself
@@ -255,8 +259,8 @@ class ApplicationController < ActionController::Base
     session[:user_id] = nil
     session[:user_model] = nil
     reset_myself
+    reset_session
     myself
-    session = {}
   end
   
   # Convenience method to check whether a user can edit pages
@@ -327,18 +331,20 @@ class ApplicationController < ActionController::Base
 
   include SimpleCaptcha::ControllerHelpers
 
-  def debug_raise(obj)
+  def debug_raise(obj) # :nodoc:
     raise render_to_string(:inline =>  '<%= debug object -%>', :locals => { :object => obj})
   end
 
   helper_method :active_module?
-  def active_module?(mod)
+  # Check if a specific module is activted
+  def active_module?(mod) 
     response.data[:modules] ||= {}
     return response.data[:modules][mod] if response.data[:modules].has_key?(mod)
     md = SiteModule.find_by_name_and_status(mod,'active')
     response.data[:modules][mod] = md ? true : false
   end
   
+  # Expires a the cache of a site completely (including all content)
   def expire_site
     DataCache.expire_container('SiteNode')
     DataCache.expire_container('Handlers')
@@ -352,18 +358,14 @@ class ApplicationController < ActionController::Base
   
   helper_method :get_handler_info
 
-  #  def local_request?
-  #    false
-  #  end
-
   helper_method :debug_print
-  def debug_print(*obj)
+  def debug_print(*obj) # :nodoc:
     render :inline => "<%= debug obj %>", :locals => {:obj => obj }
   end
 
 
   
-  def rescue_action_in_public(exception,display = true)
+  def rescue_action_in_public(exception,display = true) # :nodoc:
     
     deliverer = self.class.read_inheritable_attribute(:exception_data)
     data = case deliverer
@@ -413,6 +415,7 @@ class ApplicationController < ActionController::Base
   include ActionView::Helpers::AssetTagHelper
   include ActionView::Helpers::TagHelper
   
+  # include a js file in the html header
   def require_js(js)
     js += ".js" unless js[-3..-1] == '.js'
     @js_header ||= []
@@ -420,11 +423,13 @@ class ApplicationController < ActionController::Base
     @js_header << js
   end  
 
+  # include a CSS file in the html header
   def require_css(css)
     @css_header ||= []
     @css_header << css
   end
   
+  # Add some additional html to header
   def header_html(html)
     @extra_header ||= []
     @extra_header << html
@@ -432,6 +437,7 @@ class ApplicationController < ActionController::Base
   
   include EscapeMethods
 
+  # Handles a front-end file upload by turning an uploaded file into a domain file id
   def handle_file_upload(parameters,key,options = {}) 
     
     if !parameters[key].to_s.empty?
@@ -449,6 +455,8 @@ class ApplicationController < ActionController::Base
 
   end
   
+  # Handles a front-end file upload by turning an uploaded file into an image.
+  # other file types are not accepted.
   def handle_image_upload(parameters,key,options = {}) 
     
     if parameters[key.to_s + "_clear"].to_s == '0'
@@ -472,12 +480,12 @@ class ApplicationController < ActionController::Base
   
   private
 
-  def sanitize_backtrace(trace)
+  def sanitize_backtrace(trace) # :nodoc:
     re = Regexp.new(/^#{Regexp.escape(rails_root)}/)
     trace.map { |line| Pathname.new(line.gsub(re, "[RAILS_ROOT]")).cleanpath.to_s }
   end
 
-  def rails_root
+  def rails_root # :nodoc:
     return @rails_root if @rails_root
     @rails_root = Pathname.new(RAILS_ROOT).cleanpath.to_s
   end  

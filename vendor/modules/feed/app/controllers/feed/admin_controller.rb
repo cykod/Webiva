@@ -10,6 +10,8 @@ class Feed::AdminController < ModuleController
   module_for :rss, 'RSS Feed', :description => 'Add a RSS Feed to your site'
   module_for :data_output, 'Data Feed', :description => 'Add a Content Data feed to your site'
   
+  register_handler :webiva, :widget, "Feed::GenericFeedWidget"
+
   layout false
 
   def rss

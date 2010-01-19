@@ -1,5 +1,5 @@
 <div class='fm_element <%= file.file_type=='fld'?'fm_folder':'fm_item' %>' 
-  onclick="SCMS.select_tab_num(1); <% if file.folder? %> FileEditor.gotoFolder(<%= file.id %>); <% else -%> FileEditor.gotoFolder(<%= file.parent_id %>,<%= file.id %>); <% end -%>"  >
+  onclick="FileEditor.selectUpload(); <% if file.folder? %> FileEditor.gotoFolder(<%= file.id %>); <% else -%> FileEditor.gotoFolder(<%= file.parent_id %>,<%= file.id %>); <% end -%>"  >
   <div class='fm_image' id='handle_item_<%= file.id %>' >
     <%= image_tag file.thumbnail_url(theme,:thumb) %>
   </div>

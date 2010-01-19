@@ -13,7 +13,7 @@ class Feedback::AdminController < ModuleController
   register_permission_category :feedback, "Feedback" ,"Feedback & Comments Permissions"
   register_permissions :feedback, [  [ :manage, 'Manage Feedback','Manage Feedback'   ]]
 
-
+  register_handler :webiva, :widget, "Feedback::FeedbackWidget"
 
   protected
   def self.get_feedback_info

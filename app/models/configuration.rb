@@ -5,6 +5,8 @@ class Configuration < DomainModel
 
   serialize :options
 	
+  # Retrieve a configuration value by key from the cache or the database
+  # will create the key if it doesn't exist
   def self.get(key = 'domain',default_value = {})
     val = DataCache.get_cached_container("Config",key)
     return val if val 
@@ -14,6 +16,7 @@ class Configuration < DomainModel
     val.options
   end
 
+  # Puts a configuration value into the database and update the cache
   def self.put(key,value)
     entry = self.find_by_config_key(key.to_s) || Configuration.new(:config_key => key.to_s)
     entry.options = value
@@ -22,22 +25,28 @@ class Configuration < DomainModel
     value
   end
   
+  # Retrieve an entire entry row directly the database and update the cached value
   def self.retrieve(key,default_value = {})
     val = self.find_by_config_key(key.to_s) || self.create(:config_key => key.to_s, :options => default_value)
     DataCache.put_container("Config",key,val.options)
     val
   end
 	
-  def after_save
+  def after_save #:nodoc:
     DataCache.expire_container("Config")
   end
   	
 	
+  # Get a configuration HashModel by class either using values or pull it from the configurations table
   def self.get_config_model(mdl,values = nil)
     key=  mdl.to_s.underscore
     mdl.new(values || get(key) || {})
   end
   
+  # Put a configuration HashModel into the configurations table 
+  #
+  # Automatically activate any modules in the initialized state if this is a AdminController
+  # configuration module
   def self.set_config_model(mdl)
 
     if mdl.class.to_s =~ /^(.*)\:\:AdminController\:\:(.*)$/
@@ -50,6 +59,7 @@ class Configuration < DomainModel
     cfg.save
   end
   
+  # Return the list of activated languages in this website
   def self.languages() 
     lang = self.get(:languages, { :list => [ CMS_DEFAULT_LANGUAGE || 'en' ] } )
     unless lang[:list]
@@ -92,22 +102,38 @@ class Configuration < DomainModel
     cfg
   end
   
+  # Return the google analytics code 
+  # TODO: move safely into configuration
   def self.google_analytics
     self.get(:google_analytics, {:enabled => false, :code => '' })
   end
   
+  # Return the domain options DomainOptions hash model 
   def self.options(opts=nil)
-    DomainOptions.new(opts ||self.get(:options, { } ))
+    if opts
+      DomainOptions.new(opts)
+    else
+      cached_opts = DataCache.local_cache('configuration_domain_options')
+      return cached_opts if cached_opts 
+      DataCache.put_local_cache('configuration_domain_options',DomainOptions.new(self.get(:options, { } )))
+    end
   end
   
+  # Return the list of available image sizes
   def self.images_sizes
     self.get(:image_sizes, { :sizes => [] } )
   end
   
-  def self.logging
+  def self.logging #:nodoc:
     true
   end
+
+  # Return the current time zone
+  def self.time_zone
+    self.options.site_timezone || CMS_DEFAULT_TIME_ZONE
+  end
   
+  # return a DomainFile for the gender-appropriate missing image
   def self.missing_image(gender=nil)
     gender ||= 'unknown'
 
@@ -126,58 +152,71 @@ class Configuration < DomainModel
     img
   end
   
+  # Domain options configured mailing contact email
   def self.mailing_contact
      self.options.mailing_contact_email
   end
   
+  # Domain options configured mailing contact name
   def self.mailing_from
     self.options.mailing_default_from_name
   end
-  
+ 
+  # Return domain options configured mailing contact email or return a default
   def self.reply_to_email
      self.options.mailing_contact_email || ("noreply@" +  DomainModel.active_domain_name)
   end
   
+  # Return domain options configured mailing contact email or return a default
   def self.from_email
     self.options.mailing_contact_email || ("noreply@" +  DomainModel.active_domain_name)
   end
   
+  # Return the current active domain name
   def self.domain
     DomainModel.active_domain_name
   end
   
+  # Return the currently active domain id
   def self.domain_id
     DomainModel.active_domain_id
   end
   
+  # Wrap a relative link with the currently active domain
   def self.domain_link(url)
     "http://#{self.full_domain}#{url}"
   end
   
+  # alias for Configuration#domain_link
   def self.link(url)
-    "http://#{self.domain}#{url}"
+    "http://#{self.full_domain}#{url}"
   end
   
+  # Return the full domain with the prefixed www if that option is set in the 
+  # domain options
   def self.full_domain
-    if DomainModel.active_domain_name.split(".").length == 3
-      DomainModel.active_domain_name
-    else
-      'www.' + DomainModel.active_domain_name
-    end
+    (DomainModel.active_domain[:www_prefix] ? 'www.' : '') + DomainModel.active_domain_name
   end
   
+  # Fetch the entry from the Domain table about the current domain
   def self.domain_info
     Domain.find_by_id(self.domain_id)
   end
   
+  # Return file type information in the form of a  DomainFileType object
   def self.file_types(val=nil)
     DomainFileType.new(val || self.get(:file_types))
   end
   
+  # Information about support file processors, pulled from the Configuration table
+  #
+  # Attributes:
+  #     :processors => list of file processors
+  #     :default => default file processor
   class DomainFileType < HashModel
     default_options :processors => ['local'], :default => 'local', :options => {}, :options_arr => {}
     
-    def validate
+    def validate # :nodoc:
       self.processors = (self.processors||[]).find_all { |elm| !elm.blank? }
       if self.processors.length <= 0
         errors.add(:processors,'must have a least one selected')
@@ -189,6 +228,7 @@ class Configuration < DomainModel
     end
   end
 
+  # Information about support file processors, pulled from the Configuration table
   class DomainOptions < HashModel
     include HandlerActions
 
@@ -200,17 +240,20 @@ class Configuration < DomainModel
     :missing_female_image_id => nil, :theme => 'standard', :member_tabs => [],
     :general_activation_template_id => nil,
     :general_activation_url => nil,
-    :search_handler => nil
+    :search_handler => nil,
+    :site_timezone => nil
 
     integer_options :default_image_location, :gallery_folder,:user_image_folder, :missing_image_id, :missing_male_image_id, :missing_female_image_id
 
-    def validate
+    def validate #:nodoc:
        if !search_handler.blank?
          self.errors.add(:search_handler,'is not valid') unless get_handler_values(:webiva,:search).include?(search_handler)
        end
     end
   end
 
+  # Log a configuration error into the system
+  # TODO / Not implemented (but you should still call this as it will be soon)
   def self.log_config_error(error,data={})
     # Dummy function for now
   end

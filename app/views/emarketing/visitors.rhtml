@@ -63,7 +63,7 @@
 
 <br/>
 <br/>
-<% ajax_tabs [ 'Site Visitors', [ 'Site Statistics', "VisitorViewer.loadStatistics();" ],'Google Analytics' ], 'Site Visitors' do |t| -%>
+<% ajax_tabs [ 'Site Visitors', 'Google Analytics' ], 'Site Visitors' do |t| -%>
 
 
 <% t.tab do %>
@@ -83,14 +83,6 @@
 </tr>
 </table>
 
-<% end -%>
-
-<% t.tab do %>
-<div id='site_statistics'>
-  <br/><br/>
-  Loading Site Statistics...
-  <br/><br/>
-</div>
 <% end -%>
 
 <% t.tab do %>

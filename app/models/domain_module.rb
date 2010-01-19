@@ -1,9 +1,13 @@
 # Copyright (C) 2009 Pascal Rettig.
 
+# DomainModule is a SystemModel that controls module availablility on individual databases
+# It is only hit to check availability, SiteModule is the DomainModel class that holds the
+# active Modules
 class DomainModule < SystemModel
 
   belongs_to :domain
   
+  # Return information about module availability on a single Domain object
   def self.module_info(domain,module_name)
         # Get the class constant
         module_class = "#{module_name.camelcase}::AdminController".constantize
@@ -37,6 +41,8 @@ class DomainModule < SystemModel
         }
   end
   
+  # Return a list of a modules on a Domain object that
+  # aren't hidden
   def self.all_modules(domain)
     modules = []
     Dir.glob("#{RAILS_ROOT}/vendor/modules/[a-z0-9_]*") do |file|

@@ -40,7 +40,7 @@ require 'yaml'
  
   GIT_REPOSITORY = defaults_config_file['git_repository'] || nil 
 
-
+  CMS_DEFAULT_TIME_ZONE = defaults_config_file['time_zone'] || 'Eastern Time (US & Canada)'
 
 #RAILS_ROOT = File.dirname(__FILE__) + "../" unless defined?(RAILS_ROOT)
 
@@ -72,7 +72,7 @@ Rails::Initializer.run do |config|
   config.action_controller.session_store = :mem_cache_store
   config.plugin_paths = ["#{RAILS_ROOT}/vendor/plugins", "#{RAILS_ROOT}/vendor/modules" ]
   
- # config.time_zone = 'UTC'
+  config.time_zone = CMS_DEFAULT_TIME_ZONE
   
  #config.load_paths += Dir["#{RAILS_ROOT}/vendor/gems/**"].map do |dir| 
  #  File.directory?(lib = "#{dir}/lib") ? lib : dir

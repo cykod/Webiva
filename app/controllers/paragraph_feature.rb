@@ -144,7 +144,9 @@ class ParagraphFeature
         max = val.is_a?(Integer) ? t.attr['max'].to_i : tar.attr['max']
         val <= max ? t.expand : nil
       elsif t.attr['link']
-        
+        attributes = t.attr.clone
+        attributes.delete('link')
+        content_tag('a',t.expand, attributes.merge({ :href => val}))
       else
         if val.is_a?(Array)
           val.length == 0 || val[0].blank? ? nil : t.expand

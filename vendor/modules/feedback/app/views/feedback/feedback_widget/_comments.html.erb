@@ -1,0 +1,30 @@
+<% if rated_comment -%>
+  <div class='notice'>
+    Rated Comment #<%= rated_comment -%>
+ </div>
+<% end -%>
+
+
+<table class='mini_table' width='100%'>
+<% comments.each do |comment| -%>
+<tr>
+<td  valign='baseline'>
+<%= theme_image_tag(comment.rating_icon) %> 
+<%= comment.end_user_id ? link_to(h(comment.name),member_url(comment.end_user_id)) : h(comment.name) -%>:
+ <%= h(truncate(comment.comment,:length => 60)) -%> <em>(<%= distance_of_time_in_words_to_now(comment.posted_at) -%> ago )</em>
+</td>
+<td align='right' nowrap='1' valign='baseline'>
+  <%= link_to(theme_image_tag(comment.rating_icon(1)),'javascript:void(0);',
+              :onclick => "Widget.update(#{widget.id},{ comment_id: #{comment.id}, rating: 1});",
+              :title => 'Approve Comment') if comment.rating <= 0 -%>
+  <%= link_to(theme_image_tag(comment.rating_icon(-1)),'javascript:void(0);',
+              :onclick => "Widget.update(#{widget.id},{ comment_id: #{comment.id}, rating: -1});",
+              :title => 'Reject Comment' ) if comment.rating >= 0 -%>
+  <%= link_to(theme_image_tag(comment.rating_icon(0)),'javascript:void(0);',
+              :onclick => "Widget.update(#{widget.id},{ comment_id: #{comment.id}, rating: 0});",
+              :title => 'Unrate Comment') if comment.rating != 0 -%>
+ 
+</td>
+</tr>
+<% end -%>
+</table>

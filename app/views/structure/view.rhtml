@@ -12,7 +12,7 @@
 			<% else -%>
 				menu_options.push(["<%= jh 'Advanced View'.t %>","<%= url_for(:controller => 'structure', :action =>'index', :modifiers => 'show') %>"]);
 			<% end -%>
-
+                        menu_options.push([]);
 			<% if @display_modules == 'show' -%>
 				menu_options.push(['<%= jh "Hide Modules".t %>',"<%= url_for(:controller => 'structure', :action =>'index', :modules => 'hide') %>"]);
 			<% else -%>
@@ -97,15 +97,12 @@ if @show_archived == 'hide'
 <hr/>
 <% end -%>
 
-<div class='admin_content'> 
-
-
 
 <table width='100%' id='columned_table' cellpadding='0' cellspacing='0'>
 <thead>
   <tr>
 	<th id='columned_tree_header' ><%= "Website Structure".t %></th>
-	<td id='columned_tree_spacer' >&nbsp;</td>
+	<td class='columned_tree_spacer' >&nbsp;</td>
 	<th id='columned_tree_detail_header'>&nbsp;</th>
 </tr>
 </thead>
@@ -117,7 +114,7 @@ if @show_archived == 'hide'
               <%= render(:partial => "path", :locals => { :paths => [@site_root]}) %>
            </div>
 	</td>
-	<td class='columned_spacer'></td>
+	<td class='columned_tree_spacer' >&nbsp;</td>
 	<td class='columned_elem' valign='top'>
             <div id='element_info'>
                 &nbsp;
@@ -130,7 +127,6 @@ if @show_archived == 'hide'
 
 <div class='ajax_loader' style='display:none;'></div>
 
-</div>
 
 <% if permit?('editor_structure') %>
 

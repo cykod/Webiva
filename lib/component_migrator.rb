@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class ComponentMigrator < ActiveRecord::Migrator
+class ComponentMigrator < ActiveRecord::Migrator  # :nodoc:all
 
    cattr_accessor :current_component
 

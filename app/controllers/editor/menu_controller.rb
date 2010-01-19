@@ -59,7 +59,7 @@ class Editor::MenuController < ParagraphController
      render_paragraph_update
   end
   
-  class AutoMenuOptions < HashModel
+  class AutomenuOptions < HashModel
       default_options :root_page => nil, :levels => nil, :excluded => [],:lock_level => 'no', :included => [], :include_path => false
       
       boolean_options :include_path

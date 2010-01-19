@@ -122,19 +122,19 @@ class EmarketingController < CmsController # :nodoc: all
     require_js 'raphael/g.bar.js'
     require_js 'raphael/g.dot.js'
     require_js 'raphael/g.pie.js'
+    require_js 'emarketing.js'
 
     @onload = 'RealTimeStatsViewer.onLoad();'
-
-    # @chart_html = open_flash_chart_object_from_hash(url_for(:action => 'site_counts'), :div_name => 'site_counts', :width => 600, :height => 400)
   end
 
   def real_time_stats_request
     now = Time.now
-    from = params[:from] ? Time.at(params[:from].to_i) : (now - 1.minute)
+    from = params[:from] ? Time.at(params[:from].to_i) : nil
 
-    conditions = ['occurred_at between ? and ?', from, now]
-    @entries = DomainLogEntry.find(:all, :limit => 50, :conditions => conditions, :order => 'occurred_at', :include => [:domain_log_session, :user, :end_user_action])
-    @remaining = DomainLogEntry.count(:all, :conditions => conditions)
+    conditions = from ? ['occurred_at between ? and ?', from, now] : ['occurred_at < ?', now]
+    order = from ? 'occurred_at' : 'occurred_at DESC'
+    @entries = DomainLogEntry.find(:all, :limit => 50, :conditions => conditions, :order => order, :include => [:domain_log_session, :user, :end_user_action])
+    @remaining = from ? DomainLogEntry.count(:all, :conditions => conditions) : 0
     @remaining -= 50
     @remaining = 0 if @remaining < 0
 
@@ -152,6 +152,8 @@ class EmarketingController < CmsController # :nodoc: all
 	:action => entry.action
       }
     end
+
+    @entries.reverse! if from.nil?
 
     @entries << {:occurred_at => nil, :remaining => @remaining} if @remaining > 0
     render :json => [now.to_i, @entries]
