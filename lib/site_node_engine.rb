@@ -41,7 +41,7 @@ class SiteNodeEngine
     
       # if we have data, just output the data
       if output.text?
-        render :text => output.text
+        render output.options
         return
       elsif output.data?
         send_data(output.data,output.options)
@@ -174,7 +174,7 @@ class SiteNodeEngine
           rnd.capture_data = true if  opts[:capture]
           if paragraph.site_feature_id && !opts[:edit]
             # If we're not in the editor, include the feature css
-            # We have the render_css attribute from paragraph cached from the thaw
+            # We have the css attribute from paragraph cached from the thaw
             if paragraph.render_css.nil? ? (paragraph.site_feature && !paragraph.site_feature.rendered_css.blank?) : paragraph.render_css
               rnd.require_css("/stylesheet/f#{paragraph.site_feature_id}.css") 
             end

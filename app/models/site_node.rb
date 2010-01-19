@@ -1,5 +1,7 @@
 # Copyright (C) 2009 Pascal Rettig.
 
+
+
 class SiteNode < DomainModel
 
   SiteNodePageInformation = Struct.new(:site_template,:revision,:frameworks,:paragraphs,:head,:title)
@@ -39,24 +41,25 @@ class SiteNode < DomainModel
   # Expires the entire site when save or deleted
   expires_site
 
-  def before_validation
+  def before_validation #:nodoc:
     self.node_type = 'P' if self.node_type.blank?
   end
 
-  def child_cache
+  def child_cache #:nodoc:
     @child_cache ||= []
   end
 
-  def child_cache=(val)
+  def child_cache=(val) #:nodoc:
     @child_cache ||= []
     @child_cache << val
   end
 
-  def child_cache_set(val)
+  def child_cache_set(val) #:nodoc:
     @child_cache = val
   end
 
-  
+  # Returns an array of elements for how this 
+  # site node should be represented in a menu
   def menu
     if self.node_type == 'P'
       [ self ]

@@ -121,11 +121,13 @@ class ParagraphRenderer < ParagraphFeature
     end
   end
   
-  # Adds a paragraph that this class is the renderer of
+  # Adds a paragraph to the renderer
   # 
   # === Available Opts
   # [:cache] 
   #    Set to true is this paragraph can be cached
+  # [:ajax]
+  #    Allow this paragraph to accept ajax call
   def self.paragraph(type,opts = {})
     sing = class << self; self; end
     opts[:cache] ||= false
@@ -155,7 +157,7 @@ class ParagraphRenderer < ParagraphFeature
     @page_connections[paragraph.identity_hash][connection_name] = connection_value
   end 
 
-  # Set a number of page connections of the form :name => value
+  # Set multiple page connections of the form :name => value
   def set_page_connections(cons)
     cons.each do |key,val|
       set_page_connection(key,val)
@@ -187,6 +189,9 @@ class ParagraphRenderer < ParagraphFeature
   end
   
   # Return a dummy renderer of this class
+  #
+  # This can be used to create a renderer for testing or other purposes
+  # when you aren't inside of a normal page view
   def self.dummy_renderer(ctrl=nil)
       self.new(UserClass.get_class('domain_user'),ctrl || ApplicationController.new,PageParagraph.new,SiteNode.new,PageRevision.new)
   end
@@ -223,7 +228,7 @@ class ParagraphRenderer < ParagraphFeature
   end
   
   
-  # Current the path of the current page
+  # The path of the current page
   def page_path
     @opts[:page_path] || @site_node.node_path
   end
@@ -233,7 +238,7 @@ class ParagraphRenderer < ParagraphFeature
     @opts[:editor] ? true : false
   end 
   
-  # return the current paragraph
+  # return the current paragraph this renderer is rendering
   def paragraph
     @para
   end
@@ -245,7 +250,7 @@ class ParagraphRenderer < ParagraphFeature
     options_class.constantize.new(@para.data)
   end
   
-  # return the current site node
+  # return the current site node this renderer is rendering
   def site_node
     unless !@site_node || @site_node.is_a?(SiteNode)
       @site_node= SiteNode.find_by_id(@site_node.id)
@@ -313,7 +318,32 @@ class ParagraphRenderer < ParagraphFeature
     @paragraph_output = ParagraphRedirect.new(args)
   end
   
-  # Renders a paragraph
+  # This is the equivalent of Controller#render except it renders an individual
+  # paragraph. 
+  # 
+  # render_paragraph accepts an args hash similar to render
+  #
+  # Examples:
+  #
+  #    # renders "Paragraph Details"
+  #    render_paragraph :text => 'Paragraph Details'
+  #
+  #    # renders  "hello, hello, hello, again"
+  #    render_paragraph :inline => "<%= 'hello, ' * 3 + 'again' %>"
+  #
+  #    # renders the feature named :blog_page using instance variables for the data hash
+  #    render_paragraph :feature => :blog_page
+  #
+  #    # renders the partial named passing the requested locals (not that you need to provide a full view path)
+  #    render_paragraph :partial => '/blog/page/details', :locals => { :post => @post } 
+  #
+  #    # renders the rjs template named passing the requested locals (not that you need to provide a full view path)
+  #    render_paragraph :rjs => '/blog/page/update', :locals => { :post => @post } 
+  #
+  #    # renders the rjs template named passing the requested locals (not that you need to provide a full view path)
+  #    # however this will actually be called against the containing document (in the case of an iframe)
+  #    render_paragraph :parent_rjs => '/blog/page/update_parent', :locals => { :post => @post } 
+  #
   def render_paragraph(args)
     if @paragraph_output
       raise 'Only 1 paragraph output function can be called per paragraph'
@@ -329,6 +359,29 @@ class ParagraphRenderer < ParagraphFeature
     @paragraph_output = ParagraphOutput.new(self,args)
   end
   
+  # This is the equivalent of Controller#send_data except it can be called in a
+  # renderer.
+  #
+  # If a renderer calls data_paragraph, it supercedes anything else on the page
+  # and any other paragraphs that have not been compiled will not be rendered
+  #
+  # Files are sent using send_file or x_send_file if it is enabled and installed
+  # in defaults
+  #
+  # Examples:
+  #
+  #    # renders the specified text (nothing else will be rendered)
+  #    data_paragraph :text => '{ "test" : "value" }'
+  #
+  #    # renders an image directly from data
+  #    data_paragraph :data => @file.image_data, :type => 'image/jpeg'
+  #
+  #    # renders the specified file (the full path of the file must be specified
+  #    data_paragraph :file => "#{RAILS_ROOT}/tmp/widgets/something.gif"
+  #
+  #    # renders the specified domain file 
+  #    data_paragraph :domain_file => @domain_file
+  #
   def data_paragraph(args)
     if @paragraph_output
       raise 'Only 1 paragraph output function can be called per paragraph'
@@ -336,14 +389,21 @@ class ParagraphRenderer < ParagraphFeature
     @paragraph_output = ParagraphData.new(self,args)
   end
   
-  def redirect(args)
+  
+  def redirect(args) #:nodoc:
     raise 'Use redirect_paragraph to redirect a paragraph'
   end
   
-  def render(args)
+  def render(args) #:nodoc:
     raise 'Use render_paragraph to render a paragraph'
   end
   
+  # Links an action to this request. See EndUserAction for more information on user actions.
+  #
+  # Example:
+  #
+  #    paragraph_action(myself.action('/action/path'))
+  #
   def paragraph_action(pact,pact_data=nil)
     if pact.is_a?(EndUserAction)
       @paction = pact
@@ -352,6 +412,8 @@ class ParagraphRenderer < ParagraphFeature
     end
   end 
   
+  # Includes the specified javascript file when the page is rendered
+  # uses the standard rails javascript_include_tag syntax
   def require_js(js)
     if js.is_a?(Array)
       js.each { |fl| require_js(fl) }
@@ -362,6 +424,7 @@ class ParagraphRenderer < ParagraphFeature
     end
   end
   
+  # Requires all the standard ajax javascript files
   def require_ajax_js
     require_js('prototype.js')
     require_js('effects.js')
@@ -371,30 +434,37 @@ class ParagraphRenderer < ParagraphFeature
     require_js('user_application.js')
   end
   
- def ajax_url(opts={})
+  # returns a url that can be used to make javascript calls directly back to this paragraph
+  # 
+  # :ajax => true must be enabled on the call to ParagraphRenderer#self.paragraph
+  def ajax_url(opts={})
     opts = opts.merge(:site_node => self.paragraph.page_revision.revision_container_id, 
                          :page_revision => self.paragraph.page_revision.id,
                          :paragraph => self.paragraph.id)
     paragraph_action_url(opts)
   end    
  
- def require_css(css)
-   if css.is_a?(Array)
-     @css_includes += css
-   else
-     @css_includes << css
-   end
- end
+  # Includes the specified css file when the page is rendered
+  # uses the standard rails stylesheet_link_tag syntax
+  def require_css(css)
+    if css.is_a?(Array)
+      @css_includes += css
+    else
+      @css_includes << css
+    end
+  end
    
+  # Includes some custom html code in the head of the document
+  # if you want to use javascript you must explicitly include the <script>..</script> tags
   def include_in_head(html)
     @head_html << html
   end
 
-  def form_authenticity_token
+  def form_authenticity_token #:nodoc:
     @controller.send(:form_authenticity_token)
   end
   
-  def method_missing(method,*args)
+  def method_missing(method,*args) #:nodoc:
     if args.length > 0
       @controller.send(method,*args)
     else
@@ -402,12 +472,12 @@ class ParagraphRenderer < ParagraphFeature
     end
   end
   
-  # Return state of the renderer, include current user, allowing for override
+  # Return state of the renderer, include current user, and controller, allowing for override
   def renderer_state(override={ })
     {:user => myself, :renderer => self, :controller => @controller }.merge(override)
   end
   
-  def output
+  def output #:nodoc:
     if @paragraph_output.is_a?(ParagraphOutput) || @paragraph_output.is_a?(CachedOutput)
       @paragraph_output.includes[:css] = @css_includes if @css_includes.length > 0
       @paragraph_output.includes[:js] = @js_includes if @js_includes.length > 0
@@ -422,6 +492,7 @@ class ParagraphRenderer < ParagraphFeature
     @paragraph_output 
   end
   
+  # Override the current feature to the one specified by id or object
   def set_feature(feature)
     if(feature && feature != 0)
       feature = SiteFeature.find_by_id(feature) if feature.is_a?(Integer)
@@ -429,9 +500,76 @@ class ParagraphRenderer < ParagraphFeature
     end
   end
   
+=begin rdoc
+This is a convenience method that allows you to easily cache the output of 
+a renderer (and have that cache automatically invalidated when necessary)
+If accepts a block that yields a DefaultsHashObject and returns that
+object. The first time renderer_cache is called, the block will be executed
+while on subsequent calls (if the cache is still valid) the block will not be
+executed but the result will be pulled directly from the cache.
 
+=== Warning
+The cache expects only simple types: Strings, Hashes, Arrays, Times, Numbers, etc to be
+stored in the cache. Any complex objects stored in the cache may result in a 
+errors when they are unmarshalled. Don't Do it. Really -- just don't.
+  
+=== Simplest Usage
+  
+The simplest usage of renderer_cache is with no arguments, in which case the cache
+will be stored until the paragraph is resaved:
+  
+   result = renderer_cache do |cache|
+      ...
+      cache[:data1] = "Piece of data"
+      cache[:data2] = "Other piece of data"
+   end
 
-  def renderer_cache(obj=nil,display_string=nil,options={ })
+   set_title(result.data2)
+   render_paragraph :text => result.data1
+ 
+Notice to set items on the cache object you should use the associate array syntax, 
+but to pull them out you can use standard dot notation.
+
+=== Using with cached content
+
+If you are display a list or an individual DomainModel that has cached content set
+( see ModelExtension::ContentCacheExtension ). You can pass an indvidiual object, an array of a [ class_name, item_id ] , 
+or the class to renderer_cache. This will ensure that the cache is automatically invalidated 
+when the object is saved (or in the case of passing the class any object is saved)
+
+Lets take an example of the Blog::BlogPost class:
+
+   @blog_post = Blog::BlogPost.find_by_id(17)
+
+   # On both cases below, the cache will be invalidated if blog post w/ id=17 is updated in the database
+   renderer_cache(@blog_post) { |cache| ... }                                              
+   renderer_cache(["Blog::BlogPost",17]) { |cache| ... }
+  
+   # In this case the cache will be invalidated if any blog post is saved
+   renderer_cache(Blog::BlogPost) { |cache| ... }                                            
+
+=== Using the display string
+
+By default the renderer_cache is unique to the paragraph, so you don't necessarily need to 
+pass a display_string if the same paragraph is only going to render a single view of the passed object.
+However, if the paragraph needs to render multiple views of the same data, such as the a blog 
+list paragraph that displays multiple pages.
+
+For example:
+   
+   page = (params[:page]||1).to_i 
+   page = 1 if page <= 0
+   
+   # Each page will be cached separately
+   renderer_cache(Blog::BlogPost,page) { |cache| ... }
+
+=== Expiration
+
+The only option current supported in the options hash is :expires which should be
+an integer representing the number of seconds to keep the element in the cache.
+
+=end
+  def renderer_cache(obj=nil,display_string=nil,options={ },&block)
     expiration = options[:expires] || 0
     display_string = "#{paragraph.id}_#{display_string}"
     result = nil
@@ -477,7 +615,7 @@ class ParagraphRenderer < ParagraphFeature
   
 
   
-  def self.get_editor_features
+  def self.get_editor_features #:nodoc:
     # Find all the renderers in the 'editors' subdirectory,
     # get the class constant
     # Call the class methods to get the title,
@@ -509,7 +647,7 @@ class ParagraphRenderer < ParagraphFeature
     feature_list
   end
   
-  def self.get_component_features
+  def self.get_component_features #:nodoc:
    feature_list = []
    
    SiteModule.enabled_modules_info.each do |mod|
@@ -529,18 +667,20 @@ class ParagraphRenderer < ParagraphFeature
    feature_list
   end   
   
-  def debug_print(obj)
+  def debug_print(obj) #:nodoc:
     render_paragraph :inline => "<%= debug obj %>", :locals => {:obj => obj }  
     return
   end
   
   protected
-  # Helper for feature parsing
-  def define_position_tags(c,prefix=nil)
+  #  All the paragraph_render tag helper are deprecated
+
+
+  def define_position_tags(c,prefix=nil) #:nodoc:
     c.define_position_tags(prefix)
   end
   
-  def define_block_value_tag(c,tag_name,&block)
+  def define_block_value_tag(c,tag_name,&block) #:nodoc:
     c.define_tag tag_name do |tag|
       val = block.call
       if tag.single?
@@ -565,13 +705,13 @@ class ParagraphRenderer < ParagraphFeature
     end
   end
 
-  def define_value_tag(c) 
+  def define_value_tag(c) #:nodoc:
     c.define_tag 'value' do |tag|
       tag.locals.value
     end
   end
         
-  def define_value_tags(c,obj,tags,&block)
+  def define_value_tags(c,obj,tags,&block) #:nodoc:
     block_func = block_given?
     tags.each do |tag_name| 
       c.define_tag tag_name do |tag|
@@ -596,7 +736,7 @@ class ParagraphRenderer < ParagraphFeature
     
   end
   
-  def define_no_value_tags(c,obj,tags)
+  def define_no_value_tags(c,obj,tags) #:nodoc:
     tags.each do |tag_name|
       c.define_tag "no_" + tag_name do |tag|
         val = obj.send(tag_name)
@@ -610,11 +750,11 @@ class ParagraphRenderer < ParagraphFeature
   end
   
   # helper for displaying images in a renderer
-  def define_image_tag(c,tag_name,local_obj,attribute=nil,&block)
+  def define_image_tag(c,tag_name,local_obj,attribute=nil,&block) #:nodoc:
     c.define_image_tag(tag_name,local_obj,attribute,&block)
   end     
 
-  def define_submit_tag(c,tag_name,options = {:default => 'Submit'.t })
+  def define_submit_tag(c,tag_name,options = {:default => 'Submit'.t }) #:nodoc:
 
     c.define_tag tag_name do |tag|
       output =''
@@ -643,7 +783,7 @@ class ParagraphRenderer < ParagraphFeature
 
 
   # Helper for displaying pages in a renderer
-  def define_pages_tag(c,path,page,pages,options = {}) 
+  def define_pages_tag(c,path,page,pages,options = {})  #:nodoc:
     c.define_pages_tag('pages',path,page,pages,options = {})
   end
   
