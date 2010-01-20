@@ -71,41 +71,49 @@ class SiteNode < DomainModel
       [ self ]
     end
   end
-  
+
+  # Find a page by id (only returns pages)
   def self.find_page(page_id)
     self.find_by_id(page_id,:conditions => 'node_type="P"')
   end 
   
   
+  # Returns the path of a site node based on id, optionally using the default url if the page doesn't exist
   def self.get_node_path(page_id,default_url = nil)
     nd = self.find_by_id(page_id)
     return nd.node_path if nd
     default_url
   end
   
+  # Alias of get_node_path
   def self.node_path(page_id,default_url=nil)
     self.get_node_path(page_id,default_url)
   end
 
 
+  # Adds a modifier to this nodes list of modifiers
   def add_modifier(type)
     returning md = self.site_node_modifiers.create(:modifier_type => type) do
       md.move_to_top
     end
   end
 
+  # Adds a subpage with the suburl of title to this page
   def add_subpage(title,type = 'P')
     nd = SiteNode.create(:title => title,:site_version_id => self.site_version_id,:node_type => type)
     nd.move_to_child_of(self) if nd.id
     nd
   end
   
-  def create_temporary_revision(revision_id)
+  
+  def create_temporary_revision(revision_id) #:nodoc:
     rev = self.page_revisions.find_by_id(revision_id)
     return nil unless rev
     rev.create_temporary
   end
 
+  # Returns the name of this page, either pulling from the revision
+  # title or titleizing the url
   def name
     lang = Configuration.languages[0]
 
@@ -117,19 +125,22 @@ class SiteNode < DomainModel
     end
   end
 
-  def content_description(language)
+  def content_description(language) #:nodoc:
     "Site Page - %s" / self.node_path
   end
  
   
+  # Returns the active PageRevision of the passed language, or returns a revision of a different language if the passed language doesn't exist
   def active_revision(language)
     self.page_revisions.find(:first,:conditions => 'revision_type="real" AND active=1', :order => "language='#{language}' DESC,revision DESC")
   end
   
+  # alias for active_revision  
   def visible_revision(language)
     self.page_revisions.find(:first,:conditions => 'active=1 AND revision_type="real"', :order => "language='#{language}' DESC,revision DESC")
   end
   
+  # Finds a page by ID and verifies the user has access to the page
   def self.get_page(page_id,usr,action = 'view')
   
     nd = SiteNode.find(:first,:conditions => ['id=? AND node_type IN("P","F")',page_id])
@@ -141,6 +152,9 @@ class SiteNode < DomainModel
     end
   end
   
+  # Returns a list of revision of the passed languages, 
+  # with each entry in the form:
+  #   [ language, active revision or nil, latest revision or nil ]
   def language_revisions(languages)
     languages.collect do |lang|
       [ lang,
@@ -150,11 +164,12 @@ class SiteNode < DomainModel
     end
   end
   
+  # Returns a list of active revisions in all available languages
   def active_revisions
     self.page_revisions.find(:all,:conditions => ['active=?',true], :order => 'language')
   end
   
-  def domain_module_info
+  def domain_module_info #:nodoc:
     if(self.node_type == 'M')
       return DomainModule.get_module_info(self.module_name,self.domain)
     else
@@ -163,6 +178,7 @@ class SiteNode < DomainModel
   end
   
   
+  # Verifies a use has access to this node
   def verify_node_access(usr, action = 'view')
     case self.node_type
     when 'L'
@@ -177,6 +193,7 @@ class SiteNode < DomainModel
   
   end
   
+  # Returns the path for this node (or returns "Domain" if this is the root node)
   def node_path
     if self.node_type == 'R'
       "Domain"
@@ -185,10 +202,12 @@ class SiteNode < DomainModel
     end
   end
   
-  def page_type
+  def page_type #:nodoc:
     "page"
   end
   
+  # Returns a list of modifiers, optionally only those before
+  # the page (and then optionally only those before the passed index)
   def modifiers(before_only=false,before_idx=nil)
     if before_only
       self.site_node_modifiers.find(
@@ -205,6 +224,8 @@ class SiteNode < DomainModel
     end
   end
   
+  # Returns a select-friendly list of pages with urls (group nodes not included)
+  # optionally including the root node as well
   def self.page_options(include_root = false)
     node_type = include_root ? 'node_type IN("P","R","M","J")' : 'node_type IN ("P","M","J")'
     SiteNode.find(:all,:conditions => node_type,
@@ -213,6 +234,8 @@ class SiteNode < DomainModel
     end
   end
 
+  # Returns a select-friendly list of pages and groups
+  #  optionally including the root node as well
   def self.page_and_group_options(include_root = false)
     node_type = include_root ? 'node_type IN("P","R","M","J","G")' : 'node_type IN ("P","M","J","G"")'
     SiteNode.find(:all,:conditions => node_type,
@@ -226,7 +249,7 @@ class SiteNode < DomainModel
     end
   end
   
-
+  # Returns a select-friendly list of modules that match that have a module_name of  mod
   def self.module_options(mod)
     SiteNode.find(:all,:conditions => [ 'module_name = ? AND node_type = "M" ',mod],
                   :order => 'node_path').collect do |page|
@@ -235,29 +258,33 @@ class SiteNode < DomainModel
   end
   
   
-  def dispatcher_class
+  # Return the constantized class of the dispatcher for this SiteNode, useful only for
+  # M(odule) type nodes
+  def dispatcher_class    
     "#{module_namespace.camelcase}::#{options_action.camelcase}Dispatcher".constantize
   end
   
+  # Return a new instance of the dispatcher class  (M nodes only)
   def dispatcher
     dispatcher_class.new(self)
   end
   
+  # Return the module namespace of this SiteNode (M nodes only)
   def module_namespace
     self.module_name[1..-1].split("/")[0]
   end
   
+  # Returns the options controller name for this site node  (M nodes only)
   def options_controller
     "/" + self.module_name[1..-1].split("/")[0] + "/admin"
   end
   
-  def options_action
+  def options_action #:nodoc:
     self.module_name[1..-1].split("/")[1]
   end
 
-  
-
-  def self.update_paragraph_links(old_path,new_path)
+  # Deprecated
+  def self.update_paragraph_links(old_path,new_path) #:nodoc:
     return if(old_path == new_path)
     
 
@@ -280,6 +307,7 @@ class SiteNode < DomainModel
 
   end
   
+  # Make a deep copy of this site node including all live revisions
   def duplicate!(parent)
     atr = self.attributes
     atr.delete(lft)
@@ -287,7 +315,6 @@ class SiteNode < DomainModel
     nd = SiteNode.new(atr)
     nd.title += '_copy'
 
-#    nd.parent_id = parent_id
     nd.save
     
     self.live_revisions.each do |rev|
@@ -304,7 +331,7 @@ class SiteNode < DomainModel
   
   protected
   
-  def after_create
+  def after_create #:nodoc:
     if self.node_type == 'P'
       self.page_revisions.create( :language => Configuration.languages[0], :revision => '0.01', :active => 1 )
       self.page_revisions[0].page_paragraphs.create(:display_type => 'html', :zone_idx => 1 )
@@ -317,7 +344,7 @@ class SiteNode < DomainModel
     self.site_node_modifiers.create(:modifier_type => 'page')
   end
   
-  def before_save
+  def before_save #:nodoc:
     node_path = ''
     if self.parent && self.parent.node_path && (self.parent.node_type == 'P' || self.parent.node_type == 'G')
       node_path = self.parent.node_path
@@ -336,7 +363,7 @@ class SiteNode < DomainModel
     
   end
   
-  def after_save
+  def after_save #:nodoc:
     unless self.frozen?
       if self.children.length > 0
         self.children.each do |child|
@@ -346,7 +373,7 @@ class SiteNode < DomainModel
     end
   end
 
-  def content_node_body(language)
+  def content_node_body(language)  #:nodoc:
     rev = self.live_revisions.detect { |rev| rev.language == language }
     if rev
       paragraphs = rev.page_paragraphs.find(:all,:conditions => "display_module IS NULL")
@@ -356,7 +383,7 @@ class SiteNode < DomainModel
     end
   end
 
-  def self.content_admin_url(node_id)
+  def self.content_admin_url(node_id) #:nodoc:
      {:controller => '/edit', :action => 'page',
       :path => [ 'page', node_id ] }
   end

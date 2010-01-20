@@ -1,7 +1,8 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 
-
+# DomainFileInstances represent a single usage of a DomainFile
+# on the site. See ModelExtension::FileInstanceExtension for more details
 class DomainFileInstance < DomainModel
 
   belongs_to :domain_file

@@ -1,6 +1,6 @@
 
 
-class DashboardController < CmsController
+class DashboardController < CmsController #:nodoc:all
 
   permit :editor_site_management, :only => [ :site_widgets, :site_widget, :widget_options ]
 

@@ -4,7 +4,7 @@ require 'fileutils'
 
 # meta function that calls a certain function on a specific
 # row in a DomainModel
-class DomainModelWorker <  Workling::Base
+class DomainModelWorker <  Workling::Base #:nodoc:all
   
   # Args: file_path
   # 

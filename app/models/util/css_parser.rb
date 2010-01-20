@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-# Utility class to validate html (with or without cms: tags)
+# Utility class parse CSS and return a list of tags
 class Util::CssParser
 
   

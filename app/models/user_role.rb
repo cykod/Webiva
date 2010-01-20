@@ -1,5 +1,8 @@
 # Copyright (C) 2009 Pascal Rettig.
 
+
+# UserRole represents a permission on a single UserClass or AccessToken
+# for a specific role
 class UserRole < DomainModel
   belongs_to :authorized, :polymorphic => true
   
@@ -18,6 +21,7 @@ class UserRole < DomainModel
     self.authorized_type.underscore + "/" + self.authorized_id.to_s
   end
 
+  # Return a text readable name for this rules authorized
   def name
     if self.authorized_type=='AccessToken'
       'Access Token: '.t +  self.authorized.name
@@ -27,7 +31,7 @@ class UserRole < DomainModel
     
   end
 
-  def position
+  def position #:nodoc:
     0
   end
 end

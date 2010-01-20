@@ -26,7 +26,7 @@ class DomainFileSize < DomainModel
                              ['Left','WestGravity'] ]
   cattr_accessor :gravity_options
 
-  def validate
+  def validate #:nodoc:all
     self.errors.add_to_base("One or more operation options are invalid") if !operations_valid?
   end
   
@@ -108,11 +108,11 @@ class DomainFileSize < DomainModel
     return result_file
   end
   
-  class Operation < HashModel
+  class Operation < HashModel #:nodoc:all
    attributes :type => nil
   end
   
-  class SizeOperation < Operation
+  class SizeOperation < Operation #:nodoc:all
     attributes :width => nil, :height => nil
     validates_numericality_of :width,:height, :greater_than => 0
     integer_options :width,:height
@@ -123,14 +123,14 @@ class DomainFileSize < DomainModel
   end
   
   
-    class ThumbnailOperation < SizeOperation
+    class ThumbnailOperation < SizeOperation #:nodoc:all
       def apply(img)
          img.resize_to_fit!(self.width,self.height)
       end
       
       def operation_name; 'thumbnail'; end
     end
-    class CroppedThumbnailOperation < SizeOperation
+    class CroppedThumbnailOperation < SizeOperation #:nodoc:all
       def operation_name; 'cropped_thumbnail'; end
       attributes :anchor => 'CenterGravity'
       
@@ -141,13 +141,13 @@ class DomainFileSize < DomainModel
       end
       
     end
-    class ResizeOperation < SizeOperation
+    class ResizeOperation < SizeOperation #:nodoc:all
       def operation_name; 'resize'; end
       def apply(img)
           img.resize(self.width,self.height)
       end
     end
-    class WindowOperation < SizeOperation
+    class WindowOperation < SizeOperation #:nodoc:all
       def operation_name; 'window'; end
       
       attributes :offset_x => 0,:offset_y => 0,:anchor => nil

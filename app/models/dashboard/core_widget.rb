@@ -1,6 +1,6 @@
 
 
-class Dashboard::CoreWidget < Dashboard::WidgetBase
+class Dashboard::CoreWidget < Dashboard::WidgetBase #:nodoc:all
 
   widget :information, :name => "Display Static Information", :title => "Site Info"
   widget :emarketing_stats, :name => "Emarketing: Display Real Time Page Views", :title => "Real Time Page Views"

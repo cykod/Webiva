@@ -1,7 +1,7 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 
-# Methods added to this helper will be available to all templates in the application.
+# Base view helper
 module ApplicationHelper
 
   include StyledFormBuilderGenerator::FormFor

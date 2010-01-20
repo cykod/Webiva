@@ -1,7 +1,7 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 
-
+# These are the core triggers that are available in the system
 class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
 
   def self.trigger_actions_handler_info

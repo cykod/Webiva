@@ -32,6 +32,7 @@ class ModuleAppController < ApplicationController
   before_filter :nocache
   include SiteNodeEngine::Controller
 
+
   # Specifies actions that shouldn't use the CMS for authentication layout or login
   # (Often used for ajax actions)
   def self.user_actions(names)
@@ -136,6 +137,7 @@ class ModuleAppController < ApplicationController
         handle_document_node(@output,@page)
         return false
     elsif @output.page?
+        @cms_site_node_engine = engine
         set_robots!
         return true
     end 
@@ -273,11 +275,6 @@ class ModuleAppController < ApplicationController
    end
   end
 
-  helper_method :webiva_post_process_paragraph
-  def webiva_post_process_paragraph(txt) #:nodoc:
-    @post_process_form_token_str ||= "<input name='authenticity_token' type='hidden' value='#{ form_authenticity_token.to_s}' />"
-    txt.gsub!("<CMS:AUTHENTICITY_TOKEN/>",@post_process_form_token_str)
-    txt
-  end
+
   
 end
