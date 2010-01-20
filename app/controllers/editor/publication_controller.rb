@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class Editor::PublicationController < ParagraphController
+class Editor::PublicationController < ParagraphController #:nodoc:all
   
   # Editor for galleries
   # editor_header "Publication Paragraphs"

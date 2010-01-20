@@ -1,6 +1,6 @@
 
 
-class Dashboard::ContentNodeWidget < Dashboard::WidgetBase
+class Dashboard::ContentNodeWidget < Dashboard::WidgetBase #:nodoc:all
 
   widget :updates, :name => "Display Updated Content", :title => "Updated Site Content"
 

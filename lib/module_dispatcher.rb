@@ -1,7 +1,7 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 
-
+# Based class for Site Node Module dispatcher support
 class ModuleDispatcher
   attr_reader :title
 

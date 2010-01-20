@@ -228,7 +228,8 @@ class Configuration < DomainModel
     end
   end
 
-  # Information about support file processors, pulled from the Configuration table
+  # Domain level options set in Website Configuration, these can be accessed from
+  # Configuration#self.options
   class DomainOptions < HashModel
     include HandlerActions
 

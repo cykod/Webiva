@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class MigrationHandlerWorker < Workling::Base
+class MigrationHandlerWorker < Workling::Base #:nodoc:all
   
   def do_work(args)
   

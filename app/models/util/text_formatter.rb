@@ -1,9 +1,10 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 
-
+# Utility class for outputing formatted text.
 class Util::TextFormatter
 
+  # Generate formatted text from html
   def  self.text_formatted_generator(html)
    full_sanitizer = HTML::FullSanitizer.new 
    full_sanitizer.sanitize(CGI::unescapeHTML(html.to_s.gsub(/\<\/(p|br|div)\>/," </\\1>\n ").gsub(/\<(h1|h2|h3|h4)\>(.*?)<\/(h1|h2|h3|h4)\>/) do |mtch|
@@ -11,12 +12,13 @@ class Util::TextFormatter
     end.gsub("<br/>","\n")).gsub("&nbsp;"," "))
   end
 
-
+  # Generate plan text from html
   def self.text_plain_generator(html)
      full_sanitizer = HTML::FullSanitizer.new 
    full_sanitizer.sanitize(CGI::unescapeHTML(html.to_s.gsub(/\<\/(p|br|div)\>/," </\\1>\n ").gsub("<br/>","\n")).gsub("&nbsp;"," "))
   end
 
+  # Return a fixed-width text friendly table
   def self.text_table(columns,data)
     column_widths = []
 
@@ -43,6 +45,7 @@ class Util::TextFormatter
     output.join("\n") + "\n"
   end
   
+  # generate a html table from data (for inserting into email etc)
   def self.html_table(columns,data,atr={})
     attributes = ""
     atr.each { |key,val| attributes += " #{key}='#{val}'" }
@@ -58,7 +61,7 @@ class Util::TextFormatter
   
   protected 
   
-  def self.text_table_row(column_widths,columns)
+  def self.text_table_row(column_widths,columns) #:nodoc: 
     extra_row = nil
     output = "|"
     column_widths.each_with_index do |col_width,idx|

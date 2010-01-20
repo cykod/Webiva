@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class Editor::AppController < ParagraphController
+class Editor::AppController < ParagraphController #:nodoc:all
   permit 'editor'
   
   # Editor for authorization paragraphs

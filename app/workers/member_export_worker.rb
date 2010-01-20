@@ -5,7 +5,7 @@ require 'digest/sha1'
 require 'csv'
 require 'pp'
 
-class MemberExportWorker <  Workling::Base
+class MemberExportWorker <  Workling::Base #:nodoc:all
   
   # Args: file_path
   # 

@@ -1,4 +1,4 @@
-class SearchController < CmsController
+class SearchController < CmsController #:nodoc:all
 
   cms_admin_paths :content,
     'Search' => { :action => 'index'} 

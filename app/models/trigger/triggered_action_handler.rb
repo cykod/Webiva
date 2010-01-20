@@ -1,9 +1,17 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 
+=begin rdoc
+To add new triggered actions into the system, register a of type :trigger, :actions in your AdminController
+
+Then subclass Trigger::TriggeredActionHandler, call register_triggered_actions and define the appropriate
+trigger classes (subclassing Trigger::TriggerBase) for each trigger. See app/models/trigger/core_trigger.rb for more information.
+=end
 class Trigger::TriggeredActionHandler
 
 
+  # Register an array of triggered actions, each of which should
+  # be a hash with a :name, :description and :options_partial key
   def self.register_triggered_actions(types)
   
    module_name = self.to_s.underscore

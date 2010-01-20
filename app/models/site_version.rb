@@ -1,16 +1,24 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 
+=begin rdoc
+SiteVersion's in principle allow a single database to have multiple site trees.
 
+This functionality isn't exposed via an interface however so for now your website's will just
+have to be happy with one. 
+
+=end
 class SiteVersion < DomainModel
 
 
   has_many :site_nodes,:order => 'lft'
 
+  # Returns the default site Version (or creates one automatically)
   def self.default
     self.find(:first,:order => 'id') || self.create(:name => 'Default')
   end
 
+  # Returns the root node of this site version or creates one (and a associated home page)
   def root_node
     @root_node ||= self.site_nodes.find(:first,:conditions => 'parent_id IS NULL')
 
@@ -43,6 +51,7 @@ class SiteVersion < DomainModel
     @root_node
   end
 
+  # Given a list of nested_pages, returns any archived nodes and their children
   def self.remove_archived(nd)
     new_child_cache = nd.child_cache.map do |node|
       node.archived? ? nil : SiteVersion.remove_archived(node)

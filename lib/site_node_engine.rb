@@ -3,20 +3,51 @@
 require "mime/types"
 require 'digest/sha1'
 
-class SiteNodeEngine
-  @@rendering_classes = {}
-  
-  def self.cache_rendering_class(display,cls)
-    @@rendering_classes[display] = cls
-    cls
-  end
-  
-  def self.rendering_class(display)
-    @@rendering_classes[display]
-  end
+=begin rdoc
+SiteNodeEngine is the class that is responsible for assembling the various paragraphs and frameworks
+and doing what's necessary to render the page.
 
+Most of the time it's not a class that you'll have to use, but as it forms the backbone of Webiva,
+it's important to know a little bit about it:
+
+At the most basic level, if you need to render a specific site node, you could do something like the following:
+
+   begin  
+     @page = SiteNode.find(@site_node_id)
+     engine = SiteNodeEngine.new(@page,:display => session[:cms_language], :path => path_args)
+
+     # Call engine.run with the controller you're in and the current EndUser object
+     @output = engine.run(self,myself)
+   # catch a couple of exceptions and render a 404
+   rescue ActiveRecord::RecordNotFound, SiteNodeEngine::NoActiveVersionException, SiteNodeEngine::MissingPageException => e
+     render :text => 'Page not found', :status => 404
+     return
+   end
+
+   if @output.redirect?
+     redirect_to(@output.redirect, :status => 301)
+   elsif @output.document?
+     handle_document_node(@output,@page)
+   elsif @output.page?
+     render :text => render_output(@page,@output)
+   end 
+
+The last render comment would just render the body of the page (without a <html> or <head> tag, 
+see layouts/page.rhtml for what's necessary to render a full html page.
+
+If you'd like to use SiteNodeEngine but generate your own body in a standard-ish rails controller
+you can subclass ModuleAppController and add whatever routes you need to routes.rb. If create a site
+tree that mimics your routes and a "Module application" paragraph your application will rendered on 
+whatever pages are necessary.
+
+=end
+class SiteNodeEngine
+
+  # These methods are include in the ModuleAppController and aid
+  # in rendering site nodes
   module Controller
 
+    # Return a page given an array of page arguments and a site_version_id
     def find_page_from_path(path_elems,site_version_id)
       path_elems = path_elems.clone
       path_args = []
@@ -35,13 +66,13 @@ class SiteNodeEngine
       return page,path_args
     end  
 
-    # If we have a document's node, which is a file or any data
-    # return that
+    # Correctly render a document node which is the result of a rendering a page where
+    # a paragraph calls ParagraphRenderer#data_paragraph or the rendering of a DocumentNode
     def handle_document_node(output,page)
     
       # if we have data, just output the data
       if output.text?
-        render :text => output.text
+        render output.options
         return
       elsif output.data?
         send_data(output.data,output.options)
@@ -99,8 +130,9 @@ class SiteNodeEngine
       end
     end
     
-    # Take a paragraph, and runs a renderer on it
-    # Returns either a Paragraph or a string
+    # Takes a paragraph and runs it through the renderer (calling the 
+    # appropriate renderer method), doesn't actually render the
+    # output if the paragraph is rendering a partial
     def compile_paragraph(site_node,revision,paragraph,opts={})
       # Get the type of paragraph
       paragraph = PageParagraph.thaw(paragraph) if paragraph.is_a?(Hash)
@@ -174,7 +206,7 @@ class SiteNodeEngine
           rnd.capture_data = true if  opts[:capture]
           if paragraph.site_feature_id && !opts[:edit]
             # If we're not in the editor, include the feature css
-            # We have the render_css attribute from paragraph cached from the thaw
+            # We have the css attribute from paragraph cached from the thaw
             if paragraph.render_css.nil? ? (paragraph.site_feature && !paragraph.site_feature.rendered_css.blank?) : paragraph.render_css
               rnd.require_css("/stylesheet/f#{paragraph.site_feature_id}.css") 
             end
@@ -207,16 +239,16 @@ class SiteNodeEngine
       
     end
     
+    # Renders a paragraph, returns a string containing the outputed html
+    # will compile the paragraph if necessary
     def render_paragraph(site_node,revision,paragraph,opts = {})
       opts[:edit] = true if opts[:editor]
       if(paragraph.is_a?(PageParagraph) || paragraph.is_a?(Hash))
         paragraph = compile_paragraph(site_node,revision,paragraph,opts)
       end
 
-
       cls= paragraph.class
       cls_name = cls.to_s 
-
 
       if cls_name == "ParagraphRenderer::ParagraphOutput"
         return '' if paragraph.render_args[:nothing]
@@ -273,34 +305,44 @@ EOF
         ""
       end
     end
-    
+
+
+    def webiva_post_process_paragraph(txt) #:nodoc:
+      @post_process_form_token_str ||= "<input name='authenticity_token' type='hidden' value='#{ form_authenticity_token.to_s}' />"
+      txt.gsub!("<CMS:AUTHENTICITY_TOKEN/>",@post_process_form_token_str)
+      txt
+    end
+
+
     # Make sure any including controller
     # can render paragraphs from templates
-    def self.append_features(base)
+    def self.append_features(base) #:nodoc:
       super
       base.helper_method :compile_paragraph, :render_paragraph
-#      base.hide_action :find_page_from_path
-#      base.hide_action :handle_document_node
-#      base.hide_action :render_paragraph
-#      base.hide_action :compile_paragraph
+      base.helper_method :webiva_post_process_paragraph, :render_output
+      base.hide_action :find_page_from_path
+      base.hide_action :handle_document_node
+      base.hide_action :render_paragraph
+      base.hide_action :compile_paragraph
+      base.hide_action :render_output
+      base.hide_action :webiva_post_process_paragraph
     end
     
     
-    def render_output(engine,user)
-    
-      output_obj = engine.run(self,user)
-      page = engine.container
-
+    # Renders the output object of SiteNodeEngine given the page SiteNode
+    # and the SiteNodeEngine::PageOutput object
+    def render_output(page,output_obj)
+      raise "Not a PageOutput" unless output_obj.is_a?(PageOutput)
       output = ''
       output_obj.html  do |blk| 
         if blk.is_a?(String) 
-          output += blk 
+          output += webiva_post_process_paragraph(blk)
         elsif blk.is_a?(Hash) 
           blk[:paragraphs].each do |para| 
             if para.is_a?(String) 
-             output += para 
+             output += webiva_post_process_paragraph(para)
             else 
-              output+= "<div class='paragraph' >#{render_paragraph page, output_obj.revision, para}</div>"
+              output+= "<div class='paragraph' >#{webiva_post_process_paragraph(render_paragraph page, output_obj.revision, para)}</div>"
             end 
           end 
         end 
@@ -310,36 +352,41 @@ EOF
   end
   
   
-  class Output
+  # Base class for all different SiteNodeEngine outputs
+  class Output 
     attr_accessor :status
     attr_accessor :paction
     attr_accessor :title
-  	
-  	def initialize
-  		@head = []
-  	end
-  	
-  	def redirect? 
-  		false
-  	end
-  	def document?
-  		false
-  	end
-  	def page?
-  		false
-  	end
-  	
+    
+    def initialize
+      @head = []
+    end
+    
+    def redirect? 
+      false
+    end
+    def document?
+      false
+    end
+    def page?
+      false
+    end
+    
   end
   
-  class RedirectOutput < Output
+  # An instance of this is returned fron SiteNodeEngine#run if the
+  # running the SiteNode results in a redirect
+  class RedirectOutput < Output #:nodoc:all
     attr_accessor :redirect
-  	def redirect?
-  		true
-  	end
-  
+    def redirect?
+      true
+    end
+    
   end
   
-  class PageOutput < Output
+  # An instance of this is returned fron SiteNodeEngine#run if the
+  # running the SiteNode results in a HTML page
+  class PageOutput < Output #:nodoc:all
     attr_accessor :language
     attr_accessor :title
     attr_accessor :site_template_id
@@ -353,21 +400,20 @@ EOF
     attr_accessor :meta_keywords
     attr_accessor :content_nodes
     
-  	def page?
-  		true
-  	end
-  	
-  	def html(&block)
-  		self.body.each do |bd|
-  			yield bd
-  		end
-  	end
-  	
-
-
+    def page?
+      true
+    end
+    
+    def html(&block)
+      self.body.each do |bd|
+        yield bd
+      end
+    end
   end
   
-  class DocumentOutput < Output
+  # An instance of this is returned fron SiteNodeEngine#run if the
+  # running the SiteNode results in a date output or a file output  
+  class DocumentOutput < Output 
     def initialize(options=nil)
       @options= options || {}
     
@@ -420,6 +466,8 @@ EOF
     end
   end
   
+  # Exception that is raised when the site node doesn't
+  # have an active version to display
   class NoActiveVersionException < RuntimeError
     attr :container
     attr :language
@@ -430,6 +478,8 @@ EOF
     end
   end
   
+  # Exception that is raised if there's not page matching
+  # the path passed in
   class MissingPageException < RuntimeError
     attr :container
     attr :language
@@ -445,7 +495,16 @@ EOF
   attr_accessor :revision, :mode, :active_template, :language, :user, :path_args, :page_information
   attr_reader :controller
   
-
+  # To create a SiteNodeEngine, you need to pass it a container (usually a SiteNode, but
+  # could also be a framework PageModifier in the editor)
+  #
+  # Options:
+  # [:edit] 
+  #   Set to true if we are in the editor
+  # [:capture]
+  #   Set to true to capture the output of the renderer instead of actually rendering a feature
+  # [:display]
+  #   The language to display if possible
   def initialize(container,options = {} )
     @container = container
     @capture_data = options[:capture]
@@ -470,6 +529,7 @@ EOF
     end
   end
   
+  # Run an individual paragraph (instead of the entire container)
   def run_paragraph(paragraph,controller,user,options = {})
     nd = generate_page_information(controller,user)
 
@@ -493,8 +553,9 @@ EOF
     end
   end
 
-  # Run the site node engine,
-  # given a ActiveController and a user
+  # Run the site node engine, given an ActiveController and a user 
+  # this will compile all paragraph and return the appropriate subclass of
+  # SiteNodeEngine::Output
   def run(controller,user)
     
     nd = generate_page_information(controller,user)    
@@ -643,7 +704,7 @@ EOF
  
   protected
 
-  def handle_redirected_output(nd)
+  def handle_redirected_output(nd) #:nodoc:
     if nd.node_type == 'J'
       @output = RedirectOutput.new
       @output.status = 'Redirect'
@@ -661,7 +722,7 @@ EOF
     return nil    
   end
 
-  def generate_node_engine_handlers
+  def generate_node_engine_handlers #:nodoc:
     @node_engine_handlers ||= [ NodeEngine::BuiltinHandler.new(self) ]
   end
 
@@ -907,7 +968,7 @@ EOF
   # Pre process the paragraph for storing in page information
   # - if its a basic paragraph, just output
   # - if its a cachable paragraph, render it
-  # - otherwise just at a hash of attributes in for defered rendering
+  # - otherwise just at a hash of attributes in for deferred rendering
   def pre_process_paragraph(compiled_parts,para,zone_idx,includes)
     body = nil
     skip = false

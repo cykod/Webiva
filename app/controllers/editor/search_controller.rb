@@ -1,5 +1,5 @@
 
-class Editor::SearchController < ParagraphController
+class Editor::SearchController < ParagraphController #:nodoc:all
   permit 'editor_editor'
   
   user_actions [:add_feature ]

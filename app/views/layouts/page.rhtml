@@ -57,23 +57,8 @@
 <% end -%>
 
 <% end -%>
-<% @output.html  do |blk| -%>
-<% if blk.is_a?(String) -%>
-<%= webiva_post_process_paragraph(blk) %>
-<% elsif blk.is_a?(Hash) -%>
-<% blk[:paragraphs].each do |para| -%>
-<% if para.is_a?(String) -%>
-<%= webiva_post_process_paragraph(para) %>
-<% elsif para.is_a?(ParagraphRenderer::ParagraphOutput) && para.rnd.is_a?(Editor::AppRenderer)  -%>
-<%= yield %>
-<% else -%>
-<div class='paragraph' >
-<%= webiva_post_process_paragraph(render_paragraph(@page, @output.revision, para))  %>
-</div>
-<% end -%>
-<% end -%>
-<% end -%>
-<% end -%>
+
+<%= render_output(@page,@output) -%>
 
 <% unless @partial_page -%>
 

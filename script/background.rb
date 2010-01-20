@@ -9,7 +9,7 @@ end
 
 
 def end_background(path) 
-  `#{path}/kill_starling.sh`
+  `#{path}/kill_starling.rb`
  `#{path}/workling_client stop`
 end
 

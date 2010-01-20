@@ -2,7 +2,7 @@
 
 
 
-class Editor::PublicationFeature < ParagraphFeature
+class Editor::PublicationFeature < ParagraphFeature #:nodoc:all
 
 
   feature :form

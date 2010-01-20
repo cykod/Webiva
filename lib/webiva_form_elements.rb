@@ -1,26 +1,27 @@
 
 # Custom higher level form elements specific to Webiva
+# included in cms_form_for and unstyled_cms_form_for
 module WebivaFormElements
 
-
-	include ActionView::Helpers::UrlHelper
-	
-        
-	def filemanager_image(field,options = {})
-		fileId = @object.send(field)
-		file = DomainFile.find_by_id(fileId) if fileId
-		url = '/website/file/popup'
-		url += "?field=#{@object_name}_#{field}"
-		url += "&select=img"
-		
-		if file
-			name = file.file_path
-			thumb = file.url(:icon)
-		else
-			name = 'Select Image'.t
-			thumb = "/images/spacer.gif"
-		end
-		<<-SRC
+  include ActionView::Helpers::UrlHelper
+  
+  # Displays a File manager selection widget (admin only)
+  # that lets a user select an image from the file manager
+  def filemanager_image(field,options = {})
+    fileId = @object.send(field)
+    file = DomainFile.find_by_id(fileId) if fileId
+    url = '/website/file/popup'
+    url += "?field=#{@object_name}_#{field}"
+    url += "&select=img"
+    
+    if file
+      name = file.file_path
+      thumb = file.url(:icon)
+    else
+      name = 'Select Image'.t
+      thumb = "/images/spacer.gif"
+    end
+    <<-SRC
     <table><td valign='middle' align='center' style='width:32px;height:32px;border:1px solid #000000;'><img id='#{@object_name}_#{field}_thumb' src='#{thumb}' onclick='openWindow("#{url}" + "&file_id=" + $("#{@object_name}_#{field}").value,"selectFile",800,400,"yes","yes")'/></td><td valign='center' align='left'><a href='javascript:void(0);' onclick='openWindow("#{url}" + "&file_id=" + $("#{@object_name}_#{field}").value,"selectFile",800,400,"yes","yes")'>
 
 			<span id='#{@object_name}_#{field}_name' >#{name}</span>
@@ -28,8 +29,10 @@ module WebivaFormElements
 	<input type='hidden' name='#{@object_name}[#{field}]' id='#{@object_name}_#{field}' value='#{file.id if file}' />
 	</td></tr></table>
 		SRC
-	end
+  end
   
+  # Displays a File manager selection widget (admin only)
+  # that lets a user select any type of file from the file manager
   def filemanager_file(field,options = {})
     if @object
       fileId = @object.send(field)
@@ -58,6 +61,8 @@ module WebivaFormElements
     SRC
   end
   
+  # Shows a content selector that lets the user select a single item from 
+  # specific content class
   def content_selector(field,content_class,options = {})
     if @object
       content_id =@object.send(field)
@@ -84,6 +89,8 @@ module WebivaFormElements
      SRC
   end
   
+  # Shows a content selector that lets the user select a multiple items from 
+  # specific content class
   def multi_content_selector(field,content_class,options = {})
     if @object
       content_ids =@object.send(field)
@@ -110,6 +117,8 @@ module WebivaFormElements
      SRC
   end  
   
+  # Displays a File manager selection widget (admin only)
+  # that lets a user select a folder from the file manager
   def filemanager_folder(field,options = {})
     if @object
       fileId = @object.send(field)
@@ -132,6 +141,7 @@ module WebivaFormElements
     SRC
   end
 	
+  # Color selection widget
   def color_field(field,options = {}) 
     color = @object.send(field)
     color ||= ''
@@ -146,6 +156,7 @@ module WebivaFormElements
     SRC
   end
   
+  # Popup-calendar date selector
   def date_field(field,options = {})
     date_value = @object.send(field) if @object
     if date_value.is_a?(String)
@@ -166,7 +177,8 @@ module WebivaFormElements
     SRC
   
   end
-  
+
+  # Popup-calendar date and time selector
   def datetime_field(field,options = {})
   
     date_value = @object.send(field) if @object
@@ -189,6 +201,7 @@ module WebivaFormElements
     SRC
   end
   
+  # Displays a tinymce editor area
   def editor_area(field,options = {})
     txt = @object.send(field)
     
@@ -258,7 +271,8 @@ module WebivaFormElements
     end
     txtarea
   end
-  
+
+  # Front end image upload field  
   def upload_image(field,options = {})
     image_file_id =  @object.send(field)
     image_file = DomainFile.find_by_id(image_file_id)
@@ -282,6 +296,7 @@ module WebivaFormElements
   
   end
   
+  # Front end file upload field  
   def upload_document(field,options = {})
     doc_file_id =  @object.send(field)
     doc_file = DomainFile.find_by_id(doc_file_id)
@@ -308,6 +323,8 @@ module WebivaFormElements
   end
 
 
+
+  # unsorted Multi-select (deprecated)
   def unsorted_selector(field,available_values,selected_values,options = {})
 
     <<-SRC
@@ -366,7 +383,7 @@ module WebivaFormElements
  
  
       
-  def price_range(field, prices, opts = {})
+  def price_range(field, prices, opts = {}) #:nodoc:
   
     object_name = @object_name
     field_values = @object.send(field)
@@ -516,6 +533,7 @@ module WebivaFormElements
     SRC
   end
   
+  # Display a image list, stored in a single text field
   def image_list(field,opts={})
     obj_name = @object_name.to_s.gsub(/\[|\]/,"_");
     
@@ -610,7 +628,11 @@ module WebivaFormElements
   
   end
   
-  
+  # Displays a autocomplete-powered selector for a user
+  # By default if expects a field called 'field' and one called 'field_id'
+  # but passing a :no_name => true option will just use field as the id field
+  #
+  # You can also pass in a :id_field attribute to use a different id field name
   def end_user_selector(field,opts = {})
       
       if opts[:no_name]
@@ -665,6 +687,7 @@ module WebivaFormElements
   JAVASCRIPT
   end
     
+  # Generic autocomplete field
   def autocomplete_field(field,url,opts = {})
 
           
@@ -701,15 +724,19 @@ module WebivaFormElements
   end
   
  
+  # Selector that lets you pick a page by id
   def page_selector(field,opts = {})
     self.select(field,[['--Select Page--'.t,nil]] + SiteNode.page_options,opts)
   end
-
-  def url_selector(field,opts = {})
+ 
+  # Selector that lets you pick a page by url
+ def url_selector(field,opts = {})
     self.select(field,[['--Select Page--'.t,nil]] + SiteNode.page_options.map {  |elm| [elm[0],elm[0]] },opts)
   end
 
-
+  # Ordered array selector that lets elements be added and sorted.
+  # Posts as an array of elements similar to a multiselect.
+  # Accepts a list of opts like select and radio_buttons does
   def ordered_array(field,opts,options={})
     objects = @object.send(field)
     
@@ -818,7 +845,7 @@ HTML
   end
 
   
-  def ordered_selection_list(field,class_name,options={})
+  def ordered_selection_list(field,class_name,options={}) #:nodoc:
 
     opts = options.delete(:options)
     opts = class_name.select_options if !opts
@@ -937,7 +964,12 @@ HTML
 
   end
 
-
+  # Access control widget that expected a boolean field 
+  # where SiteAuthorizationEngine::Target#access_control has been called.
+  # Used to optionally limit access on a piece of content
+  #
+  # Message should be something like: "Limit access to this Blog Post"
+  # and it will appear next to a checkbox to optionally limit access.
   def access_control(field,message,options={})
 
     options = options.clone

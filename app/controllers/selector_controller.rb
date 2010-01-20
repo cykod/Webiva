@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class SelectorController < CmsController
+class SelectorController < CmsController #:nodoc:all
   layout 'manage_window'
 
   def popup

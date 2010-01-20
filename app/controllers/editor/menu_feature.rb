@@ -1,7 +1,7 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 
-class Editor::MenuFeature < ParagraphFeature
+class Editor::MenuFeature < ParagraphFeature #:nodoc:all
 
   # Menu Feature, Used for Menus and Automenus
   feature :menu, :default_data => {  :url => '/test',

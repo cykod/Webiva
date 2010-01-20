@@ -1,7 +1,7 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 
-
+# This class contains the core triggers that are available in the system
 class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
 
   def self.trigger_actions_handler_info
@@ -25,7 +25,7 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
         }
       ]
 
-  class EmailTrigger < Trigger::TriggerBase
+  class EmailTrigger < Trigger::TriggerBase #:nodoc:
 
 
     class EmailOptions < HashModel
@@ -118,7 +118,7 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
       
   end
   
-  class TagTrigger < Trigger::TriggerBase
+  class TagTrigger < Trigger::TriggerBase #:nodoc:
 
       
     class TagOptions < HashModel
@@ -135,7 +135,7 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
     end    
   end
   
-  class ReferrerTrigger < Trigger::TriggerBase
+  class ReferrerTrigger < Trigger::TriggerBase #:nodoc:
   
     class ReferrerOptions < HashModel
       default_options :referrer => nil, :apply => 'unregistered'

@@ -34,6 +34,9 @@ for example:
 
 This will return either an existing user with the specified email address or a newly-saved
 user object. See the method's description for more details.
+
+
+
 =end
 class EndUser < DomainModel
   validates_confirmation_of :password
