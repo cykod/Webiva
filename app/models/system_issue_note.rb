@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class SystemIssueNote < SystemModel
+class SystemIssueNote < SystemModel #:nodoc:all
   
   belongs_to :system_issue
   belongs_to :entered_user, :polymorphic => true

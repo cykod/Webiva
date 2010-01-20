@@ -26,14 +26,14 @@ class UserSubscriptionEntry < DomainModel
     end
   end
   
-  def before_create
+  def before_create #:nodoc:all
     if !verified?
       
     end
   
   end
   
-  def after_create
+  def after_create #:nodoc:all
       if !verified? && self.user_subscription.double_opt_in?
         # TODO: Send Verification Email
       elsif self.user_subscription.registration_email?
@@ -41,7 +41,7 @@ class UserSubscriptionEntry < DomainModel
       end
   end
   
-  def after_update
+  def after_update #:nodoc:all
     if verified && self.user_subscription.registration_email?
       # TOTO: Send Registration Email
     end

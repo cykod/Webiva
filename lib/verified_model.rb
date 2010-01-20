@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-module VerifiedModel
+module VerifiedModel #:nodoc:all
   
 
   def VerifiedModel.append_features(mod)

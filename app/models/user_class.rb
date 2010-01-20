@@ -3,6 +3,9 @@
 
 # Called a "User Profile" on the front end (sorry) every EndUser is a member of one
 # UserClass - even users who aren't logged in a members of the "anonymous" user class
+#
+# The site authorization system uses UserClass and AccessToken's to control access to 
+# both pages of the backend and various pages on the frontend.
 class UserClass < DomainModel
   @@initialized = false
   

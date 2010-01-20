@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-module TemplatesHelper
+module TemplatesHelper #:nodoc:all
 
   def merge_style(css_style,styles)
     # Try to fake the Cascading part of CSS by seeing if any other styles 

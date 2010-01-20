@@ -2,7 +2,7 @@
 
 
 
-class TagNote < DomainModel
+class TagNote < DomainModel #:nodoc:all
 
   belongs_to :tag
 end

@@ -1,5 +1,5 @@
 
-class Editor::SearchRenderer < ParagraphRenderer
+class Editor::SearchRenderer < ParagraphRenderer #:nodoc:all
 
   features '/editor/search_feature'
 

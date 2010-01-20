@@ -1,4 +1,4 @@
-class SparklinesController < ActionController::Base
+class SparklinesController < ActionController::Base #:nodoc:all
   
 
   # Handles requests for sparkline graphs from views.

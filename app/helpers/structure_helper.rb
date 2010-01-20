@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-module StructureHelper
+module StructureHelper #:nodoc:all
   @@element_icons = {:F => 'icons/framework.gif',
                      :P => 'icons/page.gif',
                      :R => 'icons/domain.gif',
