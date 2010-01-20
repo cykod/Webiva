@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class Editor::AuthController < ParagraphController
+class Editor::AuthController < ParagraphController #:nodoc:all
   permit 'editor_editor'
   
   user_actions [:add_feature ]
