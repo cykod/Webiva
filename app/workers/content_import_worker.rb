@@ -4,7 +4,7 @@ require 'fileutils'
 require 'digest/sha1'
 require 'csv'
 
-class ContentImportWorker <  Workling::Base
+class ContentImportWorker <  Workling::Base #:nodoc:all
    
   # Args: file_path
   # 

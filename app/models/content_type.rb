@@ -48,6 +48,16 @@ class ContentType < DomainModel
     self.find_by_container_type_and_container_id(container_type,container_id)
   end
 
+  def before_create #:nodoc:
+    cmts = ContentMetaType.find(:all)
+    cmts.each do |cmt|
+      if(cmt.match_type(self))
+        cmt.update_type(self)
+        break
+      end
+    end
+  end
+
   def after_update #:nodoc:
     self.content_node_values.delete
   end
