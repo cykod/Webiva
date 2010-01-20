@@ -145,53 +145,30 @@ class Editor::MenuController < ParagraphController
   end
   
   class SiteMapOptions < HashModel
-      default_options :root_page => nil
+    attributes :root_page => nil
   
-  end
-  
-  def site_map
-  
-    data = params[:site_map] || @paragraph.data
-    @options = SiteMapOptions.new(data)
+    integer_options :root_page
 
+     options_form(
+	  fld(:root_page, :select, :options => :page_options)
+	  )
 
-  
-    if request.post?
-      if @options.valid?
-        @options.root_page = @options.root_page.to_i
-        @paragraph.data = @options.to_h
-        @paragraph.save
-        render_paragraph_update
-        return
-      end
+    def self.page_options
+      @opts = [['Show Entire Site'.t, nil]] + SiteNode.page_options
     end
-    
-    @pages = [['Show Entire Site'.t,'']] + SiteNode.page_options
-    
   end
   
-  class BreadCrumbOptions < HashModel
-      default_options :root_page => nil
-  end
-  
-  def bread_crumbs
-  
-    data = params[:bread_crumbs] || @paragraph.data
-    @options = BreadCrumbOptions.new(data)
+  class BreadCrumbsOptions < HashModel
+    attributes :root_page => nil
 
-    @pages = [['No Root Page'.t,'']] + SiteNode.page_options
+    integer_options :root_page
 
-  
-    if request.post?
-      if @options.valid?
-        @options.root_page = @options.root_page.to_i
-        @paragraph.data = @options.to_h
-        @paragraph.save
-        render_paragraph_update
-        return
-      end
+     options_form(
+	  fld(:root_page, :select, :options => :page_options)
+	  )
+
+    def self.page_options
+      @opts = [['No Root Page'.t, nil]] + SiteNode.page_options
     end
-    
   end
-  
 end

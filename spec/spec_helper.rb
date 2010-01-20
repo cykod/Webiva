@@ -204,8 +204,9 @@ module Spec
 
       def paragraph_controller_helper(site_node_path,display_module_type,data={},extra_attributes = {})
         display_parts = display_module_type.split("/")
-	@site_version = SiteVersion.new :name => 'Test', :default_version => true
-	@site_node = SiteNode.create :site_version => @site_version, :node_path => site_node_path
+	@site_version ||= SiteVersion.new :name => 'Test', :default_version => true
+	@root_node ||= SiteNode.create :site_version => @site_version, :node_type => 'R', :node_path => '/'
+	@site_node = @root_node.add_subpage(site_node_path.sub('/', ''))
 	@revision = PageRevision.create :revision_container => @site_node, :language => 'en', :active => true, :created_by => @myself, :updated_by => @myself
 	@paragraph = PageParagraph.create :display_module => display_parts[0..-2].join("/"), :display_type => display_parts[-1], :page_revision_id => @revision.id, :data => data, :attributes => extra_attributes
       end

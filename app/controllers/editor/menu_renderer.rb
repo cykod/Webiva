@@ -122,34 +122,34 @@ class Editor::MenuRenderer < ParagraphRenderer
     if page.is_a?(SiteNode)
     
       page.site_node_modifiers.each do |mod|
-	    if mod.modifier_type == 'L'
-	      @page_access  = false
-	    elsif mod.modifier_type == 'P' && page.node_type == 'P'
-	      # Only if we don't already have a lock disabling access
-	      if @page_access 
-	        if page.page_revisions.length > 0
-	          if page.page_revisions.length > 1
-		          langs = page.page_revisions.collect do |rev|
-		            { :title => rev.language.upcase, :link => "/view/#{rev.language.upcase}#{page.node_path}",
-		              :description => rev.meta_description, :keywords => rev.meta_keywords }
-		          end
-	          else
-		          langs = nil
-	          end
+	if mod.modifier_type == 'lock'
+	  @page_access  = false
+	elsif mod.modifier_type == 'page' && page.node_type == 'P'
+	  # Only if we don't already have a lock disabling access
+	  if @page_access 
+	    if page.page_revisions.length > 0
+	      if page.page_revisions.length > 1
+		langs = page.page_revisions.collect do |rev|
+		  { :title => rev.language.upcase, :link => "/view/#{rev.language.upcase}#{page.node_path}",
+		    :description => rev.meta_description, :keywords => rev.meta_keywords }
+		end
+	      else
+		langs = nil
+	      end
 	          
-	          rev = page.page_revisions[0]
-	          title = rev.menu_title.blank? ? ( rev.title.blank? ? page.title.humanize.gsub("-"," ") : rev.title ) : rev.menu_title.to_s
-	          if page.include_in_sitemap?
-	            page_list << { :title => title , :link => page.node_path, :level => level, :languages => langs, :page_title => rev.title,
-	                            :description => rev.meta_description, :keywords => rev.meta_keywords }
-            end
-	        end
+	      rev = page.page_revisions[0]
+	      title = rev.menu_title.blank? ? ( rev.title.blank? ? page.title.humanize.gsub("-"," ") : rev.title ) : rev.menu_title.to_s
+	      if page.include_in_sitemap?
+		page_list << { :title => title , :link => page.node_path, :level => level, :languages => langs, :page_title => rev.title,
+		  :description => rev.meta_description, :keywords => rev.meta_keywords }
 	      end
 	    end
+	  end
+	end
       end
     else
     
-      page = SiteNode.get_root_folder if !page || page == 0
+      page = SiteVersion.default.root_node if !page || page == 0
       page = SiteNode.find_by_id(page,:include => [ :site_node_modifiers, :page_revisions ], 
 			  :conditions => 'active=1 AND revision_type="real" AND include_in_sitemap=1', :order => "site_node_modifiers.position, page_revisions.language = #{DomainModel.connection.quote(@language)} DESC" ) if(page.is_a?(Integer))
       
@@ -157,7 +157,7 @@ class Editor::MenuRenderer < ParagraphRenderer
     end
     
     # Only if we don't already have a lock disabling access, get page chidlren
-    if @page_access && page.children_count > 0
+    if @page_access && page.children.count > 0
       page.children.find(:all,:include => [ :site_node_modifiers, :page_revisions ], 
                         :conditions => 'active=1 AND revision_type="real" AND include_in_sitemap=1', :order => "site_nodes.position, site_node_modifiers.position, page_revisions.language = #{DomainModel.connection.quote(@language)} DESC"
       ).each do |pg|
@@ -167,11 +167,11 @@ class Editor::MenuRenderer < ParagraphRenderer
     return page_list
   end
   
-  paragraph :site_map, :cache => true
+  paragraph :site_map
   
   def site_map
     opts = paragraph.data
-    
+
     data = { :entries => build_site_map_data(opts[:root_page]) }
     render_paragraph :text => site_map_feature(data)
   end  
@@ -208,7 +208,7 @@ class Editor::MenuRenderer < ParagraphRenderer
     opts = paragraph.data || {}
     
     rev = revision
-    
+
     if rev
       title = rev.title.to_s.empty? ? site_node.title.humanize.capitalize : rev.title
       menu_title = rev.menu_title.blank? ? site_node.title.humanize.capitalize : rev.menu_title
@@ -229,7 +229,7 @@ class Editor::MenuRenderer < ParagraphRenderer
                           :page => site_node.id }
            }
     data[:edit] = true if editor?
-            
+
     render_paragraph :text => bread_crumb_feature(data)
   end
   

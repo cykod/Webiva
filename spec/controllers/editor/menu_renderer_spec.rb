@@ -6,7 +6,7 @@ describe Editor::MenuRenderer, :type => :controller do
   
   integrate_views
 
-  reset_domain_tables :end_users, :site_versions, :page_revisions, :site_nodes, :page_paragraphs
+  reset_domain_tables :end_users, :site_versions, :page_revisions, :site_nodes, :site_node_modifiers, :page_paragraphs
 
   def generate_page_renderer(paragraph, options={}, inputs={})
     @rnd = build_renderer('/page', "/editor/menu/#{paragraph}", options, inputs)
@@ -130,4 +130,72 @@ describe Editor::MenuRenderer, :type => :controller do
     @output.status.should == '200 OK'
   end
 
+  it "should render a site map of the entire site" do
+    mock_user
+
+    paragraph_controller_helper('/', '/editor/menu/test')
+    home = @site_node
+    test = @root_node.add_subpage('test')
+    test1 = @root_node.add_subpage('test/test1')
+    test2 = @root_node.add_subpage('test/test2')
+
+    options = {:root_page => nil }
+    @rnd = generate_page_renderer('site_map', options)
+
+    SiteVersion.should_receive(:default).and_return(@site_version)
+    @site_version.should_receive(:root_node).once.and_return(@root_node)
+
+    @output = renderer_get @rnd
+    @output.status.should == '200 OK'
+  end
+
+  it "should render bread crumbs" do
+    mock_user
+
+    paragraph_controller_helper('/', '/editor/menu/bread_crumbs')
+    home = @site_node
+    page = @root_node.add_subpage('page')
+    test = @root_node.add_subpage('test')
+    test1 = test.add_subpage('test/test1')
+    test2 = test1.add_subpage('test/test1/test2')
+
+    options = {:root_page => nil }
+    @paragraph.data = options
+    @paragraph.save.should be_true
+
+    @rnd = @paragraph.renderer.new(UserClass.default_user_class,controller,@paragraph,test2,@revision,{})
+    @rnd.extend(RspecRendererExtensions)
+
+    test2.should_receive(:parent).once.and_return(test1)
+    test1.should_receive(:parent).twice.and_return(test)
+    test.should_receive(:parent).twice.and_return(@root_node)
+
+    @output = renderer_get @rnd
+    @output.status.should == '200 OK'
+  end
+
+  it "should render bread crumbs with limit" do
+    mock_user
+
+    paragraph_controller_helper('/', '/editor/menu/bread_crumbs')
+    home = @site_node
+    page = @root_node.add_subpage('page')
+    test = @root_node.add_subpage('test')
+    test1 = test.add_subpage('test/test1')
+    test2 = test1.add_subpage('test/test1/test2')
+
+    options = {:root_page => test.id }
+    @paragraph.data = options
+    @paragraph.save.should be_true
+
+    @rnd = @paragraph.renderer.new(UserClass.default_user_class,controller,@paragraph,test2,@revision,{})
+    @rnd.extend(RspecRendererExtensions)
+
+    test2.should_receive(:parent).once.and_return(test1)
+    test1.should_receive(:parent).twice.and_return(test)
+    test.should_receive(:parent).exactly(0).and_return(@root_node)
+
+    @output = renderer_get @rnd
+    @output.status.should == '200 OK'
+  end
 end

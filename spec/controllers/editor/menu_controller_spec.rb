@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + "/../../spec_helper"
 
 describe Editor::MenuController do
 
-  reset_domain_tables :end_users, :site_versions, :page_revisions, :site_nodes, :page_paragraphs
+  reset_domain_tables :end_users, :site_versions, :page_revisions, :site_node_modifiers, :site_nodes, :page_paragraphs
 
   it "should be able to render all paragraphs" do
     mock_editor
