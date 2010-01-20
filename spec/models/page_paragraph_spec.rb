@@ -46,7 +46,7 @@ describe PageParagraph do
 
   describe "Canonical Paragraphs" do
 
-    reset_domain_tables :content_types,:content_nodes
+    reset_domain_tables :content_types,:content_nodes,:content_meta_types
 
 
     class TestParagraphType < HashModel
