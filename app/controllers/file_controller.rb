@@ -159,8 +159,8 @@ class FileController < CmsController # :nodoc: all
   
     calculate_image_size
     
-    if session[:upload_file_worker]
-      file_processor =  Workling.return.get(session[:upload_file_worker])
+    if params[:upload_key]
+      file_processor =  Workling.return.get(params[:upload_key])
       if file_processor && file_processor[:processed]
           @files = []
           @files = DomainFile.find(:all,:conditions => { :id => file_processor[:uploaded_ids] })
