@@ -16,9 +16,27 @@ Webiva is available at GitHub at http://github.com/cykod/Webiva
 
 === Getting Started
 
-Documentation at this point is pretty sparse, so you're own for now but more docs are coming soon. Please check out the instructions in the INSTALL file to get a development version up and running.
+The latest api documentation is available at http://api.webiva.net 
 
-The Backend of Webiva currently only supports Firefox and some parts are not compatible with Safari, Opera or Internet Explorer.
+For the front end, some Primary Classes to take a look at are:
+
+ParagraphRenderer, ParagraphController and ParagraphFeature
+
+(the three classes that are necessary to render and configure paragraphs)
+
+
+For the Back end, the following classes are useful:
+
+[ActiveTable]
+  used to generate dynamic tables
+[WebivaFormElements]
+  Custom file manager form elements for cms_form_for
+[EnhancedFormElements]
+  Additional form elements like radio_buttons and grouped_select
+[DomainModel]
+  The base class for all website classes
+[everything under ModelExtension]
+  Custom functionality that can be added to your DomainModel's
 
 === Bugs
 
