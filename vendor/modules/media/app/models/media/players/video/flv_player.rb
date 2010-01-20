@@ -75,7 +75,7 @@ class Media::Players::Video::FlvPlayer < Media::Players::Video::Base
   end
 
   def self.valid_media?(file)
-    true
+    Media::Players::Video::Base.valid_media? file
   end
 
   class Options < HashModel

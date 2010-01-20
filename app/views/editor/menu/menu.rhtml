@@ -4,6 +4,9 @@
 <div id='cms_loading' style='background-color:#CCCCCC; z-index:1000; position:absolute; width:100%; height:100%;'></div>
 <div class='cms_form' style='width:600px;'>
 <h3><%= "Edit Links Menu".t %></h3>
+<p><%= 'Create a new link by entering a link name and pressing [Enter].'.t %></p>
+<p><%= 'Click on <img src="%s" /> to select a link. Use the arrow keys to position.' / theme_src("/images/icons/menu_entry.gif") %></p>
+<br/>
 <div style='height:300px; overflow:auto;' >
 <div id='cms_menu_entries' >
 <% @item_index = 1 %>
@@ -13,7 +16,7 @@
 </div>
 <div id='cms_menu_item_create' style='padding-left: 10px' >
         <form onsubmit='cmsMenuEdit.createEntry(); return false;'>
-        <input type='text' id='cms_create_item' name='create_item' value='<%= "Click to Create" %>' onfocus='cmsMenuEdit.clearCreate();' size='20' />
+        <input type='text' id='cms_create_item' name='create_item' value='<%= "Enter link name and press [Enter] to create" %>' onfocus='cmsMenuEdit.clearCreate();' size='35' />
         </form>
 </div>
 </div>
@@ -23,7 +26,7 @@
 <input type='hidden' name='entry_index' id='cms_entry_index' />
 <table>
 <tr>
-  <td><%= "Entry Title:".t %>
+  <td><%= "Link Name:".t %>
   </td>
   <td colspan='2'><input type='text' name='link_to_title' value='' id='cms_link_to_title'></td>
 </tr>
@@ -52,7 +55,7 @@
 </tr>
 <tr>
   <td colspan='3' align='right'>
-    <input type='submit' name='go' value='<%= "Save Entry".t %>' />
+    <input type='submit' name='go' value='<%= "Save Link".t %>' />
   </td>
 </tr>
 </table>

@@ -38,7 +38,7 @@ class Media::Players::Audio::WordPressAudioPlayer < Media::Players::Audio::Base
   end
 
   def self.valid_media?(file)
-    true
+    Media::Players::Audio::Base.valid_media? file
   end
 
   def audio_player_options

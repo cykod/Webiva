@@ -180,8 +180,6 @@ class Editor::MenuFeature < ParagraphFeature #:nodoc:all
           c.define_tag 'section:description' do |tag|
             tag.locals.data[:description].to_s.gsub("\n","<br/>")
           end
-          
-          define_position_tags(c)
         end
     end
   
@@ -275,8 +273,6 @@ FEATURE
         c.define_tag 'menu_title' do |tag|
           tag.locals.data[:menu_title]
         end 
-        
-        define_position_tags(c)
       end
       
   end
@@ -341,16 +337,12 @@ FEATURE
       c.define_value_tag('keywords') { |tag| tag.locals.data[:keywords] }
       c.define_value_tag('page_title') { |tag| tag.locals.data[:page_title] }
       
-      define_value_tag(c)
-      
       c.define_expansion_tag('languages') { |tag| tag.locals.data[:languages].is_a?(Array) }
       
       c.define_tag 'language' do |tag|
         mnu =tag.locals.data[:languages] 
         c.each_local_value(mnu,tag,'data')
       end
-      
-      define_position_tags(c)
     end
   end
 
