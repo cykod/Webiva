@@ -805,5 +805,52 @@ describe Editor::AuthRenderer, :type => :controller do
       @user.verification_string.should_not be_nil
     end
   end
+
+  describe "Email List Paragraph" do
+    def generate_renderer(data = {})
+      default = {}
+      build_renderer('/page','/editor/auth/email_list',default.merge(data),{})
+    end
+
+    it "should render the email list paragraph" do
+      @rnd = generate_renderer
+      @rnd.should_receive(:render_paragraph)
+      renderer_get @rnd
+    end
+  end
+
+  describe "Splash Paragraph" do
+    def generate_renderer(data = {})
+      @splash_page = SiteNode.find_by_title('splash') || SiteNode.create(:title => 'splash', :site_version_id => 1)
+      default = {:splash_page_id => @splash_page.id}
+      build_renderer('/page','/editor/auth/splash',default.merge(data),{})
+    end
+
+    it "should render the splash paragraph" do
+      @rnd = generate_renderer
+      @cookies = {}
+      @rnd.should_receive(:cookies).any_number_of_times.and_return(@cookies)
+      @rnd.should_receive(:redirect_paragraph).with(:site_node => @splash_page.id)
+      renderer_get @rnd
+      @cookies[:splash][:value].should == 'set'
+    end
+
+    it "should render nothing if already seen splash page" do
+      @rnd = generate_renderer
+      @cookies = {:splash => 'set'}
+      @rnd.should_receive(:cookies).any_number_of_times.and_return(@cookies)
+      @rnd.should_receive(:render_paragraph).with(:nothing => true)
+      renderer_get @rnd
+    end
+
+    it "should set cookie and render nothing if no_splash is sent" do
+      @rnd = generate_renderer
+      @cookies = {}
+      @rnd.should_receive(:cookies).any_number_of_times.and_return(@cookies)
+      @rnd.should_receive(:render_paragraph).with(:nothing => true)
+      renderer_get @rnd, :no_splash => true
+      @cookies[:splash][:value].should == 'set'
+    end
+  end
 end
 
