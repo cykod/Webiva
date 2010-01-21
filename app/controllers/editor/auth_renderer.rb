@@ -385,119 +385,113 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
   end
 
   def edit_account
-   opts = paragraph.data
-    
-    @optional_fields = %w{username gender first_name last_name}
+    opts = paragraph_options(:edit_account)
+
+    return render_paragraph :text => '' unless myself.id && myself.is_a?(EndUser)
+
+    @required_fields = %w(email)
+    @optional_fields = %w{first_name last_name gender username dob}
+    @adr_fields = %w(company phone fax address city state zip country)
     
     @user = myself
-    @user = EndUser.new unless myself.is_a?(EndUser)
     @address = @user.address ? @user.address : @user.build_address(:address_name => 'Default Address'.t )
     @work_address = @user.work_address ? @user.work_address : @user.build_work_address(:address_name => 'Default Work Address'.t )
+    @address.end_user_id = @user.id
+    @work_address.end_user_id = @user.id
 
-    if opts[:clear_info].to_s == 'y'
+    if opts.clear_info.to_s == 'y'
       if @user.id
-        %w(email first_name last_name gender ).each { |fld| @user.send(fld + "=",'') }
-        adr_fields = %w(company phone fax address city state zip country)
-        adr_fields.each { |fld| @address.send(fld + "=",'') }
-        adr_fields.each { |fld| @work_address.send(fld + "=",'') }
+        @required_fields.each { |fld| @user.send(fld + "=",'') }
+        @optional_fields.each { |fld| @user.send(fld + "=",'') }
+        @adr_fields.each { |fld| @address.send(fld + "=",'') }
+        @adr_fields.each { |fld| @work_address.send(fld + "=",'') }
       end
     end
     
     if !editor? && request.post? && params[:user]
-    
-      # See we already have an unregistered user with this email
-      @user = EndUser.find_visited_target(params[:user][:email])
-      
-      @user.attributes = params[:user]
+      @user.attributes = params[:user].slice(*(@required_fields + @optional_fields))
 
       all_valid = true
-      if opts[:address] != 'off'
+      if opts.address != 'off'
 
-        @address.attributes = params[:address]
-        @address.country = opts[:country] unless opts[:country].blank?
-        @address.validate_registration(:home,opts[:address] == 'required',opts[:address_type] )
+        @address.attributes = params[:address].slice(*@adr_fields)
+        @address.country = opts.country unless opts.country.blank?
+        @address.validate_registration(:home,opts.address == 'required',opts.address_type )
         all_valid = false unless @address.errors.empty?
       end
       
-      if opts[:work_address] != 'off'
-        @work_address.attributes = params[:work_address]  
-        @work_address.country = opts[:country] unless opts[:country].blank?
-        @work_address.validate_registration(:work,opts[:work_address] == 'required',opts[:address_type] )
+      if opts.work_address != 'off'
+        @work_address.attributes = params[:work_address].slice(*@adr_fields)
+        @work_address.country = opts.country unless opts.country.blank?
+        @work_address.validate_registration(:work,opts.work_address == 'required',opts.address_type )
         all_valid = false unless @work_address.errors.empty?
       end
-      
 
-      if opts[:content_publication].to_i > 0
-          fill_entry(@publication,@entry,@user)
-      
-          all_valid = false unless @entry.valid?
+      if opts.content_publication.to_i > 0
+	fill_entry(@publication,@entry,@user)
+	
+	all_valid = false unless @entry.valid?
       end
 
-      
       @user.valid?
 
-      @user.validate_registration(opts)
+      @user.validate_registration(opts.to_h)
       all_valid = false unless @user.errors.empty?
-      
+
       if all_valid
-        if opts[:address] != 'off'
+        if opts.address != 'off'
           @address.save
           @user.address_id = @address.id
         end
-        if opts[:work_address] != 'off'
+        if opts.work_address != 'off'
 	  @work_address.save
 	  @user.work_address_id = @work_address.id
         end
-        
-        
+
         @user.save
-        
-	if !opts[:add_tags].to_s.empty?
-	  @user.tag_names_add(opts[:add_tags])
+
+	if !opts.add_tags.to_s.empty?
+	  @user.tag_names_add(opts.add_tags)
 	end
         
-        if opts[:include_subscriptions].is_a?(Array) && opts[:include_subscriptions].length > 0
-          update_subscriptions(@user,opts[:include_subscriptions],params[:subscription])
+        if opts.include_subscriptions.is_a?(Array) && opts.include_subscriptions.length > 0
+          update_subscriptions(@user,opts.include_subscriptions,params[:subscription])
         end 
-
-        @address.update_attribute(:end_user_id,@user.id) if opts[:address] != 'off'
-        @work_address.update_attribute(:end_user_id,@user.id) if opts[:work_address] != 'off'
 
         if paragraph.update_action_count > 0
           paragraph.run_triggered_actions(@user,'action',@user)
         end
 
-	paragraph_action('Edited Profile',@user.email)
+	paragraph_action(myself.action('/editor/auth/edit_account_profile'),@user.email)
 	
-        if opts[:success_page]
-          nd = SiteNode.find_by_id(opts[:success_page])
+        if opts.success_page
+          nd = SiteNode.find_by_id(opts.success_page)
           if nd 
             redirect_paragraph nd.node_path if nd
             return 
-	 end
+	  end
 	end
 	render_paragraph :text => 'Successfully Edited Profile'.t 
 	return
       end
     end
 
-    if opts[:include_subscriptions].is_a?(Array) && opts[:include_subscriptions].length > 0
+    if opts.include_subscriptions.is_a?(Array) && opts.include_subscriptions.length > 0
 
-      @subscriptions = UserSubscription.find(:all,:order => :name,:conditions => "id IN (#{opts[:include_subscriptions].collect {|sub| DomainModel.connection.quote(sub) }.join(",")})")
+      @subscriptions = UserSubscription.find(:all,:order => :name,:conditions => "id IN (#{opts.include_subscriptions.collect {|sub| DomainModel.connection.quote(sub) }.join(",")})")
     else
       @subscriptions = nil
     end
     
 
-    opts[:vertical] = opts[:form_display] == 'vertical'
     render_paragraph :partial => '/editor/auth/edit_account',
-                      :locals => { :user => @user, 
-                                   :opts => opts, 
-                                   :fields => @optional_fields,
-                                   :address => @address,
-                                   :work_address => @work_address,
-                                   :subscriptions => @subscriptions,
-                                   :reset_password => flash['reset_password'] }
+      :locals => { :user => @user, 
+      :opts => opts.to_h.merge(:vertical => opts.form_display == 'vertical'), 
+      :fields => @optional_fields,
+      :address => @address,
+      :work_address => @work_address,
+      :subscriptions => @subscriptions,
+      :reset_password => flash['reset_password'] }
   end
 
 # update users subscriptions

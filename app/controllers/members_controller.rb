@@ -280,7 +280,7 @@ class MembersController < CmsController # :nodoc: all
     
     if request.post?
       if params[:commit] 
-        @user.user_class_id = params[:user_options][:user_class_id]
+        @user.user_class_id = params[:user_options].delete(:user_class_id)
 
         # Don't let user class be upgrade to editor if the user can edit those
         if @user.user_class.editor? && !myself.has_role?('editor_editors')

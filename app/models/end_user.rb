@@ -92,8 +92,9 @@ class EndUser < DomainModel
   has_many :domain_emails
 
   belongs_to :user_class
-
+ 
   attr_protected :client_user_id
+  attr_protected :user_class_id
   attr_accessor :email_confirmation
 
   accepts_nested_attributes_for :end_user_tokens
@@ -285,10 +286,10 @@ class EndUser < DomainModel
   
   # deprecated
   def self.find_visited_target(email) #:nodoc:
-    EndUser.find_by_email(email) || EndUser.create( :email => email,
-                                                    :user_level => 2,
-                                                    :source => 'website',
-                                                    :registered => false )
+    EndUser.find_by_email_and_registered(email, false) || EndUser.create(:email => email,
+									 :user_level => 2,
+									 :source => 'website',
+									 :registered => false )
   end
   
   def update_domain_emails #:nodoc:
@@ -412,6 +413,10 @@ class EndUser < DomainModel
     end
   end
   
+  def before_create #:nodoc:
+    self.user_class_id = UserClass.default_user_class_id if self.user_class_id.blank?
+  end
+
   def before_save #:nodoc:
     
     if self.password && !self.password.empty?
@@ -464,10 +469,10 @@ class EndUser < DomainModel
   #  Set the user class to the option specified, or use the default class
   def self.find_target(email,options = {})
     target = self.find_by_email(email)
-    if !target && !options[:no_create]
-      target = EndUser.create(:email => email,:user_class_id => options[:user_class_id] || UserClass.default_user_class_id)
-    elsif !target
-      target = EndUser.new(:email => email,:user_class_id => options[:user_class_id] || UserClass.default_user_class_id)
+    if !target
+      target = EndUser.new(:email => email)
+      target.user_class_id = options[:user_class_id] || UserClass.default_user_class_id
+      target.save unless options[:no_create]
     end
     target
   end
@@ -500,6 +505,8 @@ Not doing so could allow a user to change their user profile (for example) and e
     opts = options.clone
     opts.symbolize_keys!
 
+    user_class_id = opts.delete(:user_class_id) || UserClass.default_user_class_id
+
     # Don't mess with registered users if no_register is set    
     no_register = opts.delete(:no_register)
     return if no_register && target.registered?
@@ -524,6 +531,7 @@ Not doing so could allow a user to change their user profile (for example) and e
     end
     
     target.attributes = opts
+    target.user_class_id = user_class_id if target.user_class_id.blank?
     target.save
     
     # Need to get an id for the target to save after the fact

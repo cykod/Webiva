@@ -6,15 +6,14 @@ describe Editor::AuthRenderer, :type => :controller do
   
   integrate_views
 
-
+  reset_domain_tables :end_users, :end_user_addresses, :tags, :end_user_tags, :site_nodes
+    
   describe "User Register Paragraph" do 
     def generate_renderer(data = {})
       # Set a user class b/c we need one
       default = { :user_class_id => UserClass.default_user_class_id }
       build_renderer('/page','/editor/auth/user_register',default.merge(data),{})
     end
-    
-    reset_domain_tables :end_users,:end_user_addresses, :tags, :end_user_tags
     
     it "should be able to view the default user paragraph" do
       @rnd = generate_renderer
@@ -632,6 +631,78 @@ describe Editor::AuthRenderer, :type => :controller do
       @tag = Tag.find_by_name(tags)
       @tag.should_not be_nil
       @end_user_tag = EndUserTag.find_by_end_user_id_and_tag_id(@user.id, @tag.id)
+      @end_user_tag.should_not be_nil
+    end
+  end
+
+  describe "Edit Account Paragraph" do 
+    def generate_renderer(data = {})
+      @success_page = SiteNode.find_by_title('edit_account_success') || SiteNode.create(:title => 'edit_account_success', :site_version_id => 1)
+      default = {:success_page => @success_page.id}
+      build_renderer('/page','/editor/auth/edit_account',default.merge(data),{})
+    end
+
+    it "should not render the edit_account paragraph if not logged in" do
+      @rnd = generate_renderer
+      @rnd.should_receive(:render_paragraph).with(:text => '')
+      renderer_get @rnd
+    end
+
+    it "should be able to edit user data" do
+      mock_user
+      user_info = {:email => 'testnew@test.dev', :first_name => 'FirstTest', :last_name => 'LastTest', :gender => 'm', :username => 'testnew'}
+
+      @rnd = generate_renderer
+      @rnd.should_receive(:redirect_paragraph).with(@success_page.node_path).once
+      renderer_post @rnd, :user => user_info
+      @myself.reload
+      @myself.email.should == 'testnew@test.dev'
+      @myself.first_name.should == 'FirstTest'
+      @myself.last_name.should == 'LastTest'
+      @myself.gender.should == 'm'
+      @myself.username.should == 'testnew'
+    end
+
+    it "should be able to edit user data and address data" do
+      mock_user
+      user_info = {:email => @myself.email, :first_name => 'FirstTest', :last_name => 'LastTest', :gender => 'm', :username => 'testnew'}
+      address_info = {:company => 'company', :phone => 'phone', :fax => 'fax', :address => 'address', :city => 'city', :state => 'state', :zip => 'zip'}
+      work_address_info = {:company => 'work_company', :phone => 'work_phone', :fax => 'work_fax', :address => 'work_address', :city => 'work_city', :state => 'work_state', :zip => 'work_zip'}
+
+      @rnd = generate_renderer :address => 'on', :work_address => 'on'
+      @rnd.should_receive(:redirect_paragraph).with(@success_page.node_path).once
+      renderer_post @rnd, :user => user_info, :address => address_info, :work_address => work_address_info
+
+      @myself.reload
+      @myself.first_name.should == 'FirstTest'
+      @myself.last_name.should == 'LastTest'
+      @myself.gender.should == 'm'
+      @myself.username.should == 'testnew'
+      address_info.each do |key, value|
+	@myself.address.send(key.to_s).should == value
+      end
+      work_address_info.each do |key, value|
+	@myself.work_address.send(key.to_s).should == value
+      end
+    end
+
+    it "should be able to edit user data and tag" do
+      mock_user
+      user_info = {:email => 'testnew@test.dev', :first_name => 'FirstTest', :last_name => 'LastTest', :gender => 'm', :username => 'testnew'}
+
+      @rnd = generate_renderer :add_tags => 'edit_profile'
+      @rnd.should_receive(:redirect_paragraph).with(@success_page.node_path).once
+      renderer_post @rnd, :user => user_info
+      @myself.reload
+      @myself.email.should == 'testnew@test.dev'
+      @myself.first_name.should == 'FirstTest'
+      @myself.last_name.should == 'LastTest'
+      @myself.gender.should == 'm'
+      @myself.username.should == 'testnew'
+
+      @tag = Tag.find_by_name('edit_profile')
+      @tag.should_not be_nil
+      @end_user_tag = EndUserTag.find_by_end_user_id_and_tag_id(@myself.id, @tag.id)
       @end_user_tag.should_not be_nil
     end
   end
