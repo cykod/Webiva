@@ -23,7 +23,7 @@ describe MailManagerController, "create a mail manager" do
   describe "Mailtemplate" do 
     
     it 'should create a new template' do
-      post('add_template', :icon => 'add.gif',  skip_before_filter :validate_is_editor, :template_type => 'campaign', 
+      post('add_template', :icon => 'add.gif', :template_type => 'campaign', 
            :name => 'test campaign mail templates')
       
 
