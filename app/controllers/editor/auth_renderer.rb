@@ -563,7 +563,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
   end
 
   def email_list
-    @options = Editor::AuthController::EmailListOptions.new(paragraph.data||{})
+    @options = paragraph_options(:email_list)
     
     @user = EmailListUser.new(params[:email_list_signup])
     if (request.post? || params[:get_post]) && params[:email_list_signup]

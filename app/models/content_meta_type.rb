@@ -40,12 +40,14 @@ class ContentMetaType < DomainModel
   # Update the attributes of a content_type to match this content_meta_type
   def update_type(content_type)
     content_type.content_meta_type_id=self.id 
-    url = self.detail_url + "/" + content_type.container.send(self.url_field)
-    content_type.detail_site_node_url = url
+    if self.url_field
+      url = self.detail_url + "/" + content_type.container.send(self.url_field)
+      content_type.detail_site_node_url = url
 
-    if !self.list_url.blank?
-      list_url = self.list_url + "/" + content_type.container.send(self.url_field)
-      content_type.list_site_node_url = url
+      if !self.list_url.blank?
+        list_url = self.list_url + "/" + content_type.container.send(self.url_field)
+        content_type.list_site_node_url = url
+      end
     end
   end
 
