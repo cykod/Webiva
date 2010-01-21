@@ -3,7 +3,21 @@ require File.dirname(__FILE__) + "/../spec_helper"
 
 describe ContentFilter do
 
-  reset_domain_tables :content_filter
+  reset_domain_tables :content_filter, :domain_files, :domain_file_instances
+
+  it "should be able to return a list of filters" do
+    filters = ContentFilter.filter_options
+    filters.detect { |flter| flter[1] == 'markdown'}.should_not be_nil
+    filters.detect { |flter| flter[1] == 'comment'}.should_not be_nil
+  end
+
+  it "should raise an issue if we try to passit an invalid filter" do
+    Proc.new { 
+    ContentFilter.filter("not_a_real_filter","testerama")
+    }.should raise_error(RuntimeError)
+  end
+
+  
 
   @@full_xss_html = <<-HTML
 <a href='javascript:XSSAttack();' onclick='XSSAttack2();'>Link...</a><br />
@@ -21,10 +35,40 @@ HTML
 <p>Lorem ipsum, dolor sic amet!</p>
 HTML
 
+  @@full_image_html = <<-HTML
+<h1>Header!</h1>
+<a href="http://www.google.com">Google</a> is a search engine<br />
+<p>Lorem ipsum, dolor sic amet!</p>
+<img src='images/folder/rails.png'/>
+HTML
+
+ @@full_image_html_substibute = <<-HTML
+<h1>Header!</h1>
+<a href="http://www.google.com">Google</a> is a search engine<br />
+<p>Lorem ipsum, dolor sic amet!</p>
+<img src='IMAGE_SRC_HERE'/>
+HTML
+
   describe "Full HTML Filter" do
   
     it "should let full html through unhindered" do
       ContentFilter.filter('full_html',@@full_xss_html).should == @@full_xss_html
+    end
+
+    it "should do image substitution with editor urls" do
+      @folder= DomainFile.create_folder('folder')
+      fdata = fixture_file_upload("files/rails.png",'image/png')
+      @df = DomainFile.create(:filename => fdata,:parent_id => @folder.id)
+      ContentFilter.filter('full_html',@@full_image_html).should ==  @@full_image_html_substibute.gsub('IMAGE_SRC_HERE',@df.editor_url)
+      @df.destroy
+    end
+
+    it "should support live filter substitution" do
+      @folder= DomainFile.create_folder('folder')
+      fdata = fixture_file_upload("files/rails.png",'image/png')
+      @df = DomainFile.create(:filename => fdata,:parent_id => @folder.id)
+      ContentFilter.live_filter('full_html',@@full_image_html).should ==  @@full_image_html_substibute.gsub('IMAGE_SRC_HERE',@df.url)
+      @df.destroy
     end
 
   end
@@ -38,6 +82,7 @@ HTML
     it "should let legit html through" do
       ContentFilter.filter('safe_html',@@full_legit_html).should == @@full_legit_html
     end
+
     
   end
 
@@ -108,12 +153,27 @@ MARKDOWN
 MARKDOWN
   
   
+ @@markdown_image_sample = <<-MARKDOWN
+This is a test of the emergency broadcast system,
+this is only a test ![My Image](images/myfolder/rails.png)
+
+MARKDOWN
   describe "Markdown Filter" do
 
     it "should be able to translate basic markdown" do
       ContentFilter.filter('markdown',@@markdown_sample).should == @@markdown_sample_translated_full
     end
 
+
+    it "should be able to do file replacement" do 
+      @folder= DomainFile.create_folder('myfolder')
+      fdata = fixture_file_upload("files/rails.png",'image/png')
+      @df = DomainFile.create(:filename => fdata,:parent_id => @folder.id)
+      ContentFilter.filter('markdown',@@markdown_image_sample).should ==
+        "<p>This is a test of the emergency broadcast system, this is only a test <img src='#{@df.editor_url}' alt='My Image' /></p>"
+      @df.destroy
+
+    end
   end
 
   describe "Markdown Safe Filter" do
@@ -147,6 +207,52 @@ COMMENT
   describe "Comment Filter" do
     it "should be able to escape html syntax" do
       ContentFilter.filter('comment',@@comment_sample).should == @@comment_sample_escaped
+    end
+  end
+
+
+@@textile_sample = <<-TEXTILE
+h1. Header
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce accumsan pellentesque arcu,
+sit amet sollicitudin purus porttitor placerat. Curabitur aliquam, tellus eget varius semper,
+sapien eros rhoncus massa, ac sollicitudin urna lectus sed eros. Sed in massa lectus,
+nec fringilla mi. Quisque sed sapien enim. "Google":http://www.google.com
+!images/textilefolder/rails.png:thumb!
+<a href='javascript:XSSAttack!'>Go</a>
+
+TEXTILE
+
+@@textile_translated = <<-TEXTILE
+<h1>Header</h1>
+<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce accumsan pellentesque arcu,<br />
+sit amet sollicitudin purus porttitor placerat. Curabitur aliquam, tellus eget varius semper,<br />
+sapien eros rhoncus massa, ac sollicitudin urna lectus sed eros. Sed in massa lectus,<br />
+nec fringilla mi. Quisque sed sapien enim. <a href=\"http://www.google.com\">Google</a><br />
+<img src="IMAGE_TAG_HERE" alt="" /><br />
+<a href='javascript:XSSAttack!'>Go</a></p>
+TEXTILE
+
+@@textile_translated_safe = <<-TEXTILE
+<h1>Header</h1>
+<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce accumsan pellentesque arcu,<br />
+sit amet sollicitudin purus porttitor placerat. Curabitur aliquam, tellus eget varius semper,<br />
+sapien eros rhoncus massa, ac sollicitudin urna lectus sed eros. Sed in massa lectus,<br />
+nec fringilla mi. Quisque sed sapien enim. <a href=\"http://www.google.com\">Google</a><br />
+<img src="images/textilefolder/rails.png:thumb" alt="" /><br />
+<a>Go</a></p>
+TEXTILE
+
+  describe "Textile Filter" do
+    it "should able to filter text" do
+      @folder= DomainFile.create_folder('textilefolder')
+      fdata = fixture_file_upload("files/rails.png",'image/png')
+      @df = DomainFile.create(:filename => fdata,:parent_id => @folder.id)
+      ContentFilter.filter('textile',@@textile_sample).should == @@textile_translated.gsub("IMAGE_TAG_HERE",@df.editor_url(:thumb)).strip
+    end
+
+    it "should be able safely filter text" do
+        ContentFilter.filter('textile_safe',@@textile_sample).should == @@textile_translated_safe.strip
     end
   end
 

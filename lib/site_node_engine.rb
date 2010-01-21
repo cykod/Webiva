@@ -606,6 +606,7 @@ EOF
         last_unrendered = unrendered
         loop_cnt += 1
         unrendered = 0
+
         @page_information.render_elements.each do |part|
           if part.is_a?(Hash)
             (0..part[:paragraphs].length).each do |idx|
@@ -704,6 +705,7 @@ EOF
  
   protected
 
+
   def handle_redirected_output(nd) #:nodoc:
     if nd.node_type == 'J'
       @output = RedirectOutput.new
@@ -762,6 +764,10 @@ EOF
     # Unless we already have a cache of page information
     unless @page_information || nd.node_type == 'J'
       compile_page_information(user)
+    end
+
+    if nd.node_type == 'J'
+      @page_information = NodeEngine::PageInformation.new
     end
     
     # Cache the page information, if it's not already cached and we do have a cache active

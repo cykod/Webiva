@@ -266,6 +266,9 @@ class DomainFile < DomainModel
        self.name = current_file_name
      end
      
+     if self.file_type == 'fld'
+       update_file_path
+     end
      
      
    end
