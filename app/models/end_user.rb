@@ -493,7 +493,7 @@ The :no_register option will not return a user object if the found target is alr
 WARNING: push_target does not sanitize any inputs, so in theory all attributes can be modified,
 so be careful when allowing user submitted arguments in.
 
-User the Hash#slice method to only select the fields you actually want to let in, for example:
+Use the Hash#slice method to only select the fields you actually want to let in, for example:
 
      @user = EndUser.push_target(params[:user][:email],params[:user].slice(:first_name,:last_name))
 
@@ -501,11 +501,11 @@ Not doing so could allow a user to change their user profile (for example) and e
 
 =end
   def self.push_target(email,options = {})
-    target = self.find_target(email,:no_create => true)
     opts = options.clone
     opts.symbolize_keys!
 
     user_class_id = opts.delete(:user_class_id) || UserClass.default_user_class_id
+    target = self.find_target(email, :user_class_id => user_class_id, :no_create => true)
 
     # Don't mess with registered users if no_register is set    
     no_register = opts.delete(:no_register)
