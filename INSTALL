@@ -82,6 +82,19 @@ Either modify or replace with:
 
 #  PassengerDefaultUser user # Optional - set site to run as a specific user
 #  RailsEnv production # Optional - set to production or development as necessary
+
+# We don't want any user uploaded scripts to be executed in the public directory
+<Directory "path/to/your/webiva/public/directory">
+      Options FollowSymLinks
+      AllowOverride Limit
+      Order allow,deny
+      Allow from all
+      <IfModule mod_php5.c>
+        php_admin_flag engine off
+      </IfModule>
+      AddType text/plain .html .htm .shtml .php .php3 .phtml .phtm .pl
+</Directory>
+
 </VirtualHost>
 
 Then start up the background server process

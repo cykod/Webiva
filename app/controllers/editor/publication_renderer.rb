@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class Editor::PublicationRenderer < ParagraphRenderer
+class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
 
   include ApplicationHelper
 

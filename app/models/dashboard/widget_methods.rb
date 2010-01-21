@@ -1,6 +1,6 @@
 
 
-module Dashboard::WidgetMethods
+module Dashboard::WidgetMethods #:nodoc:all
 
   def widget_options_validation
     options_object = self.options(self.data,true)

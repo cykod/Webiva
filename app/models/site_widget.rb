@@ -1,6 +1,6 @@
 
 
-class SiteWidget < DomainModel
+class SiteWidget < DomainModel #:nodoc:all
 
   cached_content :update_list => 'EditorWidget'
 

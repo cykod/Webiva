@@ -2,6 +2,7 @@
 
 require "digest/sha1"
 
+# Used for a centralized login system among multiple domains
 class EditorLogin < SystemModel 
 
   attr_accessor :password

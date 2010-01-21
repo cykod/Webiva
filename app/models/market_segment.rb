@@ -38,25 +38,25 @@ class MarketSegment < DomainModel
      self.create(:options => {  :user_ids => user_ids }, :segment_type => 'custom', :name => "#{campaign.name} Custom Segment", :market_campaign_id => campaign.id )
    end
 
-   class CustomModelOptions < HashModel
+   class CustomModelOptions < HashModel #:nodoc:all
      default_options :user_ids => []
 
      integer_array_options :user_ids
    end
    
-   class SubscriptionOptions < HashModel
+   class SubscriptionOptions < HashModel #:nodoc:all
       default_options :user_subscription_id => nil
       
       validates_presence_of :user_subscription_id
    end
    
-   class MembersOptions < HashModel
+   class MembersOptions < HashModel #:nodoc:all
       default_options :filter_profiles => nil, :filter_tags => nil, :tags_type => 'any', :affected_profiles => nil, :affected_tags => :nil
       
       validates_presence_of
    end
    
-   class ContentModelOptions < HashModel
+   class ContentModelOptions < HashModel #:nodoc:all
     default_options :content_model_id => nil,:email_field => nil
     
     validates_presence_of :content_model_id, :email_field

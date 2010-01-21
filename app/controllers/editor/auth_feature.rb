@@ -1,7 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class Editor::AuthFeature < ParagraphFeature
-
+class Editor::AuthFeature < ParagraphFeature #:nodoc:all
 
 
   feature :user_register, :default_feature => <<-FEATURE

@@ -17,7 +17,7 @@ class EndUserTable
   attr_reader :renderer, :name, :options, :columns, :mdl
   
   
-  module Controller 
+  module Controller  
     include ActionView::Helpers::TextHelper
     #2.0 include ActionView::Helpers::PaginationHelper
 
@@ -294,7 +294,7 @@ class EndUserTable
   end
   
   
-  class ColumnInstance 
+  class ColumnInstance  #:nodoc:all
     attr_reader :active_table
     attr_reader :header
     attr_reader :searching
@@ -322,7 +322,7 @@ class EndUserTable
     
   end  
 
-  class TableColumn
+  class TableColumn #:nodoc:all
   
     def initialize(field,opts={})
       @field = field
@@ -356,22 +356,22 @@ class EndUserTable
     def search_join(searching=nil); nil; end 
   end
 
-  class StringColumn < TableColumn
+  class StringColumn < TableColumn #:nodoc:all
   end
   
-  class NumberColumn < TableColumn
+  class NumberColumn < TableColumn #:nodoc:all
   end
-  
-  class OrderHeader < TableColumn
+   
+  class OrderHeader < TableColumn #:nodoc:all
     def searchable?; false; end
   end
   
-  class StaticHeader < TableColumn
+  class StaticHeader < TableColumn #:nodoc:all
     def sortable?; false; end
     def searchable?; false; end
   end
   
-  class BlankHeader < TableColumn
+  class BlankHeader < TableColumn #:nodoc:all
     def initialize(opts={},dummy=nil)
       opts = {} unless opts.is_a?(Hash)
       super('',opts)

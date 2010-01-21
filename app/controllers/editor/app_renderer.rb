@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class Editor::AppRenderer < ParagraphRenderer
+class Editor::AppRenderer < ParagraphRenderer #:nodoc:all
 
   paragraph :module_application
 

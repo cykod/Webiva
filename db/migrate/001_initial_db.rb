@@ -119,15 +119,6 @@ class InitialDb < ActiveRecord::Migration
       t.column "parent_revision_id", :integer
     end
   
-    create_table "permissions", :id => false, :force => true do |t|
-      t.column "perm_id", :integer, :default => 0, :null => false
-      t.column "perm_source", :string, :limit => 4, :default => "", :null => false
-      t.column "perm_source_id", :integer, :default => 0, :null => false
-      t.column "perm_dest", :string, :limit => 4, :default => "", :null => false
-      t.column "perm_dest_id", :integer, :default => 0, :null => false
-      t.column "perm_access", :string, :limit => 6, :default => "", :null => false
-    end
-  
     create_table "redirect_details", :force => true do |t|
       t.column "redirect_type", :string, :default => "site_node"
       t.column "redirect_site_node_id", :integer

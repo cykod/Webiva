@@ -35,12 +35,19 @@ Autotest.add_hook :initialize do |at|
   if files
     files.each do |file|
       at.add_mapping  %r%^#{file}$%  do |filename,matches|
-        file =~ /^app\/(.*)\.rb$/
-        partfile = $1
-        at.files_matching( %r%^spec/#{partfile}_spec.rb$% )
+        if file =~ /^(lib|app)\/(.*)\.rb$/
+          partfile = $2
+          if $1 == 'lib' 
+            partfile = "lib/" + partfile
+          end
+          at.files_matching( %r%^spec/#{partfile}_spec.rb$% )
+        end
       end
     end
   else 
+    at.add_mapping %r%^lib/(.*)\.rb$% do |filename,matches|
+      at.files_matching(/^spec\/lib\/#{matches[1]}_spec.rb$/)
+    end 
 
     modules.each do |mod|
       %w(controllers models views).each do |type|

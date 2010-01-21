@@ -1,5 +1,5 @@
 
-class Editor::OpensearchDispatcher < ModuleDispatcher
+class Editor::OpensearchDispatcher < ModuleDispatcher #:nodoc:all
 
   available_pages ['/', 'opensearch', 'Open Search', 'Open Search',false]
 

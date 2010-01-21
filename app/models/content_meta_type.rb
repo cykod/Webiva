@@ -1,4 +1,8 @@
 
+
+# ContentMetaType's is a container class for ContentType's
+# that allow paragraphs to update the canonical content locations
+# for specific content types
 class ContentMetaType < DomainModel
 
   has_many :content_types
@@ -21,15 +25,7 @@ class ContentMetaType < DomainModel
     types.each do |content_type|
       if content_type.container
         if match_type(content_type)
-          content_type.content_meta_type_id=self.id 
-          url = self.detail_url + "/" + content_type.container.send(self.url_field)
-          content_type.detail_site_node_url = url
-
-          if !self.list_url.blank?
-            list_url = self.list_url + "/" + content_type.container.send(self.url_field)
-            content_type.list_site_node_url = url
-          end
-
+          update_type(content_type)
           content_type.save if content_type.changed?
         else
           content_type.update_attributes(:content_meta_type_id => nil,
@@ -41,17 +37,35 @@ class ContentMetaType < DomainModel
     
   end
 
+  # Update the attributes of a content_type to match this content_meta_type
+  def update_type(content_type)
+    content_type.content_meta_type_id=self.id 
+    if self.url_field
+      url = self.detail_url + "/" + content_type.container.send(self.url_field)
+      content_type.detail_site_node_url = url
+
+      if !self.list_url.blank?
+        list_url = self.list_url + "/" + content_type.container.send(self.url_field)
+        content_type.list_site_node_url = url
+      end
+    end
+  end
+
   # Find out if this content_meta_type still matchs a specific content type
   def match_type(content_type)
-    if self.category_field.blank?
-      true
-    else
-      val = content_type.send(category_field)
-      if category_value.is_a?(Array)
-        category_value.include?(val)
+    if content_type.container_type == self.container_type
+      if self.category_field.blank?
+        true
       else
-        category_value == val
+        val = content_type.send(category_field)
+        if category_value.is_a?(Array)
+          category_value.include?(val)
+        else
+          category_value == val
+        end
       end
+    else
+      false
     end
   end
 

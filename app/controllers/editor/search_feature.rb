@@ -1,5 +1,5 @@
 
-class Editor::SearchFeature < ParagraphFeature
+class Editor::SearchFeature < ParagraphFeature #:nodoc:all
   include ActionView::Helpers::FormOptionsHelper
 
   feature :search_page_search_box, :default_feature => <<-FEATURE

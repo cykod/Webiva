@@ -202,6 +202,37 @@ module Spec
         controller.should_receive('myself').at_least(:once).and_return(@myself)
       end
 
+      def paragraph_controller_helper(site_node_path,display_module_type,data={},extra_attributes = {})
+        display_parts = display_module_type.split("/")
+	@site_version ||= SiteVersion.new :name => 'Test', :default_version => true
+	@root_node ||= SiteNode.create :site_version => @site_version, :node_type => 'R', :node_path => '/'
+	@site_node = @root_node.add_subpage(site_node_path.sub('/', ''))
+	@revision = PageRevision.create :revision_container => @site_node, :language => 'en', :active => true, :created_by => @myself, :updated_by => @myself
+	@paragraph = PageParagraph.create :display_module => display_parts[0..-2].join("/"), :display_type => display_parts[-1], :page_revision_id => @revision.id, :data => data, :attributes => extra_attributes
+      end
+
+      def paragraph_controller_path
+	['page', @site_node.id, @revision.id, @paragraph.id, 0]
+      end
+
+      def paragraph_controller_get(page, args = {})
+	args[:path] = paragraph_controller_path
+	get page, args
+      end
+
+      def paragraph_controller_post(page, args = {})
+	args[:path] = paragraph_controller_path
+	post page, args
+      end
+
+      def display_all_editors_for(&block)
+	controller.class.get_editor_for.each do |editor|
+	  paragraph_controller_helper("/#{editor[0]}", "/#{controller.class.to_s.underscore}/#{editor[0]}")
+	  output = paragraph_controller_get editor[0]
+	  yield editor[0], output
+	end
+      end
+
       def build_renderer_helper(user_class,site_node_path,display_module_type,data={},page_connections={},extra_attributes = {})
         display_parts = display_module_type.split("/")
         para = PageParagraph.create(:display_type => display_parts[-1], :display_module => display_parts[0..-2].join("/"),:data=>data)
@@ -381,7 +412,6 @@ def fixture_file_upload(path, mime_type = nil, binary = false)
   fixture_path = ActionController::TestCase.send(:fixture_path) if ActionController::TestCase.respond_to?(:fixture_path)
   ActionController::TestUploadedFile.new("#{fixture_path}#{path}", mime_type, binary)
 end
-
 
 DomainFile.root_folder
 UserClass.create_built_in_classes

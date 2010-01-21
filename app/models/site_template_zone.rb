@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class SiteTemplateZone < DomainModel
+class SiteTemplateZone < DomainModel #:nodoc:all
 
   acts_as_list :scope => :site_template_id, :column => 'position'
 

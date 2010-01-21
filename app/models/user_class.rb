@@ -1,5 +1,11 @@
 # Copyright (C) 2009 Pascal Rettig.
 
+
+# Called a "User Profile" on the front end (sorry) every EndUser is a member of one
+# UserClass - even users who aren't logged in a members of the "anonymous" user class
+#
+# The site authorization system uses UserClass and AccessToken's to control access to 
+# both pages of the backend and various pages on the frontend.
 class UserClass < DomainModel
   @@initialized = false
   
@@ -15,7 +21,7 @@ class UserClass < DomainModel
 
   has_many :end_users
 
- 
+  # Return or create a class by name
   def self.get_class(name,built_in = false)
     UserClass.initializor unless @@initialized
     clss = self.find_by_name(name)
@@ -23,13 +29,14 @@ class UserClass < DomainModel
     clss
   end
   
-  def self.create_built_in_classes
+  def self.create_built_in_classes #:nodoc:
     @@built_in_classes.each do |idx,cls|
       UserClass.find_by_id(idx) || UserClass.create(:id => idx, :name => cls[1], :built_in => true, :editor => cls[3])
     end  
   end
   
-  def self.add_default_editor_permissions
+  
+  def self.add_default_editor_permissions #:nodoc:
     editor  = self.domain_user_class
     OptionsController.registered_permissions.each do |cat,elems|
         elems.each do |elem|
@@ -43,7 +50,7 @@ class UserClass < DomainModel
     end
   end
 
-  def cached_role_ids
+  def cached_role_ids #:nodoc:
     if self.role_cache.is_a?(Array)
       self.role_cache
     else
@@ -51,12 +58,12 @@ class UserClass < DomainModel
     end
   end
 
-  def before_save
+  def before_save #:nodoc:
     self.role_cache = self.role_ids
   end
   
   # Called the first time the class is loaded
-  def self.initializor
+  def self.initializor #:nodoc:
     sing = class << self; self; end
 
     @@built_in_classes.each do |idx,cls|
@@ -70,17 +77,15 @@ class UserClass < DomainModel
     end
   end
   
+  # Return all the non-admin or anonymous user classes
   def self.find_site_user_classes
     self.find(:all,:conditions => [ 'id NOT IN(1,2)' ])
   end
   
   initializor
   
-  def self.method_missing(method,*args)
-    super
-  end
   
-  def name
+  def name #:nodoc:
     if self.built_in?
       super.t
     else
@@ -89,7 +94,7 @@ class UserClass < DomainModel
   end
 
   
-  def description
+  def description #:nodoc:
     if self.built_in?
       @@built_in_classes[self.id][2].t
     else
@@ -97,19 +102,21 @@ class UserClass < DomainModel
     end
   end
   
-  def after_destroy
+  def after_destroy #:nodoc:
     self.end_users.each do |user|
       user.update_attribute(:user_class_id,4)
     end
   
   end
   
+  # Return a list of select-friendly options, either of editor classes or non-editor classes
   def self.options(is_editor = false)
     self.find(:all,:order => 'id=4 DESC, name',:conditions => ['id > 2 && editor = ?',is_editor ]).collect do |cls|
       [ cls.name, cls.id ]
     end 
   end
   
+  # Return a full list of all user profiles in a select friendly list
   def self.all_options
     self.find(:all,:order => 'id=4 DESC, name',:conditions => ['id > 2' ]).collect do |cls|
       [ cls.name, cls.id ]

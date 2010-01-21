@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class TriggeredActionMailer < ActionMailer::Base
+class TriggeredActionMailer < ActionMailer::Base #:nodoc:all
 
   include ERB::Util
   include ActionView::Helpers::TextHelper

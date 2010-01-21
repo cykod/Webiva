@@ -1,5 +1,7 @@
 # Copyright (C) 2009 Pascal Rettig.
 
+# Webiva level class that logs and aggregates exceptions in the system
+# created automatically by rescue_in_public_action in ApplicationController
 class SystemIssue < SystemModel
   
   validates_presence_of :location

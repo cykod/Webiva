@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class Editor::AdminController < ModuleController
+class Editor::AdminController < ModuleController #:nodoc:all
   permit 'editor'
   
   layout nil

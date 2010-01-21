@@ -2,11 +2,7 @@
 
 require 'fileutils'
 
-# Put your code that runs your task inside the do_work method it will be
-# run automatically in a thread. You have access to all of your rails
-# models.  You also get logger and results method inside of this class
-# by default.
-class FileWorker <  Workling::Base
+class FileWorker <  Workling::Base #:nodoc:all
   
   # Args: file_path
   # 

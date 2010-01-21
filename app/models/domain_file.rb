@@ -7,6 +7,12 @@ require "find"
 require 'ftools'
 require 'fileutils'
 require 'RMagick'
+
+=begin rdoc
+DomainFile's represent files uploaded into the filemanager. Any file uploaded into webiva from
+a site creates a domain file entry.
+
+=end
 class DomainFile < DomainModel
 
   @@image_size_array = [ [ :icon, 32], [:thumb, 64], [:preview, 128 ], [ :small , 256 ] ]
@@ -260,6 +266,9 @@ class DomainFile < DomainModel
        self.name = current_file_name
      end
      
+     if self.file_type == 'fld'
+       update_file_path
+     end
      
      
    end

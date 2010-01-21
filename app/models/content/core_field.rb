@@ -185,8 +185,7 @@ class Content::CoreField < Content::FieldHandler
   class EditorField < Content::CoreField::HtmlField #:nodoc:all
     # Everything the same as StringField that we want to display an editor area
     def form_field(f,field_name,field_opts,options={})
-      field_opts[:class] = 'field_editor_area'
-      f.text_area field_name, field_opts.merge(options)
+      f.editor_area field_name, field_opts.merge(options)
     end
   end  
   

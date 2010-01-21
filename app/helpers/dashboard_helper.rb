@@ -1,6 +1,0 @@
-
-
-module DashboardHelper
-
-
-end

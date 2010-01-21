@@ -1,7 +1,8 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 
-
+# A single save by an editor of a piece of content
+# Used to track changes for SiteTemplates, SiteFeature's, etc.
 class EditorChange < DomainModel
   
   validates_presence_of :target

@@ -12,6 +12,10 @@ class CmsController < ApplicationController
   include ActiveTable::Controller
 
   before_filter :validate_is_editor
+
+  hide_action :active_table_action, :active_table_generate, :auto_link, :concat, :current_cycle, :cycle
+  hide_action :excerpt, :highlight, :markdown, :permit, :permit?, :pluralize, :reset_cycle, :simple_format, :textilize
+  hide_action :textilize_without_paragraph, :truncate, :word_wrap
   
   protected
 

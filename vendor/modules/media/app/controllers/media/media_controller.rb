@@ -67,7 +67,7 @@ class Media::MediaController < ParagraphController
       if self.media_file_id
 	errors.add(:media_file_id, 'missing') unless self.media_file
 	if self.media_file
-	  errors.add(:media_file_id, 'invalid type') unless self.valid_media?
+	  errors.add(:media_file_id, 'invalid type') unless self.valid_media? self.media_file
 	end
       end
 

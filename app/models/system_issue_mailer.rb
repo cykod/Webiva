@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-class SystemIssueMailer < ActionMailer::Base
+class SystemIssueMailer < ActionMailer::Base #:nodoc:all
 
   def issue(issue_data,action = 'created')
     if action=='created'
