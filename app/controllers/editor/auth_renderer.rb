@@ -513,32 +513,27 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       end
     end
   end
-  
 
-  
-  
   def missing_password
-    options = paragraph.data || {}
-  
+    options = paragraph_options(:missing_password)
+    
     @page_state = 'missing_password'
-  
+    
     if params[:verification]
       user = EndUser.login_by_verification(params[:verification])
       if user
-          session[:user_id] = user.id
-          session[:user_model] = user.class.to_s
-          reset_myself
-          
-          response.data[:user].tag_names_add(session[:user_tags]) if session[:user_tags]
-          session[:user_tags]
-          
-          flash['reset_password'] = true
-          redirect_paragraph   SiteNode.get_node_path(options[:reset_password_page],'#')
-          return
+	user_tags = session[:user_tags]
+	process_login user
+	
+	myself.tag_names_add(user_tags) if user_tags
+	
+	flash['reset_password'] = true
+	redirect_paragraph SiteNode.get_node_path(options.reset_password_page,'#')
+	return
       else
         @invalid_verification = true
       end
-    elsif params[:missing_password] && params[:missing_password][:email] 
+    elsif request.post? && params[:missing_password] && params[:missing_password][:email] 
       usr = nil
       EndUser.transaction do
         usr = EndUser.find_by_email(params[:missing_password][:email])
@@ -546,28 +541,27 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
           usr.update_verification_string!
         end        
       end
-      email_template = MailTemplate.find(options[:email_template])
+
+      email_template = MailTemplate.find(options.email_template)
       
       if usr && email_template
-        vars = { :verification => "http://" + request.domain(3) + site_node.node_path + "?verification=" + usr.verification_string }
-	  
-    	  MailTemplateMailer.deliver_to_user(usr,email_template,vars)
-    	  flash['template_sent'] = true
-    	  redirect_paragraph :page
-    	  return
+        vars = { :verification => Configuration.domain_link(site_node.node_path + "?verification=" + usr.verification_string) }
+	
+	MailTemplateMailer.deliver_to_user(usr,email_template,vars)
       end
+
+      flash['template_sent'] = true
+      redirect_paragraph :page
+      return
     elsif flash['template_sent']
       @page_state = 'template_sent'
     end      
     
     data = { :invalid => @invalid_verification, :state => @page_state }
-  
+    
     render_paragraph :text =>  missing_password_feature(data)
   end
 
-
-  
-  
   def email_list
     @options = Editor::AuthController::EmailListOptions.new(paragraph.data||{})
     

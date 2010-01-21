@@ -706,5 +706,104 @@ describe Editor::AuthRenderer, :type => :controller do
       @end_user_tag.should_not be_nil
     end
   end
+
+  describe "Missing Password Paragraph" do 
+    def generate_renderer(data = {})
+      @reset_page = SiteNode.find_by_title('reset') || SiteNode.create(:title => 'reset', :site_version_id => 1)
+      @email_template = MailTemplate.find_by_name('reset') || MailTemplate.create(:subject => 'Reset Password', :name => 'reset', :language => 'en')
+      default = {:reset_password_page => @reset_page.id, :email_template => @email_template.id}
+      build_renderer('/page','/editor/auth/missing_password',default.merge(data),{})
+    end
+
+    it "should render missing password paragraph" do
+      @rnd = generate_renderer
+      @reset_page.id.should_not be_nil
+      @email_template.id.should_not be_nil
+      @rnd.should_receive(:render_paragraph)
+      renderer_get @rnd
+    end
+
+    it "should be able to send missing password email" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 1
+      @user.activated = 1
+      @user.password = password
+      @user.save.should be_true
+
+      @user.verification_string.should be_nil
+      @rnd = generate_renderer
+      MailTemplateMailer.should_receive(:deliver_to_user)
+      @rnd.should_receive(:redirect_paragraph).with(:page)
+      renderer_post @rnd, :missing_password => {:email => email}
+
+      @user.reload
+      @user.verification_string.should_not be_nil
+    end
+
+    it "should not send missing password email" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 1
+      @user.activated = 1
+      @user.password = password
+      @user.save.should be_true
+
+      @user.verification_string.should be_nil
+      @rnd = generate_renderer
+      MailTemplateMailer.should_receive(:deliver_to_user).exactly(0)
+      @rnd.should_receive(:redirect_paragraph).with(:page)
+      renderer_post @rnd, :missing_password => {:email => 'bademail@test.dev'}
+
+      @user.reload
+      @user.verification_string.should be_nil
+    end
+
+    it "should be able to login in user through verification" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+      verification_string = 'verifyme'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 1
+      @user.activated = 1
+      @user.password = password
+      @user.verification_string = verification_string
+      @user.save.should be_true
+
+      @rnd = generate_renderer
+      MailTemplateMailer.should_receive(:deliver_to_user).exactly(0)
+      @rnd.should_receive(:redirect_paragraph)
+      renderer_post @rnd, :verification => verification_string
+
+      @user.reload
+      @user.verification_string.should be_nil
+    end
+
+    it "should not login in user with an invalid verification" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+      verification_string = 'verifyme'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 1
+      @user.activated = 1
+      @user.password = password
+      @user.verification_string = verification_string
+      @user.save.should be_true
+
+      @rnd = generate_renderer
+      MailTemplateMailer.should_receive(:deliver_to_user).exactly(0)
+      @rnd.should_receive(:render_paragraph)
+      renderer_post @rnd, :verification => 'bedverificationstring'
+
+      @user.reload
+      @user.verification_string.should_not be_nil
+    end
+  end
 end
-  
+
