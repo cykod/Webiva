@@ -460,5 +460,180 @@ describe Editor::AuthRenderer, :type => :controller do
       @user.activated.should be_true
     end
   end
+
+  describe "Enter Vip Paragraph" do 
+    def generate_renderer(data = {})
+      default = {:success_page => nil, :already_registered_page => nil, :login_even_if_registered => false, :add_tags => ''}
+      build_renderer('/page','/editor/auth/enter_vip',default.merge(data),{})
+    end
+
+    it "should render the enter_vip paragraph" do
+      @rnd = generate_renderer
+      @rnd.should_receive(:render_paragraph)
+      renderer_get @rnd
+    end
+
+    it "should activate a vip user" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+      vip_number = 'vip'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 0
+      @user.activated = 1
+      @user.user_level = 1
+      @user.vip_number = vip_number
+      @user.password = password
+      @user.save.should be_true
+
+      @rnd = generate_renderer
+      @rnd.should_receive(:render_paragraph)
+      @rnd.paragraph.should_receive(:run_triggered_actions).once.with(anything(), 'success', anything())
+      renderer_post @rnd, :vip => {:number => vip_number}
+
+      @rnd.session[:user_id].should == @user.id
+    end
+
+    it "should activate a vip user even if already registered" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+      vip_number = 'vip'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 1
+      @user.activated = 1
+      @user.user_level = 1
+      @user.vip_number = vip_number
+      @user.password = password
+      @user.save.should be_true
+
+      @rnd = generate_renderer :login_even_if_registered => true
+      @rnd.should_receive(:render_paragraph)
+      @rnd.paragraph.should_receive(:run_triggered_actions).once.with(anything(), 'success', anything())
+      renderer_post @rnd, :vip => {:number => vip_number}
+
+      @rnd.session[:user_id].should == @user.id
+    end
+
+    it "should not activate a vip user if registered" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+      vip_number = 'vip'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 1
+      @user.activated = 1
+      @user.user_level = 1
+      @user.vip_number = vip_number
+      @user.password = password
+      @user.save.should be_true
+
+      @rnd = generate_renderer :login_even_if_registered => false
+      @rnd.should_receive(:render_paragraph)
+      @rnd.paragraph.should_receive(:run_triggered_actions).once.with(anything(), 'repeat', anything())
+      renderer_post @rnd, :vip => {:number => vip_number}
+
+      @rnd.session[:user_id].should be_nil
+    end
+
+    it "should not activate a vip user with a bad vip number" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+      vip_number = 'vip'
+      bad_vip_number = 'bad_vip'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 0
+      @user.activated = 1
+      @user.user_level = 1
+      @user.vip_number = vip_number
+      @user.password = password
+      @user.save.should be_true
+
+      @rnd = generate_renderer
+      @rnd.should_receive(:render_paragraph)
+      @rnd.paragraph.should_receive(:run_triggered_actions).once.with(anything(), 'failure', anything())
+      renderer_post @rnd, :vip => {:number => bad_vip_number}
+
+      @rnd.session[:user_id].should be_nil
+    end
+
+    it "should activate a vip user and redirect to already registered page" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+      vip_number = 'vip'
+
+      page = mock :id => 1, :node_path => '/registered_vip'
+      page2 = mock :id => 2, :node_path => '/success_vip'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 1
+      @user.activated = 1
+      @user.user_level = 1
+      @user.vip_number = vip_number
+      @user.password = password
+      @user.save.should be_true
+
+      SiteNode.should_receive(:find_by_id).once.with(page.id).and_return(page)
+      @rnd = generate_renderer :login_even_if_registered => true, :already_registered_page => page.id, :success_page => page2.id
+      @rnd.should_receive(:redirect_paragraph).once.with(page.node_path)
+      @rnd.paragraph.should_receive(:run_triggered_actions).once.with(anything(), 'success', anything())
+      renderer_post @rnd, :vip => {:number => vip_number}
+
+      @rnd.session[:user_id].should == @user.id
+    end
+
+    it "should activate a vip user and redirect to success page" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+      vip_number = 'vip'
+
+      page = mock :id => 1, :node_path => '/registered_vip'
+      page2 = mock :id => 2, :node_path => '/success_vip'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 0
+      @user.activated = 1
+      @user.user_level = 1
+      @user.vip_number = vip_number
+      @user.password = password
+      @user.save.should be_true
+
+      SiteNode.should_receive(:find_by_id).once.with(page2.id).and_return(page2)
+      @rnd = generate_renderer :login_even_if_registered => true, :already_registered_page => page.id, :success_page => page2.id
+      @rnd.should_receive(:redirect_paragraph).once.with(page2.node_path)
+      @rnd.paragraph.should_receive(:run_triggered_actions).once.with(anything(), 'success', anything())
+      renderer_post @rnd, :vip => {:number => vip_number}
+
+      @rnd.session[:user_id].should == @user.id
+    end
+
+    it "should activate a vip user and add tags" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+      vip_number = 'vip_number'
+      tags = 'vip'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 0
+      @user.activated = 1
+      @user.user_level = 1
+      @user.vip_number = vip_number
+      @user.password = password
+      @user.save.should be_true
+
+      @rnd = generate_renderer :add_tags => tags
+      @rnd.should_receive(:render_paragraph)
+      @rnd.paragraph.should_receive(:run_triggered_actions).once.with(anything(), 'success', anything())
+      renderer_post @rnd, :vip => {:number => vip_number}
+
+      @user.reload
+      @rnd.session[:user_id].should == @user.id
+      @tag = Tag.find_by_name(tags)
+      @tag.should_not be_nil
+      @end_user_tag = EndUserTag.find_by_end_user_id_and_tag_id(@user.id, @tag.id)
+      @end_user_tag.should_not be_nil
+    end
+  end
 end
   

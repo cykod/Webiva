@@ -337,61 +337,53 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
   
   
   def enter_vip
-    opts = paragraph.data
+    opts = paragraph_options(:enter_vip)
   
+    return render_paragraph :text => enter_vip_feature(:failure => false, :registered => false) if editor?
+
     data = { :failure => false, :registered => myself.registered? }
-    
-    if !editor? &&  request.post? && params[:vip] && !params[:vip][:number].blank?
+
+    if request.post? && params[:vip] && !params[:vip][:number].blank?
       vip_number = params[:vip][:number]
       
       user = EndUser.find_by_vip_number(vip_number)
       if user
         # Must be VIP # for unregistered user, or paragraph must allow it
-        if !user.registered? || opts[:login_even_if_registered]
+        if !user.registered? || opts.login_even_if_registered
           
-          session[:user_id] = user.id
-          session[:user_model] = user.class.to_s
-          reset_myself
+          process_login user
           
-          
-          paragraph_action('Enter VIP, Success',vip_number)
+	  paragraph_action(myself.action('/editor/auth/enter_vip_success'), vip_number)
           paragraph.run_triggered_actions(myself,'success',myself)
           
           user.update_attribute(:user_level, 2) if user.user_level < 2
           
-          if !opts[:add_tags].to_s.empty?
-            user.tag_names_add(opts[:add_tags])
+          if !opts.add_tags.to_s.empty?
+            user.tag_names_add(opts.add_tags)
           end
           
-          @nd = SiteNode.find_by_id(opts[:already_registered_page]) if user.registered? && opts[:already_registered_page]
+          @nd = SiteNode.find_by_id(opts.already_registered_page) if user.registered? && opts.already_registered_page
           
-          @nd = SiteNode.find_by_id(opts[:success_page]) unless @nd
+          @nd = SiteNode.find_by_id(opts.success_page) unless @nd
           if @nd 
             redirect_paragraph @nd.node_path
             return 
 	  end
         else
-          if !editor? && paragraph.update_action_count > 0
-            paragraph.run_triggered_actions(myself,'repeat',myself)
-          end
-          paragraph_action('Enter VIP, Repeat',vip_number)
+	  paragraph_action(myself.action('/editor/auth/enter_vip_repeat'), vip_number)
+	  paragraph.run_triggered_actions(myself,'repeat',myself)
           data[:registered] = true
         end
       else
-        if !editor? && paragraph.update_action_count > 0
-          paragraph.run_triggered_actions(myself,'failure',EndUser.new(:vip_number => vip_number))
-        end
-         paragraph_action('Enter VIP, Fail',vip_number)
+	paragraph_action(myself.action('/editor/auth/enter_vip_failure'), vip_number)
+	paragraph.run_triggered_actions(myself,'failure',EndUser.new(:vip_number => vip_number))
         data[:failure] = true
       end
     end
     
     render_paragraph :text => enter_vip_feature(data)  
   end
-  
-  
-    
-  
+
   def edit_account
    opts = paragraph.data
     
