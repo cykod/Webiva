@@ -291,6 +291,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
     if editor? 
       @user = EndUser.find(:first,:conditions => {  :activated => false })
     end
+
     if @user && @user.activated?
       @status = 'already_activated'
       if @options.already_activated_redirect_page_id
@@ -304,8 +305,6 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
         @status ='activated'
       end
 
-    elsif code.blank?
-      @status = 'invalid'
     else
       @status = 'invalid'
     end
@@ -332,7 +331,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
     if @status == 'activation'
       @activation_object = DefaultsHashObject.new(:code => code, :accept => false )
     end
-    
+
     render_paragraph :feature => :user_activation
   end
   

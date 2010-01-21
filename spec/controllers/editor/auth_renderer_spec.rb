@@ -118,5 +118,347 @@ describe Editor::AuthRenderer, :type => :controller do
     end
     
   end
+
+  describe "User Login Paragraph" do 
+    def generate_renderer(data = {})
+      default = {:login_type => 'email', :forward_login => 'no', :success_page => nil, :failure_page => nil}
+      build_renderer('/page','/editor/auth/login',default.merge(data),{})
+    end
+
+    it "should be able to render the login paragraph for anonymous user" do
+      @myself = EndUser.default_user
+      @rnd = generate_renderer
+      @rnd.should_receive(:myself).twice.and_return(@myself)
+      @rnd.should_receive(:login_feature).and_return('')
+      renderer_get @rnd
+    end
+
+    it "should be able to render the login paragraph for a real user" do
+      mock_user
+      @rnd = generate_renderer
+      @rnd.should_receive(:myself).exactly(3).and_return(@myself)
+      @rnd.should_receive(:login_feature).and_return('')
+      renderer_get @rnd
+    end
+
+    it "should be able to logout with anonymous user" do
+      @myself = EndUser.default_user
+      @rnd = generate_renderer
+      @rnd.should_receive(:process_logout)
+      @rnd.should_receive(:redirect_paragraph).with(:page)
+      @rnd.should_receive(:login_feature).exactly(0)
+      renderer_get @rnd, :cms_logout => true
+    end
+
+    it "should be able to logout with real user" do
+      mock_user
+      @rnd = generate_renderer
+      @rnd.should_receive(:myself).any_number_of_times.and_return(@myself)
+      @rnd.should_receive(:redirect_paragraph).with(:page)
+      @rnd.should_receive(:login_feature).exactly(0)
+      renderer_get @rnd, :cms_logout => true
+      @rnd.response.data[:user].should be_nil
+    end
+
+    it "should be able to login with email" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 1
+      @user.activated = 1
+      @user.password = password
+      @user.save.should be_true
+
+      @rnd = generate_renderer :login_type => 'email'
+      @rnd.should_receive(:process_login)
+      @rnd.should_receive(:redirect_paragraph).with(:page)
+      renderer_post @rnd, :cms_login => {:password => password, :login => email, :remember => 1}
+    end
+
+    it "should be able to login with username" do
+      email = 'test@test.dev'
+      username = 'testuser'
+      password = 'myfakepassword'
+
+      @user = EndUser.push_target(email)
+      @user.username = username
+      @user.registered = 1
+      @user.activated = 1
+      @user.password = password
+      @user.save.should be_true
+
+      EndUser.should_receive(:login_by_email).exactly(0)
+
+      @rnd = generate_renderer :login_type => 'username'
+      @rnd.should_receive(:redirect_paragraph).with(:page)
+      renderer_post @rnd, :cms_login => {:password => password, :username => username, :remember => 1}
+      @rnd.session[:user_id].should == @user.id
+    end
+
+    it "should be able to login with username or email" do
+      email = 'test@test.dev'
+      username = 'testuser'
+      password = 'myfakepassword'
+
+      @user = EndUser.push_target(email)
+      @user.username = username
+      @user.registered = 1
+      @user.activated = 1
+      @user.password = password
+      @user.save.should be_true
+
+      EndUser.should_receive(:login_by_email).once.and_return(nil)
+
+      @rnd = generate_renderer :login_type => 'both'
+      @rnd.should_receive(:process_login)
+      @rnd.should_receive(:redirect_paragraph).with(:page)
+      renderer_post @rnd, :cms_login => {:password => password, :login => username, :remember => 1}
+    end
+
+    it "should be able to login with email and forward user" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+      lock_lockout = '/test'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 1
+      @user.activated = 1
+      @user.password = password
+      @user.save.should be_true
+
+      @rnd = generate_renderer :login_type => 'email', :forward_login => 'yes'
+      @rnd.session[:lock_lockout] = lock_lockout
+      @rnd.should_receive(:process_login)
+      @rnd.should_receive(:redirect_paragraph).with(lock_lockout)
+      renderer_post @rnd, :cms_login => {:password => password, :login => email, :remember => 1}
+      @rnd.session[:lock_lockout].should be_nil
+    end
+
+    it "should be able to login with email and send user to success_page" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+
+      success_page = mock :id => 1, :node_path => '/success'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 1
+      @user.activated = 1
+      @user.password = password
+      @user.save.should be_true
+
+      SiteNode.should_receive(:find_by_id).once.and_return(success_page)
+
+      @rnd = generate_renderer :login_type => 'email', :success_page => success_page.id
+      @rnd.should_receive(:process_login)
+      @rnd.should_receive(:redirect_paragraph).with(success_page.node_path)
+      renderer_post @rnd, :cms_login => {:password => password, :login => email, :remember => 1}
+    end
+
+    it "should not be able to login if not registered" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 0
+      @user.activated = 0
+      @user.password = password
+      @user.save.should be_true
+
+      @rnd = generate_renderer :login_type => 'email'
+      @rnd.should_receive(:process_login).exactly(0)
+      @rnd.should_receive(:render_paragraph)
+      renderer_post @rnd, :cms_login => {:password => password, :login => email, :remember => 1}
+    end
+
+    it "should not be able to login if registered but not activated" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 1
+      @user.activated = 0
+      @user.password = password
+      @user.save.should be_true
+
+      @rnd = generate_renderer :login_type => 'email'
+      @rnd.should_receive(:process_login).exactly(0)
+      @rnd.should_receive(:render_paragraph)
+      renderer_post @rnd, :cms_login => {:password => password, :login => email, :remember => 1}
+    end
+
+    it "should not be able to login if password is incorrect" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+      incorrect_password = 'incorrect'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 1
+      @user.activated = 1
+      @user.password = password
+      @user.save.should be_true
+
+      @rnd = generate_renderer :login_type => 'email'
+      @rnd.should_receive(:process_login).exactly(0)
+      @rnd.should_receive(:render_paragraph)
+      renderer_post @rnd, :cms_login => {:password => incorrect_password, :login => email, :remember => 1}
+    end
+
+    it "should not be able to login if password is incorrect and redirect to failure page" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+      incorrect_password = 'incorrect'
+
+      failure_page = mock :id => 1, :node_path => '/failure'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 1
+      @user.activated = 1
+      @user.password = password
+      @user.save.should be_true
+
+      @rnd = generate_renderer :login_type => 'email', :failure_page => failure_page.id
+      @rnd.should_receive(:process_login).exactly(0)
+      @rnd.should_receive(:redirect_paragraph).with(:site_node => failure_page.id)
+      renderer_post @rnd, :cms_login => {:password => incorrect_password, :login => email, :remember => 1}
+    end
+  end
+
+  describe "User Activation Paragraph" do 
+    def generate_renderer(data = {})
+      default = {:require_acceptance => false, :redirect_page_id => nil, :already_activated_redirect_page_url => nil, :login_after_activation => false}
+      build_renderer('/page','/editor/auth/user_activation',default.merge(data),{})
+    end
+
+    it "should be able to render user_activation" do
+      EndUser.should_receive(:find_by_activation_string).exactly(0)
+      @rnd = generate_renderer
+      @rnd.should_receive(:render_paragraph)
+      renderer_get @rnd
+    end
+
+    it "should be able to activate a user from link" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+      activation_string = 'activateme'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 1
+      @user.activated = 0
+      @user.activation_string = activation_string
+      @user.password = password
+      @user.save.should be_true
+
+      @rnd = generate_renderer :require_acceptance => false
+      @rnd.should_receive(:render_paragraph)
+      renderer_get @rnd, :code => activation_string
+      @user.reload
+      @user.activation_string.should be_nil
+      @user.activated.should be_true
+    end
+
+    it "should not activate user without acceptance" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+      activation_string = 'activateme'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 1
+      @user.activated = 0
+      @user.activation_string = activation_string
+      @user.password = password
+      @user.save.should be_true
+
+      @rnd = generate_renderer :require_acceptance => true
+      @rnd.should_receive(:render_paragraph)
+      renderer_get @rnd, :code => activation_string
+      @user.reload
+      @user.activation_string.should == activation_string
+      @user.activated.should be_false
+    end
+
+    it "should activate user when accepts" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+      activation_string = 'activateme'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 1
+      @user.activated = 0
+      @user.activation_string = activation_string
+      @user.password = password
+      @user.save.should be_true
+
+      @rnd = generate_renderer :require_acceptance => true
+      @rnd.should_receive(:render_paragraph)
+      renderer_post @rnd, :activate => {:code => activation_string, :accept => true}
+      @user.reload
+      @user.activation_string.should be_nil
+      @user.activated.should be_true
+    end
+
+    it "should not activate user when declines" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+      activation_string = 'activateme'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 1
+      @user.activated = 0
+      @user.activation_string = activation_string
+      @user.password = password
+      @user.save.should be_true
+
+      @rnd = generate_renderer :require_acceptance => true
+      @rnd.should_receive(:render_paragraph)
+      @rnd.should_receive(:process_login).exactly(0)
+      renderer_post @rnd, :activate => {:code => activation_string, :accept => false}
+      @user.reload
+      @user.activation_string.should == activation_string
+      @user.activated.should be_false
+    end
+
+    it "should activate user and login" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+      activation_string = 'activateme'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 1
+      @user.activated = 0
+      @user.activation_string = activation_string
+      @user.password = password
+      @user.save.should be_true
+
+      @rnd = generate_renderer :require_acceptance => true, :login_after_activation => true
+      @rnd.should_receive(:render_paragraph)
+      @rnd.should_receive(:process_login)
+      renderer_post @rnd, :activate => {:code => activation_string, :accept => true}
+      @user.reload
+      @user.activation_string.should be_nil
+      @user.activated.should be_true
+    end
+
+    it "should activate user and redirect" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+      activation_string = 'activateme'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 1
+      @user.activated = 0
+      @user.activation_string = activation_string
+      @user.password = password
+      @user.save.should be_true
+
+      @rnd = generate_renderer :require_acceptance => true, :redirect_page_id => 1
+      @rnd.should_receive(:redirect_paragraph)
+      @rnd.should_receive(:process_login).exactly(0)
+      renderer_post @rnd, :activate => {:code => activation_string, :accept => true}
+      @user.reload
+      @user.activation_string.should be_nil
+      @user.activated.should be_true
+    end
+  end
 end
   
