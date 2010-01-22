@@ -688,7 +688,7 @@ describe Editor::AuthRenderer, :type => :controller do
       address_info = {:company => 'company', :phone => 'phone', :fax => 'fax', :address => 'address', :city => 'city', :state => 'state', :zip => 'zip'}
       work_address_info = {:company => 'work_company', :phone => 'work_phone', :fax => 'work_fax', :address => 'work_address', :city => 'work_city', :state => 'work_state', :zip => 'work_zip'}
 
-      @rnd = generate_renderer :address => 'on', :work_address => 'on', :clear_info => 'y'
+      @rnd = generate_renderer :address => 'on', :work_address => 'on'
       @rnd.should_receive(:redirect_paragraph).with(@success_page.node_path).once
       renderer_post @rnd, :user => user_info, :address => address_info, :work_address => work_address_info
 
@@ -723,6 +723,51 @@ describe Editor::AuthRenderer, :type => :controller do
       @tag.should_not be_nil
       @end_user_tag = EndUserTag.find_by_end_user_id_and_tag_id(@myself.id, @tag.id)
       @end_user_tag.should_not be_nil
+    end
+
+    it "should be able to edit user data and subscribe" do
+      mock_user
+      user_info = {:email => 'testnew@test.dev', :first_name => 'FirstTest', :last_name => 'LastTest', :gender => 'm', :username => 'testnew'}
+
+      @subscription = UserSubscription.create :name => 'test'
+      @subscription.id.should_not be_nil
+
+      @rnd = generate_renderer :include_subscriptions => [@subscription.id]
+      @rnd.should_receive(:redirect_paragraph).with(@success_page.node_path).once
+      renderer_post @rnd, :user => user_info, :subscription => {'0' => 1, @subscription.id.to_s => 'on'}
+      @myself.reload
+      @myself.email.should == 'testnew@test.dev'
+      @myself.first_name.should == 'FirstTest'
+      @myself.last_name.should == 'LastTest'
+      @myself.gender.should == 'm'
+      @myself.username.should == 'testnew'
+
+      @entry = UserSubscriptionEntry.find_by_end_user_id_and_user_subscription_id(@myself.id, @subscription.id)
+      @entry.should_not be_nil
+    end
+
+    it "should be able to edit user data and unsubscribe" do
+      mock_user
+      user_info = {:email => 'testnew@test.dev', :first_name => 'FirstTest', :last_name => 'LastTest', :gender => 'm', :username => 'testnew'}
+
+      @subscription = UserSubscription.create :name => 'test'
+      @subscription.id.should_not be_nil
+      @subscription.subscribe_user(@myself)
+      @entry = UserSubscriptionEntry.find_by_end_user_id_and_user_subscription_id(@myself.id, @subscription.id)
+      @entry.should_not be_nil
+
+      @rnd = generate_renderer :include_subscriptions => [@subscription.id]
+      @rnd.should_receive(:redirect_paragraph).with(@success_page.node_path).once
+      renderer_post @rnd, :user => user_info, :subscription => {'0' => 1 }
+      @myself.reload
+      @myself.email.should == 'testnew@test.dev'
+      @myself.first_name.should == 'FirstTest'
+      @myself.last_name.should == 'LastTest'
+      @myself.gender.should == 'm'
+      @myself.username.should == 'testnew'
+
+      @entry = UserSubscriptionEntry.find_by_end_user_id_and_user_subscription_id(@myself.id, @subscription.id)
+      @entry.should be_nil
     end
   end
 

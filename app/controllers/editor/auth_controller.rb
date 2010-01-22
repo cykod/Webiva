@@ -23,11 +23,6 @@ class Editor::AuthController < ParagraphController #:nodoc:all
   editor_for :email_list, :name => 'Email List Signup', :triggers => [ ['Signed Up','action']], :features => ['email_list']
   editor_for :splash, :name => 'Splash Page'
 
-
-  
-  editor_for :register, :name => 'Legacy User Registration', :triggers => [ ['View Registration Paragraph','view'], ['Successful Registration','action'] ], :legacy => true
-
-
   
   class UserRegisterOptions < HashModel
     
@@ -335,49 +330,4 @@ class Editor::AuthController < ParagraphController #:nodoc:all
     end  
     
   end
-
-
-
-
-
-
-
-  # LEGACY PARAGRAPHS
-
-
-  def register
-  
-    @options = RegisterOptions.new(params[:register] || @paragraph.data || {})
-    
-    if request.post? && @options.valid?
-      if @options.include_subscriptions.is_a?(Array)
-         @options.include_subscriptions = @options.include_subscriptions.find_all { |elem| !elem.blank? }.collect { |elem| elem.to_i } 
-      else
-        @options.include_subscriptions = []
-      end
-      
-      @paragraph.data = @options.to_h
-      @paragraph.save
-      render_paragraph_update
-      return
-    end
-
-    @content_publications = [ ['No Publication', 0 ] ] + ContentPublication.find(:all,:conditions => 'publication_type = "create"',:order => 'content_models.name, content_publications.name',
-                                                     :include => :content_model ).collect { |pub| [ pub.content_model.name + ' - ' + pub.name, pub.id ] }
-    
-      @pages = [[ '--Select Page--'.t, nil ]] + SiteNode.page_options()
-    
-      @fields = %w{username membership gender first_name last_name dob address work_address work_fax referrer captcha}
-      @field_options = [ [ 'Required', 'required' ], [ 'Optional','optional' ], ['Do not Display','off' ] ]
-     @subscriptions = UserSubscription.find_select_options(:all,:order => 'name')
-  end
-  
-  class RegisterOptions < HashModel
-    default_options :success_page => nil, :content_publication => nil, :registration_type => 'login', :form_display => 'normal', :already_registered_redirect => nil, :user_class_id => nil, :username => 'off', :first_name => 'required', :last_name => 'required', :modify_profile => 'modify', :referrer => 'off', :membership => 'off',
-                    :gender => 'required', :dob => 'off', :address => 'off', :work_address => 'off', :add_tags => '', :work_fax => 'off',
-                    :site_policy => 'off', :policy_text => '', :registration_template => nil, :include_subscriptions => [], :clear_info => 'n', :country => 'United States',
-                    :address_type => 'us', :registration_button => nil, :captcha => 'off'
-    integer_options :success_page, :already_registered_redirect, :user_class_id, :content_publication ,:registration_template
-    validates_presence_of :success_page
-  end    
 end
