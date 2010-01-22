@@ -458,6 +458,24 @@ describe Editor::AuthRenderer, :type => :controller do
       @user.activation_string.should be_nil
       @user.activated.should be_true
     end
+
+    it "should redirect an already activated user" do
+      email = 'test@test.dev'
+      password = 'myfakepassword'
+      activation_string = 'activateme'
+
+      @user = EndUser.push_target(email)
+      @user.registered = 1
+      @user.activated = 1
+      @user.activation_string = activation_string
+      @user.password = password
+      @user.save.should be_true
+
+      @already_activated_redirect_page = SiteVersion.default.root_node.add_subpage('already_activated_redirect_page')
+      @rnd = generate_renderer :require_acceptance => false, :already_activated_redirect_page_id => @already_activated_redirect_page.id
+      @rnd.should_receive(:redirect_paragraph).with('/already_activated_redirect_page')
+      renderer_get @rnd, :code => activation_string
+    end
   end
 
   describe "Enter Vip Paragraph" do 
@@ -648,6 +666,13 @@ describe Editor::AuthRenderer, :type => :controller do
       renderer_get @rnd
     end
 
+    it "should render the edit_account paragraph if logged in" do
+      mock_user
+      @rnd = generate_renderer
+      @rnd.should_receive(:render_paragraph).with(hash_including(:partial => '/editor/auth/edit_account'))
+      renderer_get @rnd
+    end
+
     it "should be able to edit user data" do
       mock_user
       user_info = {:email => 'testnew@test.dev', :first_name => 'FirstTest', :last_name => 'LastTest', :gender => 'm', :username => 'testnew'}
@@ -669,7 +694,7 @@ describe Editor::AuthRenderer, :type => :controller do
       address_info = {:company => 'company', :phone => 'phone', :fax => 'fax', :address => 'address', :city => 'city', :state => 'state', :zip => 'zip'}
       work_address_info = {:company => 'work_company', :phone => 'work_phone', :fax => 'work_fax', :address => 'work_address', :city => 'work_city', :state => 'work_state', :zip => 'work_zip'}
 
-      @rnd = generate_renderer :address => 'on', :work_address => 'on'
+      @rnd = generate_renderer :address => 'on', :work_address => 'on', :clear_info => 'y'
       @rnd.should_receive(:redirect_paragraph).with(@success_page.node_path).once
       renderer_post @rnd, :user => user_info, :address => address_info, :work_address => work_address_info
 

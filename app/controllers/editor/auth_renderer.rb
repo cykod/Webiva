@@ -400,12 +400,10 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
     @work_address.end_user_id = @user.id
 
     if opts.clear_info.to_s == 'y'
-      if @user.id
-        @required_fields.each { |fld| @user.send(fld + "=",'') }
-        @optional_fields.each { |fld| @user.send(fld + "=",'') }
-        @adr_fields.each { |fld| @address.send(fld + "=",'') }
-        @adr_fields.each { |fld| @work_address.send(fld + "=",'') }
-      end
+      @required_fields.each { |fld| @user.send(fld + "=",'') }
+      @optional_fields.each { |fld| @user.send(fld + "=",'') }
+      @adr_fields.each { |fld| @address.send(fld + "=",'') }
+      @adr_fields.each { |fld| @work_address.send(fld + "=",'') }
     end
     
     if !editor? && request.post? && params[:user]
@@ -482,7 +480,6 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
     else
       @subscriptions = nil
     end
-    
 
     render_paragraph :partial => '/editor/auth/edit_account',
       :locals => { :user => @user, 

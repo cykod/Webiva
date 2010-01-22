@@ -182,7 +182,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
 
   class UserActivationOptions < HashModel
     attributes :require_acceptance => false, :redirect_page_id => nil, 
-      :already_activated_redirect_page_url => nil, :login_after_activation => false
+      :already_activated_redirect_page_id => nil, :login_after_activation => false
 
     page_options :redirect_page_id, :already_activated_redirect_page_id
     boolean_options :require_acceptance, :login_after_activation
