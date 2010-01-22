@@ -585,7 +585,8 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
           @target.user_level = 4
           @target.save
           if @options.zip != 'off' 
-            adr = @target.address || EndUserAddress.new(:end_user_id => @target.id)
+            adr = @target.address || EndUserAddress.new
+	    adr.end_user_id = @target.id
             adr.zip = @user.zip 
             adr.save
             if !@target.address

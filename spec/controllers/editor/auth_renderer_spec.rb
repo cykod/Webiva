@@ -6,7 +6,7 @@ describe Editor::AuthRenderer, :type => :controller do
   
   integrate_views
 
-  reset_domain_tables :end_users, :end_user_addresses, :tags, :end_user_tags, :site_nodes
+  reset_domain_tables :end_users, :end_user_addresses, :tags, :end_user_tags, :site_nodes, :user_subscriptions, :mail_templates, :user_subscription_entries
     
   describe "User Register Paragraph" do 
     def generate_renderer(data = {})
@@ -806,19 +806,6 @@ describe Editor::AuthRenderer, :type => :controller do
     end
   end
 
-  describe "Email List Paragraph" do
-    def generate_renderer(data = {})
-      default = {}
-      build_renderer('/page','/editor/auth/email_list',default.merge(data),{})
-    end
-
-    it "should render the email list paragraph" do
-      @rnd = generate_renderer
-      @rnd.should_receive(:render_paragraph)
-      renderer_get @rnd
-    end
-  end
-
   describe "Splash Paragraph" do
     def generate_renderer(data = {})
       @splash_page = SiteNode.find_by_title('splash') || SiteNode.create(:title => 'splash', :site_version_id => 1)
@@ -850,6 +837,131 @@ describe Editor::AuthRenderer, :type => :controller do
       @rnd.should_receive(:render_paragraph).with(:nothing => true)
       renderer_get @rnd, :no_splash => true
       @cookies[:splash][:value].should == 'set'
+    end
+  end
+
+  describe "Email List Paragraph" do
+    def generate_renderer(data = {})
+      @subscription ||= UserSubscription.create :name => 'Test'
+      @destination_page = SiteNode.find_by_title('destiny') || SiteNode.create(:title => 'destiny', :site_version_id => 1)
+      default = {:user_subscription_id => @subscription.id, :tags => nil, :zip => 'optional', :first_name => 'off',
+	         :last_name => 'off',:destination_page_id => @destination_page.id, :user_source => nil,
+                 :success_message => 'Thank you, your email has been added to our list',
+                 :partial_post => 'yes'}
+      build_renderer('/page','/editor/auth/email_list',default.merge(data),{})
+    end
+
+    it "should render the email list paragraph" do
+      @rnd = generate_renderer
+      @rnd.should_receive(:render_paragraph)
+      renderer_get @rnd
+    end
+
+    it "should signup for a email list" do
+      email_list_signup_info = { :email => 'test@test.dev',
+	                         :zip => '55555'
+                               }
+
+      @rnd = generate_renderer
+      @rnd.should_receive(:redirect_paragraph)
+
+      assert_difference 'UserSubscriptionEntry.count', 1 do
+	renderer_post @rnd, :email_list_signup => email_list_signup_info
+      end
+    end
+
+    it "should not signup for a email list if a missing field is required" do
+      email_list_signup_info = { :email => 'test@test.dev',
+	                         :zip => ''
+                               }
+
+      @rnd = generate_renderer :zip => 'required'
+      @rnd.should_receive(:render_paragraph)
+
+      assert_difference 'UserSubscriptionEntry.count', 0 do
+	renderer_post @rnd, :email_list_signup => email_list_signup_info
+      end
+
+      email_list_signup_info = { :email => 'test@test.dev',
+	                         :first_name => ''
+                               }
+
+      @rnd = generate_renderer :first_name => 'required'
+      @rnd.should_receive(:render_paragraph)
+
+      assert_difference 'UserSubscriptionEntry.count', 0 do
+	renderer_post @rnd, :email_list_signup => email_list_signup_info
+      end
+
+      email_list_signup_info = { :email => 'test@test.dev',
+	                         :last_name => ''
+                               }
+
+      @rnd = generate_renderer :last_name => 'required'
+      @rnd.should_receive(:render_paragraph)
+
+      assert_difference 'UserSubscriptionEntry.count', 0 do
+	renderer_post @rnd, :email_list_signup => email_list_signup_info
+      end
+    end
+
+    it "should signup for a email list if a missing field is optional" do
+      email_list_signup_info = { :email => 'test@test.dev',
+	                         :zip => ''
+                               }
+
+      @rnd = generate_renderer :zip => 'optional'
+      @rnd.should_receive(:redirect_paragraph)
+
+      assert_difference 'UserSubscriptionEntry.count', 1 do
+	renderer_post @rnd, :email_list_signup => email_list_signup_info
+      end
+    end
+
+    it "should add an entry for user subscription on a partial post even if missing data" do
+      email_list_signup_info = { :email => 'test@test.dev',
+	                         :zip => ''
+                               }
+
+      @rnd = generate_renderer :zip => 'required', :partial_post => 'yes'
+      @rnd.should_receive(:render_paragraph)
+
+      assert_difference 'UserSubscriptionEntry.count', 1 do
+	renderer_post @rnd, :partial_post => true, :email_list_signup => email_list_signup_info
+      end
+    end
+
+    it "should not add an entry for user subscription when not allowing for partial_post and missing data" do
+      email_list_signup_info = { :email => 'test@test.dev',
+	                         :zip => ''
+                               }
+
+      @rnd = generate_renderer :zip => 'required', :partial_post => 'no'
+      @rnd.should_receive(:render_paragraph)
+
+      assert_difference 'UserSubscriptionEntry.count', 0 do
+	renderer_post @rnd, :partial_post => true, :email_list_signup => email_list_signup_info
+      end
+    end
+
+    it "should signup for a email list and tag user" do
+      email_list_signup_info = { :email => 'test@test.dev',
+	                         :zip => '55555'
+                               }
+
+      @rnd = generate_renderer :tags => 'email_list'
+      @rnd.should_receive(:redirect_paragraph)
+
+      assert_difference 'UserSubscriptionEntry.count', 1 do
+	renderer_post @rnd, :email_list_signup => email_list_signup_info
+      end
+
+      @tag = Tag.find_by_name('email_list')
+      @tag.should_not be_nil
+      @user = EndUser.find_by_email('test@test.dev')
+      @user.should_not be_nil
+      @end_user_tag = EndUserTag.find_by_end_user_id_and_tag_id(@user.id, @tag.id)
+      @end_user_tag.should_not be_nil
     end
   end
 end
