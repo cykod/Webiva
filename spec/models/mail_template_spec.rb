@@ -8,9 +8,14 @@ describe MailTemplate do
   reset_domain_tables :mail_templates,:domain_file
   
   before(:each) do
+    ActionMailer::Base.delivery_method = :test  
+    ActionMailer::Base.perform_deliveries = true  
+    ActionMailer::Base.deliveries = []  
+    
+    
     @templ = create_mail_tmpl_text
     @templ2 = create_mail_tmpl_html
-
+    
     fdata = fixture_file_upload("files/rails.png",'image/png')
     @df = DomainFile.create(:filename => fdata) 
   end
@@ -57,12 +62,23 @@ describe MailTemplate do
       @tf = @tmpl.is_html
       @tf.should == true
     end
+     it 'should determine the body format when html' do
+      @tmpl = MailTemplate.find_by_subject('Test Default2')
+      @tf = @tmpl.body_format
+      @tf.should == 'html'
+    end
+    it 'should determine th body format when text' do
+      @tmpl = MailTemplate.find_by_subject('Test Default')
+      @tf = @tmpl.body_format
+      @tf.should == 'text'
+      @tf.should_not == 'html'
+      @tf.should_not == 'none'
+      @tf.should_not == 'both'
+    end
     it 'should create correct links' do
       @image = DomainFile.find_by_name('rails.png')
-      @image_path = "<img src=\"../../../system/storage/2/%s/%s\" height=\"200\" width=\"256\"" %  [@image.prefix, @image.name]      
+      @image_path = "<img src=\"/__fs__/%s\" \/>" %  [@image.prefix, @image.name]      
       @body_html = "<p>This is the image:  %s" % @image_path
-    
-
       @tmpl = MailTemplate.create({:name=>"Test Template Image",
         :template_type=>"site",
         :category=>"test cat",
@@ -74,14 +90,30 @@ describe MailTemplate do
         :published_at=>"",
         :attachments=>"",
         :generate_text_body=>"0",
-        :body_text=>"This is my test template \n \n  \n \nit is called template A \n "})
-     
-      @fix = @tmpl.replace_image_sources
-      
-      ### this is completely a mystery.. FIGURE THIS OUT
-
-      
+        :body_text=>"This is my test template \n \n  \n \nit is called template A \n "})     
+      @prependdomain_link = @tmpl.replace_image_sources
+      @prependdomain_link.should == "<p>This is the image:  <img  src='http://www.webiva-test.com/__fs__/%s' />" % [@image.prefix]      
     end
+    it 'should prepare a template for mailing' do
+      @image = DomainFile.find_by_name('rails.png')
+      @image_path = "<img src=\"/__fs__/%s\" \/>" %  [@image.prefix, @image.name]      
+      @body_html = "There is an image in this body, is the link correct? <p>This is the image:  %s" % @image_path
+      @tmpl = MailTemplate.create({:name=>"Test Template Image",
+        :template_type=>"site",
+        :category=>"test cat",
+        :site_template_id=>"",
+        :body_type=> "html",
+        :body_html=> @body_html,
+        :language=>"en",
+        :subject=>"this is the subject",
+        :published_at=>"",
+        :attachments=>"",
+        :generate_text_body=>"0",
+                                    :body_text=>"This is my test template \n \n  \n \nit is called template A \n "})     
+      @prepared_html = @tmpl.prepare_to_send
+      @prepared_html.should ==  @body_html
+    end
+### The next 4 tests don't make sense without the mail module installed.. 
     it 'should generate a link for online viewing'
     it 'should add subscribe / unsubscribe links'
     it 'should generate track links'
@@ -117,13 +149,22 @@ describe MailTemplate do
       @tmpl = MailTemplate.find_by_subject('Design without ID')
       @tmpl.should be_nil
     end          
+    it 'should create a copy of itself' do
+      create_mail_tmpl_text({:create_type => '', :subject => 'make a copy'})
+      @tmpl = MailTemplate.find(:last)
+      @tmpl.duplicate
+      @tmpl2 = MailTemplate.find(:last)
+      @tmpl2.name.should == 'default test insert (Copy)'
+    end
   end  
   describe 'send template' do
     it 'should deliver templ template to end user' do      
       create_end_user
       create_mail_tmpl_text
       @tmpl = MailTemplate.find(:last)
-    #  @tmpl.deliver_to_address('daffy@mywebiva.com')
+      @tmpl.deliver_to_address('daffy@mywebiva.com')
+      ActionMailer::Base.deliveries.size.should == 1  
+        
     end   
     it 'should deliver templ template to email address' do
       create_end_user
@@ -131,7 +172,9 @@ describe MailTemplate do
       @re_vars = {:first_name => "FirstName"} 
       @tmpl = MailTemplate.find(:last)
       @user = EndUser.find_by_username('bunny1')
-    #  @tmpl.deliver_to_user(@user, @re_vars)
+      @tmpl.deliver_to_user(@user, @re_vars)
+      ActionMailer::Base.deliveries.size.should == 1  
+
     end
   end  
 end
