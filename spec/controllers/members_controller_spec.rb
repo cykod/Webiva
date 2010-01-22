@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + "/../spec_helper"
 describe MembersController do
   integrate_views
 
-  reset_domain_tables :end_user, :user_subscriptions, :user_subscription_entries, :tags, :mail_templates, :end_user_addresses, :tag_notes, :end_user_tags
+  reset_domain_tables :end_user, :user_subscriptions, :user_subscription_entries, :tags, :mail_templates, :end_user_addresses, :tag_notes, :end_user_tags, :market_segments
 
   describe "editor tests" do
     before(:each) do
@@ -229,6 +229,62 @@ describe MembersController do
       @output.status.should == '200 OK'
       @note.reload
       @note.description.should == 'test note'
+    end
+
+    describe "handle end_user table actions" do
+      it "should be able to delete a user" do
+	@output = post 'display_targets_table', :table_action => 'delete', :user => {@user1.id => 1}
+	@deleted_user = EndUser.find_by_id @user1.id
+	@deleted_user.should be_nil
+      end
+
+      it "should be able to add tags to users" do
+	@output = post 'display_targets_table', :table_action => 'add_tags', :user => {@user1.id => 1}, :added_tags => 'new_tag'
+	@user1.reload
+	@user1.tag_names.include?('new_tag').should be_true
+      end
+
+#      it "should be able to remove tags to users" do
+#	@user1.tag(['new_tag'])
+#	@user1.reload
+#	@user1.tag_names.include?('new_tag').should be_true
+#	@output = post 'display_targets_table', :table_action => 'remove_tags', :user => {@user1.id => 1}, :removed_tags => 'new_tag'
+#	@user1.reload
+#	@user1.tag_names.include?('new_tag').should_not be_true
+#      end
+
+      it "should be able to clear tags to users" do
+	@user1.tag(['new_tag'])
+	@user1.reload
+	@user1.tag_names.include?('new_tag').should be_true
+	@output = post 'display_targets_table', :table_action => 'clear_tags', :user => {@user1.id => 1}
+	@user1.reload
+	@user1.tag_names.empty?.should be_true
+      end
+
+      it "should be able to save segment" do
+	assert_difference 'MarketSegment.count', 1 do
+	  @output = post 'display_targets_table', :table_action => '', :save_segment => 'new_test_segment'
+	end
+      end
+
+      it "should be able to load a segment" do
+	@segment = MarketSegment.create :name => 'new_test_segment', :segment_type => 'members'
+	@segment.id.should_not be_nil
+	assert_difference 'MarketSegment.count', 0 do
+	  MarketSegment.should_receive(:find_by_id).with(@segment.id.to_s).and_return(nil)
+	  @output = post 'display_targets_table', :table_action => '', :load_segment => @segment.id
+	end
+      end
+
+      it "should be able to delete a segment" do
+	@segment = MarketSegment.create :name => 'new_test_segment', :segment_type => 'members'
+	@segment.id.should_not be_nil
+	assert_difference 'MarketSegment.count', -1 do
+	  MarketSegment.should_receive(:find_by_id).with(@segment.id.to_s).and_return(@segment)
+	  @output = post 'display_targets_table', :table_action => '', :delete_segment => @segment.id
+	end
+      end
     end
   end
 
