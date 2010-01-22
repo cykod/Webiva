@@ -7,7 +7,7 @@ describe Editor::AuthRenderer, :type => :controller do
   integrate_views
 
   reset_domain_tables :end_users, :end_user_addresses, :tags, :end_user_tags, :site_nodes, :user_subscriptions, :mail_templates, :user_subscription_entries
-    
+
   describe "User Register Paragraph" do 
     def generate_renderer(data = {})
       # Set a user class b/c we need one
@@ -637,7 +637,7 @@ describe Editor::AuthRenderer, :type => :controller do
 
   describe "Edit Account Paragraph" do 
     def generate_renderer(data = {})
-      @success_page = SiteNode.find_by_title('edit_account_success') || SiteNode.create(:title => 'edit_account_success', :site_version_id => 1)
+      @success_page = SiteNode.find_by_title('edit_account_success') || SiteVersion.default.root_node.add_subpage('edit_account_success')
       default = {:success_page => @success_page.id}
       build_renderer('/page','/editor/auth/edit_account',default.merge(data),{})
     end
@@ -709,7 +709,7 @@ describe Editor::AuthRenderer, :type => :controller do
 
   describe "Missing Password Paragraph" do 
     def generate_renderer(data = {})
-      @reset_page = SiteNode.find_by_title('reset') || SiteNode.create(:title => 'reset', :site_version_id => 1)
+      @reset_page = SiteNode.find_by_title('reset') || SiteVersion.default.root_node.add_subpage('reset')
       @email_template = MailTemplate.find_by_name('reset') || MailTemplate.create(:subject => 'Reset Password', :name => 'reset', :language => 'en')
       default = {:reset_password_page => @reset_page.id, :email_template => @email_template.id}
       build_renderer('/page','/editor/auth/missing_password',default.merge(data),{})
@@ -808,7 +808,7 @@ describe Editor::AuthRenderer, :type => :controller do
 
   describe "Splash Paragraph" do
     def generate_renderer(data = {})
-      @splash_page = SiteNode.find_by_title('splash') || SiteNode.create(:title => 'splash', :site_version_id => 1)
+      @splash_page = SiteNode.find_by_title('splash') || SiteVersion.default.root_node.add_subpage('splash')
       default = {:splash_page_id => @splash_page.id}
       build_renderer('/page','/editor/auth/splash',default.merge(data),{})
     end
@@ -843,7 +843,7 @@ describe Editor::AuthRenderer, :type => :controller do
   describe "Email List Paragraph" do
     def generate_renderer(data = {})
       @subscription ||= UserSubscription.create :name => 'Test'
-      @destination_page = SiteNode.find_by_title('destiny') || SiteNode.create(:title => 'destiny', :site_version_id => 1)
+      @destination_page = SiteNode.find_by_title('destiny') || SiteVersion.default.root_node.add_subpage('destiny')
       default = {:user_subscription_id => @subscription.id, :tags => nil, :zip => 'optional', :first_name => 'off',
 	         :last_name => 'off',:destination_page_id => @destination_page.id, :user_source => nil,
                  :success_message => 'Thank you, your email has been added to our list',

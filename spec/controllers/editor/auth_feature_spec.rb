@@ -9,7 +9,7 @@ describe Editor::AuthFeature, :type => :view do
   end
 
   it "should display user_register feature" do
-    @success_page = SiteNode.create :title => 'success', :site_version_id => 1
+    @success_page = SiteVersion.default.root_node.add_subpage('success')
     @options = Editor::AuthController::UserRegisterOptions.new :success_page_id => @success_page.id, :user_class_id => UserClass.default_user_class_id
     @usr = EndUser.new :email => 'test@test.dev'
     @address = @usr.build_address(:address_name => 'Default Address'.t )
@@ -73,7 +73,7 @@ describe Editor::AuthFeature, :type => :view do
 
   it "should display email_list feature" do
     @subscription = UserSubscription.create :name => 'Test'
-    @destination_page = SiteNode.create(:title => 'destiny', :site_version_id => 1)
+    @destination_page = SiteVersion.default.root_node.add_subpage('destiny')
     @options = Editor::AuthController::UserActivationOptions.new :user_subscription_id => @subscription.id, :destination_page_id => @destination_page.id
 
     data = { :email_list => Editor::AuthRenderer::EmailListUser.new(:email => 'test@test.dev'),
