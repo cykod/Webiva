@@ -12,9 +12,13 @@ describe MailTemplate do
     @templ2 = create_mail_tmpl_html
 
     fdata = fixture_file_upload("files/rails.png",'image/png')
-    @df = DomainFile.new(:filename => fdata) 
+    @df = DomainFile.create(:filename => fdata) 
   end
-
+  after(:each) do 
+#    @df.destroy # Make sure we get rid of the files in the system
+  end
+  
+  
   describe 'process text, images, and variables for template generation' do
     it 'should return the format string from format function' do 
       MailTemplate.create(:name => "M Template Test 2", :language => 'eng', :template_type => 'site', :subject =>  'HTML style templ')
@@ -53,9 +57,30 @@ describe MailTemplate do
       @tf = @tmpl.is_html
       @tf.should == true
     end
-    it 'should create correct image URLS' do
-      create_mail_tmpl_html({:body_html => '%%username%% has signed up<img src=/__fs__/2a/b/61' })
-  
+    it 'should create correct links' do
+      @image = DomainFile.find_by_name('rails.png')
+      @image_path = "<img src=\"../../../system/storage/2/%s/%s\" height=\"200\" width=\"256\"" %  [@image.prefix, @image.name]      
+      @body_html = "<p>This is the image:  %s" % @image_path
+    
+
+      @tmpl = MailTemplate.create({:name=>"Test Template Image",
+        :template_type=>"site",
+        :category=>"test cat",
+        :site_template_id=>"",
+        :body_type=> "html",
+        :body_html=> @body_html,
+        :language=>"en",
+        :subject=>"this is the subject",
+        :published_at=>"",
+        :attachments=>"",
+        :generate_text_body=>"0",
+        :body_text=>"This is my test template \n \n  \n \nit is called template A \n "})
+     
+      @fix = @tmpl.replace_image_sources
+      
+      ### this is completely a mystery.. FIGURE THIS OUT
+
+      
     end
     it 'should generate a link for online viewing'
     it 'should add subscribe / unsubscribe links'
