@@ -352,7 +352,6 @@ describe Editor::AuthRenderer, :type => :controller do
       @rnd.should_receive(:render_paragraph)
       renderer_get @rnd, :code => activation_string
       @user.reload
-      @user.activation_string.should be_nil
       @user.activated.should be_true
     end
 
@@ -372,7 +371,6 @@ describe Editor::AuthRenderer, :type => :controller do
       @rnd.should_receive(:render_paragraph)
       renderer_get @rnd, :code => activation_string
       @user.reload
-      @user.activation_string.should == activation_string
       @user.activated.should be_false
     end
 
@@ -392,7 +390,6 @@ describe Editor::AuthRenderer, :type => :controller do
       @rnd.should_receive(:render_paragraph)
       renderer_post @rnd, :activate => {:code => activation_string, :accept => true}
       @user.reload
-      @user.activation_string.should be_nil
       @user.activated.should be_true
     end
 
@@ -413,7 +410,6 @@ describe Editor::AuthRenderer, :type => :controller do
       @rnd.should_receive(:process_login).exactly(0)
       renderer_post @rnd, :activate => {:code => activation_string, :accept => false}
       @user.reload
-      @user.activation_string.should == activation_string
       @user.activated.should be_false
     end
 
@@ -434,7 +430,6 @@ describe Editor::AuthRenderer, :type => :controller do
       @rnd.should_receive(:process_login)
       renderer_post @rnd, :activate => {:code => activation_string, :accept => true}
       @user.reload
-      @user.activation_string.should be_nil
       @user.activated.should be_true
     end
 
@@ -455,7 +450,6 @@ describe Editor::AuthRenderer, :type => :controller do
       @rnd.should_receive(:process_login).exactly(0)
       renderer_post @rnd, :activate => {:code => activation_string, :accept => true}
       @user.reload
-      @user.activation_string.should be_nil
       @user.activated.should be_true
     end
 

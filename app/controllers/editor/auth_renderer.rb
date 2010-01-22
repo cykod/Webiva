@@ -313,8 +313,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       if @status == 'activation' && params[:activate][:accept].blank?
         @acceptance_error = true
       
-      elsif @user.update_attributes(:activated => true,
-                                 :activation_string => nil)
+      elsif @user.update_attributes(:activated => true)
         @status ='activated'
 
         process_login(@user) if @options.login_after_activation
