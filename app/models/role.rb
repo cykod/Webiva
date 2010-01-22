@@ -66,7 +66,9 @@ class Role < DomainModel
   def self.expand_roles(what)
     what = what.map { |elm| elm.to_s }
 
-    Role.find(:all,:select => 'id',:conditions => ['name IN (?) AND authorizable_type IS NULL AND authorizable_id IS NULL',what]).collect(&:id)
+    # If a role doesn't exist, doesn't mean we have it
+    roles = Role.find(:all,:select => 'name,id',:conditions => ['name IN (?) AND authorizable_type IS NULL AND authorizable_id IS NULL',what]).index_by(&:name)
+    what.map { |elm| roles[elm] ? roles[elm].id : nil }
   end
 
   def self.expand_role(what,obj=nil)

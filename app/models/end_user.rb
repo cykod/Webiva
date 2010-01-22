@@ -92,8 +92,9 @@ class EndUser < DomainModel
   has_many :domain_emails
 
   belongs_to :user_class
-
+ 
   attr_protected :client_user_id
+  attr_protected :user_class_id
   attr_accessor :email_confirmation
 
   accepts_nested_attributes_for :end_user_tokens
@@ -285,10 +286,10 @@ class EndUser < DomainModel
   
   # deprecated
   def self.find_visited_target(email) #:nodoc:
-    EndUser.find_by_email(email) || EndUser.create( :email => email,
-                                                    :user_level => 2,
-                                                    :source => 'website',
-                                                    :registered => false )
+    EndUser.find_by_email_and_registered(email, false) || EndUser.create(:email => email,
+									 :user_level => 2,
+									 :source => 'website',
+									 :registered => false )
   end
   
   def update_domain_emails #:nodoc:
@@ -318,14 +319,14 @@ class EndUser < DomainModel
     @roles_list
   end
   
-  # Checks if a user has end of the expanded roles passed in
+  # Checks if a user has any of the expanded roles passed in
   # as an array of Role objects
   def has_any_role?(expanded_roles)
     # Client users have all roles
     if(self.client_user_id && self.user_class_id == UserClass.client_user_class_id)
       true
     else
-      permitted = false
+       permitted = false
       roles_list.each do |role|
         if expanded_roles.include?(role)
           permitted = true
@@ -336,6 +337,26 @@ class EndUser < DomainModel
       permitted
     end
   end
+
+  # Checks if a user has end of the expanded roles passed in
+  # as an array of Role objects
+  def has_all_roles?(expanded_roles)
+    # Client users have all roles
+    if(self.client_user_id && self.user_class_id == UserClass.client_user_class_id)
+      true
+    else
+      permitted = true
+      expanded_roles.each do |role|
+        if !roles_list.include?(role)
+          permitted = false
+          break
+        end
+      end
+      permitted
+    end
+  end
+
+
 
   # Checks if this user has a certain role (not expanded) on an optional target
   def has_role?(role,target=nil)
@@ -412,6 +433,10 @@ class EndUser < DomainModel
     end
   end
   
+  def before_create #:nodoc:
+    self.user_class_id = UserClass.default_user_class_id if self.user_class_id.blank?
+  end
+
   def before_save #:nodoc:
     
     if self.password && !self.password.empty?
@@ -464,10 +489,10 @@ class EndUser < DomainModel
   #  Set the user class to the option specified, or use the default class
   def self.find_target(email,options = {})
     target = self.find_by_email(email)
-    if !target && !options[:no_create]
-      target = EndUser.create(:email => email,:user_class_id => options[:user_class_id] || UserClass.default_user_class_id)
-    elsif !target
-      target = EndUser.new(:email => email,:user_class_id => options[:user_class_id] || UserClass.default_user_class_id)
+    if !target
+      target = EndUser.new(:email => email)
+      target.user_class_id = options[:user_class_id] || UserClass.default_user_class_id
+      target.save unless options[:no_create]
     end
     target
   end
@@ -488,7 +513,7 @@ The :no_register option will not return a user object if the found target is alr
 WARNING: push_target does not sanitize any inputs, so in theory all attributes can be modified,
 so be careful when allowing user submitted arguments in.
 
-User the Hash#slice method to only select the fields you actually want to let in, for example:
+Use the Hash#slice method to only select the fields you actually want to let in, for example:
 
      @user = EndUser.push_target(params[:user][:email],params[:user].slice(:first_name,:last_name))
 
@@ -496,9 +521,11 @@ Not doing so could allow a user to change their user profile (for example) and e
 
 =end
   def self.push_target(email,options = {})
-    target = self.find_target(email,:no_create => true)
     opts = options.clone
     opts.symbolize_keys!
+
+    user_class_id = opts.delete(:user_class_id) || UserClass.default_user_class_id
+    target = self.find_target(email, :user_class_id => user_class_id, :no_create => true)
 
     # Don't mess with registered users if no_register is set    
     no_register = opts.delete(:no_register)
@@ -524,6 +551,7 @@ Not doing so could allow a user to change their user profile (for example) and e
     end
     
     target.attributes = opts
+    target.user_class_id = user_class_id if target.user_class_id.blank?
     target.save
     
     # Need to get an id for the target to save after the fact

@@ -54,9 +54,11 @@ class EditorsController < CmsController  # :nodoc: all
                       [ 'Site Editors', url_for(:controller => 'editors') ],
                       'Create Editor' ], 'options' )
   
+      user_class_id = params[:user_options].delete(:user_class_id) if params[:user_options]
       @user = EndUser.new(params[:user_options])
       
       if request.post?
+	@user.user_class_id = user_class_id
         @user.registered = true
         @user.user_level = 3
         if @user.save
@@ -77,9 +79,11 @@ class EditorsController < CmsController  # :nodoc: all
     
     user_id = params[:path][0]
     
+    user_class_id = params[:user_options].delete(:user_class_id) if params[:user_options]
     @user = EndUser.find(user_id)
     
     if request.post?
+      @user.user_class_id = user_class_id
       if @user.update_attributes(params[:user_options])
         @user.update_domain_emails
         @user.update_editor_login

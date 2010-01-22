@@ -115,7 +115,7 @@ module SiteAuthorizationEngine
   module Target
 
 
-    def self.included(mod)
+    def self.included(mod) #:nodoc:
       mod.send(:has_many, :roles, :as => :authorizable)
       mod.extend(TargetClassMethods)
     end

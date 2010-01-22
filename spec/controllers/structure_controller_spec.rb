@@ -4,7 +4,7 @@ describe StructureController do
   integrate_views
 
 
-  reset_domain_tables :site_versions, :site_nodes, :site_node_modifiers, :page_revisions
+  reset_domain_tables :site_versions, :site_nodes, :site_node_modifiers, :page_revisions, :page_paragraphs
   
 
   before(:each) do
