@@ -319,14 +319,14 @@ class EndUser < DomainModel
     @roles_list
   end
   
-  # Checks if a user has end of the expanded roles passed in
+  # Checks if a user has any of the expanded roles passed in
   # as an array of Role objects
   def has_any_role?(expanded_roles)
     # Client users have all roles
     if(self.client_user_id && self.user_class_id == UserClass.client_user_class_id)
       true
     else
-      permitted = false
+       permitted = false
       roles_list.each do |role|
         if expanded_roles.include?(role)
           permitted = true
@@ -337,6 +337,26 @@ class EndUser < DomainModel
       permitted
     end
   end
+
+  # Checks if a user has end of the expanded roles passed in
+  # as an array of Role objects
+  def has_all_roles?(expanded_roles)
+    # Client users have all roles
+    if(self.client_user_id && self.user_class_id == UserClass.client_user_class_id)
+      true
+    else
+      permitted = true
+      expanded_roles.each do |role|
+        if !roles_list.include?(role)
+          permitted = false
+          break
+        end
+      end
+      permitted
+    end
+  end
+
+
 
   # Checks if this user has a certain role (not expanded) on an optional target
   def has_role?(role,target=nil)

@@ -59,6 +59,13 @@ EOF
     response.should have_tag('div#form_test_values')
   end
 
+  it "should be able to render a content-selector" do
+    @target = EndUser.push_target('svend@karlson.com')
+    @object.test = @target.id
+    render :inline => single_field_helper('content_selector',",EndUser")
+    response.should have_tag('input#form_test')
+  end
+
   it "should be able to render an unsorted selector " do
     render :inline => single_field_helper('unsorted_selector',",[['One',1],['Two',2]],[1]")
     response.should have_tag("select")

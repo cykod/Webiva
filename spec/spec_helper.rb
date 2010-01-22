@@ -200,6 +200,7 @@ module Spec
         # get me a client user to ignore any permission issues    
         @myself = EndUser.push_target(email)
         controller.should_receive('myself').at_least(:once).and_return(@myself)
+        @myself
       end
 
       def paragraph_controller_helper(site_node_path,display_module_type,data={},extra_attributes = {})
