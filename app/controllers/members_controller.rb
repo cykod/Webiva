@@ -108,7 +108,7 @@ class MembersController < CmsController # :nodoc: all
       @save_segment = params[:save_segment]
       @update_segments = true
     elsif  request.post? && params[:load_segment]
-      load_segment = MarketSegment.find_by_id(params[:load_segment])
+      load_segment = MarketSegment.find_by_id(params[:load_segment].to_i)
 
       if load_segment
         params.delete(:email_targets_table)
@@ -122,7 +122,7 @@ class MembersController < CmsController # :nodoc: all
       end
       @update_segments = true
     elsif request.post? && params[:delete_segment]
-      load_segment = MarketSegment.find_by_id(params[:delete_segment])
+      load_segment = MarketSegment.find_by_id(params[:delete_segment].to_i)
       load_segment.destroy
       session[:et_segment] = nil
       session[:et_segment_name] = nil
