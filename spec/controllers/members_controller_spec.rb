@@ -244,14 +244,14 @@ describe MembersController do
 	@user1.tag_names.include?('new_tag').should be_true
       end
 
-#      it "should be able to remove tags to users" do
-#	@user1.tag(['new_tag'])
-#	@user1.reload
-#	@user1.tag_names.include?('new_tag').should be_true
-#	@output = post 'display_targets_table', :table_action => 'remove_tags', :user => {@user1.id => 1}, :removed_tags => 'new_tag'
-#	@user1.reload
-#	@user1.tag_names.include?('new_tag').should_not be_true
-#      end
+      it "should be able to remove tags to users" do
+	@user1.tag(['new_tag'])
+	@user1.reload
+	@user1.tag_names.include?('new_tag').should be_true
+	@output = post 'display_targets_table', :table_action => 'remove_tags', :user => {@user1.id => 1}, :removed_tags => 'new_tag'
+	@user1.reload
+	@user1.tag_names.include?('new_tag').should_not be_true
+      end
 
       it "should be able to clear tags to users" do
 	@user1.tag(['new_tag'])
