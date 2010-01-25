@@ -80,7 +80,8 @@ class DomainFile < DomainModel
    
    # Replace this DomainFile with a different DomainFile
    def replace(file)
-    return false if self.folder?
+    return false if self.folder? || file.folder?
+    return false if self.id == file.id
     self.reload(:lock => true)
     File.open(file.filename,"rb") do |f|
       self.filename = f
