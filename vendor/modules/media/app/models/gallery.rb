@@ -9,7 +9,7 @@ class Gallery < DomainModel
   belongs_to :container, :polymorphic => true
   belongs_to :owner, :polymorphic => true
   
-  belongs_to :domain_file, :dependent => :destroy
+  has_domain_file :domain_file_id
   
   has_many :gallery_images,  :order => :position, :conditions => 'approved = 1', :include => :domain_file
   
