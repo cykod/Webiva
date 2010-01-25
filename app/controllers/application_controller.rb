@@ -158,7 +158,8 @@ class ApplicationController < ActionController::Base
     
     # Cancel out of domain activations
     # if we are testing
-    if RAILS_ENV == 'test'
+    if RAILS_ENV == 'test' || RAILS_ENV == 'cucumber'
+      DomainModel.activate_domain(Domain.find(CMS_DEFAULTS['testing_domain']).attributes,'production',false)
       return true
     else 
       domain = request.domain(5)

@@ -330,10 +330,8 @@ class StructureController < CmsController  # :nodoc: all
   
   # Domain Element Information
   def r_element_info(node) 
-  	@node = node
-  	
-  
-  	render :partial => 'domain_element_info'
+    @node = node
+    render :partial => 'domain_element_info'
   end
 
   def m_element_info(node)
@@ -342,12 +340,11 @@ class StructureController < CmsController  # :nodoc: all
   
   # Page Element Information
   def p_element_info(node)
-  	
-  	@languages = Configuration.languages
+   @languages = Configuration.languages
     @revision_info = node.language_revisions(@languages)
     @node = node
     
-  	render :partial => 'page_element_info'
+    render :partial => 'page_element_info'
   end
 
   # Group Element Information
@@ -360,54 +357,47 @@ class StructureController < CmsController  # :nodoc: all
   def d_element_info(node) 
   	@node = node
   	render :partial => 'document_element_info'
-  	
-  	
   end
   
   # Jump (Redirect) Element Information
   def j_element_info(node) 
-  	@node = node
-  	
-  	if request.post?
-  		unless @node.redirect_detail.update_attributes(params[:redirect])
-  			@display_edit_form = true
-  		end
-      
+    @node = node
+    
+    if request.post?
+      unless @node.redirect_detail.update_attributes(params[:redirect])
+        @display_edit_form = true
+      end
       expire_site
-      
-  	end
-  	
-  	@available_pages = SiteNode.find(:all, :order => 'node_path', :conditions => ['node_type != "R" AND id != ? ',@node.id]).collect do |page|
-  		[ page.node_path, page.id ]
-  	end
-  	
-  	@redirect_details = @node.redirect_detail
-  	render :partial => 'redirect_element_info'
+    end
+    
+    @available_pages = SiteNode.find(:all, :order => 'node_path', :conditions => ['node_type != "R" AND id != ? ',@node.id]).collect do |page|
+      [ page.node_path, page.id ]
+    end
+    
+    @redirect_details = @node.redirect_detail
+    render :partial => 'redirect_element_info'
   end
   
   
   
   # Template Modifier Information
   def template_modifier_info(mod)
-  	@mod = mod
-  	
-  	@site_templates = SiteTemplate.find(:all,:order => 'name') || []
-  	
-  	@frm = SiteNodeModifier::TemplateModifierOptions.new(params[:mod] || @mod.modifier_data)
-  	
-  	if request.post?
-  		if @frm.valid?
-  			@mod.modifier_data = @frm.to_h
-  			@mod.save
-  		else
-  			@display_edit_form = true
-  		end
-      
+    @mod = mod
+    
+    @site_templates = SiteTemplate.find(:all,:order => 'name') || []
+    
+    @frm = SiteNodeModifier::TemplateModifierOptions.new(params[:mod] || @mod.modifier_data)
+    
+    if request.post?
+      if @frm.valid?
+        @mod.modifier_data = @frm.to_h
+        @mod.save
+        @updated = true
+      end
       expire_site
-      
-  	end
-  	
-  	render :partial => 'template_modifier_info'
+    end
+    
+    render :partial => 'template_modifier_info'
   end
   
   # Framework Modifier Information

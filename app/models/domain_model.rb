@@ -247,24 +247,22 @@ class DomainModel < ActiveRecord::Base
       cls.establish_connection(db_config)
 
       @@database_connection_pools[self.process_id] = cls
-
-      @@mutex.synchronize do 
-        unless @@database_connection_pools[self.process_id].connection.verify!
-          unless  @@database_connection_pools[self.process_id].connection.reconnect!
-            logger.fatal('Failed - Remote Database access')
-          end
-        end
-      end
-
-      # Modify the base connection for AR Base if we're testing
-      ActiveRecord::Base.establish_connection(db_config) if RAILS_ENV == 'test'
       return true
     else
       @@database_connection_pools[self.process_id] = delegate_class_name.constantize
       @@mutex.synchronize do 
         unless @@database_connection_pools[self.process_id].connection.verify!
           unless  @@database_connection_pools[self.process_id].connection.reconnect!
-            logger.fatal('Failed - Remote Database access')
+            logger.fatal('Failed - Check Database access')
+            begin
+              db_config_file = YAML.load_file(file)
+            rescue 
+              return false
+            end
+            db_config = db_config_file[ environment ]
+
+
+            @@database_connection_pools[self.process_id].establish_connection(db_config)
           end
         end
       end

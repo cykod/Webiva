@@ -14,7 +14,7 @@ class NodeEngine::BuiltinHandler < NodeEngine::HandlerBase
   def before_page
 
     # Handle SSL Modifier
-    unless @engine.mode == 'edit'
+    unless @engine.mode == 'edit' 
 
       current_domain = controller.request.domain(10)
 
@@ -34,6 +34,7 @@ class NodeEngine::BuiltinHandler < NodeEngine::HandlerBase
         output.redirect =  dest_http + dest_domain +  controller.request.request_uri         
         return output
       end
+      
 
       # Now lets go through all the locks
       permitted = true

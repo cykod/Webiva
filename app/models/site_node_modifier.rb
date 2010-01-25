@@ -14,6 +14,26 @@ class SiteNodeModifier < DomainModel
 
   include SiteAuthorizationEngine::Target
   access_control :access
+ 
+  def before_create #:nodoc:
+    if opts = self.modifier_options
+      opts.initial_options
+      self.modifier_data = opts.to_hash
+    end
+  end
+
+  # Returns the name of the modifier class
+  def modifier_options_class_name(full=true)
+    (full ? "SiteNodeModifier::" : "") + self.modifier_type.camelcase + "ModifierOptions" 
+  end
+
+  def modifier_options
+    if SiteNodeModifier.const_defined?(modifier_options_class_name(false))
+      modifier_options_class_name.constantize.new(self.modifier_data)
+    else
+      nil
+    end
+  end
   
   def self.find_page(page_id)
     self.find_by_id(page_id)
@@ -131,7 +151,11 @@ class SiteNodeModifier < DomainModel
     validates_presence_of :template_id
     validates_presence_of :clear_frameworks 
   
-    default_options :template_id => nil, :clear_frameworks => nil
+    attributes :template_id => nil, :clear_frameworks => 'no'
+
+    def initial_options
+      self.template_id = SiteTemplate.find(:first).id
+    end
   end
   	
   class LockModifierOptions < HashModel
@@ -140,12 +164,19 @@ class SiteNodeModifier < DomainModel
     integer_options :redirect
     
     default_options :access_control => 'lock', :options => nil, :redirect => nil
+
+    def initial_options
+    end
   end
   
   class DomainModifierOptions < HashModel
     validates_presence_of :limit_to_domain
     
     default_options :limit_to_domain => ''
+
+    def initial_options
+    end
+
   end
 
 

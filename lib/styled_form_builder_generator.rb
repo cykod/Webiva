@@ -217,6 +217,7 @@ module EnhancedFormElements
     # Overrides default by adding a submit_button class
     def submit_tag(name,options = {}) 
       options[:class] ||= 'submit_button'
+      options[:id] ||= object_name.to_s + "_submit"
       @template.submit_tag(emit_label(name), options)
     end
     
@@ -438,10 +439,12 @@ module EnhancedFormElements
     def cancel_submit_buttons(cancel_name,submit_name,cancel_options={},submit_options={}) 
        submit_options[:class] ||= 'submit_button'
        submit_options[:name] ||= 'commit'
+       submit_options[:id] ||= "#{object_name}_commit_button"
        cancel_options[:class] ||= 'cancel_button'
        cancel_options[:name] ||= 'cancel'
        cancel_options[:onclick] = 'this.form.submit();' unless cancel_options[:onclick]
        cancel_options[:type] = 'button'
+       cancel_options[:id] ||= "#{object_name}_cancel_button"
        cancel_options[:value] = emit_label(cancel_name)
 
       @template.tag('input',cancel_options) + "&nbsp;&nbsp;" + @template.submit_tag(emit_label(submit_name),submit_options)
@@ -615,6 +618,7 @@ class TabledForm < StyledForm
     unstyled = options.delete(:unstyled)
     description = emit_label(options.delete(:description))
     output_opts = {
+      :field => field,
       :label => label,
       :control => tag,
       :unit => emit_label(options.delete(:unit) || ''),
@@ -715,6 +719,7 @@ class TabledForm < StyledForm
     # Checkboxes get options wrapped around their label`
     label = nil
     label = options[:label] if options[:label] && options[:label]  != ''
+    label = "<label for='#{object_name}_#{options[:field]}'>#{label}</label>"
 
     if options[:control] == 'label_field'
       if options[:vertical]

@@ -120,12 +120,12 @@ class SiteNodeEngine
       if USE_X_SEND_FILE
         x_send_file(filename,
                   :type => mime_types[0] ? mime_types[0].to_s : 'text/plain',
-                  :disposition => 'attachment',
+                  :disposition => domain_file.image? ? 'inline' : 'attachment',
                   :filename => name)    
       else
         send_file(filename,
                   :type => mime_types[0] ? mime_types[0].to_s : 'text/plain',
-                  :disposition => 'attachment',
+                  :disposition => domain_file.image? ? 'inline' : 'attachment',
                   :filename => name)    
       end
     end
