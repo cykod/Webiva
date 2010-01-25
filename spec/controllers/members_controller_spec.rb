@@ -287,6 +287,11 @@ describe MembersController do
 	@segment.should be_nil
       end
     end
+
+    it "should render generate_vip page" do
+      @output = get 'generate_vip'
+      @output.status.should == '200 OK'
+    end
   end
 
   describe "user tests" do

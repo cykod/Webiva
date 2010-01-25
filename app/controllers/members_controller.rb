@@ -445,7 +445,11 @@ class MembersController < CmsController # :nodoc: all
 
     render :partial => 'tags_table' if display
   end
-  
+
+  def generate_vip
+    @vip_number = EndUser.generate_vip
+  end
+
   private
   
   # update users subscriptions
