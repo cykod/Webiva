@@ -527,10 +527,8 @@ module Taggable
           
           # remove the tag names to the collection
           tag_names.each do |name| 
-            tag_record = tag_model.find(:first, :conditions=>["#{tag_model_name} = ?",name]) || tag_model.new(tag_model_name.to_sym => name)
-            if tag_record
-                tag_collection.delete(tag_record)
-            end
+            tg = Tag.find_by_name(name)
+            EndUserTag.delete_all({  :end_user_id => self.id, :tag_id => tg.id }) if tg
           end
         end
 
