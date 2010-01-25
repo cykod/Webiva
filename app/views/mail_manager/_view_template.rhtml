@@ -41,7 +41,7 @@
 
   <% t.tab do %>
     <div id='attachments' style='height:300px;'>
-      <%= link_to '+Add Attachment'.t, { :controller => 'file', :action => 'popup' , :select => 'file', :callback => 'MailTemplateEditor.attachDocument' }, :popup => ['file_manager', 'height=400,width=600' ] %>
+      <%= link_to '+Add Attachment'.t, { :controller => 'file', :action => 'popup' , :select => 'all', :callback => 'MailTemplateEditor.attachDocument' }, :popup => ['file_manager', 'height=400,width=800' ] %>
       <div id='template_attachments'>
         <%= render :partial => 'attachments' %>
       </div>
