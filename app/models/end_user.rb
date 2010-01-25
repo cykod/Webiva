@@ -59,8 +59,8 @@ class EndUser < DomainModel
 
   attr_reader :login
   
-  belongs_to :domain_file
-  belongs_to :second_image, :class_name => 'DomainFile',:foreign_key => :second_image_id
+  has_domain_file :domain_file_id
+  has_domain_file :second_image_id
   
   belongs_to :address, :class_name => 'EndUserAddress', :foreign_key => :address_id
   belongs_to :shipping_address, :class_name => 'EndUserAddress', :foreign_key => :shipping_address_id
@@ -433,12 +433,7 @@ class EndUser < DomainModel
     end
   end
   
-  def before_create #:nodoc:
-    self.user_class_id = UserClass.default_user_class_id if self.user_class_id.blank?
-  end
-
   def before_save #:nodoc:
-    
     if self.password && !self.password.empty?
       self.salt = EndUser.generate_hash if self.salt.blank?
       self.hashed_password = EndUser.hash_password(self.password,self.salt) if self.password && !self.password.empty?

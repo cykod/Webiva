@@ -188,7 +188,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
             @mail_template.deliver_to_user(@usr,vars)
           end
           
-          paragraph_action('User Registration',@usr.email)
+          paragraph_action(@usr.action('/editor/auth/user_registration', :identifier => @usr.email))
 
           if @options.lockout_redirect &&  session[:lock_lockout]
             lock_logout = session[:lock_lockout]
@@ -348,7 +348,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
           
           process_login user
           
-	  paragraph_action(myself.action('/editor/auth/enter_vip_success'), vip_number)
+	  paragraph_action(myself.action('/editor/auth/enter_vip_success', :identifier => vip_number))
           paragraph.run_triggered_actions(myself,'success',myself)
           
           user.update_attribute(:user_level, 2) if user.user_level < 2
@@ -365,12 +365,12 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
             return 
 	  end
         else
-	  paragraph_action(myself.action('/editor/auth/enter_vip_repeat'), vip_number)
+	  paragraph_action(myself.action('/editor/auth/enter_vip_repeat', :identifier => vip_number))
 	  paragraph.run_triggered_actions(myself,'repeat',myself)
           data[:registered] = true
         end
       else
-	paragraph_action(myself.action('/editor/auth/enter_vip_failure'), vip_number)
+	paragraph_action(myself.action('/editor/auth/enter_vip_failure', :identifier => vip_number))
 	paragraph.run_triggered_actions(myself,'failure',EndUser.new(:vip_number => vip_number))
         data[:failure] = true
       end
@@ -448,7 +448,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
           paragraph.run_triggered_actions(@user,'action',@user)
         end
 
-	paragraph_action(myself.action('/editor/auth/edit_account_profile'),@user.email)
+	paragraph_action(myself.action('/editor/auth/edit_account_profile', :identifier => @user.email))
 	
         if opts.success_page
           nd = SiteNode.find_by_id(opts.success_page)

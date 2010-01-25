@@ -14,18 +14,18 @@ class MembersController < CmsController # :nodoc: all
    include ActiveTable::Controller   
    active_table :email_targets_table,
                 EndUser,
-                [ ActiveTable::IconHeader.new(''),
-                  ActiveTable::StaticHeader.new('edit', :width => '16'),
-                  ActiveTable::OptionHeader.new('user_level',:options => EndUser.user_level_select_options,:label => 'Lvl', :width=> 40),
-                  ActiveTable::StringHeader.new('email'),
-                  ActiveTable::StringHeader.new('first_name',:label => 'First'),
-                  ActiveTable::StringHeader.new('last_name',:label => 'Last'),
-                  ActiveTable::DateRangeHeader.new('end_users.created_at',:label => 'Created'),
-                  ActiveTable::DateRangeHeader.new('end_users.registered_at',:label => 'Reg.'),
-                  ActiveTable::OptionHeader.new('user_class_id',:label=> 'Profile',:options => :get_user_classes),
-                  ActiveTable::OptionHeader.new('source',:options => EndUser.source_select_options,:label => 'Src. Type',:width=>90),
-                  ActiveTable::StringHeader.new('lead_source',:label => 'Src.' ), 
-                  ActiveTable::StaticHeader.new('tags')
+                [ hdr(:icon, 'check'),
+                  hdr(:static, 'edit', :width => '16'),
+                  hdr(:option, 'user_level',:options => EndUser.user_level_select_options,:label => 'Lvl', :width=> 40),
+                  hdr(:string, 'email'),
+                  hdr(:string, 'first_name',:label => 'First'),
+                  hdr(:string, 'last_name',:label => 'Last'),
+                  hdr(:date_range, 'created_at',:label => 'Created'),
+                  hdr(:date_range, 'registered_at',:label => 'Reg.'),
+                  hdr(:option, 'user_class_id',:label=> 'Profile',:options => :get_user_classes),
+                  hdr(:option, 'source',:options => EndUser.source_select_options,:label => 'Src. Type',:width=>90),
+                  hdr(:string, 'lead_source',:label => 'Src.' ), 
+                  'tags'
                 ],
                 :count_callback => 'count_end_users',
                 :find_callback => 'find_end_users'
@@ -108,7 +108,7 @@ class MembersController < CmsController # :nodoc: all
       @save_segment = params[:save_segment]
       @update_segments = true
     elsif  request.post? && params[:load_segment]
-      load_segment = MarketSegment.find_by_id(params[:load_segment])
+      load_segment = MarketSegment.find_by_id(params[:load_segment].to_i)
 
       if load_segment
         params.delete(:email_targets_table)
@@ -122,7 +122,7 @@ class MembersController < CmsController # :nodoc: all
       end
       @update_segments = true
     elsif request.post? && params[:delete_segment]
-      load_segment = MarketSegment.find_by_id(params[:delete_segment])
+      load_segment = MarketSegment.find_by_id(params[:delete_segment].to_i)
       load_segment.destroy
       session[:et_segment] = nil
       session[:et_segment_name] = nil
@@ -134,6 +134,8 @@ class MembersController < CmsController # :nodoc: all
   public 
   
   def lookup_autocomplete
+    return render :nothing => true if params[:member].blank?
+
     name = params[:member].split(" ").collect { |elm| elm.strip }.find_all { |elm| !elm.blank? }
     @users = []
     if(!name.blank?)
@@ -202,69 +204,44 @@ class MembersController < CmsController # :nodoc: all
     #end
     
     segmentations
-    #member_table_output
 
     display_targets_table(false)
   end
   
-  def member_update
-    member_table_output
-    
-    render :partial => 'member_table'
-  end
-  
-  def refresh_all
-    member_table_output
-    
-    render :action => 'refresh_all'
-  end
-  
-  # Save a segmentation from the session values
-  def save_segmentation
-    
-    segmentation = MarketSegment.find_by_name_and_segment_type(params[:name],'members') || MarketSegment.new(:segment_type => 'members')
-    
-    segmentation.name = params[:name]
-    segmentation.options = session[:et]
-    segmentation.save
-    
-    session[:et_segment] = segmentation.id
-    
-    refresh_all
-  
-  end
-  
-  
   def create
-      cms_page_path ['People'],'Create Contact'
+    cms_page_path ['People'],'Create Contact'
 
-      if(params[:user_options] && params[:user_options][:tag_names]) 
-        @tag_names = params[:user_options].delete(:tag_names)
-      end
+    if(params[:user_options] && params[:user_options][:tag_names]) 
+      @tag_names = params[:user_options].delete(:tag_names)
+    end
 
-      @user = EndUser.new(params[:user_options])
-      
-      if request.post? 
-        if params[:commit]
-          @user.source = 'import'
-          @user.admin_edit=true      
-          if(@user.save)
-            @user.tag_names = @tag_names if @tag_names
-            update_subscriptions(@user,params[:subscription])
-            flash[:notice] = 'Created User'.t
-            redirect_to :action => 'index'
-            return
-          end
-        else
-          redirect_to :action => 'index'
-          return
-        end
+    user_class_id = params[:user_options].delete(:user_class_id) if params[:user_options]
+    @user = EndUser.new(params[:user_options])
+    @user.user_class_id = user_class_id || UserClass.default_user_class_id
+
+    if request.post? 
+      if params[:commit]
+	@user.errors.add(:user_clas_id) if @user.user_class.editor? && !myself.has_role?('editor_editors')
+
+	@user.source = 'import'
+	@user.admin_edit=true
+	@user.valid?
+	if(@user.save)
+	  @user.tag_names = @tag_names if @tag_names
+	  update_subscriptions(@user,params[:subscription])
+	  flash[:notice] = 'Created User'.t
+	  redirect_to :action => 'index'
+	  return
+	end
+      else
+	redirect_to :action => 'index'
+	return
       end
-      
-     render :action => 'edit'
+    end
+    
+    render :action => 'edit'
   end
-  
-  
+
   def edit
     cms_page_path ['People'],'Edit Contact'
     
@@ -332,16 +309,15 @@ class MembersController < CmsController # :nodoc: all
     @editing=true
     
     render :action => 'edit'
-  
   end
   
   active_table :user_actions_table, 
               EndUserAction,
               [ "Action",
-                hdr(:options,'end_user_actions.level',:options => :level_options,:label => 'Lvl'),
-                hdr(:string,'end_user_actions.identifier'),
-                hdr(:string,'end_user_actions.renderer',:label => 'Category'),
-                hdr(:string,'end_user_actions.action',:label => 'Label'),
+                hdr(:options,'level',:options => :level_options,:label => 'Lvl'),
+                hdr(:string,'identifier'),
+                hdr(:string,'renderer',:label => 'Category'),
+                hdr(:string,'action',:label => 'Label'),
                 hdr(:date_range,'action_at'),
                 "Admin User"
               ]
@@ -409,42 +385,32 @@ class MembersController < CmsController # :nodoc: all
   def member_visits
     @user = EndUser.find_by_id(params[:path][0]) 
     @entry_info,@entries = DomainLogEntry.find_user_sessions(@user)
-    
     render :partial => 'site_visits'
   end
-  
-
 
   def add_tags_form
-      @tags = EndUser.tags_count(:order => 'name')
-    
-      render :partial => 'add_tags_form'
+    @tags = EndUser.tags_count(:order => 'name')
+    render :partial => 'add_tags_form'
   end
   
   def remove_tags_form
-      @users = EndUser.find(:all,:conditions => [ 'end_users.id IN (' + params[:user_ids].to_a.collect { |uid| DomainModel.connection.quote(uid) }.join(",") + ")" ], :include => :tag_cache)
+    @users = EndUser.find(:all,:conditions => [ 'end_users.id IN (' + params[:user_ids].to_a.collect { |uid| DomainModel.connection.quote(uid) }.join(",") + ")" ], :include => :tag_cache)
   
-      @existing_tags = []
-      @users.each do |usr|
-        if !usr.tag_cache.tags.blank?
-          @existing_tags  += usr.tag_cache.tags.split(",")
-        end
+    @existing_tags = []
+    @users.each do |usr|
+      if !usr.tag_cache.tags.blank?
+	@existing_tags  += usr.tag_cache.tags.split(",")
       end
-      @existing_tags.uniq!
+    end
+    @existing_tags.uniq!
     
-      render :partial => 'remove_tags_form'
+    render :partial => 'remove_tags_form'
   end
-  
-  def generate_vip
-    @vip_number = EndUser.generate_vip
-  end
-
 
   active_table :tags_table, TagNote,
     [hdr(:string,'tags.name',:label => 'Name'),'Count','Description' ]
 
   def tags
-
     if TagNote.count == 0
       Tag.find(:all).each do |tg|
         tg.create_tag_note unless tg.tag_note
@@ -452,7 +418,6 @@ class MembersController < CmsController # :nodoc: all
     end
 
     display_tags_table(false)
-    
   end
 
   def tag_details
@@ -480,7 +445,11 @@ class MembersController < CmsController # :nodoc: all
 
     render :partial => 'tags_table' if display
   end
-  
+
+  def generate_vip
+    @vip_number = EndUser.generate_vip
+  end
+
   private
   
   # update users subscriptions
