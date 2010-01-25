@@ -50,7 +50,7 @@ class DomainFile < DomainModel
     @@image_sizes
   end
   
-  has_and_belongs_to_many :mail_templates
+  has_and_belongs_to_many :mail_templates,  :join_table => 'domain_files_mail_templates'
   
   has_many :instances, :class_name => 'DomainFileInstance', :dependent => :delete_all
   has_many :versions, :class_name => 'DomainFileVersion', :dependent => :destroy, :order => 'domain_file_versions.id DESC'

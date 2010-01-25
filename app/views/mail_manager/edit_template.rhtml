@@ -68,17 +68,16 @@
   attachDocument: function(field,type,id,path,url,thumb,name) {
     this.removeAttachment(id);
     if(type != 'image') {
-      $('template_attachments').innerHTML += "<div class='attachment' onclick='TemplateEditor.showAttachmentPopup(" + id + ");' /><img align='middle' src='" + thumb + "' />" + name + "</div>";
+      $('template_attachments').innerHTML += "<div id='attachment_" + id + "' class='attachment' onclick='TemplateEditor.showAttachmentPopup(" + id + ");' /><img align='middle' src='" + thumb + "' />" + name + "</div>";
     }
     else {
-      $('template_attachments').innerHTML += "<div class='attachment' onclick='TemplateEditor.showAttachmentPopup(" + id + ");' /><div class='fm_image'><img src='" + thumb + "' /></div>" + name + "</div>";
+      $('template_attachments').innerHTML += "<div class='attachment_" + id + "'  onclick='TemplateEditor.showAttachmentPopup(" + id + ");' /><div class='fm_image'><img src='" + thumb + "' /></div>" + name + "</div>";
     }
     $('mail_template_attachments').value += ',' + id
   },
 
   removeAttachment: function(id) {
-    if($('attachment_' + id))
-      Element.remove('attachment_' + id);
+    if($('attachment_' + id))  Element.remove('attachment_' + id);
     var attachments = $('mail_template_attachments').value;
     attachments = attachments.split(',');
     for(var i=0;i<attachments.length;i++) {
@@ -172,7 +171,7 @@
       <%= "<span class='error'>(Missing Subject)</span>" if @mail_template.errors.on(:subject) %>
 
       <br/><br/>
-<% ajax_tabs ['HTML Body','Text Body','Attachments'], 'HTML Body' do |t| %>
+<% ajax_tabs ['HTML Body','Text Body'], 'HTML Body' do |t| %>
   
   <% t.tab do %>
       <label><input type='checkbox'  id='mail_template_body_value_html' name='mail_template[body_type][]' value='html' <%= "checked='checked'" if @mail_template.body_type.include?('html') %> /> <%= "Enabled HTML Body".t %></label><br/>
@@ -198,7 +197,7 @@
 
   <% t.tab do %>
     <div id='attachments' style='height:300px;'>
-      <%= link_to '+Add Attachment'.t, { :controller => '/file', :action => 'popup' , :select => 'file', :callback => 'TemplateEditor.attachDocument', :thumb_size => 'thumb' }, :popup => ['file_manager', 'height=400,width=600,resizable=yes,scrollbars=yes' ] %>
+      <%= link_to '+Add Attachment'.t, { :controller => '/file', :action => 'popup' , :select => 'all', :callback => 'TemplateEditor.attachDocument', :thumb_size => 'thumb' }, :popup => ['file_manager', 'height=400,width=800,resizable=yes,scrollbars=yes' ] %>
       <div id='template_attachments'>
         <%= render :partial => 'attachments' %>
       </div>
