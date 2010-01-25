@@ -105,7 +105,7 @@ Rails::Initializer.run do |config|
 end
 
 # Only use X_SEND_FILE if it's enabled and we're not in test mode
-USE_X_SEND_FILE =  (RAILS_ENV == 'test' || RAILS_ENV == 'cucumber') ? false : (defaults_config_file['use_x_send_file'] || false)
+USE_X_SEND_FILE =  (RAILS_ENV == 'test' || RAILS_ENV == 'cucumber' || RAILS_ENV == 'selenium') ? false : (defaults_config_file['use_x_send_file'] || false)
 
  memcache_options = {
     :c_threshold => 10_000,
@@ -151,7 +151,7 @@ if RAILS_ENV == 'test'
       raise 'No Available Testing Database!'
     end
 end 
-if RAILS_ENV == 'cucumber'
+if RAILS_ENV == 'cucumber' || RAILS_ENV == 'selenium'
     if defaults_config_file['cucumber_domain']
       ActiveRecord::Base.establish_connection(YAML.load_file("#{RAILS_ROOT}/config/cms.yml")['cucumber'])
       SystemModel.establish_connection(YAML.load_file("#{RAILS_ROOT}/config/cms.yml")['cucumber'])

@@ -17,3 +17,6 @@ test:
 
 cucumber:
   listens_on: localhost:12345
+
+selenium:
+  listens_on: localhost:12345

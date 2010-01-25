@@ -4,7 +4,7 @@
 # instead of editing this one. Cucumber will automatically load all features/**/*.rb
 # files.
 
-ENV["RAILS_ENV"] ||= "cucumber"
+ENV["RAILS_ENV"] ||= "selenium"
 require File.expand_path(File.dirname(__FILE__) + '/../../config/environment')
 
 require 'cucumber/formatter/unicode' # Remove this line if you don't want Cucumber Unicode support
@@ -16,6 +16,8 @@ require 'cucumber/web/tableish'
 require 'webrat'
 require 'webrat/core/matchers'
 
+require 'factory_girl' 
+
 
 
 Spec::Runner.configure do |config|
@@ -25,7 +27,7 @@ Spec::Runner.configure do |config|
 end
 
 Webrat.configure do |config|
-  config.mode = :rails
+  config.mode = :selenium
   config.open_error_files = true # Set to true if you want error pages to pop up in the browser
   config.application_environment = :test
   config.application_framework = :rails
@@ -55,11 +57,12 @@ ActionController::Base.allow_rescue = false
 # after each scenario, which can lead to hard-to-debug failures in 
 # subsequent scenarios. If you do this, we recommend you create a Before
 # block that will explicitly put your database in a known state.
-Cucumber::Rails::World.use_transactional_fixtures = true
+Cucumber::Rails::World.use_transactional_fixtures = false
 
 # How to clean your database when transactions are turned off. See
 # http://github.com/bmabey/database_cleaner for more info.
 require 'database_cleaner'
+
 DatabaseCleaner.strategy = :truncation, {:except => %w[component_schemas, schema_migrations]}
 
 
@@ -72,10 +75,11 @@ module DatabaseCleaner::ActiveRecord
   end
 end
       
- 
 
 class ActiveSupport::TestCase
   setup do |session|
     session.host! "localhost:3001"
   end
 end
+
+SELENIUM_SITE_BASE = "localhost:3001"
