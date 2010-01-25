@@ -433,12 +433,7 @@ class EndUser < DomainModel
     end
   end
   
-  def before_create #:nodoc:
-    self.user_class_id = UserClass.default_user_class_id if self.user_class_id.blank?
-  end
-
   def before_save #:nodoc:
-    
     if self.password && !self.password.empty?
       self.salt = EndUser.generate_hash if self.salt.blank?
       self.hashed_password = EndUser.hash_password(self.password,self.salt) if self.password && !self.password.empty?
