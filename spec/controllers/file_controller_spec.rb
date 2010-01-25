@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + "/../spec_helper"
 describe FileController do
   integrate_views
 
-  reset_domain_tables :domain_files
+  reset_domain_tables :domain_files, :end_users, :roles, :user_roles
   
   describe "editor tests" do
     before(:each) do
@@ -384,12 +384,13 @@ describe FileController do
   end
 
   describe "user tests" do
-    it "should be able to access a private file if a member" do
+    it "should not be able to access a private file even if a member" do
       mock_user
       fdata = fixture_file_upload("files/rails.png",'image/png')
       @image = DomainFile.create(:filename => fdata)
       @image.update_private!(true)
 
+      controller.should_receive(:send_file).exactly(0)
       get :priv, :path => [@image.id]
 
       @image.destroy
@@ -399,6 +400,7 @@ describe FileController do
       fdata = fixture_file_upload("files/rails.png",'image/png')
       @image = DomainFile.create(:filename => fdata)
       @image.update_private!(true)
+
       controller.should_receive(:send_file).exactly(0)
       get :priv, :path => [@image.id]
 
