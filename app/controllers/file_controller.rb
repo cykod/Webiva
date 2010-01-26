@@ -56,11 +56,11 @@ class FileController < CmsController # :nodoc: all
     if folder_id && folder_id.to_i > 0
       @folder = DomainFile.find(folder_id)
       if @folder.file_type != 'fld'
-        @folder  = @folder.parent
+        @folder = @folder.parent
       end  
     end
     
-    @folder= @root_folder unless @folder
+    @folder = @root_folder unless @folder
     
     @selectedFolder = @folder.id
     
@@ -76,29 +76,25 @@ class FileController < CmsController # :nodoc: all
   end
   
   def load_folder
-    calculate_image_size
-  
     @callback = params[:callback] || 'SCMS.setFileField'
   
-  	folder_id = params[:path][0]
-  	@folder = DomainFile.find_folder(folder_id)
+    folder_id = params[:path][0]
+    @folder = DomainFile.find_folder(folder_id)
+    
+    if(params[:file_id]) 
+      @file = DomainFile.find_by_id(params[:file_id])
+    elsif @folder.id != 1
+      @file = @folder
+    end 
   	
-  	if(params[:file_id]) 
-  	  @file = DomainFile.find_by_id(params[:file_id])
-  	elsif @folder.id != 1
-  	  @file = @folder
-  	end 
-  	
-  	session[:cms_last_folder_id] = @folder.id if @folder
+    session[:cms_last_folder_id] = @folder.id if @folder
   	
     @file_manager_update = true
   	
-  	render :action => 'load_folder'
+    render :action => 'load_folder'
   end
 
   def update_icon_sizes
-    calculate_image_size
-
     @folder = DomainFile.find_folder(params[:folder_id])
     @load_request = params[:load_request]
     @icon_size = params[:icon_size]
@@ -115,10 +111,13 @@ class FileController < CmsController # :nodoc: all
   end
 
   def popup
-    calculate_image_size
-    
-    folder_id = params[:path][0] || params[:file_id] || nil
-    
+    folder_id = nil
+    if params[:path] && params[:path][0]
+      folder_id = params[:path][0].to_i
+    elsif params[:file_id]
+      folder_id = params[:file_id].to_i
+    end
+
     @callback = params[:callback] || 'SCMS.setFileField'
     @mce = params[:mce]
     @popup = true
@@ -149,23 +148,19 @@ class FileController < CmsController # :nodoc: all
     render :action => 'index', :layout => @mce ? 'manage_mce' : 'manage_window'
   end
   
-  def load_details
-    @df = DomainFile.find_by_id(params[:file_id])
+ def load_details
+    @df = DomainFile.find_by_id(params[:file_id].to_i)
   end
   
   
   def file_manager_update
-  
-  
-    calculate_image_size
-    
+
     if params[:upload_key]
       file_processor =  Workling.return.get(params[:upload_key])
       if file_processor && file_processor[:processed]
           @files = []
           @files = DomainFile.find(:all,:conditions => { :id => file_processor[:uploaded_ids] })
           session[:upload_file_worker] = nil
-          calculate_image_size
           @hide_item = true
           @file_manager_update = true
           render :partial => 'file_manager_update'
@@ -202,8 +197,6 @@ class FileController < CmsController # :nodoc: all
   def rename_file
     atr = params[:file] 
     
-    calculate_image_size
-    
     @df = DomainFile.find(params[:file_id])
     
     if @df.name != atr[:name]
@@ -239,9 +232,9 @@ class FileController < CmsController # :nodoc: all
   end
   
   def replace_file
-    @file = DomainFile.find_by_id(params[:file_id])
+    @file = DomainFile.find_by_id(params[:file_id].to_i)
     
-    @replace = DomainFile.find_by_id(params[:replace_id])
+    @replace = DomainFile.find_by_id(params[:replace_id].to_i)
     
     if @file && @replace
       @replaced = @file.replace(@replace)
@@ -249,7 +242,7 @@ class FileController < CmsController # :nodoc: all
   end
   
   def delete_revision
-    @revision = DomainFileVersion.find_by_id(params[:revision_id])
+    @revision = DomainFileVersion.find_by_id(params[:revision_id].to_i)
     
     @file = @revision.domain_file
     
@@ -259,23 +252,21 @@ class FileController < CmsController # :nodoc: all
   end
   
   def extract_revision
-    @revision = DomainFileVersion.find_by_id(params[:revision_id])
+    @revision = DomainFileVersion.find_by_id(params[:revision_id].to_i)
     @file = @revision.extract
   end
   
   def copy_file
-    @file = DomainFile.find_by_id(params[:file_id])
+    @file = DomainFile.find_by_id(params[:file_id].to_i)
     @file = @file.copy_file
   end
 
   def create_folder
-     calculate_image_size
-  
      folder_id = params[:folder_id]
      
      parent_folder = DomainFile.find(folder_id)
      
-     if parent_folder
+     if parent_folder && parent_folder.folder?
      
       name = 'New Folder'.t
       @hide_item = true
@@ -293,32 +284,8 @@ class FileController < CmsController # :nodoc: all
      end
   end
   
-  def update_title
-    calculate_image_size
-     
-    file_id = params[:file_id]
-    title = params[:title]
-    
-    file = DomainFile.find(file_id)
-    
-    if file
-      file.update_attributes(:name => title)
-      
-      if file.special == 'gallery' && file.gallery
-        if(!file.gallery.update_attributes(:name => title))
-          raise file.gallery.inspect
-        end
-      end
-    end
-    
-    @parent_id = file.parent_id
-    @select = params[:select] || 'img'
-  
-    render :partial => 'update_file', :locals => { :file => file}
-  end
-  
   def delete_file
-    file_id = params[:file_id]
+    file_id = params[:file_id].to_i
     
     file = DomainFile.find(file_id)
     file.destroy
@@ -329,20 +296,16 @@ class FileController < CmsController # :nodoc: all
     file_id = params[:file_id]
     
     files = DomainFile.find(file_id)
-    parent = files[0].parent
     files.each { |fl| fl.destroy }
-    
     render :nothing => true
   end
   
   
   def make_private
-    file = DomainFile.find(params[:file_id])
+    file = DomainFile.find(params[:file_id].to_i)
     file.update_private!(true)
     
     file.reload
-
-    calculate_image_size 
 
     render :partial => 'update_file',  :locals => { :file => file }
     
@@ -350,24 +313,23 @@ class FileController < CmsController # :nodoc: all
   
   def make_public
   
-    file = DomainFile.find(params[:file_id]);
+    file = DomainFile.find(params[:file_id].to_i);
     file.update_private!(false)
     
     file.reload
     
-    calculate_image_size 
     render :partial => 'update_file', :locals => { :file => file }
   
   end
   
   def folder_archive
-  
-    file = DomainFile.find(params[:folder_id])
+    file = DomainFile.find(params[:folder_id].to_i)
     DomainModel.run_worker('DomainFile',file.id,:download_directory)
+    render :nothing => true
   end
   
   def switch_processor
-    file = DomainFile.find(params[:file_id])
+    file = DomainFile.find(params[:file_id].to_i)
     
     #file.update_processor(:processor => params[:file_processor] )
     DomainModel.run_worker('DomainFile',file.id,:update_processor,{ :processor => params[:file_processor] })
@@ -375,15 +337,14 @@ class FileController < CmsController # :nodoc: all
     
     @select = params[:select] || 'img'
 
-    calculate_image_size 
     render :partial => 'update_file', :locals => { :file => file }
   end
   
   def priv
-    file_id = params[:path][0]
+    file_id = params[:path][0].to_i
     size = params[:path][1]
     
-    domain_file = DomainFile.find(:first,:conditions => [ 'id=?',file_id ])
+    domain_file = DomainFile.find(file_id)
     filename = domain_file.filename(size)
     mime_types =  MIME::Types.type_for(filename) 
     
@@ -404,7 +365,7 @@ class FileController < CmsController # :nodoc: all
   end
   
   def edit_file
-    @file = DomainFile.find(params[:file_id])
+    @file = DomainFile.find(params[:file_id].to_i)
     
     @file = nil unless @file.editable?
     

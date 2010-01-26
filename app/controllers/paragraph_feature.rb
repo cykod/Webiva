@@ -144,11 +144,14 @@ class ParagraphFeature
   include ActionView::Helpers::FormTagHelper
 
 
+  attr_reader :renderer
+  
+
   def initialize(paragraph,renderer) #:nodoc:
     @para = paragraph
     @renderer = renderer
   end
-  
+
   def method_missing(method,*args) #:nodoc:
     if method.to_s =~ /feature$/
       raise 'Undefined feature:' + method.to_s
@@ -165,6 +168,15 @@ class ParagraphFeature
   # data hash directly. 
   def self.standalone_feature(site_feature_id=nil)
     self.new(PageParagraph.new(:site_feature_id => site_feature_id),dummy_renderer)
+  end
+
+  # Parses an inline feature
+  def parse_inline(src,&block)
+    parser_context = FeatureContext.new(self) do |c| 
+      c.define_position_tags  
+      yield c
+     end 
+     parse_feature(SiteFeature.new(:body => src),parser_context)
   end
   
   def self.dummy_renderer(controller=nil) #:nodoc:
