@@ -19,6 +19,10 @@ Example:
 =end
 class ContentFilter < DomainModel
 
+  class << self;
+    include ActionView::Helpers::TagHelper
+    include ActionView::Helpers::TextHelper
+  end
 
   @@built_in_filters = [ ['Full HTML','full_html'],
                          ['Safe HTML','safe_html'],
@@ -37,6 +41,12 @@ class ContentFilter < DomainModel
   def self.filter_options
     @@built_in_filters.map { |elm| [ elm[0].t, elm[1] ] }
   end
+
+  # Return a select-friendly list of user safe filters
+  def self.safe_filter_options
+    @@built_in_filters.select {  |elm| elm[1].include?('safe') || elm[1] == 'comment'}.map { |elm| [ elm[0].t, elm[1] ] }
+  end
+
 
 =begin rdoc
 Run the named filter on the passed in code, will output editor url
@@ -128,7 +138,7 @@ Options:
   def self.textile_safe_filter(code,options={ })
     begin
       @@sanitizer ||= HTML::WhiteListSanitizer.new
-      @@sanitizer.sanitize(RedCloth.new(code).to_html)
+      safe_link(@@sanitizer.sanitize(RedCloth.new(code).to_html))
     rescue
       "Invalid Textile".t
     end
@@ -136,13 +146,16 @@ Options:
 
   def self.markdown_safe_filter(code,options={}) #:nodoc:
     @@sanitizer ||= HTML::WhiteListSanitizer.new
-    @@sanitizer.sanitize(Maruku.new(code).to_html)
+    safe_link(@@sanitizer.sanitize(Maruku.new(code).to_html))
   end
 
   def self.comment_filter(code,options={}) #:nodoc:
-    RedCloth.new(code,[:lite_mode, :filter_html]).to_html
+    safe_link(RedCloth.new(code,[:lite_mode, :filter_html]).to_html)
   end
 
+  def self.safe_link(code)
+    auto_link(code,  :html => { :target => '_blank', :rel => 'nofollow' } )
+  end
   
   def self.markdown_replace_images(code,image_folder_path,live_url = false) #:nodoc:
     cd =  code.gsub(/(\!?)\[([^\]]+)\]\(images\/([^"')]+)/) do |mtch|
