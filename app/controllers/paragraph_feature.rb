@@ -268,6 +268,7 @@ block is non-nil
   # t.locals.person with a first_name,last_name, and email attribute
   # we could write:
   #
+  #     c.expansion_tag("person") { |t| t.locals.person = data[:person] }
   #     c.attribute_tags("person",["first_name","last_name","email"]) { |t| t.locals.person }
   #
   # which would add three tags:
@@ -524,7 +525,8 @@ block is non-nil
       define_h_tag(tag_name + ":name") { |t| usr = yield t; usr.name if usr }
       define_h_tag(tag_name + ":first_name") { |t| usr = yield t; usr.first_name if usr }
       define_h_tag(tag_name + ":last_name") { |t| usr = yield t; usr.last_name if usr }
-      define_value_tag(tag_name + ":profile") { |t| usr = yield t; usr.profile_id if usr }
+      define_value_tag(tag_name + ":profile") { |t| usr = yield t; usr.user_profile_id if usr }
+      define_value_tag(tag_name + ":profile_name") { |t| usr = yield t; usr.user_profile.name if usr }
       define_expansion_tag(tag_name + ":myself") { |t| usr = yield t; usr == myself if usr }
     
     end
@@ -535,6 +537,7 @@ block is non-nil
     # the only option that is currently accepted is :local, which is the name
     # of the local variable to find the user object (defaults to the name of the tag)
     #
+    #     expansion_tag('user') { |t| t.locals.user = data[:user] }
     #     user_details_tags('user') { |t| t.locals.user }
     #
     # Would define expansion tags for: myself,male,female,address,work_address
@@ -551,6 +554,8 @@ block is non-nil
       expansion_tag("#{name_base}:male") { |t| t.locals.send(local).gender == 'm' }
       expansion_tag("#{name_base}:female") { |t| t.locals.send(local).gender == 'f' }
       define_value_tag("#{name_base}:user_id") { |t| t.locals.send(local).id }
+      define_value_tag("#{name_base}:profile") { |t| t.locals.send(local).user_profile_id }
+      define_value_tag("#{name_base}:profile_name") { |t| t.locals.send(local).user_profile.name }
       define_h_tag("#{name_base}:first_name") { |t| t.locals.send(local).first_name }
       define_h_tag("#{name_base}:last_name") { |t| t.locals.send(local).last_name }
       define_h_tag("#{name_base}:salutation") { |t| t.locals.send(local).salutation }
@@ -1463,7 +1468,7 @@ block is non-nil
   
     end    
     
-    # Called inside of a define_tag for a customized iteratation over a list
+    # Called inside of a loop_tag for a customized iteratation over a list
     def each_local_value(arr,tag,field = 'value')
       output = ''
       return nil unless arr.is_a?(Array)
@@ -1699,7 +1704,7 @@ block is non-nil
     
     
      # get versions of all the define_... methods without the define
-    skip_methods = %w(define_form_tag define_tag define_form_tag)
+    skip_methods = %w(define_form_tag define_tag)
     instance_methods.each do |method_name|
       if !skip_methods.include?(method_name) && method_name =~ /define\_(.*)/
         alias_method $1.to_sym, method_name.to_sym
