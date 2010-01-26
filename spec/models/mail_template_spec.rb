@@ -77,38 +77,38 @@ describe MailTemplate do
     end
     it 'should create correct links' do
       @image = DomainFile.find_by_name('rails.png')
-      @image_path = "<img src=\"/__fs__/%s\" \/>" %  [@image.prefix, @image.name]      
-      @body_html = "<p>This is the image:  %s" % @image_path
+      @image_path = Configuration.domain_link(@image.prefix)
+      @body_html = "<p>This is the image: <img src=\"%s\" \/>" % @image_path
       @tmpl = MailTemplate.create({:name=>"Test Template Image",
-        :template_type=>"site",
-        :category=>"test cat",
-        :site_template_id=>"",
-        :body_type=> "html",
-        :body_html=> @body_html,
-        :language=>"en",
-        :subject=>"this is the subject",
-        :published_at=>"",
-        :attachments=>"",
-        :generate_text_body=>"0",
-        :body_text=>"This is my test template \n \n  \n \nit is called template A \n "})     
-      @prependdomain_link = @tmpl.replace_image_sources
-      @prependdomain_link.should == "<p>This is the image:  <img  src='http://www.webiva-test.com/__fs__/%s' />" % [@image.prefix]      
+                                    :template_type=>"site",
+                                    :category=>"test cat",
+                                    :site_template_id=>"",
+                                    :body_type=> "html",
+                                    :body_html=> @body_html,
+                                    :language=>"en",
+                                    :subject=>"this is the subject",
+                                    :published_at=>"",
+                                    :attachments=>"",
+                                    :generate_text_body=>"0",
+                                    :body_text=>"This is my test template \n \n  \n \nit is called template A \n "})     
+      @prepared_html = @tmpl.replace_image_sources
+      @prepared_html.should == @body_html    
     end
     it 'should prepare a template for mailing' do
       @image = DomainFile.find_by_name('rails.png')
-      @image_path = "<img src=\"/__fs__/%s\" \/>" %  [@image.prefix, @image.name]      
-      @body_html = "There is an image in this body, is the link correct? <p>This is the image:  %s" % @image_path
+      @image_path = Configuration.domain_link(@image.prefix)
+      @body_html = "<p>This is the image: <img src=\"%s\" \/>" % @image_path
       @tmpl = MailTemplate.create({:name=>"Test Template Image",
-        :template_type=>"site",
-        :category=>"test cat",
-        :site_template_id=>"",
-        :body_type=> "html",
-        :body_html=> @body_html,
-        :language=>"en",
-        :subject=>"this is the subject",
-        :published_at=>"",
-        :attachments=>"",
-        :generate_text_body=>"0",
+                                    :template_type=>"site",
+                                    :category=>"test cat",
+                                    :site_template_id=>"",
+                                    :body_type=> "html",
+                                    :body_html=> @body_html,
+                                    :language=>"en",
+                                    :subject=>"this is the subject",
+                                    :published_at=>"",
+                                    :attachments=>"",
+                                    :generate_text_body=>"0",
                                     :body_text=>"This is my test template \n \n  \n \nit is called template A \n "})     
       @prepared_html = @tmpl.prepare_to_send
       @prepared_html.should ==  @body_html
