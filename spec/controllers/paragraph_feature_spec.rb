@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + "/../spec_helper"
 
 describe ParagraphFeature, :type => :view do
 
-  reset_domain_tables :end_users, :end_user_addresses, :domain_files
+  reset_domain_tables :end_users, :end_user_addresses, :domain_files, :site_modules
 
   before(:each) do
     @feature = ParagraphFeature.standalone_feature
@@ -530,44 +530,59 @@ describe ParagraphFeature, :type => :view do
     @output.should_not have_tag('form')
   end
 
-  it "should render media flv" do
-    fdata = fixture_file_upload("files/fake_video.flv", 'video/flv')
-    media = DomainFile.create(:filename => fdata)
+  describe "Media Tags" do
+    before(:each) do
+      mod = SiteModule.activate_module(Domain.find(DomainModel.active_domain_id),'media')
+      mod.update_attributes(:status => 'active')
 
-    @output = @feature.parse_inline("<cms:media/>") do |c|
-      c.media_tag('media') { |t| media }
+      opts = {}
+      @options = Media::AdminController.module_options
+      @options.media_video_handler = @options.media_video_handlers[0][1]
+      @options.media_audio_handler = @options.media_audio_handlers[0][1]
+      Configuration.set_config_model(@options)
     end
 
-    @output.should have_tag('div', :id => 'video_')
-    @output.should have_tag('script')
+    
+    
+    it "should render media flv" do
+      fdata = fixture_file_upload("files/fake_video.flv", 'video/flv')
+      media = DomainFile.create(:filename => fdata)
 
-    media.destroy
-  end
+      @output = @feature.parse_inline("<cms:media/>") do |c|
+        c.media_tag('media') { |t| media }
+      end
 
-  it "should render media mp3" do
-    fdata = fixture_file_upload("files/fake_audio.mp3", 'audio/mp3')
-    media = DomainFile.create(:filename => fdata)
+      @output.should have_tag('div', :id => 'video_')
+      @output.should have_tag('script')
 
-    @output = @feature.parse_inline("<cms:media/>") do |c|
-      c.media_tag('media') { |t| media }
+      media.destroy
     end
 
-    @output.should have_tag('p', :id => 'audio_')
-    @output.should have_tag('script')
+    it "should render media mp3" do
+      fdata = fixture_file_upload("files/fake_audio.mp3", 'audio/mp3')
+      media = DomainFile.create(:filename => fdata)
 
-    media.destroy
-  end
+      @output = @feature.parse_inline("<cms:media/>") do |c|
+        c.media_tag('media') { |t| media }
+      end
 
-  it "should render media mov" do
-    fdata = fixture_file_upload("files/fake_movie.mov", 'video/quicktime')
-    media = DomainFile.create(:filename => fdata)
+      @output.should have_tag('p', :id => 'audio_')
+      @output.should have_tag('script')
 
-    @output = @feature.parse_inline("<cms:media/>") do |c|
-      c.media_tag('media') { |t| media }
+      media.destroy
     end
 
-    @output.should have_tag('embed')
+    it "should render media mov" do
+      fdata = fixture_file_upload("files/fake_movie.mov", 'video/quicktime')
+      media = DomainFile.create(:filename => fdata)
 
-    media.destroy
+      @output = @feature.parse_inline("<cms:media/>") do |c|
+        c.media_tag('media') { |t| media }
+      end
+
+      @output.should have_tag('embed')
+
+      media.destroy
+    end
   end
 end
