@@ -116,7 +116,11 @@ include ModelExtension::EndUserImportExtension
                          [ 'Import', 'import' ],
                          [ 'Referrel', 'referrel' ] ]
 
-
+  def after_create #:nodoc:
+    if @tag_cache
+      self.tag(@tag_cache)
+    end
+  end
 
   ## Validation Fucntions 
   
@@ -133,7 +137,7 @@ include ModelExtension::EndUserImportExtension
   end
 
   def validate_password(pw) #:nodoc:
-    return EndUser.hash_password(pw) == self.hashed_password
+    return EndUser.hash_password(pw,self.salt) == self.hashed_password
   end
 
   def update_verification_string! #:nodoc:
@@ -562,7 +566,7 @@ Not doing so could allow a user to change their user profile (for example) and e
   
   ## Tag Functionality - TODO: Rewrite Needed
   
-  attr_reader :tag_cache
+  # attr_reader :tag_cache
   
   # Model issue 
   def clear_tags! #:nodoc:
@@ -614,6 +618,9 @@ Not doing so could allow a user to change their user profile (for example) and e
     else
      (self.tag_cache ? self.tag_cache.tags : '')
     end
+  end
+  def tag_cache_tmp
+    @tag_cache
   end
 
   # Finds end userse that are tagged with 
