@@ -115,7 +115,7 @@ class ModuleAppController < ApplicationController
 
     begin 
       @output = engine.run(self,myself)
-    rescue SiteNodeEngine::NoActiveVersionException, SiteNodeEngine::MissingPageException => e
+    rescue SiteNodeEngine::NoActiveVersionException,ActiveRecord::RecordNotFound, SiteNodeEngine::MissingPageException => e
       display_missing_page
       return
     end
