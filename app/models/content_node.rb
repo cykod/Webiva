@@ -110,6 +110,7 @@ class ContentNode < DomainModel
     
     if self.new_record?
       self.author_id = user_id if user_id
+      self.last_editor_id = user_id if user_id
     else 
       self.last_editor_id = user_id if user_id
     end

@@ -4,14 +4,14 @@ require File.dirname(__FILE__) + "/../spec_helper"
 describe ContentNode do
 
   @@paragraph_body = <<-EOF
-<h1>Title o' the page</h1>
+<h1>Title the page</h1>
 <p>
 Some additional stuff<br/>
 <b>Bolded!</b>
 EOF
 
 
-  reset_domain_tables :content_types,:content_nodes,:content_node_values, :site_nodes, :page_paragraphs, :page_revisions, :site_versions
+  reset_domain_tables :content_types,:content_nodes,:content_node_values, :site_nodes, :page_paragraphs, :page_revisions, :site_versions, :content_meta_types, :configurations
 
   it "should create the default content types" do
     ContentType.count.should == 0
@@ -30,7 +30,6 @@ EOF
 
     updated_at = @page.content_node.updated_at
 
-
     rev = @page.active_revisions[0].create_temporary
 
     rev.page_paragraphs.create(:display_type=>'html',:display_body => @@paragraph_body )
@@ -40,8 +39,8 @@ EOF
 
     @page.content_node.generate_content_values!
 
-    # Make sure the content node value we're searching on contains the body
-    @page.content_node.content_node_values[0].body.should include("Title o' the page")
+   # Make sure the content node value we're searching on contains the body
+    @page.content_node.content_node_values[0].body.should include("Title the page")
     @page.content_node.content_node_values[0].body.should include("Some additional stuff")
     @page.content_node.content_node_values[0].body.should include("Bolded!")
   end
