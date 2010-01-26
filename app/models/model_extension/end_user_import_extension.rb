@@ -3,12 +3,61 @@
 module ModelExtension::EndUserImportExtension
 
   
+  def export_csv(writer,options = {}) #:nodoc:
+    fields = [ ['email', 'Email'.t ],
+               ['first_name', 'First name'.t ],
+               ['last_name', 'Last name'.t ],
+               ['language', 'Language'.t ],
+               ['dob', 'Date of Birth'.t ],
+               ['gender', 'Gender'.t ],
+               ['user_level', 'User Level'.t ],
+               ['source', 'Source'.t ]
+              ]
+    opts = options.delete(:include) ||  []
+    if opts.include?('vip')
+      fields << [ 'vip_number', 'VIP Number'.t ]
+    end
+    if opts.include?('tags')
+      fields << ['tag_cache_tags', 'Tags'.t ]
+    end
+    
+    
+    address_objs = [ 'address', 'billing_address', 'work_address' ]
+    
+    %w(home billing work).each_with_index do |address,idx|
+      if opts.include?(address)
+        adr_obj = self.send(address_objs[idx])
+	adr_text = address.humanize
+	%w(company phone fax address city state zip country).each do |field|
+	  if address == 'work' || field != 'company'
+	    fields << [ nil, (adr_text + ' - ' + field.humanize).t, adr_obj ? adr_obj.send(field) : nil ]
+	  end
+	end
+      end
+    end    
+    
+    if options[:header]
+      writer << fields.collect do |fld|
+        fld[1]
+      end
+    end
+    writer << fields.collect do |fld|
+      if fld[0]
+        self.send(fld[0])
+      else
+        fld[2]
+      end
+    end
+  end
+
+
+
   module ClassMethods
 
    
 
 # Return a list of available import fields for matching
-  def self.import_fields #:nodoc:
+  def import_fields #:nodoc:
     
     fields = [ [ 'email', 'Email'.t, ['email','e-mail' ], :field ],
       [ 'language', 'Language'.t, ['language' ], :field ],
@@ -41,7 +90,7 @@ module ModelExtension::EndUserImportExtension
   end 
   
   
-  def self.import_csv(filename,data,options={}) #:nodoc:
+  def import_csv(filename,data,options={}) #:nodoc:
     actions = data[:actions]
     matches = data[:matches]
     create = data[:create]
@@ -213,56 +262,56 @@ module ModelExtension::EndUserImportExtension
   
   end
   
-  def export_csv(writer,options = {}) #:nodoc:
-    fields = [ ['email', 'Email'.t ],
-               ['first_name', 'First name'.t ],
-               ['last_name', 'Last name'.t ],
-               ['language', 'Language'.t ],
-               ['dob', 'Date of Birth'.t ],
-               ['gender', 'Gender'.t ],
-               ['user_level', 'User Level'.t ],
-               ['source', 'Source'.t ]
-              ]
-    opts = options.delete(:include) ||  []
-    if opts.include?('vip')
-      fields << [ 'vip_number', 'VIP Number'.t ]
-    end
-    if opts.include?('tags')
-      fields << ['tag_cache_tags', 'Tags'.t ]
-    end
-    
-    
-    address_objs = [ 'address', 'billing_address', 'work_address' ]
-    
-    %w(home billing work).each_with_index do |address,idx|
-      if opts.include?(address)
-        adr_obj = self.send(address_objs[idx])
-	adr_text = address.humanize
-	%w(company phone fax address city state zip country).each do |field|
-	  if address == 'work' || field != 'company'
-	    fields << [ nil, (adr_text + ' - ' + field.humanize).t, adr_obj ? adr_obj.send(field) : nil ]
-	  end
-	end
-      end
-    end    
-    
-    if options[:header]
-      writer << fields.collect do |fld|
-        fld[1]
-      end
-    end
-    writer << fields.collect do |fld|
-      if fld[0]
-        self.send(fld[0])
-      else
-        fld[2]
-      end
-    end
-  end
 
 
  
+  def process_import_field(entry,field,value) #:nodoc:
+    case field
+    when 'gender':
+      if ['m','male','m'.t,'male'.t].include?(value.to_s.downcase)
+        entry.gender = 'm'
+      elsif ['f','female','f'.t,'female'.t].include?(value.to_s.downcase)
+        entry.gender = 'f'
+      end
+    when 'password':
+      entry.password = value
+      entry.password_confirmation = value
+      entry.registered = true
+    when 'name':
+      name = value.split(" ")
+      if name.length > 1
+        entry.last_name = name[-1]
+        entry.first_name = name[0..-2].join(" ")
+      else
+        entry.first_name = ''
+        entry.last_name = name[0]
+      end
+    when 'dob':
+      entry.dob = value
+    end
+  end
+  
+  def process_import_address(entry,entry_addresses,field,value) #:nodoc:
+    address,field = field.split("_")
+    adr = case address
+      when 'work':
+	entry_addresses['work_address_id'] ||= entry.work_address || EndUserAddress.new(:address_name => 'Default Work Address'.t )
+      when 'home':
+	entry_addresses['address_id'] ||= entry.address || EndUserAddress.new(:address_name => 'Default Address'.t )
+      when 'billing':
+        entry_addresses['billing_address_id'] ||= entry.billing_address || EndUserAddress.new(:address_name => 'Default Billing Address'.t )
+    end
+    
+    adr.send("#{field}=".to_sym,value)
+  end
 
   end
+
+
+
+    def self.append_features(mod) #:nodoc:
+      super
+      mod.extend ModelExtension::EndUserImportExtension::ClassMethods
+    end
 
 end

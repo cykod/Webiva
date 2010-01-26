@@ -39,6 +39,10 @@ user object. See the method's description for more details.
 
 =end
 class EndUser < DomainModel
+
+include ModelExtension::EndUserImportExtension
+
+
   validates_confirmation_of :password
 
   # Only need an email if we aren't a client user
@@ -822,48 +826,8 @@ Not doing so could allow a user to change their user profile (for example) and e
   def is_admin?(usr); #:nodoc:
     usr.id == self.id; end
   
-  private
   
-  def self.process_import_field(entry,field,value) #:nodoc:
-    case field
-    when 'gender':
-      if ['m','male','m'.t,'male'.t].include?(value.to_s.downcase)
-        entry.gender = 'm'
-      elsif ['f','female','f'.t,'female'.t].include?(value.to_s.downcase)
-        entry.gender = 'f'
-      end
-    when 'password':
-      entry.password = value
-      entry.password_confirmation = value
-      entry.registered = true
-    when 'name':
-      name = value.split(" ")
-      if name.length > 1
-        entry.last_name = name[-1]
-        entry.first_name = name[0..-2].join(" ")
-      else
-        entry.first_name = ''
-        entry.last_name = name[0]
-      end
-    when 'dob':
-      entry.dob = value
-    end
-  end
-  
-  def self.process_import_address(entry,entry_addresses,field,value) #:nodoc:
-    address,field = field.split("_")
-    adr = case address
-      when 'work':
-	entry_addresses['work_address_id'] ||= entry.work_address || EndUserAddress.new(:address_name => 'Default Work Address'.t )
-      when 'home':
-	entry_addresses['address_id'] ||= entry.address || EndUserAddress.new(:address_name => 'Default Address'.t )
-      when 'billing':
-        entry_addresses['billing_address_id'] ||= entry.billing_address || EndUserAddress.new(:address_name => 'Default Billing Address'.t )
-    end
-    
-    adr.send("#{field}=".to_sym,value)
-  end
-
+ 
 
   
 
