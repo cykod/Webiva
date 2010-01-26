@@ -1,6 +1,9 @@
 class SetupDb < ActiveRecord::Migration
   def self.up
 
+   execute "ALTER DATABASE #{ActiveRecord::Base.connection.current_database} CHARACTER SET utf8 COLLATE utf8_bin"
+
+
     create_table "client_permissions", :id => false, :force => true do |t|
       t.column "perm_id", :integer, :default => 0, :null => false
       t.column "perm_source", :string, :limit => 4, :default => "", :null => false

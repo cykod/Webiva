@@ -2,7 +2,7 @@ require 'fileutils'
 require 'net/ftp'
 
 def cms_backup_dump_db(config,output_file)
-  `mysqldump -u #{config['username']} --password="#{config['password']}" --host=#{config['host']} --default-character-set=latin1 --quote-names --complete-insert #{config['database']} > #{output_file}`
+  `mysqldump -u #{config['username']} --password="#{config['password']}" --host=#{config['host']} --default-character-set=utf8 --quote-names --complete-insert #{config['database']} > #{output_file}`
 end
 
 def cms_backup_file_store(file_store_id,output_dir)
