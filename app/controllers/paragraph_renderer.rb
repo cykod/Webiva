@@ -5,7 +5,8 @@ require 'erb'
 
 class ParagraphRenderer < ParagraphFeature
 
-  
+  include EndUserTable::Controller
+
   class ParagraphRedirect #:nodoc:all
       attr_accessor :paction
       attr_accessor :args
