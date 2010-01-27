@@ -100,6 +100,7 @@ class Dashboard::CoreWidget < Dashboard::WidgetBase #:nodoc:all
     validates_presence_of :url, :show_first, :timeout_in_seconds, :valid_for
     validates_numericality_of :timeout_in_seconds, :greater_than_or_equal_to => 1, :less_than_or_equal_to => 30
     validates_numericality_of :valid_for, :greater_than_or_equal_to => 2
+    validates_urlness_of :url
 
     integer_options :show_first, :timeout_in_seconds, :valid_for
 
