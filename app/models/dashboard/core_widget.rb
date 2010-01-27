@@ -78,8 +78,8 @@ class Dashboard::CoreWidget < Dashboard::WidgetBase #:nodoc:all
 	rss_feed.items[0..@options.show_first-1].each { |item| rss_items << {'link' => item.link, 'title' => item.title, 'date' => item.pubDate} } if rss_feed.is_a?(RSS::Rss)
       rescue TimeoutError
 	editor_widget.cache_put('Widget', [], nil, @options.valid_for.minutes)
-	logger.warn( "timedout fetching rss feed for #{@options.url}" )
-	render_widget :text => 'Timedout fetching RSS feed.'
+	logger.warn( "Timed out fetching rss feed for #{@options.url}" )
+	render_widget :text => 'Timed out fetching RSS feed.'
 	return
       rescue Exception => e
 	editor_widget.cache_put('Widget', [], nil, @options.valid_for.minutes)
