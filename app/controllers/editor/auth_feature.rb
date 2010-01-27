@@ -246,9 +246,9 @@ FEATURE
       
       c.define_link_tag 'logged_in:logout' do |tag|
         if editor?
-          "href='javascript:void(0);'"
+          { :href => 'javascript:void(0);' }
         else
-          "href='#{page_path}?cms_logout=1'"
+          { :href => '?cms_logout=1' }
         end
       end
       
