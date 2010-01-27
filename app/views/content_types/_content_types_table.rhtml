@@ -1,4 +1,8 @@
-<% active_table_for :content_types_table, @tbl do |t| -%>
+<% active_table_for :content_types_table, @tbl,
+   :actions => [['Searchable','search','Make the selected content types front end searchable?'],
+               ['Unsearchable', 'unsearch', 'Remove the selected content types from front end search results?'],
+               ['Protect','protect','Make the selected content types protected?'],
+               ['Unprotect','unprotect','Make the selected content type unprotected?' ]] do |t| -%>
 <tr <%= highlight_row 'content_type',t.id %>>
   <td><%= entry_checkbox 'content_type',t.id %></td>
   <td><%= t.container.content_type_name if t.container -%></td>
@@ -10,6 +14,7 @@
     <td align='center' colspan='2'><%= "System Content Type".t %></td>
   <% end -%>
   <td><%= t.search_results? ? 'Yes' : 'No' %>
+  <td><%= t.protected_results? ? 'Yes' : 'No' %>
   <td><%= v t.created_at.localize(DEFAULT_DATETIME_FORMAT.t) %></td>
 </tr>
 <% end -%>

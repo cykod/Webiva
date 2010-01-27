@@ -85,6 +85,11 @@ class ContentType < DomainModel
 
   # Call to update the search index for this site
   # will automatically update any update nodes
+  def self.full_site_index
+    Configuration.put('index_last_update',nil)
+    self.update_site_index
+  end
+
   def self.update_site_index
 
     last_update = Configuration.get('index_last_update',nil)

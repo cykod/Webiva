@@ -156,12 +156,14 @@ class ContentNode < DomainModel
         if type_preload
           cnv.title = node.send(content_type.title_field)
           cnv.link = self.content_url_override || type_preload.content_link(node)
+          cnv.search_result = type_preload.search_results? ? true : false
+          cnv.protected_result = type_preload.protected_results? ? true : false
         else
           cnv.title = "Unknown"
           cnv.link = self.content_url_override || nil
+          cnv.search_result = false
+          cnv.protected_result = true
         end
-        cnv.search_result = type_preload.search_results? ? true : false
-        cnv.protected_result = type_preload.protected_results? ? true : false
         cnv.save
       end
     end

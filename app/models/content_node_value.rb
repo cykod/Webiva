@@ -43,8 +43,10 @@ class ContentNodeValue < DomainModel
         val.excerpt = excerpt(val.body,query)
         if val.excerpt.blank?
           val.excerpt = truncate(val.body,:length => 100)
+        else
+          val.excerpt = val.excerpt.split("\n").select { |str| str.include?(query) }.join(" ")
         end
-        val.excerpt = highlight(val.excerpt,query.to_s.split(" "))
+        val.excerpt = highlight(val.excerpt,query.to_s.split(" ")).gsub("\n"," ")
       end
       options.delete(:limit)
       options.delete(:offset)
