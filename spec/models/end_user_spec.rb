@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + "/../spec_helper"
 
 
 describe EndUser do
-  reset_domain_tables :end_users, :end_user_tags, :tags, 'tag_cache', :domain_files, :end_user_actions
+  reset_domain_tables :end_users, :end_user_tags, :tags, 'tag_cache', :domain_files, :end_user_actions, :configurations
   before(:each) do
     
     @user = EndUser.new  
@@ -78,6 +78,8 @@ describe EndUser do
     fdata = fixture_file_upload("files/rails.png",'image/png')
     @df = DomainFile.create(:filename => fdata) 
 
+    DataCache.reset_local_cache
+
     ########## set default missing image ids
     @options = Configuration.options(:missing_male_image_id => @df.id, :missing_image_id => @df.id, :missing_female_image_id => @df.id)
     @config = Configuration.retrieve(:options)
@@ -93,6 +95,8 @@ describe EndUser do
 
     @user1.image.id.should == @df.id
     @user2.image.id.should == @df.id
+
+    @df.destroy
   end
 
   it 'should return an html description' do
