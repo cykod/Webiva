@@ -13,7 +13,7 @@ module ContentSpecHelper
 
   def create_spec_test_content_model
     ContentModel.connection.execute('DROP TABLE IF EXISTS cms_spec_tests')  
-    returning cm = ContentModel.create(:name => 'spec_test') do
+    returning cm = ContentModel.create(:name => 'spec_test') do 
       cm.create_table # Create the table    
     end
   end
@@ -49,7 +49,7 @@ module ContentSpecHelper
    end
   
   
-  def create_content_model_with_all_fields
+  def create_content_model_with_all_fields(opts={})
  
     %w(content_models content_model_fields content_publications content_types).each do |table|
        DomainModel.connection.execute("TRUNCATE #{table.to_s.tableize}") 
@@ -63,7 +63,7 @@ module ContentSpecHelper
     # Kill the spec test table if no-go
     ContentModel.connection.execute('DROP TABLE IF EXISTS cms_controller_spec_tests')
 
-    @cm = ContentModel.create(:name => 'controller_spec_test')
+    @cm = ContentModel.create({:name => 'controller_spec_test', :show_on_content => true}.merge(opts))
     @cm.create_table # Create the table
     
     fields = Content::CoreField.fields
