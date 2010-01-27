@@ -1,12 +1,16 @@
 <% if rss_items.is_a?(Array) -%>
+
   <p align="right"><a target="_blank" href="<%= url %>">Full RSS Feed</a></p>
+
   <% if rss_items.length > 0 -%>
-    <table>
-      <% rss_items.each do |item| -%>
-        <tr><td><a target="_blank" href="<%= item['link'] %>"><%= h item['title'] %></a></td></tr>
-      <% end -%>
-    </table>
+    <% table_for  rss_items, ["Title","Published"], :class => 'mini_table', :width => '100%' do |item| -%>
+      <tr>
+        <td><%= link_to h(truncate(item['title'],:length => 60)), item['link'], :target => '_blank' -%></td>
+        <td><%= item['date'].to_s(:short) -%></td>
+      </tr>
+    <% end -%>
   <% else -%>
     <p align="center"><%= 'No items in feed'.t %></p>
   <% end -%>
+
 <% end -%>
