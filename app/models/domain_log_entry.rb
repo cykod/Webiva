@@ -50,7 +50,7 @@ class DomainLogEntry < DomainModel
   end
 
   def url
-    self.node_path.to_s + self.page_path.to_s
+    self.node_path.to_s + (self.page_path.blank? ? '' : "/" + self.page_path.to_s)
   end
 
   def self.find_user_sessions(user)

@@ -47,6 +47,7 @@ class Editor::SearchRenderer < ParagraphRenderer #:nodoc:all
       @pages[:path] = @options.search_results_page_url
       @pages[:path] << '?'
       @pages[:path] << [:q, :per_page, :type].map { |ele| ! params[ele].blank? ? (ele.to_s + '=' + CGI.escape(params[ele])) : nil }.compact.join('&')
+
     end
 
     render_paragraph :feature => :search_page_search_results

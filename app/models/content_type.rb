@@ -33,7 +33,7 @@ DomainModel for each poll)
 class ContentType < DomainModel
 
   has_many :content_nodes
-  has_many :content_node_values
+  has_many :content_node_values, :dependent => :destroy
 
   belongs_to :content_meta_type
   
@@ -87,10 +87,10 @@ class ContentType < DomainModel
   # will automatically update any update nodes
   def self.full_site_index
     Configuration.put('index_last_update',nil)
-    self.update_site_index
+    self.update_site_index(true)
   end
 
-  def self.update_site_index
+  def self.update_site_index(force=false)
 
     last_update = Configuration.get('index_last_update',nil)
     current_update = Time.now
@@ -104,7 +104,7 @@ class ContentType < DomainModel
     end
 
     ContentNode.find_each(:conditions => conditions) do |content_node|
-      content_node.generate_content_values!(content_types[content_node.content_type_id])
+      content_node.generate_content_values!(content_types[content_node.content_type_id],false)
     end
 
     Configuration.put('index_last_update',current_update)

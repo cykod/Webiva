@@ -135,7 +135,7 @@ class ContentNode < DomainModel
 
   # Generate a content_node_value 
   # used in search results
-  def generate_content_values!(type_preload = nil)
+  def generate_content_values!(type_preload = nil,force=false)
     return unless node
     # Don't want to have to reload the type for each 
     # node we're created
@@ -146,7 +146,7 @@ class ContentNode < DomainModel
 
       # If we haven't updated this since we last updated the
       # content node value, just return
-      if !cnv.updated_at || self.updated_at > cnv.updated_at || type_preload.updated_at > cnv.updated_at
+      if !cnv.updated_at || self.updated_at > cnv.updated_at || type_preload.updated_at > cnv.updated_at || force
         if(self.node.respond_to?(:content_node_body))
           cnv.body = Util::TextFormatter.text_plain_generator( node.content_node_body(lang))
         else
@@ -154,10 +154,10 @@ class ContentNode < DomainModel
         end
         
         if type_preload
-          cnv.title = node.send(content_type.title_field)
+          cnv.title = node.send(type_preload.title_field)
           cnv.link = self.content_url_override || type_preload.content_link(node)
-          cnv.search_result = type_preload.search_results? ? true : false
-          cnv.protected_result = type_preload.protected_results? ? true : false
+          cnv.search_result = type_preload.search_results? ? (self.node.respond_to?(:content_search_results?) ? self.node.send(:content_search_results?) : true ) : false
+          cnv.protected_result = type_preload.protected_results? ?  (self.node.respond_to?(:content_protected_results?) ? self.node.send(:content_protected_results?) : true ) : false
         else
           cnv.title = "Unknown"
           cnv.link = self.content_url_override || nil

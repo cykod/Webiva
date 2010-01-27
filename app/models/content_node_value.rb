@@ -14,6 +14,7 @@ class ContentNodeValue < DomainModel
   end
 
   def content_description(language)
+    return '' unless self.content_node
     self.content_node.content_description language
   end
 
@@ -44,7 +45,7 @@ class ContentNodeValue < DomainModel
         if val.excerpt.blank?
           val.excerpt = truncate(val.body,:length => 100)
         else
-          val.excerpt = val.excerpt.split("\n").select { |str| str.include?(query) }.join(" ")
+          val.excerpt = val.excerpt.split("\n").select { |str| str.downcase.include?(query.downcase) }.join(" ")
         end
         val.excerpt = highlight(val.excerpt,query.to_s.split(" ")).gsub("\n"," ")
       end
