@@ -787,6 +787,18 @@ block is non-nil
     # Allows users to display the full error messages of a form_for_tag
     def define_form_error_tag(name,options={})
       frm_obj = options.delete(:local) || 'form'
+      name_parts = name.split(":")
+      name_base = name_parts[-1]
+      
+      define_tag "#{name_parts[0..-2].join(":")}:no_#{name_base}" do |t|
+        frm = t.locals.send(frm_obj)
+        if frm && frm.object && frm.object.errors && frm.object.errors.length > 0
+          nil
+        else
+          t.expand
+        end
+      end
+          
       define_tag name do |tag|
         frm = tag.locals.send(frm_obj)
         if frm && frm.object && frm.object.errors && frm.object.errors.length > 0
