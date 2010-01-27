@@ -85,26 +85,32 @@ class ContentController < ModuleController #:nodoc: all
     DataCache.expire_content("ContentModel",cid.to_s)
   end
   
-  
+  def get_extra_fields
+    @extra_fields = { 
+          -1 => 'Edit',
+          -2 => 'Delete'
+          }
+  end
+
   include ActiveTable::Controller   
 
 
   def generate_active_table(reset=false)
-      columns = [ ActiveTable::IconHeader.new('', :width=>10), 
+      @generated_active_table_columns = [ ActiveTable::IconHeader.new('', :width=>10), 
                   ActiveTable::NumberHeader.new("`#{@content_model.table_name}`.id", :label => 'ID',:width => 40),
                   ActiveTable::IconHeader.new('', :width => 10) ] +
       @content_model.content_model_fields.find_all { |elm| elm.show_main_table? && elm.data_field? }.collect do |fld|
         fld.active_table_header 
       end.compact
       if @content_model.show_tags?
-        columns << ActiveTable::OptionHeader.new("content_tags.id", :label=> "Tags",
+        @generated_active_table_columns << ActiveTable::OptionHeader.new("content_tags.id", :label=> "Tags",
                                                   :options => ContentTag.find_select_options(:all,:conditions => ['content_type = ?',@content_model.content_model.to_s ] ) )
                                                   
       end
 
 
       include_tags = @content_model.show_tags? ? 'content_tags' : nil
-      active_table_generate(@content_model.table_name + '_table',@content_model.content_model,columns,{},reset ? { :content_table => { :clear_search=> 1 } } : params,{ :per_page => 15, :include => include_tags, :order => "`#{@content_model.table_name}`.id DESC" })
+      active_table_generate(@content_model.table_name + '_table',@content_model.content_model,@generated_active_table_columns,{},reset ? { :content_table => { :clear_search=> 1 } } : params,{ :per_page => 15, :include => include_tags, :order => "`#{@content_model.table_name}`.id DESC" })
   end
   public 
 
@@ -211,18 +217,6 @@ class ContentController < ModuleController #:nodoc: all
     end  
   end 
 
-  def options 
-    content_id = params[:path][0]
-
-    @content_model = ContentModel.find(content_id)
-
-    cms_page_info([ [ 'Content', url_for(:action => 'index') ] ] +  (@content_model.show_on_content ? [] : [['Custom Content', url_for(:action => 'custom' ) ]]) + [[ '%s', url_for(:action => 'view', :path => content_id), @content_model.name ], 'Options' ],'content')
-    
-    
-	
-  end
-
-  
   def entry
     content_id = params[:path][0]
     entry_id = params[:path][1]
@@ -415,13 +409,6 @@ class ContentController < ModuleController #:nodoc: all
     end
     
     @publication_types = ContentPublication.publication_type_select_options
-  end
-  
-  def get_extra_fields
-    @extra_fields = { 
-          -1 => 'Edit',
-          -2 => 'Delete'
-          }
   end
   
   def publication
@@ -617,11 +604,5 @@ class ContentController < ModuleController #:nodoc: all
     expire_content(@content_model)
     render :action => 'update_triggered_actions'
 
-  end
-  
-  def download
-  
-    
-      
   end
 end
