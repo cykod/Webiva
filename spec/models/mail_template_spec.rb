@@ -113,11 +113,7 @@ describe MailTemplate do
       @prepared_html = @tmpl.prepare_to_send
       @prepared_html.should ==  @body_html
     end
-### The next 4 tests don't make sense without the mail module installed.. 
-    it 'should generate a link for online viewing'
-    it 'should add subscribe / unsubscribe links'
-    it 'should generate track links'
-    it 'should make all site links external'
+
   end  
   describe 'create template' do
     it 'should get a list of site templates' do

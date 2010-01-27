@@ -44,11 +44,13 @@ describe MailTemplateMailer do
       @tmpl_mail.body.should == @body_html 
     end
     it 'should set the FROM field by the REPLY_TO_EMIL field, if not present' do
-      @tmpl_mail = MailTemplateMailer.deliver_to_address('bugsbunny@mywebiva.net',1)      
-      @tmpl_mail.from.should include("noreply@webiva-test.com")
+      @tmpl_mail = MailTemplateMailer.deliver_to_address('bugsbunny@mywebiva.net',1)  
+      @tmpl_mail.from.should include(Configuration.from_email)
     end
     it 'should raise an error if there is no suitable content type, text or html' do
-      Proc.new {  MailTemplateMailer.deliver_message_to_address('bugsbunny@mywebiva.net','test subject', { :from => ''} ) }.should raise_error(RuntimeError)
+      Proc.new { MailTemplateMailer.deliver_message_to_address('bugsbunny@mywebiva.net','test subject', { 
+                                                        :from => 'daffyduck@mywebiva.net'
+                                                               } ) }.should raise_error(RuntimeError)
     end
     it 'should determine the mime type of the message' do
       create_complete_template

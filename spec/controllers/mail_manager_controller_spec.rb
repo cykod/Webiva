@@ -65,6 +65,11 @@ describe MailManagerController, "" do
 
     end
    
+    it 'should call load the templates page and render the active table' do
+      @tmpl = MailTemplate.find(:last)
+      post('templates', :path => '')
+      response.body.should include('mail_manager/templates')
+    end
     
     it 'should change a templates options' do
       @tmpl = MailTemplate.find(:last)
@@ -72,14 +77,14 @@ describe MailManagerController, "" do
       @tmpl2 = MailTemplate.find(:last)
       @tmpl2.id.should_not be_nil
     end
-    it 'should refresh template when a design template is applied' # do
-#      @tmpl = MailTemplate.find(:last)
- #     Locale.should_receive(:language_code).and_return("en")
-  #    
-   #   post('refresh_template', :mail_template => @tmpl_post_options_with_design, :path => '')
-    #  @updated_tmpl = MailTemplate.find(:last)
-     # response.body.should include('/stylesheet/2/en')
-  #  end
+    it 'should refresh template when a design template is applied'  do
+      @tmpl = MailTemplate.find(:last)
+      Locale.should_receive(:language_code).at_least(:once).and_return('en')
+      post('refresh_template', :mail_template => @tmpl_post_options_with_design, :path => '')
+      @updated_tmpl = MailTemplate.find(:last)
+     
+      response.body.should include('mail_template[body_html]')
+    end
 
     it 'should send a test of a template' do
       post('send_test_template',
