@@ -1,0 +1,12 @@
+<% if rss_items.is_a?(Array) -%>
+  <p align="right"><a target="_blank" href="<%= url %>">Full RSS Feed</a></p>
+  <% if rss_items.length > 0 -%>
+    <table>
+      <% rss_items.each do |item| -%>
+        <tr><td><a target="_blank" href="<%= item['link'] %>"><%= h item['title'] %></a></td></tr>
+      <% end -%>
+    </table>
+  <% else -%>
+    <p align="center"><%= 'No items in feed'.t %></p>
+  <% end -%>
+<% end -%>
