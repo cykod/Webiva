@@ -4,6 +4,7 @@ require File.dirname(__FILE__) + "/../mail_template_spec_helper"
 describe MailTemplate do
   
   include MailTemplateSpecHelper
+  include ActionController::Assertions::SelectorAssertions # for site template stuff
 
   reset_domain_tables :mail_templates,:domain_file
   
@@ -115,6 +116,49 @@ describe MailTemplate do
     end
 
   end  
+
+
+  describe "mail templates with design templates" do
+    reset_domain_tables :site_templates,:site_template_rendered_parts,:site_template_zones
+
+    it 'it should prepare the template and substitute correctly' do
+      create_end_user
+      create_mail_tmpl_text
+      @template_html = <<-EOF
+<h1 id='header'>Mail Header, Yay!</h1>
+<table width='100%'>
+<tr>
+  <td class='yellow'>
+    <cms:zone name='Template'/>
+  </td>
+</tr>
+</table>
+EOF
+      @style_design = <<-EOF
+.yellow { 
+  color:yellow; 
+  font-weight:bold;
+}
+
+
+#header { 
+  font-size:19px;
+}
+
+EOF
+
+      @tpl = SiteTemplate.create(:template_type => 'mail',:name => 'Mail Template',:template_html => @template_html,:style_design => @style_design)
+      create_complete_template( :site_template_id => @tpl.id )
+      @tmpl = MailTemplate.find(:last)
+
+      @prepared_html = @tmpl.prepare_to_send
+      @prepared_html.should have_tag('h1',:style=>'font-size:19px;')
+      @prepared_html.should have_tag('td',:style=>'color:yellow;font-weight:bold;')
+      @tmpl.deliver_to_address('daffy@mywebiva.com')
+      ActionMailer::Base.deliveries.size.should == 1  
+    end
+  end
+
   describe 'create template' do
     it 'should get a list of site templates' do
       MailTemplate.create(:name => "M Template Test 2", :language => 'eng', :template_type => 'site', :subject =>  'test1')
