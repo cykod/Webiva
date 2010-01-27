@@ -151,13 +151,24 @@ describe ContentController, "create a content model" do
         response.should render_template('content/edit_entry')  
       end
 
-      it "should be able modify an existing item " do
+      it "should be able modify an existing item" do
         @entry = @cm.content_model.create(:string_field => '<h1>Test Escaped Field</h1>',:date_field => "6/13/2009", :html_field => '<h1>Html Field</h1>')
 
         post :edit_entry, :path => [ @cm.id, @entry.id ], :entry => { :string_field => 'Test Field' }, :commit => true
 
         @entry.reload
 	@entry.string_field.should == 'Test Field'
+
+        response.should redirect_to(:action => 'view', :path => [ @cm.id ] )  
+      end
+
+      it "should not be able modify an existing item if commit is not set" do
+        @entry = @cm.content_model.create(:string_field => '<h1>Test Escaped Field</h1>',:date_field => "6/13/2009", :html_field => '<h1>Html Field</h1>')
+
+        post :edit_entry, :path => [ @cm.id, @entry.id ], :entry => { :string_field => 'Test Field' }
+
+        @entry.reload
+	@entry.string_field.should_not == 'Test Field'
 
         response.should redirect_to(:action => 'view', :path => [ @cm.id ] )  
       end

@@ -85,7 +85,13 @@ class ContentController < ModuleController #:nodoc: all
     DataCache.expire_content("ContentModel",cid.to_s)
   end
   
-  
+  def get_extra_fields
+    @extra_fields = { 
+          -1 => 'Edit',
+          -2 => 'Delete'
+          }
+  end
+
   include ActiveTable::Controller   
 
 
@@ -403,13 +409,6 @@ class ContentController < ModuleController #:nodoc: all
     end
     
     @publication_types = ContentPublication.publication_type_select_options
-  end
-  
-  def get_extra_fields
-    @extra_fields = { 
-          -1 => 'Edit',
-          -2 => 'Delete'
-          }
   end
   
   def publication
