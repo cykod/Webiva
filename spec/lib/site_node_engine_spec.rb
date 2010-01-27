@@ -8,7 +8,7 @@ describe SiteNodeEngine, :type => :controller do
   @@html_test_code = "<h1>Yo, Html Paragraph here!</h1>"
   @@code_test_code = "<h1>Yo, Code Paragraph here!</h1>"
 
-  reset_domain_tables :end_users, :site_versions, :page_revisions, :site_nodes, :site_node_modifiers, :page_paragraphs, :site_templates
+  reset_domain_tables :end_users, :site_versions, :page_revisions, :site_nodes, :site_node_modifiers, :page_paragraphs, :site_templates, :site_template_rendered_parts,  :site_template_zones
 
   
   before(:each) do
