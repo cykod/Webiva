@@ -4,3 +4,6 @@ Content Models - must re-add all connection to email targets
 Must do a SiteNode.rebuild! on all the elements of the structure
 
 Removed tell_friend and tell_friend_link paragraphs
+
+
+Feedback - must add migration 4 into the database manually and remove migration 2 (migration overlap issue) 
