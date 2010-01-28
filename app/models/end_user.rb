@@ -95,6 +95,8 @@ include ModelExtension::EndUserImportExtension
   
   has_many :domain_emails
 
+  attr_accessor :remember
+
   belongs_to :user_class
  
   attr_protected :client_user_id
