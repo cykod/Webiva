@@ -16,7 +16,7 @@ module ActionController  #:nodoc:all
   class Request #:nodoc:
     def bot?
       return @is_bot if ! @is_bot.nil?
-      agent = user_agent.downcase
+      agent = user_agent.to_s.downcase
       @is_bot = ['msnbot','yahoo! slurp','googlebot','bot','spider','crawler'].detect { |b| agent.include?(b) }
     end
   end
