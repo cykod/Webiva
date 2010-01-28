@@ -22,7 +22,7 @@
       <%= para.display %>
     </div>
     <div class='cms_paragraph_editor'  id='cms_paragraph_editor_<%= para_index %>' style='padding:0px; margin:0px;' >
-      <textarea id='cms_paragraph_html_editor_<%= para_index %>'  style='width:100%; visibility:hidden;' onfocus='cmsEdit.focusParagraph(this); return true;'><%= h(para.display_body) %></textarea>
+      <textarea class='cms_paragraph_html_editor_text_box' id='cms_paragraph_html_editor_<%= para_index %>'  style='width:100%; visibility:hidden;' onfocus='cmsEdit.focusParagraph(this); return true;'><%= h(para.display_body) %></textarea>
     </div>
   <% elsif para.display_type == 'code' %>
     <div class='cms_div'  id='cms_paragraph_display_<%= para_index %>' style='padding:0px; margin:0px;' onclick='cmsEdit.editParagraph(<%= para_index %>)'>

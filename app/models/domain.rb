@@ -110,7 +110,8 @@ class Domain < SystemModel
   def self.initial_domain_data
     UserClass.create_built_in_classes
     UserClass.add_default_editor_permissions
-    SiteVersion.find(:first).root_node
+    SiteVersion.default.root
+    SiteTemplate.create_default_template
     Editor::AdminController.content_node_type_generate
     Dashboard::CoreWidget.add_default_widgets
   end

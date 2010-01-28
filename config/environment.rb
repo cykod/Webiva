@@ -22,6 +22,8 @@ require 'yaml'
 # Set up some constants
   defaults_config_file = YAML.load_file(File.join(File.dirname(__FILE__), "defaults.yml"))
   
+  CMS_DEFAULTS = defaults_config_file
+
   WEBIVA_LOGO_FILE = defaults_config_file['logo_override'] || nil 
 
   CMS_DEFAULT_LANGUAGE = defaults_config_file['default_language'] || 'en'
@@ -36,7 +38,7 @@ require 'yaml'
   
   BETA_CODE = defaults_config_file['enable_beta_code'] || false
   
-  USE_X_SEND_FILE = defaults_config_file['use_x_send_file'] || false
+
  
   GIT_REPOSITORY = defaults_config_file['git_repository'] || nil 
 
@@ -102,6 +104,9 @@ Rails::Initializer.run do |config|
   
 end
 
+# Only use X_SEND_FILE if it's enabled and we're not in test mode
+USE_X_SEND_FILE =  (RAILS_ENV == 'test' || RAILS_ENV == 'cucumber' || RAILS_ENV == 'selenium') ? false : (defaults_config_file['use_x_send_file'] || false)
+
  memcache_options = {
     :c_threshold => 10_000,
     :compression => true,
@@ -139,12 +144,23 @@ ActionMailer::Base.logger = nil unless ENV['RAILS_ENV'] == 'development'
 
 if RAILS_ENV == 'test'
     if defaults_config_file['testing_domain']
-      SystemModel.establish_connection(YAML.load_file("#{RAILS_ROOT}/config/cms.yml")[:test])
+      ActiveRecord::Base.establish_connection(YAML.load_file("#{RAILS_ROOT}/config/cms.yml")['test'])
+      SystemModel.establish_connection(YAML.load_file("#{RAILS_ROOT}/config/cms.yml")['test'])
       DomainModel.activate_domain(Domain.find(defaults_config_file['testing_domain']).attributes,'production',false)
     else
       raise 'No Available Testing Database!'
     end
 end 
+if RAILS_ENV == 'cucumber' || RAILS_ENV == 'selenium'
+    if defaults_config_file['cucumber_domain']
+      ActiveRecord::Base.establish_connection(YAML.load_file("#{RAILS_ROOT}/config/cms.yml")['cucumber'])
+      SystemModel.establish_connection(YAML.load_file("#{RAILS_ROOT}/config/cms.yml")['cucumber'])
+      dmn = Domain.find(defaults_config_file['cucumber_domain']).attributes
+      DomainModel.activate_domain(dmn,'production',false)
+    else
+      raise 'No Available Cucumber Database!'
+    end
+end
 
 
 module Globalize
