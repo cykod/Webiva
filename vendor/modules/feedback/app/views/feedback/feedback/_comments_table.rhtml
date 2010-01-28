@@ -28,7 +28,7 @@
     <td valign='baseline' align='right'><%= t.posted_ip -%></td>    
     <td valign='baseline' nowrap='1'><%= t.posted_at.localize(DEFAULT_DATETIME_FORMAT.t) if t.posted_at -%></td>
     <td valign='baseline'>
-      <%= v(t.comment) -%>
+      <%= t.comment_html.blank? ? v(t.comment) : t.comment_html -%>
     </td>
 </tr>
 

@@ -28,7 +28,6 @@ class Feedback::CommentsFeature < ParagraphFeature
 
   def comments_page_comments_feature(data)
     webiva_feature('comments_page_comments') do |c|
-
       c.loop_tag('comment') { |t| data[:comments] }
         add_comment_features( c, data )
 
@@ -38,10 +37,12 @@ class Feedback::CommentsFeature < ParagraphFeature
 
       c.form_for_tag('add_comment',"comment_#{paragraph_id}") { |t|  data[:comment] }
         c.form_error_tag('add_comment:errors')
+        c.field_tag('add_comment:email')
+        c.field_tag('add_comment:website')
         c.field_tag('add_comment:name')
         c.field_tag('add_comment:comment',:control => 'text_area', :rows => 6, :cols => 50)
 
-        if data[:options].captcha
+        if data[:options] &&  data[:options].captcha
 	  c.captcha_tag('add_comment:captcha')
 	else
 	  c.define_tag('add_comment:captcha') { |t| '' }
@@ -54,7 +55,7 @@ class Feedback::CommentsFeature < ParagraphFeature
   def add_comment_features(context, data, base='comment')
     context.h_tag(base + ':name') { |t| t.locals.comment.name }
     context.h_tag(base + ':first_name') { |t| t.locals.comment.name.to_s.split(" ")[0] }
-    context.value_tag(base + ':body') { |t| simple_format(h(t.locals.comment.comment)) }
+    context.value_tag(base + ':body') { |t| t.locals.comment.comment_html.blank? ? simple_format(h(t.locals.comment.comment)) : "<p>#{t.locals.comment.comment_html}</p>" }
     context.date_tag(base + ':posted_at', "%I:%M%p on %B %d %Y".t) { |t| t.locals.comment.posted_at }
   end
 
