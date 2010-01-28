@@ -67,9 +67,8 @@ class Blog::PageRenderer < ParagraphRenderer
         feature_output = blog.cache_fetch(display_string) if blog 
       end
     end
-    
-    if !feature_output
 
+    if !feature_output
       return render_paragraph :inline => ''  unless blog
 
       detail_page =  SiteNode.get_node_path(options.detail_page,'#')
@@ -94,7 +93,7 @@ class Blog::PageRenderer < ParagraphRenderer
       else
         pages,entries = blog.paginate_posts(page,items_per_page)
       end
-      
+
       data = { :blog => blog, :entries => entries, :detail_page => detail_page, :list_page => site_node.node_path, :pages => pages }
       
       feature_output = blog_entry_list_feature(data)

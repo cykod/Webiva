@@ -14,6 +14,7 @@ class ContentNodeValue < DomainModel
   end
 
   def content_description(language)
+    return '' unless self.content_node
     self.content_node.content_description language
   end
 
@@ -25,6 +26,11 @@ class ContentNodeValue < DomainModel
     self.content_node.author
   end
 
+
+  class << self
+    include ActionView::Helpers::TextHelper
+  end
+
   def self.search(language, query, options)
     values = []
     total_results = 0
@@ -34,6 +40,15 @@ class ContentNodeValue < DomainModel
 		 :order => ["MATCH (title) AGAINST (",self.quote_value(query), ") DESC, MATCH (title,body) AGAINST (",self.quote_value(query), ") DESC"].join
 	       }) do
       values = self.find(:all,options)
+      values.each do |val|
+        val.excerpt = excerpt(val.body,query)
+        if val.excerpt.blank?
+          val.excerpt = truncate(val.body,:length => 100)
+        else
+          val.excerpt = val.excerpt.split("\n").select { |str| str.downcase.include?(query.downcase) }.join(" ")
+        end
+        val.excerpt = highlight(val.excerpt,query.to_s.split(" ")).gsub("\n"," ")
+      end
       options.delete(:limit)
       options.delete(:offset)
       total_results = self.count options

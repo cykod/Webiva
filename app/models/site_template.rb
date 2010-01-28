@@ -347,6 +347,14 @@ class SiteTemplate < DomainModel
     end
   end
   
+  def full_styles_hash(lang,override=true)
+    styles = design_style_details(lang,override) + structural_style_details(lang,override)
+    styles_hash = { }
+    styles.each do |style|
+      styles_hash[style[0]] = style[2].map { |elm| elm.join(':') + ";" }.join('')
+    end
+    styles_hash
+  end
   
   # Return an array of styles from text
   def design_style_details(lang,override = true)

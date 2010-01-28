@@ -2,7 +2,7 @@
 
 <div align='center' class='admin_form'>
   <%= form_tag :action => 'index' -%>
-    <%= select_tag :content_type_id, options_for_select(@search.content_types_options, @search.content_type_id) -%>
+    <%= select_tag :content_type_id, options_for_select(@search.content_types_options(true), @search.content_type_id) -%>
     <%= text_field_tag(:search,@search.terms,:size => 80) -%> <%= submit_tag("Search")  -%>
   </form>
 </div>
@@ -20,6 +20,9 @@
   <% if result[:node].author -%>by <%= result[:node].author.full_name -%><% end -%>
 </div>
 <%= h result[:subtitle] -%>
+ <div style='width:400px;'>
+  <%= simple_format result[:excerpt] if result[:excerpt] %>
+ </div>
 </div>
 <% end -%>
 <% end -%>

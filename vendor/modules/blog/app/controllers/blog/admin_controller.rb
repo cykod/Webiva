@@ -27,11 +27,11 @@ class Blog::AdminController < ModuleController
 
     def self.get_blogs_info
       info = Blog::BlogBlog.find(:all, :order => 'name', :conditions => { :is_user_blog => false }).collect do |blog|
-        {:name => blog.name,:url => { :controller => '/blog/manage', :path => blog.id } ,:permission => { :model => blog, :permission =>  :edit_permission }, :icon => 'icons/content/blog.gif' }
+        {:name => blog.name,:url => { :controller => '/blog/manage', :path => blog.id } ,:permission => { :model => blog, :permission =>  :edit_permission }, :icon => 'icons/content/blogs_icon.png' }
       end
       @user_blogs = Blog::BlogBlog.count(:all,:conditions => {:is_user_blog => true })
       if @user_blogs > 0
-         info << { :name => 'Site Blogs', :url => { :controller => '/blog/manage', :action => 'list' },:permission => 'blog_user_blogs', :icon => 'icons/content/blog.gif' }
+         info << { :name => 'Site Blogs', :url => { :controller => '/blog/manage', :action => 'list' },:permission => 'blog_user_blogs', :icon => 'icons/content/blogs_icon.png' }
       end
       info
   end

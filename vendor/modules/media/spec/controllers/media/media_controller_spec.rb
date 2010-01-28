@@ -6,9 +6,12 @@ describe Media::MediaController do
 
   include MediaTestHelper
 
-  reset_domain_tables :configurations
+  reset_domain_tables :configurations, :site_modules
 
   before(:each) do
+    mod = SiteModule.activate_module(Domain.find(DomainModel.active_domain_id),'media')
+    mod.update_attributes(:status => 'active')
+    
     @options = Media::AdminController::module_options
     @options.media_video_handler = @options.media_video_handlers[0][1]
     @options.media_audio_handler = @options.media_audio_handlers[0][1]

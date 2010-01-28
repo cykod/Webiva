@@ -50,8 +50,8 @@ class Manage::AccessController < CmsController # :nodoc: all
         flash[:notice] = "Invalid user/password combination"
       end
    else
-      if myself.has_role?('editor_website') ||  myself.has_role?('editor_structure') 
-        redirect_to :controller => '/structure', :action => 'index'
+      if myself.editor?
+        redirect_to(:controller => "/dashboard", :action => 'index')
         return
       end
       @user = EndUser.new

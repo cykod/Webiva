@@ -10,6 +10,8 @@ class Comment < DomainModel
 
   cached_content
 
+  safe_content_filter({ :comment => :comment_html},:filter => :comment)
+
   validates_presence_of :name, :comment, :target_type, :target_id
   
   attr_accessor :captcha_invalid

@@ -11,7 +11,7 @@ class Editor::AdminController < ModuleController #:nodoc:all
                               :access => :public
 
   
-  content_node_type "Static Pages", "SiteNode",  :search => true, :editable => false
+  content_node_type "Static Pages", "SiteNode",  :search => true, :editable => false, :title_field => :name, :url_field => :node_path
 
   module_for :opensearch, 'OpenSearch', :description => 'Add OpenSearch to your site'
 

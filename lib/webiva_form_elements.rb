@@ -328,7 +328,7 @@ module WebivaFormElements
   def unsorted_selector(field,available_values,selected_values,options = {})
 
     <<-SRC
-    <script>
+    <script type='text/javascript'>
       var #{field.to_s}_editor  = {
         options: new Array(  #{available_values.collect { |elem| "[\"#{elem[0]}\",\"#{elem[1]}\"]" }.join(",") } ),
 
@@ -376,7 +376,7 @@ module WebivaFormElements
     <button onclick='#{field.to_s}_editor.addElement(); return false;'>Add</button><br/>
     <div size='#{options[:size]||5}' id='#{@object_name}_#{field}_display' style='border:1px solid; height:6em; overflow:auto;'>
     </div>
-    <script>#{field.to_s}_editor.updateSelectors();</script>
+    <script type='text/javascript'>#{field.to_s}_editor.updateSelectors();</script>
 
     SRC
   end
@@ -398,7 +398,7 @@ module WebivaFormElements
               }
     
     <<-SRC
-    <script>
+    <script type='text/javascript'>
      #{object_name}_#{field_name}_editor = {
           
       changedUnit: function(elem) {
@@ -505,7 +505,7 @@ module WebivaFormElements
       <tbody id="#{object_name}_#{field_name}_table" >
       </tbody>
     </table>
-    <script>
+    <script type='text/javascript'>
       #{(0..price_values.length-1).to_a.collect { |index| "#{object_name}_#{field_name}_editor.addRow('#{field_values[index]}','#{price_values[index]}',#{index});\n" } } 
       #{object_name}_#{field_name}_editor.updateUnits();
     </script>
@@ -563,7 +563,7 @@ module WebivaFormElements
     link_txt = link_to('+Add Image'.t, "/website/file/popup?select=file&callback=image_list_#{obj_name}_#{field}.attachFile&thumb_size=thumb", :popup => ['file_manager', 'height=400,width=600,resizable=yes,scrollbars=yes' ])
     
      <<-JAVASCRIPT
-        <script>
+        <script type='text/javascript'>
           var image_list_#{obj_name}_#{field} = {
              attachFile: function(field,type,id,path,url,thumb,name) {
                 this.removeAttachment(id);
@@ -621,7 +621,7 @@ module WebivaFormElements
         #{files}
        </div>
        <input type='hidden' name='#{@object_name}[#{field}]' id='#{@object_name}_#{field}' value='#{val.join(",")}'/>
-       <script>
+       <script type='text/javascript'>
         image_list_#{obj_name}_#{field}.recreateSortable();
        </script>
     JAVASCRIPT
@@ -674,7 +674,7 @@ module WebivaFormElements
     <img src='#{@template.controller.theme_src('icons/ok.gif')}' id='#{ok_icon_id}' style='#{"visibility:hidden;" unless usr}' /></span>
     <div class='autocomplete' id='#{field_id}_autocomplete' style='display:none;' ></div>
     
-    <script>
+    <script type='text/javascript'>
       var autocomplete = new Ajax.Autocompleter('#{field_id}','#{field_id}_autocomplete','#{@template.controller.url_for(:controller => '/members', :action => 'lookup_autocomplete')}',{ minChars: 2, paramName: 'member', afterUpdateElement: function(text,li) { 
         $('#{field_id}').value = li.select(".name")[0].innerHTML; 
         $('#{id_field_id}_temp').value = li.select(".name")[0].innerHTML; 
@@ -715,7 +715,7 @@ module WebivaFormElements
         <span class='data text_field_control'>#{text_field}</span>
         <div class='autocomplete' id='#{field_id}_autocomplete' style='display:none;' ></div>
       
-    <script>
+    <script type='text/javascript'>
       var autocomplete = new Ajax.Autocompleter('#{field_id}','#{field_id}_autocomplete','#{url}',{ minChars: 3, paramName: '#{field_id}', #{"tokens: ','," if multiple} select: 'display_value' #{",afterUpdateElement: #{callback}" if callback}
       });
     </script>
@@ -761,7 +761,7 @@ TXT
     end.join
       
     html = <<-HTML
-<script>
+<script type='text/javascript'>
   OrderedArray = {
      add:function(name,obj_name) {
        var idx= $(name + "_select").selectedIndex;
@@ -839,7 +839,7 @@ TXT
       <div class='ordered_selection_list' id='#{obj_name}_#{field}_selector' #{"style='display:none;'" if objects.length == 0}>
         #{existing_options}
       </div>
-#{    "<script>OrderedArray.createSortables('#{obj_name}_#{field}','#{@object_name}[#{field}]');</script>"}
+#{    "<script type='text/javascript'>OrderedArray.createSortables('#{obj_name}_#{field}','#{@object_name}[#{field}]');</script>"}
 HTML
          
   end
@@ -888,7 +888,7 @@ TXT
     end.join
       
     html = <<-HTML
-<script>
+<script type='text/javascript'>
   OrderedList = {
      add:function(name,obj_name,id_field,position_field) {
        var idx= $(name + "_select").selectedIndex;
@@ -958,7 +958,7 @@ TXT
       <div class='ordered_selection_list' id='#{obj_name}_#{field}_selector' #{"style='display:none;'" if objects.length == 0}>
         #{existing_options}
       </div>
-#{    "<script>OrderedList.createSortables('#{obj_name}_#{field}','#{@object_name}[#{field}]');</script>" if sortable}
+#{    "<script type='text/javascript'>OrderedList.createSortables('#{obj_name}_#{field}','#{@object_name}[#{field}]');</script>" if sortable}
 HTML
      
 

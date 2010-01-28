@@ -17,7 +17,7 @@ class Blog::BlogBlog < DomainModel
   
   serialize :options
   
-  content_node_type :blog, "Blog::BlogPost", :content_name => :name,:title_field => :title # Or field_name or Proc.new
+  content_node_type :blog, "Blog::BlogPost", :content_name => :name,:title_field => :title, :url_field => :permalink # Or field_name or Proc.new
   
   def self.create_user_blog(name,target)
     self.create(:name => name, :target => target, :is_user_blog => true)
@@ -33,7 +33,7 @@ class Blog::BlogBlog < DomainModel
     Blog::BlogPost.paginate(page,
                             :include => [ :active_revision, :blog_categories ],
                             :order => 'published_at DESC',
-                            :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < NOW() AND blog_posts.blog_blog_id=? AND blog_categories.name = ?", self.id, cat],
+                            :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ? AND blog_posts.blog_blog_id=? AND blog_categories.name = ?",Time.now,self.id, cat],
                             :per_page => items_per_page)
   end                       
 
@@ -42,7 +42,7 @@ class Blog::BlogBlog < DomainModel
     Blog::BlogPost.paginate(page,
                             :include => [ :active_revision, :content_tags ],
                             :order => 'published_at DESC',
-                            :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < NOW() AND blog_posts.blog_blog_id=? AND content_tags.name = ?",self.id,cat],
+                            :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ? AND blog_posts.blog_blog_id=? AND content_tags.name = ?",Time.now,self.id,cat],
                             :per_page => items_per_page)
   end
 
@@ -60,7 +60,7 @@ class Blog::BlogBlog < DomainModel
     BlogPost.paginate(page,
                       :include => [ :active_revision, :blog_categories ],
                       :order => 'published_at DESC',
-                      :conditions =>   ["blog_posts.status = \"published\" AND blog_posts.published_at < NOW() AND blog_posts.blog_blog_id=? AND blog_posts.published_at BETWEEN ? AND ?",self.id,tm.at_beginning_of_month,tm.at_end_of_month],
+                      :conditions =>   ["blog_posts.status = \"published\" AND blog_posts.published_at < ? AND blog_posts.blog_blog_id=? AND blog_posts.published_at BETWEEN ? AND ?",Time.now,self.id,tm.at_beginning_of_month,tm.at_end_of_month],
                       :per_page => items_per_page)
 
   end
@@ -69,7 +69,7 @@ class Blog::BlogBlog < DomainModel
     Blog::BlogPost.paginate(page,
                             :include => [ :active_revision ], 
                             :order => 'published_at DESC',
-                            :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < NOW() AND blog_blog_id=?",self.id],
+                            :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ?  AND blog_blog_id=?",Time.now,self.id],
                             :per_page => items_per_page)          
 
   end
@@ -80,5 +80,9 @@ class Blog::BlogBlog < DomainModel
                         :include => [ :active_revision ],
                         :order => 'published_at DESC',
                         :conditions => ["blog_posts.status = \"published\" AND blog_blog_id=? AND blog_posts.permalink=?",self.id,permalink])
+  end
+
+  def content_type_name
+    "Blog"
   end
 end

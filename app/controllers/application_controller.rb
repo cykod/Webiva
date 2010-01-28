@@ -128,7 +128,7 @@ class ApplicationController < ActionController::Base
   
   def save_anonymous_tags #:nodoc:
     if !session[:user_id] 
-      session[:user_tags] = myself.tag_cache unless myself.tag_cache.blank?
+      session[:user_tags] = myself.tag_cache_tmp unless myself.tag_cache_tmp.blank?
       session[:user_referrer] = myself.referrer unless myself.referrer.blank?
     else 
       session[:user_tags] = nil

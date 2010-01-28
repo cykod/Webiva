@@ -53,6 +53,8 @@ class MailTemplateMailer < ActionMailer::Base
     elsif options[:html]
       content_type "text/html"
       body options[:html]
+    else
+      raise "missing :text or :html options for message body"
     end 
     
     true

@@ -24,10 +24,14 @@ class ContentNodeSearch < HashModel
     self.protected_results = myself.id ? true : false
   end
 
-  def content_types_options
-    return @content_types_options if @content_types_options
-    opts = { :conditions => {:search_results => 1} }
-    opts[:conditions][:protected_results] = 0 if self.protected_results.blank?
+  def content_types_options(backend = false)
+#    return @content_types_options if @content_types_options
+    if backend
+      opts = {}
+    else
+      opts = { :conditions => {:search_results => 1} }
+      opts[:conditions][:protected_results] = 0 if self.protected_results.blank?
+    end
     @content_types_options = ContentType.select_options_with_nil 'Everything', opts
   end
 
@@ -86,7 +90,6 @@ class ContentNodeSearch < HashModel
   def backend_search
     return [@results, @more] if @results
 
-    conditions = {:search_result => 1}
     conditions[:content_type_id] = self.content_type_id if self.content_type_id
 
     offset = (self.page - 1) * self.per_page

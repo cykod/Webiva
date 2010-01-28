@@ -429,9 +429,8 @@ class MailTemplate < DomainModel
  def transform_html(html) #:nodoc:
    return html if !self.site_template
     
-   styles = SiteTemplate.css_styles(self.site_template_id,(Locale.language_code||'en').downcase)  
+   styles = self.site_template.full_styles_hash((Locale.language_code||'en').downcase)  
     # Get all the styles together
- 
    doc = Hpricot(html)
     
    doc.each_child do |elm|
@@ -446,7 +445,7 @@ class MailTemplate < DomainModel
  private
 
  def transform_tag(tag,styles) #:nodoc:
-    begin
+   begin
       if !tag.bogusetag? && !tag.comment?
         styles_txt = ''
         

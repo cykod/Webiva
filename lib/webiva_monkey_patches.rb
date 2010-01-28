@@ -16,7 +16,7 @@ module ActionController  #:nodoc:all
   class Request #:nodoc:
     def bot?
       return @is_bot if ! @is_bot.nil?
-      agent = user_agent.downcase
+      agent = user_agent.to_s.downcase
       @is_bot = ['msnbot','yahoo! slurp','googlebot','bot','spider','crawler'].detect { |b| agent.include?(b) }
     end
   end
@@ -143,6 +143,21 @@ class Date  #:nodoc:all
                 Time.local(year,month,day)
         end
 end 
+
+
+module ActiveRecord
+  module ConnectionAdapters # :nodoc:
+    module Quoting
+      # Convert dates and times to UTC so that the following two will be equivalent:
+      # Event.all(:conditions => ["start_time > ?", Time.zone.now])
+      # Event.all(:conditions => ["start_time > ?", Time.now])
+      def quoted_date(value)
+        value.respond_to?(:utc) ? value.utc.to_s(:db) : value.to_s(:db)
+      end
+    end
+  end
+end
+
 
 #class CGI::Session::MemCacheStore
 # def check_id(id) #:nodoc:# 

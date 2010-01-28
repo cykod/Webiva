@@ -20,7 +20,7 @@
      </div>
   </div>
   <% end -%>
-  <div id='cms_logo'><a href='/website/dashboard'><img src='<%= WEBIVA_LOGO_FILE || theme_src("framework/logo.gif") %>'></a></div>
+  <div id='cms_logo'><a href='/website/dashboard#cms_page_title'><img src='<%= WEBIVA_LOGO_FILE || theme_src("framework/logo.gif") %>'></a></div>
   <div id='cms_menu'>
 <%  # Foreground, Background
     @menu_colors = { 'website' => [ '#29974e', '#add4b8' ],
@@ -41,7 +41,7 @@
       </ul>
   </div>
 </div>
-<div style='clear:both;'></div>
+<div style='clear:both;'></div><a name='cms_page_title'></a>
 <div id='cms_title_bar' style=' <%= "background-color:#{@menu_colors[@cms_page_info[:section]][1]}; color:#{@menu_colors[@cms_page_info[:section]][0]}" if @menu_colors[@cms_page_info[:section]] %>'>
      <% if  @cms_page_info[:title].is_a?(Array) %>
           <% @cms_page_info[:title].each do |item| %>

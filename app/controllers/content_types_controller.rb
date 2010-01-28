@@ -16,6 +16,7 @@ class ContentTypesController < CmsController # :nodoc: all
                  hdr(:string,:list_site_node_url, :label => 'List Page'),
                  hdr(:string,:detail_site_node_url, :label => 'Detail Page'),
                  hdr(:boolean,:search_results, :label => 'Search'),
+                 hdr(:boolean,:protected_results, :label => 'Protect'),
                  :created_at
                   ]
   
@@ -23,6 +24,18 @@ class ContentTypesController < CmsController # :nodoc: all
   public
   
   def display_content_types_table(display=true)
+
+    active_table_action('content_type') do |act,cids|
+      types = ContentType.find(:all,:conditions => {  :id => cids })
+      atr = case act
+            when 'protect': { :protected_results => true }
+            when 'unprotect': { :protected_results => false  }
+            when 'search': {  :search_results => true }
+            when 'unsearch': {  :search_results => false}
+            end
+      types.each {  |ct| ct.update_attributes(atr)}
+      flash.now[:notice] = "Content Models updated - changes won't take place until the indexer reruns"
+    end
   
     @tbl = content_types_table_generate params, :order => 'content_types.created_at DESC'
     

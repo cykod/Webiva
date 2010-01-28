@@ -119,7 +119,7 @@ class SiteNode < DomainModel
 
     rev = self.live_revisions.find_by_language(lang)
     if rev && !rev.title.blank?
-      str = rev.variable_replace(title)
+      str = rev.variable_replace(rev.title)
     else
       str = self.title.to_s.titleize
     end
@@ -129,6 +129,9 @@ class SiteNode < DomainModel
     "Site Page - %s" / self.node_path
   end
  
+  def content_search_results? #:nodoc:
+    self.include_in_sitemap?    
+  end
   
   # Returns the active PageRevision of the passed language, or returns a revision of a different language if the passed language doesn't exist
   def active_revision(language)
@@ -151,6 +154,8 @@ class SiteNode < DomainModel
       nil
     end
   end
+
+  
   
   # Returns a list of revision of the passed languages, 
   # with each entry in the form:

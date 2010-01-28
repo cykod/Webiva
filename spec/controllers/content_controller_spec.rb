@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + "/../content_spec_helper"
 
 describe ContentController, "create a content model" do
 
-  reset_domain_tables :end_users, :roles, :user_roles, :access_tokens, :end_user_tokens
+  reset_domain_tables :end_users, :roles, :user_roles, :access_tokens, :end_user_tokens, :site_modules
 
   include ContentSpecHelper
 

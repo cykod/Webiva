@@ -23,9 +23,10 @@ class Feedback::CommentsRenderer < ParagraphRenderer
 
     return(render_paragraph :inline => '') unless content_link
 
-    display_string = "_#{content_link[0]}_#{content_link[1]}"
-
-    result = renderer_cache(Comment, display_string, :skip => request.post? || @options.captcha) do |cache|
+    logged_in = myself.id ? 'logged_in' : 'anonymous'
+    display_string = "_#{content_link[0]}_#{content_link[1]}_#{logged_in}"
+    
+    result = renderer_cache(Comment, display_string, :skip => true ||  request.post? || @options.captcha) do |cache|
       @comment = Comment.new
       param_str = 'comment_' + paragraph.id.to_s
       if request.post? && params[param_str]
