@@ -14,7 +14,7 @@ class Dashboard::ContentNodeWidget < Dashboard::WidgetBase #:nodoc:all
   end
 
   class UpdatesOptions < HashModel
-    attributes :content_type_ids => [], :title => "Updated Content", :count => 10, :show_description => true,
+    attributes :content_type_ids => [], :count => 10, :show_description => true,
     :icon => nil
     
     boolean_options :show_description

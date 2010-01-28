@@ -32,6 +32,7 @@ class Dashboard::CoreWidget < Dashboard::WidgetBase #:nodoc:all
 
   def emarketing_stats
     require_js 'emarketing.js'
+    set_icon 'organize_icon.png'
 
     return render_widget :text => 'Must reload widget to activate.'.t if first?
 
@@ -42,6 +43,7 @@ class Dashboard::CoreWidget < Dashboard::WidgetBase #:nodoc:all
   end
 
   def emarketing_charts
+    set_icon 'poll_icon.png'
     require_js 'raphael/raphael-min.js'
     require_js 'raphael/g.raphael.js'
     require_js 'raphael/g.line.js'
@@ -57,4 +59,38 @@ class Dashboard::CoreWidget < Dashboard::WidgetBase #:nodoc:all
 
   class EmarketingChartsOptions < HashModel
   end
+
+  @@welcome_text = <<-EOF
+Welcome to the Webiva Content Management system. This is your
+dashboard, which is a configurable overview of what's happening on your
+site. Click on the pen page titlebar to edit your own widgets or click
+on the icon to the right of the pen and select edit site widgets to edit
+widgets that are common for for all site editors.
+
+Check out the [Webiva Documentation](http://www.webiva.net/doc) for more details
+on how work with webiva. If you have any questions take a look at the [Forums](http://www.webiva.net/forums) 
+and post a question if you can't find an answer.
+
+   - The Webiva Team
+
+EOF
+
+  def self.add_default_widgets
+    SiteWidget.create_widget("/dashboard/core_widget", "information",
+                             :column => 0,
+                             :weight => 0,
+                             :title => "Welcome to Webiva",
+                             :data =>  InformationOptions.new(:body => @@welcome_text).to_hash)
+    SiteWidget.create_widget("/dashboard/core_widget", "emarketing_charts",
+                             :column => 1,
+                             :weight => 0,
+                             :title => "Uniques / Page Views",
+                             :data =>  EmarketingChartsOptions.new({ }).to_hash)
+    SiteWidget.create_widget("/dashboard/content_node_widget", "updates",
+                             :column => 0,
+                             :weight => 1,
+                             :title => "Updated Site Content",
+                             :data =>  Dashboard::ContentNodeWidget::UpdatesOptions.new({ }).to_hash)
+  end
+  
 end

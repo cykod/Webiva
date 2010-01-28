@@ -21,7 +21,7 @@
           <%= dmn.status_display %>
         </td>
         <td>
-            <a href='<%= "http://www.#{dmn.name}/website" %>'>Goto</a>
+            <a href='<%= "http://#{dmn.www_prefix? ? 'www.' : ''}#{dmn.name}/website" %>'>Goto</a>
         </td>
         <td>
               <a href='<%= url_for(:action => 'delete', :path =>dmn ) %>'> Delete </a>

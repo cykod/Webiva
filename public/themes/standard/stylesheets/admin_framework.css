@@ -57,6 +57,18 @@ h4 {
   visibility: hidden;
 }
 
+html { 
+ background-color:white !important;
+ 
+ }
+
+
+#cms_manage_window { 
+ background-color:white;
+ }
+
+
+
 <!--[if IE]>
 .clearfix { display: inline-block; }
 .clearfix { zoom: 1; display: block; }
@@ -196,8 +208,8 @@ a:active {  outline:none; }
 /* Additional Site Styles */
 
 .admin_content {
-  margin: 10px 55px 0px 55px;
-  padding:0px;
+  margin: 0px;
+  padding:10px 55px 0px 55px;
 }
 
 .admin_left_columned_container {
