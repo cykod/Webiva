@@ -61,7 +61,6 @@ class Dashboard::CoreWidget < Dashboard::WidgetBase #:nodoc:all
   end
 
   def rss_viewer
-
     rss_items = editor_widget.cache_fetch('Widget')
 
     if ! rss_items || rss_items.length == 0
@@ -75,7 +74,10 @@ class Dashboard::CoreWidget < Dashboard::WidgetBase #:nodoc:all
 	end
 
 	rss_items = []
-	rss_feed.items[0..@options.show_first-1].each { |item| rss_items << {'link' => item.link, 'title' => item.title, 'date' => item.pubDate} } if rss_feed.is_a?(RSS::Rss)
+	rss_feed.items[0..@options.show_first-1].each do |item|
+	  pubDate = Time.at item.pubDate.to_i
+	  rss_items << {'link' => item.link, 'title' => item.title, 'date' => pubDate}
+	end if rss_feed.is_a?(RSS::Rss)
       rescue TimeoutError
 	editor_widget.cache_put('Widget', [], nil, @options.valid_for.minutes)
 	logger.warn( "Timed out fetching rss feed for #{@options.url}" )

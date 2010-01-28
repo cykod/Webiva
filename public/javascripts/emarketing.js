@@ -1,6 +1,7 @@
 RealTimeStatsViewer = {
   from: null,
   stats: new Array(),
+  lastStatsIdx: 0,
   current: null,
   playbackTicker: 60,
   statsLayerId: 'real_time_stats',
@@ -10,40 +11,25 @@ RealTimeStatsViewer = {
   chartTimer: null,
 
   addStats: function(stats) {
-    var div = document.createElement( 'div' );
-    div.setAttribute( 'class', 'stats clearfix' );
-
-    var who = document.createElement( 'div' );
-    who.setAttribute( 'class', 'who' );
-    var who_link = document.createElement( 'a' );
-    who_link.href = 'javascript:void(0);';
-    who_link.setAttribute( 'onclick','RealTimeStatsViewer.detail("' + stats.id + '");' );
-    who_link.appendChild( document.createTextNode(stats.user || stats.ip) );
-    who.appendChild( who_link );
-
-    var occurred_at = document.createElement( 'div' );
-    occurred_at.setAttribute( 'class', 'when' );
-    occurred_at.appendChild( document.createTextNode(stats.occurred_at) );
-
-    var page = document.createElement( 'div' );
-    page.setAttribute( 'class', 'page' );
-    page.appendChild( document.createTextNode(stats.url) );
-
-    var action = document.createElement( 'div' );
-    action.setAttribute( 'class', 'action' );
-    action.appendChild( document.createTextNode(stats.action || '-') );
-
-    div.appendChild( who );
-    div.appendChild( occurred_at );
-    div.appendChild( page );
-    div.appendChild( action );
-
+    var twoToneClass = RealTimeStatsViewer.lastStatsIdx % 2 == 0 ? 'even' : 'odd';
+    var div = Builder.node('div', {className: 'stats clearfix ' + twoToneClass},
+			   [Builder.node('div', {className: 'who'},
+					 [Builder.node('a', {href: 'javascript:void(0);', onclick:'RealTimeStatsViewer.detail("' + stats.id + '");'},
+						       stats.user || stats.ip)
+					  ]),
+			    Builder.node('div', {className: 'when'}, stats.occurred_at),
+			    Builder.node('div', {className: 'page'}, [Builder.node('a', {target: '_blank', href: stats.url}, stats.url)]),
+			    Builder.node('div', {className: 'action'}, stats.action || '-')
+			    ]);
+  
     var realTimeStatsLayer = $(RealTimeStatsViewer.statsLayerId);
     while( realTimeStatsLayer.children.length >= RealTimeStatsViewer.maxStats ) {
       realTimeStatsLayer.children[0].remove();
     }
 
     realTimeStatsLayer.insert( div );
+
+    RealTimeStatsViewer.lastStatsIdx++;
   },
 
   scrollToBottom: function() {

@@ -2249,12 +2249,14 @@ table.mini_table td em { color:#b3b3b3; }
 
 .real-time-stats-block {  height:335px;  overflow-x:hidden;   overflow-y:auto; }
 
-.real-time-stats div div {   float: left;  width: 200px;  height: 20px;  overflow: hidden; }
+.real-time-stats div.stats { padding: 2px 0 2px 0; }
 
-.real-time-stats .stats .who {   width: 130px; }
-.real-time-stats .stats .when {   width: 110px; }
+.real-time-stats div div {   float: left; padding: 0; }
 
-.real-time-stats .stats .page {   width: 150px; }
+.real-time-stats .stats .who {   width: 123px; padding: 0 5px 0 2px; }
+.real-time-stats .stats .when {   width: 90px; }
+
+.real-time-stats .stats .page {   width: 150px; padding-right: 5px; }
 
 .real-time-stats .stats .action {   width: 100px; }
 
@@ -2305,3 +2307,14 @@ table.mini_table td em { color:#b3b3b3; }
   color:#53789d;
   z-index:2;
  }
+
+/* Alternating Colored Lists */
+
+.two-tone-list .odd {
+background-color: #eeeeee;
+}
+
+.two-tone-list .even {
+background-color: #ffffff;
+}
+
