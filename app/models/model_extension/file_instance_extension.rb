@@ -67,7 +67,11 @@ module ModelExtension::FileInstanceExtension
     # specifying the name of the filter)
     def apply_content_filter(fields,options={},&block)
       if options[:filter]
-        filter_details = options[:filter]
+        if options[:filter].is_a?(Hash)
+          filter_details = options[:filter]
+        else
+          filter_details = {  :filter => options[:filter]}
+        end
       end
 
       fields.each do |fld,output_fld|
@@ -81,6 +85,34 @@ module ModelExtension::FileInstanceExtension
         
         define_method("post_process_content_filter_#{fld}")  do
           file_instance_update(fld,output_fld)
+        end
+      end
+    end
+
+    # Accepts a hash of the form :field_name => :rendered_field_name 
+    # and will apply the filter options specified in options[:filter] to 
+    # during the conversion process. Unline apply_content_filter, however
+    # it will not execture file replacements
+    # 
+    # If safe_content_filter is passed a block, it will call that block
+    # if options[:filter] does not exist to return the filter details.
+    # 
+    # see ContentFilter#self.filter for avilable filter options (these
+    # are the equivalent of the options hash with an extra :filter key
+    # specifying the name of the filter) 
+    def safe_content_filter(fields,options={},&block)
+      if options[:filter]
+        if options[:filter].is_a?(Hash)
+          filter_details = options[:filter]
+        else
+          filter_details = {  :filter => options[:filter]}
+        end
+      end
+
+      fields.each do |fld,output_fld|
+        before_save "pre_process_content_filter_#{fld}"
+        define_method("pre_process_content_filter_#{fld}")  do
+          content_filter_execute(fld,output_fld,filter_details || block.call(self))
         end
       end
     end
@@ -104,8 +136,17 @@ module ModelExtension::FileInstanceExtension
     @file_instance_affected[column_name.to_s] = files.map(&:id).uniq
 
     indexed_files
+  end
 
-    
+  def content_filter_execute(column_name,rendered_column_name,content_filter={}) #:nodoc:
+    html = self.send(column_name).to_s
+    if content_filter
+      content_filter.symbolize_keys!
+      if filter = content_filter.delete(:filter)
+        html = ContentFilter.filter(filter,html,content_filter)
+      end
+    end
+    self.send("#{rendered_column_name}=",html)
   end
   
   def file_instance_replace(column_name,rendered_column_name,content_filter={}) #:nodoc:
