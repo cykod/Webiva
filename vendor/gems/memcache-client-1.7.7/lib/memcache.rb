@@ -4,25 +4,27 @@ require 'socket'
 require 'thread'
 require 'zlib'
 require 'digest/sha1'
+require 'net/protocol'
 
 begin
   # Try to use the SystemTimer gem instead of Ruby's timeout library
-  # when running on something that looks like Ruby 1.8.x.  See:
+  # when running on something that looks like Ruby 1.8.x. See:
   #   http://ph7spot.com/articles/system_timer
   # We don't want to bother trying to load SystemTimer on jruby and
-  # ruby 1.9+.
-  if !defined?(RUBY_ENGINE)
-    require 'system_timer'
-    MemCacheTimer = SystemTimer
-  else
+  # ruby 1.9+
+  if defined?(JRUBY_VERSION) || (RUBY_VERSION >= '1.9')
     require 'timeout'
     MemCacheTimer = Timeout
+  else
+    require 'system_timer'
+    MemCacheTimer = SystemTimer
   end
 rescue LoadError => e
   puts "[memcache-client] Could not load SystemTimer gem, falling back to Ruby's slower/unsafe timeout library: #{e.message}"
   require 'timeout'
   MemCacheTimer = Timeout
 end
+
 
 ##
 # A Ruby client library for memcached.
@@ -33,19 +35,25 @@ class MemCache
   ##
   # The version of MemCache you are using.
 
-  VERSION = '1.7.2'
+  VERSION = begin
+    config = YAML.load(File.read(File.dirname(__FILE__) + '/../VERSION.yml'))
+    "#{config[:major]}.#{config[:minor]}.#{config[:patch]}"
+  end
 
   ##
   # Default options for the cache object.
 
   DEFAULT_OPTIONS = {
-    :namespace   => nil,
-    :readonly    => false,
-    :multithread => true,
-    :failover    => true,
-    :timeout     => 0.5,
-    :logger      => nil,
-    :no_reply    => false,
+    :namespace    => nil,
+    :readonly     => false,
+    :multithread  => true,
+    :failover     => true,
+    :timeout      => 0.5,
+    :logger       => nil,
+    :no_reply     => false,
+    :check_size   => true,
+    :autofix_keys => false,
+    :namespace_separator => ':',
   }
 
   ##
@@ -68,6 +76,19 @@ class MemCache
 
   attr_reader :multithread
 
+  ##
+  # Whether to try to fix keys that are too long and will be truncated by
+  # using their SHA1 hash instead.
+  # The hash is only used on keys longer than 250 characters, or containing spaces,
+  # to avoid impacting performance unnecesarily.
+  #
+  # In theory, your code should generate correct keys when calling memcache, 
+  # so it's your responsibility and you should try to fix this problem at its source.
+  #
+  # But if that's not possible, enable this option and memcache-client will give you a hand.
+  
+  attr_reader :autofix_keys
+  
   ##
   # The servers this client talks to.  Play at your own peril.
 
@@ -102,19 +123,21 @@ class MemCache
   #
   # Valid options for +opts+ are:
   #
-  #   [:namespace]   Prepends this value to all keys added or retrieved.
-  #   [:readonly]    Raises an exception on cache writes when true.
-  #   [:multithread] Wraps cache access in a Mutex for thread safety. Defaults to true.
-  #   [:failover]    Should the client try to failover to another server if the
-  #                  first server is down?  Defaults to true.
-  #   [:timeout]     Time to use as the socket read timeout.  Defaults to 0.5 sec,
-  #                  set to nil to disable timeouts (this is a major performance penalty in Ruby 1.8,
-  #                  "gem install SystemTimer' to remove most of the penalty).
-  #   [:logger]      Logger to use for info/debug output, defaults to nil
-  #   [:no_reply]    Don't bother looking for a reply for write operations (i.e. they
-  #                  become 'fire and forget'), memcached 1.2.5 and later only, speeds up
-  #                  set/add/delete/incr/decr significantly.
-  #
+  #   [:namespace]    Prepends this value to all keys added or retrieved.
+  #   [:readonly]     Raises an exception on cache writes when true.
+  #   [:multithread]  Wraps cache access in a Mutex for thread safety. Defaults to true.
+  #   [:failover]     Should the client try to failover to another server if the
+  #                   first server is down?  Defaults to true.
+  #   [:timeout]      Time to use as the socket read timeout.  Defaults to 0.5 sec,
+  #                   set to nil to disable timeouts.
+  #   [:logger]       Logger to use for info/debug output, defaults to nil
+  #   [:no_reply]     Don't bother looking for a reply for write operations (i.e. they
+  #                   become 'fire and forget'), memcached 1.2.5 and later only, speeds up
+  #                   set/add/delete/incr/decr significantly.
+  #   [:check_size]   Raises a MemCacheError if the value to be set is greater than 1 MB, which
+  #                   is the maximum key size for the standard memcached server.  Defaults to true.
+  #   [:autofix_keys] If a key is longer than 250 characters or contains spaces, 
+  #                   use an SHA1 hash instead, to prevent collisions on truncated keys.
   # Other options are ignored.
 
   def initialize(*args)
@@ -138,14 +161,17 @@ class MemCache
     end
 
     opts = DEFAULT_OPTIONS.merge opts
-    @namespace   = opts[:namespace]
-    @readonly    = opts[:readonly]
-    @multithread = opts[:multithread]
-    @timeout     = opts[:timeout]
-    @failover    = opts[:failover]
-    @logger      = opts[:logger]
-    @no_reply    = opts[:no_reply]
-    @mutex       = Mutex.new if @multithread
+    @namespace    = opts[:namespace]
+    @readonly     = opts[:readonly]
+    @multithread  = opts[:multithread]
+    @autofix_keys = opts[:autofix_keys]
+    @timeout      = opts[:timeout]
+    @failover     = opts[:failover]
+    @logger       = opts[:logger]
+    @no_reply     = opts[:no_reply]
+    @check_size   = opts[:check_size]
+    @namespace_separator = opts[:namespace_separator]
+    @mutex        = Mutex.new if @multithread
 
     logger.info { "memcache-client #{VERSION} #{Array(servers).inspect}" } if logger
 
@@ -330,12 +356,14 @@ class MemCache
 
   def set(key, value, expiry = 0, raw = false)
     raise MemCacheError, "Update of readonly cache" if @readonly
-    with_server(key) do |server, cache_key|
 
-      value = Marshal.dump value unless raw
+    value = Marshal.dump value unless raw
+    with_server(key) do |server, cache_key|
       logger.debug { "set #{key} to #{server.inspect}: #{value.to_s.size}" } if logger
 
-      raise MemCacheError, "Value too large, memcached can only store 1MB of data per key" if value.to_s.size > ONE_MB
+      if @check_size && value.to_s.size > ONE_MB
+        raise MemCacheError, "Value too large, memcached can only store 1MB of data per key"
+      end
 
       command = "set #{cache_key} 0 #{expiry} #{value.to_s.size}#{noreply}\r\n#{value}\r\n"
 
@@ -377,10 +405,9 @@ class MemCache
     (value, token) = gets(key, raw)
     return nil unless value
     updated = yield value
+    value = Marshal.dump updated unless raw
 
     with_server(key) do |server, cache_key|
-
-      value = Marshal.dump updated unless raw
       logger.debug { "cas #{key} to #{server.inspect}: #{value.to_s.size}" } if logger
       command = "cas #{cache_key} 0 #{expiry} #{value.to_s.size} #{token}#{noreply}\r\n#{value}\r\n"
 
@@ -410,8 +437,8 @@ class MemCache
 
   def add(key, value, expiry = 0, raw = false)
     raise MemCacheError, "Update of readonly cache" if @readonly
+    value = Marshal.dump value unless raw
     with_server(key) do |server, cache_key|
-      value = Marshal.dump value unless raw
       logger.debug { "add #{key} to #{server}: #{value ? value.to_s.size : 'nil'}" } if logger
       command = "add #{cache_key} 0 #{expiry} #{value.to_s.size}#{noreply}\r\n#{value}\r\n"
 
@@ -431,8 +458,8 @@ class MemCache
   # If +raw+ is true, +value+ will not be Marshalled.
   def replace(key, value, expiry = 0, raw = false)
     raise MemCacheError, "Update of readonly cache" if @readonly
+    value = Marshal.dump value unless raw
     with_server(key) do |server, cache_key|
-      value = Marshal.dump value unless raw
       logger.debug { "replace #{key} to #{server}: #{value ? value.to_s.size : 'nil'}" } if logger
       command = "replace #{cache_key} 0 #{expiry} #{value.to_s.size}#{noreply}\r\n#{value}\r\n"
 
@@ -487,14 +514,15 @@ class MemCache
   end
 
   ##
-  # Removes +key+ from the cache in +expiry+ seconds.
+  # Removes +key+ from the cache.
+  # +expiry+ is ignored as it has been removed from the latest memcached version.
 
   def delete(key, expiry = 0)
     raise MemCacheError, "Update of readonly cache" if @readonly
     with_server(key) do |server, cache_key|
       with_socket_management(server) do |socket|
         logger.debug { "delete #{cache_key} on #{server}" } if logger
-        socket.write "delete #{cache_key} #{expiry}#{noreply}\r\n"
+        socket.write "delete #{cache_key}#{noreply}\r\n"
         break nil if @no_reply
         result = socket.gets
         raise_on_error_response! result
@@ -521,7 +549,11 @@ class MemCache
       @servers.each do |server|
         with_socket_management(server) do |socket|
           logger.debug { "flush_all #{delay_time} on #{server}" } if logger
-          socket.write "flush_all #{delay_time}#{noreply}\r\n"
+          if delay == 0 # older versions of memcached will fail silently otherwise
+            socket.write "flush_all#{noreply}\r\n"
+          else
+            socket.write "flush_all #{delay_time}#{noreply}\r\n"
+          end
           break nil if @no_reply
           result = socket.gets
           raise_on_error_response! result
@@ -635,10 +667,14 @@ class MemCache
   # requested.
 
   def make_cache_key(key)
+    if @autofix_keys and (key =~ /\s/ or (key.length + (namespace.nil? ? 0 : namespace.length)) > 250)
+      key = "#{Digest::SHA1.hexdigest(key)}-autofixed"
+    end
+
     if namespace.nil? then
       key
     else
-      "#{@namespace}:#{key}"
+      "#{@namespace}#{@namespace_separator}#{key}"
     end
   end
 
@@ -856,7 +892,7 @@ class MemCache
 
   def handle_error(server, error)
     raise error if error.is_a?(MemCacheError)
-    server.close if server
+    server.close if server && server.status == "CONNECTED"
     new_error = MemCacheError.new error.message
     new_error.set_backtrace error.backtrace
     raise new_error
@@ -1006,7 +1042,7 @@ class MemCache
         @sock.setsockopt Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1
         @retry  = nil
         @status = 'CONNECTED'
-      rescue SocketError, SystemCallError, IOError => err
+      rescue SocketError, SystemCallError, IOError, Timeout::Error => err
         logger.warn { "Unable to open socket: #{err.class.name}, #{err.message}" } if logger
         mark_dead err
       end
@@ -1015,30 +1051,33 @@ class MemCache
     end
 
     def connect_to(host, port, timeout=nil)
-      s = TCPSocket.new(host, port, 0)
+      sock = nil
       if timeout
-        s.instance_eval <<-EOR
-          alias :blocking_gets :gets
-          def gets(*args)
-            MemCacheTimer.timeout(#{timeout}) do
-              self.blocking_gets(*args)
-            end
-          end
-          alias :blocking_read :read
-          def read(*args)
-            MemCacheTimer.timeout(#{timeout}) do
-              self.blocking_read(*args)
-            end
-          end
-          alias :blocking_write :write
-          def write(*args)
-            MemCacheTimer.timeout(#{timeout}) do
-              self.blocking_write(*args)
-            end
-          end
-        EOR
+        MemCacheTimer.timeout(timeout) do
+          sock = TCPSocket.new(host, port)
+        end
+      else
+        sock = TCPSocket.new(host, port)
       end
-      s
+
+      io = MemCache::BufferedIO.new(sock)
+      io.read_timeout = timeout
+      # Getting reports from several customers, including 37signals,
+      # that the non-blocking timeouts in 1.7.5 don't seem to be reliable.
+      # It can't hurt to set the underlying socket timeout also, if possible.
+      if timeout
+        secs = Integer(timeout)
+        usecs = Integer((timeout - secs) * 1_000_000)
+        optval = [secs, usecs].pack("l_2")
+        begin
+          io.setsockopt Socket::SOL_SOCKET, Socket::SO_RCVTIMEO, optval
+          io.setsockopt Socket::SOL_SOCKET, Socket::SO_SNDTIMEO, optval
+        rescue Exception => ex
+          # Solaris, for one, does not like/support socket timeouts.
+          @logger.info "[memcache-client] Unable to use raw socket timeouts: #{ex.class.name}: #{ex.message}" if @logger
+        end
+      end
+      io
     end
 
     ##
@@ -1071,6 +1110,33 @@ class MemCache
   # Base MemCache exception class.
 
   class MemCacheError < RuntimeError; end
+
+  class BufferedIO < Net::BufferedIO # :nodoc:
+    BUFSIZE = 1024 * 16
+
+    if RUBY_VERSION < '1.9.1'
+      def rbuf_fill
+        begin
+          @rbuf << @io.read_nonblock(BUFSIZE)
+        rescue Errno::EWOULDBLOCK
+          retry unless @read_timeout
+          if IO.select([@io], nil, nil, @read_timeout)
+            retry
+          else
+            raise Timeout::Error, 'IO timeout'
+          end
+        end
+      end
+    end
+
+    def setsockopt(*args)
+      @io.setsockopt(*args)
+    end
+
+    def gets
+      readuntil("\n")
+    end
+  end
 
 end
 
@@ -1111,5 +1177,6 @@ module Continuum
       "<#{value}, #{server.host}:#{server.port}>"
     end
   end
+
 end
 require 'continuum_native'

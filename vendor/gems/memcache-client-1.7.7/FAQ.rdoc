@@ -22,3 +22,10 @@ You can increase the timeout or disable them completely with the following confi
   native:
   MemCache.new ['server1', 'server2'], { :timeout => 1.0 } # 1 second timeout
 
+
+== Isn't Evan Weaver's memcached gem faster?
+
+The latest version of memcached-client is anywhere from 33% to 100% slower than memcached in various benchmarks.  Keep in mind this means that 10,000 get requests take 1.8 sec instead of 1.2 seconds.
+In practice, memcache-client is unlikely to be a bottleneck in your system but there is always going
+to be an overhead to pure Ruby.  memcache-client does have the advantage of built-in integration into 
+Rails and should work on non-MRI platforms: JRuby, MacRuby, etc.
