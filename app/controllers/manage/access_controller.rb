@@ -47,7 +47,7 @@ class Manage::AccessController < CmsController # :nodoc: all
         end
         return
       else
-        flash[:notice] = "Invalid user/password combination"
+        flash.now[:notice] = "Invalid user/password combination"
       end
    else
       if myself.editor?
