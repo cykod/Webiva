@@ -58,6 +58,8 @@ class Blog::PageController < ParagraphController
       default_options :blog_id => nil, :list_page_id => nil,:include_in_path => nil
       
       integer_options :blog_id, :list_page_id
+
+      canonical_paragraph "Blog::BlogBlog", :blog_id, :list_page_id => :list_page_id
   end
   
   def categories
