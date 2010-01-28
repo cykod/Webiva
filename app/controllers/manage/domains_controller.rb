@@ -175,6 +175,7 @@ class Manage::DomainsController < CmsController # :nodoc: all
     if request.post? && params[:domain]
       if @domain.domain_type == 'domain'
 	if params[:domain][:database] == 'create'
+          @domain.attributes = params[:domain].slice(:www_prefix,:active)
 	  @domain.status = 'initializing'
 	  @domain.save
 	  DomainModel.run_worker('Domain',@domain.id,'initialize_database')
