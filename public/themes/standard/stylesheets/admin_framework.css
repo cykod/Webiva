@@ -2243,38 +2243,6 @@ table.mini_table td a:hover { text-decoration:underline;  }
 table.mini_table td em { color:#b3b3b3; }
 
 
-/* Realtime Stats */
- 
-.real-time-stats {  width:530px; }
-
-.real-time-stats-block {  height:335px;  overflow-x:hidden;   overflow-y:auto; }
-
-.real-time-stats .row { padding: 3px 0 3px 2px; }
-
-.real-time-stats .stats .who   { width: 123px; float: left; padding: 0 5px 0 2px; }
-.real-time-stats .stats .when  { width: 90px;  float: left; }
-.real-time-stats .stats .page  { width: 255px; float: left; }
-.real-time-stats .action  { font-style: italic; padding: 2px 0 0 220px; }
-
-.real-time-stats .headers div {
-  height: 25px;
-  color:#3b648c; font-weight:bold
-  text-align: left;
-  font-weight: bold;
-}
-
-.visitor-details {
-  height: 400px;
-  overflow-x:hidden;
-  overflow-y:auto;
-  padding: 10px;
-}
-
-.visitor-details .close {
-  text-align: right;
-}
-
-
 /* Progress Bar */
 
 .progress_bar { 
@@ -2303,6 +2271,49 @@ table.mini_table td em { color:#b3b3b3; }
   color:#53789d;
   z-index:2;
  }
+
+/* Realtime Stats */
+ 
+.real-time-stats {  width:530px; }
+
+.real-time-stats-block {
+  height:335px;
+  overflow-x:hidden;
+  overflow-y:auto;
+  border-top:    1px solid #666;
+  border-right:  1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  border-left:   1px solid #ccc;
+}
+
+.real-time-stats .row, #RB_redbox div.cms_form .real-time-stats .row { padding: 3px 0 3px 2px; }
+
+.real-time-stats .stats .who    { width: 123px; float: left; padding: 0 5px 0 2px; }
+.real-time-stats .stats .when   { width: 90px;  float: left; }
+.real-time-stats .stats .date   { width: 140px;  float: left; }
+.real-time-stats .stats .page   { width: 255px; float: left; }
+.real-time-stats .stats .page2  { width: 250px; float: left; }
+.real-time-stats .action  { font-style: italic; padding: 2px 0 0 220px; color: green; }
+.real-time-stats .action2, #RB_redbox div.cms_form .action2  { font-style: italic; padding: 2px 0 0 140px; color: green; }
+
+.real-time-stats .headers div, #RB_redbox div.cms_form .real-time-stats .headers div {
+  height: 18px;
+  color:#3b648c; font-weight:bold
+  text-align: left;
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+.visitor-details {
+  height: 400px;
+  overflow-x:hidden;
+  overflow-y:auto;
+  padding: 10px;
+}
+
+.visitor-details .close {
+  text-align: right;
+}
 
 /* Alternating Colored Lists */
 
