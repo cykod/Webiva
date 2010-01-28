@@ -32,7 +32,7 @@ redirectSelectFunc = function() {
 <b><%= "Redirect Details".t %></b><br/>
 <br/>
   
-  <% link_edit_form_for  :redirect, @redirect_details, :styled_form => { :onclick => 'Element.show("redirect_edit_fields"); Element.hide("redirect_display_fields");', :classname => "ajax_link" } do |f| -%>
+  <% link_edit_form_for  :redirect, @redirect_details, :styled_form => { :onclick => 'Element.show("redirect_edit_fields"); Element.hide("redirect_display_fields");', :classname => "ajax_link redirect_information_link" } do |f| -%>
 
   <%= f.radio_buttons :redirect_type, RedirectDetail.redirect_type_select_options, :default => 'None Selected', :label => 'Redirect To' %>
   <% if @redirect_details.redirect_type == 'site_node' %>
@@ -50,14 +50,15 @@ redirectSelectFunc = function() {
   <br/>
   
   <% remote_tabled_form_for :redirect, @redirect_details, 
-		  :update => 'element_info', 
-		  :method => 'post', 
-		  :url =>  { :action => 'element_info', :node_type => 'node', :node_id => @node.id  } do  |f| -%>
+     :update => 'element_info', 
+     :method => 'post', 
+     :url =>  { :action => 'element_info', :node_type => 'node', :node_id => @node.id  },
+     :html => { :class => 'admin_form' } do  |f| -%>
   
   <%= f.radio_buttons :redirect_type, RedirectDetail.redirect_type_select_options, :label => 'Redirect To', :onclick => 'redirectSelectFunc();' %>
   <%= f.select :redirect_site_node_id, @available_pages, { :default => 'No Page Selected', :label => 'Redirect Page' }, { :disabled =>  ( @redirect_details.redirect_type == 'external' ) } %>
   <%= f.text_field :redirect_url, { :label => 'External Redirect URL', :disabled => ( @redirect_details.redirect_type == 'site_node' )} %>
-  <%= f.submit_cancel_tags 'Submit','Cancel', {}, {:onclick =>  'Element.hide("redirect_edit_fields"); Element.show("redirect_display_fields"); return false; ' } %>
+  <%= f.cancel_submit_buttons 'Cancel', 'Submit', {:onclick =>  'Element.hide("redirect_edit_fields"); Element.show("redirect_display_fields"); return false; ' }, {} %>
   <% end -%>
   
 <% else %>

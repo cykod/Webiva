@@ -53,7 +53,7 @@
   <% link_edit_form_for  :revision_view, info[1], 
       :styled_form => { 
 	  :onclick => "Element.hide(\"node_#{@node.id}_#{info[0]}_view\"); Element.show(\"node_#{@node.id}_#{info[0]}_edit\");", 
-	  :classname => "ajax_link" 
+	  :classname => "ajax_link page_information_link" 
       } do |f| -%>
       <%= render :partial => 'revision_info_table', :locals => { :f => f } %>
   <% end -%>
@@ -78,11 +78,12 @@
     <%= f.text_field :field1, :description => 'Additional Field available in Menu Features' %>
     <%= f.text_field :field2, :description => '2nd Additional Field available in Menu Features' %>
     
-    <%= f.submit_cancel_tags 'Update','Cancel',
-	      {}, 
-	      {
-		:onclick => "Element.show(\"node_#{@node.id}_#{info[0]}_view\"); Element.hide(\"node_#{@node.id}_#{info[0]}_edit\"); return false;"
-	      } %>
+    <%= f.cancel_submit_buttons 'Cancel','Submit',
+	{
+	  :onclick => "Element.show(\"node_#{@node.id}_#{info[0]}_view\"); Element.hide(\"node_#{@node.id}_#{info[0]}_edit\"); return false;"
+        },
+	{}
+	%>
   <% end -%>
 <% else -%>
   <% tabled_display_form_for :revision_view, info[1] do |f| -%>

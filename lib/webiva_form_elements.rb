@@ -834,7 +834,7 @@ TXT
    }
 </script>
       <select name='#{obj_name}_#{field}_select' id='#{obj_name}_#{field}_select'>#{select_options}</select>
-      <button onclick='OrderedArray.add("#{obj_name}_#{field}","#{@object_name}[#{field}]"); return false;' >Add</button><br/>
+      <button id='#{obj_name}_#{field}_add' onclick='OrderedArray.add("#{obj_name}_#{field}","#{@object_name}[#{field}]"); return false;' >Add</button><br/>
       <div id='#{obj_name}_#{field}_positions'></div>
       <div class='ordered_selection_list' id='#{obj_name}_#{field}_selector' #{"style='display:none;'" if objects.length == 0}>
         #{existing_options}
@@ -954,7 +954,7 @@ TXT
    }
 </script>
       <select name='#{obj_name}_#{field}_select' id='#{obj_name}_#{field}_select'>#{select_options}</select>
-      <button onclick='OrderedList.add("#{obj_name}_#{field}","#{@object_name}[#{field}]","#{id_field}","#{position_field}"); return false;' >Add</button><br/>
+      <button  id='#{obj_name}_#{field}_add'  onclick='OrderedList.add("#{obj_name}_#{field}","#{@object_name}[#{field}]","#{id_field}","#{position_field}"); return false;' >Add</button><br/>
       <div class='ordered_selection_list' id='#{obj_name}_#{field}_selector' #{"style='display:none;'" if objects.length == 0}>
         #{existing_options}
       </div>

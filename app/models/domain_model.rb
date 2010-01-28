@@ -247,13 +247,11 @@ class DomainModel < ActiveRecord::Base
       cls.establish_connection(db_config)
 
       @@database_connection_pools[self.process_id] = cls
-
-      # Modify the base connection for AR Base if we're testing
-      ActiveRecord::Base.establish_connection(db_config) if RAILS_ENV == 'test'
       return true
     else
       @@database_connection_pools[self.process_id] = delegate_class_name.constantize
       @@mutex.synchronize do 
+
         @@database_connection_pools[self.process_id].connection.verify!
       end
 

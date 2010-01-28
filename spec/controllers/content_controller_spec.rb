@@ -96,7 +96,7 @@ describe ContentController, "create a content model" do
 
         get :add_tags_form, :path => [ @cm.id ]
         
-        response.should render_template('content/add_tags_form')  
+        response.should render_template('content/_add_tags_form')  
 
 	@cm.update_attributes(:show_tags => false)
       end
@@ -109,7 +109,7 @@ describe ContentController, "create a content model" do
 
         get :remove_tags_form, :path => [ @cm.id ], :entry_ids => [@md1.id.to_s]
         
-        response.should render_template('content/remove_tags_form')  
+        response.should render_template('content/_remove_tags_form')  
 
 	@cm.update_attributes(:show_tags => false)
       end
@@ -175,7 +175,7 @@ describe ContentController, "create a content model" do
 
       it "should be able to add a new field" do
 	post :new_field, :add_field => {:name => 'new test field', :field_type => 'string'}
-	response.should render_template('content/edit_field')
+	response.should render_template('content/_edit_field')
       end
 
       it "should warn when adding a field with missing data" do
@@ -343,7 +343,7 @@ describe ContentController, "create a content model" do
       it "should add a new pub field" do
 	field = @publication.content_publication_fields.find(:first)
 	post :new_pub_field, :path => [@cm.id, @publication.id], :add_field => {:field_id => field.id}
-	response.should render_template('content/pub_field')
+	response.should render_template('content/_pub_field')
       end
 
       it "should display publications" do

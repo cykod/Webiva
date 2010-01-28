@@ -72,15 +72,17 @@ class ModuleAppController < ApplicationController
     end
 
     # Handle the www issue
-    if DomainModel.active_domain[:www_prefix] != @www_prefix
-      dest_http = request.ssl? ? 'https://' : 'http://'
+    unless RAILS_ENV == 'test' || RAILS_ENV == 'cucumber' # Skip ssl and domain switches in test mode
+      if DomainModel.active_domain[:www_prefix] != @www_prefix
+        dest_http = request.ssl? ? 'https://' : 'http://'
 
-      redirect_url = dest_http +
-        (DomainModel.active_domain[:www_prefix] ? 'www.' : '') +
-        DomainModel.active_domain[:name] + request.request_uri
+        redirect_url = dest_http +
+          (DomainModel.active_domain[:www_prefix] ? 'www.' : '') +
+          DomainModel.active_domain[:name] + request.request_uri
 
-      redirect_to redirect_url, :status => '301'
-      return false
+        redirect_to redirect_url, :status => '301'
+        return false
+      end
     end
   
      unless params[:path]

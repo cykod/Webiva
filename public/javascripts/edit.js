@@ -1,6 +1,7 @@
 function mceSetupContent(ed) {
   var toolbar = $$('.mceExternalToolbar')[0];
   toolbar.removeClassName('mceExternalToolbar');
+  toolbar.addClassName('cms_html_editor_toolbar');
   toolbar.addClassName('defaultSkin');
   toolbar.style.visibility = 'visible';
   toolbar.style.display = 'block';
@@ -37,19 +38,13 @@ var cmsSkipKeys ={ 37:true,38:true,39:true,40:true,33:true,34:true,16:true,144:t
 function mceEventCallback(e) {
   var active_instance_id = tinyMCE.selectedInstance ? tinyMCE.selectedInstance.editorId : "";
   if(cmsEdit.visibleHtmlToolbar != active_instance_id ) {
-    var toolbars = $$('.mceToolbarExternal');
-
-    for(i=0;i<toolbars.length;i++) {
-      if(toolbars[i].id == active_instance_id + "_toolbar" && e.type != 'blur') {
-        toolbars[i].style.display = "block";
-      }
-      else
-        Element.hide(toolbars[i]);
+    if(e.type != 'blur') {
+      cmsEdit.showToolbar(active_instance_id);
+    } else {
+      cmsEdit.hideToolbars();
     }
-    if(e.type != 'blur')
-      cmsEdit.visibleHtmlToolbar  = active_instance_id;
   }
-  if(cmsEdit.pageModified == false) {
+  if(e && cmsEdit.pageModified == false) {
     var re = /^mouse(.*)$/
     if(e.type != 'focus' && e.type != 'blur' && e.type != 'click' && e.type != 'keypress' && e.type != 'keyup' && !re.exec(e.type)) {
       if(e.type == 'keydown') {
@@ -133,6 +128,28 @@ var cmsEdit = {
     cmsEdit.txt = $H(txt);
   },
 
+  showToolbar: function(active_instance_id) {
+    var toolbars = $$('.cms_html_editor_toolbar');
+    for(var i=0;i<toolbars.length;i++) {
+      if(toolbars[i].id == active_instance_id + "_external") {
+        toolbars[i].style.display = "block";
+      }
+      else
+        Element.hide(toolbars[i]);
+    }
+    cmsEdit.visibleHtmlToolbar  = active_instance_id;
+
+
+  },
+
+  hideToolbars: function() {
+    var toolbars = $$('.cms_html_editor_toolbar');
+    cmsEdit.visibleHtmlToolbar  = null;
+    for(i=0;i<toolbars.length;i++) {
+       Element.hide(toolbars[i]);
+    }
+  },
+
   prepareUpdate: function() { cmsEdit.updateParagraphs = {}; },
   updateParagraphId: function(old_paragraph_id,new_paragraph_id) { cmsEdit.updateParagraphs['' + old_paragraph_id] = new_paragraph_id },
   handleUpdate: function() {
@@ -198,6 +215,11 @@ var cmsEdit = {
 
   forceUrl: function(page_type,page_id) {
       return  cmsEdit.editURL + 'page' + "/" + page_type + "/" + page_id ;
+  },
+
+  htmlEditorList: function() {
+    return $$('.cms_paragraph_html_editor_text_box');
+
   },
 
   pageChanged:function() {

@@ -70,6 +70,10 @@ class SiteTemplate < DomainModel
     attr_accessor :translations
   end
   
+
+  def self.create_default_template
+    SiteTemplate.create(:name => 'Default Template'.t,:template_html => "<cms:zone name='Main'/>") unless SiteTemplate.find(:first)
+  end
   
   # Override domain file setting so we can
   # update the old one if necessary
