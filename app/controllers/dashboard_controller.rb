@@ -90,6 +90,10 @@ class DashboardController < CmsController #:nodoc:all
 
   def display_site_widgets_table(display=true)
 
+    active_table_action('widget') do |act,wids|
+      SiteWidget.destroy(wids) if act == 'delete'
+    end
+
     @tbl = site_widgets_table_generate(params, :order => "created_at DESC")
 
     render :partial => 'site_widgets_table' if display
