@@ -51,15 +51,15 @@ class UserClass < DomainModel
   end
 
   def cached_role_ids #:nodoc:
-    if self.role_cache.is_a?(Array)
-      self.role_cache
-    else
+#    if self.role_cache.is_a?(Array)
+#      self.role_cache
+#    else
       self.role_ids
-    end
+#    end
   end
 
   def before_save #:nodoc:
-    self.role_cache = self.role_ids
+    #self.role_cache = self.role_ids
   end
   
   # Called the first time the class is loaded
