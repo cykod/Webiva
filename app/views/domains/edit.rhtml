@@ -12,6 +12,7 @@
 
   <%= f.radio_buttons :www_prefix, [['Use www. prefix',true ],['No www. prefix',false]] ,  :label => 'WWW Prefix',:single => true %>
 
+  <%= f.text_field :iteration, :description => 'Iteration index of this domain, incrementing this will immediately kill all active sessions (including yours).' -%>
   
   <%= f.check_boxes :restricted, [['Restrict site access to logged in users only',true ]] ,  :label => 'Restrict Access',:single => true, :description => "Users will need to log in via the /website url to access the front end of the site\nOther users will see the inactive message" %>
 

@@ -112,5 +112,6 @@ class Domain < SystemModel
     UserClass.add_default_editor_permissions
     SiteVersion.find(:first).root_node
     Editor::AdminController.content_node_type_generate
+    Dashboard::CoreWidget.add_default_widgets
   end
 end

@@ -194,11 +194,13 @@ class ApplicationController < ActionController::Base
     @cms_domain_info = dmn_info
     
     # Protect against using a session from a different
-    # domain on this domain
-    if session[:domain] &&  session[:domain] != domain
-      session.delete()
+    # domain on this domain 
+    # also log users out of if the domain has it's version modified
+    if session[:domain] &&  session[:domain] != domain || session[:domain_version] != dmn_info[:iteration]
+      process_logout
     end
     
+    session[:domain_version] = dmn_info[:iteration]
     session[:domain] = domain
     
     set_language
@@ -351,11 +353,7 @@ class ApplicationController < ActionController::Base
   
   # Expires a the cache of a site completely (including all content)
   def expire_site
-    DataCache.expire_container('SiteNode')
-    DataCache.expire_container('Handlers')
-    DataCache.expire_container('SiteNodeModifier')
-    DataCache.expire_container('Modules')
-    DataCache.expire_content
+    DataCache.expire_site
   end
   
   

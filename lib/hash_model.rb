@@ -236,7 +236,7 @@ class HashModel
   end
   
   def to_h
-    format_data
+    self.valid?
     hsh = {}
     
     self.instance_variables.each do |var|

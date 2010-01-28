@@ -20,6 +20,14 @@ class SiteWidget < DomainModel #:nodoc:all
 
   include Dashboard::WidgetMethods
 
+  def self.create_widget(mod,widget,options={ })
+    returning site_widget=self.new(options) do
+      site_widget.module = mod
+      site_widget.widget = widget
+      site_widget.save
+    end
+  end
+
   def create_user_widget(user)
     self.editor_widgets.create(:end_user_id => user.id, 
                                :module => self.module,
