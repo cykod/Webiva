@@ -48,6 +48,14 @@ class ContentMetaType < DomainModel
         list_url = self.list_url + "/" + content_type.container.send(self.url_field)
         content_type.list_site_node_url = url
       end
+    else
+      url = self.detail_url
+      content_type.detail_site_node_url = url
+
+      if !self.list_url.blank?
+        list_url = self.list_url
+        content_type.list_site_node_url = url
+      end
     end
   end
 
@@ -78,7 +86,7 @@ class ContentMetaType < DomainModel
                            :container_type => container_type,
                            :category_field => options[:category_field],
                            :category_value => options[:category_value],
-                           :url_field => options[:url_field].to_s
+                           :url_field => options[:url_field] ? options[:url_field].to_s : nil
                            )
   end
 
