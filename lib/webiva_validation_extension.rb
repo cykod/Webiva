@@ -86,6 +86,21 @@ module ClassMethods
       end
     end
   end
+
+  def validates_urlness_of(*attr_names)
+    configuration =
+      { :message => 'is an invalid url',
+      :on => :save
+    }
+
+    configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+
+    uri_regexp = URI::regexp(%w(http https))
+
+    validates_each(attr_names, configuration) do |record, attr_name, value|
+      record.errors.add(attr_name, configuration[:message]) unless uri_regexp.match(value)
+    end
+  end
 end
 
 def self.append_features(base) #:nodoc:

@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + "/../spec_helper"
 
 
 describe EndUser do
-  reset_domain_tables :end_users, :end_user_tags, :tags, 'tag_cache', :domain_files, :end_user_actions, :configurations
+  reset_domain_tables :end_users, :end_user_tags, :tags, 'tag_cache', :domain_files, :end_user_actions, :configurations, :roles, :user_roles
   before(:each) do
     
     @user = EndUser.new  
@@ -295,7 +295,8 @@ describe EndUser do
    it 'should return a list of roles associated with a user' do
     @user1 = EndUser.push_target("test1@webiva.com")
     @user1.update_attributes( :first_name=> 'User', :user_level => 1, :last_name => '2', :language => 'en' ,:registered => 1, :password => 'bunnies', :password_confirmation => 'bunnies')
-    @user1.roles_list.should == [1]
+    
+    @user1.roles_list.should == []
   end
   ### Log Actions
   it 'should log all called actions' do

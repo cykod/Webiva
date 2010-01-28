@@ -4,7 +4,7 @@
     <%= theme_image_tag('icons/content/' + widget.icon, :align => 'none') -%>
   </div>
   <div class='dashboard_widget_title'>
-     <%= widget.title -%>
+     <span class='dashboard_widget_title_text'><%= widget.title_link ? link_to(widget.title,widget.title_link) : widget.title -%></span>
      <span class='dashboard_widget_title_edit' style='display:none;'>
      <% if widget.editable?(myself) -%>
        <a href='javascript:void(0);' onclick='CMSDashboard.editWidget(<%= widget.id -%>)'>(edit)</a>

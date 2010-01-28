@@ -31,7 +31,7 @@
   <tr <%= highlight_row "pub",pub.id %>  >
     <td><a href='<%= url_for :action => 'publication', :path => [ @content_model.id, pub.id ] %>' > <%= pub.name %></td>
     <td><%= h pub.publication_type_display %></td>
-    <td><%= h truncate(pub.description,40) %></td>
+    <td><%= h truncate(pub.description,:length => 40) %></td>
     <td><a href='javascript:void(0);' onclick='PublicationList.deleteEntry(<%= pub.id %>);'><%= h "Delete".t %></a></td>
   </tr>
 <% end -%>

@@ -88,6 +88,10 @@ class EditorWidget < DomainModel
     self.widget_instance.output
   end
 
+  def title_link
+    self.widget_instance.title_link
+  end
+
   def self.next_widget_position(user,column) #:nodoc:
     (EditorWidget.maximum(:position,:conditions => {  :end_user_id => user, :column => column } ) || -1) + 1
   end

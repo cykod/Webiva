@@ -304,6 +304,63 @@ describe ContentController, "create a content model" do
       end
     end
 
+    it "should display publish a content model page" do
+      get 'publish', :path => [@cm.id]
+
+      response.should render_template('content/publish')
+    end
+
+    it "should publish a content model" do
+      assert_difference 'ContentPublication.count', 1 do
+	post 'publish', :path => [@cm.id], :publish => {:name => 'Test Pub', :publication_type => 'data'}
+      end
+
+      pub = ContentPublication.find(:last)
+      response.should redirect_to(:action => :publication, :path => [@cm.id, pub.id])
+    end
+
+    describe "test publication" do
+      reset_domain_tables :content_publications, :content_publication_fields
+
+      before(:each) do
+	@publication = @cm.content_publications.create(:name => 'Test Pub', :publication_type => 'data')
+	@publication.add_all_fields!
+      end
+
+      it "should display publication" do
+	get :publication, :path => [@cm.id, @publication.id]
+	response.should render_template('content/publication')
+      end
+
+      it "should delete a publication" do
+	post :delete_publication, :path => [@cm.id, @publication.id]
+
+	pub = ContentPublication.find_by_id(@publication.id)
+	pub.should be_nil
+	response.body.strip.empty?.should be_true
+      end
+
+      it "should add a new pub field" do
+	field = @publication.content_publication_fields.find(:first)
+	post :new_pub_field, :path => [@cm.id, @publication.id], :add_field => {:field_id => field.id}
+	response.should render_template('content/pub_field')
+      end
+
+      it "should display publications" do
+	get :publications, :path => [@cm.id]
+	response.should render_template('content/publications')
+      end
+
+      it "should be able to update publication" do
+	field = @publication.content_publication_fields.find(:first)
+	post :update_publication, :path => [@publication.id], :preview => 0, :pub_fields => [field.id.to_s],
+	  :field => {field.id.to_s => field.attributes}, :options => {}, :publication => {:name => 'my new pub name'}, :delete => []
+
+	@publication.reload
+	@publication.name.should == 'my new pub name'
+	response.should render_template('content/update_publication')
+      end
+    end
   end
 
   describe "Should be able to control access" do

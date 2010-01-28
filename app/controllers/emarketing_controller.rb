@@ -131,7 +131,7 @@ class EmarketingController < CmsController # :nodoc: all
     now = Time.now
     from = params[:from] ? Time.at(params[:from].to_i) : nil
 
-    conditions = from ? ['occurred_at between ? and ?', from, now] : ['occurred_at < ?', now]
+    conditions = from ? ['occurred_at between ? and ?', from, now] : ['occurred_at between ? and ?', 1.hour.ago, now]
     order = from ? 'occurred_at' : 'occurred_at DESC'
     @entries = DomainLogEntry.find(:all, :limit => 50, :conditions => conditions, :order => order, :include => [:domain_log_session, :user, :end_user_action])
     @remaining = from ? DomainLogEntry.count(:all, :conditions => conditions) : 0

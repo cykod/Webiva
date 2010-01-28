@@ -36,7 +36,7 @@ See vendor/modules/feedback/app/models/feedback/feedback_widget.rb for the full 
 =end
 class Dashboard::WidgetBase
 
-  attr_reader :output_title, :output, :includes, :options, :editor_widget, :icon, :first
+  attr_reader :output_title, :output, :includes, :options, :editor_widget, :icon, :first, :title_link
   attr_writer :first
 
   attr_reader :controller 
@@ -119,6 +119,15 @@ class Dashboard::WidgetBase
     args[:locals] ||= { }
     args[:locals][:widget] = editor_widget
     @output = @controller.send(:render_to_string,args)
+  end
+
+  # Makes the title of the widget a link
+  def set_title_link(url)
+    if url.is_a?(Hash)
+      @title_link = @controller.send(:url_for,url)
+    else
+      @title_link = url
+    end
   end
 
   def render #:nodoc

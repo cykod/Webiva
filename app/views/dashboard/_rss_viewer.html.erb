@@ -1,0 +1,20 @@
+<% if rss_items.is_a?(Array) -%>
+  <% if rss_items.length > 0 -%>
+    <% table_for  rss_items, ["Title","Published"], :class => 'mini_table', :width => '100%' do |item| -%>
+      <tr>
+        <td width='100%'><%= link_to h(truncate(item['title'],:length => 60)), item['link'], :target => '_blank' -%></td>
+        <td align='right' nowrap='1'><%= item['date'].to_s(:short) if item['date'].is_a?(Time) -%></td>
+      </tr>
+      <% if item['description'] %>
+         <tr>
+           <td colspan='2'>
+               <%= h(item['description']) %>
+           </td>
+         <tr>
+      <% end %>
+    <% end -%>
+  <% else -%>
+    <p align="center"><%= 'No items in feed'.t %></p>
+  <% end -%>
+
+<% end -%>
