@@ -400,6 +400,7 @@ include ModelExtension::EndUserImportExtension
   # Returns a default anonymous user
   def self.default_user
     usr = self.new
+    usr.user_class_id =  UserClass.anonymous_class_id
     return usr
   end
 
