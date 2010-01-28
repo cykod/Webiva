@@ -12,16 +12,21 @@ RealTimeStatsViewer = {
 
   addStats: function(stats) {
     var twoToneClass = RealTimeStatsViewer.lastStatsIdx % 2 == 0 ? 'even' : 'odd';
-    var div = Builder.node('div', {className: 'stats clearfix ' + twoToneClass},
-			   [Builder.node('div', {className: 'who'},
-					 [Builder.node('a', {href: 'javascript:void(0);', onclick:'RealTimeStatsViewer.detail("' + stats.id + '");'},
-						       stats.user || stats.ip)
-					  ]),
-			    Builder.node('div', {className: 'when'}, stats.occurred_at),
-			    Builder.node('div', {className: 'page'}, [Builder.node('a', {target: '_blank', href: stats.url}, stats.url)]),
-			    Builder.node('div', {className: 'action'}, stats.action || '-')
+    var div = Builder.node('div', {className: 'row ' + twoToneClass},
+			   [Builder.node('div', {className: 'stats clearfix'},
+			    [Builder.node('div', {className: 'who'},
+					  [Builder.node('a', {href: 'javascript:void(0);', onclick:'RealTimeStatsViewer.detail("' + stats.id + '");'},
+							stats.user || stats.ip)
+					   ]),
+			     Builder.node('div', {className: 'when'}, stats.occurred_at),
+			     Builder.node('div', {className: 'page'}, [Builder.node('a', {target: '_blank', href: stats.url}, stats.url)])
+			     ])
 			    ]);
   
+    if( stats.action ) {
+      div.appendChild(Builder.node('div', {className: 'action'}, '[' + stats.action + ']'));
+    }
+
     var realTimeStatsLayer = $(RealTimeStatsViewer.statsLayerId);
     while( realTimeStatsLayer.children.length >= RealTimeStatsViewer.maxStats ) {
       realTimeStatsLayer.children[0].remove();

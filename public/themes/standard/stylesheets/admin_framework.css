@@ -2249,16 +2249,12 @@ table.mini_table td em { color:#b3b3b3; }
 
 .real-time-stats-block {  height:335px;  overflow-x:hidden;   overflow-y:auto; }
 
-.real-time-stats div.stats { padding: 2px 0 2px 0; }
+.real-time-stats .row { padding: 3px 0 3px 2px; }
 
-.real-time-stats div div {   float: left; padding: 0; }
-
-.real-time-stats .stats .who {   width: 123px; padding: 0 5px 0 2px; }
-.real-time-stats .stats .when {   width: 90px; }
-
-.real-time-stats .stats .page {   width: 150px; padding-right: 5px; }
-
-.real-time-stats .stats .action {   width: 100px; }
+.real-time-stats .stats .who   { width: 123px; float: left; padding: 0 5px 0 2px; }
+.real-time-stats .stats .when  { width: 90px;  float: left; }
+.real-time-stats .stats .page  { width: 255px; float: left; }
+.real-time-stats .action  { font-style: italic; padding: 2px 0 0 220px; }
 
 .real-time-stats .headers div {
   height: 25px;

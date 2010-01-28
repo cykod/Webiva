@@ -1,12 +1,18 @@
 <% @date_format = "%m/%d/%Y".t
-   @time_format = "%T".t  %>
-   
-<% if @user %>
-<b><%= sprintf("User #%s".t,@user.id.to_s) %>:
- <a href='<%= url_for :controller => "/members", :action => 'view', :path => @user.id %>'><%= @user.name %></a> </b><br/><br/>
+   @time_format = "%T".t
+-%>
+
+<b>
+<% if @user -%>
+  <%= 'User #%s:' / @user.id.to_s -%>
+  <%= link_to @user.name, url_for(:controller => "/members", :action => 'view', :path => @user.id) -%>
 <% else -%>
-<b><%= sprintf("Anonymous user from %s".t,@entry.domain_log_session.ip_address.to_s) %></b><br/><br/>
+  <%= 'Anonymous user from %s' / @entry.domain_log_session.ip_address.to_s -%>
 <% end -%>
+</b>
+
+<br/>
+<br/>
 
 <% table_for @entries, [ 'Date Started','Time','Pages','Action'], :class=>'admin_table',:cellspacing => '0' do |entry| %>
 
@@ -31,7 +37,6 @@
 </td>
 
 </tr>
-<tbody style="overflow-x:hidden; overflow-y:auto; height: 400px;">
 <% end -%>
 
 <% end -%>
