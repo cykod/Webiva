@@ -131,13 +131,13 @@ class Dashboard::CoreWidget < Dashboard::WidgetBase #:nodoc:all
   @@welcome_text = <<-EOF
 Welcome to the Webiva Content Management system. This is your
 dashboard, which is a configurable overview of what's happening on your
-site. Click on the pen page titlebar to edit your own widgets or click
-on the icon to the right of the pen and select edit site widgets to edit
+site. Click on the pen icon in the page titlebar to edit your own widgets or click
+on the icon to the right of the pen and select 'edit site widgets' to edit
 widgets that are common for for all site editors.
 
 Check out the [Webiva Documentation](http://www.webiva.net/doc) for more details
-on how work with webiva. If you have any questions take a look at the [Forums](http://www.webiva.net/forums) 
-and post a question if you can't find an answer.
+on how work with Webiva. If you have any questions take a look at the [Forums](http://www.webiva.net/forum) 
+and post a question if you can't find an answer already there.
 
    - The Webiva Team
 
