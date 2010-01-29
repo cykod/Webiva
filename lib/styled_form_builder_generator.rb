@@ -436,7 +436,7 @@ module EnhancedFormElements
     end
     
     # Displays a set of buttons, one of which is a submit and the other of which is a button
-    def cancel_submit_buttons(cancel_name,submit_name,cancel_options={},submit_options={}) 
+    def cancel_submit_buttons(cancel_name="Cancel",submit_name="Submit",cancel_options={},submit_options={}) 
        submit_options[:class] ||= 'submit_button'
        submit_options[:name] ||= 'commit'
        submit_options[:id] ||= "#{object_name}_commit_button"
@@ -581,7 +581,7 @@ module TabledFormElements
     "<tr><td colspan='#{cols}' align='right' nowrap='1'>" + super  + "</td></tr>"
   end
   
-  def cancel_submit_buttons(cancel_name,submit_name,cancel_options={},submit_options={})
+  def cancel_submit_buttons(cancel_name="Cancel",submit_name="Submit",cancel_options={},submit_options={})
     cols = (options.delete(:columns) || 1)+1
     "<tr><td colspan='#{cols}' align='right' nowrap='1'>" + super  + "</td></tr>"
   end
