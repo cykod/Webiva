@@ -18,7 +18,8 @@ require File.dirname(__FILE__) + '/../lib/memcache' if not defined?(MemCache)
 class MemCache
 
   attr_writer :namespace
-
+  attr_writer :autofix_keys
+  
 end
 
 class FakeSocket
@@ -138,8 +139,6 @@ class TestMemCache < Test::Unit::TestCase
         end
       end
       puts "1000 gets without socket timeout: #{without} sec"
-
-      assert without < with
     end
   end
 
@@ -271,7 +270,7 @@ class TestMemCache < Test::Unit::TestCase
       @cache.cache_get(server, 'my_namespace:key')
     end
 
-    assert_match /#{Regexp.quote 'No connection to server (NOT CONNECTED)'}/, e.message
+    assert_match(/#{Regexp.quote 'No connection to server (NOT CONNECTED)'}/, e.message)
 
     assert !server.alive?
   end
@@ -329,7 +328,7 @@ class TestMemCache < Test::Unit::TestCase
       @cache.cache_get_multi server, 'my_namespace:key'
     end
 
-    assert_match /#{Regexp.quote 'No connection to server (NOT CONNECTED)'}/, e.message
+    assert_match(/#{Regexp.quote 'No connection to server (NOT CONNECTED)'}/, e.message)
 
     assert !server.alive?
   end
@@ -565,7 +564,7 @@ class TestMemCache < Test::Unit::TestCase
       @cache.get 'key'
     end
 
-    assert_match /^No connection to server/, e.message
+    assert_match(/^No connection to server/, e.message)
   end
 
   def test_get_no_servers
@@ -719,6 +718,36 @@ class TestMemCache < Test::Unit::TestCase
     assert_equal 'key', @cache.make_cache_key('key')
   end
 
+  def test_make_cache_key_without_autofix
+    @cache.autofix_keys = false
+
+    key = "keys with more than two hundred and fifty characters can cause problems, because they get truncated and start colliding with each other. It's not a common occurrence, but when it happens is very hard to debug. the autofix option takes care of that for you"
+    hash = Digest::SHA1.hexdigest(key)
+    @cache.namespace = nil
+    assert_equal key, @cache.make_cache_key(key)
+
+    @cache.autofix_keys = true
+
+    @cache.namespace = "my_namespace"
+    assert_equal 'my_namespace:key', @cache.make_cache_key('key')
+    @cache.namespace = nil
+    assert_equal 'key', @cache.make_cache_key('key')
+    
+    key = "keys with more than two hundred and fifty characters can cause problems, because they get truncated and start colliding with each other. It's not a common occurrence, but when it happens is very hard to debug. the autofix option takes care of that for you"
+    hash = Digest::SHA1.hexdigest(key)
+    @cache.namespace = "my_namespace"
+    assert_equal "my_namespace:#{hash}-autofixed", @cache.make_cache_key(key)
+    @cache.namespace = nil
+    assert_equal "#{hash}-autofixed", @cache.make_cache_key(key)
+    
+    key = "a short key with spaces"
+    hash = Digest::SHA1.hexdigest(key)
+    @cache.namespace = "my_namespace"
+    assert_equal "my_namespace:#{hash}-autofixed", @cache.make_cache_key(key)
+    @cache.namespace = nil
+    assert_equal "#{hash}-autofixed", @cache.make_cache_key(key)
+  end
+  
   def test_servers
     server = FakeServer.new
     @cache.servers = []
@@ -778,6 +807,38 @@ class TestMemCache < Test::Unit::TestCase
     assert_equal 'Update of readonly cache', e.message
   end
 
+  def test_check_size_on
+    cache = MemCache.new :check_size => true
+
+    server = FakeServer.new
+    server.socket.data.write "STORED\r\n"
+    server.socket.data.rewind
+
+    cache.servers = []
+    cache.servers << server
+
+    e = assert_raise MemCache::MemCacheError do
+      cache.set 'key', 'v' * 1048577
+    end
+
+    assert_equal 'Value too large, memcached can only store 1MB of data per key', e.message
+  end
+
+  def test_check_size_off
+    cache = MemCache.new :check_size => false
+
+    server = FakeServer.new
+    server.socket.data.write "STORED\r\n"
+    server.socket.data.rewind
+
+    cache.servers = []
+    cache.servers << server
+
+    assert_nothing_raised do
+      cache.set 'key', 'v' * 1048577
+    end
+  end
+
   def test_set_too_big
     server = FakeServer.new
 
@@ -792,7 +853,7 @@ class TestMemCache < Test::Unit::TestCase
       @cache.set 'key', 'v'
     end
 
-    assert_match /object too large for cache/, e.message
+    assert_match(/object too large for cache/, e.message)
   end
 
   def test_prepend
@@ -924,7 +985,7 @@ class TestMemCache < Test::Unit::TestCase
     
     @cache.delete 'key'
     
-    expected = "delete my_namespace:key 0\r\n"
+    expected = "delete my_namespace:key\r\n"
     assert_equal expected, server.socket.written.string
   end
 
@@ -935,7 +996,7 @@ class TestMemCache < Test::Unit::TestCase
     
     @cache.delete 'key', 300
     
-    expected = "delete my_namespace:key 300\r\n"
+    expected = "delete my_namespace:key\r\n"
     assert_equal expected, server.socket.written.string
   end
 
@@ -945,7 +1006,7 @@ class TestMemCache < Test::Unit::TestCase
 
     @cache.flush_all
 
-    expected = "flush_all 0\r\n"
+    expected = "flush_all\r\n"
     @cache.servers.each do |server|
       assert_equal expected, server.socket.written.string
     end
@@ -979,7 +1040,19 @@ class TestMemCache < Test::Unit::TestCase
       @cache.flush_all
     end
 
-    assert_match /flush_all 0\r\n/, socket.written.string
+    assert_match(/flush_all\r\n/, socket.written.string)
+  end
+  
+  def test_flush_all_for_real
+    requirement(memcached_running?, 'A real memcached server must be running for testing flush_all') do
+      cache = MemCache.new "localhost:11211", :namespace => "test_flush_all"
+      k, v = "1234", "test"
+      assert_nil cache.get(k)
+      cache.set(k, v)
+      assert_equal v, cache.get(k)
+      cache.flush_all
+      assert_nil cache.get(k)
+    end
   end
 
   def test_stats
@@ -1023,8 +1096,27 @@ class TestMemCache < Test::Unit::TestCase
     end
 
     output = server.socket.written.string
-    assert_match /set my_namespace:test/, output
-    assert_match /test value/, output
+    assert_match(/set my_namespace:test/, output)
+    assert_match(/test value/, output)
+  end
+
+  def test_namespace_separator
+    cache = MemCache.new :namespace => 'ns', :namespace_separator => ''
+
+    server = FakeServer.new
+    server.socket.data.write "STORED\r\n"
+    server.socket.data.rewind
+
+    cache.servers = []
+    cache.servers << server
+
+    assert_nothing_raised do
+      cache.set "test", "test value"
+    end
+
+    output = server.socket.written.string
+    assert_match(/set nstest/, output)
+    assert_match(/test value/, output)
   end
 
   def test_basic_unthreaded_operations_should_work
@@ -1046,8 +1138,8 @@ class TestMemCache < Test::Unit::TestCase
     end
 
     output = server.socket.written.string
-    assert_match /set my_namespace:test/, output
-    assert_match /test value/, output
+    assert_match(/set my_namespace:test/, output)
+    assert_match(/test value/, output)
   end
 
   def util_setup_fake_server
@@ -1112,9 +1204,9 @@ class TestMemCache < Test::Unit::TestCase
             assert cache.decr('c', 5) > 14
             assert_equal 11, cache.get('b')
             d = cache.get('d', true)
-            assert_match /\Aab*\Z/, d
+            assert_match(/\Aab*\Z/, d)
             e = cache.get('e', true)
-            assert_match /\Ay*x\Z/, e
+            assert_match(/\Ay*x\Z/, e)
           end
         end
       end

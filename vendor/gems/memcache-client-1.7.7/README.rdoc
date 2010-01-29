@@ -32,8 +32,9 @@ multiple memcached servers, you should install the RubyInline gem for ultimate p
 
 == Using memcache-client with Rails
 
-Rails 2.1+ includes memcache-client out of the box.  See ActiveSupport::Cache::MemCacheStore
-and the Rails.cache method for more details.
+Rails 2.1+ includes memcache-client 1.5.0 out of the box.  See ActiveSupport::Cache::MemCacheStore
+and the Rails.cache method for more details.  Rails 2.3+ will use the latest memcache-client
+gem installed.
 
 
 == Questions?

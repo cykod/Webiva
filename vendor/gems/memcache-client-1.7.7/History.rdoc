@@ -1,3 +1,37 @@
+= 1.7.7 (2009-11-24)
+
+* Fix invalid delete request in memcached 1.4.x.  The expiry parameter to MemCache#delete is 
+  now ignored as memcached 1.4.x has dropped support for this feature.
+
+= 1.7.6 (2009-11-03)
+
+* Reworked socket timeout code due to several customer complaints about timeouts not
+  working 100% of the time since 1.7.3.
+* Add option to configure the namespace separator string, for interop with Perl
+  which does not use a separator character:
+    MemCache.new(servers, :namespace_separator => '')
+* Move to jeweler and gemcutter for RubyGem support.
+
+= 1.7.5 (2009-09-09)
+
+* Fix ruby warnings (josh)
+* Make megabyte value size limit optional since Tokyo Tyrant can accept values larger than 1MB.
+  Use :check_size => false to disable the size check. (jsl)
+* Ruby 1.9 support for recent I/O changes.
+* Fix duplicate value marshalling on server error. (rajiv)
+* Added option :autofix_keys (disabled by default) to replace long keys with md5 hashes (sd)
+
+= 1.7.4 (2009-06-09)
+
+* Fix issue with raising timeout errors.
+
+= 1.7.3 (2009-06-06)
+
+* Remove SystemTimer support, refactor I/O to use nonblocking operations.  Speeds up
+  performance approx 100%. Timeouts basically have no overhead now!  (tenderlove)
+* Update load logic to support SystemTimer running in Ruby Enterprise Edition.  Thanks
+  to splattael on github for the comment.
+
 = 1.7.2 (2009-04-12)
 
 * Rollback socket timeout optimization.  It does not work on all operating systems
