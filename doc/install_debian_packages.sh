@@ -20,6 +20,7 @@ else
 deb-src http://ftp.us.debian.org/debian/ lenny main contrib non-free" >> /etc/apt/sources.list
 fi
 
+# www.backports.org is used to install librack-ruby1.8
 if ( /bin/grep lenny-backports /etc/apt/sources.list >& /dev/null ); then
     echo "lenny-backports installed"
 else
@@ -51,16 +52,16 @@ if ! ( /usr/bin/dpkg -S openssh-server >& /dev/null ); then
     echo "install package openssh-server (y/n):"
     read -e ANSWER
     if [ $ANSWER = 'y' ]; then
-	apt-get -y --force-yes install openssh-server
+	apt-get -y install openssh-server
     fi
 fi
 
-if ! ( /usr/bin/apt-get -y --force-yes install -t lenny-backports librack-ruby1.8 >& /dev/null ); then
+if ! ( /usr/bin/apt-get -y install -t lenny-backports librack-ruby1.8 >& /dev/null ); then
     echo "failed to install librack-ruby1.8 from lenny-backports"
     exit
 fi
 
-/usr/bin/apt-get -y --force-yes install mysql-server mysql-client ruby1.8 ruby1.8-dev rdoc1.8 libmagick9-dev libimage-size-ruby1.8 g++ gcc  libmysql-ruby1.8 irb openssl zip unzip libopenssl-ruby apache2 memcached libmysqlclient15-dev build-essential git-core rubygems rake libxslt1-dev libapache2-mod-passenger
+/usr/bin/apt-get -y install mysql-server mysql-client ruby1.8 ruby1.8-dev rdoc1.8 libmagick9-dev libimage-size-ruby1.8 g++ gcc libmysql-ruby1.8 irb openssl zip unzip libopenssl-ruby apache2 memcached libmysqlclient15-dev build-essential git-core rubygems rake libxslt1-dev libapache2-mod-passenger
 
 if [ ! -f /usr/bin/gem ]; then
     echo "/usr/bin/gem not found. Can not install required gems."
