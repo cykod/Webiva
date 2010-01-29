@@ -1,5 +1,5 @@
 <div class='admin_content'>
-<% cms_form_for :options, @options do |f|  -%>
+<% admin_form_for :options, @options do |f|  -%>
   <%= render :partial => @options.options_partial, :locals => @options.options_locals(f) -%>
   <%= f.cancel_submit_buttons 'Cancel','Submit' -%>
 <% end -%>

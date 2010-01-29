@@ -125,7 +125,7 @@ INTRODUCTION
     print("Done!\n")
 
     print('Creating cms_migrator.yml...')
-    write_db_yml_file('cms_migrator.yml',  { 'username' => "#{@db_name_short}_m" ,'password' => @migrator_password, 'database' => @db_name })
+    write_db_yml_file('cms_migrator.yml',  { 'username' => "#{@db_name_short}_m" ,'password' => @migrator_password, 'database' => @db_name})
     print("Done!\n")
   end
 
@@ -133,7 +133,7 @@ INTRODUCTION
   def write_db_yml_file(filename,args)
 
     cms_yml_example_file = YAML.load_file("#{RAILS_ROOT}/config/#{filename}.example")
-    %w(adapter socket host encoding).each do |arg|
+    %w(adapter socket host encoding pool).each do |arg|
       args[arg] = cms_yml_example_file['production'][arg]
     end
 
