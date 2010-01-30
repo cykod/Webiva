@@ -190,7 +190,7 @@ tinyMCE.init({
       
     </div>
     <div style='float:right; padding-top:3px; position:relative;' >
-      <a id='cms_goto_page' href='<%= @page.node_path %>'  onclick='return cmsEdit.gotoPage();' ><%= "Goto Page".t %></a>
+      <a id='cms_goto_page' href='<%= @goto_page_override_url || @page.node_path %>'  onclick='return cmsEdit.gotoPage();' ><%= "Goto Page".t %></a>
       |      
       <input type='submit' id='cms_save_changes' value='<%= vh "Save Changes".t %>' disabled='true' onclick='cmsEdit.saveChanges(); return false;' />    
       <input type='submit' id='cms_save_as_button' value='<%= vh "Save As...".t %>' onclick='cmsEdit.saveAs(); return false;' />
@@ -226,7 +226,7 @@ tinyMCE.init({
 
 
 cmsEdit.setEditURL("<%= url_for :controller => 'edit', :action => '' %>");
-cmsEdit.setPageInfo("<%= @container_arg %>","<%= @page.id %>","<%= @revision.id %>","<%= @revision.language %>",<%= @revision.active %>,<%= @output.css_site_template_id %>,"<%= @page.node_path %>");
+cmsEdit.setPageInfo("<%= @container_arg %>","<%= @page.id %>","<%= @revision.id %>","<%= @revision.language %>",<%= @revision.active %>,<%= @output.css_site_template_id %>,"<%= @goto_page_override_url || @page.node_path %>");
 
 cmsEdit.setParagraphs({
       <% @available_paragraph_types.each do |para| -%>
