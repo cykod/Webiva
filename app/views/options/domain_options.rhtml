@@ -36,7 +36,7 @@
 
 <% t.tabled_tab do %>
     <%= f.ordered_array :member_tabs, @member_tabs, :description => 'If nothing is selected all tabs will be shown' %>
-    <%= f.select :theme, [ ['Standard Theme','standard'], ['Steel Theme','techno']], :label => 'Administration Theme' %>
+    <%= f.select :theme, [ ['Standard Theme','standard']], :label => 'Administration Theme' %>
 
 <% end -%>
 
