@@ -68,19 +68,71 @@ describe ContentModel do
   
   describe "Content Node Creation" do
     
-      before(:each) do
-       connect_to_migrator_database
-      end
+    before(:each) do
+      connect_to_migrator_database
+    end
+    
+    it "should create a content type and content nodes after save" do
+      ContentType.count.should == 0
+      @cm = create_spec_test_content_model
+      ContentType.count.should == 1
       
-      it "should create a content type and content nodes after save" do
-       ContentType.count.should == 0
-       @cm = create_spec_test_content_model
-       ContentType.count.should == 1
-       
-       ContentNode.count.should == 0
-       @cm.content_model.create
-       ContentNode.count.should == 1
-      end
+      ContentNode.count.should == 0
+      @cm.content_model.create
+      ContentNode.count.should == 1
+    end
+
+    it "should destroy content nodes after updating content node" do
+      ContentType.count.should == 0
+      @cm = create_spec_test_content_model
+      ContentType.count.should == 1
+
+      ContentNode.count.should == 0
+      @cm.content_model.create
+      ContentNode.count.should == 1
+
+      @cm = ContentModel.find(:last)
+      @cm.create_nodes = false
+      @cm.save
+
+      ContentNode.count.should == 0
+    end
+    
+    it "should destroy content nodes after setting create_nodes to false" do
+      ContentType.count.should == 0
+      @cm = create_spec_test_content_model
+      ContentType.count.should == 1
+
+      ContentNode.count.should == 0
+      @cm.content_model.create
+      ContentNode.count.should == 1
+
+      @cm = ContentModel.find(:last)
+      @cm.create_nodes = false
+      @cm.save
+
+      ContentNode.count.should == 0
+    end
+
+    it "should try to recreate content_nodes after setting create_nodes to true" do
+      ContentType.count.should == 0
+      @cm = create_spec_test_content_model(:create_nodes => false)
+      ContentType.count.should == 1
+
+      @cm.content_model.create 
+      @cm.content_model.create
+      @cm.content_model.create
+      ContentNode.count.should == 0
+
+      @cm = ContentModel.find(:last)
+      @cm.should_receive(:run_worker).with(:recreate_all_content_nodes)
+      @cm.create_nodes = true
+      @cm.save
+
+      @cm = ContentModel.find(:last)
+      @cm.recreate_all_content_nodes
+      ContentNode.count.should == 3
+    end
       
   end
   

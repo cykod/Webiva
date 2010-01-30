@@ -33,12 +33,38 @@ class ContentModel < DomainModel
   
   access_control :view_access_control
   access_control :edit_access_control
+
+  after_commit  :post_commit_reconfigure
   
   def before_save #:nodoc:
     if self.model_preset.blank?
       self.model_preset = 'custom'
       self.customized = true
     end
+    if self.create_nodes_changed?
+      @new_content_node_value = true
+    end
+    true
+  end
+
+  # Resave all the models to create content nodes
+  def recreate_all_content_nodes #:nodoc
+    if self.create_nodes?
+      self.model_class(true).find_in_batches do |group|
+        group.each {  |mdl| mdl.save_content(nil) }
+      end
+    end
+  end
+
+  def post_commit_reconfigure #:nodoc
+    if @new_content_node_value
+      if !self.create_nodes?
+        self.content_type.content_nodes.clear
+      else
+        self.run_worker(:recreate_all_content_nodes)
+      end
+    end
+    true
   end
 
   

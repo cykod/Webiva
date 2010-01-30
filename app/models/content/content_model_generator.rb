@@ -8,10 +8,10 @@ module Content::ContentModelGenerator
 
   # Generates a subclass of ContentModelType that behaves like a 
   # standard DomainModel class for a CustomContentModel
-  def content_model
+  def content_model(force=false)
     clses = DataCache.local_cache("content_models_list") || {}
     cls = clses[self.table_name]
-    return cls[0] if cls
+    return cls[0] if cls && !force
     
     class_name = self.table_name.classify
     cls = nil
