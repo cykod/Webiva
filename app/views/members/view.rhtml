@@ -15,7 +15,7 @@ MemberViewer = {
 <%= active_table_javascript %>
 </script>
 
-<% unless @user.user_class.editor? && !myself.has_role?('editor_editors') %>
+<% unless @user.client_user_id || (@user.user_class.editor? && !myself.has_role?('editor_editors')) %>
 <% action_panel do |p| -%>
   <%= p.link 'Edit User',:icon => 'edit.gif',:action => 'edit', :path => @user %>
   <%= p.link 'Login as User', { :icon => 'download.gif',:action => 'login', :path => @user }, :method => 'post' %>
