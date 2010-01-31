@@ -177,11 +177,16 @@ class ModuleAppController < ApplicationController
   
   def display_missing_page #:nodoc:
     page,path_args = find_page_from_path(["404"],DomainModel.active_domain[:site_version_id])
-    engine = SiteNodeEngine.new(page,:display => session[:cms_language], :path => path_args)
-    @output = engine.run(self,myself)
-    set_robots!
-    render :template => '/page/index', :layout => 'page', :status => "404 Not Found"
-    return  
+    begin
+      engine = SiteNodeEngine.new(page,:display => session[:cms_language], :path => path_args)
+      @output = engine.run(self,myself)
+      set_robots!
+      render :template => '/page/index', :layout => 'page', :status => "404 Not Found"
+      return  
+    rescue SiteNodeEngine::MissingPageException => e
+      render :text => "Page Not Found", :layout => false, :status => "404 Not Found"
+      return  
+    end
   end
   
   def rescue_action_in_public(exception) #:nodoc:
