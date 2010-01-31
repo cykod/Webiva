@@ -149,7 +149,7 @@ class Media::MediaController < ParagraphController
     end
 
     def swf_url
-      self.swf.url
+      self.swf.url if self.swf
     end
 
     def flash_width
