@@ -1012,7 +1012,7 @@ FileEditor = {
       if(dim) {
         var dims = dim.split(",");
         FileEditor.disabledCookie = true;
-        dims[0] = 20 + Number(dims[0]);
+        dims[0] = 10 + Number(dims[0]);
         dims[1] = 60 + Number(dims[1]);
         setTimeout("window.resizeTo(" + dims[0] + "," + dims[1] + ");  setTimeout('FileEditor.disabledCookie = false;',500);",5);
       } 
@@ -1382,7 +1382,11 @@ FileEditor = {
 //if the browser is IE4+
 document.onselectstart=new Function ("return false")
 
-
-
+Event.observe(window,'load',FileEditor.init);
+Event.observe(window,'resize',FileEditor.onResize);
+Event.observe(window,'mousemove',FileEditor.dragBox);
+Event.observe(window,'mouseup',FileEditor.endDrag);
+Event.observe(window,'mousedown',FileEditor.startDrag);
+</script>
 
 </script>
