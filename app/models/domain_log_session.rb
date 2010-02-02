@@ -10,7 +10,7 @@ class DomainLogSession < DomainModel
     return unless request.session_options
 
     if !session[:domain_log_session] || session[:domain_log_session][:end_user_id] != user.id
-      ses = self.session(session.session_id, user, request.remote_ip, true, Tracking.new(request))
+      ses = self.session(request.session_options[:id], user, request.remote_ip, true, Tracking.new(request))
       session[:domain_log_session] = { :id => ses.id, :end_user_id => user.id }
     end
   end
