@@ -281,12 +281,7 @@ class ApplicationController < ActionController::Base
   # Returns a piece of domain configuration
   # Caching config in the response
   def domain_config(key)
-    if response.data[:config]
-      return response.data[:config][key]
-    else
-      response.data[:config] = Configuration.get('options')
-      return response.data[:config][key]
-    end
+    Configuration.options.send(key)
   end  
 
   helper_method :theme

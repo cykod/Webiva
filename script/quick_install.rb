@@ -205,9 +205,13 @@ Webiva has (hopefully) been installed and set up correctly. You should be able t
 from the top level directory to start up a server on port 3000 and
 you should be able to access the system from:
 http://#{@domain}:3000/website
-using the admin username and password you just entered. If everything looks good,
-follow the remaining instructions in doc/INSTALL to get yourself integrated into apache
-with Phusion Passenger(tm).
+using the admin username and password you just entered:
+
+Username: #{@admin_username}
+Password: #{@admin_password}
+
+If everything looks good, follow the remaining instructions in 
+doc/INSTALL to get yourself integrated into apache with Phusion Passenger(tm).
 
 Good Luck and Happy CMS'ing!
 EOF

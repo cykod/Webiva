@@ -2,7 +2,7 @@
 
 class DashboardController < CmsController #:nodoc:all
 
-  permit :editor_site_management, :only => [ :site_widgets, :site_widget, :widget_options ]
+  permit :editor_site_management, :only => [ :site_widgets, :site_widget ]
 
   cms_admin_paths :dashboard,
     "Dashboard" => { :action => "index" },

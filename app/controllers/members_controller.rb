@@ -248,8 +248,9 @@ class MembersController < CmsController # :nodoc: all
     user_id = params[:path][0]
     
     @user = EndUser.find(user_id)
+
     
-    if @user.user_class.editor? && !myself.has_role?('editor_editors')
+    if @user.client_user_id || (@user.user_class.editor? && !myself.has_role?('editor_editors'))
       redirect_to :action => 'index'
       return
     end
@@ -374,11 +375,11 @@ class MembersController < CmsController # :nodoc: all
   def login
     @user = EndUser.find_by_id(params[:path][0])
     
-    if  !@user.user_class.editor? || myself.has_role?('editor_editors')
+    if @user.client_user_id.blank? && (!@user.user_class.editor? || myself.has_role?('editor_editors'))
       process_login(@user)
       redirect_to "/"
     else
-      redirect_to :action => 'view', :path => @user
+      redirect_to :action => 'view', :path => @user.id
     end
   end
   

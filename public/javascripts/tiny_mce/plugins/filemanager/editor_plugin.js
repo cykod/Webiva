@@ -15,8 +15,8 @@
 
                           ed.windowManager.open({
                             file: '/website/file/popup?select=all&callback=MCE_Popup.imageCallback&mce=1',
-                                                  width: 700,
-                                                  height: 400,
+                                                  width: 1000,
+                                                  height: 500,
                                                   scrollbars: true,
                                                   resizeable: true
                                                 },
