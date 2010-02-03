@@ -211,4 +211,25 @@ class Media::MediaController < ParagraphController
       end
     end
   end
+
+
+
+
+  user_actions  [ :images, :image_gallery ]
+
+  def images
+      @gallery = Gallery.find_by_id_and_private_gallery(params[:path][0],false)
+      if @gallery
+        @gallery_images = @gallery.gallery_images.find(:all,:include => :domain_file) 
+      else
+        @gallery_image = []
+      end
+  end
+  
+  def image_gallery
+      @gallery = Gallery.find_by_id_and_private_gallery(params[:path][0],false)
+      @gallery_images = @gallery.gallery_images.find(:all,:include => :domain_file)
+      
+      render :action => 'image_gallery'
+  end
 end
