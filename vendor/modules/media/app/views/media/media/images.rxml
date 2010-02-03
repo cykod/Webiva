@@ -1,0 +1,13 @@
+xml.playlist(:version => "1") do
+  xml.title(@gallery.name)
+  xml.trackList do 
+    @gallery_images.each do |img|
+      xml.track do
+        xml.title(img.name)
+        xml.location(img.domain_file.url)
+        xml.width(img.domain_file.image_size[0])
+        xml.height(img.domain_file.image_size[1])
+      end
+    end
+  end
+end
