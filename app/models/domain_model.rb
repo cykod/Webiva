@@ -58,7 +58,7 @@ class DomainModel < ActiveRecord::Base
   def self.has_domain_file(field_name,options={})
     field = options[:relation] || field_name.to_s.gsub(/_id$/,'')
 
-    belongs_to field, :class_name => 'DomainFile', :foreign_key => options[:foreign_key] || field_name
+    belongs_to field.to_sym, :class_name => 'DomainFile', :foreign_key => options[:foreign_key] || field_name
     domain_file_column(field_name)
   end
 
