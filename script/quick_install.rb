@@ -121,11 +121,12 @@ INTRODUCTION
     end
 
     print('Creating cms.yml...')
-    write_db_yml_file('cms.yml', { 'username' => "#{@db_name_short}_u" ,'password' => @user_password, 'database'  => @db_name })
+    @db_socket = File.exists?('/var/lib/mysql/mysql.sock') ? '/var/lib/mysql/mysql.sock' : '/var/run/mysqld/mysqld.sock'
+    write_db_yml_file('cms.yml', { 'username' => "#{@db_name_short}_u" ,'password' => @user_password, 'database'  => @db_name, 'socket' => @db_socket })
     print("Done!\n")
 
     print('Creating cms_migrator.yml...')
-    write_db_yml_file('cms_migrator.yml',  { 'username' => "#{@db_name_short}_m" ,'password' => @migrator_password, 'database' => @db_name })
+    write_db_yml_file('cms_migrator.yml',  { 'username' => "#{@db_name_short}_m" ,'password' => @migrator_password, 'database' => @db_name, 'socket' => @db_socket })
     print("Done!\n")
   end
 
@@ -134,7 +135,7 @@ INTRODUCTION
 
     cms_yml_example_file = YAML.load_file("#{RAILS_ROOT}/config/#{filename}.example")
     %w(adapter socket host encoding).each do |arg|
-      args[arg] = cms_yml_example_file['production'][arg]
+      args[arg] ||= cms_yml_example_file['production'][arg]
     end
 
     cms_yml_output_file = { 'production' => args, 'development' => args }
