@@ -16,6 +16,8 @@ class Blog::BlogPost < DomainModel
 
   validates_length_of :permalink, :allow_nil => true, :maximum =>  64
   
+  validates_datetime :published_at, :allow_nil => true
+   
 
   has_options :status, [ [ 'Draft','draft'], ['Published','published']] 
 
