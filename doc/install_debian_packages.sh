@@ -200,7 +200,9 @@ if [ -f /etc/apache2/sites-enabled/000-default ]; then
     fi
 fi
 
-/usr/sbin/a2ensite webiva
+if [ ! -f /etc/apache2/sites-enabled/webiva ]; then
+    /usr/sbin/a2ensite webiva
+fi
 
 /etc/init.d/apache2 restart
 
