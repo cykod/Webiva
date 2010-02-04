@@ -203,7 +203,7 @@ class ContentModel < DomainModel
   end
 
   def destroy_linked_content #:nodoc:
-    ContentRelation.destroy_all(:conditions => { :content_model_id => self.id })
+    ContentRelation.destroy_all({ :content_model_id => self.id })
   end
 
   # Returns an ContentModel meta-data entry given a class name
