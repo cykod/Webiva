@@ -24,24 +24,37 @@ if ( ! grep $DEV_USER /etc/passwd >& /dev/null ); then
     exit
 fi
 
-UPDATE=0
-
 # uncomment if you haven't setup standard lenny source
 #if ( /bin/grep ftp.us.debian.org /etc/apt/sources.list >& /dev/null || /bin/grep http.us.debian.org /etc/apt/sources.list >& /dev/null ); then
 #    echo "http.us.debian.org installed"
 #else
-#    UPDATE=1
 #    echo "deb http://ftp.us.debian.org/debian/ lenny main contrib non-free
 #deb-src http://ftp.us.debian.org/debian/ lenny main contrib non-free" >> /etc/apt/sources.list
 #fi
 
+# package required by Webiva
+if ! ( /usr/bin/dpkg -S mysql-server mysql-client ruby1.8 ruby1.8-dev rdoc1.8 libmagick9-dev libimage-size-ruby1.8 g++ gcc libmysql-ruby1.8 irb openssl zip unzip libopenssl-ruby apache2 memcached libmysqlclient15-dev build-essential git-core rubygems rake libxslt1-dev >& /dev/null ); then
+    /usr/bin/apt-get update
+    /usr/bin/apt-get -y install mysql-server mysql-client ruby1.8 ruby1.8-dev rdoc1.8 libmagick9-dev libimage-size-ruby1.8 g++ gcc libmysql-ruby1.8 irb openssl zip unzip libopenssl-ruby apache2 memcached libmysqlclient15-dev build-essential git-core rubygems rake libxslt1-dev
+fi
+
+if ! ( /usr/bin/dpkg -S mysql-server mysql-client ruby1.8 ruby1.8-dev rdoc1.8 libmagick9-dev libimage-size-ruby1.8 g++ gcc libmysql-ruby1.8 irb openssl zip unzip libopenssl-ruby apache2 memcached libmysqlclient15-dev build-essential git-core rubygems rake libxslt1-dev >& /dev/null ); then
+    echo "Halting, required packages not found."
+    exit
+fi
+
+if ! ( /usr/bin/dpkg -S openssh-server >& /dev/null ); then
+    ANSWER=n
+    read -p "Install openssh-server (y/n): " ANSWER
+    if [ $ANSWER = 'y' ]; then
+	apt-get -y install openssh-server
+    fi
+fi
 
 # www.backports.org is used to install librack-ruby1.8
-ADDED_BACKPORTS=0
-INSTALL_LIBRACK=1
-if ( /usr/bin/dpkg -S librack-ruby1.8 >& /dev/null ); then
-    INSTALL_LIBRACK=0
-else
+if ( ! /usr/bin/dpkg -S librack-ruby1.8 >& /dev/null ); then
+    ADDED_BACKPORTS=0
+
     if ( /bin/grep lenny-backports /etc/apt/sources.list >& /dev/null || /bin/ls /etc/apt/sources.list.d/backports.list >& /dev/null ); then
 	echo "lenny-backports installed"
     else
@@ -49,72 +62,66 @@ else
 	echo "lenny-backports is required to install librack-ruby1.8"
 	read -p "Do you want to install lenny-backports? (y/n): " ANSWER
 	if [ $ANSWER = 'y' ]; then
-	    UPDATE=1
 	    ADDED_BACKPORTS=1
-	    
 	    echo "deb http://www.backports.org/debian lenny-backports main contrib non-free" > /etc/apt/sources.list.d/backports.list
 	    wget -q -O - http://www.backports.org/debian/archive.key | apt-key add -
+	    /usr/bin/apt-get update
 	else
 	    echo "Halting, librack-ruby1.8 required."
 	    exit
 	fi
     fi
-fi
 
-# debian.tryphon.org is used to install package libapache2-mod-passenger
-ADDED_TRYPHON=0
-if [ -f /etc/apt/sources.list.d/tryphon.list ]; then
-    echo "tryphon installed"
-else
-    UPDATE=1
-    ADDED_TRYPHON=1
-
-    echo "deb http://debian.tryphon.org stable main contrib
-deb-src http://debian.tryphon.org stable main contrib" > /etc/apt/sources.list.d/tryphon.list
-    wget -q -O - http://debian.tryphon.org/release.asc | apt-key add -
-fi
-
-if [ $UPDATE = 1 ]; then
-    echo "running apt-get update"
-    apt-get update
-fi
-
-if ! ( /usr/bin/dpkg -S openssh-server >& /dev/null ); then
-    ANSWER=n
-    read -p "Install package openssh-server (y/n): " ANSWER
-    if [ $ANSWER = 'y' ]; then
-	apt-get -y install openssh-server
-    fi
-fi
-
-if [ $INSTALL_LIBRACK = 1 ]; then
     if ! ( /usr/bin/apt-get -y install -t lenny-backports librack-ruby1.8 >& /dev/null ); then
 	echo "failed to install librack-ruby1.8 from lenny-backports"
 	exit
     fi
-fi
 
-if [ $ADDED_BACKPORTS = 1 ]; then
     echo ""
     echo "librack-ruby1.8 is installed"
-    ANSWER=n
-    read -p "Do you want to uninstall lenny-backports (y/n): " ANSWER
-    if [ $ANSWER = 'y' ]; then
-	/bin/mv /etc/apt/sources.list.d/backports.list /etc/apt/sources.list.d/backports.list.off
-	echo "Moved /etc/apt/sources.list.d/backports.list to /etc/apt/sources.list.d/backports.list.off"
+    echo ""
+
+    if [ $ADDED_BACKPORTS = 1 ]; then
+	ANSWER=n
+	read -p "Do you want to uninstall lenny-backports (y/n): " ANSWER
+	if [ $ANSWER = 'y' ]; then
+	    /bin/mv /etc/apt/sources.list.d/backports.list /etc/apt/sources.list.d/backports.list.off
+	    echo "Moved /etc/apt/sources.list.d/backports.list to /etc/apt/sources.list.d/backports.list.off"
+	fi
     fi
 fi
 
-/usr/bin/apt-get -y install mysql-server mysql-client ruby1.8 ruby1.8-dev rdoc1.8 libmagick9-dev libimage-size-ruby1.8 g++ gcc libmysql-ruby1.8 irb openssl zip unzip libopenssl-ruby apache2 memcached libmysqlclient15-dev build-essential git-core rubygems rake libxslt1-dev libapache2-mod-passenger
+# debian.tryphon.org is used to install package libapache2-mod-passenger
+if ( ! /usr/bin/dpkg -S libapache2-mod-passenger >& /dev/null ); then
+    ADDED_TRYPHON=0
 
-if [ $ADDED_TRYPHON = 1 ]; then
+    if [ -f /etc/apt/sources.list.d/tryphon.list ]; then
+	echo "tryphon installed"
+    else
+	ADDED_TRYPHON=1
+
+	echo "deb http://debian.tryphon.org stable main contrib
+deb-src http://debian.tryphon.org stable main contrib" > /etc/apt/sources.list.d/tryphon.list
+	wget -q -O - http://debian.tryphon.org/release.asc | apt-key add -
+	/usr/bin/apt-get update
+    fi
+
+    if ! ( /usr/bin/apt-get -y install libapache2-mod-passenger >& /dev/null ); then
+	echo "failed to install libapache2-mod-passenger"
+	exit
+    fi
+
     echo ""
     echo "libapache2-mod-passenger is installed"
-    ANSWER=n
-    read -p "Do you want to uninstall tryphon sources (y/n): " ANSWER
-    if [ $ANSWER = 'y' ]; then
-	/bin/mv /etc/apt/sources.list.d/tryphon.list /etc/apt/sources.list.d/tryphon.list.off
-	echo "Moved /etc/apt/sources.list.d/tryphon.list to /etc/apt/sources.list.d/tryphon.list.off"
+    echo ""
+
+    if [ $ADDED_TRYPHON = 1 ]; then
+	ANSWER=n
+	read -p "Do you want to uninstall tryphon sources (y/n): " ANSWER
+	if [ $ANSWER = 'y' ]; then
+	    /bin/mv /etc/apt/sources.list.d/tryphon.list /etc/apt/sources.list.d/tryphon.list.off
+	    echo "Moved /etc/apt/sources.list.d/tryphon.list to /etc/apt/sources.list.d/tryphon.list.off"
+	fi
     fi
 fi
 
