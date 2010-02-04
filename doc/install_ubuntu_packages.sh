@@ -19,14 +19,12 @@ if ( ! grep $DEV_USER /etc/passwd >& /dev/null ); then
     exit
 fi
 
-if ! ( /usr/bin/dpkg -S mysql-server mysql-client ruby1.8 ruby1.8-dev rdoc1.8 libmagick9-dev libimage-size-ruby1.8 g++ gcc libmysql-ruby1.8 irb openssl zip unzip libopenssl-ruby apache2 memcached libmysqlclient15-dev build-essential git-core rubygems rake libxslt1-dev >& /dev/null ); then
-    /usr/bin/apt-get update
-    /usr/bin/apt-get -y install mysql-server mysql-client ruby1.8 ruby1.8-dev rdoc1.8 libmagick9-dev libimage-size-ruby1.8 g++ gcc libmysql-ruby1.8 irb openssl zip unzip libopenssl-ruby apache2 memcached libmysqlclient15-dev build-essential git-core rubygems rake libxslt1-dev
-fi
+/usr/bin/apt-get update
+/usr/bin/apt-get -y install mysql-server mysql-client ruby1.8 ruby1.8-dev rdoc1.8 libmagick9-dev libimage-size-ruby1.8 g++ gcc libmysql-ruby1.8 irb openssl zip unzip libopenssl-ruby apache2 memcached libmysqlclient15-dev build-essential git-core rubygems rake libxslt1-dev
 
-if ! ( /usr/bin/dpkg -S openssh-server >& /dev/null ); then
+if ! ( /usr/bin/dpkg -l | grep openssh-server >& /dev/null ); then
     ANSWER=n
-    echo "install package openssh-server (y/n):"
+    echo "Install openssh-server (y/n):"
     read -e ANSWER
     if [ $ANSWER = 'y' ]; then
 	/usr/bin/apt-get -y install openssh-server
@@ -53,9 +51,7 @@ if ! ( /usr/bin/dpkg -S libapache2-mod-passenger >& /dev/null ); then
 	fi
     fi
 
-    /usr/bin/apt-get -y install libapache2-mod-passenger
-
-    if ! ( /usr/bin/dpkg -S libapache2-mod-passenger >& /dev/null ); then
+    if ! ( /usr/bin/apt-get -y install libapache2-mod-passenger ); then
 	echo "failed to install libapache2-mod-passenger"
 	exit
     fi
