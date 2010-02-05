@@ -4,7 +4,7 @@ require 'hpricot'
 
 class Blog::BlogPostRevision < DomainModel
 
-  validates_presence_of :title, :body, :blog_post_id
+  validates_presence_of :title, :body
 
   belongs_to :blog_post, :class_name => 'Blog::BlogPost', :foreign_key => 'blog_post_id'
 

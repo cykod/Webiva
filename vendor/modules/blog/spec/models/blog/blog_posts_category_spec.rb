@@ -9,7 +9,6 @@ describe Blog::BlogPostsCategory do
     @category = @blog.blog_categories.create :name => 'Test Category'
     @post = @blog.blog_posts.new
     @rev = Blog::BlogPostRevision.new(:title => 'Test Post', :body => 'Testerama',:author => 'Anonymous')
-    @rev.should be_valid
     @post.save_revision! @rev
 
     assert_difference 'Blog::BlogPostsCategory.count', 1 do

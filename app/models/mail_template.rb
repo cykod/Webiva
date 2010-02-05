@@ -92,7 +92,10 @@ class MailTemplate < DomainModel
     Util::TextFormatter.text_formatted_generator(html)
  end
  
- 
+ def before_validation #:nodoc:
+   self.language ||= Configuration.languages[0]
+ end
+
  def validate_on_create #:nodoc:
   if self.create_type
     case create_type
