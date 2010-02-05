@@ -19,11 +19,13 @@ describe Blog::BlogBlog do
   
   it "blog should be createable with just a name" do
     @blog.name = "Test Blog"
+    @blog.content_filter = 'full_html'
     @blog.should be_valid
   end
   
   it "blog should create a content type if its not a user blog" do
     @blog.name = "Test Blog"
+    @blog.content_filter = 'full_html'
     lambda {
       @blog.save
     }.should change { ContentType.count  }.by(1)

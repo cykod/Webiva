@@ -8,7 +8,7 @@ describe Blog::BlogPost do
   reset_domain_tables :blog_blogs, :blog_posts, :blog_post_revisions, :blog_posts_categories, :blog_categories, :content_nodes
 
   before(:each) do
-    @blog = Blog::BlogBlog.create(:name => 'Test Blog')
+    @blog = Blog::BlogBlog.create(:name => 'Test Blog', :content_filter => 'full_html')
   end
   
   
