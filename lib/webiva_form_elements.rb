@@ -206,11 +206,13 @@ module WebivaFormElements
     txt = @object.send(field)
     
     options = options.clone
+    tpl = options.delete(:template)
+    filter = options.delete(:content_filter) || 'full_html'
+
+    return self.send(:text_area,field,options) unless filter == 'full_html'
+
     options[:class] = 'cmsFormMceEditor'
     options[:style] = 'width:100%;' unless options[:style]
-    tpl = options.delete(:template)
-      
-    
 
     txtarea = self.send(:text_area,field,options)
     

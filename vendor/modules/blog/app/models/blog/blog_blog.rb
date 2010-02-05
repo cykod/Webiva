@@ -4,7 +4,8 @@
 class Blog::BlogBlog < DomainModel
 
   validates_presence_of :name
-  
+  validates_presence_of :content_filter
+
   belongs_to :target, :polymorphic => true
 
   has_many :blog_posts, :dependent => :destroy
@@ -84,5 +85,13 @@ class Blog::BlogBlog < DomainModel
 
   def content_type_name
     "Blog"
+  end
+
+  def self.filter_options
+    ContentFilter.filter_options
+  end
+
+  def before_validation_on_create
+    self.content_filter = 'markdown_safe' if self.is_user_blog?
   end
 end

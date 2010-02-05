@@ -4,6 +4,8 @@
 <%= f.header 'Blog Information' %>
 <%= f.text_field :name, :vertical => true, :required => true %>
 <%= f.text_area :description, :vertical => true %>
+<%= f.select :content_filter, Blog::BlogBlog.filter_options, :vertical => true %>
+<%= f.filemanager_folder :folder_id, :vertical => true %>
 <%= f.submit_tag 'Create Blog', :vertical => true%>
 <% end -%>
 </div>

@@ -81,10 +81,10 @@
       <%= t.text_field :permalink, :label => 'Permalink (Leave blank to have one created for you)', :vertical => true, :style => 'width:100%;', :noun => 'Permalink' %>
     <% end -%>
     <%= f.text_field :author, :vertical => true, :required => true, :style=>'width:100%' %>
-    <%= f.editor_area :body, :vertical => true, :required => true, :rows => 35, :style=>'width:100%'%>
+    <%= f.editor_area :body, :vertical => true, :required => true, :rows => 35, :style=>'width:100%', :content_filter => @blog.content_filter %>
     <%= f.header "Additional Fields" %>
     <%= f.text_field :preview_title, :vertical => true, :size => 80, :label => 'Preview Title (Optional)' %>
-    <%= f.editor_area :preview, :vertical => true, :rows => 12, :label => 'Preview (Optional)' %>
+    <%= f.editor_area :preview, :vertical => true, :rows => 12, :label => 'Preview (Optional)', :style=>'width:100%', :content_filter => @blog.content_filter %>
     <%= f.text_field :keywords, :vertical => true, :style=>'width:100%' %>
     <%= f.filemanager_file :media_file_id, :vertical => true, :label => 'Local Media (.mp3 or .flv file)' %>
     <%= f.text_field :embedded_media, :vertical => true, :label => 'Embedded Media (Paste entire <object ...> block)', :style => 'width:100%' %>
