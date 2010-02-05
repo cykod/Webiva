@@ -663,5 +663,29 @@ class DomainModel < ActiveRecord::Base
     DataCache.expire_container('Modules')
     DataCache.expire_content
   end
-    
+   
+
+  # http://gist.github.com/76868
+  # Need an after_commit for post-transaction actions
+  def save_with_after_commit(*args) #:nodoc:
+    previous_new_record = new_record?
+    if result = save_without_after_commit(*args)
+      callback(:after_commit)
+      callback(:after_commit_on_create) if previous_new_record
+    end
+    result
+  end
+  
+  def save_with_after_commit!(*args)#:nodoc:
+    previous_new_record = new_record?
+    if result = save_without_after_commit!(*args)
+      callback(:after_commit)
+      callback(:after_commit_on_create) if previous_new_record
+    end
+    result
+  end
+ 
+  alias_method_chain :save, :after_commit 
+  alias_method_chain :save!, :after_commit
+  define_callbacks :after_commit, :after_commit_on_create
 end

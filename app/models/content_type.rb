@@ -32,7 +32,7 @@ DomainModel for each poll)
 =end
 class ContentType < DomainModel
 
-  has_many :content_nodes
+  has_many :content_nodes, :dependent => :destroy
   has_many :content_node_values, :dependent => :destroy
 
   belongs_to :content_meta_type

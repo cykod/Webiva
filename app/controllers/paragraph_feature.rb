@@ -1023,7 +1023,7 @@ block is non-nil
       # Block contains the options for an options control 
       # otherwise it just wraps the output
       if block && (!options_control || field_opts)
-        block.call(tag,output)
+        block.call(t,output)
       else
         output
       end

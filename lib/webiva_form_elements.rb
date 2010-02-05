@@ -22,7 +22,7 @@ module WebivaFormElements
       thumb = "/images/spacer.gif"
     end
     <<-SRC
-    <table><td valign='middle' align='center' style='width:32px;height:32px;border:1px solid #000000;'><img id='#{@object_name}_#{field}_thumb' src='#{thumb}' onclick='openWindow("#{url}" + "&file_id=" + $("#{@object_name}_#{field}").value,"selectFile",800,400,"yes","yes")'/></td><td valign='center' align='left'><a href='javascript:void(0);' onclick='openWindow("#{url}" + "&file_id=" + $("#{@object_name}_#{field}").value,"selectFile",800,400,"yes","yes")'>
+    <table><td valign='middle' align='center' style='width:32px;height:32px;border:1px solid #000000;'><img id='#{@object_name}_#{field}_thumb' src='#{thumb}' onclick='openWindow("#{url}" + "&file_id=" + $("#{@object_name}_#{field}").value,"selectFile",800,400,"yes","yes")'/></td><td valign='center' align='left'><a href='javascript:void(0);' onclick='openWindow("#{url}" + "&file_id=" + $("#{@object_name}_#{field}").value,"selectFile",1000,500,"yes","yes")'>
 
 			<span id='#{@object_name}_#{field}_name' >#{name}</span>
 			</a>
@@ -54,7 +54,7 @@ module WebivaFormElements
       name = 'Select File'.t
     end
     <<-SRC
-      <a href='javascript:void(0);' onclick='openWindow("#{url}/" + $("#{@object_name}_#{field}").value + "#{url_options}" ,"selectFile",800,400,"yes","yes")'>
+      <a href='javascript:void(0);' onclick='openWindow("#{url}/" + $("#{@object_name}_#{field}").value + "#{url_options}" ,"selectFile",1000,500,"yes","yes")'>
       <span id='#{@object_name}_#{field}_name' >#{name}</span>
       </a>
       <input type='hidden' name='#{@object_name}[#{field}]' id='#{@object_name}_#{field}' value='#{file.id if file}' #{onchange} />
@@ -134,7 +134,7 @@ module WebivaFormElements
     end
     
     <<-SRC
-      <a href='javascript:void(0);' onclick='openWindow("#{url}/" + $("#{@object_name}_#{field}").value + "#{url_options}" ,"selectFile",800,400,"yes","yes")'>
+      <a href='javascript:void(0);' onclick='openWindow("#{url}/" + $("#{@object_name}_#{field}").value + "#{url_options}" ,"selectFile",1000,500,"yes","yes")'>
       <span id='#{@object_name}_#{field}_name' >#{name}</span>
       </a>
       <input type='hidden' name='#{@object_name}[#{field}]' id='#{@object_name}_#{field}' value='#{file.id if file}' />

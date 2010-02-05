@@ -77,14 +77,16 @@ function mceInitInstance(editor) {
 
 
 var cmsEdit = {
-	editURL: null,
+  editURL: null,
+  previousPageType:null,
+  previousPageId:null,
   pageType: null,
-	pageId: null,
-	revisionId: null,
+  pageId: null,
+  revisionId: null,
   siteTemplateId:null,
   pageActive: false,
-	availableParagraphs:null,
-	language: null,
+  availableParagraphs:null,
+  language: null,
   paraIndex:0,
 
   destPageId:null,
@@ -103,22 +105,26 @@ var cmsEdit = {
   updateParagraphs:null,
   paragraphs:$H({}),
 
-	setEditURL: function(url) {
-		cmsEdit.editURL = url;
-	},
+  setEditURL: function(url) {
+    cmsEdit.editURL = url;
+  },
 
-	setPageInfo: function(page_type,page_id,revision_id,lang,active,template_id,page_url)  {
+  setPageInfo: function(page_type,page_id,revision_id,lang,active,template_id,page_url)  {
+    if((cmsEdit.previousPageType != page_type) || (cmsEdit.previousPageId != page_id)) {
+        cmsEdit.pageUrl = page_url;
+        $('cms_goto_page').href = cmsEdit.pageUrl;
+    }
     cmsEdit.pageType= page_type;
-		cmsEdit.pageId = page_id;
-		cmsEdit.revisionId = revision_id;
-		cmsEdit.language = lang;
+    cmsEdit.pageId = page_id;
+    cmsEdit.revisionId = revision_id;
+    cmsEdit.language = lang;
     cmsEdit.pageActive = active;
-    cmsEdit.pageUrl = page_url;
-    $('cms_goto_page').href = cmsEdit.pageUrl;
     if(template_id) {
       cmsEdit.siteTemplateId = template_id;
     }
-	},
+    cmsEdit.previousPageType = page_type;
+    cmsEdit.previousPageId = page_id;
+  },
 
   setParagraphIndex: function(para_index) {
     cmsEdit.paraIndex = para_index;

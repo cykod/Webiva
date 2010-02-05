@@ -11,9 +11,9 @@ module ContentSpecHelper
     # Kill the spec test table if no-go
   end
 
-  def create_spec_test_content_model
+  def create_spec_test_content_model(args={ })
     ContentModel.connection.execute('DROP TABLE IF EXISTS cms_spec_tests')  
-    returning cm = ContentModel.create(:name => 'spec_test') do 
+    returning cm = ContentModel.create({:name => 'spec_test'}.merge(args)) do 
       cm.create_table # Create the table    
     end
   end

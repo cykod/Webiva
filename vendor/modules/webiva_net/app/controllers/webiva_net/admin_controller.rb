@@ -4,11 +4,6 @@ class WebivaNet::AdminController < ModuleController
  component_info 'WebivaNet', :description => 'Support for integration with Webiva.net', 
                               :access => :public
                               
- # register_permission_category :webiva_net, "WebivaNet" ,"Permissions related to Webiva.net"
-  
- # register_permissions :webiva_net, [[ :manage, 'Manage Webiva.net', 'Manage Webiva.net' ],
- #                                    [ :config, 'Configure Webiva.net', 'Configure Webiva.net' ]
- #                                   ]
 
  cms_admin_paths "options",
     "Webiva.net Options" => { :action => 'index' }
@@ -38,7 +33,7 @@ class WebivaNet::AdminController < ModuleController
   end
   
   class Options < HashModel
-    attributes :documentation_url => "http://www.webiva.net/doc/interface"
+    attributes :documentation_url => "http://www.webiva.net/doc/user"
   
   end
   

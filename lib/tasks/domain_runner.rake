@@ -8,6 +8,7 @@ task :domain_runner => :environment do |t|
   end
 
   DomainModel.activate_domain((ENV['DOMAIN']||ENV['DOMAIN_ID']).to_i) 
+  DataCache.reset_local_cache
   
   cls = ENV['CLASS'].constantize
   

@@ -256,6 +256,7 @@ class EditController < ModuleController # :nodoc: all
   public
 
   def page
+
     get_container
     edit_page_info(@container_type,@container_id,params[:path][2],true)
     
@@ -263,6 +264,16 @@ class EditController < ModuleController # :nodoc: all
 
 
     generate_paragraph_types
+
+    # If we're coming from something like a blog post,
+    # let us go right back to the correctly permalinked
+    # location
+    if params[:return_to_site] && session[:return_to_site]
+      if session[:return_to_site].include?(@page.node_path)
+       @goto_page_override_url = session[:return_to_site]
+      end
+    end
+
 
 
     @version = SiteVersion.default

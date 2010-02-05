@@ -250,6 +250,10 @@ class TemplatesController < CmsController # :nodoc: all
   
   
   def display_features_table(display=true)
+
+    active_table_action('feature') do |act,fids|
+      SiteFeature.find(fids).map(&:destroy) if act == 'delete'
+    end
     @tbl = features_table_generate params, :order => 'site_features.category,site_features.name', :include => :site_template
     
     render :partial => 'features_table' if display

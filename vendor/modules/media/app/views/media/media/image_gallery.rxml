@@ -1,0 +1,10 @@
+xml.images do
+  @gallery_images.each do |img|
+    xml.image do
+      xml.title(img.name)
+      xml.src(img.domain_file.url)
+      xml.width(img.domain_file.image_size[0])
+      xml.height(img.domain_file.image_size[1])
+    end
+  end
+end
