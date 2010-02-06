@@ -221,20 +221,20 @@ class DomainModel < ActiveRecord::Base
     alias_method :connection_active_record, :connection # :nodoc:
   end
 
-  @@database_connection_pools = {}
-  def self.connection
-    if  @@database_connection_pools[self.process_id]
-       @@database_connection_pools[self.process_id].connection
-    else
-      connection_active_record
-    end
-  end
+  # @@database_connection_pools = {}
+  # def self.connection
+  #   if  @@database_connection_pools[self.process_id]
+  #      @@database_connection_pools[self.process_id].connection
+  #   else
+  #     connection_active_record
+  #   end
+  # end
   
   def self.activate_database_file(file,environment = 'production',save_connection = true)
     
     delegate_class_name = File.basename(file,'.yml').classify
 
-    if !Object.const_defined?(delegate_class_name)
+    if true # Object.const_defined?(delegate_class_name)
       begin
         db_config_file = YAML.load_file(file)
       rescue 
@@ -242,11 +242,12 @@ class DomainModel < ActiveRecord::Base
       end
       db_config = db_config_file[ environment ]
 
-      cls = Object.const_set(delegate_class_name.to_s, Class.new(ActiveRecord::Base))
-      cls.abstract_class = true
-      cls.establish_connection(db_config)
+      #cls = Object.const_set(delegate_class_name.to_s, Class.new(ActiveRecord::Base))
+      #cls.abstract_class = true
+      #cls.establish_connection(db_config)
+      DomainModel.establish_connection(db_config)
 
-      @@database_connection_pools[self.process_id] = cls
+      #@@database_connection_pools[self.process_id] = cls
       return true
     else
       @@database_connection_pools[self.process_id] = delegate_class_name.constantize
@@ -670,8 +671,8 @@ class DomainModel < ActiveRecord::Base
   def save_with_after_commit(*args) #:nodoc:
     previous_new_record = new_record?
     if result = save_without_after_commit(*args)
-      callback(:after_commit)
-      callback(:after_commit_on_create) if previous_new_record
+      _run_commit_callbacks
+      _run_commit_on_create_callbacks if previous_new_record
     end
     result
   end
@@ -679,13 +680,13 @@ class DomainModel < ActiveRecord::Base
   def save_with_after_commit!(*args)#:nodoc:
     previous_new_record = new_record?
     if result = save_without_after_commit!(*args)
-      callback(:after_commit)
-      callback(:after_commit_on_create) if previous_new_record
+      _run_commit_callbacks
+      _run_commit_on_create_callbacks if previous_new_record
     end
     result
   end
  
   alias_method_chain :save, :after_commit 
   alias_method_chain :save!, :after_commit
-  define_callbacks :after_commit, :after_commit_on_create
+  define_model_callbacks :commit, :commit_on_create, :only => :after
 end

@@ -24,6 +24,6 @@ class EndUserCookie < DomainModel
   end
 
   def self.kill_user_cookies(usr)
-    EndUserCookie.find(:all,:conditions => { :end_user_id => usr.id }).each { |ck| ck.destroy } 
+    EndUserCookie.where({ :end_user_id => usr.id }).all.each { |ck| ck.destroy } if usr.id?
   end
 end

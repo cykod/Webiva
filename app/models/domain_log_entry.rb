@@ -6,7 +6,7 @@ class DomainLogEntry < DomainModel
   belongs_to :end_user_action
   belongs_to :domain_log_session
 
-  named_scope :recent, lambda { |from| from ||= 1.minute.ago; {:conditions => ['occurred_at > ?', from]} }
+  scope :recent, lambda { |from| from ||= 1.minute.ago; {:conditions => ['occurred_at > ?', from]} }
 
   def self.create_entry_from_request(user, site_node, path, request, session, output)
     return nil unless request.session_options

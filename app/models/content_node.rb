@@ -171,7 +171,7 @@ class ContentNode < DomainModel
 
   def title
     if self.content_type
-      node.send(content_type.title_field)
+      tlt = node.send(content_type.title_field)
     else
       "Unknown"
     end

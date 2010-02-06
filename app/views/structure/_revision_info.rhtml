@@ -29,10 +29,10 @@
 <% else -%>
 <% if permit?('editor_structure') %>
 
-  <% remote_form_for :revision_create, info[1],
-      :update => "node_#{@node.id}_#{info[0]}", 
-      :method => 'post', 
-      :url =>  { :action => 'create_revision', :language  => info[0]  } do  |f| -%>
+  <% remote_cms_form_for :revision_create, info[1],
+     :update => "node_#{@node.id}_#{info[0]}",
+     :html => { :class => 'admin_form' },
+     :url =>  { :action => 'create_revision', :language  => info[0]  } do  |f| -%>
     <input type='submit' value='<%= "Create Page".t %>' /> From 
     <%= f.select :from_revision_id, @revision_info.find_all { |inf| inf[1] }.collect { |inf| [ inf[0].upcase, inf[1].id ] } %>
   <% end -%>
@@ -61,10 +61,9 @@
   
   <div id='node_<%= @node.id %>_<%= info[0] %>_edit' style='display:none;'>
   <% remote_cms_form_for :revision_edit, info[1],
-      :update => "node_#{@node.id}_#{info[0]}", 
-      :method => 'post', 
-      :html => { :class => 'admin_form' },
-      :url =>  { :action => 'update_revision', :revision  => info[1].id  } do  |f| -%>
+     :update => "node_#{@node.id}_#{info[0]}",
+     :html => { :class => 'admin_form' },
+     :url =>  { :action => 'update_revision', :revision  => info[1].id  } do  |f| -%>
       <%= render :partial => 'revision_info_table', :locals => { :f => f  } %>
       
     <%= f.header 'Additional Page Options' %>

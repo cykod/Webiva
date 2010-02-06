@@ -10,7 +10,7 @@ class EndUserToken < DomainModel
   belongs_to :target, :polymorphic => true
 
 
-  named_scope :active, :conditions => '(`valid_until` IS NULL OR `valid_until` > NOW()) AND (`valid_at` IS NULL OR `valid_at` < NOW())'
+  scope :active, :conditions => '(`valid_until` IS NULL OR `valid_until` > NOW()) AND (`valid_at` IS NULL OR `valid_at` < NOW())'
 
 
   def name

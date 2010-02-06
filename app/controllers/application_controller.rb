@@ -8,7 +8,6 @@ require 'pp'
 # However
 class ApplicationController < ActionController::Base 
    protect_from_forgery
-   filter_parameter_logging :payment, :contribute
   
   @@domains = {}
   
@@ -155,6 +154,9 @@ class ApplicationController < ActionController::Base
   
   # Activate the appropriate database for the current request
   def activate_domain(domain=nil)
+
+    # modify the params[:path] to be an array
+    params[:path] = params[:path].to_s.split("/")
     
     # Cancel out of domain activations
     # if we are testing
@@ -184,14 +186,12 @@ class ApplicationController < ActionController::Base
       return false
     end
     
-
-    
     # Activate the correct DB connection
     unless DomainModel.activate_domain(dmn_info,'production')
       raise 'Invalid Domain Info:' + dmn_info[:name]
       return false
     end
-    
+
     @cms_domain_info = dmn_info
     
     # Protect against using a session from a different
@@ -203,7 +203,7 @@ class ApplicationController < ActionController::Base
     
     session[:domain_version] = dmn_info[:iteration]
     session[:domain] = domain
-    
+
     set_language
 
     set_timezone

@@ -43,7 +43,7 @@ module StyledFormBuilderGenerator #:nodoc:
             end
             
             @options = self.send(options_func,fld,field,output,options)
-            self.instance_eval(&proc)
+            self.instance_eval(&proc).html_safe
           end
           
         end
@@ -63,17 +63,17 @@ module StyledFormBuilderGenerator #:nodoc:
           name = options[:name] || class_name.underscore 
           
           names = [ [ name, 'form_tag(options.delete(:url) || {}, options.delete(:html) || {})'] ]
-          names << [ 'remote_' + name, 'form_remote_tag(options)' ]  unless display_only || options[:no_remote]
+          names << [ 'remote_' + name, 'form_tag(options.delete(:url) || {},(options[:html]||{}).merge({:onsubmit => "new Ajax.Updater(\'#{options[:update]}\',this.action,{ evalsScripts: true, parameters: Form.serialize(this) }); return false;"}))' ]  unless display_only || options[:no_remote]
           names.each do |nm|
             src = <<-END_SRC 
               def #{nm[0]}_for(object_name,*args,&proc)
                 raise ArgumentError, "Missing block" unless block_given?
                 options = args.last.is_a?(Hash) ? args.pop : {}
-                #{"concat(" + nm[1] + ")" unless display_only}
-                concat('#{pre}')
+                #{"safe_concat(" + nm[1] + ")" unless display_only}
+                safe_concat('#{pre}')
                 fields_for(object_name, *(args << options.merge(:builder => #{class_name})), &proc)
-                concat('#{post.gsub("'","\\'")}')
-                #{"concat('</form>')" unless display_only}
+                safe_concat('#{post.gsub("'","\\'")}')
+                #{"safe_concat('</form>')" unless display_only}
               end
             END_SRC
             StyledFormBuilderGenerator::FormFor.class_eval src, __FILE__, __LINE__
@@ -84,14 +84,15 @@ module StyledFormBuilderGenerator #:nodoc:
             SRC
           end
       end
+          
       
       # Generates fields for, see generate_form_for for more details
       def generate_fields_for(pre='',post='',options = {})
 		    class_name = self.to_s
 		    display_only = options[:display]  || false
 		    name = options[:name] || class_name.underscore
-		    pre_cmd = pre.blank? ? '' : "concat(\"#{pre.gsub(/[\'\"\#]/, '\\\1')}\")"
-		    post_cmd = post.blank? ? '' : "concat(\"#{post.gsub(/[\'\"\#]/, '\\\1')}\")"
+		    pre_cmd = pre.blank? ? '' : "safe_concat(\"#{pre.gsub(/[\'\"\#]/, '\\\1')}\")"
+		    post_cmd = post.blank? ? '' : "safe_concat(\"#{post.gsub(/[\'\"\#]/, '\\\1')}\")"
 		    src = <<-END_SRC 
 			    def #{name}_for(object_name,*args,&proc)
 				    raise ArgumentError, "Missing block" unless block_given?
@@ -218,13 +219,13 @@ module EnhancedFormElements
     def submit_tag(name,options = {}) 
       options[:class] ||= 'submit_button'
       options[:id] ||= object_name.to_s + "_submit"
-      @template.submit_tag(emit_label(name), options)
+      @template.submit_tag(emit_label(name), options).html_safe
     end
     
     # Overrides default by adding a image_submit_button class
     def image_submit_tag(src,options = {})  
       options[:class] ||= 'image_submit_button'
-      @template.image_submit_tag(src, options)
+      @template.image_submit_tag(src, options).html_safe
     end
     
     # Just outputs a string 
@@ -432,7 +433,7 @@ module EnhancedFormElements
        cancel_options[:class] ||= 'cancel_button'
        cancel_options[:name] ||= 'cancel_form'
 
-      @template.submit_tag(emit_label(submit_name),submit_options) + "&nbsp;&nbsp;" + @template.submit_tag(emit_label(cancel_name),cancel_options)
+      @template.submit_tag(emit_label(submit_name),submit_options) + "&nbsp;&nbsp;".html_safe + @template.submit_tag(emit_label(cancel_name),cancel_options)
     end
     
     # Displays a set of buttons, one of which is a submit and the other of which is a button
@@ -447,7 +448,7 @@ module EnhancedFormElements
        cancel_options[:id] ||= "#{object_name}_cancel_button"
        cancel_options[:value] = emit_label(cancel_name)
 
-      @template.tag('input',cancel_options) + "&nbsp;&nbsp;" + @template.submit_tag(emit_label(submit_name),submit_options)
+      @template.tag('input',cancel_options) + "&nbsp;&nbsp;".html_safe + @template.submit_tag(emit_label(submit_name),submit_options)
     end    
     
     # Emits a label - translated and turning newlines into line break
@@ -465,7 +466,7 @@ module EnhancedFormElements
     def output_error_message(label,field)
       return nil unless @object && @object.errors
       begin
-        errs = @object.errors.on(field)
+        errs = @object.errors[field]
       rescue Exception =>e
         raise @object.errors.inspect + errs.inspect
       end
@@ -547,50 +548,50 @@ module TabledFormElements
 
   def section(name=nil,options = { },&block)
     if block_given?
-      @template.concat(tag("tbody",:id => name))
+      @template.safe_concat(tag("tbody",:id => name))
       yield
-      @template.concat("</tbody>")
+      @template.safe_concat("</tbody>")
     else
       output = tag("tbody",:id => name)
       if !options.has_key?(:display) || options[:display]
         output << @template.render(:partial => options[:partial], :locals => options[:locals])
       end
       output << "</tbody>"
-      output
+      output.html_safe
     end
   end
   
   def header(name,options = {})
     cols = (options.delete(:columns) || 1)+1
     description = "<tr><td colspan='#{cols}' class='description'>#{emit_label(options[:description])}</td></tr>" if !options[:description].blank?
-    "<tr><td class='header#{'_description' if description}' colspan='#{cols}'>" + super  + "#{options[:tail]}</td></tr>" + description.to_s
+    ("<tr><td class='header#{'_description' if description}' colspan='#{cols}'>" + super  + "#{options[:tail]}</td></tr>" + description.to_s).html_safe
   end 
   
   def submit_tag(name,options = {})
     cols = (options.delete(:columns) || 1)+1
-    "<tr><td colspan='#{cols}' align='right'>" + super  + "</td></tr>"
+    ("<tr><td colspan='#{cols}' align='right'>" + super  + "</td></tr>").html_safe
   end
   
   def image_submit_tag(name,options ={})
     cols = (options.delete(:columns) || 1)+1
-    "<tr><td colspan='#{cols}' align='right'>" + super  + "</td></tr>"
+    ("<tr><td colspan='#{cols}' align='right'>" + super  + "</td></tr>").html_safe
   end
   
   def submit_cancel_tags(submit_name,cancel_name,submit_options={},cancel_options={})
     cols = (options.delete(:columns) || 1)+1
-    "<tr><td colspan='#{cols}' align='right' nowrap='1'>" + super  + "</td></tr>"
+    ("<tr><td colspan='#{cols}' align='right' nowrap='1'>" + super  + "</td></tr>").html_safe
   end
   
   def cancel_submit_buttons(cancel_name="Cancel",submit_name="Submit",cancel_options={},submit_options={})
     cols = (options.delete(:columns) || 1)+1
-    "<tr><td colspan='#{cols}' align='right' nowrap='1'>" + super  + "</td></tr>"
+   ( "<tr><td colspan='#{cols}' align='right' nowrap='1'>" + super  + "</td></tr>").html_safe
   end
   
   
   def show_error_message(field,label=nil)
    label ||= (field.to_s.humanize).t
    if error_message = output_error_message(emit_label(label),field)
-      "<tr><td></td><td class='error'>#{error_message}</td></tr>"
+     ( "<tr><td></td><td class='error'>#{error_message}</td></tr>").html_safe
     else
       nil
     end
@@ -671,13 +672,13 @@ class TabledForm < StyledForm
       label = options.delete(:label) || field.to_s.humanize
       if vertical
           description = "<tr><td colspan='#{cols+1}' class='description'>#{options[:description]}</td></tr>" if !options[:description].blank?
-	@template.concat("<tr><td colspan='#{cols+1}' class='label_vertical'>" + emit_label(label) + required + '</td></tr>' + error + "<tr><td colspan='#{cols+1}' class='data " + options[:control].to_s + "_control'>")
+	@template.safe_concat("<tr><td colspan='#{cols+1}' class='label_vertical'>" + emit_label(label) + required + '</td></tr>' + error + "<tr><td colspan='#{cols+1}' class='data " + options[:control].to_s + "_control'>")
       else
          description = "<tr><td/><td class='description' colspan='#{cols}'>#{options[:description]}</td></tr>" if !options[:description].blank?
-         @template.concat(error + "<tr><td  class='label' valign='#{valign}' >" + emit_label(label) + required + "</td><td valign='baseline' class='data' colspan='#{cols}'>")
+         @template.safe_concat(error + "<tr><td  class='label' valign='#{valign}' >" + emit_label(label) + required + "</td><td valign='baseline' class='data' colspan='#{cols}'>")
       end
       yield
-      @template.concat("</td></tr>" + description.to_s)
+      @template.safe_concat("</td></tr>" + description.to_s)
     end
   end
 
