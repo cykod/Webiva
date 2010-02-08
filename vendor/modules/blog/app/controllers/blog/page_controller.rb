@@ -3,24 +3,25 @@
 class Blog::PageController < ParagraphController
   
   editor_header "Blog Paragraphs"
-  editor_for :entry_list, :name => 'Blog Entry List',  :features => ['blog_entry_list'],
-                       :inputs => { :type => [ [ :list_type, 'List Type (Category,Tags,Archive)', :path ] ],
-                                    :identifier => [ [ :list_type_identifier, 'Type Identifier - Category, Tag, or Month name', :path ] ],
-                                    :blog => [[ :container, 'Blog Target', :target], [:blog_id,'Blog ID',:path ]]
+  editor_for :entry_list, :name => 'Blog Entry List', :features => ['blog_entry_list'],
+                       :inputs => { :type =>       [[:list_type, 'List Type (Category,Tags,Archive)', :path]],
+                                    :identifier => [[:list_type_identifier, 'Type Identifier - Category, Tag, or Month name', :path]],
+                                    :blog =>       [[:container, 'Blog Target', :target],
+                                                    [:blog_id,'Blog ID',:path]]
                                   },
-                       :output => [ [:category, 'Selected Category', :blog_category_id ]]
+                       :outputs => [[:category, 'Selected Category', :blog_category_id]]
 
   
   editor_for :entry_detail, :name => 'Blog Entry Detail', :features => ['blog_entry_detail'],
-                       :inputs => { :input => [ [ :post_permalink, 'Blog Post Permalink', :path ],
-                                                [ :post, 'Blog Post', :post_id ] ],
-                                    :blog => [ [ :container, 'Blog Target', :target] ]           
+                       :inputs => { :input => [[ :post_permalink, 'Blog Post Permalink', :path ]],
+                                    :blog => [[ :container, 'Blog Target', :target],
+                                              [:blog_id,'Blog ID',:path ]]
                                   },
-                          :outputs => [ [ :content_id, 'Content Identifier', :content ],
-                                        [ :post, 'Blog Post', :post_id ] ]
+                       :outputs => [[:content_id, 'Content Identifier', :content],
+                                    [:post, 'Blog Post', :post_id ]]
 
   editor_for :categories, :name => 'Blog Categories' ,:features => ['blog_categories'],
-                        :inputs => [ [ :category, 'Selected Category', :blog_category_id ]]
+                        :inputs => [[:category, 'Selected Category', :blog_category_id]]
                                     
   def entry_list
       

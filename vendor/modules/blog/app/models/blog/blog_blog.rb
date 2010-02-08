@@ -58,11 +58,11 @@ class Blog::BlogBlog < DomainModel
       return nil,[]
     end
 
-    BlogPost.paginate(page,
-                      :include => [ :active_revision, :blog_categories ],
-                      :order => 'published_at DESC',
-                      :conditions =>   ["blog_posts.status = \"published\" AND blog_posts.published_at < ? AND blog_posts.blog_blog_id=? AND blog_posts.published_at BETWEEN ? AND ?",Time.now,self.id,tm.at_beginning_of_month,tm.at_end_of_month],
-                      :per_page => items_per_page)
+    Blog::BlogPost.paginate(page,
+			    :include => [ :active_revision, :blog_categories ],
+			    :order => 'published_at DESC',
+			    :conditions =>   ["blog_posts.status = \"published\" AND blog_posts.published_at < ? AND blog_posts.blog_blog_id=? AND blog_posts.published_at BETWEEN ? AND ?",Time.now,self.id,tm.at_beginning_of_month,tm.at_end_of_month],
+			    :per_page => items_per_page)
 
   end
 

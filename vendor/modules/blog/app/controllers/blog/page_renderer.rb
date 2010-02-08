@@ -139,17 +139,7 @@ class Blog::PageRenderer < ParagraphRenderer
     # blog posts with the same permalink
     display_string = "#{blog.id}_#{paragraph.id}_#{myself.user_class_id}" 
 
-    if options.blog_post_id.to_i > 0
-
-      entry_id,entry_title,feature_output = Blog::BlogPost.cache_fetch(display_string,options.blog_post_id.to_i) unless editor? 
-
-      if !feature_output
-        entry = blog.blog_posts.find_by_id(options.blog_post_id)
-        entry_id = entry.id if entry
-        entry_title = entry.active_revision.title
-      end
-
-    elsif editor?
+    if editor?
       entry = blog.blog_posts.find(:first,:conditions => ['blog_posts.status = "published" AND blog_blog_id=? ',blog.id])
       entry_id = entry.id if entry
       entry_title = entry.active_revision.title if entry
