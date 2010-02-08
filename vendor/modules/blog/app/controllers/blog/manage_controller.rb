@@ -162,6 +162,7 @@ class Blog::ManageController < ModuleController
      if request.post? && params[:revision]
         @revision.attributes = params[:revision]
         @entry.attributes = params[:entry]
+
         @revision.end_user_id = myself.id
 
         case params[:update_entry][:status]
@@ -174,6 +175,7 @@ class Blog::ManageController < ModuleController
         end
     
         if(@entry.valid? && @revision.valid?)
+	    @entry.save
             @entry.save_revision!(@revision)
 
             @entry.set_categories!(params[:categories])

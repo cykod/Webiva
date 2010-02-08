@@ -77,7 +77,7 @@ describe Blog::PageRenderer, :type => :controller do
 
   it "should be able to list posts with list_type archive" do
     options = {:blog_id => @blog.id}
-    inputs = { :type => [:list_type, 'archive'], :identifier => [:list_type_identifier, 'Jan2010'] }
+    inputs = { :type => [:list_type, 'archive'], :identifier => [:list_type_identifier, 'January2010'] }
     @rnd = generate_page_renderer('entry_list', options, inputs)
 
     Blog::BlogBlog.should_receive(:find_by_id).with(@blog.id).and_return(@blog)
