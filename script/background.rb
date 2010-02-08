@@ -2,6 +2,11 @@
 # TODO: rewrite as a real script with status and all that jazz
 path = File.expand_path(File.dirname(__FILE__))
 
+unless ENV['PATH'].split(File::PATH_SEPARATOR).any? { |p| File.exist?("#{p}/starling") }
+  puts "starling not found in your PATH. Add /var/lib/gems/1.8/bin to your PATH"
+  exit 1
+end
+
 def start_background(path)
  `#{path}/starling.rb`
  `#{path}/workling_client start`

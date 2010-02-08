@@ -171,7 +171,7 @@ class Blog::ManageController < ModuleController
         when 'publish_now' # if we want to publish the article now
           @entry.publish_now
         when 'post_date'
-          @entry.publish(params[:entry_update][:published_at])
+          @entry.publish(params[:entry_update][:published_at].blank? ? Time.now : (params[:entry_update][:published_at]))
         end
     
         if(@entry.valid? && @revision.valid?)
