@@ -54,7 +54,7 @@ class Blog::RssHandler
                :description => @blog.name,
                :link => Configuration.domain_link(@node.node_path),
                :items => []}
-      posts = @blog.blog_posts.find(:all, :conditions => 'published_at < NOW() AND blog_posts.status="published"', :include => :active_revision,
+      posts = @blog.blog_posts.find(:all, :conditions => ['published_at < ? AND blog_posts.status="published"',Time.now], :include => :active_revision,
                                     :order => 'published_at DESC', :limit => limit)
       
       posts.each do |post|

@@ -168,7 +168,7 @@ class Blog::PageFeature < ParagraphFeature
       c.loop_tag('entry', 'recent_entries') do |tag|
 	if ! @recent_posts
 	  limit = (tag.attr['limit'] || 5).to_i
-	  @recent_posts =  Blog::BlogPost.find(:all,:include => [ :active_revision ], :order => 'published_at DESC',:conditions => ['blog_posts.status = "published" AND blog_posts.published_at < NOW() AND blog_blog_id=?',data[:blog_id]], :limit => limit)
+	  @recent_posts =  Blog::BlogPost.find(:all,:include => [ :active_revision ], :order => 'published_at DESC',:conditions => ['blog_posts.status = "published" AND blog_posts.published_at < ? AND blog_blog_id=?',Time.now,data[:blog_id]], :limit => limit)
 	end
 
 	@recent_posts
@@ -179,7 +179,7 @@ class Blog::PageFeature < ParagraphFeature
       c.loop_tag('archive') do |tag|
 	if !@archives
 	  limit = (tag.attr['limit'] || 5).to_i
-	  @archives = Blog::BlogPost.find(:all,:select => "DATE_FORMAT(published_at,'%Y-%m') as date_grouping, COUNT(id) as cnt", :order => 'published_at DESC',:group => 'date_grouping',:conditions => ['blog_posts.status = "published" AND blog_posts.published_at < NOW() AND blog_blog_id=?',data[:blog_id]]).collect do |arch|
+	  @archives = Blog::BlogPost.find(:all,:select => "DATE_FORMAT(published_at,'%Y-%m') as date_grouping, COUNT(id) as cnt", :order => 'published_at DESC',:group => 'date_grouping',:conditions => ['blog_posts.status = "published" AND blog_posts.published_at < ? AND blog_blog_id=?',Time.now,data[:blog_id]]).collect do |arch|
 	    dt = arch.date_grouping.split("-")
 	    { :date => Time.mktime(dt[0].to_i,dt[1].to_i),
 	      :cnt => arch.cnt }
@@ -207,12 +207,12 @@ class Blog::PageFeature < ParagraphFeature
   feature :blog_post_preview, :default_feature => <<-DEFAULT_FEATURE
 <cms:entry>
 <cms:image align='left' size='thumb'/><cms:preview/>
-</cms>
+</cms:entry>
 DEFAULT_FEATURE
 
   def blog_post_preview_feature(data)
-    webiva_renderer(:blog_post_preview) do |c|
-       c.expansion_tag('entry') {  |t| t.locals.entry = data[:entry] }
+    webiva_feature(:blog_post_preview) do |c|
+       c.expansion_tag('entry') { |t| t.locals.entry = data[:entry] }
        blog_entry_tags(c,data)
     end
   end

@@ -74,7 +74,9 @@ class Blog::PageRenderer < ParagraphRenderer
 					       :entries => entries,
 					       :detail_page => detail_page,
 					       :list_page => site_node.node_path,
-					       :pages => pages)
+					       :pages => pages,
+					       :type => list_type,
+					       :identifier => list_type_identifier)
     end
 
     require_css('gallery')
@@ -98,7 +100,10 @@ class Blog::PageRenderer < ParagraphRenderer
 	entry = blog.find_post_by_permalink(conn_id) if conn_id
       end
 
-      cache[:output] = blog_entry_detail_feature(:entry => entry, :list_page => get_list_page, :detail_page => site_node.node_path,:blog => blog)
+      cache[:output] = blog_entry_detail_feature(:entry => entry,
+						 :list_page => get_list_page,
+						 :detail_page => site_node.node_path,
+						 :blog => blog)
       cache[:title] = entry ? entry.title : ''
       cache[:entry_id] = entry ? entry.id : nil
     end
