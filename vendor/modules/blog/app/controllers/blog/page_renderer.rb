@@ -71,7 +71,7 @@ class Blog::PageRenderer < ParagraphRenderer
     if !feature_output
       return render_paragraph :inline => ''  unless blog
 
-      detail_page =  SiteNode.get_node_path(options.detail_page,'#')
+      detail_page =  options.detail_page_url
       if options.include_in_path == 'blog_id'
         detail_page += "/#{blog.id}"
       elsif  options.include_in_path == 'target_id'
@@ -166,7 +166,7 @@ class Blog::PageRenderer < ParagraphRenderer
     set_content_node([ 'Blog::BlogPost',entry_id ])
 
     if !feature_output
-      list_page = SiteNode.get_node_path(options.list_page_id,'#')
+      list_page = options.list_page_url
       if options.include_in_path == 'blog_id'
         list_page += "/#{blog.id}"
       elsif  options.include_in_path == 'target_id'
@@ -201,8 +201,8 @@ class Blog::PageRenderer < ParagraphRenderer
     
       categories = Blog::BlogCategory.find(:all,:conditions => { :blog_blog_id => @options.blog_id }, :order => 'name')
       
-      data = { :list_url => SiteNode.node_path(@options.list_page_id),
-        :detail_url => SiteNode.node_path(@options.detail_page_id),
+      data = { :list_url => @options.list_page_url,
+        :detail_url => @options.detail_page_url,
         :categories => categories, 
         :selected_category => selected_category_name,
         :blog_id => @options.blog_id }

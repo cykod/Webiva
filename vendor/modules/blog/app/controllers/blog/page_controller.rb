@@ -3,6 +3,7 @@
 class Blog::PageController < ParagraphController
   
   editor_header "Blog Paragraphs"
+
   editor_for :entry_list, :name => 'Blog Entry List', :features => ['blog_entry_list'],
                        :inputs => { :type =>       [[:list_type, 'List Type (Category,Tags,Archive)', :path]],
                                     :identifier => [[:list_type_identifier, 'Type Identifier - Category, Tag, or Month name', :path]],
@@ -22,61 +23,67 @@ class Blog::PageController < ParagraphController
 
   editor_for :categories, :name => 'Blog Categories' ,:features => ['blog_categories'],
                         :inputs => [[:category, 'Selected Category', :blog_category_id]]
-                                    
-  def entry_list
-      
-    @blogs = [['---Use Page Connection---'.t,'']] + Blog::BlogBlog.find_select_options(:all,:order=>'name')
-
-    @options = EntryListOptions.new(params[:entry_list] || @paragraph.data)
-      
-    return if handle_module_paragraph_update(@options)
-
-    if @options.blog_id.to_i > 0
-      @categories = [['--All Categories--'.t,nil]] + Blog::BlogCategory.select_options(:conditions => { :blog_blog_id => @options.blog_id })
-    else
-      @categories = [['--All Categories--'.t,nil]] + Blog::BlogCategory.find(:all,:include => :blog_blog).map { |elm| ["#{elm.blog_blog.name} - #{elm.name}",elm.id ] }
-    end
-    @per_page = (1..50).to_a
-    @pages = SiteNode.page_options()
-  end
-
-  
  
   class EntryListOptions < HashModel
-      default_options :blog_id => nil, :items_per_page => 10,:detail_page => nil,:category_id => nil,:include_in_path => nil
+    attributes :blog_id => nil, :items_per_page => 10, :detail_page_id => nil, :include_in_path => nil
       
-      integer_options :blog_id, :items_per_page, :detail_page,:category_id
+    integer_options :blog_id, :items_per_page
+    page_options :detail_page_id
+
+    options_form(fld(:blog_id, :select, :options => :blog_options),
+		 fld(:detail_page_id, :page_selector),
+		 fld(:include_in_path, :select, :options => :include_in_path_options),
+		 fld(:items_per_page, :select, :options => (1..50).to_a)
+		 )
+
+    def blog_options
+      [['---Use Page Connection---'.t,'']] + Blog::BlogBlog.find_select_options(:all,:order=>'name')
+    end
+
+    def include_in_path_options
+      [["Don't include path in target", nil],
+       ["Include Blog ID in detail path", "blog_id"],
+       ["Include Target ID in detail path", "target_id"]]
+    end
   end
     
-
-  def entry_detail
-    @blogs = [['---Use Page Connection---'.t,'']] + Blog::BlogBlog.find_select_options(:all,:order=>'name')
-    @options = EntryDetailOptions.new(params[:entry_detail] || @paragraph.data)
-    return if handle_module_paragraph_update(@options)
-  end
-
   class EntryDetailOptions < HashModel
-      default_options :blog_id => nil, :list_page_id => nil,:include_in_path => nil
+    attributes :blog_id => nil, :list_page_id => nil, :include_in_path => nil
       
-      integer_options :blog_id, :list_page_id
+    integer_options :blog_id
+    page_options :list_page_id
 
-      canonical_paragraph "Blog::BlogBlog", :blog_id, :list_page_id => :list_page_id
+    options_form(fld(:blog_id, :select, :options => :blog_options),
+		 fld(:list_page_id, :page_selector),
+		 fld(:include_in_path, :select, :options => :include_in_path_options)
+		 )
+
+    def blog_options
+      [['---Use Page Connection---'.t,'']] + Blog::BlogBlog.find_select_options(:all,:order=>'name')
+    end
+
+    def include_in_path_options
+      [["Don't include path in target", nil],
+       ["Include Blog ID in detail path", "blog_id"],
+       ["Include Target ID in detail path", "target_id"]]
+    end
   end
   
-  def categories
-    @blogs =  [['---Select Blog---'.t,'']] + Blog::BlogBlog.find_select_options(:all,:order=>'name')
-    @options = CategoriesOptions.new(params[:categories] || @paragraph.data)
-    return if handle_module_paragraph_update(@options)
-    
-    @pages = [['--Select a page--'.t,nil]] + SiteNode.page_options
-  end
-  
-
   class CategoriesOptions < HashModel
-      default_options :blog_id => nil, :list_page_id => nil, :detail_page_id => nil
-      
-      integer_options :blog_id, :list_page_id, :detail_page_id
+    attributes :blog_id => nil, :list_page_id => nil, :detail_page_id => nil
 
-      validates_presence_of :blog_id, :list_page_id, :detail_page_id
+    integer_options :blog_id
+    page_options :list_page_id, :detail_page_id
+
+    validates_presence_of :blog_id, :list_page_id, :detail_page_id
+
+    options_form(fld(:blog_id, :select, :options => :blog_options),
+		 fld(:list_page_id, :page_selector),
+		 fld(:detail_page_id, :page_selector)
+		 )
+
+    def blog_options
+      [['---Select Blog---'.t,'']] + Blog::BlogBlog.find_select_options(:all,:order=>'name')
+    end
   end
 end
