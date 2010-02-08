@@ -656,7 +656,7 @@ block is non-nil
             tag_opts[:onmouseout] = "WebivaMenu.restoreImage(this,'#{object_id}'); " + tag_opts[:onmouseout].to_s
             preload = "<script>WebivaMenu.preloadImage('#{jvh rollover.url(size)}');</script>"
           end
-          img_tag =  tag('img',tag_opts) + preload.to_s
+          img_tag =  tag('img',tag_opts).html_safe + preload.to_s.html_safe
           img_tag = "<div style='float:#{shadow_align}; margin:#{border}; #{attr['style']}'><div style='width:#{img_size[0] + 12}px; float:#{shadow_align};' class='cms_gallery_shadow'><div><p>" + img_tag + "</p></div></div></div>" if shadow
         end
         if tag.single?
@@ -743,10 +743,10 @@ block is non-nil
           frm_opts = opts.delete(:html) || { }
           frm_opts[:method] = 'post'
           html_options = html_options_for_form(options.delete(:url),frm_opts)
-          frm_tag = tag(:form,html_options) + "<CMS:AUTHENTICITY_TOKEN/>" + opts.delete(:code).to_s
+          frm_tag = tag(:form,html_options) + "<CMS:AUTHENTICITY_TOKEN/>".html_safe + opts.delete(:code).to_s.html_safe
           cms_unstyled_fields_for(arg,obj,opts) do |f|
             tag.locals.send("#{frm_obj}=",f)
-            frm_tag + tag.expand + "</form>"
+            frm_tag + tag.expand.html_safe + "</form>".html_safe
           end
         else
           nil
@@ -763,7 +763,7 @@ block is non-nil
         if obj || !block_given?
           cms_unstyled_fields_for(arg,obj,opts) do |f|
             tag.locals.send("#{frm_obj}=",f)
-            opts.delete(:code).to_s + tag.expand
+            opts.delete(:code).to_s.html_safe + tag.expand
           end
         else
           nil
@@ -929,9 +929,9 @@ block is non-nil
       elsif url.is_a?(Hash)
         url_selected = url.delete(:selected)
         url[:class] = selected if selected && url_selected
-        tag('a',attr.merge(options).merge(url),true) + tg.expand + "</a>" 
+        content_tag('a',tg.expand.html_safe,attr.merge(options).merge(url),false)
       else
-        tag('a',attr.merge(options).merge({ :href => url }),true) + tg.expand + "</a>" 
+        content_tag('a', tg.expand.html_safe,attr.merge(options).merge({ :href => url }),false)
       end
     end
     define_value_tag(name_base + "href") do |tg| 

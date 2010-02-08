@@ -439,6 +439,16 @@ class DomainModel < ActiveRecord::Base
  end
 
  
+ def self.validate_on_create(meth)
+   validate Proc.new { |mdl| if mdl.new_record?; mdl.send(meth); end }
+ end
+
+ def self.validate_on_update(meth)
+   validate Proc.new { |mdl| if !mdl.new_record?; mdl.send(meth); end }
+ end
+
+
+
   alias_method :save_active_record, :save # :nodoc:
   
   def save(validate=true) #:nodoc:

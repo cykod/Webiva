@@ -91,7 +91,7 @@ class FileController < CmsController # :nodoc: all
   	
     @file_manager_update = true
   	
-    render :action => 'load_folder'
+    render :action => 'load_folder', :layout => false
   end
 
   def update_icon_sizes

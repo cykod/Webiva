@@ -293,11 +293,11 @@ EOF
         end
         # Add on the Site Feature CSS only if we're in edit mode, otherwise it'll come in on an include
         str = "<style>#{css}</style>" + str if opts[:edit] && css
-        return str
+        return str.html_safe
       elsif cls_name == "ParagraphRenderer::CachedOutput"
-        return paragraph.output
+        return paragraph.output.html_safe
       elsif paragraph.is_a?(String)
-        paragraph
+        paragraph.html_safe
       elsif paragraph.nil?
         "Nil"
         ""
@@ -347,7 +347,7 @@ EOF
           end 
         end 
       end
-      output       
+      output.html_safe   
     end 
   end
   
@@ -406,7 +406,11 @@ EOF
     
     def html(&block)
       self.body.each do |bd|
-        yield bd
+        if bd.is_a?(String)
+          yield bd.html_safe
+        else
+          yield bd
+        end
       end
     end
   end

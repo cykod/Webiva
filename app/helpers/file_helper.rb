@@ -15,9 +15,10 @@ module FileHelper
 
   def filemanager_register_details(file)
     file_info = fm_file_info(file)
-  <<-END_OF_SCRIPT
+    output = <<-END_OF_SCRIPT
       $('details_#{file.id}').file_info = #{file_info.to_json};
   END_OF_SCRIPT
+    output.html_safe
   end
 
   def filemanager_register_file(file,icon_size,select)  
@@ -25,7 +26,7 @@ module FileHelper
     
     file_info = fm_file_info(file)
      file_info['selectable'] = file.file_type_match(select)
-  <<-END_OF_SCRIPT
+    output = <<-END_OF_SCRIPT
     <script>
       $('item_#{file.id}').file_info = #{file_info.to_json};
       $('item_#{file.id}').observe('click',FileEditor.fileClick);
@@ -35,6 +36,7 @@ module FileHelper
       Element.show('item_#{file.id}');
     </script>
   END_OF_SCRIPT
+    output.html_safe
   end
 
 

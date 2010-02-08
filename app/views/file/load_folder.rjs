@@ -6,9 +6,9 @@ page.replace_html 'folder_title', :partial =>  'folder_title', :locals => { :fol
 if @file 
 
   if @file.folder?
-    page.replace_html :file_manager_body, :partial => '/file/details/folder_details', :locals => {:file => @file }
+    page.replace_html :file_manager_body, :partial => '/file/details/folder_details', :locals => {:file => @file }, :layout => false
   else
-    page.replace_html :file_manager_body, :partial => '/file/details/file_details', :locals => {:file => @file }
+    page.replace_html :file_manager_body, :partial => '/file/details/file_details', :locals => {:file => @file }, :layout => false
   end
   page << "$('details_#{@file.id}').file_info = #{fm_file_info(@file).to_json};"
   page << "FileEditor.markSelection(#{@file.id});"

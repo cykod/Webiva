@@ -18,7 +18,7 @@
   <%= v.row 'Files', file.children.count(:conditions => 'file_type != "fld"') %>
   <%= v.row 'Subfolders', file.children.count(:conditions => 'file_type = "fld"') %>
   <%= v.row 'Created', file.created_at.localize(DEFAULT_DATETIME_FORMAT.t) if file.created_at %>
-  <%= v.raw 'Created By', file.creator ? link_to(file.creator.name, :controller => '/members',:action=>'view',:path => [ file.creator_id ]) : h('<Unknown>') %>
+  <%= v.raw('Created By', file.creator ? link_to(file.creator.name, :controller => '/members',:action=>'view',:path => [ file.creator_id ]) : h('<Unknown>')) %>
 <% end -%>
 
 <% end -%>

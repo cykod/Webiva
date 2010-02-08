@@ -12,7 +12,7 @@ class EditController < ModuleController # :nodoc: all
   
   include HtmlExtractor
   include SiteNodeEngine::Controller
-  
+
   permit 'editor_editor'
 
   register_permission_category :paragraph, 'Page Editor', 'Permissions relating to the webiva page editor. Must have the Editor permission to access these permissions.'
@@ -372,7 +372,7 @@ class EditController < ModuleController # :nodoc: all
                     @revision.id,
                     true)
     
-    render :action => 'save_changes'
+    render :action => 'save_changes',:layout => false
   end
   
   def save_changes_and_reload

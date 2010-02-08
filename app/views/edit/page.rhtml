@@ -225,7 +225,7 @@ tinyMCE.init({
 <script>
 
 
-cmsEdit.setEditURL("<%= url_for :controller => 'edit', :action => '' %>");
+cmsEdit.setEditURL("/website/edit/");
 cmsEdit.setPageInfo("<%= @container_arg %>","<%= @page.id %>","<%= @revision.id %>","<%= @revision.language %>",<%= @revision.active %>,<%= @output.css_site_template_id %>,"<%= @goto_page_override_url || @page.node_path %>");
 
 cmsEdit.setParagraphs({
