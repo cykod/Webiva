@@ -35,7 +35,7 @@ class Blog::PageRenderer < ParagraphRenderer
     list_connection_type,list_type = page_connection(:type)
     list_connection_detail,list_type_identifier  = page_connection(:identifier)
 
-    if list_type
+    if list_type && ! editor?
       list_type = list_type.downcase unless list_type.blank?
       unless (['category','tag','archive'].include?(list_type.to_s))
 	raise SiteNodeEngine::MissingPageException.new(site_node, language) if list_type_identifier && site_node.id == @options.detail_page_id
@@ -98,7 +98,7 @@ class Blog::PageRenderer < ParagraphRenderer
 	entry = blog.find_post_by_permalink(conn_id) if conn_id
       end
 
-      cache[:output] = blog_entry_detail_feature(:entry => entry, :list_page => get_list_page, :blog => blog)
+      cache[:output] = blog_entry_detail_feature(:entry => entry, :list_page => get_list_page, :detail_page => site_node.node_path,:blog => blog)
       cache[:title] = entry ? entry.title : ''
       cache[:entry_id] = entry ? entry.id : nil
     end
@@ -129,8 +129,8 @@ class Blog::PageRenderer < ParagraphRenderer
     result = renderer_cache(Blog::BlogBlog, display_string) do |cache|
       @categories = Blog::BlogCategory.find(:all, :conditions => {:blog_blog_id => @options.blog_id}, :order => 'name')
       
-      cache[:output] =  blog_categories_feature(:list_url => @options.list_page_url,
-						:detail_url => @options.detail_page_url,
+      cache[:output] =  blog_categories_feature(:list_page => @options.list_page_url,
+						:detail_page => @options.detail_page_url,
 						:categories => @categories, 
 						:selected_category => selected_category_name,
 						:blog_id => @options.blog_id
