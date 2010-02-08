@@ -25,13 +25,17 @@ class Blog::PageController < ParagraphController
                         :inputs => [[:category, 'Selected Category', :blog_category_id]]
  
   class EntryListOptions < HashModel
-    attributes :blog_id => nil, :items_per_page => 10, :detail_page_id => nil, :include_in_path => nil
-      
+    attributes :blog_id => nil, :items_per_page => 10, :detail_page => nil, :include_in_path => nil
+
+    def detail_page_id
+      self.detail_page
+    end
+
     integer_options :blog_id, :items_per_page
     page_options :detail_page_id
 
     options_form(fld(:blog_id, :select, :options => :blog_options),
-		 fld(:detail_page_id, :page_selector),
+		 fld(:detail_page, :page_selector),
 		 fld(:include_in_path, :select, :options => :include_in_path_options),
 		 fld(:items_per_page, :select, :options => (1..50).to_a)
 		 )
@@ -57,6 +61,8 @@ class Blog::PageController < ParagraphController
 		 fld(:list_page_id, :page_selector),
 		 fld(:include_in_path, :select, :options => :include_in_path_options)
 		 )
+
+    canonical_paragraph "Blog::BlogBlog", :blog_id, :list_page_id => :list_page_id
 
     def blog_options
       [['---Use Page Connection---'.t,'']] + Blog::BlogBlog.find_select_options(:all,:order=>'name')
