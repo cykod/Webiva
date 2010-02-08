@@ -34,12 +34,15 @@ class Blog::PageRenderer < ParagraphRenderer
     # list_type = category, list_type_identifier = something
     list_connection_type,list_type = page_connection(:type)
     list_connection_detail,list_type_identifier  = page_connection(:identifier)
-    
-    list_type = list_type.downcase unless list_type.blank?
-    unless (['category','tag','archive'].include?(list_type.to_s))
-      list_type = nil
+
+    if list_type
+      list_type = list_type.downcase unless list_type.blank?
+      unless (['category','tag','archive'].include?(list_type.to_s))
+	raise SiteNodeEngine::MissingPageException.new(site_node, language) if list_type_identifier && site_node.id == @options.detail_page_id
+	return render_paragraph :text => ''
+      end
     end
-    
+
     if list_type == 'category'
       set_page_connection(:category, list_type_identifier)
     end
@@ -106,6 +109,7 @@ class Blog::PageRenderer < ParagraphRenderer
       set_title(result.title)
       set_content_node(['Blog::BlogPost', result.entry_id])
     else
+      return render_paragraph :text => '' if (['', 'category','tag','archive'].include?(conn_id.to_s)) && site_node.id == @options.list_page_id
       raise SiteNodeEngine::MissingPageException.new( site_node, language ) unless editor?
     end
 
