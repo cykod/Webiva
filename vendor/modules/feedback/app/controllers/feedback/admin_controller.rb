@@ -19,7 +19,8 @@ class Feedback::AdminController < ModuleController
   def self.get_feedback_info
       [
       {:name => "Feedback",:url => { :controller => '/feedback/feedback' } ,:permission => 'feedback_manage', :icon => 'icons/content/feedback.gif' },
-      {:name => "Ratings",:url => { :controller => '/feedback/manage_ratings' } ,:permission => 'feedback_manage', :icon => 'icons/content/feedback.gif' }
+      {:name => "Ratings",:url => { :controller => '/feedback/manage_ratings' } ,:permission => 'feedback_manage', :icon => 'icons/content/feedback.gif' },
+      {:name => "Pingbacks",:url => { :controller => '/feedback/manage_pingbacks' } ,:permission => 'feedback_manage', :icon => 'icons/content/feedback.gif' }
       ]
   end
 

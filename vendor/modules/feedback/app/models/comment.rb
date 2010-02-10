@@ -3,6 +3,7 @@
 class Comment < DomainModel
 
   belongs_to :target, :polymorphic => true
+  belongs_to :source, :polymorphic => true
   
   belongs_to :end_user
 
@@ -19,6 +20,7 @@ class Comment < DomainModel
   named_scope :with_rating, lambda { |r| {:conditions => ['`comments`.rating >= ?', r]} }
   named_scope :for_target, lambda { |type, id| {:conditions => ['`comments`.target_type = ? AND `comments`.target_id = ?', type, id]} }
   named_scope :order_by_posted, lambda { |order| order == 'newest' ? {:order => '`comments`.posted_at DESC'} : {:order => '`comments`.posted_at'} }
+  named_scope :for_source, lambda { |type, id| {:conditions => ['`comments`.source_type = ? AND `comments`.source_id = ?', type, id]} }
 
   def validate
     errors.add_to_base("Captcha is invalid") if self.captcha_invalid

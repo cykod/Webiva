@@ -14,7 +14,7 @@ class FeedbackPingback < DomainModel
   validates_presence_of :content_node_id, :source_uri, :target_uri
 
   belongs_to :content_node
-  belongs_to :comment, :dependent => :destroy
+  has_one :comment, :as => :source, :dependent => :destroy
 
   def self.process_incoming_ping(source_uri, target_uri)
     # make sure target_uri exists on this site
@@ -82,7 +82,7 @@ class FeedbackPingback < DomainModel
     before  = link_i > 0 ? Util::TextFormatter.text_plain_generator(parent.children[0..link_i-1].join) : ''
     after   = (link_i+1) < parent.children.length ? Util::TextFormatter.text_plain_generator(parent.children[link_i+1..-1].join) : ''
 
-    trim_before_text_for(before) + link_node.to_s + trim_after_text_for(after)
+    trim_before_text_for(before) + Util::TextFormatter.text_plain_generator(link_node.to_s) + trim_after_text_for(after)
   end
   
   def trim_before_text_for(text)
@@ -120,6 +120,32 @@ class FeedbackPingback < DomainModel
   def self.valid_host?(target_host)
     domain = DomainModel.active_domain[:name]
     domain == target_host || ('www.' + domain) == target_host
+  end
+
+  def create_comment(myself)
+    return if Comment.for_source(self.class.to_s, self.id).find(:first)
+
+    cm = Comment.create :source => self,
+      :target => self.content_node.node,
+      :posted_at => self.posted_at,
+      :comment => "[...] #{self.excerpt} [...]",
+      :rating => 1,
+      :rated_at => Time.now,
+      :rated_by_user_id => myself.id,
+      :name => self.title,
+      :website => self.source_uri
+
+    if cm.id
+      self.has_comment = true
+      self.save
+    end
+  end
+
+  def self.create_comments(myself, ids)
+    ids.each do |id|
+      pingback = FeedbackPingback.find_by_id(id)
+      pingback.create_comment(myself) if pingback
+    end
   end
 
   class Error < Exception
