@@ -155,7 +155,7 @@ class ContentNode < DomainModel
         
         if type_preload
           cnv.title = node.send(type_preload.title_field)
-          cnv.link = self.content_url_override || type_preload.content_link(node)
+          cnv.link = self.link
           cnv.search_result = type_preload.search_results? ? (self.node.respond_to?(:content_search_results?) ? self.node.send(:content_search_results?) : true ) : false
           cnv.protected_result = type_preload.protected_results? ?  (self.node.respond_to?(:content_protected_results?) ? self.node.send(:content_protected_results?) : true ) : false
         else
@@ -167,6 +167,11 @@ class ContentNode < DomainModel
         cnv.save
       end
     end
+  end
+
+  def link(type_preload = nil)
+    type_preload ||= self.content_type
+    self.content_url_override || type_preload.content_link(node)
   end
 
   def title

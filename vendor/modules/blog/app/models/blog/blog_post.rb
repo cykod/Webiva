@@ -23,6 +23,9 @@ class Blog::BlogPost < DomainModel
 
   has_many :comments, :as => :target
 
+  include Feedback::PingbackSupport
+  send_pingbacks Proc.new { |post| post.active_revision.body_html }, :if => Proc.new { |post| post.published? }
+
   cached_content :update => :blog_blog, :identifier => :permalink
   # Add cached content support, but make sure we update the blog cache element
   

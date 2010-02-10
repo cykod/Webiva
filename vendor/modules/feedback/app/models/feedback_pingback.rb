@@ -32,7 +32,7 @@ class FeedbackPingback < DomainModel
 
     # save the pingback
     pingback.save
-    raise FeedbackPingback::Error.error('Error occurred') if pingback.id.blank?
+    raise FeedbackPingback::Error.error if pingback.id.blank?
 
     pingback
   end
@@ -100,21 +100,21 @@ class FeedbackPingback < DomainModel
 
   def self.get_content_node_for_target(target_uri)
     if target_uri =~ /https?:\/\/(.*?)(\/.*)/
-      raise FeedbackPingback::Error.target_not_found("Invalid host") unless self.valid_host?($1)
-      raise FeedbackPingback::Error.target_not_found("Page not specified") if $2.blank?
+      raise FeedbackPingback::Error.target_not_found unless self.valid_host?($1)
+      raise FeedbackPingback::Error.target_not_found if $2.blank?
 
       content_node_value = ContentNodeValue.find_by_link $2.split("?")[0]
-      raise FeedbackPingback::Error.target_not_found("Missing page") unless content_node_value
+      raise FeedbackPingback::Error.target_not_found unless content_node_value
 
       content_node = ContentNode.find_by_id content_node_value.content_node_id
-      raise FeedbackPingback::Error.target_not_found("Content Node is missing?") unless content_node
+      raise FeedbackPingback::Error.target_not_found unless content_node
 
       raise FeedbackPingback::Error.access_denied if content_node.content_type.protected_results?
 
       return content_node
     end
 
-    raise FeedbackPingback::Error.target_not_found('Malformed target')
+    raise FeedbackPingback::Error.target_not_found
   end
 
   def self.valid_host?(target_host)
@@ -148,9 +148,7 @@ class FeedbackPingback < DomainModel
     end
   end
 
-  class Error < Exception
-    attr_accessor :errno
-
+  class Error < XMLRPC::FaultException
     ERROR = 0
     SOURCE_NOT_FOUND = 16
     SOURCE_MISSING_TARGET = 17
@@ -160,21 +158,44 @@ class FeedbackPingback < DomainModel
     ACCESS_DENIED = 49
     SERVER = 50
 
-    def initialize(message, errno=0)
-      super(message)
-      self.errno = errno
+    def self.error(msg=nil)
+      msg = msg || 'Error'
+      FeedbackPingback::Error.new FeedbackPingback::Error::ERROR, msg
     end
 
-    def self.method_missing(method, *args)
-      msg = args.length > 0 ? args[0] : method.to_s.humanize
-      errno = FeedbackPingback::Error::ERROR
-      begin
-	errno = "FeedbackPingback::Error::#{method.to_s.upcase}".constantize
-      rescue
-	raise
-      end
+    def self.source_not_found(msg=nil)
+      msg = msg || 'The source URL does not exists.'
+      FeedbackPingback::Error.new FeedbackPingback::Error::SOURCE_NOT_FOUND, msg
+    end
 
-      FeedbackPingback::Error.new msg, errno
+    def self.source_missing_target(msg=nil)
+      msg = msg || 'The source does not contain the target URL.'
+      FeedbackPingback::Error.new FeedbackPingback::Error::SOURCE_MISSING_TARGET, msg
+    end
+
+    def self.target_not_found(msg=nil)
+      msg = msg || 'The target URL does not exists.'
+      FeedbackPingback::Error.new FeedbackPingback::Error::TARGET_NOT_FOUND, msg
+    end
+
+    def self.target_invalid(msg=nil)
+      msg = msg || 'The target URL is invalid.'
+      FeedbackPingback::Error.new FeedbackPingback::Error::TARGET_INVALID, msg
+    end
+
+    def self.already_registered(msg=nil)
+      msg = msg || 'Already registered pingback.'
+      FeedbackPingback::Error.new FeedbackPingback::Error::ALREADY_REGISTERED, msg
+    end
+
+    def self.access_denied(msg=nil)
+      msg = msg || 'Access denied to target URL.'
+      FeedbackPingback::Error.new FeedbackPingback::Error::ACCESS_DENIED, msg
+    end
+
+    def self.server(msg=nil)
+      msg = msg || 'Internal server error.'
+      FeedbackPingback::Error.new FeedbackPingback::Error::SERVER, msg
     end
   end
 end

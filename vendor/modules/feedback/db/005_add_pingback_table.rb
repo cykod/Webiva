@@ -19,6 +19,17 @@ class AddPingbackTable < ActiveRecord::Migration
     add_column :comments, :source_type, :string, :limit => 20
 
     add_index :comments, [ :source_type, :source_id ], :name => 'comments_source_index'
+
+    create_table :feedback_outgoing_pingbacks do |t|
+      t.column :content_node_id, :integer
+      t.column :target_uri, :string
+      t.column :accepted, :boolean
+      t.column :sent_at, :datetime
+      t.column :status_code, :integer
+      t.column :status, :string
+    end
+
+    add_index :feedback_outgoing_pingbacks, [:content_node_id, :target_uri], :name => 'feedback_outgoing_pingbacks_content_index'
   end
 
   def self.down
@@ -26,5 +37,7 @@ class AddPingbackTable < ActiveRecord::Migration
 
     remove_column :comments, :source_id
     remove_column :comments, :source_type
+
+    drop_table :feedback_outgoing_pingbacks
   end
 end

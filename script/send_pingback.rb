@@ -9,12 +9,15 @@ target_uri = ARGV[1]
 client = FeedbackPingbackClient.new source_uri, target_uri
 client.pingback_uri = ARGV[2] if ARGV.length > 2
 
-ok, param = client.send_pingback
+begin
+  ok, param = client.send_pingback
 
-if ok then
-  puts "Response: #{param}"
-else
-  puts "Error:"
-  puts param.faultCode 
-  puts param.faultString
+  if ok then
+    puts "Response: #{param}"
+  else
+    puts "Error: #{param.faultCode}"
+    puts param.faultString
+  end
+rescue Exception => e
+  puts "Error: #{e}"
 end
