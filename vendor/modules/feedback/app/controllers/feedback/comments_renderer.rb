@@ -5,7 +5,7 @@ class Feedback::CommentsRenderer < ParagraphRenderer
   features '/feedback/comments_feature'
 
   paragraph :comments
-  paragraph :pingback_auto_discovery, :cache => true
+  paragraph :pingback_auto_discovery
 
   def comments
     @options = paragraph_options(:comments)

@@ -2,8 +2,10 @@
 # Based on http://wiki.github.com/apotonick/pingback_engine/
 #
 
+require 'xmlrpc/server'
 require 'hpricot'
-require 'open-uri'
+require 'net/http'
+require 'uri'
 
 class FeedbackPingback < DomainModel
   @@excerpt_length = 40
@@ -43,19 +45,23 @@ class FeedbackPingback < DomainModel
 
   def process_ping_source
     begin
-      source_html = retrieve_source_content(self.source_uri)
+      source_html = self.class.retrieve_source_content(self.source_uri)
       @parser = parse(source_html)
       raise FeedbackPingback::Error.source_missing_target unless @linking_node = find_linking_node_to(self.target_uri)
-      self.title = parse_title
+      self.title = parse_title || self.source_uri
       self.excerpt = excerpt_content_to(@linking_node, self.target_uri)
-    rescue SocketError, OpenURI::HTTPError => e
+    rescue
       raise FeedbackPingback::Error.source_not_found
     end
   end
 
-  def retrieve_source_content(source_uri)
-    return open(source_uri) if source_uri =~ /^http:\/\//
-    source_uri
+  def self.retrieve_source_content(source_uri)
+    raise 'invalid source uri' unless source_uri =~ /^http:\/\//
+
+    url = URI.parse(source_uri)
+    http = Net::HTTP.start(url.host, url.port)
+    response = http.request_get(url.path)
+    response.body_permitted? ? response.body : ''
   end
   
   def parse(html)
