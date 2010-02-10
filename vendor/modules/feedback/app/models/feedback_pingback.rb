@@ -143,7 +143,7 @@ class FeedbackPingback < DomainModel
       msg = args.length > 0 ? args[0] : method.to_s.humanize
       errno = FeedbackPingback::Error::ERROR
       begin
-	errno = eval("FeedbackPingback::Error::#{method.to_s.upcase}")
+	errno = "FeedbackPingback::Error::#{method.to_s.upcase}".constantize
       rescue
 	raise
       end

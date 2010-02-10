@@ -5,6 +5,7 @@ class Feedback::CommentsRenderer < ParagraphRenderer
   features '/feedback/comments_feature'
 
   paragraph :comments
+  paragraph :pingback_auto_discovery, :cache => true
 
   def comments
     @options = paragraph_options(:comments)
@@ -66,5 +67,13 @@ class Feedback::CommentsRenderer < ParagraphRenderer
     end
     
     render_paragraph :text => result.output
+  end
+
+  def pingback_auto_discovery
+    pingback_server_url = url_for(:controller => '/feedback/pingback', :action => 'index')
+    output = "<link rel=\"pingback\" href=\"#{vh pingback_server_url}\" />"
+    header_html output
+
+    render_paragraph :nothing => true
   end
 end
