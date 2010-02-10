@@ -179,6 +179,7 @@ class Blog::ManageController < ModuleController
             @entry.save_revision!(@revision)
 
             @entry.set_categories!(params[:categories])
+	    @entry.run_pingbacks(@entry.active_revision.body_html) if @entry.published?
 
             redirect_to :action => 'index', :path => @blog.id 
             return 

@@ -1,31 +1,30 @@
 require 'hpricot'
 
 module Feedback::PingbackSupport
-
-  module ClassMethods
-    def send_pingbacks(field, options={})
-      after_save Proc.new { |obj| obj.send(:send_pingbacks, obj.resolve_argument(field), options) }, :if => options [:if]
-      self.send(:include, Feedback::PingbackSupport::InstanceMethods)
+  def run_pingbacks(field, parameters={}) #:nodoc:
+    if field.instance_of?(Symbol)
+      parameters.merge!(:field => field)
+    else
+      parameters.merge!(:html => field)
     end
-    
+    self.run_worker(:send_pingbacks, parameters)
   end
-  
-  def self.append_features(mod) #:nodoc:
-    super
-    mod.extend Feedback::PingbackSupport::ClassMethods
-  end
-  
 
-  module InstanceMethods
-    def send_pingbacks(html, options={}) #:nodoc:
-      node = ContentNode.find_by_node_type_and_node_id(self.class.to_s, self.id)
-      return if node.nil? || node.link.blank?
+  def send_pingbacks(options={}) #:nodoc:
+    html = options.delete(:html)
+    if html.blank?
+      field = options.delete(:field)
+      html = self.send(field) if field
+    end
 
-      parser = Hpricot(html)
-      (parser / :a).each do |link|
-	FeedbackOutgoingPingback.add_pingback(node, link[:href]) if link[:href]
-      end
+    return if html.blank?
+
+    node = ContentNode.find_by_node_type_and_node_id(self.class.to_s, self.id)
+    return if node.nil? || node.link.blank?
+
+    parser = Hpricot(html)
+    (parser / :a).each do |link|
+      FeedbackOutgoingPingback.add_pingback(node, link[:href]) if link[:href]
     end
   end
-
 end
