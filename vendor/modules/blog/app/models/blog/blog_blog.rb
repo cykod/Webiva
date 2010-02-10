@@ -94,4 +94,9 @@ class Blog::BlogBlog < DomainModel
   def before_validation_on_create
     self.content_filter = 'markdown_safe' if self.is_user_blog?
   end
+
+  def send_pingbacks(post)
+    return unless self.trackback? && post.published?
+    post.run_pingbacks(post.active_revision.body_html)
+  end
 end
