@@ -16,9 +16,15 @@ class Feedback::CommentsFeature < ParagraphFeature
       <cms:posted_comment><b>Your comment has been posted</b><br/><br/></cms:posted_comment>
       <cms:comments>
         <cms:comment>
-        Posted by <cms:name/> at <cms:posted_at /><br/>
-        <cms:body/>
-        <cms:not_last><hr/></cms:not_last>
+          <cms:trackback>
+            Trackback from <cms:website_link rel="nofollow" target="_blank"><cms:name/></cms:website_link> at <cms:posted_at /><br/>
+            <cms:body/>
+          </cms:trackback>
+          <cms:no_trackback>
+            Posted by <cms:name/> at <cms:posted_at /><br/>
+            <cms:body/>
+          </cms:no_trackback>
+          <cms:not_last><hr/></cms:not_last>
         </cms:comment>
       </cms:comments>
       <cms:no_comments>
@@ -57,6 +63,8 @@ class Feedback::CommentsFeature < ParagraphFeature
     context.h_tag(base + ':first_name') { |t| t.locals.comment.name.to_s.split(" ")[0] }
     context.value_tag(base + ':body') { |t| t.locals.comment.comment_html.blank? ? simple_format(h(t.locals.comment.comment)) : "<p>#{t.locals.comment.comment_html}</p>" }
     context.date_tag(base + ':posted_at', "%I:%M%p on %B %d %Y".t) { |t| t.locals.comment.posted_at }
+    context.link_tag(base + ':website') { |t| t.locals.comment.website }
+    context.expansion_tag(base + ':trackback') { |t| t.locals.comment.source_type == 'FeedbackPingback' }
   end
 
 end
