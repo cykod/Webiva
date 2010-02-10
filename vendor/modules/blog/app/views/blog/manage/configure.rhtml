@@ -7,6 +7,7 @@
 <%= f.filemanager_folder :folder_id %>
 <%= f.text_field :html_class, :description => 'HTML Class to wrap blog posts in WYSIWYG Editor (optional)' %>
   <%= f.access_control :edit_permission, 'Limit which admins can edit this blog',  :description => 'User must also have Blog Writer permission' %>
+<%= f.check_boxes :trackback, [['Send pingbacks when a post is published.', true]], :label => 'Pingbacks', :single => true %>
 <%= f.submit_tag 'Update' %>
 <% end -%>
 

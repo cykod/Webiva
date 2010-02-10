@@ -9,5 +9,6 @@ class AddedBlogContentFilters < ActiveRecord::Migration
 
   def self.down
     remove_column :blog_blogs, :content_filter
+    remove_column :blog_blogs, :folder_id
   end
 end
