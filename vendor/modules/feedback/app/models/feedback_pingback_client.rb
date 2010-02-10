@@ -1,5 +1,3 @@
-require 'hpricot'
-require 'open-uri'
 require 'xmlrpc/client'
 require 'net/http'
 require 'uri'
@@ -16,21 +14,20 @@ class FeedbackPingbackClient
     return @pingback_uri if @pingback_uri
 
     begin
-      # Check the response header for X-Pingback
       url = URI.parse(self.target_uri)
-      Net::HTTP.start(url.host, url.port) {|http|
-	response = http.head(url.path)
-	@pingback_uri = response['X-Pingback'] if response
-	return @pingback_uri if @pingback_uri
-      }
+      Net::HTTP.start(url.host, url.port) do |http|
+	http.request_get(url.path) do |response|
 
-      # Check for <link rel="pingback" href="..." /> in the body
-      target_html = retrieve_target_content(self.target_uri)
-      parser = Hpricot(target_html)
-      elem = (parser / :link).find do |link|
-	link[:rel] == 'pingback'
+	  # Check the response header for X-Pingback
+	  @pingback_uri = response['X-Pingback'] if response['X-Pingback']
+	  return @pingback_uri if @pingback_uri
+
+	  # Check the page for a pingback <link>
+	  if response.body =~ /<link rel="pingback" href="([^"]+)" ?\/?>/
+	    @pingback_uri = $1.gsub('&amp;', '&').gsub('&lt;', '<').gsub('&gt;', '>').gsub('&quot;', '"')
+	  end
+	end
       end
-      @pingback_uri = elem[:href] if elem
     rescue Exception => e
     end
 
