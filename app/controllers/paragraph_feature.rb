@@ -1096,19 +1096,29 @@ block is non-nil
       output
     end
 
+    # Defines a form and a list of fields that represent the exposed filters
+    # in a publication - should be used only in webiva_custom_feature
+    def define_publication_filter_form_tags(prefix,arg,publication,options={}) 
+      define_button_tag("#{prefix}:submit",:value => 'Search')
+      define_button_tag("#{prefix}:clear",:value => 'Clear',:name => "clear_#{arg}")
+
+      define_form_for_tag(prefix,arg, :local => arg) {  |t|  yield(t)[0] }
+
+      define_publication_filter_fields_tags(prefix,arg,publication,options)
+    end
+
     # Defines a list of fields that represent the exposed filters
     # in a publication - should be used only in webiva_custom_feature
     def define_publication_filter_fields_tags(prefix,arg,publication,options={}) 
-
+      
       if block_given?
-        define_expansion_tag("#{prefix}_search") { |t| yield(t) }
+        define_expansion_tag("#{prefix}_search") { |t| yield(t)[1] }
       else
         define_expansion_tag("#{prefix}_search") { |t| false }
       end
 
+   
       
-      define_button_tag("#{prefix}:submit",:value => 'Search')
-      define_button_tag("#{prefix}:clear",:value => 'Clear',:name => "clear_#{arg}")
       publication.content_publication_fields.each do |fld|
         if !fld.options.filter.blank? && fld.options.filter_options.include?('expose')
           fld.filter_variables.each do |var|
@@ -1636,13 +1646,17 @@ block is non-nil
 
     end
 
+    def define_publication_filter_form_tags(prefix,arg,publication,options={}) #:nodoc
+      define_form_for_tag(prefix)
+      define_button_tag("#{prefix}:submit",:value => 'Search')
+      define_button_tag("#{prefix}:clear",:value => 'Clear',:name => "clear_#{arg}")      
+      define_publication_filter_fields_tags(prefix,arg,publication,options)
+    end
+
     def define_publication_filter_fields_tags(prefix,arg,publication,options={}) #:nodoc:
 
-      define_form_for_tag(prefix)
       define_expansion_tag("#{prefix}_search")
       
-      define_button_tag("#{prefix}:search",:value => 'Search')
-      define_button_tag("#{prefix}:clear",:value => 'Clear',:name => "clear_#{arg}")      
 
       define_field_fields_tag("#{prefix}:fields")
       publication.content_publication_fields.each do |fld|

@@ -23,7 +23,7 @@ class Editor::PublicationController < ParagraphController #:nodoc:all
   def create
    @publication = @paragraph.content_publication
     
-   @options = CreateOptions.new(params[:pub] || @paragraph.data || {})
+   @options = CreateOptions.new(params[:create] || @paragraph.data || {})
    @options.additional_vars(@publication.filter_variables)
    return if handle_paragraph_update(@options)
   
@@ -31,9 +31,19 @@ class Editor::PublicationController < ParagraphController #:nodoc:all
   end
   
   class CreateOptions < HashModel
-      default_options :redirect_page => nil, :options => []
-      validates_presence_of  :redirect_page
-      integer_options :redirect_page
+    default_options :redirect_page_id => nil, :options => [], :success_text => nil, :redirect_page => nil
+    page_options :redirect_page_id
+
+    def redirect_page_id
+      @redirect_page || @redirect_page_id
+    end
+
+    def validate
+      if self.redirect_page_id.blank? && self.success_text.blank?
+        errors.add(:success_text," is blank. Please select a redirect page or enter success text")
+      end
+    end
+    
   end
 
 

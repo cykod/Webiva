@@ -19,7 +19,7 @@
   <% end -%>
   </td>
   <% row[1..-1].each do |elm| %>
-  <td nowrap='1'><%= truncate(elm,20) %></td>
+  <td nowrap='1'><%= truncate(h(elm),:length =>40) %></td>
   <% end -%>
 </tr>
 

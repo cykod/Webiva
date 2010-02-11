@@ -26,8 +26,9 @@ class ContentImportWorker <  Workling::Base #:nodoc:all
     
     content_model = ContentModel.find(args[:content_model_id])
     
-     results[:initialized] = true
+    results[:initialized] = true
     results[:imported] = 0
+    Workling.return.set(args[:uid],results)
     content_model.import_csv(args[:filename],args[:data],:import => true,:deliminator => args[:deliminator]) do |imported,errors|
       results[:imported] += imported
       Workling.return.set(args[:uid],results)

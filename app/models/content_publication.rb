@@ -207,7 +207,7 @@ class ContentPublication < DomainModel
   def filter_form_elements(f)
     output = ""
     self.content_publication_fields.each do |fld|
-      if (fld.data[:options] || []).include?('filter')
+      if (fld.data[:filter] == 'filter' || fld.data[:filter] == 'fuzzy')
         output << fld.filter_options(f)
       end
     end
@@ -273,14 +273,16 @@ class ContentPublication < DomainModel
           end
         end
 
-        if fld.data[:order]
-          if fld.data[:order] == 'asc'
-            filter[:order] << "`#{fld.content_model.table_name}`.`#{fld.content_model_field.field}` ASC"
-          elsif fld.data[:order] == 'desc'
-            filter[:order] << "`#{fld.content_model.table_name}`.`#{fld.content_model_field.field}` DESC"
-          end
+      end
+      if fld.data[:order]
+        if fld.data[:order] == 'asc'
+          filter[:order] << "#{fld.escaped_field} ASC"
+        elsif fld.data[:order] == 'desc'
+          filter[:order] << "#{fld.escaped_field} DESC"
         end
       end
+
+
     end
 
     if(self.content_model.show_tags?)
@@ -348,8 +350,6 @@ class ContentPublication < DomainModel
       filter_output.delete(:select)
     end
     
-
-
     return filter_output
   end
 

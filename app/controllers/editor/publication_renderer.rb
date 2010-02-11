@@ -27,6 +27,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
 
   def create
     publication = paragraph.content_publication
+    @options = paragraph_options(:create)
     
 
     if !editor?
@@ -48,12 +49,11 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
             publication.run_triggered_actions(entry,'create',myself)
           end
           
-          if paragraph.data[:redirect_page]
-            redirect_node = SiteNode.find_by_id(paragraph.data[:redirect_page])
-            if redirect_node
-              redirect_paragraph redirect_node.node_path
-              return
-            end
+          if @options.redirect_page_url
+            return redirect_paragraph @options.redirect_page_url
+          else
+            paragraph_output = form_feature(publication,{:entry => entry, :publication => publication, :submitted => true, :options => @options})
+            return render_paragraph :text => paragraph_output
           end
         end
       else
@@ -63,9 +63,9 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
       end
     end
     
-      require_js('prototype')
-      require_js('overlib/overlib')
-      require_js('user_application')
+    require_js('prototype')
+    require_js('overlib/overlib')
+    require_js('user_application')
     
     content_type = "ContentModel" + publication.content_model_id.to_s
     content_target = "New"

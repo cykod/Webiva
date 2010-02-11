@@ -159,8 +159,7 @@ class ContentImportController < WizardController # :nodoc: all
                                                  :deliminator => @deliminator,
                                                  :data => session[:content_import_wizard][:fields]
                                                 }
-      worker_key =  ContentImportWorker.async_do_work(worker_args)
-      session[:content_import_worker_key] = worker_key
+      session[:content_import_worker_key] =  ContentImportWorker.async_do_work(worker_args)
       # Start a worker that will create any necessary fields
       # and actually import the data
       
@@ -204,12 +203,14 @@ class ContentImportController < WizardController # :nodoc: all
     if session[:content_import_worker_key]
       begin 
         results = Workling.return.get(session[:content_import_worker_key]) || { }
-        @initialized = true
-        @completed = results[:completed]
-        @entries = results[:entries]
-        @imported = results[:imported]
+        logger.error(session[:content_import_worker_key])
+        logger.error(results.inspect)
+        @initialized = results[:initialized] || false
+        @completed = results[:completed] || false
+        @entries = results[:entries] || 0
+        @imported = results[:imported] || 0
 	
-        if @initialized
+        if @initialized && @entries > 0
           @percentage = (@imported.to_f / (@entries.to_i < 1 ? 1 : @entries) *100).to_i
           if @entries < 1
             @entries = 1
@@ -221,7 +222,7 @@ class ContentImportController < WizardController # :nodoc: all
         end
 	
 	if @completed
-          session[:content_import_worker_key]
+          session[:content_import_worker_key] = nil
         end
       rescue Exception => e
         raise e

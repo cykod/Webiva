@@ -189,6 +189,12 @@ module Content
     def content_value(entry)
       entry.send(@model_field.field)
     end 
+
+    # Returns the value of this field, can be overridden manually if necessary
+    # (for more complex or fields for exapmle)
+    def content_export(entry)
+      content_value(entry)
+    end
     
     # Helper method for escaping an html value
     def self.text_value(val,size,options={})
@@ -811,6 +817,12 @@ module Content
   # can be overriden for custom functionality
   def assign(entry,values)
     entry.send("#{@model_field.field}=",values[@model_field.field.to_sym]) if values.has_key?(@model_field.field.to_sym)
+  end
+
+  # Imports a value into the entry, uses assign_value by default
+  # but can be overridden for more complex behavior
+  def content_import(entry,value)
+    assign_value(entry,value)
   end
 
   def default_field_name #:nodoc:

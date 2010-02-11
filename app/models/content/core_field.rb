@@ -250,6 +250,24 @@ class Content::CoreField < Content::FieldHandler
         ''
       end    
     end
+
+    def content_export(entry)
+      domain_file = entry.send(@model_field.field_options['relation_name'])
+      if domain_file
+        domain_file.file_path
+      else
+        ''
+      end    
+    end
+
+    def content_import(entry,value)
+      unless value.blank?
+        domain_file = DomainFile.find_by_file_path(value)
+        if domain_file
+          entry.send("#{@model_field.field}=",domain_file.id)
+        end
+      end
+    end
     
     def modify_entry_parameters(parameters)
       key = @model_field.field

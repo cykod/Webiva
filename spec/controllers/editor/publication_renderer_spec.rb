@@ -70,7 +70,7 @@ describe Editor::PublicationRenderer, :type => :controller do
   end
   
   it "should be able create a new entry" do
-     @rnd = generate_create_renderer(@publication, { :redirect_page => @view_page_node.id })
+     @rnd = generate_create_renderer(@publication, { :redirect_page_id => @view_page_node.id })
      @cm.content_model.delete_all
 
      @cm.content_model.count.should == 0
@@ -82,6 +82,21 @@ describe Editor::PublicationRenderer, :type => :controller do
      @entry.string_field.should == 'Yay!'
      
      @rnd.should redirect_paragraph("/created_entry")
+  end 
+
+  it "should be able create a new entry and display success text" do
+     @rnd = generate_create_renderer(@publication, { :success_text => "Request Submitted" })
+     @cm.content_model.delete_all
+
+     @cm.content_model.count.should == 0
+     
+     @rnd.should_render_feature('form')
+     renderer_post @rnd, { "entry_#{@publication.id}" => { :string_field => 'Yay!' } }
+
+     @cm.content_model.count.should == 1
+     @entry = @cm.content_model.find(:first)
+     @entry.string_field.should == 'Yay!'
+     
   end 
   
   it "should be able to display default create publication form feature" do
@@ -200,7 +215,7 @@ describe Editor::PublicationRenderer, :type => :controller do
        @rnd.should_render_feature('list')
        renderer_get @rnd
     end
- 
+
  end
  
  describe "admin list publication" do

@@ -79,6 +79,10 @@ class ContentPublicationField < DomainModel
     end
   end
 
+  def required?
+     self.content_model_field.required? || self.options.required
+  end
+
   def options
     @options ||= self.content_publication.field_options(self.data)
   end

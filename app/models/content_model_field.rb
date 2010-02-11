@@ -60,6 +60,10 @@ class ContentModelField < DomainModel
   end
 
   def data_field?;  self.module_class.data_field?; end
+
+  def required?
+    self.field_options['required']
+  end
   
   def form_field(f,options={})
     options.symbolize_keys!
@@ -70,7 +74,7 @@ class ContentModelField < DomainModel
     field_size = options.delete(:size).to_i
     field_size = 40 if field_size == 0 
     
-    required = self.field_options['required'] || false
+    required = self.required?
     
     label = options.delete(:label) || self.name
     noun = options.delete(:noun) || label
@@ -126,6 +130,14 @@ class ContentModelField < DomainModel
 
   def content_value(entry)
     self.module_class.content_value(entry)
+  end
+
+  def content_export(entry)
+    self.module_class.content_export(entry)
+  end
+
+  def content_import(entry,value)
+    self.module_class.content_import(entry,value)
   end
   
   def filter_variables

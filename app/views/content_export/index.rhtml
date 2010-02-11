@@ -30,10 +30,9 @@
     },
     
     download: function() {
-      $('export_download').innerHTML = '<%= jh "Starting Download".t %>';
-      openWindow("<%= url_for :action => 'download_file', :path => @content_model.id %>",'Download',40,40,'false','false')
-      setTimeout(Exporter.backToContent,100);
-        
+      $('export_download').innerHTML = '<%= jh "Downloading".t %>';
+      document.location = "<%= url_for :action => 'download_file', :path => @content_model.id %>";
+      setTimeout(Exporter.backToContent,3000);
     },
     
     backToContent: function() {
