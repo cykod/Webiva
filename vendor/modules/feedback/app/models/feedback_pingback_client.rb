@@ -34,11 +34,6 @@ class FeedbackPingbackClient
     @pingback_uri
   end
 
-  def retrieve_target_content(target_uri)
-    return open(target_uri) if target_uri =~ /^http:\/\//
-    target_uri
-  end
-
   def send_pingback
     raise "pingback uri not found" unless self.pingback_uri
 
