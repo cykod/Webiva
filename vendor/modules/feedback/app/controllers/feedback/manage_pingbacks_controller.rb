@@ -7,7 +7,7 @@ class Feedback::ManagePingbacksController < ModuleController
   permit 'feedback_manage' 
   
   include ActiveTable::Controller   
-  active_table :pingback_table, FeedbackPingback,
+  active_table :pingbacks_table, FeedbackPingback,
     [ hdr(:icon, ''),
     :has_comment,
     :source_uri,
@@ -19,7 +19,7 @@ class Feedback::ManagePingbacksController < ModuleController
   
   def pingbacks_table(display = true)
     pingbacks_helper
-    @active_table_output = pingback_table_generate params, :per_page => 20, :order => 'posted_at DESC'
+    @active_table_output = pingbacks_table_generate params, :per_page => 20, :order => 'posted_at DESC'
     render :partial => 'pingbacks_table' if display
   end
 

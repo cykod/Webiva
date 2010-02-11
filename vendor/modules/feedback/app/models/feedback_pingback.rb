@@ -50,6 +50,8 @@ class FeedbackPingback < DomainModel
       raise FeedbackPingback::Error.source_missing_target unless @linking_node = find_linking_node_to(self.target_uri)
       self.title = parse_title || self.source_uri
       self.excerpt = excerpt_content_to(@linking_node, self.target_uri)
+    rescue FeedbackPingback::Error => e
+      raise e
     rescue
       raise FeedbackPingback::Error.source_not_found
     end
@@ -69,7 +71,7 @@ class FeedbackPingback < DomainModel
   end
   
   def parse_title
-    if elem = parser.at(:title)
+    if elem = self.parser.at(:title)
       return Util::TextFormatter.text_plain_generator(elem.inner_html)
     end
 
@@ -77,7 +79,7 @@ class FeedbackPingback < DomainModel
   end
   
   def find_linking_node_to(target_uri)
-    elem = (parser / :a).find do |link|
+    elem = (self.parser / :a).find do |link|
       link[:href] == target_uri
     end
   end
