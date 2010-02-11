@@ -61,9 +61,13 @@ class FeedbackPingback < DomainModel
     raise 'invalid source uri' unless source_uri =~ /^http:\/\//
 
     url = URI.parse(source_uri)
-    http = Net::HTTP.start(url.host, url.port)
-    response = http.request_get(url.path)
-    response.body_permitted? ? response.body : ''
+    Net::HTTP.start(url.host, url.port) do |http|
+      http.request_get(url.path) do |response|
+	response.value
+	return response.body
+      end
+    end
+
   end
   
   def parse(html)

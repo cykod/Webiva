@@ -4,6 +4,17 @@ describe FeedbackPingback do
 
   reset_domain_tables :feedback_pingbacks, :comments, :content_nodes, :content_node_values, :blog_posts
 
+  def fake_response(body)
+    @response = mock :body => body, :value => 200
+    @response
+  end
+
+  def fake_net_http(response)
+    @http = mock
+    @http.should_receive(:request_get).and_yield(response)
+    Net::HTTP.should_receive(:start).and_yield(@http)
+  end
+
   it "should require content, source and target" do
     @comment = FeedbackPingback.new
     @comment.valid?
@@ -26,10 +37,7 @@ describe FeedbackPingback do
 
   it "should process incoming pingback request" do
     link = '/asdf'
-    response = mock :body => 'Test Body', :body_permitted? => true
-    http = mock
-    http.should_receive(:request_get).with(link).and_return(response)
-    Net::HTTP.should_receive(:start).with('test.dev', 80).and_return(http)
+    fake_net_http(fake_response('Test Body'))
     body = nil
     lambda { body = FeedbackPingback.retrieve_source_content("http://test.dev#{link}") }.should_not raise_error
     body.should == 'Test Body'
