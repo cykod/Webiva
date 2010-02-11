@@ -19,8 +19,11 @@ class Editor::PublicationFeature < ParagraphFeature #:nodoc:all
 
     webiva_custom_feature(publication.feature_name,data) do |c|
       c.form_for_tag("form","entry_#{publication.id}",:enctype => data[:multipart] ? 'multipart/form-data' : nil)  do |tag|
-        data[:entry]
+        data[:submitted] ? nil : data[:entry]
       end
+
+      c.expansion_tag('submitted') { |t|  data[:submitted] }
+      c.value_tag('submitted:success_text') { |t| data[:options].success_text}
 
       c.define_tag 'edit_butt' do |tag|
         button_label = tag.single? ?  (pub_options[:button_label].blank?  ? 'Edit' : pub_options[:button_label] ) : tag.expand
@@ -112,8 +115,9 @@ def display_feature(publication,data)
          fld.content_model_field.site_feature_value_tags(c,'entry',:full)
        end
      end
+     
 
-     c.publication_filter_fields_tags("filter","filter_#{paragraph.id}", publication) { |t| [ data[:filter], data[:searching]] }
+     c.publication_filter_form_tags("filter","filter_#{paragraph.id}", publication) { |t| [ data[:filter], data[:searching]] }
      
     c.pagelist_tag('pages') { |t| data[:pages] }
    end

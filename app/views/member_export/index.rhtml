@@ -21,8 +21,8 @@
     
     download: function() {
       $('export_download').innerHTML = '<%= jh "Starting Download".t %>';
-      openWindow("<%= url_for :action => 'download_file'  %>",'Download',40,40,'false','false')
-      setTimeout(Exporter.backToContent,100);
+      document.location = "<%= url_for :action => 'download_file' %>";
+      setTimeout(Exporter.backToContent,3000);
         
     },
     

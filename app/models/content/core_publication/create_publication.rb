@@ -23,27 +23,28 @@ class Content::CorePublication::CreatePublication < Content::PublicationType #:n
   
   
  def default_feature
-    output = "<cms:form>\n"
+    output = "<cms:submitted><cms:success_text/></cms:submitted>\n"
+    output += "<cms:form>\n"
     output += "<table class='styled_table'>\n\n"
     self.content_publication_fields.each do |fld|
       if fld.field_type == 'input' 
         if self.options.form_display == 'vertical'
           output += "<tr class='vertical'>\n"
-          output += "  <td class='label_vertical' colspan='2' >" + fld.label + (fld.content_model_field.field_options['required'] ? "*" : '') + "</td>\n"
+          output += "  <td class='label_vertical' colspan='2' >" + fld.label + (fld.required? ? "*" : '') + "</td>\n"
           output += "</tr>\n"
-          output += "<cms:#{fld.content_model_field.field}_error>\n"
+          output += "<cms:#{fld.content_model_field.feature_tag_name}_error>\n"
           output += "<tr><td colspan='2' class='error'><cms:value/></td></tr>\n"
-          output += "</cms:#{fld.content_model_field.field}_error>\n"
+          output += "</cms:#{fld.content_model_field.feature_tag_name}_error>\n"
           output += "<tr>\n"
-          output += "  <td nowrap='1' class='vertical_data' colspan='2'><cms:#{fld.content_model_field.field}/></td>\n"
+          output += "  <td nowrap='1' class='vertical_data' colspan='2'><cms:#{fld.content_model_field.feature_tag_name}/></td>\n"
           output += "</tr>\n\n"
         else
-          output += "<cms:#{fld.content_model_field.field}_error>\n"
+          output += "<cms:#{fld.content_model_field.feature_tag_name}_error>\n"
           output += "<tr><td></td><td class='error'><cms:value/></td></tr>\n"
-          output += "</cms:#{fld.content_model_field.field}_error>\n"
+          output += "</cms:#{fld.content_model_field.feature_tag_name}_error>\n"
           output += "<tr>\n"
-          output += "  <td nowrap='1' class='label'>" + fld.label + (fld.content_model_field.field_options['required'] ? "*" : '') + "</td>\n"
-          output += "  <td nowrap='1' class='data'><cms:#{fld.content_model_field.field}/></td>\n"
+          output += "  <td nowrap='1' class='label'>" + fld.label + (fld.required? ? "*" : '') + "</td>\n"
+          output += "  <td nowrap='1' class='data'><cms:#{fld.content_model_field.feature_tag_name}/></td>\n"
           output += "</tr>\n"
         end
       end
@@ -71,7 +72,7 @@ class Content::CorePublication::CreatePublication < Content::PublicationType #:n
       if fld.field_type == 'input'
         result <<  fld.form_field(f, :vertical => vertical, :editor => editor).to_s
       elsif fld.field_type == 'value'
-        result << f.custom_field(fld.content_model_field.field, :label => fld.label, :value => fld.content_display(f.object,:preview))
+        result << f.custom_field(fld.content_model_field.feature_tag_name, :label => fld.label, :value => fld.content_display(f.object,:preview))
       end
     end
     unless options[:no_buttons] 

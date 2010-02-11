@@ -299,7 +299,7 @@ class CmsController < ApplicationController
 
   # Sets the current page title and breadcrumbs 
   # in each controller method
-  def cms_page_path(pages,info,menu_js=nil)
+  def cms_page_path(pages,info,menu_js=nil,section=nil)
     ap = self.class.cms_page_path_info
     output_pages = []
     pages.each do |page_name|
@@ -313,7 +313,7 @@ class CmsController < ApplicationController
     end
 
     output_pages << info
-    cms_page_info(output_pages,ap[:section],menu_js)
+    cms_page_info(output_pages,section || ap[:section],menu_js)
   end
   
   # Redirects to another page defined in cms_admin_paths

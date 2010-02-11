@@ -1,13 +1,7 @@
 <div class='cms_form'>
-<h3><%= sprintf("%s Options".t,@publication.name) %></h3>
 
-<% tabled_form_for :pub, @options, 
-          :html => { :id => 'create_entry',
-                     :onsubmit => "cmsEdit.submitParagraphData(this,'#{url_for :action => 'create'}',#{@paragraph.id},#{@paragraph_index}); return false;"
-                   }  do |f| -%>
-<%= f.select :redirect_page, @pages, :label => 'Entry Created Page' %>
+<% paragraph_options_form_for "Create Entry Publication Options",:create do |f| -%>
+<%= f.page_selector :redirect_page, :label => 'Entry Created Page' %>
+<%= f.text_area :success_text, :rows =>10,:cols => 50, :description => 'This text can be displayed when an entry is created in lieu of a redirect'  -%>
 <% end -%>
-<hr/>
-<a class='cms_ajax_link' href='javascript:void(0);' onclick="$('create_entry').onsubmit();"><%= "Update &amp; Close".t %></a>
-<a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.closeBox();'><%= "Cancel".t %></a>
 </div>
