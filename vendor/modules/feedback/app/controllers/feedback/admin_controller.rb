@@ -15,6 +15,8 @@ class Feedback::AdminController < ModuleController
 
   register_handler :webiva, :widget, "Feedback::FeedbackWidget"
 
+  register_handler :webiva, :captcha, 'FeedbackCaptcha'
+
   protected
   def self.get_feedback_info
       [

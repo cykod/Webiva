@@ -47,12 +47,7 @@ class Feedback::CommentsFeature < ParagraphFeature
         c.field_tag('add_comment:website')
         c.field_tag('add_comment:name')
         c.field_tag('add_comment:comment',:control => 'text_area', :rows => 6, :cols => 50)
-
-        if data[:options] &&  data[:options].captcha
-	  c.captcha_tag('add_comment:captcha')
-	else
-	  c.define_tag('add_comment:captcha') { |t| '' }
-	end
+        c.captcha_tag('add_comment:captcha') { |t| data[:captcha] if data[:options].captcha }
 
       c.expansion_tag('posted_comment') { |t| data[:posted_comment] }
     end

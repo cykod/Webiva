@@ -22,7 +22,7 @@ class ApplicationController < ActionController::Base
   hide_action :get_handler_instance, :get_handler_instances, :get_handler_options, :get_handler_values, :get_handlers, :h, :vh, :tag
   hide_action :auto_discovery_link_tag, :cdata_section, :content_tag, :escape_once, :get_handler_info
   hide_action :image_path, :image_tag, :javascript_include_tag, :javascript_path, :jvh, :path_to_image, :path_to_javascript
-  hide_action :path_to_stylesheet, :render_output, :simple_captcha_valid?, :stylesheet_link_tag, :stylesheet_path
+  hide_action :path_to_stylesheet, :render_output, :stylesheet_link_tag, :stylesheet_path
   
   
   before_filter :check_ssl
@@ -331,8 +331,6 @@ class ApplicationController < ActionController::Base
 
     redirect_to(:controller => "/manage/access", :action => "login")
   end
-
-  include SimpleCaptcha::ControllerHelpers
 
   def debug_raise(obj) # :nodoc:
     raise render_to_string(:inline =>  '<%= debug object -%>', :locals => { :object => obj})

@@ -1002,5 +1002,8 @@ HTML
     output += "</div>"
 
   end
-    
+
+  def captcha(field, captcha, options={})
+    captcha.generate(options)
+  end
 end

@@ -31,7 +31,6 @@ ActionController::Routing::Routes.draw do |map|
     :controller => 'public', :action => 'image'
   map.connect '/__fs__/*prefix', :controller => 'public', :action => 'file_store'
     
-  map.simple_captcha '/simple_captcha/:action', :controller => 'simple_captcha'
   map.stylesheet '/stylesheet/*path', :controller => 'public', :action => 'stylesheet'
 
 
