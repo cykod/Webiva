@@ -10,6 +10,9 @@
   <%= link_to(theme_image_tag('icons/table_actions/rating_positive.gif'),'javascript:void(0);',
               :onclick => "Widget.update(#{widget.id},{ pingback_id: #{pingback.id}, pingback_action: 'create'});",
               :title => 'Create Comment') unless pingback.has_comment -%>
+  <%= link_to('[x]','javascript:void(0);',
+              :onclick => "if(confirm('Are you sure you want to permanently delete this pingback?')){Widget.update(#{widget.id},{ pingback_id: #{pingback.id}, pingback_action: 'delete'});}",
+              :title => 'Delete Comment') unless pingback.has_comment -%>
   <%= link_to(theme_image_tag('icons/table_actions/rating_negative.gif'),'javascript:void(0);',
               :onclick => "Widget.update(#{widget.id},{ pingback_id: #{pingback.id}, pingback_action: 'remove'});",
               :title => 'Remove Comment' ) if pingback.has_comment -%> 
