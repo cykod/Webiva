@@ -12,6 +12,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
   paragraph :missing_password
   paragraph :email_list
   paragraph :splash
+  paragraph :view_account
 
   def user_register
 
@@ -163,15 +164,6 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
             @model.save
           end
 
-
-          # Fill a publication if necessary
-          if @options.content_publication.to_i > 0
-            fill_entry(@publication,@entry,@user)
-            if @entry.save
-              @publication.run_triggered_actions(entry,'create',myself)
-            end
-          end
-          
           # run any triggered actions
           paragraph.run_triggered_actions(@user,'action',@user)
 
@@ -643,5 +635,10 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
         redirect_paragraph :site_node => options.splash_page_id
       end
     end   
+  end
+
+  def view_account
+    @user = myself
+    render_paragraph :feature => :view_account
   end
 end

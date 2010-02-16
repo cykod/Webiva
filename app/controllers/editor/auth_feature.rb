@@ -376,6 +376,16 @@ FEATURE
     end
   end
   
+  feature :view_account, :default_feature => <<-FEATURE
+  <cms:user>
+    <cms:name/>
+  </cms:user>
+  FEATURE
 
-
+  def view_account_feature(data)
+    webiva_feature(:view_account,data) do |c|
+      c.expansion_tag('user') { |t| t.locals.user = data[:user] }
+      c.user_details_tags('user') { |t| t.locals.user }
+    end
+  end
 end

@@ -22,7 +22,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
   
   editor_for :email_list, :name => 'Email List Signup', :triggers => [ ['Signed Up','action']], :features => ['email_list']
   editor_for :splash, :name => 'Splash Page'
-
+  editor_for :view_account, :name => 'View Account', :no_options => true
   
   class UserRegisterOptions < HashModel
     
