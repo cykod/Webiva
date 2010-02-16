@@ -25,8 +25,8 @@ class FeedbackCaptcha
   end
 
   def generate(options={})
-    self.generate_phrase (options[:length] || 6).to_i
-    self.controller.send(:render_to_string, :partial => '/feedback/captcha/feedback_captcha', :locals => {:captcha => self, :options => options})
+    self.generate_phrase((options[:length] || 6).to_i)
+    self.controller.send(:render_to_string, :partial => self.partial, :locals => {:captcha => self, :options => options})
   end
 
   def render(options={})
@@ -48,6 +48,10 @@ class FeedbackCaptcha
 
   def url
     "/website/feedback/captcha/image/#{self.captcha_code}"
+  end
+
+  def partial
+    '/feedback/captcha/feedback_captcha'
   end
 
   def generate_phrase(length)

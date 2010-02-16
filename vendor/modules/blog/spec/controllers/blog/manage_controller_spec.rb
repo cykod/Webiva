@@ -98,6 +98,9 @@ describe Blog::ManageController do
   end
 
   it "should be able to create a post and publish it" do
+    Blog::BlogBlog.should_receive(:find).any_number_of_times.and_return(@blog)
+    @blog.should_receive(:send_pingbacks)
+
     assert_difference 'Blog::BlogPost.count', 1 do
       post 'post', :path => [@blog.id], :revision => {:title => 'New Blog Title', :body => 'New Blog Body'}, :update_entry => {:status => 'publish_now'}
     end
@@ -110,6 +113,9 @@ describe Blog::ManageController do
   end
 
   it "should be able to create a post and publish it" do
+    Blog::BlogBlog.should_receive(:find).any_number_of_times.and_return(@blog)
+    @blog.should_receive(:send_pingbacks)
+
     published_at = 1.hour.ago
 
     assert_difference 'Blog::BlogPost.count', 1 do

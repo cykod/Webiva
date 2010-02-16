@@ -947,15 +947,20 @@ block is non-nil
     def define_captcha_tag(name,options={})  #:nodoc:
       define_tag(name) do |t| 
         captcha = yield t
-	return nil unless captcha
-
-	captcha.generate(t.attr.merge(options))
+	if captcha
+	  captcha.generate(t.attr.merge(options))
+	else
+	  nil
+	end
       end
 
       define_value_tag(name+'_error') do |t|
 	captcha = yield t
-	return nil unless captcha
-	captcha.valid? ? nil : (t.attr['message'] || 'Captcha is invalid')
+	if captcha
+	  captcha.valid? ? nil : (t.attr['message'] || 'Captcha is invalid')
+	else
+	  nil
+	end
       end
     end
     
