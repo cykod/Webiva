@@ -8,9 +8,7 @@ class AddPingbackTable < ActiveRecord::Migration
       t.column :excerpt, :text
       t.column :title, :string
       t.column :posted_at,:datetime
-      t.column :has_comment, :boolean
-      t.column :accepted, :boolean, :default => 0
-      t.column :accepted_at,:datetime
+      t.column :has_comment, :boolean, :default => 0
     end
 
     add_index :feedback_pingbacks, :source_uri, :name => 'feedback_pingbacks_source_index'
