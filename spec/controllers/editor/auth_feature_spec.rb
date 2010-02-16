@@ -83,4 +83,13 @@ describe Editor::AuthFeature, :type => :view do
     @output = @feature.email_list_feature(data)
     @output.should include('test@test.dev')
   end
+
+  it "should display view_account feature" do
+    @user = EndUser.new :first_name => 'First', :last_name => 'Last'
+
+    data = { :user => @user }
+  
+    @output = @feature.view_account_feature(data)
+    @output.should include('First Last')
+  end
 end

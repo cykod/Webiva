@@ -1028,5 +1028,17 @@ describe Editor::AuthRenderer, :type => :controller do
       @end_user_tag.should_not be_nil
     end
   end
+
+  describe "View Account Paragraph" do
+    def generate_renderer(data = {})
+      build_renderer('/page','/editor/auth/view_account',data,{})
+    end
+
+    it "should render view account paragraph" do
+      @rnd = generate_renderer
+      @rnd.should_receive(:render_paragraph)
+      renderer_get @rnd
+    end
+  end
 end
 
