@@ -670,7 +670,7 @@ module WebivaFormElements
        <<-JAVASCRIPT
         <span class='data text_field_control'><input type='text' style='width:280px;' id='#{field_id}' name='#{field_name}' class='text_field' value='#{h value}' onkeyup="if($('#{id_field_id}_temp').value != this.value) { $('#{id_field_id}').value=''; $('#{ok_icon_id}').style.visibility='hidden'; }" />
     <input type='hidden' name='#{id_field_name}' value='#{id_value}' id='#{id_field_id}'/>
-    <input type='hidden' value='' id='#{id_field_id}_temp'/>
+    <input type='hidden' value='#{h value}' id='#{id_field_id}_temp'/>
     <img src='#{@template.controller.theme_src('icons/ok.gif')}' id='#{ok_icon_id}' style='#{"visibility:hidden;" unless usr}' /></span>
     <div class='autocomplete' id='#{field_id}_autocomplete' style='display:none;' ></div>
     
