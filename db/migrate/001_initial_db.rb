@@ -62,13 +62,13 @@ class InitialDb < ActiveRecord::Migration
       t.column "email", :string
       t.column "hashed_password", :string
       t.column "name", :string
-      t.column "language", :string
+      t.column "language", :string, :limit => 10
     end
   
     create_table "end_users", :force => true do |t|
       t.column "email", :string
       t.column "hashed_password", :string
-      t.column "language", :string
+      t.column "language", :string, :limit => 10
       t.column "user_class_id", :integer
       t.column "verification_string", :string
       t.column "gender", :string
@@ -78,7 +78,7 @@ class InitialDb < ActiveRecord::Migration
   
     create_table "mail_templates", :force => true do |t|
       t.column "name", :string
-      t.column "language", :string
+      t.column "language", :string, :limit => 10
       t.column "subject", :string
       t.column "body_text", :text
       t.column "body_html", :text
@@ -103,8 +103,8 @@ class InitialDb < ActiveRecord::Migration
       t.column "title", :string, :default => "", :null => false
       t.column "revision", :decimal, :limit => 8, :precision => 8, :scale => 2, :default => 0.0
       t.column "active", :boolean, :default => false, :null => false
-      t.column "language", :string
-      t.column "revision_container_type", :string
+      t.column "language", :string, :limit => 10
+      t.column "revision_container_type", :string, :limit => 100
       t.column "revision_container_id", :integer
       t.column "created_at", :datetime
       t.column "created_by_id", :integer
@@ -115,7 +115,7 @@ class InitialDb < ActiveRecord::Migration
       t.column "note", :text
       t.column "updated_at", :datetime
       t.column "updated_by", :integer
-      t.column "revision_type", :string, :default => "real"
+      t.column "revision_type", :string, :default => "real", :limit => 50
       t.column "created_by_type", :string
       t.column "updated_by_type", :string
       t.column "parent_revision_id", :integer

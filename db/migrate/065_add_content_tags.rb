@@ -1,8 +1,8 @@
 class AddContentTags < ActiveRecord::Migration
   def self.up
     create_table :content_tags do |t|
-      t.string :name
-      t.string :content_type
+      t.string :name, :limit => 128
+      t.string :content_type, :limit => 128
     end
     
     add_index  :content_tags, [ :content_type, :name ], :name => 'content_tags'

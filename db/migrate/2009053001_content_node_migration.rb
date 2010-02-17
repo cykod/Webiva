@@ -8,7 +8,7 @@ class ContentNodeMigration < ActiveRecord::Migration
       t.string :container_type # For multiple Blogs/etc, eg. BlogBlog
       t.integer :container_id # E.g. 1
       t.string :content_name # Eg My Blog
-      t.string :content_type
+      t.string :content_type, :limit => 128
       t.integer :detail_site_node_id
       t.integer :list_site_node_id
       t.string :title_field
@@ -49,9 +49,9 @@ class ContentNodeMigration < ActiveRecord::Migration
     
     
     create_table :linked_content_items, :force => true do |t|
-      t.string :content_type
+      t.string :content_type, :limit => 128
       t.integer :content_id
-      t.string :link_type
+      t.string :link_type, :limit => 128
       t.string :linked_content_type
       t.integer :linked_content_id
     end
