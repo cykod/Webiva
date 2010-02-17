@@ -204,7 +204,11 @@ class Editor::AuthController < ParagraphController #:nodoc:all
 
     def validate
       if self.content_publication_id
-	errors.add(:content_publication_user_field) unless self.content_publication_user_field
+	if self.content_publication_user_field
+	  errors.add(:content_publication_user_field) unless self.publication_field_options.rassoc self.content_publication_user_field
+	else
+	  errors.add(:content_publication_user_field) unless self.content_publication_user_field
+	end
       end
     end
 
@@ -308,6 +312,12 @@ class Editor::AuthController < ParagraphController #:nodoc:all
 
     def publication
       @pub ||= ContentPublication.find_by_id(self.content_publication_id)
+    end
+
+    def publication_options
+      content_model_ids = ContentModelField.find(:all, :conditions => "field_type = 'belongs_to' AND field_module = 'content/core_field'").collect { |fld| fld.content_model_id if fld.relation_class == EndUser }.uniq.compact
+
+      ContentPublication.select_options_with_nil('Publication',:conditions => { :publication_type => 'create', :publication_module => 'content/core_publication', :content_model_id => content_model_ids }) unless content_model_ids.empty?
     end
 
     def publication_field_options
