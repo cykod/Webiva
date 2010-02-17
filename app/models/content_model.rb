@@ -48,7 +48,8 @@ class ContentModel < DomainModel
   end
 
   # Resave all the models to create content nodes
-  def recreate_all_content_nodes #:nodoc
+  # called via a worker
+  def recreate_all_content_nodes(args={ })
     if self.create_nodes?
       self.model_class(true).find_in_batches do |group|
         group.each {  |mdl| mdl.save_content(nil) }
@@ -226,7 +227,7 @@ class ContentModel < DomainModel
   # Given a set of parameters, modifies the attributes as necessary
   # for the fields
   def entry_attributes(parameters)
-    parameters = parameters.clone
+    parameters = parameters ? parameters.clone : { }
     self.content_model_fields.each do |fld|
       fld.modify_entry_parameters(parameters)
     end
