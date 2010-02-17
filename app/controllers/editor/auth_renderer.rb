@@ -13,6 +13,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
   paragraph :email_list
   paragraph :splash
   paragraph :view_account
+  paragraph :user_edit_account
 
   def user_register
 
@@ -27,7 +28,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
     else
       @usr = EndUser.new
       @address = @usr.build_address(:address_name => 'Default Address'.t )
-      @business = @usr.build_address(:address_name => 'Business Address'.t )
+      @business = @usr.build_work_address(:address_name => 'Business Address'.t )
 
       if @options.publication
         @model = @options.publication.content_model.content_model.new
@@ -67,30 +68,10 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       all_valid = false unless @usr.errors.length == 0
      
       # same for address
-      if params[:address] ||  @options.address_required_fields.length > 0
-        @address.attributes = (params[:address]||{}).slice(*@options.available_address_field_list.keys)
-        @address.valid?
-
-        @options.address_required_fields.each do |fld|
-          if @address.send(fld).blank?
-            @address.errors.add(fld,'is missing')
-          end
-        end
-         all_valid = false unless @address.errors.length == 0
-      end
+      all_valid = false unless assign_entry(@address, params[:address], @options.available_address_field_list.keys, @options.address_required_fields)
 
       # same for business address
-      if params[:business] ||  @options.work_address_required_fields.length > 0
-        @business.attributes = (params[:business]||{}).slice(*@options.available_address_field_list.keys)
-        @business.valid?
-
-        @options.work_address_required_fields.each do |fld|
-          if @business.send(fld).blank?
-            @business.errors.add(fld,'is missing')
-          end
-        end
-        all_valid = false unless @business.errors.length == 0
-      end
+      all_valid = false unless assign_entry(@business, params[:business], @options.available_address_field_list.keys, @options.work_address_required_fields)
 
       if @model
         @options.publication.assign_entry(@model,params[:model],renderer_state)
@@ -109,7 +90,6 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       
       if all_valid 
       
-
         # Set a source if we have one        
         if session[:user_referrer]
           @usr.referrer = session[:user_referrer]
@@ -209,7 +189,103 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
     
     render_paragraph :feature => :user_register
   end
-  
+
+  def user_edit_account
+
+    @options = paragraph_options(:user_edit_account)
+
+    if myself.id
+      @usr = myself
+      @address = @usr.address ||  @usr.build_address(:address_name => 'Default Address'.t )
+      @business = @usr.work_address ||  @usr.build_work_address(:address_name => 'Business Address'.t )
+
+      if @options.publication
+	field = @options.content_publication_user_field
+	model_class = @options.publication.content_model.model_class
+        @model = model_class.find(:first, :conditions => {field.to_sym => myself.id}) || model_class.new(field.to_sym => myself.id)
+      end
+    end
+
+    if request.post? && params[:user] && !editor? && myself.id
+      
+      # Assign a slice of params to the user
+      @usr.attributes = params[:user].slice(*(@options.required_fields + @options.optional_fields + @options.always_required_fields).uniq)
+
+      # check everything is valid
+      all_valid = true
+      @usr.valid?
+
+      # go over each required field - add an error if it's missing
+      @options.required_fields.each do |fld|
+        if @usr.send(fld).blank?
+          @usr.errors.add(fld,'is missing')
+        end
+      end
+
+      all_valid = false unless @usr.errors.length == 0
+     
+      # same for address
+      all_valid = false unless assign_entry(@address, params[:address], @options.available_address_field_list.keys, @options.address_required_fields)
+
+      # same for business address
+      all_valid = false unless assign_entry(@business, params[:business], @options.available_address_field_list.keys, @options.work_address_required_fields)
+
+      if @model
+        @options.publication.assign_entry(@model,params[:model],renderer_state)
+        all_valid = false unless @model.errors.length == 0
+      end
+
+      # if there are no errors on anything
+      # save the user,
+
+      @failed = true unless all_valid
+      
+      if all_valid 
+      
+        if params[:address]
+          @address.save
+          @usr.address_id = @address.id
+        end
+
+        if params[:business]
+          @business.save
+          @usr.work_address_id = @business.id
+        end
+
+        # Make sure save is sucessful - will recheck validation and
+        # rescan for uniques
+        if(@usr.save)
+
+          @usr.tag_names_add(@options.add_tags) unless @options.add_tags.blank?
+
+          @address.update_attribute(:end_user_id,@usr.id) if @address.id
+          @business.update_attribute(:end_user_id,@usr.id) if @business.id
+
+          if @options.include_subscriptions.is_a?(Array) && @options.include_subscriptions.length > 0
+            update_subscriptions(@usr,@options.include_subscriptions,params[:subscription])
+          end
+
+	  @model.save if @model
+
+          # run any triggered actions
+          paragraph.run_triggered_actions(@user,'action',@user)
+
+          paragraph_action(@usr.action('/editor/auth/user_edit_account', :identifier => @usr.email))
+
+          if @options.success_page_url
+            redirect_paragraph @options.success_page_url
+            return
+          end
+
+	  flash[:notice] = 'Account Updated'.t
+	  @updated = true
+        end
+      end
+    end
+
+    render_paragraph :feature => :user_edit_account
+  end
+
   def login
     opts = paragraph_options(:login)
 
@@ -640,5 +716,24 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
   def view_account
     @user = myself
     render_paragraph :feature => :view_account
+  end
+
+  protected
+
+  def assign_entry(model, data, available_fields, required_fields)
+    if data || required_fields.length > 0
+      model.attributes = (data||{}).slice(*available_fields)
+      model.valid?
+
+      required_fields.each do |fld|
+	if model.send(fld).blank?
+	  model.errors.add(fld, 'is missing')
+	end
+      end
+
+      model.errors.length == 0
+    else
+      true
+    end
   end
 end

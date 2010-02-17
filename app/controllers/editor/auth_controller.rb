@@ -14,6 +14,8 @@ class Editor::AuthController < ParagraphController #:nodoc:all
 
   editor_for :user_activation, :name => 'User Activation', :feature => 'user_activation', :triggers => [ ['Successful Activation','action'] ]
 
+  editor_for :user_edit_account, :name => 'User Edit Account', :feature => 'user_edit_account', :triggers => [ ['Edit Account','action' ]] 
+
   editor_for :edit_account, :name => 'Edit Account', :triggers => [ ['Edit Profile','action' ]] 
 
  
@@ -69,7 +71,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
         :middle_name => ['Middle Name'.t,:text_field,:middle_name],
         :last_name => ['Last Name'.t,:text_field,:last_name],
         :gender => ['Gender'.t, :radio_buttons, :gender, { :options => [ ['Male'.t,'m'],['Female'.t,'f' ] ] } ],
-        :introduction => ['Introduction'.t, :radio_buttons, :gender, { :options => [ ['Mr.'.t,'Mr.'],['Mrs.'.t,'Mrs' ], ['Ms.'.t, 'Ms'] ] } ],
+        :introduction => ['Introduction'.t, :radio_buttons, :introduction, { :options => [ ['Mr.'.t,'Mr.'],['Mrs.'.t,'Mrs.' ], ['Ms.'.t, 'Ms.'] ] } ],
         :username => [ 'Username'.t,:text_field, :username ],
         :salutation => [ 'Salutation'.t,:text_field, :salutation ]
       }
@@ -94,7 +96,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
     def any_field_list
       flds = available_field_list
       fields = (self.required_fields + self.optional_fields).uniq
-      ['password','password_confirmation','email'].each do |fld|
+      ['password_confirmation','password','email'].each do |fld|
         fields.unshift(fld) if !fields.include?(fld)
       end
       fields.map { |elm| flds[elm.to_sym] ? [ elm.to_sym, flds[elm.to_sym] ] : nil }.compact
@@ -129,7 +131,8 @@ class Editor::AuthController < ParagraphController #:nodoc:all
         :address_2 => [ 'Address (Line 2)'.t, :text_field,:address_2],
         :city => [ 'City'.t, :text_field,:city],
         :state => [ 'State'.t, :select,:state,{ :options => ContentModel.state_select_options } ],
-        :zip => [ 'Zip Code'.t, :text_field,:zip]
+        :zip => [ 'Zip Code'.t, :text_field,:zip],
+	:country => [ 'Country'.t, :country_select, :country]
       }
     end
 
@@ -183,6 +186,134 @@ class Editor::AuthController < ParagraphController #:nodoc:all
     boolean_options :require_acceptance, :login_after_activation
   end
 
+  class UserEditAccountOptions < HashModel
+    
+    # For feature stuff
+    include HandlerActions
+
+    
+    attributes :required_fields => [ ],
+    :optional_fields => [ 'first_name','last_name'],
+    :success_page_id => nil,
+    :include_subscriptions => [], :country => 'United States', :add_tags => '',
+    :work_address_required_fields => [],
+    :address_required_fields => [],
+    :content_publication_id => nil, :content_publication_user_field => nil
+
+    page_options :success_page_id
+
+    def validate
+      if self.content_publication_id
+	errors.add(:content_publication_user_field) unless self.content_publication_user_field
+      end
+    end
+
+    def available_field_list
+      { :email => [ 'Email'.t,:text_field, :email ],
+        :password => [ 'Reset Password'.t, :password_field, :password ],
+        :password_confirmation => [ 'Confirm Password'.t, :password_field, :password_confirmation ],
+        :first_name => ['First Name'.t,:text_field,:first_name],
+        :middle_name => ['Middle Name'.t,:text_field,:middle_name],
+        :last_name => ['Last Name'.t,:text_field,:last_name],
+        :gender => ['Gender'.t, :radio_buttons, :gender, { :options => [ ['Male'.t,'m'],['Female'.t,'f' ] ] } ],
+        :introduction => ['Introduction'.t, :radio_buttons, :introduction, { :options => [ ['Mr.'.t,'Mr.'],['Mrs.'.t,'Mrs.' ], ['Ms.'.t, 'Ms.'] ] } ],
+        :username => [ 'Username'.t,:text_field, :username ],
+        :salutation => [ 'Salutation'.t,:text_field, :salutation ]
+      }
+    end
+
+    def available_optional_field_options
+      opts = available_field_list
+      opts.delete(:email)
+      opts.delete(:password)
+      opts.delete(:password_confirmation)
+      opts.map { |elm| [ elm[1][0],elm[0].to_s ] }.sort
+    end
+
+    def available_field_options
+      available_field_list.to_a.map { |elm| [ elm[1][0],elm[0].to_s ] }.sort
+    end
+
+    def all_field_list
+       available_field_list.to_a
+    end
+
+    def any_field_list
+      flds = available_field_list
+      fields = (self.required_fields + self.optional_fields).uniq
+      ['password_confirmation','password','email'].each do |fld|
+        fields.unshift(fld) if !fields.include?(fld)
+      end
+      fields.map { |elm| flds[elm.to_sym] ? [ elm.to_sym, flds[elm.to_sym] ] : nil }.compact
+    end
+
+    def always_required_fields
+      flds = [ 'email', 'password', 'password_confirmation' ]
+    end
+
+    def required_field_list
+      flds = available_field_list
+      fields = (self.required_fields).uniq
+      ['password_confirmation','password','email'].each do |fld|
+        fields.unshift(fld) if !fields.include?(fld)
+      end
+      fields.map { |elm| flds[elm.to_sym] ? [ elm.to_sym, flds[elm.to_sym] ] : nil }.compact
+    end
+
+    def optional_field_list
+      flds = available_field_list
+      fields = (self.optional_fields).uniq
+      fields.map { |elm| flds[elm.to_sym] ? [ elm.to_sym, flds[elm.to_sym] ] : nil }.compact
+    end
+
+    def available_address_field_list
+      {
+        :company => [ 'Company'.t, :text_field,:company],
+        :phone => [ 'Phone'.t, :text_field,:phone],
+        :fax => [ 'Fax'.t, :text_field,:fax],
+        :address => [ 'Address'.t, :text_field,:address],
+        :address_2 => [ 'Address (Line 2)'.t, :text_field,:address_2],
+        :city => [ 'City'.t, :text_field,:city],
+        :state => [ 'State'.t, :select,:state,{ :options => ContentModel.state_select_options } ],
+        :zip => [ 'Zip Code'.t, :text_field,:zip],
+	:country => [ 'Country'.t, :country_select, :country]
+      }
+    end
+
+    def available_address_field_options(business = false)
+      flds = available_address_field_list
+      if(!business)
+        flds.delete(:company)
+       end
+      flds.to_a.map { |elm| [ elm[1][0],elm[0].to_s ] }.sort
+    end
+
+    def address_field_list
+      hsh = available_address_field_list
+      hsh.delete(:company)
+      hsh.to_a
+    end
+
+    def business_address_field_list
+      available_address_field_list.to_a
+    end
+
+    def content_model
+      if publication
+        @content_mode ||= @pub.conten_model
+      else
+        nil
+      end
+    end
+
+    def publication
+      @pub ||= ContentPublication.find_by_id(self.content_publication_id)
+    end
+
+    def publication_field_options
+      self.publication.content_model.content_model_fields.find(:all, :conditions => "field_type = 'belongs_to' AND field_module = 'content/core_field'").collect { |elm| [elm.name, elm.field] } if self.publication
+    end
+  end
 
   class LoginOptions < HashModel
     default_options :login_type => 'email',:success_page => nil, :forward_login => 'no',:failure_page => nil

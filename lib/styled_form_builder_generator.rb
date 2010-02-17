@@ -213,7 +213,16 @@ module EnhancedFormElements
       return country_options
     end
     
-    
+    def country_select(field,options={})
+      select_options = options.clone
+      priority_countries = select_options.delete(:priority_countries) || ['United States']
+      choices = translated_countries_for_select priority_countries
+      obj_val = @object.send(field) if @object
+      name = "#{@object_name}[#{field}]"
+      opts = @template.options_for_select(choices,obj_val)
+      select_tag(name,opts,select_options)
+    end
+
     # Overrides default by adding a submit_button class
     def submit_tag(name,options = {}) 
       options[:class] ||= 'submit_button'
@@ -774,7 +783,7 @@ class TabledDisplayForm < TabledForm
   def select(field,tag_values,options = {}) #:nodoc:
 	label_option_field(field,tag_values,options)
   end
-  
+
   generate_form_for('<table  class="styled_table">','</table>', :display => true)
   generate_fields_for('<table  class="styled_table">','</table>',:name => 'tabled_display_fields', :display => true)
   
