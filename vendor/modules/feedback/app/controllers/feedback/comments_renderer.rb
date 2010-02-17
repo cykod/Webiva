@@ -5,9 +5,11 @@ class Feedback::CommentsRenderer < ParagraphRenderer
   features '/feedback/comments_feature'
 
   paragraph :comments
+  paragraph :pingback_auto_discovery
 
   def comments
     @options = paragraph_options(:comments)
+    @captcha = WebivaCaptcha.new(self)
 
     if editor?
       @comment = Comment.new
@@ -25,7 +27,7 @@ class Feedback::CommentsRenderer < ParagraphRenderer
 
     logged_in = myself.id ? 'logged_in' : 'anonymous'
     display_string = "_#{content_link[0]}_#{content_link[1]}_#{logged_in}"
-    
+
     result = renderer_cache(Comment, display_string, :skip => true ||  request.post? || @options.captcha) do |cache|
       @comment = Comment.new
       param_str = 'comment_' + paragraph.id.to_s
@@ -38,7 +40,7 @@ class Feedback::CommentsRenderer < ParagraphRenderer
 				 :name => myself.id ? myself.name : params[param_str][:name],
 				 :end_user_id => myself.id)
 
-	  @comment.captcha_invalid = true if @options.captcha && !simple_captcha_valid?
+	  @captcha.validate_object(@comment, :skip => ! @options.captcha)
 	  if @comment.save
 	    target_cls = content_link[0].constantize
 	    if(target_cls && target_cls.respond_to?("comment_posted"))
@@ -66,5 +68,13 @@ class Feedback::CommentsRenderer < ParagraphRenderer
     end
     
     render_paragraph :text => result.output
+  end
+
+  def pingback_auto_discovery
+    pingback_server_url = url_for(:controller => '/feedback/pingback', :action => 'index')
+    output = "<link rel=\"pingback\" href=\"#{vh pingback_server_url}\" />"
+    header_html output
+
+    render_paragraph :nothing => true
   end
 end

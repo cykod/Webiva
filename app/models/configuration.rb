@@ -242,13 +242,17 @@ class Configuration < DomainModel
     :general_activation_template_id => nil,
     :general_activation_url => nil,
     :search_handler => nil,
-    :site_timezone => nil
+    :site_timezone => nil,
+    :captcha_handler => nil
 
     integer_options :default_image_location, :gallery_folder,:user_image_folder, :missing_image_id, :missing_male_image_id, :missing_female_image_id
 
     def validate #:nodoc:
        if !search_handler.blank?
          self.errors.add(:search_handler,'is not valid') unless get_handler_values(:webiva,:search).include?(search_handler)
+       end
+       if !captcha_handler.blank?
+         self.errors.add(:captcha_handler,'is not valid') unless get_handler_values(:webiva,:captcha).include?(captcha_handler)
        end
     end
   end

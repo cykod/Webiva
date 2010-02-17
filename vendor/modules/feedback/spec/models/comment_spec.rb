@@ -31,10 +31,4 @@ describe Comment do
     @comment.name = @user.name
   end
 
-  it "if captcha_invalid is invalid do not save comment" do
-    @comment = Comment.new :name => 'Test', :comment => 'Test Comment', :target_type => 'test', :target_id => 1, :captcha_invalid => true
-    @comment.save.should_not be_true
-    @comment.should have(1).error
-  end
-
 end

@@ -4,7 +4,8 @@
 class Blog::BlogBlog < DomainModel
 
   validates_presence_of :name
-  
+  validates_presence_of :content_filter
+
   belongs_to :target, :polymorphic => true
 
   has_many :blog_posts, :dependent => :destroy
@@ -57,11 +58,11 @@ class Blog::BlogBlog < DomainModel
       return nil,[]
     end
 
-    BlogPost.paginate(page,
-                      :include => [ :active_revision, :blog_categories ],
-                      :order => 'published_at DESC',
-                      :conditions =>   ["blog_posts.status = \"published\" AND blog_posts.published_at < ? AND blog_posts.blog_blog_id=? AND blog_posts.published_at BETWEEN ? AND ?",Time.now,self.id,tm.at_beginning_of_month,tm.at_end_of_month],
-                      :per_page => items_per_page)
+    Blog::BlogPost.paginate(page,
+			    :include => [ :active_revision, :blog_categories ],
+			    :order => 'published_at DESC',
+			    :conditions =>   ["blog_posts.status = \"published\" AND blog_posts.published_at < ? AND blog_posts.blog_blog_id=? AND blog_posts.published_at BETWEEN ? AND ?",Time.now,self.id,tm.at_beginning_of_month,tm.at_end_of_month],
+			    :per_page => items_per_page)
 
   end
 
@@ -84,5 +85,18 @@ class Blog::BlogBlog < DomainModel
 
   def content_type_name
     "Blog"
+  end
+
+  def self.filter_options
+    ContentFilter.filter_options
+  end
+
+  def before_validation_on_create
+    self.content_filter = 'markdown_safe' if self.is_user_blog?
+  end
+
+  def send_pingbacks(post)
+    return unless self.trackback? && post.published?
+    post.run_pingbacks(post.active_revision.body_html)
   end
 end

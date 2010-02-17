@@ -23,6 +23,8 @@ class Blog::BlogPost < DomainModel
 
   has_many :comments, :as => :target
 
+  include Feedback::PingbackSupport
+
   cached_content :update => :blog_blog, :identifier => :permalink
   # Add cached content support, but make sure we update the blog cache element
   

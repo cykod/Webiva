@@ -11,16 +11,18 @@ class Blog::BlogPostRevision < DomainModel
   has_domain_file :domain_file_id
   has_domain_file :media_file_id
   
-  def before_save
-    if self.blog_post.blog_blog.is_user_blog?
-        self.preview_html = ae_some_html(Hpricot(self.preview.to_s).to_html)
-        self.body_html = ae_some_html(Hpricot(self.body.to_s).to_html)
-    else
-      self.body_html = Hpricot(self.body.to_s).to_html
-      self.preview_html = self.preview
-    end
+  apply_content_filter(:body => :body_html)  do |revision|
+    { :filter => revision.blog_post.blog_blog.content_filter,
+      :folder_id => revision.blog_post.blog_blog.folder_id
+    }
   end
-  
+
+  apply_content_filter(:preview => :preview_html)  do |revision|
+    { :filter => revision.blog_post.blog_blog.content_filter,
+      :folder_id => revision.blog_post.blog_blog.folder_id
+    }
+  end
+
   def body_content
     self.body_html.blank? ? self.body : self.body_html
   end

@@ -17,13 +17,15 @@ describe Blog::BlogBlog do
     @blog.should_not be_valid
   end
   
-  it "blog should be createable with just a name" do
+  it "blog should be createable with just a name and filter" do
     @blog.name = "Test Blog"
+    @blog.content_filter = 'full_html'
     @blog.should be_valid
   end
   
   it "blog should create a content type if its not a user blog" do
     @blog.name = "Test Blog"
+    @blog.content_filter = 'full_html'
     lambda {
       @blog.save
     }.should change { ContentType.count  }.by(1)
@@ -37,7 +39,11 @@ describe Blog::BlogBlog do
     ct.title_field.should == 'title'
   end
   
-  
-  
+  it "should change the content_filter to markdown_safe for user blogs" do
+    @blog.name = 'Test Blog'
+    @blog.is_user_blog = true
+    @blog.save.should be_true
+    @blog.content_filter.should == 'markdown_safe'
+  end
 
 end

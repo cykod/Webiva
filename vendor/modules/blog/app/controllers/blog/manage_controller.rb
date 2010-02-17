@@ -6,7 +6,7 @@ class Blog::ManageController < ModuleController
 
   permit 'blog_config', :only => [ :configure, :delete ]
 
-  before_filter :check_view_permission, :except => [ :configure, :delete  ]
+  before_filter :check_view_permission, :except => [ :configure, :delete, :display_blog_list_table, :list ]
 
   component_info 'Blog'
   
@@ -18,13 +18,13 @@ class Blog::ManageController < ModuleController
    include ActiveTable::Controller   
    active_table :post_table,
                 Blog::BlogPost,
-                [ ActiveTable::IconHeader.new('', :width=>10),
-                  ActiveTable::StringHeader.new('blog_post_revisions.title',:label => 'Post Title'),
-                  ActiveTable::OptionHeader.new('blog_posts.status',:label => 'Status',:options => Blog::BlogPost.status_select_options ),
-                  ActiveTable::DateRangeHeader.new('blog_posts.published_at',:label => 'Published At',:datetime => true ),
-                  ActiveTable::StringHeader.new('blog_posts.permalink',:label => 'Permalink'),
-                  ActiveTable::DateRangeHeader.new('blog_posts.updated_at',:label => 'Updated At',:datetime => true ),
-                  ActiveTable::OptionHeader.new('blog_posts_categories.blog_category_id', :label => 'Category', :options => :generate_categories, :display => 'select' )
+                [ hdr(:icon, '', :width=>10),
+                  hdr(:string, 'blog_post_revisions.title', :label => 'Post Title'),
+                  hdr(:options, 'blog_posts.status', :label => 'Status', :options => Blog::BlogPost.status_select_options ),
+                  :published_at,
+                  :permalink,
+                  :updated_at,
+                  hdr(:options, 'blog_posts_categories.blog_category_id', :label => 'Category', :options => :generate_categories, :display => 'select' )
                 ]
                 
   def self.mail_manager_generator_handler_info
@@ -36,12 +36,13 @@ class Blog::ManageController < ModuleController
   
   active_table :generate_post_table,
                 Blog::BlogPost,
-                [ ActiveTable::IconHeader.new('', :width=>20),
-                  ActiveTable::StringHeader.new('blog_blogs.name',:label=> 'Blog'),
-                  ActiveTable::StringHeader.new('blog_post_revisions.title',:label => 'Post Title'),
-                  ActiveTable::DateRangeHeader.new('blog_posts.published_at',:label => 'Published At',:datetime => true ),
-                  ActiveTable::DateRangeHeader.new('blog_posts.update_at',:label => 'Updated At',:datetime => true )
+                [ hdr(:icon, '', :width=>20),
+                  hdr(:string, 'blog_blogs.name', :label=> 'Blog'),
+                  hdr(:string, 'blog_post_revisions.title', :label => 'Post Title'),
+                  :published_at,
+                  :updated_at
                 ]
+
   def display_generate_post_table(display=true)
     
       @tbl = generate_post_table_generate params, :order => 'blog_posts.published_at DESC',:joins => [ :active_revision, :blog_blog ]
@@ -55,7 +56,7 @@ class Blog::ManageController < ModuleController
   end
   
   def generate_mail_generate
-    @post = Blog::BlogPost.find_by_id(params[:post_id],:include => :active_revision)
+    @post = @blog.blog_posts.find(params[:post_id],:include => :active_revision)
 
     @align = params[:opts][:align] == 'left' ? 'left' : 'right'
     @padding = params[:opts][:align] == 'left' ? 'padding:0 10px 10px 0;' : 'padding:0 0 10px 0px;'
@@ -80,8 +81,6 @@ class Blog::ManageController < ModuleController
   end
 
   def post_table(display=true)
-     @blog = Blog::BlogBlog.find(params[:path][0]) unless @blog
-
       if(request.post? && params[:table_action] && params[:post].is_a?(Hash)) 
       
       case params[:table_action]
@@ -109,29 +108,26 @@ class Blog::ManageController < ModuleController
   end
 
   def index 
-     @blog = Blog::BlogBlog.find(params[:path][0])
      blog_path(@blog)
   
      post_table(false)
   end
   
   def mail_template
-     @blog = Blog::BlogBlog.find(params[:path][0])
      @entry = @blog.blog_posts.find(params[:path][1],:include => :active_revision) 
      
      
      @mail_template = MailTemplate.create(:name => @blog.name + ":" + @entry.active_revision.title, 
-                                       :subject => @entry.active_revision.title,
-                                       :body_html => @entry.active_revision.body,
-                                       :generate_text_body => true,
-                                       :body_type => 'html,text')
+					  :subject => @entry.active_revision.title,
+					  :body_html => @entry.active_revision.body,
+					  :generate_text_body => true,
+					  :body_type => 'html,text')
                                        
     redirect_to :controller => '/mail_manager',:action => 'edit_template', :path => @mail_template.id
   
   end
 
   def post
-     @blog = Blog::BlogBlog.find(params[:path][0])
      @entry = @blog.blog_posts.find(params[:path][1],:include => :active_revision) if params[:path][1]
 
       @header = <<-EOF
@@ -166,6 +162,7 @@ class Blog::ManageController < ModuleController
      if request.post? && params[:revision]
         @revision.attributes = params[:revision]
         @entry.attributes = params[:entry]
+
         @revision.end_user_id = myself.id
 
         case params[:update_entry][:status]
@@ -178,9 +175,11 @@ class Blog::ManageController < ModuleController
         end
     
         if(@entry.valid? && @revision.valid?)
+	    @entry.save
             @entry.save_revision!(@revision)
 
             @entry.set_categories!(params[:categories])
+	    @blog.send_pingbacks(@entry)
 
             redirect_to :action => 'index', :path => @blog.id 
             return 
@@ -204,8 +203,6 @@ class Blog::ManageController < ModuleController
   end
 
   def add_category
-      @blog = Blog::BlogBlog.find(params[:path][0])
-
       @category = @blog.blog_categories.create(:name => params[:name])
 
       if @category.id
@@ -244,13 +241,12 @@ class Blog::ManageController < ModuleController
                 Blog::BlogBlog,
                 [ :check,
                   hdr(:string,'blog_blogs.name',:label=> 'Blog'),
-                  hdr(:date_range,'blog_blogs.created_at',:label => 'Created At',:datetime => true )
+                  :created_at
                 ]
   
   def display_blog_list_table(display=true)
-  
     active_table_action('blog') do |act,bids|
-      Blog::BlogBlog.destroy(bids) if bids
+      Blog::BlogBlog.destroy(bids) if act == 'delete'
     end
   
     @tbl = blog_list_table_generate params, :order => 'blog_blogs.created_at DESC', :conditions => ['is_user_blog=1']
@@ -258,8 +254,8 @@ class Blog::ManageController < ModuleController
   end
   
   def list
-    cms_page_path ['Content'],'Site Blogs'
-    display_blog_list_table(false) 
+    cms_page_path ['Content'], 'Site Blogs'
+    display_blog_list_table(false)
   end
   
   protected
