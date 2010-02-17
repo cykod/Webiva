@@ -193,14 +193,18 @@ class Editor::AuthController < ParagraphController #:nodoc:all
 
     
     attributes :required_fields => [ ],
+    :user_class_id => nil,  :modify_profile => 'keep', :mail_template_id => nil,
     :optional_fields => [ 'first_name','last_name'],
     :success_page_id => nil,
     :include_subscriptions => [], :country => 'United States', :add_tags => '',
     :work_address_required_fields => [],
     :address_required_fields => [],
-    :content_publication_id => nil, :content_publication_user_field => nil
+    :content_publication_id => nil, :content_publication_user_field => nil,
+    :access_token_id => nil
 
     page_options :success_page_id
+
+    validates_presence_of :user_class_id
 
     def validate
       if self.content_publication_id

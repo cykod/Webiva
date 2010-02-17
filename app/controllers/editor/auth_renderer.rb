@@ -27,8 +27,8 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       @registered = true
     else
       @usr = EndUser.new
-      @address = @usr.build_address(:address_name => 'Default Address'.t )
-      @business = @usr.build_work_address(:address_name => 'Business Address'.t )
+      @address = @usr.build_address(:address_name => 'Default Address'.t, :country => @options.country )
+      @business = @usr.build_work_address(:address_name => 'Business Address'.t, :country => @options.country )
 
       if @options.publication
         @model = @options.publication.content_model.content_model.new
@@ -145,7 +145,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
           end
 
           # run any triggered actions
-          paragraph.run_triggered_actions(@user,'action',@user)
+          paragraph.run_triggered_actions(@usr,'action',@usr)
 
           # send mail template if we have one
           if @options.registration_template_id.to_i > 0 && @mail_template = MailTemplate.find_by_id(@options.registration_template_id)
@@ -196,8 +196,8 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
 
     if myself.id
       @usr = myself
-      @address = @usr.address ||  @usr.build_address(:address_name => 'Default Address'.t )
-      @business = @usr.work_address ||  @usr.build_work_address(:address_name => 'Business Address'.t )
+      @address = @usr.address ||  @usr.build_address(:address_name => 'Default Address'.t, :country => @options.country )
+      @business = @usr.work_address ||  @usr.build_work_address(:address_name => 'Business Address'.t, :country => @options.country )
 
       if @options.publication
 	field = @options.content_publication_user_field
@@ -210,6 +210,9 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       
       # Assign a slice of params to the user
       @usr.attributes = params[:user].slice(*(@options.required_fields + @options.optional_fields + @options.always_required_fields).uniq)
+      unless @usr.editor?
+	@usr.user_class_id = @options.user_class_id if @usr.user_class_id.blank? || @options.modify_profile == 'modify'
+      end
 
       # check everything is valid
       all_valid = true
@@ -239,7 +242,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       # save the user,
 
       @failed = true unless all_valid
-      
+
       if all_valid 
       
         if params[:address]
@@ -267,8 +270,18 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
 
 	  @model.save if @model
 
+	  if @options.access_token_id
+	    tkn = AccessToken.find_by_id(@options.access_token_id)
+	    @usr.add_token!(tkn) if tkn
+	  end
           # run any triggered actions
-          paragraph.run_triggered_actions(@user,'action',@user)
+          paragraph.run_triggered_actions(@usr,'action',@usr)
+
+	  # send mail template if we have one
+          if @options.mail_template_id.to_i > 0 && @mail_template = MailTemplate.find_by_id(@options.mail_template_id)
+            vars = {}
+            @mail_template.deliver_to_user(@usr,vars)
+          end
 
           paragraph_action(@usr.action('/editor/auth/user_edit_account', :identifier => @usr.email))
 
@@ -283,6 +296,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       end
     end
 
+    @reset_password = flash['reset_password']
     render_paragraph :feature => :user_edit_account
   end
 
@@ -726,8 +740,8 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       model.valid?
 
       required_fields.each do |fld|
-	if model.send(fld).blank?
-	  model.errors.add(fld, 'is missing')
+	if model.send(fld.to_sym).blank?
+	  model.errors.add(fld.to_sym, 'is missing')
 	end
       end
 

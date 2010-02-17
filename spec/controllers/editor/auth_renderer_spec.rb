@@ -118,6 +118,85 @@ describe Editor::AuthRenderer, :type => :controller do
     
   end
 
+  describe "User Edit Account Paragraph" do
+    before(:each) do
+      mock_user
+    end
+
+    def generate_renderer(data = {})
+      # Set a user class b/c we need one
+      build_renderer('/page','/editor/auth/user_edit_account',data,{})
+    end
+    
+    it "should be able to view the default user edit paragraph" do
+      @rnd = generate_renderer
+      @rnd.should_render_feature("user_edit_account")
+      renderer_get @rnd 
+    end
+
+    it "should require a valid email" do
+      @rnd = generate_renderer
+
+      renderer_post @rnd, :user => { :email => "", :password => "", :password_confirmation => "" }
+
+      @myself.should have(1).error_on(:email)
+    end
+
+    it "should be able to change a user's  email and password" do
+      @rnd = generate_renderer()
+
+      renderer_post @rnd, :user => { :email => "test@webiva.com", :password => "test", :password_confirmation => "test" }
+
+      @myself.email.should == 'test@webiva.com'
+    end
+    
+    it "shouldn't let in values that aren't in the optional fields" do
+      @rnd = generate_renderer(:optional_fields => ['first_name'] )
+
+      renderer_post @rnd, :user => { :email => "test@webiva.com", :password => "test", :password_confirmation => "test", :first_name => 'Testerama', :last_name => 'McJohnson' }
+
+      @myself.email.should == 'test@webiva.com'
+      @myself.first_name.should == 'Testerama'
+      @myself.last_name.should be_blank
+    end
+
+    it "should let address fields in" do
+      @rnd = generate_renderer()
+      renderer_post @rnd, :user => { :email => "test@webiva.com", :password => "test", :password_confirmation => "test" }, :address => { :address => '123 Elm St',:city => 'Boston' }
+
+      @myself.email.should == 'test@webiva.com'
+      @myself.address.address.should == '123 Elm St'
+      @myself.address.city.should == 'Boston'
+    end
+
+    it "shouldn't save if required address fields aren't there" do
+      @rnd = generate_renderer(:address_required_fields => ['state'])
+      renderer_post @rnd, :user => { :email => "test@webiva.com", :password => "test", :password_confirmation => "test" }, :address => { :address => '125 Elm St',:city => 'Boston' }
+
+      @myself.address.id.should be_nil
+      @usr = EndUser.find @myself.id
+      @usr.address.should be_nil
+      @myself.address.errors.length.should == 1
+      @myself.address.errors.on(:state).should == 'is missing'
+    end
+
+    it "should save if all required address fields are there" do
+        @rnd = generate_renderer(:address_required_fields => ['state','city','state'])
+      renderer_post @rnd, :user => { :email => "test@webiva.com", :password => "test", :password_confirmation => "test" }, :address => { :address => '123 Elm St',:city => 'Boston', :state => 'MA' }
+
+      @myself.address.address.should == '123 Elm St'
+      @myself.address.city.should == 'Boston'
+      @myself.address.state.should == 'MA'
+    end
+
+    it "should be able to add tag names" do
+      @rnd = generate_renderer(:add_tags => 'test1,test2')
+      renderer_post @rnd, :user => { :first_name => 'first' }
+      @myself.tag_names.should == ['test1','test2']
+    end
+
+  end
+
   describe "User Login Paragraph" do 
     def generate_renderer(data = {})
       default = {:login_type => 'email', :forward_login => 'no', :success_page => nil, :failure_page => nil}

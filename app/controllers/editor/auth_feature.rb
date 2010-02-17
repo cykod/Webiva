@@ -77,6 +77,7 @@ FEATURE
 
   feature :user_edit_account, :default_feature => <<-FEATURE
 <cms:edit>
+  <cms:reset_password>Reset your password.</cms:reset_password>
   <cms:updated>Account Updated.</cms:updated>
 
   <!-- enter form elements directly -->
@@ -109,6 +110,7 @@ FEATURE
 
       c.expansion_tag('edit:errors') { |t| data[:failed] }
       c.expansion_tag('edit:updated') { |t| data[:updated] }
+      c.expansion_tag('edit:reset_password') { |t| data[:reset_password] }
 
       data[:options].all_field_list.each do |fld|
         c.field_tag("edit:#{fld[0]}",{ :control => fld[1][1]}.merge(fld[1][3]||{}))
