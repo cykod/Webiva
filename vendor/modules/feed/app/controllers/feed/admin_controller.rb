@@ -6,6 +6,7 @@ class Feed::AdminController < ModuleController
                               :access => :public 
                               
   register_handler :feed, :rss, "Feed::ContentRssHandler"
+  register_handler :feed, :rss, "Feed::ContentNodeRssHandler"
 
   module_for :rss, 'RSS Feed', :description => 'Add a RSS Feed to your site'
   module_for :data_output, 'Data Feed', :description => 'Add a Content Data feed to your site'

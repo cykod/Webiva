@@ -9,12 +9,12 @@ class Feed::RssRenderer < ParagraphRenderer
   paragraph :rss_auto_discovery, :cache => true
   
   def feed
-    @options = (paragraph.data || {}).symbolize_keys
+    paragraph_data = (paragraph.data || {}).symbolize_keys
     
-    @handler_info = get_handler_info(:feed,:rss,@options[:feed_type])
+    @handler_info = get_handler_info(:feed,:rss,paragraph_data[:feed_type])
 
     
-    if(!@handler_info || !@options[:feed_identifier])
+    if ! @handler_info
       data_paragraph :text => 'Reconfigure RSS Feed'.t
       return
     end
@@ -30,7 +30,7 @@ class Feed::RssRenderer < ParagraphRenderer
       return
     end
 
-    @options = handler_options_class.new(@options)
+    @options = handler_options_class.new(paragraph_data)
     @handler = @handler_info[:class].new(@options)
 
     headers['Content-Type'] = 'text/xml'
