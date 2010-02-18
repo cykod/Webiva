@@ -33,14 +33,17 @@ class Feed::RssRenderer < ParagraphRenderer
     @options = handler_options_class.new(paragraph_data)
     @handler = @handler_info[:class].new(@options)
 
-    headers['Content-Type'] = 'text/xml'
-    
-    data = @handler.get_feed
-    if @handler_info[:custom]
-      data_paragraph :text => render_to_string(:partial => @handler_info[:custom],:locals => { :data => data})
-    else
-      data_paragraph  :text => render_to_string(:partial => '/feed/rss/feed',:locals => { :data => data })
+    results = renderer_cache(nil, nil, :skip => @options.timeout <= 0, :expires => @options.timeout*60) do |cache|
+      data = @handler.get_feed
+      if @handler_info[:custom]
+	cache[:output] = render_to_string(:partial => @handler_info[:custom],:locals => { :data => data})
+      else
+	cache[:output] = render_to_string(:partial => '/feed/rss/feed',:locals => { :data => data })
+      end
     end
+
+    headers['Content-Type'] = 'text/xml'
+    data_paragraph :text => results.output
   end
   
   feature :rss_feed_view, :default_feature => <<-FEATURE

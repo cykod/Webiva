@@ -16,9 +16,6 @@ class Blog::RssHandler
   end
   
   def get_feed
-    feature_output = Blog::BlogBlog.cache_fetch("RSS_#{@feed_id}", @feed_blog_id.to_i)
-    return feature_output if feature_output
-  
     @node = SiteNode.find_by_id(@feed_site_node)
     @blog = Blog::BlogBlog.find_by_id(@feed_blog_id)
     @detail_page = SiteNode.find_by_id(@detail_page_id)
@@ -55,7 +52,6 @@ class Blog::RssHandler
         data[:items] << item
       end
       
-      @blog.cache_put("RSS_#{@feed_id}", data)
       data
     else
       nil

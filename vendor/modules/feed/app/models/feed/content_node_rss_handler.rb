@@ -22,7 +22,7 @@ class Feed::ContentNodeRssHandler
     @nodes = ContentNode.find(:all,:conditions => conditions, :limit => @options.limit, :order => @options.order )
     @nodes.each do |node|
       item = { :title => node.title,
-	       :guid => node.id,
+	       :guid => Configuration.domain_link(node.link),
                :published_at => @options.order_by == 'newest' ? node.created_at.to_s(:rfc822) : node.updated_at.to_s(:rfc822),
 	       :link => Configuration.domain_link(node.link)
       }

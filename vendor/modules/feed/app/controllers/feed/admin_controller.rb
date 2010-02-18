@@ -28,7 +28,7 @@ class Feed::AdminController < ModuleController
       flash.now[:notice] = 'Updated Options'
     end
   end
-  
+
   def rss_options(display=true)
     @node = SiteNode.find_by_id_and_module_name(params[:path][0],'/feed/rss') unless @node
 
@@ -48,9 +48,10 @@ class Feed::AdminController < ModuleController
   end
 
   class RssModuleOptions < HashModel
-    attributes :feed_type => nil, :feed_title => nil
+    attributes :feed_type => nil, :feed_title => nil, :timeout => 1
     
     validates_presence_of :feed_type, :feed_title
+    integer_options :timeout
   end
 
   def data_output
