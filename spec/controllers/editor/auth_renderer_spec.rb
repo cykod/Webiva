@@ -89,6 +89,7 @@ describe Editor::AuthRenderer, :type => :controller do
       usr.address.address.should == '123 Elm St'
       usr.address.city.should == 'Boston'
       usr.address.state.should == 'MA'
+      usr.address.country.should == 'United States'
     end
 
     it "should support information registrations that only require email" do
@@ -167,6 +168,7 @@ describe Editor::AuthRenderer, :type => :controller do
       @myself.email.should == 'test@webiva.com'
       @myself.address.address.should == '123 Elm St'
       @myself.address.city.should == 'Boston'
+      @myself.address.country.should == 'United States'
     end
 
     it "shouldn't save if required address fields aren't there" do
@@ -193,6 +195,39 @@ describe Editor::AuthRenderer, :type => :controller do
       @rnd = generate_renderer(:add_tags => 'test1,test2')
       renderer_post @rnd, :user => { :first_name => 'first' }
       @myself.tag_names.should == ['test1','test2']
+    end
+
+    it "should set access token" do
+      token = AccessToken.create :token_name => 'token'
+      token.id.should_not be_nil
+
+      @rnd = generate_renderer(:access_token_id => token.id)
+      renderer_post @rnd, :user => { :first_name => 'First' }
+
+      @myself.errors.length.should == 0
+      @myself.first_name.should == 'First'
+      @myself.tokens.detect { |t| t.access_token_id == token.id }.should be_true
+    end
+
+    it "should send mail" do
+      @email_template = MailTemplate.find_by_name('edit') || MailTemplate.create(:subject => 'Account Updated', :name => 'edit', :language => 'en')
+
+      MailTemplateMailer.should_receive(:deliver_to_user)
+
+      @rnd = generate_renderer(:mail_template_id => @email_template.id)
+      renderer_post @rnd, :user => { :first_name => 'First' }
+
+      @myself.errors.length.should == 0
+      @myself.first_name.should == 'First'
+    end
+
+    it "should change user class id" do
+      @rnd = generate_renderer(:user_class_id => 2, :modify_profile => 'modify')
+      renderer_post @rnd, :user => { :first_name => 'First' }
+
+      @myself.errors.length.should == 0
+      @myself.first_name.should == 'First'
+      @myself.user_class_id.should == 2
     end
 
   end
