@@ -97,7 +97,7 @@ class ModuleAppController < ApplicationController
       @path =  params[:path].join("/")
     end
 
-    @page = get_error_page unless @page
+    return display_missing_page unless @page
     
     params[:full_path] = params[:path].clone
     params[:path] = path_args
@@ -178,6 +178,7 @@ class ModuleAppController < ApplicationController
   def display_missing_page #:nodoc:
     page,path_args = find_page_from_path(["404"],DomainModel.active_domain[:site_version_id])
     begin
+      raise SiteNodeEngine::MissingPageException.new(nil,nil) unless page
       engine = SiteNodeEngine.new(page,:display => session[:cms_language], :path => path_args)
       @output = engine.run(self,myself)
       set_robots!
