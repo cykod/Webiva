@@ -24,7 +24,6 @@ class Feed::ContentNodeRssHandler
       item = { :title => node.title,
 	       :guid => node.id,
                :published_at => @options.order_by == 'newest' ? node.created_at.to_s(:rfc822) : node.updated_at.to_s(:rfc822),
-               :description => '',
 	       :link => Configuration.domain_link(node.link)
       }
 
