@@ -9,6 +9,8 @@ class Feedback::CommentsController < ParagraphController
                         :inputs => [[ :content_identifier, 'Content ID', :content]],
                         :triggers => [['New Comment','action']]
 
+  editor_for :pingback_auto_discovery, :name => 'Pingback Autodiscovery Paragraph', :no_options => true
+
   content_model :comments
 
   def self.get_comments_info 

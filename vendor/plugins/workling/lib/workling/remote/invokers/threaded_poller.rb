@@ -65,7 +65,7 @@ module Workling
 
         # Listen for one worker class
         def clazz_listen(clazz)
-          logger.debug("Listener thread #{clazz.name} started")
+          # logger.debug("Listener thread #{clazz.name} started")
            
           # Read thread configuration if available
           if Workling.config.has_key?(:listeners)
@@ -80,7 +80,7 @@ module Workling
           # Setup connection to client (one per thread)
           connection = @client_class.new
           connection.connect
-          logger.info("** Starting client #{ connection.class } for #{clazz.name} queue")
+          # logger.info("** Starting client #{ connection.class } for #{clazz.name} queue")
      
           # Start dispatching those messages
           while (!Thread.current[:shutdown]) do
@@ -106,7 +106,7 @@ module Workling
 
               # Dispatch and process the messages
               n = dispatch!(connection, clazz)
-              logger.debug("Listener thread #{clazz.name} processed #{n.to_s} queue items") if n > 0
+              # logger.debug("Listener thread #{clazz.name} processed #{n.to_s} queue items") if n > 0
               sleep(self.class.sleep_time) unless n > 0
             
               # If there is a memcache error, hang for a bit to give it a chance to fire up again

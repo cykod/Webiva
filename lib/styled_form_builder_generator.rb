@@ -814,7 +814,7 @@ class CmsForm < TabledForm
 
   include WebivaFormElements
   generate_styled_fields('form_options',
-                          %w(access_control filemanager_image filemanager_folder filemanager_file price_classes price_range color_field date_field time_zone_select datetime_field upload_image upload_document unsorted_selector content_selector multi_content_selector image_list end_user_selector autocomplete_field ordered_selection_list ordered_array)) do 
+                          %w(access_control filemanager_image filemanager_folder filemanager_file price_classes price_range color_field date_field time_zone_select datetime_field upload_image upload_document unsorted_selector content_selector multi_content_selector image_list end_user_selector autocomplete_field ordered_selection_list ordered_array captcha)) do 
                           field(@options)
                           end
 

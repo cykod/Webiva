@@ -37,7 +37,7 @@ class Blog::RssHandler
   # options limit => 10
   def get_feed(options = {})
 
-    feature_output = DataCache.get_content("Blog",'RSSFeed',@feed_id)
+    feature_output = Blog::BlogBlog.cache_fetch("RSS_#{@feed_id}", @feed_blog_id.to_i)
     
     return feature_output if feature_output
     
@@ -54,7 +54,7 @@ class Blog::RssHandler
                :description => @blog.name,
                :link => Configuration.domain_link(@node.node_path),
                :items => []}
-      posts = @blog.blog_posts.find(:all, :conditions => 'published_at < NOW() AND blog_posts.status="published"', :include => :active_revision,
+      posts = @blog.blog_posts.find(:all, :conditions => ['published_at < ? AND blog_posts.status="published"',Time.now], :include => :active_revision,
                                     :order => 'published_at DESC', :limit => limit)
       
       posts.each do |post|
@@ -79,7 +79,7 @@ class Blog::RssHandler
         data[:items] << item
       end
       
-      DataCache.put_content("Blog",'RSSFeed',@feed_id,data)
+      @blog.cache_put("RSS_#{@feed_id}", data)
       data
     else
       nil

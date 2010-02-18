@@ -125,6 +125,7 @@ class OptionsController < CmsController  # :nodoc: all
     @member_tabs = handlers.map {|elm| [ elm[:name], elm[:identifier].to_s ] }
 
     @search_handler_options =  [['--Use Internal Search Engine--',nil]] + get_handler_options(:webiva,:search)
+    @captcha_handler_options =  [['--Disable Captcha Support--',nil]] + get_handler_options(:webiva,:captcha)
     
   end
   

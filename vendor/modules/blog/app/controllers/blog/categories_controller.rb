@@ -11,9 +11,9 @@ class Blog::CategoriesController < ModuleController
    include ActiveTable::Controller   
    active_table :category_table,
                 Blog::BlogCategory,
-                [ ActiveTable::IconHeader.new('', :width=>10),
-                  ActiveTable::StringHeader.new('blog_categories.name',:label => 'Name'),
-                  ActiveTable::StaticHeader.new('blog_posts_count',:label => 'Entries')
+                [ hdr(:icon, '', :width=>10),
+                  hdr(:string, 'blog_categories.name'),
+                  hdr(:static, 'blog_posts_count',:label => 'Entries')
                 ]
 
     def category_table(display=true)

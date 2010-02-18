@@ -1,0 +1,21 @@
+<% target_cache = {} -%>
+
+<% active_table_for :pingbacks_table, @active_table_output,
+                    :refresh_url => url_for(:action => 'pingbacks_table'),
+                    :more_actions => [ ['Create Comments', 'create'], ['Remove Comments', 'remove'], ['Delete Pingbacks','delete','Are you sure you want to permanently delete these pingbacks?' ] ],
+                    :width => '100%' do |t| %>
+<tr <%= highlight_row 'pingback',t.id %>>
+   <td valign='baseline'>
+      <%= entry_checkbox 'pingback',t.id -%>
+    </td>
+   <td valign='baseline'>
+      <%= t.has_comment ? 'Yes' : 'No' -%>
+   </td>
+    <td valign='baseline' align='center'><%= t.source_uri %></td>
+    <td valign='baseline' align='center'><%= t.target_uri %></td>
+    <td valign='baseline' align='center'><%= t.title %></td>
+    <td valign='baseline' align='center'><%= t.excerpt %></td>
+    <td valign='baseline' align='center' nowrap='1'><%= t.posted_at.localize(DEFAULT_DATETIME_FORMAT.t) if t.posted_at -%></td>
+</tr>
+
+<% end -%>

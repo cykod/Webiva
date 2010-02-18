@@ -585,4 +585,24 @@ describe ParagraphFeature, :type => :view do
       media.destroy
     end
   end
+
+  describe "Captcha Tags" do
+    before(:each) do
+      mod = SiteModule.activate_module(Domain.find(DomainModel.active_domain_id),'feedback')
+      mod.update_attributes(:status => 'active')
+
+      Configuration.options.captcha_handler = 'feedback_captcha'
+    end
+
+    it "should render captcha tag" do
+      controller = mock :session => {}, :params => {}
+      controller.should_receive(:render_to_string)
+      @captcha = WebivaCaptcha.new controller
+
+      @output = @feature.parse_inline("<cms:captcha/>") do |c|
+        c.captcha_tag('captcha') { |t| @captcha }
+      end
+
+    end
+  end
 end
