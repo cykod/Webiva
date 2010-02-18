@@ -19,11 +19,23 @@ class Feed::RssRenderer < ParagraphRenderer
       return
     end
     
-    @handler = @handler_info[:class].new(@options[:feed_identifier],@options)
+    handler_options_class = nil
+    begin
+      handler_options_class = "#{@handler_info[:class_name]}::Options".constantize
+    rescue
+    end
+
+    if handler_options_class.nil?
+      data_paragraph :text => 'Reconfigure RSS Feed'.t
+      return
+    end
+
+    @options = handler_options_class.new(@options)
+    @handler = @handler_info[:class].new(@options)
 
     headers['Content-Type'] = 'text/xml'
     
-    data = @handler.get_feed()
+    data = @handler.get_feed
     if @handler_info[:custom]
       data_paragraph :text => render_to_string(:partial => @handler_info[:custom],:locals => { :data => data})
     else

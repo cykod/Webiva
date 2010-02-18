@@ -1,7 +1,7 @@
 <script>
   RssEditor = {
     updateFeedIds: function(val) {
-      new Ajax.Updater('feed_ids','<%= url_for :action => 'feed_ids', :path => @node.id %>', 
+      new Ajax.Updater('rss_options','<%= url_for :action => 'rss_options', :path => @node.id %>', 
                         { parameters: Form.serialize('feed_form') } );
 
     }
@@ -24,8 +24,8 @@
   <%= f.text_field :feed_title, :description => 'Title of the RSS Feed.' %>
   <%= f.select :feed_type, @feed_types, {}, :onchange => 'RssEditor.updateFeedIds(this.value);' %>
 </tbody>
-<tbody id='feed_ids'>
-  <%= render :partial => 'rss_feed_elements', :locals => {:f => f } if @handler %>
+<tbody id='rss_options'>
+  <%= render :partial => 'rss_options' if @handler %>
 </tbody>
 <tbody>
   <%= f.submit_tag 'Update Options' %>

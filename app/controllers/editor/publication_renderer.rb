@@ -145,7 +145,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
       render_paragraph :text => ''
       return
     end
-   
+
     if paragraph.data[:return_page]
       redirect_node = SiteNode.find_by_id(paragraph.data[:return_page])
       if redirect_node
