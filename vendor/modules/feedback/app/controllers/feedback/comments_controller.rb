@@ -3,7 +3,7 @@
 class Feedback::CommentsController < ParagraphController
   
   # Editor for comments
-  editor_header "Content Paragraphs", :paragraph_content
+  editor_header "Feedback Paragraphs", :paragraph_content
   
   editor_for :comments, :name => 'Comments', :feature => :comments_page_comments,
                         :inputs => [[ :content_identifier, 'Content ID', :content]],
