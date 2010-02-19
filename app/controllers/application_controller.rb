@@ -250,7 +250,7 @@ class ApplicationController < ActionController::Base
   # Convenience method to log a user in 
   # sets the session and remember cookie 
   def process_login(usr,remember = false)
-    session.clear
+#    session.clear
     session[:user_id] = usr.id
     session[:user_model] = usr.class.to_s
     reset_myself
