@@ -25,10 +25,6 @@ class Editor::ContentController < ParagraphController #:nodoc:all
       ContentType.select_options
     end
 
-    def yes_no
-      [["Yes".t,true],["No".t,false]]
-    end
-
     def order_by_options
       [['Newest', 'newest'], ['Recently Updated', 'updated']]
     end

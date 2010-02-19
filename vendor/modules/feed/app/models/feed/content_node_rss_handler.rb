@@ -13,7 +13,7 @@ class Feed::ContentNodeRssHandler
   end
   
   def get_feed
-    data = { :title => @options.title,
+    data = { :title => @options.feed_title,
              :description => @options.description,
              :link => Configuration.domain_link(@options.link_url),
              :items => []}
