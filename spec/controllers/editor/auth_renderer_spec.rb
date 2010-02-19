@@ -89,6 +89,7 @@ describe Editor::AuthRenderer, :type => :controller do
       usr.address.address.should == '123 Elm St'
       usr.address.city.should == 'Boston'
       usr.address.state.should == 'MA'
+      usr.address.country.should == 'United States'
     end
 
     it "should support information registrations that only require email" do
@@ -116,6 +117,119 @@ describe Editor::AuthRenderer, :type => :controller do
       usr.lead_source.should =='tester_source'
     end
     
+  end
+
+  describe "User Edit Account Paragraph" do
+    before(:each) do
+      mock_user
+    end
+
+    def generate_renderer(data = {})
+      # Set a user class b/c we need one
+      build_renderer('/page','/editor/auth/user_edit_account',data,{})
+    end
+    
+    it "should be able to view the default user edit paragraph" do
+      @rnd = generate_renderer
+      @rnd.should_render_feature("user_edit_account")
+      renderer_get @rnd 
+    end
+
+    it "should require a valid email" do
+      @rnd = generate_renderer
+
+      renderer_post @rnd, :user => { :email => "", :password => "", :password_confirmation => "" }
+
+      @myself.should have(1).error_on(:email)
+    end
+
+    it "should be able to change a user's  email and password" do
+      @rnd = generate_renderer()
+
+      renderer_post @rnd, :user => { :email => "test@webiva.com", :password => "test", :password_confirmation => "test" }
+
+      @myself.email.should == 'test@webiva.com'
+    end
+    
+    it "shouldn't let in values that aren't in the optional fields" do
+      @rnd = generate_renderer(:optional_fields => ['first_name'] )
+
+      renderer_post @rnd, :user => { :email => "test@webiva.com", :password => "test", :password_confirmation => "test", :first_name => 'Testerama', :last_name => 'McJohnson' }
+
+      @myself.email.should == 'test@webiva.com'
+      @myself.first_name.should == 'Testerama'
+      @myself.last_name.should be_blank
+    end
+
+    it "should let address fields in" do
+      @rnd = generate_renderer()
+      renderer_post @rnd, :user => { :email => "test@webiva.com", :password => "test", :password_confirmation => "test" }, :address => { :address => '123 Elm St',:city => 'Boston' }
+
+      @myself.email.should == 'test@webiva.com'
+      @myself.address.address.should == '123 Elm St'
+      @myself.address.city.should == 'Boston'
+      @myself.address.country.should == 'United States'
+    end
+
+    it "shouldn't save if required address fields aren't there" do
+      @rnd = generate_renderer(:address_required_fields => ['state'])
+      renderer_post @rnd, :user => { :email => "test@webiva.com", :password => "test", :password_confirmation => "test" }, :address => { :address => '125 Elm St',:city => 'Boston' }
+
+      @myself.address.id.should be_nil
+      @usr = EndUser.find @myself.id
+      @usr.address.should be_nil
+      @myself.address.errors.length.should == 1
+      @myself.address.errors.on(:state).should == 'is missing'
+    end
+
+    it "should save if all required address fields are there" do
+        @rnd = generate_renderer(:address_required_fields => ['state','city','state'])
+      renderer_post @rnd, :user => { :email => "test@webiva.com", :password => "test", :password_confirmation => "test" }, :address => { :address => '123 Elm St',:city => 'Boston', :state => 'MA' }
+
+      @myself.address.address.should == '123 Elm St'
+      @myself.address.city.should == 'Boston'
+      @myself.address.state.should == 'MA'
+    end
+
+    it "should be able to add tag names" do
+      @rnd = generate_renderer(:add_tags => 'test1,test2')
+      renderer_post @rnd, :user => { :first_name => 'first' }
+      @myself.tag_names.should == ['test1','test2']
+    end
+
+    it "should set access token" do
+      token = AccessToken.create :token_name => 'token'
+      token.id.should_not be_nil
+
+      @rnd = generate_renderer(:access_token_id => token.id)
+      renderer_post @rnd, :user => { :first_name => 'First' }
+
+      @myself.errors.length.should == 0
+      @myself.first_name.should == 'First'
+      @myself.tokens.detect { |t| t.access_token_id == token.id }.should be_true
+    end
+
+    it "should send mail" do
+      @email_template = MailTemplate.find_by_name('edit') || MailTemplate.create(:subject => 'Account Updated', :name => 'edit', :language => 'en')
+
+      MailTemplateMailer.should_receive(:deliver_to_user)
+
+      @rnd = generate_renderer(:mail_template_id => @email_template.id)
+      renderer_post @rnd, :user => { :first_name => 'First' }
+
+      @myself.errors.length.should == 0
+      @myself.first_name.should == 'First'
+    end
+
+    it "should change user class id" do
+      @rnd = generate_renderer(:user_class_id => 2, :modify_profile => 'modify')
+      renderer_post @rnd, :user => { :first_name => 'First' }
+
+      @myself.errors.length.should == 0
+      @myself.first_name.should == 'First'
+      @myself.user_class_id.should == 2
+    end
+
   end
 
   describe "User Login Paragraph" do 
@@ -1026,6 +1140,18 @@ describe Editor::AuthRenderer, :type => :controller do
       @user.should_not be_nil
       @end_user_tag = EndUserTag.find_by_end_user_id_and_tag_id(@user.id, @tag.id)
       @end_user_tag.should_not be_nil
+    end
+  end
+
+  describe "View Account Paragraph" do
+    def generate_renderer(data = {})
+      build_renderer('/page','/editor/auth/view_account',data,{})
+    end
+
+    it "should render view account paragraph" do
+      @rnd = generate_renderer
+      @rnd.should_receive(:render_paragraph)
+      renderer_get @rnd
     end
   end
 end

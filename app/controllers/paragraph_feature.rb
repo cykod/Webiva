@@ -1300,6 +1300,11 @@ block is non-nil
         c.value_tag("#{prefix}:field:label") do |t|
           t.locals.field.label
         end
+
+        c.value_tag("#{prefix}:field:required") do |t|
+          t.locals.field.required?
+        end
+
         c.value_tag("#{prefix}:field:control") do |t|
           opts = { :label => t.locals.field.label, :size => size }.merge(t.locals.field.data)
           opts[:size] = t.attr['size'] if t.attr['size']
@@ -1697,7 +1702,7 @@ block is non-nil
           tag_name = fld.content_model_field.feature_tag_name
 
           if fld.field_type=='input'
-            define_form_field_tag "#{prefix}:#{tag_name}" 
+            define_form_field_tag "#{prefix}:#{tag_name}"
             value_tag "#{prefix}:#{tag_name}_value"
             value_tag "#{prefix}:#{tag_name}_display"
             define_form_field_error_tag "#{prefix}:#{tag_name}_error"
@@ -1710,6 +1715,7 @@ block is non-nil
       if publication.form?
         define_form_fields_loop_tag("#{prefix}:field")
         define_value_tag("#{prefix}:field:label")
+	expansion_tag("#{prefix}:field:required")
         define_value_tag("#{prefix}:field:control")
         define_value_tag("#{prefix}:field:error")
       end

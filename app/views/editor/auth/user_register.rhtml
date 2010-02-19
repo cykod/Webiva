@@ -58,6 +58,7 @@ UserRegisterEditor = {
    <%= f.select :user_class_id, UserClass.options, :label => 'User Profile' %>
    <%= f.radio_buttons :modify_profile, [['Yes'.t,'modify'],['No'.t,'keep']], :label => 'Modify Profile', :description => 'Modify profile of existing user?' %>
    <%= f.text_field :add_tags, :description => 'Tag Names to add on registrations' %>
+   <%= f.country_select :country, :label => 'Default Country' %>
 <% end -%>
 <% t.tabled_tab do %>
    <%= f.ordered_array :required_fields, @options.available_field_options, :description => "Email will always be required, password and password confirmation\n are required for account registration type" %>

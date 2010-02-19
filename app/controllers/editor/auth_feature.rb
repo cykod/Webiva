@@ -11,19 +11,29 @@ You are already registered
   <!-- enter form elements directly -->
   <div class='item'>
      <cms:email_error><div class='error'><cms:value/></div></cms:email_error>
-     <div class='label'>Email:</div>
+     <div class='label'>Email*:</div>
      <div class='field'><cms:email/></div>
   </div>
 
   <cms:any_field except='email'>
   <div class='item'>
      <cms:error><div class='error'><cms:value/></div></cms:error>
-     <div class='label'><cms:label/>*:</div>
+     <div class='label'><cms:label/><cms:required>*</cms:required>:</div>
      <div class='field'><cms:control/></div>
   </div>
   </cms:any_field>
   <!-- optional fields except='field1' or fields="field1,field2" options work too -->
 
+
+ <cms:publication>
+ <cms:field>
+  <div class='item'>
+     <cms:error><div class='error'><cms:value/></div></cms:error>
+     <div class='label'><cms:label/><cms:required>*</cms:required>:</div>
+     <div class='field'><cms:control/></div>
+  </div>
+  </cms:field>
+  </cms:publication>
 
 
   <cms:submit/>
@@ -44,18 +54,18 @@ FEATURE
       end
 
       ['any_field','required_field','optional_field'].each do |fields|
-        user_fields_helper('register',c,fields,data)
+        user_fields_helper('register',c,fields,data,(data[:options].always_required_fields + data[:options].required_fields))
       end
 
       c.fields_for_tag('register:address',:address) { |t| data[:address] ? data[:address] : nil }
-      user_fields_helper('register:address',c,'address_field',data)
+      user_fields_helper('register:address',c,'address_field',data,data[:options].address_required_fields)
 
        data[:options].address_field_list.each do |fld|
         c.field_tag("register:address:#{fld[0]}",{ :control => fld[1][1]}.merge(fld[1][3]||{}))
       end
 
       c.fields_for_tag('register:business',:business) { |t| data[:business] ? data[:business] : nil }
-      user_fields_helper('register:business',c,'business_address_field',data)
+      user_fields_helper('register:business',c,'business_address_field',data,data[:options].work_address_required_fields)
       
       data[:options].business_address_field_list.each do |fld|
         c.field_tag("register:business:#{fld[0]}",{ :control => fld[1][1]}.merge(fld[1][3]||{}))
@@ -64,6 +74,8 @@ FEATURE
       if data[:options].publication
         c.fields_for_tag('register:publication',:model) { |t|  data[:model] }
         c.publication_field_tags("register:publication",data[:options].publication)
+      else
+        c.expansion_tag('register:publication') { |t| nil }
       end
       
       c.button_tag('register:submit')
@@ -75,10 +87,88 @@ FEATURE
   end
 
 
+  feature :user_edit_account, :default_feature => <<-FEATURE
+<cms:edit>
+  <cms:reset_password>Reset your password.</cms:reset_password>
+  <cms:updated>Account Updated.</cms:updated>
+
+  <!-- enter form elements directly -->
+  <div class='item'>
+     <cms:email_error><div class='error'><cms:value/></div></cms:email_error>
+     <div class='label'>Email*:</div>
+     <div class='field'><cms:email/></div>
+  </div>
+
+  <cms:any_field except='email'>
+  <div class='item'>
+     <cms:error><div class='error'><cms:value/></div></cms:error>
+     <div class='label'><cms:label/><cms:required>*</cms:required>:</div>
+     <div class='field'><cms:control/></div>
+  </div>
+  </cms:any_field>
+  <!-- optional fields except='field1' or fields="field1,field2" options work too -->
+
+ <cms:publication>
+ <cms:field>
+  <div class='item'>
+     <cms:error><div class='error'><cms:value/></div></cms:error>
+     <div class='label'><cms:label/><cms:required>*</cms:required>:</div>
+     <div class='field'><cms:control/></div>
+  </div>
+  </cms:field>
+  </cms:publication>
+
+
+  <cms:submit/>
+</cms:edit>
+
+
+FEATURE
+  
+  def user_edit_account_feature(data)
+    webiva_custom_feature(:user_edit_account,data) do |c|6
+      c.form_for_tag('edit',:user) { |t| data[:usr] ? data[:usr] : nil }
+
+      c.expansion_tag('edit:errors') { |t| data[:failed] }
+      c.expansion_tag('edit:updated') { |t| data[:updated] }
+      c.expansion_tag('edit:reset_password') { |t| data[:reset_password] }
+
+      data[:options].all_field_list.each do |fld|
+        c.field_tag("edit:#{fld[0]}",{ :control => fld[1][1]}.merge(fld[1][3]||{}))
+      end
+
+      ['any_field','required_field','optional_field'].each do |fields|
+        user_fields_helper('edit',c,fields,data,(data[:options].always_required_fields + data[:options].required_fields))
+      end
+
+      c.fields_for_tag('edit:address',:address) { |t| data[:address] ? data[:address] : nil }
+      user_fields_helper('edit:address',c,'address_field',data,data[:options].address_required_fields)
+
+       data[:options].address_field_list.each do |fld|
+        c.field_tag("edit:address:#{fld[0]}",{ :control => fld[1][1]}.merge(fld[1][3]||{}))
+      end
+
+      c.fields_for_tag('edit:business',:business) { |t| data[:business] ? data[:business] : nil }
+      user_fields_helper('edit:business',c,'business_address_field',data,data[:options].work_address_required_fields)
+      
+      data[:options].business_address_field_list.each do |fld|
+        c.field_tag("edit:business:#{fld[0]}",{ :control => fld[1][1]}.merge(fld[1][3]||{}))
+      end
+
+      if data[:options].publication
+        c.fields_for_tag('edit:publication',:model) { |t|  data[:model] }
+        c.publication_field_tags("edit:publication",data[:options].publication)
+      else
+        c.expansion_tag('edit:publication') { |t| nil }
+      end
+      
+      c.button_tag('edit:submit')
+    end
+  end
 
 
 
-  def user_fields_helper(prefix,c,fields_name,data)
+  def user_fields_helper(prefix,c,fields_name,data,required_fields=[])
     c.loop_tag("#{prefix}:#{fields_name}") do |t|
       fields = data[:options].send("#{fields_name}_list") || []
       if t.attr['except']
@@ -100,6 +190,9 @@ FEATURE
     end
     c.value_tag("#{prefix}:#{fields_name}:error") do |t|
       c.form_field_error_tag_helper(t,t.locals.form, t.locals.send(fields_name)[0].to_s)
+    end
+    c.expansion_tag("#{prefix}:#{fields_name}:required") do |t|
+      required_fields.include? t.locals.send(fields_name)[0].to_s
     end
   end
 
@@ -376,6 +469,16 @@ FEATURE
     end
   end
   
+  feature :view_account, :default_feature => <<-FEATURE
+  <cms:user>
+    <cms:name/>
+  </cms:user>
+  FEATURE
 
-
+  def view_account_feature(data)
+    webiva_feature(:view_account,data) do |c|
+      c.expansion_tag('user') { |t| t.locals.user = data[:user] }
+      c.user_details_tags('user') { |t| t.locals.user }
+    end
+  end
 end
