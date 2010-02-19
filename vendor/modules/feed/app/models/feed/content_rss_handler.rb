@@ -5,44 +5,17 @@ class Feed::ContentRssHandler
 
   def self.feed_rss_handler_info
     {
-    :name => "Content RSS Feed"
+    :name => "Custom Content RSS Feed"
     }
   end
 
-  def initialize(feed_id,options)
+  def initialize(options)
     @options = options
-    @feed_id = feed_id
-    @feed_content_model_id,@feed_site_node,@feed_pub_id,@detail_page_id,@detail_pub_id = feed_id.split(",")
+    @feed_id = @options.feed_identifier
+    @feed_content_model_id,@feed_site_node,@feed_pub_id,@detail_page_id,@detail_pub_id = @feed_id.split(",")
   end
   
-
-  def self.get_feed_options
-    revisions = PageRevision.find(:all,:joins => :page_paragraphs,
-                       :conditions => 'page_paragraphs.display_module = "/editor/publication" AND display_type = "list" AND page_revisions.active=1 AND revision_type="real"')
-                       
-    opts = []
-    
-    revisions.each do |rev|
-      par = rev.page_paragraphs[0]
-      pub = ContentPublication.find_by_id(par.content_publication_id) if par
-      detail_page = par.data[:detail_page] if par && par.data[:detail_page]
-      
-      if detail_page
-        detail_revision = PageRevision.find(:first,:joins => :page_paragraphs,
-                          :conditions => ['display_module = "/editor/publication" AND display_type = "view" AND page_revisions.revision_container_id = ? AND page_revisions.revision_container_type = "SiteNode" AND page_revisions.active=1 AND revision_type="real"',detail_page])
-        detail_par = detail_revision.page_paragraphs[0] if detail_revision
-      
-        if par && pub && rev.revision_container.is_a?(SiteNode) && detail_revision && detail_par
-          opts << [ "#{pub.content_model.name} #{pub.name} - #{rev.revision_container.node_path}", "#{pub.content_model_id},#{rev.revision_container_id},#{pub.id},#{detail_page},#{detail_par.content_publication_id}" ]
-        end
-      end
-    end
-    opts
-  end
-
-  # options limit => 10
-  def get_feed(options = {})
-
+  def get_feed
     @content_model = ContentModel.find_by_id(@feed_content_model_id)
     @list_page = SiteNode.get_node_path(@feed_site_node)
     @detail_page = SiteNode.get_node_path(@detail_page_id)
@@ -50,16 +23,15 @@ class Feed::ContentRssHandler
     @list_publication = @content_model.content_publications.find_by_id(@feed_pub_id)
     @detail_publication = @content_model.content_publications.find_by_id(@detail_pub_id)
     
+    limit = @options.limit > 0 ? @options.limit : 10
     
-    limit = options.delete(:limit) || 10
-    
-    @list_revision = PageRevision.find(:first,:include => :page_paragraphs,
+    @list_revision = PageRevision.find(:first, :joins => :page_paragraphs,
                           :conditions => ['display_module = "/editor/publication" AND display_type = "list" AND page_revisions.revision_container_id = ? AND page_revisions.revision_container_type = "SiteNode" AND page_revisions.active=1 AND revision_type="real"',@feed_site_node])
     @list_paragraph = @list_revision.page_paragraphs[0] if @list_revision
     
     
     if @list_page && @detail_page && @list_publication && @detail_publication && @list_paragraph
-      data = { :title => @options[:feed_title].blank? ? @list_publication.name : @options[:feed_title],
+      data = { :title => @options.feed_title.blank? ? @list_publication.name : @options.feed_title,
                :link => Configuration.domain_link(@list_page),
                :items => []}
                
@@ -97,7 +69,46 @@ class Feed::ContentRssHandler
     end
   end
 
+  class Options < Feed::AdminController::RssModuleOptions
+    attributes :feed_identifier => nil, :limit => 10
 
+    validates_presence_of :feed_identifier, :limit
+    validates_numericality_of :limit
 
+    integer_options :limit
 
+    options_form(fld(:feed_identifier, :select, :options => :feed_identifier_options, :label => 'Feed'),
+		 fld(:limit, :text_field)
+		 )
+
+    def validate
+      if self.feed_identifier
+	errors.add(:feed_identifier) unless self.feed_identifier_options.rassoc(self.feed_identifier)
+      end
+    end
+
+    def feed_identifier_options
+      revisions = PageRevision.find(:all,:joins => :page_paragraphs,
+				    :conditions => 'page_paragraphs.display_module = "/editor/publication" AND display_type = "list" AND page_revisions.active=1 AND revision_type="real"')
+
+      opts = [['--Select Feed--', nil]]
+
+      revisions.each do |rev|
+	par = rev.page_paragraphs[0]
+	pub = ContentPublication.find_by_id(par.content_publication_id) if par
+	detail_page = par.data[:detail_page] if par && par.data[:detail_page]
+
+	if detail_page
+	  detail_revision = PageRevision.find(:first,:joins => :page_paragraphs,
+					      :conditions => ['display_module = "/editor/publication" AND display_type = "view" AND page_revisions.revision_container_id = ? AND page_revisions.revision_container_type = "SiteNode" AND page_revisions.active=1 AND revision_type="real"',detail_page])
+	  detail_par = detail_revision.page_paragraphs[0] if detail_revision
+	  
+	  if par && pub && rev.revision_container.is_a?(SiteNode) && detail_revision && detail_par
+	    opts << [ "#{pub.content_model.name} #{pub.name} - #{rev.revision_container.node_path}", "#{pub.content_model_id},#{rev.revision_container_id},#{pub.id},#{detail_page},#{detail_par.content_publication_id}" ]
+	  end
+	end
+      end
+      opts
+    end
+  end
 end

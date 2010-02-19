@@ -9,45 +9,18 @@ class Blog::RssHandler
     }
   end
 
-  def initialize(feed_id,options)
+  def initialize(options)
     @options = options
-    @feed_id = feed_id
-    @feed_site_node,@feed_blog_id,@detail_page_id = feed_id.split(",")
+    @feed_id = @options.feed_identifier
+    @feed_site_node,@feed_blog_id,@detail_page_id = @feed_id.split(",")
   end
   
-
-  def self.get_feed_options
-    revisions = PageRevision.find(:all,:joins => :page_paragraphs,
-                       :conditions => 'display_module = "/blog/page" AND display_type = "entry_list" AND page_revisions.active=1 AND revision_type="real"')
-                       
-    opts = []
-    
-    revisions.each do |rev|
-      par = rev.page_paragraphs[0]
-      blog = Blog::BlogBlog.find_by_id(par.data[:blog_id]) if par
-      detail_page = par.data[:detail_page] if par && par.data[:detail_page]
-      
-      if par && blog && rev.revision_container.is_a?(SiteNode)
-        opts << [ blog.name + ' - ' + rev.revision_container.node_path, "#{rev.revision_container_id},#{blog.id},#{detail_page}" ]
-      end
-    end
-    opts
-  end
-
-  # options limit => 10
-  def get_feed(options = {})
-
-    feature_output = Blog::BlogBlog.cache_fetch("RSS_#{@feed_id}", @feed_blog_id.to_i)
-    
-    return feature_output if feature_output
-    
-
-  
+  def get_feed
     @node = SiteNode.find_by_id(@feed_site_node)
     @blog = Blog::BlogBlog.find_by_id(@feed_blog_id)
     @detail_page = SiteNode.find_by_id(@detail_page_id)
     
-    limit = options.delete(:limit) || 10
+    limit = @options.limit > 0 ? @options.limit : 10
     
     if @node && @blog
       data = { :title => @blog.name,
@@ -79,7 +52,6 @@ class Blog::RssHandler
         data[:items] << item
       end
       
-      @blog.cache_put("RSS_#{@feed_id}", data)
       data
     else
       nil
@@ -116,5 +88,41 @@ class Blog::RssHandler
     "<a#{$1}href='#{href}'#{$5} target='_blank'>"
     end
  end 
+
+  class Options < Feed::AdminController::RssModuleOptions
+    attributes :feed_identifier => nil, :limit => 10
+
+    validates_presence_of :feed_identifier, :limit
+    validates_numericality_of :limit
+
+    integer_options :limit
+
+    options_form(fld(:feed_identifier, :select, :options => :feed_identifier_options, :label => 'Feed'),
+		 fld(:limit, :text_field)
+		 )
+
+    def validate
+      if self.feed_identifier
+	errors.add(:feed_identifier) unless self.feed_identifier_options.rassoc(self.feed_identifier)
+      end
+    end
+
+    def feed_identifier_options
+      revisions = PageRevision.find(:all,:joins => :page_paragraphs,
+				    :conditions => 'display_module = "/blog/page" AND display_type = "entry_list" AND page_revisions.active=1 AND revision_type="real"')
+      opts = [['--Select Feed--', nil]]
+    
+      revisions.each do |rev|
+	par = rev.page_paragraphs[0]
+	blog = Blog::BlogBlog.find_by_id(par.data[:blog_id]) if par
+	detail_page = par.data[:detail_page] if par && par.data[:detail_page]
+      
+	if par && blog && rev.revision_container.is_a?(SiteNode)
+	  opts << [ blog.name + ' - ' + rev.revision_container.node_path, "#{rev.revision_container_id},#{blog.id},#{detail_page}" ]
+	end
+      end
+      opts
+    end
+  end
 
 end

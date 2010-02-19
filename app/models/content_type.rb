@@ -69,6 +69,18 @@ class ContentType < DomainModel
     nm + self.content_name
   end
 
+  def type_description
+    if self.container
+      if self.container.respond_to?(:content_type_description)
+	self.container.content_type_description
+      else
+	self.container_type.titleize.split(" ")[-1]
+      end
+    else
+      ''
+    end
+  end
+
   # Link for a specific piece of content
   def content_link(obj)
     if !(path = self.detail_site_node_url).blank?

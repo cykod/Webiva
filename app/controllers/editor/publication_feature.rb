@@ -76,7 +76,7 @@ def display_feature(publication,data)
       c.define_tag("previous:offset") { |tag| tag.locals.offset }
       c.link_tag("previous:") { |tag| data[:page_href] + "/" + tag.locals.offset.to_s }
 
-      c.define_publication_field_tags("entry",publication)
+      c.define_publication_field_tags("entry",publication,:local => :entry)
 
       c.link_tag("return") { |tag| data[:return_page] }
    end

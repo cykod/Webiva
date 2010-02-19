@@ -43,7 +43,7 @@ You are already registered
 FEATURE
   
   def user_register_feature(data)
-    webiva_custom_feature(:user_register,data) do |c|6
+    webiva_custom_feature(:user_register,data) do |c|
       c.expansion_tag('registered') { |t| data[:registered] }
       c.form_for_tag('register',:user) { |t| data[:usr] ? data[:usr] : nil }
 
@@ -126,7 +126,7 @@ FEATURE
 FEATURE
   
   def user_edit_account_feature(data)
-    webiva_custom_feature(:user_edit_account,data) do |c|6
+    webiva_custom_feature(:user_edit_account,data) do |c|
       c.form_for_tag('edit',:user) { |t| data[:usr] ? data[:usr] : nil }
 
       c.expansion_tag('edit:errors') { |t| data[:failed] }

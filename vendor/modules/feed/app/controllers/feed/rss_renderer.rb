@@ -9,26 +9,41 @@ class Feed::RssRenderer < ParagraphRenderer
   paragraph :rss_auto_discovery, :cache => true
   
   def feed
-    @options = (paragraph.data || {}).symbolize_keys
+    paragraph_data = (paragraph.data || {}).symbolize_keys
     
-    @handler_info = get_handler_info(:feed,:rss,@options[:feed_type])
+    @handler_info = get_handler_info(:feed,:rss,paragraph_data[:feed_type])
 
     
-    if(!@handler_info || !@options[:feed_identifier])
+    if ! @handler_info
       data_paragraph :text => 'Reconfigure RSS Feed'.t
       return
     end
     
-    @handler = @handler_info[:class].new(@options[:feed_identifier],@options)
+    handler_options_class = nil
+    begin
+      handler_options_class = "#{@handler_info[:class_name]}::Options".constantize
+    rescue
+    end
+
+    if handler_options_class.nil?
+      data_paragraph :text => 'Reconfigure RSS Feed'.t
+      return
+    end
+
+    @options = handler_options_class.new(paragraph_data)
+    @handler = @handler_info[:class].new(@options)
+
+    results = renderer_cache(nil, nil, :skip => @options.timeout <= 0, :expires => @options.timeout*60) do |cache|
+      data = @handler.get_feed
+      if @handler_info[:custom]
+	cache[:output] = render_to_string(:partial => @handler_info[:custom],:locals => { :data => data})
+      else
+	cache[:output] = render_to_string(:partial => '/feed/rss/feed',:locals => { :data => data })
+      end
+    end
 
     headers['Content-Type'] = 'text/xml'
-    
-    data = @handler.get_feed()
-    if @handler_info[:custom]
-      data_paragraph :text => render_to_string(:partial => @handler_info[:custom],:locals => { :data => data})
-    else
-      data_paragraph  :text => render_to_string(:partial => '/feed/rss/feed',:locals => { :data => data })
-    end
+    data_paragraph :text => results.output
   end
   
   feature :rss_feed_view, :default_feature => <<-FEATURE

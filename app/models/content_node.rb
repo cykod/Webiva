@@ -77,8 +77,7 @@ class ContentNode < DomainModel
   belongs_to :last_editor,:class_name => 'EndUser',:foreign_key => 'last_editor_id'
   belongs_to :content_type
   has_many :content_node_values
-  
-  
+
   def update_node_content(user,item,opts={}) #:nodoc:
     opts = opts.symbolize_keys
     if self.content_type_id.blank?

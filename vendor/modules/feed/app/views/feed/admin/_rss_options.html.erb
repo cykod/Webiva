@@ -1,0 +1,3 @@
+<% cms_subfields_for :options, @options  do |f| -%>
+  <%= render(:partial => @options.options_partial, :locals => @options.options_locals(f)) if @handler %>
+<% end -%>

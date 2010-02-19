@@ -14,10 +14,11 @@ describe Blog::RssHandler do
     @post.save_revision! @rev
     @detail_page_node = SiteVersion.default.root.add_subpage('detail')
     @rss_page_node = SiteVersion.default.root.add_subpage('rss')
+    @options = Blog::RssHandler::Options.new :feed_identifier => "#{@rss_page_node.id},#{@blog.id},#{@detail_page_node.id}", :limit => 10
   end
   
   it "should create the data for an rss feed" do
-    @feed = Blog::RssHandler.new("#{@rss_page_node.id},#{@blog.id},#{@detail_page_node.id}", :limit => 10)
+    @feed = Blog::RssHandler.new(@options)
     data = @feed.get_feed
     data[:title].should == 'Test Blog'
     data[:items][0][:title].should == 'Test Post'
