@@ -17,7 +17,7 @@
 <div align='right'>
   <a href='javascript:void(0);' onclick='StructureEditor.nodeDelete(<%= @node.id %>,"<%= jh "Are you sure you want to delete this RSS Module?" .t %>");'><%= "Remove RSS Module".t %></a>
 </div>  
-<b> <%= "RSS Options:".t %> <%= @node.node_path %></b><br/><br/>
+<b> <%= "RSS Options:".t %> <a href='<%= h @node.node_path %>'><%= @node.node_path %></a></b><br/><br/>
 
 <% remote_cms_form_for :options, @options, :update => 'element_info',:html => {:id => 'feed_form', :class => 'admin_form' }, :url => { :action => 'rss', :path => @node.id } do |f| -%>
 <tbody>
