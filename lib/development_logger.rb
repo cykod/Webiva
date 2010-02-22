@@ -21,18 +21,18 @@ class DevelopmentLogger < Logger
 
   def color_special_msg(msg, severity)
     # ignore messages with 2 spaces, most likely a rails message that has already been styled.
-    return msg if msg =~ /^  /;
+    return msg if msg =~ /^  /
 
     # unix console styler
     # http://snippets.dzone.com/posts/show/4822
-    sub_color = '44' # blue
+    sub_color = '44' # blue background
     if severity == WARN
-      sub_color = '43'  # yellow
+      sub_color = '43'  # yellow background
     elsif severity >= ERROR
-      sub_color = '41' # red
-      msg = "\033[1m#{msg}\033[0m"
+      sub_color = '41' # red background
+      msg = "\033[1m#{msg}\033[0m" # bold
     end
 
-    msg.sub(/^/, "\033[1;#{sub_color}m\ \033[0m ")
+    msg.sub(/^/, "\033[#{sub_color}m \033[0m ")
   end
 end
