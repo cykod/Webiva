@@ -24,7 +24,7 @@ EOF
     @page3 = @version.root_node.add_subpage('my-page3')
 
     [@home_page, @page, @page2, @page3].each_with_index do |page,idx|
-      page.active_revisions[0].page_paragraphs.create(:display_type=>'html',:display_body => @@paragraph_body + "<p>This is page #{idx}!</p>" )
+      page.active_revisions[0].page_paragraphs.create(:display_type=>'html',:display_body => @@paragraph_body + "<p>This is page#{idx}!</p>" )
     end
     
     Configuration.put('index_last_update',nil)
@@ -36,7 +36,7 @@ EOF
 
     ContentNodeValue.count.should == 4
 
-  @results, @total_results = ContentNodeValue.search 'en', 'page2', :conditions => {:search_result => 1}, :limit => 10, :offset => 0
+    @results, @total_results = ContentNodeValue.search 'en', 'page2', :conditions => {:search_result => 1}, :limit => 10, :offset => 0
     @total_results.should == 1
     @results[0].title.downcase.should include('page2')
   end
