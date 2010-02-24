@@ -16,7 +16,8 @@ Webiva is available at GitHub at http://github.com/cykod/Webiva
 
 === Getting Started
 
-Documentation at this point is pretty sparse, so you're own for now but more docs are coming soon. Please check out the instructions in the INSTALL file to get a development version up and running.
+Please check the extensive documentation at http://webiva.net/doc for more information on getting the
+system up and running and details and tutorials on how to use Webiva.
 
 The Backend of Webiva currently only supports Firefox and some parts are not compatible with Safari, Opera or Internet Explorer.
 
