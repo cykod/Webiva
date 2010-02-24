@@ -14,7 +14,7 @@
 <br/>
 <br/>
 <% if permit?('editor_editor') %>
-  <% if info[1] != info[2] -%>
+  <% if info[2] && info[1] != info[2] -%>
     <%= link_to 'Edit Active Revision (%d)' / info[1].revision, { :controller => 'edit', :action => 'page', :path => ['page',@node.id,info[0] ] }, :class => 'link_button' %>
     <%= link_to 'Edit Latest Revision (%d)' / info[2].revision, { :controller => 'edit', :action => 'page', :path => ['page',@node.id,info[2].id ] }, :class => 'link_button' %>
 
