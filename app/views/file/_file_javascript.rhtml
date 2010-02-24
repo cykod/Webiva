@@ -1380,13 +1380,15 @@ FileEditor = {
 };
 
 //if the browser is IE4+
-document.onselectstart=new Function ("return false")
-
+document.onselectstart=new Function ("return false");
 Event.observe(window,'load',FileEditor.init);
-Event.observe(window,'resize',FileEditor.onResize);
-Event.observe(window,'mousemove',FileEditor.dragBox);
-Event.observe(window,'mouseup',FileEditor.endDrag);
-Event.observe(window,'mousedown',FileEditor.startDrag);
+
+// Can't use Event.observe b/c we want the return value to
+// prevent highlighting
+window.onresize = FileEditor.onResize;
+window.onmousemove = FileEditor.dragBox;
+window.onmouseup =  FileEditor.endDrag;
+window.onmousedown = FileEditor.startDrag;
 </script>
 
 </script>

@@ -25,6 +25,16 @@ You are already registered
   <!-- optional fields except='field1' or fields="field1,field2" options work too -->
 
 
+ <cms:publication>
+ <cms:field>
+  <div class='item'>
+     <cms:error><div class='error'><cms:value/></div></cms:error>
+     <div class='label'><cms:label/><cms:required>*</cms:required>:</div>
+     <div class='field'><cms:control/></div>
+  </div>
+  </cms:field>
+  </cms:publication>
+
 
   <cms:submit/>
 </cms:register>
@@ -64,6 +74,8 @@ FEATURE
       if data[:options].publication
         c.fields_for_tag('register:publication',:model) { |t|  data[:model] }
         c.publication_field_tags("register:publication",data[:options].publication)
+      else
+        c.expansion_tag('register:publication') { |t| nil }
       end
       
       c.button_tag('register:submit')
@@ -96,6 +108,15 @@ FEATURE
   </cms:any_field>
   <!-- optional fields except='field1' or fields="field1,field2" options work too -->
 
+ <cms:publication>
+ <cms:field>
+  <div class='item'>
+     <cms:error><div class='error'><cms:value/></div></cms:error>
+     <div class='label'><cms:label/><cms:required>*</cms:required>:</div>
+     <div class='field'><cms:control/></div>
+  </div>
+  </cms:field>
+  </cms:publication>
 
 
   <cms:submit/>
@@ -137,6 +158,8 @@ FEATURE
       if data[:options].publication
         c.fields_for_tag('edit:publication',:model) { |t|  data[:model] }
         c.publication_field_tags("edit:publication",data[:options].publication)
+      else
+        c.expansion_tag('edit:publication') { |t| nil }
       end
       
       c.button_tag('edit:submit')

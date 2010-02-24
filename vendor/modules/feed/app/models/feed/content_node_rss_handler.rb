@@ -19,9 +19,10 @@ class Feed::ContentNodeRssHandler
              :items => []}
 
     conditions = @options.content_type_ids.length > 0 ? {  :content_type_id => @options.content_type_ids } : nil
-    @nodes = ContentNode.find(:all,:conditions => conditions, :limit => @options.limit, :order => @options.order )
+    @nodes = ContentNode.find(:all,:conditions => conditions, :limit => @options.limit, :order => @options.order, :include => :content_type )
     @nodes.each do |node|
       item = { :title => node.title,
+               :description => '',
 	       :guid => Configuration.domain_link(node.link),
                :published_at => @options.order_by == 'newest' ? node.created_at.to_s(:rfc822) : node.updated_at.to_s(:rfc822),
 	       :link => Configuration.domain_link(node.link)
@@ -29,7 +30,9 @@ class Feed::ContentNodeRssHandler
 
       categories = [node.content_type.type_description, node.content_type.content_name].collect { |c| c unless c.blank? }.compact
       item[:categories] = categories unless categories.empty?
-
+#      unless node.content_type.content_name.blank? && node.content_type.type_description.blank?
+#          item[:description] = "#{node.content_type.content_name} #{node.content_type.type_description}"
+#      end
       data[:items] << item
     end
       

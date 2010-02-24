@@ -9,8 +9,12 @@ class Feedback::PingbackController < ApplicationController
   end
 
   def index
-    render :text => @server.process(request.body.read),
+    if request.post?
+      render :text => @server.process(request.body.read),
       :content_type => "text/xml; charset=utf-8", :layout => false
+    else
+      render :nothing => true
+    end
   end
 
   protected

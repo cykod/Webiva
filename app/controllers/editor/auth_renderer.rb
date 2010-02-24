@@ -325,6 +325,11 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
           user = EndUser.login_by_username(params[:cms_login][:username],params[:cms_login][:password])
         end
         
+        if myself.id && user
+          process_logout
+          redirect_paragraph paragraph_page_url
+          return
+        end
         if user
           process_login(user,params[:cms_login][:remember].to_s == '1')
           paragraph_action(myself.action('/editor/auth/login'))

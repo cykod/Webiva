@@ -170,11 +170,11 @@ class ContentNode < DomainModel
 
   def link(type_preload = nil)
     type_preload ||= self.content_type
-    self.content_url_override || type_preload.content_link(node)
+    node ? (self.content_url_override || type_preload.content_link(node)) : ''
   end
 
   def title
-    if self.content_type
+    if self.content_type && node
       node.send(content_type.title_field)
     else
       "Unknown"
