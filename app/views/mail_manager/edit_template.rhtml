@@ -104,6 +104,7 @@
 
 <%= render :partial => @handler_info[:partial] if @handler_info && @handler_info[:partial] %>
 
+<div class='admin_content'>
 <div style='position:relative;'>
 <% cms_unstyled_form_for :mail_template, @mail_template, :html => { :id => 'mail_template_form', :class => 'admin_form', :onsubmit => 'TemplateEditor.triggerSave(); return true;' } do |f| -%>
 <%= hidden_field_tag(:return, @handler_info[:identifier]) if @handler_info -%>
@@ -210,5 +211,6 @@
 
 <% end -%>
 
+</div>
 </div>
 
