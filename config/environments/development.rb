@@ -23,4 +23,4 @@ config.action_mailer.raise_delivery_errors = false
 config.action_mailer.delivery_method = :test
 
 require 'development_logger'
-config.logger = DevelopmentLogger.new(File.dirname(__FILE__) + "/../../log/#{RAILS_ENV}.log", "daily")
+config.logger = DevelopmentLogger.new(File.dirname(__FILE__) + "/../../log/#{RAILS_ENV}.log", 0, 0)
