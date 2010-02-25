@@ -62,6 +62,11 @@ module StyledFormBuilderGenerator #:nodoc:
           display_only = options[:display]  || false
           name = options[:name] || class_name.underscore 
           
+	  pre = pre.blank? ? '' : pre.gsub(/([\"\#])/, '\\\\\1')
+	  post = post.blank? ? '' : post.gsub(/([\"\#])/, '\\\\\1')
+	  pre_cmd = pre.blank? ? '' : "concat(\"#{pre}\")"
+	  post_cmd = post.blank? ? '' : "concat(\"#{post}\")"
+
           names = [ [ name, 'form_tag(options.delete(:url) || {}, options.delete(:html) || {})'] ]
           names << [ 'remote_' + name, 'form_remote_tag(options)' ]  unless display_only || options[:no_remote]
           names.each do |nm|
@@ -70,9 +75,9 @@ module StyledFormBuilderGenerator #:nodoc:
                 raise ArgumentError, "Missing block" unless block_given?
                 options = args.last.is_a?(Hash) ? args.pop : {}
                 #{"concat(" + nm[1] + ")" unless display_only}
-                concat('#{pre}')
+                #{pre_cmd}
                 fields_for(object_name, *(args << options.merge(:builder => #{class_name})), &proc)
-                concat('#{post.gsub("'","\\'")}')
+                #{post_cmd}
                 #{"concat('</form>')" unless display_only}
               end
             END_SRC
@@ -90,8 +95,10 @@ module StyledFormBuilderGenerator #:nodoc:
 		    class_name = self.to_s
 		    display_only = options[:display]  || false
 		    name = options[:name] || class_name.underscore
-		    pre_cmd = pre.blank? ? '' : "concat(\"#{pre.gsub(/[\'\"\#]/, '\\\1')}\")"
-		    post_cmd = post.blank? ? '' : "concat(\"#{post.gsub(/[\'\"\#]/, '\\\1')}\")"
+		    pre = pre.blank? ? '' : pre.gsub(/([\"\#])/, '\\\\\1')
+		    post = post.blank? ? '' : post.gsub(/([\"\#])/, '\\\\\1')
+		    pre_cmd = pre.blank? ? '' : "concat(\"#{pre}\")"
+		    post_cmd = post.blank? ? '' : "concat(\"#{post}\")"
 		    src = <<-END_SRC 
 			    def #{name}_for(object_name,*args,&proc)
 				    raise ArgumentError, "Missing block" unless block_given?
