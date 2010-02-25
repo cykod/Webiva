@@ -535,7 +535,7 @@ class DomainModel < ActiveRecord::Base
   # Adds content tag support to a model
   # includes ContentTagFunctionality methods into the class
   def self.has_content_tags
-    has_many :content_tag_tags, :as => :content, :include => :content_tag
+    has_many :content_tag_tags, :foreign_key => :content_id, :include => :content_tag, :dependent => :delete_all, :conditions => "content_tag_tags.content_type='" + self.to_s + "'"
     has_many :content_tags, :through => :content_tag_tags, :order => 'content_tags.name'
     after_save :tag_cache_after_save
     include ContentTagFunctionality
@@ -619,8 +619,9 @@ class DomainModel < ActiveRecord::Base
         
         @tag_name_cache.each do |tag_name|
           unless @existing_tags.include?(tag_name)
-              tg = ContentTag.get_tag(self.class.to_s,tag_name)
-              self.content_tag_tags.create(:content_tag => tg)
+            tg = ContentTag.get_tag(self.class.to_s,tag_name)
+            # Be explicit about the content_type for Content models (which don't have a real class name)
+            self.content_tag_tags.create(:content_tag => tg,:content_type => self.class.to_s,:content_tag_id => self.id)
           end
         end
       end

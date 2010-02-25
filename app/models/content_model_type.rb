@@ -65,6 +65,10 @@ class ContentModelType < DomainModel
       val
     end
   end
+
+  def self.to_s
+    self.class_name
+  end
   
   def self.self_and_descendants_from_active_record
     [ ContentModelType ]

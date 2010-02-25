@@ -16,9 +16,9 @@ module Content::ContentModelGenerator
     class_name = self.table_name.classify
     cls = nil
     Object.class_eval do
-      remove_const class_name if const_defined? class_name
-      #cls = Class.new(ContentModelType) #
-      cls = const_set(class_name.to_s, Class.new(ContentModelType))
+      #remove_const class_name if const_defined? class_name
+      cls = Class.new(ContentModelType) #
+      #cls = const_set(class_name.to_s, Class.new(ContentModelType))
     end
 
     cls.set_class_name class_name
