@@ -373,8 +373,8 @@ class DomainFile < DomainModel
    end
 
    def get_size(size_name)
-     return true unless size_name
      return false if !meta_info || !meta_info[:image_size]
+     size_name = :original if size_name.blank?
      self.meta_info[:image_size][size_name.to_sym]
    end
    
@@ -628,7 +628,7 @@ class DomainFile < DomainModel
   def image_tag(size=nil,options = {})
      size_arr = image_size(size)
      url_val = url(size)
-     url_val << "?" + self.stored_at.to_i.to_s if self.processor == 'local'
+     url_val << "?" + self.stored_at.to_i.to_s if self.local?
      
      style = options[:style] ? " style='#{options[:style]}'" : ''
      align = options[:align] ? " align='#{options[:align]}'" : ''
@@ -643,12 +643,16 @@ class DomainFile < DomainModel
   end
    
   # Return a relative url for a file at a specific size
-  def url(size=nil)
+  def url(size=nil,append_stored_at = false)
     return self.processor_handler.url(size) unless self.processor == 'local' || !get_size(size)
+
     if self.private?
-      return "/website/file/priv/#{self.id.to_s}/#{size.to_s}"
+      fl = "/website/file/priv/#{self.id.to_s}/#{size.to_s}"
+    else
+      fl = self.relative_filename(size)
     end
-    self.relative_filename(size)
+    fl << "?" + self.stored_at.to_i.to_s if self.local? && append_stored_at
+    fl
   end
   
   # Return an editor url (that will get processed by the file_instance_extension)
@@ -733,9 +737,9 @@ class DomainFile < DomainModel
   end
 
   # Return a file-type appropriate thumbnail-url
-  def thumbnail_url(theme,size)
+  def thumbnail_url(theme,size,show_stored_at=false)
     case self.file_type
-    when 'img','thm' : url(size)
+    when 'img','thm' : url(size,show_stored_at)
     when 'doc' : thumbnail_document_icon(theme,size)
     when 'fld' : thumbnail_folder_icon(theme,size)
     end
@@ -943,7 +947,7 @@ class DomainFile < DomainModel
   # LocalProcess is the default File processor - it stores
   # files locally on the same machine as the server
   class LocalProcessor 
-    def initialize(df); @df = df; end 
+    def initialize(conn,df); @connection=conn, @df = df; end 
     
     # Don't need to do anything 
     def copy_local!(dest_size=nil); true; end
@@ -961,6 +965,26 @@ class DomainFile < DomainModel
     end
     
   end  	
+
+  # Dummy connection used for LocalProcessor
+  class LocalProcessorConnection
+  end
+
+  # Return the connection to the passed processor connection
+  def self.processor_connection(processor)
+    processors = DataCache.local_cache(:domain_file_processors) || { }
+    return processors[processor.to_sym] if processors[processor.to_sym]
+
+    if processor == 'local'
+      conn = LocalProcessorConnection.new
+    else
+      cls = processor.classify.constantize
+      conn = cls.create_connection
+    end
+    processors[processor.to_sym] = conn
+    DataCache.put_local_cache(:domain_file_processors,processors)
+    conn
+  end
   
   # Return an instance of the processor object
   def processor_handler(force=false)
@@ -968,13 +992,14 @@ class DomainFile < DomainModel
     return @processor_handler if @processor_handler
     
     if(self.processor.blank? || self.processor == 'local')
-      @processor_handler = LocalProcessor.new(self)
+      @processor_handler = LocalProcessor.new(self.class.processor_connection('local'),self)
     else
       begin
         cls = self.processor.classify.constantize
-        @processor_handler = cls.new(self)
+        @processor_handler = cls.new(self.class.processor_connection(self.processor),self)
       rescue Exception => e
-        @processor_handler = LocalProcessor.new(self)
+        raise e
+        @processor_handler = LocalProcessor.new(self.class.processor_connection('local'),self)
       end
     end
   end
