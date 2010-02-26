@@ -151,7 +151,7 @@ class MarketSegment < DomainModel
    def custom_target_list(options)
      opts = self.options_model
      if opts.user_ids.length > 0
-       EndUser.find(:all,:conditions => { :id => opts.user_ids },:select => 'end_users.email,end_users.id,end_users.full_name,end_users.first_name,end_users.last_name,end_users.middle_name').map {  |elm| [ elm.email,elm.name ]}
+       EndUser.find(:all,:conditions => { :id => opts.user_ids },:select => 'end_users.email,end_users.id,end_users.full_name,end_users.first_name,end_users.last_name,end_users.middle_name,end_users.client_user_id').map {  |elm| [ elm.email,elm.name ]}
      else
        []
      end
