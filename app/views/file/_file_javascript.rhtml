@@ -710,7 +710,12 @@ FileEditor = {
 			}
   	},
 	
-	
+      folderArchive: function(id) {
+      if(confirm('Create a zip of this folder? (This may take some time, you will need to reload this folder to view the archive)')) {
+         new Ajax.Request("<%= url_for :action => 'folder_archive' %>", { parameters: 'folder_id=' + id });
+      }
+      
+      },
     
     // File Upload Functions
     selectedChange: function() {
@@ -743,7 +748,14 @@ FileEditor = {
         setTimeout("FileEditor.uploadProgress()",100);
     },
 
-   
+    switchFileProcessor: function(file_id,processor) {
+      if(confirm("<%= 'Are you sure you want to switch the storage processor on this file?' %>")) {
+         new Ajax.Request('<%= url_for :action => "switch_processor" %>',
+                        { parameters: "file_id=" + file_id + '&file_processor=' + processor }
+                         );
+      }
+    
+    },
 
     uploadProgress: function()  {
       var progress_url = "/website/file/progress?X-Progress-ID=" + FileEditor.uploadProgressID;
