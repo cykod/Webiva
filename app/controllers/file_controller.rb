@@ -331,7 +331,6 @@ class FileController < CmsController # :nodoc: all
   def switch_processor
     file = DomainFile.find(params[:file_id].to_i)
     
-    #file.update_processor(:processor => params[:file_processor] )
     DomainModel.run_worker('DomainFile',file.id,:update_processor,{ :processor => params[:file_processor] })
     file.processor_status = 'processing'
     

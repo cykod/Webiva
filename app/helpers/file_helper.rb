@@ -40,10 +40,12 @@ module FileHelper
 
   def file_manager_image_tag(file,size,icon_size)
     url = file.thumbnail_url(theme,size)
+    url << "?" + file.stored_at.to_i.to_s if file.processor == 'local'
+
     thumb_size = file.thumbnail_thumb_size(size,icon_size)
     tag("img",
         :title => file.name,
-        :src => url + "?" + file.stored_at.to_i.to_s,
+        :src => url,
         :align => 'middle',
         :id => "thumb_image_#{file.id}",
         :width => thumb_size[0],
