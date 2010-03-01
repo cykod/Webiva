@@ -184,10 +184,10 @@ class SiteModule < DomainModel
   end
   
   
-  def self.activate_module(domain,name)
+  def self.activate_module(domain,name,opts={})
     mod = SiteModule.find_by_name(name) || SiteModule.new(:name => name)
     available = DomainModule.all_modules(domain).detect { |md| md[:module] == name }
-    if available && available[:status] == 'available'
+    if available && (available[:status] == 'available' || opts[:force])
       available[:dependencies].each do |depend|
         return nil if !SiteModule.module_enabled?(depend)
       end
