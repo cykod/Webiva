@@ -32,6 +32,8 @@ require 'yaml'
   CMS_DEFAULT_DOMAIN = defaults_config_file['domain']
   
   CMS_SYSTEM_ADMIN_EMAIL = defaults_config_file['system_admin']
+
+   CMS_EDITOR_LOGIN_SUPPORT = defaults_config_file['editor_login'] || false
   
   DEFAULT_DATETIME_FORMAT = defaults_config_file['default_datetime_format'] || "%m/%d/%Y %I:%M %p"
   DEFAULT_DATE_FORMAT = defaults_config_file['default_date_format'] || "%m/%d/%Y"

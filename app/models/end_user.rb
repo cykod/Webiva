@@ -118,6 +118,10 @@ include ModelExtension::EndUserImportExtension
                          [ 'Import', 'import' ],
                          [ 'Referrel', 'referrel' ] ]
 
+  if CMS_EDITOR_LOGIN_SUPPORT 
+   after_save :update_editor_login
+  end
+
   def after_create #:nodoc:
     if @tag_cache
       self.tag(@tag_cache)
@@ -125,7 +129,6 @@ include ModelExtension::EndUserImportExtension
   end
 
   ## Validation Fucntions 
-  
   
   
   def before_validation #:nodoc:
@@ -474,9 +477,10 @@ include ModelExtension::EndUserImportExtension
   end
   
   def update_editor_login #:nodoc:
-    if self.editor?
+    if self.registered? && self.activated? && self.editor?
       editor_login= EditorLogin.find_by_domain_id_and_email(Configuration.domain_id,self.email) || EditorLogin.new
       editor_login.update_attributes(:domain_id => Configuration.domain_id,
+                                     :login_hash => self.class.generate_hash,
                                      :email => self.email,
                                      :end_user_id => self.id,
                                      :hashed_password => self.hashed_password)
