@@ -155,7 +155,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
     
     return_page = nil unless return_page
     
-    if !entry && return_page
+    if !entry && return_page && !editor?
       redirect_paragraph return_page
       return 
     end

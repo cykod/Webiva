@@ -39,6 +39,7 @@ class DomainFile < DomainModel
   cattr_accessor :public_file_extensions
   
   attr_accessor :skip_transform
+  attr_accessor :process_immediately
     
   # Returns the list of built in image sizes
   def self.image_sizes
@@ -101,6 +102,7 @@ class DomainFile < DomainModel
     df = DomainFile.new(:parent_id => self.parent_id, :creator_id => user_id || self.creator_id, :private => self.private)
     File.open(self.filename,"rb") do |f|
       df.filename = f
+      df.process_immediately = true
       if(df.save)
         return df
       end
@@ -165,12 +167,15 @@ class DomainFile < DomainModel
     end
     
     return false if new_name.blank?
+
+    self.filename # get a local copy of the file
    
     tmp_dir = DomainFile.generate_temporary_directory
     new_filename = File.join(tmp_dir,new_name)
-    if FileUtils.copy_file(self.abs_filename,new_filename,true)
+    if FileUtils.copy_file(self.local_filename,new_filename,true)
       File.open(new_filename,"rb") do |f|
         self.filename = f
+        self.process_immediately = true
         self.name = new_name
         if(self.save)
           FileUtils.rm_rf(tmp_dir)
@@ -197,9 +202,15 @@ class DomainFile < DomainModel
       
       self.processor_handler.copy_local! if self.processor != 'local'
       
-      DomainFileVersion.archive(self) # Remove all the old versions of the file
+      self.processor_handler.destroy_remote! if self.processor != 'local'
+
+      # Remove all the old versions of the file
+      if DomainFileVersion.archive(self) 
+        self.version_count += 1
+      end
+
       
-      self.version_count += 1
+
       self.file_type = nil
       preprocess_file
       process_file(true)
@@ -283,7 +294,7 @@ class DomainFile < DomainModel
      begin
        img = Magick::Image.read(self.abs_filename).first
        
-       mime = MIME::Types.type_for(self.abs_filename)
+       mime = MIME::Types.type_for(self.local_filename)
        self.mime_type = mime[0] ? mime[0].to_s : 'application/octet-stream'
        
        info[:image_size][:original] = [ img.columns, img.rows ]
@@ -293,7 +304,7 @@ class DomainFile < DomainModel
          thumbnail = img.resize_to_fit(size[1],size[1])
          info[:image_size][size[0]] = [ thumbnail.columns, thumbnail.rows ]
          FileUtils.mkpath(self.abs_storage_directory + size[0].to_s);
-         thumbnail.write(self.abs_filename(size[0]))
+         thumbnail.write(self.local_filename(size[0]))
          thumbnail.destroy!
        end
        img.destroy!
@@ -322,22 +333,22 @@ class DomainFile < DomainModel
       
       # Copy the file directly if it's not a file object
       if @file_data.respond_to?(:local_path) and @file_data.local_path and File.exists?(@file_data.local_path)
-        FileUtils.copy_file(@file_data.local_path, self.abs_filename)
+        FileUtils.copy_file(@file_data.local_path, self.local_filename)
       elsif @file_data.respond_to?(:read)
-        File.open(self.abs_filename,'wb') { |f| f.write(@file_data.read) }
+        File.open(self.local_filename,'wb') { |f| f.write(@file_data.read) }
       end
-      File.chmod(0664,abs_filename)
+      File.chmod(0664,self.local_filename)
       
       
-      self.file_size = File.size(self.abs_filename);
-      self.stored_at = Time.now # File.mtime(self.abs_filename);
+      self.file_size = File.size(self.local_filename);
+      self.stored_at = Time.now 
 
       mime = MIME::Types.type_for(self.abs_filename)
       self.mime_type = mime[0] ? mime[0].to_s : 'application/octet-stream'
 
       # Unless we're skipping the transform on this
       if !@skip_transform
-        if(self.file_type=='img')
+        if(self.file_type=='img' || self.file_type=='thm')
           generate_thumbnails(false)
         end
       
@@ -346,18 +357,25 @@ class DomainFile < DomainModel
         # Update the meta data
       end
       
-      
-      
       @file_data = nil
-      self.save unless update  # Resave to update the file information if we are during the creation process
+      unless update  # Resave to update the file information if we are during the creation process
+        self.save 
+      end
+      post_process!(!self.process_immediately,update) unless @@disable_file_processing
+      
     end
     
-    post_process! unless @@disable_file_processing 
    end
    
    def set_size(size_name,width,height) #:nodoc:
     meta_info[:image_size] ||= {}
     meta_info[:image_size][size_name.to_sym] = [ width, height ]
+   end
+
+   def get_size(size_name)
+     return false if !meta_info || !meta_info[:image_size]
+     size_name = :original if size_name.blank?
+     self.meta_info[:image_size][size_name.to_sym]
    end
    
   
@@ -379,18 +397,38 @@ class DomainFile < DomainModel
       FileUtils.rm_rf(abs_storage_directory)
     end
    end
+
+   def destroy_local_thumb!(size)
+        FileUtils.rm_rf(abs_storage_directory + "/" + size.to_s)
+   end
    
    def destroy_thumbs #:nodoc:
     # Need to destroy thumbs and get image size for the domain file version
     if self.meta_info && self.meta_info[:image_size]
       self.meta_info[:image_size].each do |size,vals|
-        FileUtils.rm_rf(abs_storage_directory + "/" + size.to_s)
+        destroy_local_thumb!(size)
       end 
       self.processor_handler.destroy_thumbs! if self.processor != 'local'
     end
    end
    
    
+   def prefixed_filename(size=nil)
+     atr = self.read_attribute(:filename)
+     return nil unless self.prefix && atr
+
+     # Only allow valid file sizes
+      size = nil unless !size || @@image_sizes[size.to_sym] || DomainFileSize.custom_sizes[size.to_sym]
+     
+     # Special case handling for thumbnails
+     if size && self.file_type == 'thm'
+       self.prefixed_directory  + "#{size}/" + (File.basename(atr,".#{extension}") + ".jpg")
+     else
+       self.prefixed_directory + (size ? "#{size}/" : '') +  atr
+     end
+   end
+   
+
    # Return the relative file name of this DomainFile under
    # the storage directroy
    def relative_filename(size=nil,force=nil)
@@ -403,18 +441,30 @@ class DomainFile < DomainModel
 
      # Special case handling for thumbnails
      if size && self.file_type == 'thm'
-       
-       self.storage_directory + "#{size}/" + (File.basename(atr,".#{extension}") + ".jpg")
+       self.storage_directory  + "#{size}/" + (File.basename(atr,".#{extension}") + ".jpg")
      else
        self.storage_directory + (size ? "#{size}/" : '') +  atr
      end
    end
 
+   # Just get get the local filename without forcing a copy
+   def local_filename(size=nil)
+     abs_filename(size,true)
+   end
+
    # Return the absolute filename, valid for opening a file on the server
    # Thumbnails are stored in subdirectories prefixed with the file size (../small/file.jpg)
-   def abs_filename(size=nil,force=false); "#{RAILS_ROOT}/public" + self.relative_filename(size,force); end
+   def abs_filename(size=nil,force=false); 
+     fl = "#{RAILS_ROOT}/public" + self.relative_filename(size,force); 
+     self.processor_handler.copy_local!(size) if !force && !File.exists?(fl)
+
+     fl
+   end
    alias_method :filename, :abs_filename
 
+   # Returns the prefixed directory, which includes the prefix and
+   # and the storage subdirectory
+   def prefixed_directory; DomainFile.storage_subdir + "/" + self.prefix + "/"; end
       
    # Return the relative storage directory
    def storage_directory; self.storage_base + "/" + self.prefix + "/"; end
@@ -577,7 +627,8 @@ class DomainFile < DomainModel
   # Return an image tag for a file
   def image_tag(size=nil,options = {})
      size_arr = image_size(size)
-     url_val = url(size) + "?" + self.stored_at.to_i.to_s
+     url_val = url(size)
+     url_val << "?" + self.stored_at.to_i.to_s if self.local?
      
      style = options[:style] ? " style='#{options[:style]}'" : ''
      align = options[:align] ? " align='#{options[:align]}'" : ''
@@ -585,14 +636,23 @@ class DomainFile < DomainModel
      "<img src='#{url_val}' width='#{size_arr[0]}' height='#{size_arr[1]}'#{align}#{style} />"
 
   end
+
+  # Is this file stored locally?
+  def local?
+    self.processor == 'local'
+  end
    
   # Return a relative url for a file at a specific size
-  def url(size=nil)
-    return self.processor_handler.url(size) unless self.processor == 'local'
+  def url(size=nil,append_stored_at = false)
+    return self.processor_handler.url(size) unless self.processor == 'local' || !get_size(size)
+
     if self.private?
-      return "/website/file/priv/#{self.id.to_s}/#{size.to_s}"
+      fl = "/website/file/priv/#{self.id.to_s}/#{size.to_s}"
+    else
+      fl = self.relative_filename(size)
     end
-    self.relative_filename(size)
+    fl << "?" + self.stored_at.to_i.to_s if self.local? && append_stored_at
+    fl
   end
   
   # Return an editor url (that will get processed by the file_instance_extension)
@@ -677,9 +737,9 @@ class DomainFile < DomainModel
   end
 
   # Return a file-type appropriate thumbnail-url
-  def thumbnail_url(theme,size)
+  def thumbnail_url(theme,size,show_stored_at=false)
     case self.file_type
-    when 'img','thm' : url(size)
+    when 'img','thm' : url(size,show_stored_at)
     when 'doc' : thumbnail_document_icon(theme,size)
     when 'fld' : thumbnail_folder_icon(theme,size)
     end
@@ -806,16 +866,21 @@ class DomainFile < DomainModel
    #  Non Local file processing functions
    #########
   
-    def post_process!(background=true) #:nodoc:
+    def post_process!(background=true,update=false) #:nodoc:
       return if self.file_type == 'fld'
       opts = Configuration.file_types
       ext = self.extension
-      current_processor = opts.default
-      opts.options_arr.each do |processor,file_types|
-        current_processor = processor if file_types.include?(ext)
-      end
-      if current_processor != 'local'
+      if !update
+        current_processor = opts.default
+        opts.options_arr.each do |processor,file_types|
+          current_processor = processor if file_types.include?(ext)
+        end
+      else
+        current_processor = self.processor
+      end 
+     if current_processor != 'local'
         if background
+          self.update_attributes(:processor => 'local',:processor_status => 'processing')
           DomainModel.run_worker('DomainFile',self.id,:update_processor,{ :processor => current_processor, :new_file => true })  
         else
           self.update_processor(:processor => current_processor, :new_file => true)
@@ -846,21 +911,28 @@ class DomainFile < DomainModel
       file.update_processor(:processor => options[:processor])
     end
   end
+
+  def push_size(size)
+    self.processor_handler.copy_remote!(size)
+    self.destroy_local_thumb!(size)
+  end
   
+  # modify the processor the file is using'
+  # will delete all old versions of the file
   def update_processor(options = {}) #:nodoc:
-    existing_url = self.url
-    if(self.processor_handler.copy_local!)
-      self.processor_handler.destroy_remote!
+    
+    if(options[:new_file] || self.processor_handler.copy_local! )
+      self.processor_handler.destroy_remote! unless options[:new_file]
       if(Configuration.file_types.processors.include?(options[:processor]))
+
+        # Don't carry versions over between file processors
+        self.versions.clear unless options[:new_file] 
         if(options[:processor] != 'local')
           self.update_attributes(:processor => 'local',:processor_status => 'processing')
           self.processor = options[:processor]
-          if(self.processor_handler.copy_remote!)
+          if(self.processor_handler(true).copy_remote!)
             @file_change = true
             self.update_attributes(:processor_status => 'ok') # Should trigger resaving of domain_file_instances
-#            unless(options[:new_file])
-#             self.notify_file_instances! unless(options[:batch])
-#            end
             return true
           else 
             return false
@@ -875,12 +947,13 @@ class DomainFile < DomainModel
   # LocalProcess is the default File processor - it stores
   # files locally on the same machine as the server
   class LocalProcessor 
-    def initialize(df); @df = df; end 
+    def initialize(conn,df); @connection=conn, @df = df; end 
     
     # Don't need to do anything 
-    def copy_local!; true; end
+    def copy_local!(dest_size=nil); true; end
     def copy_remote!; true; end
     def destroy_remote!; true; end
+    def revision_support; true; end
     
     def update_private!(value)
       old_directory = @df.abs_storage_directory
@@ -892,18 +965,41 @@ class DomainFile < DomainModel
     end
     
   end  	
+
+  # Dummy connection used for LocalProcessor
+  class LocalProcessorConnection
+  end
+
+  # Return the connection to the passed processor connection
+  def self.processor_connection(processor)
+    processors = DataCache.local_cache(:domain_file_processors) || { }
+    return processors[processor.to_sym] if processors[processor.to_sym]
+
+    if processor == 'local'
+      conn = LocalProcessorConnection.new
+    else
+      cls = processor.classify.constantize
+      conn = cls.create_connection
+    end
+    processors[processor.to_sym] = conn
+    DataCache.put_local_cache(:domain_file_processors,processors)
+    conn
+  end
   
   # Return an instance of the processor object
-  def processor_handler
+  def processor_handler(force=false)
+    @processor_handler = nil if force
+    return @processor_handler if @processor_handler
     
     if(self.processor.blank? || self.processor == 'local')
-      @processor = LocalProcessor.new(self)
+      @processor_handler = LocalProcessor.new(self.class.processor_connection('local'),self)
     else
       begin
         cls = self.processor.classify.constantize
-        cls.new(self)
+        @processor_handler = cls.new(self.class.processor_connection(self.processor),self)
       rescue Exception => e
-        LocalProcessor.new(self)
+        raise e
+        @processor_handler = LocalProcessor.new(self.class.processor_connection('local'),self)
       end
     end
   end
@@ -927,7 +1023,7 @@ class DomainFile < DomainModel
     
     df = nil
     File.open(dir + "/../" + dest_filename) do |fp|
-      df = DomainFile.create(:filename => fp,:parent_id => self.parent_id)
+      df = DomainFile.create(:filename => fp,:parent_id => self.parent_id,:process_immediately => true,:private => true)
     end
     
     FileUtils.rm_rf(dir)   

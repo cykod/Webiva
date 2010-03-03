@@ -1,2 +1,2 @@
---exclude "spec/*,gems/*" 
---rails
+--exclude "spec/*,gems/*,plugins/*,rails/*,config/*" 
+--aggregate "coverage.data"

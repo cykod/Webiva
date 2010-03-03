@@ -64,7 +64,14 @@ class ContentModelType < DomainModel
     sing.send(:define_method, :class_name) do
       val
     end
+    sing.send(:define_method, :name) do
+      val
+    end
+    sing.send(:define_method, :to_s) do
+      val
+    end
   end
+
   
   def self.self_and_descendants_from_active_record
     [ ContentModelType ]

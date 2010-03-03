@@ -14,6 +14,17 @@ class DomainFileVersion < DomainModel
   belongs_to :creator, :class_name => 'EndUser',:foreign_key => 'creator_id'
   
   def self.archive(file)
+
+    if !file.processor_handler.revision_support
+      begin
+        file.destroy_thumbs
+        File.unlink(file.filename)
+      rescue Exception => e
+        raise e
+        # Chomp
+      end
+      return
+    end
   
     info = {}
     if file.image_size
@@ -21,6 +32,10 @@ class DomainFileVersion < DomainModel
     end
     
     version_hash = self.generate_version_hash
+
+    file.processor_handler.destroy_remote! # get rid of remote copies of this file
+
+    file.filename # copy file locally
     
     # Create a new instance with the correct file attributes
     v = DomainFileVersion.create(:domain_file => file,
@@ -47,12 +62,18 @@ class DomainFileVersion < DomainModel
     end
   end
   
+  def prefixed_filename
+    # unless we have a filename, return false
+    atr = self.read_attribute(:filename)
+    return nil unless self.prefix && atr
+     "#{self.prefix}/#{atr}"
+  end
   
    def relative_filename
       # unless we have a filename, return false
       atr = self.read_attribute(:filename)
       return nil unless self.prefix && atr
-      self.storage_directory + atr
+    self.storage_directory + atr
    end
    
    # Return the absolute storage directory - valid for opening a file  on the server 
@@ -70,7 +91,13 @@ class DomainFileVersion < DomainModel
    
    def storage_base; self.domain_file.private? ? DomainFile.private_storage_base : DomainFile.public_storage_base; end
    
-   def url; relative_filename; end
+   def url
+     if domain_file.processor != 'local'
+       self.domain_file.processor_handler.version_url(self)
+     else
+       relative_filename
+     end
+   end
    
    ###########
    # Hooks

@@ -24,7 +24,18 @@
   <% else -%>
     <button onclick='FileEditor.makeFilePrivate(<%= file.id %>)'>Make Private</button>
   <% end -%>
-  
+
+  <% if(file.processor_status == 'ok')  -%>
+  <% if Configuration.file_types.processors.length > 1 -%>
+        <% Configuration.file_types.processors.each do |processor| -%>
+          <% handler = (processor == 'local') ? { :name => 'Local Storage' } : get_handler_info(:website,:file,processor)  %>
+          <%  if(file.processor != processor) %>
+          <button onclick='FileEditor.switchFileProcessor(<%= file.id %>,"<%= processor -%>")'><%= jh ('Switch to ' + handler[:name]).t %></button>
+          <% end -%>
+        <% end -%>
+      <% end -%>
+ <% end -%>  
+
   <% if !@popup && file.editable? -%>
     <button onclick='FileEditor.editFile(<%= file.id %>);'>Edit File</button>
   <% end -%>

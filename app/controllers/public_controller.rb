@@ -69,6 +69,11 @@ class PublicController < ApplicationController  # :nodoc: all
     sz = DomainFileSize.find_by_size_name(size)
     
     if df && sz 
+      if !df.local? && df.get_size(sz.size_name)
+        redirect_to df.url(sz.size_name)
+        return
+      end
+
       name = sz.execute(df)
       if df.mime_type.blank?
         name = df.filename(sz.size_name)
@@ -76,6 +81,13 @@ class PublicController < ApplicationController  # :nodoc: all
         mime_type = mime_types[0] ? mime_types[0].to_s : 'application/octet-stream'
       else
         mime_type = df.mime_type
+      end
+
+      # Push the size to the remote server
+      if !df.local?
+        df.push_size(sz.size_name)
+        redirect_to df.url(sz.size_name)
+        return
       end
       
       render :nothing => true if RAILS_ENV == 'test'
@@ -117,6 +129,10 @@ class PublicController < ApplicationController  # :nodoc: all
     end
     @df = DomainFile.find_by_prefix_and_private(@prefix,0)
     
+    if @df && !@df.local?
+      redirect_to @df.url(@size)
+      return
+    end
     
     if @df && !File.exists?(@df.filename(@size)) 
       sz = DomainFileSize.find_by_size_name(@size)

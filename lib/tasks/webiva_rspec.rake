@@ -25,4 +25,13 @@ namespace :spec do
     t.spec_files = FileList['spec/**/*/*_spec.rb'] + FileList['vendor/modules/**/spec/**/*/*_spec.rb']
   end
 
+  desc "Run all specs in spec directory and any module specs with rcov"
+  Spec::Rake::SpecTask.new(:webiva_rcov) do |t|
+    t.spec_opts = ['--options', "\"#{RAILS_ROOT}/spec/spec.opts\""]
+    t.spec_files = FileList['spec/**/*/*_spec.rb'] + FileList['vendor/modules/**/spec/**/*/*_spec.rb']
+    t.rcov = true
+    t.rcov_opts = lambda do
+      IO.readlines("#{RAILS_ROOT}/spec/rcov.opts").map {|l| l.chomp.split " "}.flatten + [ "-i \"vendor/modules/*\"" ]
+    end
+  end
 end

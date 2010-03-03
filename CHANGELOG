@@ -1,0 +1,19 @@
+
+
+0.9.10 - 2010-03-01
+-------------------
+- View account paragraph
+- Custom content system filter list paragraph fixes
+- Custom content system detail paragraph fixes
+- Various Blog bug fixes (publication date/etc) and initial Spec's
+- New Edit account paragraph (stylable with site features)
+- Pingback support in feedback module (and dashboard widgets)
+- Content Node Paragraph
+- Replaced simple captcha with handlers Feedback module captcha system 
+- Fixed session logging issues
+
+0.9.00 - 2010-02-01
+-------------------
+
+Initial public release
+
