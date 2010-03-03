@@ -122,7 +122,11 @@ CACHE = MemCache.new memcache_options
 Workling::Remote.dispatcher = Workling::Remote::Runners::StarlingRunner.new
 Workling::Return::Store::Base # Load the base module first
 Workling::Return::Store.instance = CACHE
-
+if RAILS_ENV == 'production'
+  Workling::Base.logger = ActiveSupport::BufferedLogger.new(File.dirname(__FILE__) + "/../log/workling.log")
+else
+  Workling::Base.logger = DevelopmentLogger.new(File.dirname(__FILE__) + "/../log/#{RAILS_ENV}_workling.log", 0, 0)
+end
 
 ActionMailer::Base.logger = nil unless RAILS_ENV == 'development'
 
