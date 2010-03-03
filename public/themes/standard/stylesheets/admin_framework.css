@@ -1387,6 +1387,12 @@ td.error {
   font-weight:bold;
 }
 
+.errorExplanation li {
+  margin-left: 18px;
+  color:#CC1111;
+  font-weight:bold;
+}
+
 /* Flash Notice */
 
 .flash_notice {

@@ -165,14 +165,10 @@ class MailManagerController < CmsController # :nodoc: all
   private
 
   def save_template
-    
-    params[:mail_template][:body_type] = (params[:mail_template][:body_type] || []).join(",")
-    
-    attach= params[:mail_template].delete(:attachments)
+    attach = params[:mail_template].delete(:attachments)
     attachments = []
     attach.split(',').each { |ath|  attachments << ath if ath && ath != '' } if attach
     params[:mail_template][:attachments] = attachments.length 
-    
     
     if @mail_template.update_attributes(params[:mail_template])
       DataCache.expire_content("Mailing")
