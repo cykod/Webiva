@@ -757,5 +757,29 @@ EOF
     output += html.map { |elm| elm[1] }.join
     output
   end
+
+  class WizardSteps
+    def initialize(wizard_step,wizard_max_step) 
+      @wizard_step = wizard_step
+      @wizard_max_step = wizard_max_step
+    end
+    
+    def step(number,txt,url = {})
+    
+      if number == @wizard_step
+        "<b class='large_ajax_link_selected'>#{number}. #{txt}</b>"
+      elsif number <= @wizard_max_step
+        
+        "<a href='#{url}'>#{number}. #{txt}</a>"
+      else
+        "#{number}. #{txt}"
+      end
+    end
+    
+  end
   
+  def wizard_steps(wizard_step,wizard_max_step) 
+    yield WizardSteps.new(wizard_step,wizard_max_step)
+  end
+
 end
