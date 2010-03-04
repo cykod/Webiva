@@ -278,35 +278,47 @@ class StructureController < CmsController  # :nodoc: all
   end
   
   def create_revision
-    revision_id = params[:revision_create][:from_revision_id]
+    revision_id = params[:revision_create][:from_revision_id] if params[:revision_create]
     language = params[:language]
   
-    
-    @revision = PageRevision.find(revision_id)
-    @new_revision = @revision.clone
-    @new_revision.language = language
-    @new_revision.revision_type = 'real'
-    @new_revision.active= false
-    @new_revision.save
-    
-    @revision.page_paragraphs.each do |para|
-      new_para = para.clone
-      new_para.page_revision_id=@new_revision.id
-      new_para.save
+    if revision_id
+      @revision = PageRevision.find(revision_id)
+      @new_revision = @revision.clone
+      @new_revision.language = language
+      @new_revision.revision_type = 'real'
+      @new_revision.active= false
+      @new_revision.save
+      
+      @revision.page_paragraphs.each do |para|
+        new_para = para.clone
+        new_para.page_revision_id=@new_revision.id
+        new_para.save
+      end
+    else
+      if params[:framework_id]
+        @node = SiteNodeModifier.find(params[:framework_id])
+      else
+        @node = SiteNode.find(params[:node_id])
+      end
+      
+      @new_revision = @node.page_revisions.create(:language => language,
+                                  :revision_type => 'real',
+                                  :active => false)
+      
     end
-    
+
     
     @languages = Configuration.languages
     
     if @new_revision.revision_container.is_a?(SiteNode)
       @node = @new_revision.revision_container
       @revision_info = @node.language_revisions(@languages)
-      render :partial => 'revision_info', :locals => { :info => [ @new_revision.language, @new_revision ] }
+      render :partial => 'revision_info', :locals => { :info => [ @new_revision.language, @new_revision, @new_revision  ] }
     else
       @mod =  @new_revision.revision_container
       @node = @mod.site_node
       @revision_info = @mod.language_revisions(@languages)
-      render :partial => 'framework_revision_info', :locals => { :info => [ @new_revision.language, @new_revision ] }
+      render :partial => 'framework_revision_info', :locals => { :info => [ @new_revision.language, @new_revision,  @new_revision ] }
     end
     
     expire_site
