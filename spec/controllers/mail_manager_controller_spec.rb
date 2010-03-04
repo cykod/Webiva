@@ -19,6 +19,8 @@ describe MailManagerController, "" do
            :mail_template => { 
              :name => 'test campaign mail templates',
              :template_type => 'campaign',
+             :body_text => 'body',
+             :body_type => 'text',
              :language => 'en',
              :create_type => 'blank',
              :category => 'test campaign category',
