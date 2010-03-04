@@ -55,7 +55,8 @@ class MailTemplate < DomainModel
  attr_accessor :attachment_list
  attr_accessor :create_type
  attr_accessor :master_template_id
- 
+ attr_accessor :mailing_handler
+
  @@text_regexp = /\%\%(\w+)\%\%/
  @@html_regexp = /\<span\s+(class=\"mceNonEditable\"\s*|alt=\"cmsField\"\s*){2}\>\<span.*?alt=\"([^\"]+)\".*?\<\/span\>\<\/span\>/
  @@href_regexp = /\<a([^\>]+?)href\=(\'|\")([^\'\"]+)(\'|\")([^\>]*?)\>/mi
@@ -455,6 +456,13 @@ class MailTemplate < DomainModel
    return doc.to_html
  end
  
+ def additional_headers(variables={})
+   headers = {'X-Webiva-Domain' => DomainModel.active_domain_name}
+   headers['X-Webiva-Handler'] = self.mailing_handler if self.mailing_handler
+   headers['Reply-to'] = variables['system:reply_to'] if variables['system:reply_to']
+   headers
+ end
+
  private
 
  def transform_tag(tag,styles) #:nodoc:
