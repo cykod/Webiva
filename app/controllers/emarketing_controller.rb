@@ -17,8 +17,6 @@ class EmarketingController < CmsController # :nodoc: all
           "View and Track Visitors to your site" ],
        [ "Real Time Statistics", :editor_visitors, "emarketing_statistics.gif", { :action => 'stats' }, 
           "View Real Time Visits to your site" ],
-       [ "Tell-a-Friend Emails", :editor_content, "emarketing_members.gif",  { :controller => "/subscription",:action => "tell_friends" },
-          "See emails sent with Tell-a-friend" ],
        [ "Subscriptions", :editor_mailing,"emarketing_subscriptions.gif", { :controller => '/subscription' },
           "Edit Newsletters and Mailing Lists Subscriptions" ],
        [ "Email Templates", :editor_mailing,"emarketing_templates.gif", { :controller => '/mail_manager', :action => 'templates' },
