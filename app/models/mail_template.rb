@@ -112,7 +112,7 @@ class MailTemplate < DomainModel
      if self.body_format == 'html'
        errors.add(:body_type, 'is invalid. (Campaign template types can be text or both.)')
      else
-       errors.add(:body_text, 'is missing. (Campaign template types require a text version.)') if self.body_text.strip.blank?
+       errors.add(:body_text, 'is missing. (Campaign template types require a text version.)') if self.body_text.blank? || self.body_text.strip.blank?
      end
    end
  end
