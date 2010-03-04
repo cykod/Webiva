@@ -1,0 +1,15 @@
+<div class='admin_content'>
+
+<% admin_form_for :wizard, @blog_wizard do |f|  -%>
+
+  <%= f.select :blog_id, Blog::BlogBlog.select_options_with_nil('Blog'), :label => 'Blog to Add' -%>
+  <%= f.add_page_selector :add_to -%>
+  <%= f.text_field :detail_page_url, :label => "Detail Page", :size => 10 -%>
+  <%= f.check_boxes :opts, [['Add a comments paragraph','comments'],
+                               ['Add Categories to list page','categories']],
+      :label => 'Options', :separator => '<br/>'-%>
+  <%= f.spacer -%>
+  <%= f.cancel_submit_buttons 'Cancel', 'Add to Site' -%>
+
+<% end -%>
+</div>

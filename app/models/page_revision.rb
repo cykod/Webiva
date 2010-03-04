@@ -241,6 +241,19 @@ class PageRevision < DomainModel
                                         self.revision,self.revision_container_type,self.revision_container_id, self.language])
       end
   end
+
+
+  # Programmatically add a paragraph to a revision
+  def add_paragraph(renderer_class,name,paragraph_options={ },options={ })
+
+    self.page_paragraphs.build(
+                               :zone_idx => options[:zone] || 1,
+                               :display_type => name,
+                               :display_module => renderer_class,
+                               :data => paragraph_options
+                             )
+  end
   
+
 
 end

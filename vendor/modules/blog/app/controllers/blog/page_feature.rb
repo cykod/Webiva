@@ -133,7 +133,7 @@ class Blog::PageFeature < ParagraphFeature
   feature :blog_categories, :default_feature => <<-FEATURE
 <cms:categories>
   <cms:category>
-    <a <cms:category_href/>><cms:selected> class='selected'</cms:selected>><cms:name/></a><br/>
+    <cms:category_link selected_class='selected'><cms:name/></cms:category_link><br/>
   </cms:category>
 </cms:categories>
 <br/><br/>

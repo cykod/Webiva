@@ -698,7 +698,7 @@ class TabledForm < StyledForm
   end
 
   generate_styled_fields('form_options',
-                         (field_helpers + %w(label_field label_option_field country_select collection_select select radio_buttons check_box check_boxes grouped_check_boxes grouped_radio_buttons grouped_select ) - %w(radio_button hidden_field))) do 
+                         (field_helpers + %w(label_field label_option_field country_select collection_select select radio_buttons check_boxes grouped_check_boxes grouped_radio_buttons grouped_select ) - %w(radio_button hidden_field))) do 
                           field(@options)
                           end
                           
@@ -830,7 +830,7 @@ class CmsForm < TabledForm
 
   include WebivaFormElements
   generate_styled_fields('form_options',
-                          %w(access_control filemanager_image filemanager_folder filemanager_file price_classes price_range color_field date_field time_zone_select datetime_field upload_image upload_document unsorted_selector content_selector multi_content_selector image_list end_user_selector autocomplete_field ordered_selection_list ordered_array captcha)) do 
+                         %w(add_page_selector access_control filemanager_image filemanager_folder filemanager_file price_classes price_range color_field date_field time_zone_select datetime_field upload_image upload_document unsorted_selector content_selector multi_content_selector image_list end_user_selector autocomplete_field ordered_selection_list ordered_array captcha)) do 
                           field(@options)
                           end
 

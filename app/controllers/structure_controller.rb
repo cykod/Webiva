@@ -4,12 +4,16 @@ class StructureController < CmsController  # :nodoc: all
 
   public
   
-  permit ['editor_structure','editor_structure_advanced'], :except => [ :index, :element_info ]
+  permit ['editor_structure','editor_structure_advanced'], :except => [ :index, :element_info, :wizards ]
   permit ['editor_website','editor_structure','editor_structure_advanced'], :only => [:index, :element_info]
+
+
+  permit ['editor_structure_advanced'], :only => [:wizards]
 
   helper :application
   
-  
+  cms_admin_paths 'website'
+
   
   def index 
     session[:structure_view_modifiers] = @display_modifiers= params[:modifiers] ||
@@ -45,8 +49,19 @@ class StructureController < CmsController  # :nodoc: all
       @active_modules = SiteModule.structure_modules
     end
     
+    @wizard_list = get_handlers(:structure,:wizard) if myself.has_role?('editor_structure_advanced')
+
     cms_page_info 'Website', 'website',myself.has_role?('editor_structure_advanced') ? 'CMSStructure.popup();' : nil
     render :action => 'view', :layout => "manage"
+  end
+
+
+  def wizards
+    cms_page_path ['Website'], "Wizards"
+
+    @wizard_list = get_handler_info(:structure,:wizard) if myself.has_role?('editor_structure_advanced')
+    @wizard_list = @wizard_list.select { |info| myself.has_role?(info[:permit]) }
+ 
   end
 
  
