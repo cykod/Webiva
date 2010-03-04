@@ -1006,4 +1006,14 @@ HTML
   def captcha(field, captcha, options={})
     captcha.generate(options)
   end
+
+
+  def add_page_selector(field,options={ })
+
+    self.select_original("#{field}_id",[['--Select Page--'.t,nil]] + SiteNode.page_options) +
+      " / " +
+      self.text_field_original("#{field}_subpage",:size => 10, :disabled => !@object.send("#{field}_existing").blank?) + 
+    "<br/>" + 
+    self.check_boxes_original("#{field}_existing", [["Add to an existing page",true]], :single => true, :onclick => " $('#{object_name}_#{field}_subpage').disabled = this.checked")
+  end
 end

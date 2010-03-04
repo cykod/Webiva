@@ -273,7 +273,8 @@ class CmsController < ApplicationController
   # The last page title does not need to exist in cms_admin_paths unless it 
   # is referenced somewhere else in the controller.
   def self.cms_admin_paths(section,pages = {})
-    pages['Content'] ||= { :controller => '/content' }
+    pages['Content'] ||= { :controller => '/content' } 
+    pages['Website'] ||= { :controller => '/structure' }
     pages['Options'] ||= { :controller => '/options' }
     pages['Modules'] ||= { :controller => '/options/modules' }
     sing = class << self; self; end

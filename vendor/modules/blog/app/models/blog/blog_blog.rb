@@ -13,6 +13,8 @@ class Blog::BlogBlog < DomainModel
 
   cached_content # Add cached content support 
 
+  attr_accessor :add_to_site
+
   include SiteAuthorizationEngine::Target
   access_control :edit_permission
   
