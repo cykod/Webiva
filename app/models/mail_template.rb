@@ -56,6 +56,7 @@ class MailTemplate < DomainModel
  attr_accessor :create_type
  attr_accessor :master_template_id
  attr_accessor :mailing_handler
+ attr_accessor :webiva_message_id
 
  @@text_regexp = /\%\%(\w+)\%\%/
  @@html_regexp = /\<span\s+(class=\"mceNonEditable\"\s*|alt=\"cmsField\"\s*){2}\>\<span.*?alt=\"([^\"]+)\".*?\<\/span\>\<\/span\>/
@@ -459,6 +460,7 @@ class MailTemplate < DomainModel
  def additional_headers(variables={})
    headers = {'X-Webiva-Domain' => DomainModel.active_domain_name}
    headers['X-Webiva-Handler'] = self.mailing_handler if self.mailing_handler
+   headers['X-Webiva-Message-Id'] = self.webiva_message_id if self.webiva_message_id
    headers['Reply-to'] = variables['system:reply_to'] if variables['system:reply_to']
    headers
  end
