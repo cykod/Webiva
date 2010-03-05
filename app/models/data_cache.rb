@@ -200,11 +200,12 @@ class DataCache
 
  # Expires the cache for the entire site
  def self.expire_site()
-    DataCache.expire_container('SiteNode')
-    DataCache.expire_container('Handlers')
-    DataCache.expire_container('SiteNodeModifier')
-    DataCache.expire_container('Modules')
-    DataCache.expire_content
+   DataCache.expire_container('SiteNode')
+   DataCache.expire_container('Handlers')
+   DataCache.expire_container('SiteNodeModifier')
+   DataCache.expire_container('Modules')
+   DataCache.expire_container("Config")
+   DataCache.expire_content
  end
 
  # Expires the cache for an entire site - domain database must be specified
