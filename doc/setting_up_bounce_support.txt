@@ -11,8 +11,7 @@ Create a shell script /etc/postfix/webiva_transport.sh.  This will process all i
 #!/bin/bash
 
 HOME=/home/webiva/Webiva \
-/home/webiva/Webiva/script/runner \
-'data = STDIN.read; MailTemplateMailer.receive(data)' 2>&1 > \
+/home/webiva/Webiva/script/mailing_queuer.rb production 2>&1 > \
 /home/webiva/Webiva/log/receive_mail.log
 
 Add the following to the end of /etc/postfix/master.cf.
