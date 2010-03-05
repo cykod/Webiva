@@ -9,7 +9,11 @@ namespace "cms" do
     
     domain = ENV['DOMAIN_ID'] ? ENV["DOMAIN_ID"].to_i : nil
     
-    component = ENV['COMPONENT'] || nil
+    components = ENV['COMPONENT'] || nil
+
+    if components
+     components = components.split(",").map(&:strip).reject(&:blank?)
+    end 
     
     if domain
       domains = Domain.find(:all, :conditions => ['id=? AND domain_type="domain" AND `database` != "" AND `status`="initialized"',domain]).collect {|dmn| dmn.attributes }
@@ -31,14 +35,16 @@ namespace "cms" do
       ComponentMigrator.handle_migration_update
       
       if force && domain
-        dir = "#{RAILS_ROOT}/vendor/modules/#{component}/db"
-        ComponentMigrator.current_component = component
-    	  ComponentMigrator.migrate(dir,version)
+        components.each do |component|
+          dir = "#{RAILS_ROOT}/vendor/modules/#{component}/db"
+          ComponentMigrator.current_component = component
+      	  ComponentMigrator.migrate(dir,version)
+        end
       else
         active_modules = SiteModule.find(:all,:conditions => "status IN ('active','initializing','initialized','error')")
         active_modules.each do |mod|
           dir = "#{RAILS_ROOT}/vendor/modules/#{mod.name}/db"
-          if(File.directory?(dir) && (!component || component == mod.name))
+          if(File.directory?(dir) && (!components || components.include?(mod.name)))
             begin
               ComponentMigrator.current_component = mod.name
               ComponentMigrator.migrate(dir,version)
@@ -50,7 +56,7 @@ namespace "cms" do
                 raise e
               end
             end
-          elsif (!component || component == mod.name)
+          elsif (!components || components.include?(mod.name))
             mod.update_attribute(:status,'initialized') if mod.status == 'initializing'
           end
         end

@@ -13,7 +13,7 @@ class ModuleController < CmsController  # :nodoc: all
   protected
 
     def validate_module
-      if !get_module(self.class.to_s.include?('AdminController')) && RAILS_ENV != 'test'
+      if !active_module(self.class.to_s.include?('AdminController')) && RAILS_ENV != 'test'
         redirect_to :controller => '/modules'
         return false
       else
@@ -26,6 +26,11 @@ class ModuleController < CmsController  # :nodoc: all
     self.skip_before_filter :validate_module, :only => names
   end
     
+  def active_module(adm=false)
+    info = self.class.get_component_info
+    
+    return adm ? get_module(adm) : SiteModule.module_enabled?(info[0].to_s)
+  end
 
   def get_module(adm=false)
     return @mod if @mod
@@ -35,6 +40,7 @@ class ModuleController < CmsController  # :nodoc: all
     if adm
       @mod = SiteModule.find_by_name(info[0].to_s.underscore.downcase,:conditions => {:status => [ 'active','initialized' ] })
     else
+      
       @mod = SiteModule.find_by_name_and_status(info[0].to_s.underscore.downcase,'active')
     end
     if @mod

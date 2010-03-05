@@ -39,8 +39,8 @@ class CmsController < ApplicationController
     end
 
     if params[:return_to_site] 
-      url = request.referer.gsub!(/^https?\:\/\/[^\/]+/,"")
-      unless url =~ /^\/website/
+      url = request.referer.to_s.gsub!(/^https?\:\/\/[^\/]+/,"")
+      unless url.blank? || url =~ /^\/website/
         session[:return_to_site] = url
       end
     end
@@ -276,7 +276,7 @@ class CmsController < ApplicationController
     pages['Content'] ||= { :controller => '/content' } 
     pages['Website'] ||= { :controller => '/structure' }
     pages['Options'] ||= { :controller => '/options' }
-    pages['Modules'] ||= { :controller => '/options/modules' }
+    pages['Modules'] ||= { :controller => '/modules' }
     sing = class << self; self; end
     sing.send :define_method, "cms_page_path_info" do
       { :section => section, :pages => pages }
