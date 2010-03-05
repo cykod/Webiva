@@ -187,14 +187,14 @@ class MailTemplateMailer < ActionMailer::Base
 
       parsed_msg = TMail::Mail.parse(original_message_part.body)
 
-      handler = (parsed_msg.header['x-webiva-handler'] || '').to_s
-      domain_name = (parsed_msg.header['x-webiva-domain'] || '').to_s
+      handler = parsed_msg.header_string('x-webiva-handler')
+      domain_name = parsed_msg.header_string('x-webiva-domain')
     else
-      handler = (email.header['x-webiva-handler'] || '').to_s
-      domain_name = (email.header['x-webiva-domain'] || '').to_s      
+      handler = email.header_string('x-webiva-handler')
+      domain_name = email.header_string('x-webiva-domain')
     end
 
-    return if handler.blank? || domain_name.blank?
+    return unless handler && domain_name
 
     domain = Domain.find_by_name(domain_name)
     unless domain
@@ -206,7 +206,7 @@ class MailTemplateMailer < ActionMailer::Base
 
     handler_info = self.get_handler_info(:mailing, :receiver, handler)
     unless handler_info
-      logger.error("invalid handler #{handler} for domain #{domain_name}")
+      logger.error("invalid handler #{handler} for domain #{domain_name}") if logger
       return
     end
 

@@ -72,5 +72,51 @@ describe MailTemplateMailer do
       @tmpl_mail.transfer_encoding.should be_nil
     end
   end
-  
+
+  def create_email(headers, body)
+    headers.collect { |k,v| "#{k}: #{v}" }.join("\n") + "\n" + body
+  end
+
+  describe "handle receiving emails" do
+    before(:each) do
+      @email = TMail::Mail.new
+      @email.to = 'test@test.dev'
+      @email.from = 'admin@test.dev'
+      @email['X-Webiva-Domain'] = DomainModel.active_domain_name
+      @email.body = 'Test Body'
+    end
+
+    it "should handle incoming mail" do
+      DomainModel.should_receive(:activate_domain).exactly(0)
+      MailTemplateMailer.receive(@email.to_s)
+    end
+
+    it "should handle incoming mail and call handler" do
+      mock_handler = mock
+      mock_handler.should_receive(:receive)
+      handler_info = {:class => mock_handler}
+      MailTemplateMailer.should_receive(:get_handler_info).with(:mailing, :receiver, 'test/handler', false).and_return(handler_info)
+      @email['X-Webiva-Handler'] = 'test/handler'
+      MailTemplateMailer.receive(@email.to_s)
+    end
+
+    it "should handle incoming bounces and call handler" do
+      mock_handler = mock
+      mock_handler.should_receive(:receive)
+      handler_info = {:class => mock_handler}
+      MailTemplateMailer.should_receive(:get_handler_info).with(:mailing, :receiver, 'test/handler', false).and_return(handler_info)
+      @email['X-Webiva-Handler'] = 'test/handler'
+
+      @orginal = TMail::Mail.new
+      @orginal.set_content_type 'message', 'rfc822'
+      @orginal.body = @email.to_s
+
+      @bounce = TMail::Mail.new
+      @bounce.set_content_type 'multipart', 'report', {'report-type' => 'delivery-status', 'boundary' => 'xxxxxx'}
+      @bounce.mime_version = '1.0'
+      @bounce.body = "--xxxxxx\n" + @orginal.to_s
+
+      MailTemplateMailer.receive(@bounce.to_s)
+    end
+  end
 end
