@@ -76,7 +76,6 @@ include ModelExtension::EndUserImportExtension
   
   has_many :end_user_cookies, :dependent => :delete_all, :class_name => 'EndUserCookie'
 
-  has_many :email_friends, :dependent => :delete_all
   has_many :end_user_actions, :dependent => :delete_all
 
   has_many :end_user_tokens, :dependent => :delete_all, :include => [ :access_token ]
