@@ -38,6 +38,7 @@ if @show_archived == 'hide'
    p.link 'Hide Archived', :icon => 'show.gif', :url => '?archived=hide'
  end
   %>
+    <%= p.link('Wizards',:icon => 'configure.gif',:action => 'wizards') if @wizard_list.length > 0 -%>
 <% end -%>
 <div class='admin_content'> 
   

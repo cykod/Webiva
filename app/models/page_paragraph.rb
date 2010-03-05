@@ -169,6 +169,24 @@ class PageParagraph < DomainModel
   def display_module_identifier
       self.display_module.gsub("/","_")
   end
+
+  def add_paragraph_input!(input_name,other_para,conn_type,identifier)
+    self.connections ||= { }
+    self.connections[:inputs] ||= { }
+    self.connections[:inputs][input_name.to_sym] = [ other_para.identity_hash, conn_type.to_sym, identifier.to_sym]
+    
+    other_para.connections ||= { }
+    other_para.connections[:outputs] ||= []
+    other_para.connections[:outputs] << [ identifier.to_sym, self.identity_hash, input_name.to_sym ]
+    other_para.save
+    self.save
+  end
+
+  def add_page_input(input_name,conn_type,identifier)
+    self.connections ||= { }
+    self.connections[:inputs] ||= { }
+    self.connections[:inputs][input_name.to_sym] = [ "0", conn_type.to_sym, identifier.to_sym]
+  end
   
   def page_connection(name)
     @page_connections  ||= {}

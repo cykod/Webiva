@@ -102,14 +102,13 @@
   };
 </script>
 
-<div class='admin_content'>
-<% if @campaign %>
-<%= render :partial => '/campaigns/campaign_steps' %>
-<% end -%>
-</div>
+<%= render :partial => @handler_info[:partial] if @handler_info && @handler_info[:partial] %>
 
+<div class='admin_content'>
 <div style='position:relative;'>
 <% cms_unstyled_form_for :mail_template, @mail_template, :html => { :id => 'mail_template_form', :class => 'admin_form', :onsubmit => 'TemplateEditor.triggerSave(); return true;' } do |f| -%>
+<%= hidden_field_tag(:return, @handler_info[:identifier]) if @handler_info -%>
+<%= hidden_field_tag(:return_id, params[:return_id]) if @handler_info -%>
 <table width='100%'>
   <tr>
     <td width='200' valign='top' style='padding-right:20px;'>
@@ -212,5 +211,6 @@
 
 <% end -%>
 
+</div>
 </div>
 

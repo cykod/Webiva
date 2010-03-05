@@ -1,0 +1,8 @@
+
+<div class='admin_content'>
+
+<% @wizard_list.each do |wizard| -%>
+<h2><%= link_to wizard[:name], wizard[:url] -%></h2>
+<%= simple_format(wizard[:description]) -%>
+<% end -%>
+</div>

@@ -16,8 +16,11 @@
 <% remote_form_for :revision_create, info[1],
     :update => "node_#{@node.id}_#{info[0]}", 
     :method => 'post', 
-    :url =>  { :action => 'create_revision', :language  => info[0]  } do  |f| -%>
-  <input type='submit' value='<%= "Create Framework".t %>' /> From 
-  <%= f.select :from_revision_id, @revision_info.find_all { |inf| inf[1] }.collect { |inf| [ inf[0].upcase, inf[1].id ] } %>
+    :url =>  { :action => 'create_revision', :language  => info[0],:node_id => @node.id, :framework_id => @mod.id  } do  |f| -%>
+  <input type='submit' value='<%= "Create Framework".t %>' />
+  <% if (available_revisions =  @revision_info.find_all { |inf| inf[1] }.collect { |inf| [ inf[0].upcase, inf[1].id ] }).length > 0  -%>
+       From 
+       <%= f.select :from_revision_id, available_revisions %>
+    <% end -%>
 <% end -%>
 <% end -%>

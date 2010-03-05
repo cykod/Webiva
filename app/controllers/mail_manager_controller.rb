@@ -8,8 +8,7 @@ class MailManagerController < CmsController # :nodoc: all
   
    cms_admin_paths "e_marketing",
                    "E-marketing" =>   { :controller => '/emarketing' },
-                   "Mail Templates" =>  { :controller => '/mail_manager', :action => 'templates' },
-                   "Marketing Campaigns" => { :controller => 'campaigns', :action => 'index' }
+                   "Mail Templates" =>  { :controller => '/mail_manager', :action => 'templates' }
                 
   
   
@@ -85,9 +84,9 @@ class MailManagerController < CmsController # :nodoc: all
   end
   
   def edit_template
-  
-    if params[:path][1]
-      @campaign = MarketCampaign.find(params[:path][1])
+    if params[:return] && params[:return_id]
+      @handler_info = get_handler_info(:mail_template, :edit, params[:return])
+      logger.error("mail_template edit handler #{params[:return]}(#{params[:return_id]}) not found") unless @handler_info
     end
   
     template_id = params[:path][0]
@@ -95,33 +94,28 @@ class MailManagerController < CmsController # :nodoc: all
     
     @design_templates = [['--No Design Template--','']] + SiteTemplate.find_select_options(:all,:order => 'name',:conditions => 'template_type = "mail"')
     
-    if @campaign
-      cms_page_path [ 'E-marketing', 'Marketing Campaigns' ], "Edit Mail Template"
+    if @handler_info && @handler_info[:class].respond_to?(:mail_template_cms_path)
+      cms_page_path *@handler_info[:class].mail_template_cms_path(self)
     else
       cms_page_path [ "E-marketing" ,"Mail Templates" ], "Edit Mail Template"
     end
     
-    @mail_template = MailTemplate.find_by_id(template_id) || MailTemplate.new(:body_type => 'html', :template_type => @campaign ? 'campaign' : 'site')
+    @mail_template = MailTemplate.find_by_id(template_id) || MailTemplate.new(:body_type => 'html', :template_type => @handler_info && @handler_info[:template_type] ? @handler_info[:template_type] : 'site')
     
     if request.post?
       if save_template
         DataCache.expire_content("Mailing")
-        if @campaign
-          @campaign.update_attribute(:mail_template_id,@mail_template.id)
-          redirect_to :controller => 'campaigns', :action => 'message', :path => [ @campaign.id ]
+	if @handler_info
+	  if redirect_url = @handler_info[:class].mail_template_save(@mail_template, self)
+	    redirect_to redirect_url
+	  end
         else
           redirect_to :action => 'templates'
         end
       end
     end
-  
-    if @campaign
-      setup_campaign_steps
-      @campaign_step =  3
-    end
-    
+
     @generate_handlers = get_handler_info(:mail_manager,:generator)
-     
   end
   
   def refresh_template

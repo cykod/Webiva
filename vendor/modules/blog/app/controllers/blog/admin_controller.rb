@@ -11,6 +11,7 @@ class Blog::AdminController < ModuleController
                               
   content_model :blogs
 
+  register_handler :structure, :wizard, "Blog::WizardController"
   register_handler :feed, :rss, "Blog::RssHandler"
   register_handler :mail_manager, :generator, "Blog::ManageController"
   
@@ -39,12 +40,17 @@ class Blog::AdminController < ModuleController
   def create
     cms_page_info [ ["Content",url_for(:controller => '/content') ], "Create a new Blog"], "content"
     
-    @blog = Blog::BlogBlog.new(params[:blog])
+    @blog = Blog::BlogBlog.new(params[:blog] || { :add_to_site => true })
 
     if(request.post? && params[:blog])
       if(@blog.save)
-        redirect_to :controller => '/blog/manage', :path => @blog.id
-        return 
+        if @blog.add_to_site
+          redirect_to :controller => '/blog/wizard', :blog_id => @blog.id
+          return
+        else
+          redirect_to :controller => '/blog/manage', :path => @blog.id
+          return 
+        end
       end
     end
 

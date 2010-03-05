@@ -98,7 +98,7 @@ html {
   }
 
     #cms_header_return a {
-      display:inline:block;
+      display:inline;
       padding:4px 5px;
       color:white;
       color:#DDDDDD;
@@ -2315,7 +2315,8 @@ table.mini_table td em { color:#b3b3b3; }
 
 .real-time-stats .headers div, #RB_redbox div.cms_form .real-time-stats .headers div {
   height: 18px;
-  color:#3b648c; font-weight:bold
+  color:#3b648c;
+  font-weight: bold;
   text-align: left;
   font-weight: bold;
   margin-left: 5px;
