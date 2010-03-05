@@ -272,6 +272,10 @@ class DomainModel < ActiveRecord::Base
 					  )
 
   end
+
+  def self.run_class_worker(method,parameters = { })
+    self.run_worker(self.to_s,nil,method,parameters)
+  end
   
   # Runs a background process worker that will 
   # issue a find command on this object and then run the specified method
@@ -656,13 +660,18 @@ class DomainModel < ActiveRecord::Base
     end
   end
   
-  # Expires the entire website from the cache
-  def expire_site
+
+  def self.expire_site
     DataCache.expire_container('SiteNode')
     DataCache.expire_container('Handlers')
     DataCache.expire_container('SiteNodeModifier')
     DataCache.expire_container('Modules')
     DataCache.expire_content
+    DataCache.reset_local_cache
+  end
+  # Expires the entire website from the cache
+  def expire_site
+    self.class.expire_site
   end
    
 
