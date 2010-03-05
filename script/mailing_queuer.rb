@@ -3,7 +3,7 @@
 require 'rubygems'
 require 'memcache'
 
-ENV['RAILS_ENV'] ||= 'development' 
+ENV['RAILS_ENV'] ||= (ARGV[0] || 'production')
 ENV['HOME'] ||= '/home/webiva'
 
 workling_config_file = YAML.load_file(File.join(File.dirname(__FILE__), "../config/workling.yml"))
