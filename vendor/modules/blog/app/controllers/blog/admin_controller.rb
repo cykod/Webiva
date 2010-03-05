@@ -44,7 +44,7 @@ class Blog::AdminController < ModuleController
 
     if(request.post? && params[:blog])
       if(@blog.save)
-        if @blog.add_to_site
+        if !@blog.add_to_site.blank?
           redirect_to :controller => '/blog/wizard', :blog_id => @blog.id
           return
         else
