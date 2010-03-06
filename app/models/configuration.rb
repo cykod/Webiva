@@ -255,6 +255,10 @@ class Configuration < DomainModel
          self.errors.add(:captcha_handler,'is not valid') unless get_handler_values(:webiva,:captcha).include?(captcha_handler)
        end
     end
+
+    def one_line_address(separator = " | ")
+      self.company_address.to_s.split("\n").map(&:strip).join(separator)
+    end
   end
 
   # Log a configuration error into the system

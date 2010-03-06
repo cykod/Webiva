@@ -13,6 +13,7 @@ require 'mime/types'
 # MailTemplateMailer#message_to_address to send a message directly without
 # mail template 
 class MailTemplateMailer < ActionMailer::Base
+  include HandlerActions
 
   # Send a message inline to an email address
   #
@@ -81,9 +82,8 @@ class MailTemplateMailer < ActionMailer::Base
       from Configuration.reply_to_email    
     end
     
-    if variables['system:reply_to']
-      headers 'Reply-to' => variables['system:reply_to'] 
-    end
+    headers mail_template.additional_headers(variables)
+
     sent_on     Time.now
 
     attachments = variables.delete('attachments') || []
@@ -174,5 +174,42 @@ class MailTemplateMailer < ActionMailer::Base
 
     to_address(user.email,mail_template,vars)
     
+  end
+
+  def receive(email)
+    if email.content_type == 'multipart/report'
+
+      original_message_part = email.parts.detect do |part|
+	part.content_type == 'message/rfc822'
+      end
+
+      return unless original_message_part
+
+      parsed_msg = TMail::Mail.parse(original_message_part.body)
+
+      handler = parsed_msg.header_string('x-webiva-handler')
+      domain_name = parsed_msg.header_string('x-webiva-domain')
+    else
+      handler = email.header_string('x-webiva-handler')
+      domain_name = email.header_string('x-webiva-domain')
+    end
+
+    return unless handler && domain_name
+
+    domain = Domain.find_by_name(domain_name)
+    unless domain
+      logger.error("invalid domain #{domain_name} with handler #{handler}")
+      return
+    end
+
+    DomainModel.activate_domain(domain.attributes, 'production', false)
+
+    handler_info = self.get_handler_info(:mailing, :receiver, handler)
+    unless handler_info
+      logger.error("invalid handler #{handler} for domain #{domain_name}") if logger
+      return
+    end
+
+    handler_info[:class].receive(email)
   end
 end

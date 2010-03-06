@@ -55,7 +55,9 @@ class MailTemplate < DomainModel
  attr_accessor :attachment_list
  attr_accessor :create_type
  attr_accessor :master_template_id
- 
+ attr_accessor :mailing_handler
+ attr_accessor :webiva_message_id
+
  @@text_regexp = /\%\%(\w+)\%\%/
  @@html_regexp = /\<span\s+(class=\"mceNonEditable\"\s*|alt=\"cmsField\"\s*){2}\>\<span.*?alt=\"([^\"]+)\".*?\<\/span\>\<\/span\>/
  @@href_regexp = /\<a([^\>]+?)href\=(\'|\")([^\'\"]+)(\'|\")([^\>]*?)\>/mi
@@ -106,7 +108,17 @@ class MailTemplate < DomainModel
     end
   end
  end  
- 
+
+ def validate
+   if self.template_type == 'campaign'
+     if self.body_format == 'html'
+       errors.add(:body_type, 'is invalid. (Campaign template types can be text or both.)')
+     else
+       errors.add(:body_text, 'is missing. (Campaign template types require a text version.)') if self.body_text.blank? || self.body_text.strip.blank?
+     end
+   end
+ end
+
  def render_subject(vars) #:nodoc:
   subject.gsub(@@text_regexp) do |mtch|
         vars[$1]  || invalid_variable($1)
@@ -339,11 +351,13 @@ class MailTemplate < DomainModel
   prepare_to_send
   unsubscribe_var ="track_unsubscribe:link"
   if is_html
-    unsubscribe_html =  "<br/><br/><font face='arial,sans-serif' size='1'><div align='center' class='unsubscribe_link'><a target='_blank' href='%%#{unsubscribe_var}%%'>#{'Unsubscribe your email'.t}</a>  #{'from any future %s mailings.' / Configuration.domain}</div></font>"
+    unsubscribe_html =  "<br/><br/><font face='arial,sans-serif' size='1'><div align='center' class='unsubscribe_link'><a target='_blank' href='%%#{unsubscribe_var}%%'>#{'Unsubscribe your email'.t}</a>  #{'from any future %s mailings.' / Configuration.domain}"
+    unsubscribe_html << "<br/>" + Configuration.options.one_line_address + "</div></font>"
     @prepared_body[:html] += unsubscribe_html
   end
   if is_text
     unsubscribe_text = "\n\n#{'To unsubscribe from any future %s mailings, goto:' / Configuration.domain }%%#{unsubscribe_var}%%"
+    unsubscribe_text << "\n" + Configuration.options.one_line_address
     @prepared_body[:text] += unsubscribe_text
   end
   
@@ -445,6 +459,14 @@ class MailTemplate < DomainModel
    return doc.to_html
  end
  
+ def additional_headers(variables={})
+   headers = {'X-Webiva-Domain' => DomainModel.active_domain_name}
+   headers['X-Webiva-Handler'] = self.mailing_handler if self.mailing_handler
+   headers['X-Webiva-Message-Id'] = self.webiva_message_id if self.webiva_message_id
+   headers['Reply-to'] = variables['system:reply_to'] if variables['system:reply_to']
+   headers
+ end
+
  private
 
  def transform_tag(tag,styles) #:nodoc:
