@@ -351,11 +351,13 @@ class MailTemplate < DomainModel
   prepare_to_send
   unsubscribe_var ="track_unsubscribe:link"
   if is_html
-    unsubscribe_html =  "<br/><br/><font face='arial,sans-serif' size='1'><div align='center' class='unsubscribe_link'><a target='_blank' href='%%#{unsubscribe_var}%%'>#{'Unsubscribe your email'.t}</a>  #{'from any future %s mailings.' / Configuration.domain}</div></font>"
+    unsubscribe_html =  "<br/><br/><font face='arial,sans-serif' size='1'><div align='center' class='unsubscribe_link'><a target='_blank' href='%%#{unsubscribe_var}%%'>#{'Unsubscribe your email'.t}</a>  #{'from any future %s mailings.' / Configuration.domain}"
+    unsubscribe_html << "<br/>" + Configuration.options.one_line_address + "</div></font>"
     @prepared_body[:html] += unsubscribe_html
   end
   if is_text
     unsubscribe_text = "\n\n#{'To unsubscribe from any future %s mailings, goto:' / Configuration.domain }%%#{unsubscribe_var}%%"
+    unsubscribe_text << "\n" + Configuration.options.one_line_address
     @prepared_body[:text] += unsubscribe_text
   end
   
