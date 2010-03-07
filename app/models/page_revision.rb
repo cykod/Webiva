@@ -165,7 +165,7 @@ class PageRevision < DomainModel
     container = self.revision_container
     
     PageRevision.transaction do 
-      real_rev = container.page_revisions.find(:all,:conditions => [ 'revision_type="real" AND revision=? AND language=?', self.revision,self.language] )
+      real_rev = container.page_revisions.find(:all,:conditions => [ 'revision_type="real" AND revision=? AND language=? AND id != ?', self.revision,self.language,self.id] )
       real_rev.each do |rev|
         rev.update_attributes(:revision_type => 'old' )
         DomainFileInstance.clear_targets('PageParagraph',rev.page_paragraph_ids)
