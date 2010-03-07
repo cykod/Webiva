@@ -29,7 +29,7 @@ class ModuleController < CmsController  # :nodoc: all
   def active_module(adm=false)
     info = self.class.get_component_info
     
-    return adm ? get_module(adm) : SiteModule.module_enabled?(info[0].to_s)
+    return adm ? get_module(adm) : SiteModule.module_enabled?(info[0])
   end
 
   def get_module(adm=false)

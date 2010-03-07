@@ -55,7 +55,7 @@ class SiteModule < DomainModel
   end
   
   def self.module_enabled?(md)
-    enabled_modules.include?(md.to_s)
+    enabled_modules.include?(md.to_s.downcase)
   end
 
   
