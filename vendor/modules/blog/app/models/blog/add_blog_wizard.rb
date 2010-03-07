@@ -57,7 +57,7 @@ class Blog::AddBlogWizard < HashModel
     detail_para.save
 
     if self.opts.include?('comments')
-
+      
       comments_paragraph = detail_revision.add_paragraph('/feedback/comments','comments',
                               { 
                                       :show => -1,
@@ -83,8 +83,10 @@ class Blog::AddBlogWizard < HashModel
                                 )
       cat_para.save
       cat_para.add_paragraph_input!(:input,list_para,:category,:category)
-   end
+    end
 
+    detail_revision.make_real
+    list_revision.make_real
     
 
   end

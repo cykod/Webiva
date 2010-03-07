@@ -22,8 +22,8 @@ describe Blog::AddBlogWizard do
                                      )
     wizard.add_to_site!
 
-    SiteNode.find_by_node_path('/blog').should_not be_nil
-    SiteNode.find_by_node_path('/blog/myview').should_not be_nil
+    SiteNode.find_by_node_path('/tester/blog').should_not be_nil
+    SiteNode.find_by_node_path('/tester/blog/myview').should_not be_nil
     
   end
 
