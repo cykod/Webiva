@@ -20,7 +20,7 @@ class ParagraphRenderer < ParagraphFeature
       @rnd = rnd
       @render_args = args
     
-      @includes= {}
+      @includes = {}
     end
     attr_reader :rnd
     attr_reader :render_args
@@ -179,7 +179,8 @@ class ParagraphRenderer < ParagraphFeature
     @revision = revision
     @para = para
     @opts = opts 
-    
+
+    @includes = {}
     @js_includes = []
     @css_includes = []
     @head_html = []
@@ -413,6 +414,17 @@ class ParagraphRenderer < ParagraphFeature
     end
   end 
   
+  def html_set_attribute(part, value={})
+    @includes[part.to_sym] ||= {}
+    @includes[part.to_sym].merge! value
+  end
+
+  def html_include(part, value=[])
+    @includes[part.to_sym] ||= []
+    value = [value] unless value.is_a?(Array)
+    @includes[part.to_sym] += value
+  end
+
   # Includes the specified javascript file when the page is rendered
   # uses the standard rails javascript_include_tag syntax
   def require_js(js)
@@ -480,6 +492,7 @@ class ParagraphRenderer < ParagraphFeature
   
   def output #:nodoc:
     if @paragraph_output.is_a?(ParagraphOutput) || @paragraph_output.is_a?(CachedOutput)
+      @paragraph_output.includes = @includes
       @paragraph_output.includes[:css] = @css_includes if @css_includes.length > 0
       @paragraph_output.includes[:js] = @js_includes if @js_includes.length > 0
       @paragraph_output.includes[:head_html] = @head_html if @head_html.length > 0
