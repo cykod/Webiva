@@ -1493,7 +1493,7 @@ block is non-nil
         define_tag(prefix + 'not_last') { |tag| !tag.locals.last ? tag.expand : '' }
         define_tag(prefix + 'middle') { |tag| ( !tag.locals.first && !tag.locals.last ) ? tag.expand : '' }
         define_tag(prefix + 'not_middle') { |tag| (tag.locals.first || tag.locals.last)  ? tag.expand : '' }
-        define_tag(prefix + 'multiple') { |tag| ( (tag.locals.index + (tag.attr['offset'] || 1).to_i ) % (tag.attr['value'] || 2).to_i ) == 0 ? tag.expand : '' }
+        define_tag(prefix + 'multiple') { |tag| ( (tag.locals.index + (tag.attr['offset'] || 0).to_i ) % (tag.attr['value'] || 2).to_i ) == 0 ? tag.expand : '' }
   
     end    
     

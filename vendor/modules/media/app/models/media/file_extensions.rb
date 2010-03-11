@@ -14,7 +14,9 @@ class Media::FileExtensions  < DomainModelExtension
 
   def after_create(df)
     if df.parent && df.parent.special == 'gallery'
-      Gallery.find_by_domain_file_id(df.parent.id).gallery_images.create(:domain_file_id => df.id)
+      gal = Gallery.find_by_domain_file_id(df.parent.id)
+
+      gal.gallery_images.create(:domain_file_id => df.id) if gal
     end  
   end
 

@@ -10,7 +10,7 @@ class Blog::AddBlogWizard < HashModel
   :opts => []
 
   
-  validates_format_of :add_to_subpage, :with => /^[a-zA-Z0-9\-_]+$/, :message => 'is an invalid url'
+  validates_format_of :add_to_subpage, :with => /^[a-zA-Z0-9\-_]+$/, :message => 'is an invalid url', :allow_blank => true
   validates_format_of :detail_page_url, :with => /^[a-zA-Z0-9\-_]+$/, :message => 'is an invalid url'
   validates_presence_of :add_to_id
 

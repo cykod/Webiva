@@ -68,10 +68,10 @@ SRC
       end
       
       content_model_id = self.id
+      cls.send(:define_method,:content_model_id) { content_model_id }
       if self.create_nodes?
         cls.content_node :container_type => 'ContentModel',:container_field => :content_model_id
         cls.has_one :content_node, :foreign_key => :node_id, :conditions => "node_type = " + DomainModel.connection.quote(class_name)
-        cls.send(:define_method,:content_model_id) { content_model_id }
         cls.send(:define_method,:build_content_node) do 
           ContentNode.new(:node_type => class_name, :node_id => self.id)
         end

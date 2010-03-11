@@ -18,7 +18,7 @@ class Gallery < DomainModel
   
   def before_create
     if self.domain_file_id.blank?
-      gallery_folder_id = Configuration.options.gallery_folder || 1
+      gallery_folder_id = Configuration.options.gallery_folder || DomainFile.root_folder.id
       gal_folder = DomainFile.create_folder(name,gallery_folder_id,:automatic => true,:special=>'gallery')
       self.domain_file = gal_folder
       
