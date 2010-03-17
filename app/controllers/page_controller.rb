@@ -11,6 +11,8 @@ class PageController < ModuleAppController
   
   skip_before_filter :handle_page,:only => :paragraph
   skip_after_filter :process_logging, :only => :paragraph
+
+  before_filter :cache_force
   
   helper :paragraph
 
@@ -41,6 +43,18 @@ class PageController < ModuleAppController
       # Handled by module app controller before filter
       render :action => 'index'
   end
+
+
+  protected
+
+  # Necessary to prevent repeated authenticity token errors
+  def cache_force #:nodoc:
+    response.headers["Cache-Control"] = "no-cache, no-store, max-age=0, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "Fri, 01 Jan 1990 00:00:00 GMT"
+  end
+
+  public  
 
   if RAILS_ENV == 'test'
     def set_test_renderer(rnd) #:nodoc:
