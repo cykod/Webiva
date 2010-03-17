@@ -150,7 +150,7 @@ class DataCache
  def self.get_content(content_type,content_target,display_location)
     return nil if RAILS_ENV == 'test'
 
-    # Get the value array [value set time, value]
+    # get the value array [value set time, value]
     unless content_type.is_a?(String)
       version = content_type.id.to_s + ":" + version
       container = content_type.class.to_s
@@ -165,12 +165,12 @@ class DataCache
 
     val = ret_val[display_location_string]
     return nil unless val
-    # Find out when the page was last expired
+    # find out when the page was last expired
     expires_content = ret_val[container_string]
     expires_content_type = ret_val[content_type_string]
     expires_content_target = ret_val[content_target_string]
 
-    # Find out if this page is expired or not    
+    # find out if this page is expired or not    
     if (!expires_content || val[0] > expires_content)  && 
        (!expires_content_type || val[0] > expires_content_type) &&  
        (!expires_content_target || val[0] > expires_content_target)
@@ -197,6 +197,57 @@ class DataCache
      CACHE.set("#{DomainModel.active_domain_db}::Content", Time.now.to_f)
    end
  end
+
+# Gets a piece of content from the cache of remote objects
+def self.get_remote(content_type,content_target,display_location)
+   return nil if RAILS_ENV == 'test'
+
+    # get the value array [value set time, value]
+    unless content_type.is_a?(String)
+      version = content_type.id.to_s + ":" + version
+      container = content_type.class.to_s
+    end
+
+    container_string = DomainModel.active_domain_db + "::Remote"
+    content_type_string = container_string + "::" + content_type
+    content_target_string = content_type_string  + "::" + content_target
+    display_location_string= content_target_string + "::" + display_location.to_s
+    
+    ret_val = CACHE.get_multi(container_string,content_type_string,content_target_string,display_location_string)
+
+    val = ret_val[display_location_string]
+    return nil unless val
+    # find out when the page was last expired
+    expires_content = ret_val[container_string]
+    expires_content_type = ret_val[content_type_string]
+    expires_content_target = ret_val[content_target_string]
+
+    # find out if this page is expired or not    
+    if (!expires_content || val[0] > expires_content)  && 
+       (!expires_content_type || val[0] > expires_content_type) &&  
+       (!expires_content_target || val[0] > expires_content_target)
+      val[1]
+    else
+      nil
+    end
+ end
+
+  # Put a piece of content into the remote cache. See
+  # ModelExtension::ContentCacheExtension::ClassMethods#cached_content
+  # as using cached_content will prevent you from need to expire the cache
+  # manually (it will be expired automatically when the model is saved)
+  #
+  # content_type = the content type, like "Blog", "BlogPost" or "Comments"
+  # content_target = the affected content like the blog.id or blogpost.id
+  # display_location = the specific display instance (like a paragraph / etc )
+  def self.put_remote(content_type,content_target,display_location,data,expiration = 0) 
+    CACHE.set("#{DomainModel.active_domain_db}::Remote::#{content_type}::#{content_target}::#{display_location}",[ Time.now.to_f,  data ],expiration )
+  end
+
+ def self.logger
+   DomainModel.logger
+ end
+
 
  # Expires the cache for the entire site
  def self.expire_site()

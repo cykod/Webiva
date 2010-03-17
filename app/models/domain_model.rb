@@ -659,6 +659,13 @@ class DomainModel < ActiveRecord::Base
       permalink_try
     end
   end
+
+  # Put something into the remote cache from a delayed worker
+  def self.remote_cache_put(args,result)
+     now = Time.now
+     DataCache.put_remote(args[:remote_type],args[:remote_target],args[:display_string],[ result ],args[:expiration].to_i)
+     DataCache.expire_content(args[:remote_type],args[:remote_target])
+  end
   
 
   def self.expire_site
