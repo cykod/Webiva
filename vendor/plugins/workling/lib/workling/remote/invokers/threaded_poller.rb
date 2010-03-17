@@ -66,7 +66,8 @@ module Workling
         # Listen for one worker class
         def clazz_listen(clazz)
           # logger.debug("Listener thread #{clazz.name} started")
-           
+	  Thread.current[:name] = clazz.name
+
           # Read thread configuration if available
           if Workling.config.has_key?(:listeners)
             if Workling.config[:listeners].has_key?(clazz.to_s)
