@@ -43,9 +43,6 @@ describe MembersController do
       it "should render nothing with empty string" do
 	controller.should_receive(:render).with(:nothing => true)
 	@output = get 'lookup_autocomplete', :member => ''
-
-	controller.should_receive(:render).with(:nothing => true)
-	@output = get 'lookup_autocomplete', :member => ' '
       end
 
       it "should lookup by first_name" do
