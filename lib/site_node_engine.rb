@@ -225,18 +225,24 @@ class SiteNodeEngine
           
           # Add in the rendered css for the editor          
           rnd.output.render_args[:css] = paragraph.site_feature.rendered_css if opts[:edit] && paragraph.site_feature
-
+          
           return rnd.output
         end
         
       else
         if paragraph.display_body.blank? && paragraph.display_body == '' && !opts[:edit]
           return ParagraphRenderer::ParagraphOutput.new(self,:text => "")
+        elsif opts[:edit]
+          return ParagraphRenderer::ParagraphOutput.new(self,:text => "<div class='#{paragraph.display_type}_paragraph'>" +  strip_script_tags(paragraph.display) + "</div>")
         else
           return ParagraphRenderer::ParagraphOutput.new(self,:text => "<div class='#{paragraph.display_type}_paragraph'>" +  paragraph.display + "</div>")
         end
       end
       
+    end
+
+    def strip_script_tags(txt)
+      txt.gsub(/\<script.*\<\/script\>/im,'')
     end
     
     # Renders a paragraph, returns a string containing the outputed html
@@ -292,12 +298,16 @@ EOF
           raise 'Invalid Paragraph Rendering'
         end
         # Add on the Site Feature CSS only if we're in edit mode, otherwise it'll come in on an include
+        if opts[:edit]
+          str = strip_script_tags(str)
+          raise str.inspect if str.include?('<script')
+        end
         str = "<style>#{css}</style>" + str if opts[:edit] && css
         return str
       elsif cls_name == "ParagraphRenderer::CachedOutput"
         return paragraph.output
       elsif paragraph.is_a?(String)
-        paragraph
+       opts[:edit] ? strip_script_tags(paragraph) : paragraph
       elsif paragraph.nil?
         "Nil"
         ""
@@ -318,7 +328,7 @@ EOF
     # can render paragraphs from templates
     def self.append_features(base) #:nodoc:
       super
-      base.helper_method :compile_paragraph, :render_paragraph
+      base.helper_method :compile_paragraph, :render_paragraph, :strip_script_tags
       base.helper_method :webiva_post_process_paragraph, :render_output
       base.hide_action :find_page_from_path
       base.hide_action :handle_document_node

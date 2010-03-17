@@ -112,6 +112,8 @@ var cmsEdit = {
   setPageInfo: function(page_type,page_id,revision_id,lang,active,template_id,page_url)  {
     if((cmsEdit.previousPageType != page_type) || (cmsEdit.previousPageId != page_id)) {
         cmsEdit.pageUrl = page_url;
+
+      if(cmsEdit.pageUrl == 'Domain') cmsEdit.pageUrl = '/';
         $('cms_goto_page').href = cmsEdit.pageUrl;
     }
     cmsEdit.pageType= page_type;
