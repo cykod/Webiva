@@ -303,7 +303,10 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
   def login
     opts = paragraph_options(:login)
 
-   
+    opts.login_features.each do |feature|
+      return if feature.feature_instance.logged_in(self, opts)
+    end
+
     data = {}
     if myself.id
       data[:user] = myself
@@ -312,6 +315,10 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
     data[:login_user] = myself
     
     if params[:cms_logout]
+      opts.login_features.each do |feature|
+        feature.feature_instance.logout
+      end
+
        paragraph_action(myself.action('/editor/auth/logout'))
        process_logout
        redirect_paragraph :page
@@ -357,11 +364,24 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
             data[:error] = true
           end
         end
+      else
+        opts.login_features.each do |feature|
+          return if feature.feature_instance.login(params)
+        end
       end
     end
     data[:error] = true if flash[:auth_user_login_error]
     data[:type] = opts.login_type
-    
+    data[:options] = opts
+
+    @feature = { }
+
+    opts.login_features.each do |feature|
+      feature.feature_instance.feature_data(@feature)
+    end
+
+    data[:feature] = @feature
+
     render_paragraph :text => login_feature(data)
   end
 
