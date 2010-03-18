@@ -51,6 +51,10 @@ class Handlers::ParagraphLoginExtension
     @renderer.send(:cookies)
   end
 
+  def params
+    @renderer.send(:params)
+  end
+
   def process_login(user, remember=false)
     @renderer.send(:process_login, user, remember)
   end
