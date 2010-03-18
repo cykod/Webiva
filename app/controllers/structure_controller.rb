@@ -50,6 +50,7 @@ class StructureController < CmsController  # :nodoc: all
     end
     
     @wizard_list = get_handlers(:structure,:wizard) if myself.has_role?('editor_structure_advanced')
+    @wizard_list ||= []
 
     cms_page_info 'Website', 'website',myself.has_role?('editor_structure_advanced') ? 'CMSStructure.popup();' : nil
     render :action => 'view', :layout => "manage"
@@ -60,6 +61,7 @@ class StructureController < CmsController  # :nodoc: all
     cms_page_path ['Website'], "Wizards"
 
     @wizard_list = get_handler_info(:structure,:wizard) if myself.has_role?('editor_structure_advanced')
+    @wizard_list ||= []
     @wizard_list = @wizard_list.select { |info| myself.has_role?(info[:permit]) }
  
   end

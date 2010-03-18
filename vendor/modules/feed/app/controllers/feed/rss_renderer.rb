@@ -49,12 +49,12 @@ class Feed::RssRenderer < ParagraphRenderer
   feature :rss_feed_view, :default_feature => <<-FEATURE
     <div class='rss_feed'>
     <cms:feed>
-      <h2><a <cms:href/>><cms:title/></a></h2>
+      <h2><cms:link><cms:title/></cms:link></h2>
       <cms:description/>
       <cms:items>
         <cms:item>
           <div class='rss_feed_item'>
-          <h2><a <cms:href/>><cms:title/></a></h2>
+          <h3><cms:link><cms:title/></cms:link></h3>
           <cms:content/>
           </div>
         </cms:item>
@@ -66,12 +66,12 @@ class Feed::RssRenderer < ParagraphRenderer
     </div>
   FEATURE
   
-  def rss_feed_view_feature(feature,data)
-   parser_context = FeatureContext.new do |c|
+  def rss_feed_view_feature(data)
+    webiva_feature(:rss_feed_view,data) do |c|
     c.define_tag('feed') { |tag| data[:feed].blank? ? nil : tag.expand }
     c.define_tag('no_feed') { |tag| data[:feed].blank? ? tag.expand : nil }
     
-    c.define_value_tag('feed:href') { |tag|  "href='#{data[:feed].channel.link}'" }
+    c.define_link_tag('feed:') { |t| data[:feed].channel.link }
     c.define_value_tag('feed:title') { |tag| data[:feed].channel.title }
     c.define_value_tag('feed:description') { |tag| 
         data[:feed].channel.description 
@@ -103,7 +103,7 @@ class Feed::RssRenderer < ParagraphRenderer
         txt = tag.locals.item.description.to_s.sub(data[:read_more],"[<a href='#{tag.locals.item.link}'>Read More..</a>]")
       end
      }
-    c.define_value_tag('feed:items:item:href') { |tag| "href='#{tag.locals.item.link}'" }
+    c.define_link_tag('feed:items:item:') { |t| t.locals.item.link }
     c.define_value_tag('feed:items:item:title') { |tag| tag.locals.item.title }
     c.define_value_tag('feed:items:item:author') { |tag| tag.locals.item.author }
     c.define_value_tag('feed:items:item:categories') { |tag| tag.locals.item.categories.map { |cat| cat.content }.join(", ") }
@@ -112,7 +112,6 @@ class Feed::RssRenderer < ParagraphRenderer
     
    end
    
-   parse_feature(feature,parser_context) 
   end
   
   
@@ -144,7 +143,7 @@ class Feed::RssRenderer < ParagraphRenderer
       end
       data = { :feed => rss_feed, :items => options.items, :category => options.category, :read_more => options.read_more } 
 
-      feature_output =  rss_feed_view_feature(get_feature('rss_feed_view'),data) 
+      feature_output =  rss_feed_view_feature(data) 
       valid_until = Time.now + options.cache_minutes.to_i.minutes
       
       DataCache.put_content('Feed',target_string,display_string,[ valid_until, feature_output ]) if !editor?
