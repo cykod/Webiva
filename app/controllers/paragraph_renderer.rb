@@ -620,10 +620,9 @@ an integer representing the number of seconds to keep the element in the cache.
     display_string = "#{paragraph.id}_#{display_string}"
     result = nil
  
-    result, expiration = DataCache.get_remote("Paragraph",paragraph.id.to_s,display_string)
+    result, expired_at = DataCache.get_remote("Paragraph",paragraph.id.to_s,display_string)
     now = Time.now
-    
-    if result && expiration && expiration > now
+    if result && expired_at && expired_at > now
       return DefaultsHashObject.new(result)
     end
 
@@ -641,7 +640,7 @@ an integer representing the number of seconds to keep the element in the cache.
 
     # if we don't have an expired or we are expired and not in the editor
     # kick of the worker and put the current results in the cache to be updated
-    if !result || !expiration || expiration <= now
+    if !result || !expiration || expired_at <= now
       DataCache.put_remote("Paragraph",paragraph.id.to_s,display_string,[ result, now + expiration.to_i.seconds ])
       logger.warn("Running Delayed worker: #{display_string}")
       if obj.is_a?(Class)
