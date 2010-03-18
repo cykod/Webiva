@@ -663,7 +663,7 @@ class DomainModel < ActiveRecord::Base
   # Put something into the remote cache from a delayed worker
   def self.remote_cache_put(args,result)
      now = Time.now
-     DataCache.put_remote(args[:remote_type],args[:remote_target],args[:display_string],[ result ],args[:expiration].to_i)
+     DataCache.put_remote(args[:remote_type],args[:remote_target],args[:display_string],[ result ,now + args[:expiration].to_i.seconds])
      DataCache.expire_content(args[:remote_type],args[:remote_target])
   end
   

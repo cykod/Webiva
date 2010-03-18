@@ -617,15 +617,14 @@ an integer representing the number of seconds to keep the element in the cache.
   # Fetch a element from the remote cache
   def delayed_cache_fetch(obj,method,args={},display_string=nil,options={ })
     expiration = options[:expires] || 120 # Default to two minutes
-    display_string = "Tester2#{paragraph.id}_#{display_string}"
+    display_string = "#{paragraph.id}_#{display_string}"
     result = nil
  
-    result = DataCache.get_remote("Paragraph",paragraph.id.to_s,display_string)
+    result, expiration = DataCache.get_remote("Paragraph",paragraph.id.to_s,display_string)
     now = Time.now
     
-
-    if result
-      return DefaultsHashObject.new(result[0])
+    if result && expiration && expiration > now
+      return DefaultsHashObject.new(result)
     end
 
     remote_args = args.merge( :remote_type => 'Paragraph', :remote_target => paragraph.id.to_s, :display_string => display_string, :expiration => expiration )
@@ -642,8 +641,8 @@ an integer representing the number of seconds to keep the element in the cache.
 
     # if we don't have an expired or we are expired and not in the editor
     # kick of the worker and put the current results in the cache to be updated
-    if !result
-      DataCache.put_remote("Paragraph",paragraph.id.to_s,display_string,[ result ],expiration.to_i)
+    if !result || !expiration || expiration <= now
+      DataCache.put_remote("Paragraph",paragraph.id.to_s,display_string,[ result, now + expiration.to_i.seconds ])
       logger.warn("Running Delayed worker: #{display_string}")
       if obj.is_a?(Class)
         DomainModel.run_worker(obj.to_s,nil,method,remote_args)
@@ -652,7 +651,7 @@ an integer representing the number of seconds to keep the element in the cache.
       end
     end
     
-    return result[0] if result
+    return result if result
   end
 
   
