@@ -846,6 +846,7 @@ Not doing so could allow a user to change their user profile (for example) and e
   
   def update_name(name, opts={})
     return unless self.first_name.blank? && self.last_name.blank? && opts[:force].nil?
+    return if name == 'Anonymous'.t
     name_parts = name.split(' ')
     self.first_name = name_parts[0]
     self.last_name = name_parts[-1] if name_parts.length > 1
