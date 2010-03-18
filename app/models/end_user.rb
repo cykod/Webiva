@@ -844,9 +844,11 @@ Not doing so could allow a user to change their user profile (for example) and e
   def is_admin?(usr); #:nodoc:
     usr.id == self.id; end
   
-  
- 
-
-  
-
+  def update_name(name, opts={})
+    return unless self.first_name.blank? && self.last_name.blank? && opts[:force].nil?
+    name_parts = name.split(' ')
+    self.first_name = name_parts[0]
+    self.last_name = name_parts[-1] if name_parts.length > 1
+    self.save if self.id
+  end
 end
