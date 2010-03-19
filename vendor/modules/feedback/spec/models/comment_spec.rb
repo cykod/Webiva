@@ -11,7 +11,6 @@ describe Comment do
   it "should require name and comment" do
     @comment = Comment.new
     @comment.valid?
-    @comment.should have(1).errors_on(:name)
     @comment.should have(1).errors_on(:comment)
     @comment.should have(1).errors_on(:target_type)
     @comment.should have(1).errors_on(:target_id)
