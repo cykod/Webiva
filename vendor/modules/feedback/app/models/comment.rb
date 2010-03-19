@@ -7,7 +7,7 @@ class Comment < DomainModel
   belongs_to :target, :polymorphic => true
   belongs_to :source, :polymorphic => true
   
-  belongs_to :end_user
+  has_end_user :end_user_id, :name_column => :name
 
   belongs_to :rated_by_user, :foreign_key => 'rated_by_user_id', :class_name => 'EndUser'
 
@@ -34,8 +34,8 @@ class Comment < DomainModel
   end
 
   def before_validation_on_create
-    if self.name.nil? && self.end_user
-      self.name = self.end_user.name
+    if self.name.nil?
+      self.name = self.end_user ? self.end_user.name : 'Anonymous'.t
     end
   end
 

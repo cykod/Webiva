@@ -437,7 +437,20 @@ include ModelExtension::EndUserImportExtension
       self.last_name = name[0]
     end  
   end
-  
+
+  # Checks to see if user has a name
+  def missing_name?
+    self.full_name.blank? && self.first_name.blank? && self.last_name.blank? && self.client_user.nil?
+  end
+
+  # Sets and saves individual name
+  def update_name(val, opts={})
+    return unless self.missing_name?
+    return if val == 'Anonymous'.t || val.blank?
+    self.name = val
+    self.save if self.id
+  end
+
   # Returns an introduction string, either from
   # the attribute or based on gender
   def introduction
@@ -843,13 +856,4 @@ Not doing so could allow a user to change their user profile (for example) and e
     usr.id == self.id; end    
   def is_admin?(usr); #:nodoc:
     usr.id == self.id; end
-  
-  def update_name(name, opts={})
-    return unless self.first_name.blank? && self.last_name.blank? && opts[:force].nil?
-    return if name == 'Anonymous'.t
-    name_parts = name.split(' ')
-    self.first_name = name_parts[0]
-    self.last_name = name_parts[-1] if name_parts.length > 1
-    self.save if self.id
-  end
 end

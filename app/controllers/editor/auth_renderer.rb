@@ -313,7 +313,8 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
     end
 
     data[:login_user] = myself
-    
+    data[:options] = opts
+
     if params[:cms_logout]
       opts.login_features.each do |feature|
         feature.feature_instance.logout
@@ -372,7 +373,6 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
     end
     data[:error] = true if flash[:auth_user_login_error]
     data[:type] = opts.login_type
-    data[:options] = opts
 
     @feature = { }
 
