@@ -1,7 +1,16 @@
 <div class='admin_content'>
-<% cms_form_for :content_model, @content_model, :html => { :class=>'admin_form',:onsubmit => " if(this.submitted) { return false; } this.submitted=true; $('content_model_submit').disabled=true;" } do |f| %>
+<% cms_form_for :content_model, @content_model, :html => { :class=>'admin_form',:onsubmit => " if(this.submitted) { return false; } this.submitted=true; return true;"} do |f| %>
   <%= f.text_field :name, :label => 'Name of the Content Model', :vertical => true, :size => 60, :noun => 'Name' %>
   <%= f.text_area :description, :label => 'Description of the Content Model', :vertical => true, :cols => 60, :rows => 4, :noun => 'Description' %>
-  <%= f.submit_tag 'Create', :id => 'content_model_submit' %>
+  <%= f.radio_buttons :show_on_content, [ ['Yes',true],['No',false]], :label => 'Main Page', 
+  :description => 'Should this content model appear on the main content page', :vertical => true %>
+<%= f.radio_buttons :show_tags, [ ['Yes',true],['No',false]], :label => 'Use Tags on this Content Model', 
+  :description => 'Should this content model have the ability to use tags', :vertical => true %>
+<%= f.radio_buttons :create_nodes, [ ['Yes',true],['No',false]], :label => 'Create Content Entries',
+  :description => 'Should this content model create content entries that be indexed on the site', :vertical => true %>
+  <%= f.access_control :view_access_control, 'Limit which admins can view this content model', :vertical => true, :description => 'User must also have "Content" permission' %>
+  <%= f.access_control :edit_access_control, 'Limit which admins can edit this content model', :vertical => true, :description => 'User must also have "Content" permission'  %>
+
+  <%= f.cancel_submit_buttons 'Cancel','Create', { }, { :id => 'content_model_submit' } %>
 <% end -%>
 </div>

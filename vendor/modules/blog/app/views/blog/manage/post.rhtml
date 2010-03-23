@@ -80,7 +80,7 @@
       <%= f.filemanager_image :domain_file_id, :vertical => true, :label => 'Post Image (Optional)' %>
       <%= t.text_field :permalink, :label => 'Permalink (Leave blank to have one created for you)', :vertical => true, :style => 'width:100%;', :noun => 'Permalink' %>
     <% end -%>
-    <%= f.text_field :author, :vertical => true, :required => true, :style=>'width:100%' %>
+    <%= f.text_field :author, :vertical => true, :style=>'width:100%' %>
     <%= f.editor_area :body, :vertical => true, :required => true, :rows => 35, :style=>'width:100%', :content_filter => @blog.content_filter %>
     <%= f.header "Additional Fields" %>
     <%= f.text_field :preview_title, :vertical => true, :size => 80, :label => 'Preview Title (Optional)' %>

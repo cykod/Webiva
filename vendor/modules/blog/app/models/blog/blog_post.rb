@@ -18,7 +18,6 @@ class Blog::BlogPost < DomainModel
   
   validates_datetime :published_at, :allow_nil => true
    
-
   has_options :status, [ [ 'Draft','draft'], ['Published','published']] 
 
   has_many :comments, :as => :target

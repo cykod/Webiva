@@ -552,10 +552,13 @@ class Content::CoreField < Content::FieldHandler
 
     display_options_variables :control, :group_by_id
     
-    filter_setup :not_empty
+    filter_setup :not_empty, :options
 
     
-    
+    def available_options(atr={ })
+      opts = @available_opts ||=  @model_field.relation_class.select_options
+    end
+
     def form_field(f,field_name,field_opts,options={})
       if cls = @model_field.relation_class
         if options[:group_by_id] && mdl_field = ContentModelField.find_by_id(options[:group_by_id])
@@ -623,7 +626,7 @@ class Content::CoreField < Content::FieldHandler
       
       relation_name = @model_field.relation_name
       if @model_field.relation_class == EndUser
-        c.expansion_tag("#{name_base}:#{relation_name}") do |t|
+        c.expansion_tag("#{name_base}:#{tag_name}") do |t|
           entry =  t.locals.send(local)
           if entry
             t.locals.user =  t.locals.send(local).send(relation_name)
@@ -631,9 +634,31 @@ class Content::CoreField < Content::FieldHandler
             nil
           end
         end
-        c.user_details_tags("#{name_base}:#{relation_name}",:local => :user)
+        c.user_details_tags("#{name_base}:#{tag_name}",:local => :user)
       else
-        #raise 'Unsupported'
+        sub_local = "sub_#{local}"
+
+        c.define_tag("#{name_base}:#{tag_name}") do |t|
+          entry =  t.locals.send(local)
+          relation = entry.send(relation_name)
+          if entry && relation
+            if t.single?
+              relation.identifier_name
+            else
+              t.locals.send("#{sub_local}=",relation)
+              t.expand
+            end
+          end
+        end
+
+        # don't go too far down the rabbit hole
+        if !options[:subfeature]
+          if @cm_relation = @model_field.content_model_relation
+            @cm_relation.content_model_fields.each do |fld|
+              fld.site_feature_value_tags(c,"#{name_base}:#{tag_name}",:full,:local => sub_local)
+            end
+          end
+        end
       end
 
     end
@@ -786,6 +811,49 @@ class Content::CoreField < Content::FieldHandler
       end
     end
     
+    
+    def site_feature_value_tags(c,name_base,size=:full,options = {})
+      tag_name = @model_field.feature_tag_name
+      local = options[:local] || 'entry'
+      
+      relation_name = @model_field.relation_name
+      if @model_field.relation_class == EndUser
+        c.expansion_tag("#{name_base}:#{tag_name}") do |t|
+          entry =  t.locals.send(local)
+          if entry
+            t.locals.user =  t.locals.send(local).send(relation_name)
+          else
+            nil
+          end
+        end
+        c.user_details_tags("#{name_base}:#{tag_name}",:local => :user)
+      else
+        sub_local = "sub_#{local}"
+
+        c.define_tag("#{name_base}:#{tag_name}") do |t|
+          entry =  t.locals.send(local)
+          relation = entry.send(relation_name)
+          if entry && relation
+            if t.single?
+              relation.identifier_name
+            else
+              t.locals.send("#{sub_local}=",relation)
+              t.expand
+            end
+          end
+        end
+
+        # don't go too far down the rabbit hole
+        if !options[:subfeature]
+          if @cm_relation = @model_field.content_model_relation
+            @cm_relation.content_model_fields.each do |fld|
+              fld.site_feature_value_tags(c,"#{name_base}:#{tag_name}",:full,:local => sub_local)
+            end
+          end
+        end
+      end
+
+    end
   end
 
 

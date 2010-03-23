@@ -1,7 +1,7 @@
 <% if permit?('editor_structure') %>
 
 <div align='right'>
-  <a href='javascript:void(0);' onclick='StructureEditor.nodeDelete(<%= @node.id %>,"<%= jh "Are you sure you want to delete this group (and all it's members)?" .t %>");'><%= "Delete Group".t %></a>
+  <a href='javascript:void(0);' onclick='StructureEditor.nodeDelete(<%= @node.id %>,"<%= jvh "Are you sure you want to delete this group (and all it's members)?" .t %>");'><%= "Delete Group".t %></a>
 </div>  
 
 <% end -%>

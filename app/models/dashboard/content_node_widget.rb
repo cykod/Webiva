@@ -8,7 +8,7 @@ class Dashboard::ContentNodeWidget < Dashboard::WidgetBase #:nodoc:all
     conditions = options.content_type_ids.length > 0 ? {  :content_type_id => options.content_type_ids } : nil
     nodes = ContentNode.find(:all,:conditions => conditions, :limit => options.count, :order => "updated_at DESC" )
     
-    set_icon options.icon if options.icon
+    set_icon options.icon if !options.icon.blank?
 
     render_widget :partial => '/dashboard/content_node_widget', :locals => {  :content_nodes => nodes, :options => options }
   end

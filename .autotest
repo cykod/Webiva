@@ -45,9 +45,11 @@ Autotest.add_hook :initialize do |at|
       end
     end
   else 
-    at.add_mapping %r%^lib/(.*)\.rb$% do |filename,matches|
-      at.files_matching(/^spec\/lib\/#{matches[1]}_spec.rb$/)
-    end 
+    if !(ENV['COMPONENT'] || files)
+      at.add_mapping %r%^lib/(.*)\.rb$% do |filename,matches|
+        at.files_matching(/^spec\/lib\/#{matches[1]}_spec.rb$/)
+      end 
+    end
 
     modules.each do |mod|
       %w(controllers models views).each do |type|

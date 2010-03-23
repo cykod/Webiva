@@ -119,37 +119,18 @@ class Feed::RssRenderer < ParagraphRenderer
     
     options = Feed::RssController::ViewRssOptions.new(paragraph.data || {})
     
-    if options.rss_url.blank?
-      render_paragraph :text => 'Configure Paragraph'
-      return
-    end
+    return render_paragraph :text => 'Configure Paragraph' if options.rss_url.blank?
     
-    target_string = 'ViewRss'
-    display_string = "#{paragraph.id}"
-  
-    feature_output = nil
-    valid_until,feature_output = DataCache.get_content("Feed",target_string,display_string) if !editor?
-    
-    if !feature_output || Time.now > valid_until
-      begin
-        http = open(options.rss_url)
-        response = http.read
-        rss_feed = RSS::Parser.parse(response,false)
-      rescue Exception => e
-        valid_until = Time.now + 5.minutes
-        DataCache.put_content('Feed',target_string,display_string,[ valid_until, '' ]) if !editor?
-        render_paragraph :text => ''
-        return
-      end
-      data = { :feed => rss_feed, :items => options.items, :category => options.category, :read_more => options.read_more } 
+    result = renderer_cache(nil,options.rss_url, :expires => options.cache_minutes.to_i.minutes) do |cache|
+      rss_feed = delayed_cache_fetch(FeedParser,:delayed_feed_parser,{ :rss_url => options.rss_url },options.rss_url, :expires => options.cache_minutes.to_i.minutes)
+      return render_paragraph :text => '' if !rss_feed
 
-      feature_output =  rss_feed_view_feature(data) 
-      valid_until = Time.now + options.cache_minutes.to_i.minutes
-      
-      DataCache.put_content('Feed',target_string,display_string,[ valid_until, feature_output ]) if !editor?
+      data = { :feed => rss_feed[:feed], :items => options.items, :category => options.category, :read_more => options.read_more } 
+      cache[:output] =  rss_feed_view_feature(data) 
+      logger.warn('In Renderer Cache')
     end
-    
-    render_paragraph :text => feature_output
+
+    render_paragraph :text => result.output
   end
   
   def rss_auto_discovery

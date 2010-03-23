@@ -124,7 +124,11 @@ CACHE = MemCache.new memcache_options
 Workling::Remote.dispatcher = Workling::Remote::Runners::StarlingRunner.new
 Workling::Return::Store::Base # Load the base module first
 Workling::Return::Store.instance = CACHE
-
+if RAILS_ENV == 'production'
+  Workling::Base.logger = ActiveSupport::BufferedLogger.new(File.dirname(__FILE__) + "/../log/workling_#{RAILS_ENV}.log", ActiveSupport::BufferedLogger::INFO)
+else
+  Workling::Base.logger = DevelopmentLogger.new(File.dirname(__FILE__) + "/../log/workling_#{RAILS_ENV}.log", 0, 0)
+end
 
 ActionMailer::Base.logger = nil unless RAILS_ENV == 'development'
 
@@ -178,8 +182,9 @@ Globalize::ModelTranslation.set_table_name('globalize_translations')
   
  
   
-  CACHE.servers =  [ 'localhost:11211' ]
-  ActionController::Base.session_options[:cache] = CACHE
+CACHE.servers =  [ 'localhost:11211' ]
+ActionController::Base.session_options[:expires] = 1800
+ActionController::Base.session_options[:cache] = CACHE
 
 
 

@@ -83,7 +83,7 @@ describe ContentController, "create a content model" do
 	  MigrationHandlerWorker.should_receive(:async_do_work).and_return('new_worker')
 	  Workling.return.should_receive(:get).with('new_worker').and_return(true)
 
-	  post :new, :content_model => {:name => 'new test model'}
+	  post :new, :content_model => {:name => 'new test model'}, :commit => 'Create'
         end
 
 	new_cm = ContentModel.find(:last)
