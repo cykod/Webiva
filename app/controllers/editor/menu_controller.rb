@@ -82,8 +82,9 @@ class Editor::MenuController < ParagraphController #:nodoc:all
         elsif rev &&  !rev.title.blank? 
           title = rev.title
         else
-          title = pg.title.humanize
+          title = pg.title.humanize 
         end
+        title = "[blank]".t if title.blank?
         children,subelem_ids =  levels > 1 ? build_preview(pg,levels-1,excluded,cur_level+1) : [ nil,[]] 
         mnu << { :title => title,
           :node_id => pg.id,
