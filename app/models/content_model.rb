@@ -113,7 +113,7 @@ class ContentModel < DomainModel
 
   # Returns a select-friendly list of available content field types
   def self.content_field_options
-    self.content_fields.collect { |fld| [ fld[:description].t, fld[:name] ] }
+    self.content_fields.collect { |fld| [ fld[:description].t, "#{fld[:module]}::#{fld[:name]}" ] }
   end
   
   # Returns all the ContentModelField's of this content model (including a field for the id)
