@@ -25,6 +25,7 @@ class SiteVersion < DomainModel
     unless @root_node
       @root_node = site_nodes.create(:node_type => 'R', :title => '')
       home_page = site_nodes.create(:node_type => 'P')
+      home_page.active_revisions[0].update_attribute(:menu_title,'Home') if home_page.active_revisions[0]
       home_page.move_to_child_of(@root_node)
     end
 
