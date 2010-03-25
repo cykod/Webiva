@@ -257,10 +257,6 @@ class HashModel
     self.instance_variable_set "@#{opt.to_s}",val.to_i
   end
   
-  def self.human_attribute_name(atr)
-    atr.humanize
-  end
-  
   def method_missing(arg, *args)
     arg = arg.to_s
     if arg == 'hsh=' || arg == 'errors='
@@ -324,7 +320,7 @@ class HashModel
   end 
   
   def self.human_name
-    self.class.to_s.humanize
+    self.name.underscore.titleize
   end  
   
   def self.human_attribute_name(attribute)
