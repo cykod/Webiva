@@ -124,7 +124,7 @@ module Content
       :validates_as_email => Proc.new { |cls,fld| cls.validates_as_email fld.model_field.field },
       :validates_date => Proc.new { |cls,fld| cls.validates_date fld.model_field.field,:allow_nil => true },
       :validates_datetime => Proc.new { |cls,fld| cls.validates_datetime fld.model_field.field,:allow_nil => true },
-      :serialize => Proc.new { |cls,fld| cls.serialize fld.model_field.field },
+      :serialize => Proc.new { |cls,fld| cls.serialize fld.model_field.field if cls.respond_to?(:serialize) },
       :validates_numericality => Proc.new { |cls,fld| cls.validates_numericality_of fld.model_field.field, :allow_nil => true },
     }
     
