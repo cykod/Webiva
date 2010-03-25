@@ -162,10 +162,26 @@ module Content
           end
         end
         block.call(cls,self) if block
+        setup_hash_model(cls)
       end
     end
     
-    
+    def setup_hash_model(cls) #:nodoc:
+      return unless cls.is_a?(HashModel)
+
+      case content_field[:representation]
+      when :integer
+        cls.integer_options fld.field.to_sym
+      when :boolean
+        cls.boolean_options fld.field.to_sym
+      end
+    end
+
+    # Returns field information hash from register_content_fields
+    def content_field
+      @content_field ||= ContentModel.content_field(self.field_module,self.field_type)
+    end
+
     @@content_display_methods = {
       :text => "Content::Field.text_value(entry.send(@model_field.field),size,options)",
       :html => "entry.send(@model_field.field)"

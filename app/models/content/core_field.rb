@@ -116,7 +116,11 @@ class Content::CoreField < Content::FieldHandler
                        { :name => :header, 
                          :description => 'Header',
                          :representation => :none,
-                       }       
+                       },
+                       { :name => :site_node,
+                         :description => 'Page URL',
+                         :representation => :string
+                       }
                      ]  
                      
 
@@ -887,6 +891,29 @@ class Content::CoreField < Content::FieldHandler
     end    
   end
   
+  class SiteNodeField < Content::Field #:nodoc:all
+    field_options :required
+    setup_model :required do |cls,fld|
+       cls.has_options fld.model_field.field.to_sym, fld.available_options.clone
+    end
+    content_display :text
+
+    def active_table_header
+      ActiveTable::OptionHeader.new(@model_field.field, :label => @model_field.name, :options =>self.available_options)
+    end
+  
+    def available_options(atr={})
+      SiteNode.page_url_options
+    end
+    
+    
+    def form_field(f,field_name,field_opts,options={})
+      f.select field_name, [['--Select--',nil]] + available_options , field_opts.merge(options)
+    end
+    
+    filter_setup
+  end
+
   def self.dynamic_current_value(entry,fld,state = {}) #:nodoc:
     Time.now
   end

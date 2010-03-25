@@ -267,11 +267,15 @@ class HashModel
       #
     elsif arg[-1..-1] == "="
       raise "Undeclared HashModel variable: #{arg[0..-2]}"
+    elsif self.strict?
+      raise "Missing hash model method #{arg}" unless self.instance_variables.include?("@#{arg}")
+      self.instance_variable_get "@#{arg}"
     else
       self.instance_variable_get "@#{arg}"
     end
   end
   
+  def strict?; false; end
 
   def valid?
     format_data
