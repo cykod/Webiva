@@ -104,7 +104,7 @@ tinyMCE.init({
     <div id='cms_info_line'>
     	<div id='cms_page_info'>
 			<%= "Title:".t %> <div style='display:none;' id='page_info_div'></div>   
-      <a id='cms_info_page_title' class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.pageInfo();'><%= @revision.title.to_s.empty? ?  "[No Title]".t : truncate(@revision.title.to_s,30) %></a> &nbsp;&nbsp;
+      <a id='cms_info_page_title' class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.pageInfo();'><%= @revision.title.to_s.empty? ?  "[No Title]".t : truncate(@revision.title.to_s,:length => 30) %></a> &nbsp;&nbsp;
       <span style='position:relative;'>   
 			<%= "Version:".t %> 
       <a id='cms_info_version'  class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.showVersions();'><%= dec(@revision.revision) %></a> &nbsp; &nbsp;

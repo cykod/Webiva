@@ -54,7 +54,8 @@ class Content::CoreField < Content::FieldHandler
                        { :name => :image,
                           :description => 'Image',
                           :representation => :integer,
-                          :relation => true
+                          :relation => true,
+                          :simple => true
                        },
                        { :name => :document,
                           :description => 'Document',
@@ -231,12 +232,19 @@ class Content::CoreField < Content::FieldHandler
     
     
     setup_model :required do |cls,fld|
-      if fld.model_field.field_options['relation_name']
-        cls.belongs_to fld.model_field.field_options['relation_name'].to_sym, :class_name => 'DomainFile', :foreign_key => fld.model_field.field
-        cls.domain_file_column(fld.model_field.field)
+      if cls.superclass != HashModel
+        if fld.model_field.field_options['relation_name']
+          cls.belongs_to fld.model_field.field_options['relation_name'].to_sym, :class_name => 'DomainFile', :foreign_key => fld.model_field.field
+          cls.domain_file_column(fld.model_field.field)
+        end
       end
     end
-    
+
+    def setup_hash_model(cls)
+      return unless cls.superclass == HashModel
+      cls.domain_file_options @model_field.field.to_sym
+    end
+
     def form_field(f,field_name,field_opts,options={})
       if options[:editor]
         f.filemanager_image field_name, field_opts.merge(options)
@@ -317,7 +325,7 @@ class Content::CoreField < Content::FieldHandler
         end
       end
 
-      c.image_tag("#{name_base}:#{tag_name}") { |t| t.locals.entry.send(fld.relation_name) }
+      c.image_tag("#{name_base}:#{tag_name}") { |t| t.locals.send(local).send(fld.relation_name) }
     end
   end
   
@@ -912,6 +920,15 @@ class Content::CoreField < Content::FieldHandler
     end
     
     filter_setup
+
+    def site_feature_value_tags(c,name_base,size=:full,options={})
+      local = options[:local]
+      tag_name = @model_field.feature_tag_name
+      fld = @model_field
+      c.link_tag "#{name_base}:#{tag_name}" do |t|
+        t.locals.send(local).send(tag_name)
+      end
+    end
   end
 
   def self.dynamic_current_value(entry,fld,state = {}) #:nodoc:

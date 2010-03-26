@@ -98,7 +98,7 @@ class ContentModel < DomainModel
     get_handler_info(:content,:fields).each do |info|
       fields.concat(info[:class].fields)
     end
-    fields = fields.reject { |info| info[:relation] } if opts[:simple]
+    fields = fields.reject { |info| ! info[:simple] } if opts[:simple]
     fields
   end
   

@@ -167,19 +167,19 @@ module Content
     end
     
     def setup_hash_model(cls) #:nodoc:
-      return unless cls.is_a?(HashModel)
+      return unless cls.superclass == HashModel
 
       case content_field[:representation]
       when :integer
-        cls.integer_options fld.field.to_sym
+        cls.integer_options @model_field.field.to_sym
       when :boolean
-        cls.boolean_options fld.field.to_sym
+        cls.boolean_options @model_field.field.to_sym
       end
     end
 
     # Returns field information hash from register_content_fields
     def content_field
-      @content_field ||= ContentModel.content_field(self.field_module,self.field_type)
+      @content_field ||= ContentModel.content_field(@model_field.field_module,@model_field.field_type)
     end
 
     @@content_display_methods = {
@@ -846,7 +846,7 @@ module Content
   end
   
   class FieldOptions < HashModel #:nodoc:all
-    attributes :required => false, :options => [], :relation_class => nil, :unique => false, :regexp => false, :regexp_code => '', :regexp_message => 'is not formatted correctly', :on => '', :off => '', :on_description => '', :hidden => false, :exclude => false
+    attributes :required => false, :options => [], :relation_class => nil, :unique => false, :regexp => false, :regexp_code => '', :regexp_message => 'is not formatted correctly', :on => '', :off => '', :on_description => '', :hidden => false, :exclude => false, :relation_name => nil, :relation_singular => nil
     
     boolean_options :required, :unique, :regexp, :hidden, :exclude
 
