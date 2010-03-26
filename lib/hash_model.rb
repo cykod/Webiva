@@ -217,7 +217,17 @@ class HashModel
     
     @additional_vars = []
   end
-  
+
+  def attributes
+    to_h
+  end
+
+  def attributes=(hsh)
+    hsh.each do |key,value|
+      self.send("#{key.to_s}=",value) if defaults.has_key?(key.to_sym) || self.respond_to?("#{key.to_s}=")
+    end
+  end
+
   def additional_vars(vars)
     @additional_vars += vars
     

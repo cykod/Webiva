@@ -28,13 +28,13 @@ class ContentModelField < DomainModel
   def field_type=(type)
     return unless type
 
-    vals = type.split('::')
+    vals = type.to_s.split('::')
     if vals.length == 2
       self.field_module = vals[0]
       write_attribute :field_type, vals[1]
     else
       self.field_module ||= 'content/core_field'
-      write_attribute :field_type, type
+      write_attribute :field_type, type.to_s
     end
   end
 
