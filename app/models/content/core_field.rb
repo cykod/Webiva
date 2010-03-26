@@ -60,7 +60,8 @@ class Content::CoreField < Content::FieldHandler
                        { :name => :document,
                           :description => 'Document',
                           :representation => :integer,
-                          :relation => true
+                          :relation => true,
+                          :simple => true
                        },
                        {  :name => :options,
                           :description => 'Options',
@@ -359,17 +360,17 @@ class Content::CoreField < Content::FieldHandler
         end
       end
       c.value_tag("#{name_base}:#{tag_name}_type") do |t|
-        df = t.locals.entry.send(fld.relation_name)
+        df = t.locals.send(local).send(fld.relation_name)
         df ? df.extension : nil
       end
 
       c.value_tag("#{name_base}:#{tag_name}_filename") do |t|
-        df = t.locals.entry.send(fld.relation_name)
+        df = t.locals.send(local).send(fld.relation_name)
         df ? df.name.to_s[0..(t.attr['limit'] || 40).to_i]  : nil
       end
       
       c.link_tag("#{name_base}:#{tag_name}") do |t|
-        df = t.locals.entry.send(fld.relation_name)
+        df = t.locals.send(local).send(fld.relation_name)
         if df
           df.url
         else

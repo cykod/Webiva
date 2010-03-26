@@ -180,6 +180,10 @@ class HashModel
           @#{name}_file = DomainFile.find_by_id(self.#{atr})
         end
 
+        def #{name}(force=false)
+          self.#{name}_file(force)
+        end
+
         def #{name}_url(size=nil)
           fl = #{name}_file
           if fl
