@@ -139,6 +139,12 @@ class ModuleAppController < ApplicationController
         handle_document_node(@output,@page)
         return false
     elsif @output.page?
+        # if we made it here - need to jump over to the application
+        get_handlers(:page,:post_process).each do |req|
+    	  cls = req[0].constantize.new(self)
+    	  cls.post_process @output
+        end
+
         @cms_site_node_engine = engine
         set_robots!
         return true

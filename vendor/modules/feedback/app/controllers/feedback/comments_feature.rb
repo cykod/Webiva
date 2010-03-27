@@ -6,7 +6,7 @@ class Feedback::CommentsFeature < ParagraphFeature
       <br/><br/>
       <cms:add_comment>
         <cms:errors><div class='errors'><cms:value/></div></cms:errors>
-        <cms:not_logged_in>Name:<br/><cms:name/><br/></cms:not_logged_in>
+        <cms:no_name>Name:<br/><cms:name/><br/></cms:no_name>
         <cms:trans>Add a Comment:</cms:trans><br/>
         <cms:comment/><br/>
         <cms:captcha/>
@@ -38,6 +38,7 @@ class Feedback::CommentsFeature < ParagraphFeature
         add_comment_features( c, data )
 
       c.expansion_tag('logged_in') { |t| myself.id }
+      c.expansion_tag('no_name') { |t| myself.missing_name? }
       
       paragraph_id = data[:paragraph_id] ? data[:paragraph_id] : paragraph.id
 
