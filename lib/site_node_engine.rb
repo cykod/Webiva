@@ -139,7 +139,7 @@ class SiteNodeEngine
       paragraph.language = opts[:language]
       # Handle any paragraph inputs
       # return nil unless we have all the inputs we need
-      if paragraph.connections && paragraph.connections[:inputs].is_a?(Hash)
+      if !opts[:edit] && paragraph.connections && paragraph.connections[:inputs].is_a?(Hash)
         opts[:connections] ||= {}
         paragraph.connections[:inputs].each do |input_key,input|
           if input[0].to_s == "0"

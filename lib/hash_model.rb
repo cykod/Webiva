@@ -131,6 +131,10 @@ class HashModel
           return @#{name}_url if @#{name}_url
           @#{name}_url = SiteNode.node_path(self.#{atr})
         end
+        def #{name}_node
+          return @#{name}_node if @#{name}_node
+          @#{name}_node = SiteNode.find_by_id(self.#{atr})
+        end
         EOF
       end
     end

@@ -62,6 +62,15 @@ def reset_domain_tables(*tables)
   before_each_parts << callback
 end
 
+
+def add_factory_girl_path(dir)
+  if !Factory.definition_file_paths.include?(dir)
+    Factory.definition_file_paths <<  dir
+    Factory.definition_file_paths.uniq!
+    Factory.find_definitions
+  end
+end
+
 ActiveSupport::TestCase.fixture_path = RAILS_ROOT + '/spec/fixtures/'
 
 

@@ -99,6 +99,9 @@ Rails::Initializer.run do |config|
   config.gem "json"
 
 
+  if RAILS_ENV == 'test'
+    config.gem 'factory_girl',:source => 'http://gemcutter.org'
+  end
 
   if CMS_CACHE_ACTIVE
     config.gem 'memcache-client', :lib => 'memcache'
@@ -183,7 +186,8 @@ Globalize::ModelTranslation.set_table_name('globalize_translations')
  
   
 CACHE.servers =  [ 'localhost:11211' ]
-ActionController::Base.session_options[:expires] = 1800
+
+ActionController::Base.session_options[:expires] = 5400 unless Rails.env == 'development'
 ActionController::Base.session_options[:cache] = CACHE
 
 
