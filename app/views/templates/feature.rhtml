@@ -72,12 +72,18 @@ hljs.initHighlightingOnLoad();
 
 </script>
 
-<div align='right' id='feature_versions'>
-  <%= render :partial => 'feature_versions' %>
-</div>
+
 
 <form action='' onsubmit='FeatureEditor.saveChanges(); return false;' method='post' id='feature_form'>
+<div style='float:right' id='feature_versions'>
+  <%= render :partial => 'feature_versions' %>
+</div>
 <input type='hidden' name='feature[feature_type]' value='<%= @feature.feature_type %>' />
+  <div class='text_field_control' style='padding:10px;'>  
+  <% cms_unstyled_fields_for :feature, @feature do |f| -%>
+      Name: <%= f.text_field :name, :size => 60 %>
+  <% end -%>
+</div>
 <div id='save_notice' class='flash_notice' style='display:none;'>
 </div>
 <div id='ignore_xml' style='display:none; text-align:center;'>
@@ -89,7 +95,6 @@ hljs.initHighlightingOnLoad();
   <% t.tab do  -%>
    <div class='admin_content' id='feature_options'>
       <% admin_fields_for :feature, @feature do |f| -%>
-         <%= f.text_field :name, :size => 30 %>
          <%= f.text_field :category, :size => 30 %>
          <%= f.text_field :description,:size => 80 %>
          <%= f.custom_field :feature_type, :value => @feature.feature_type %>

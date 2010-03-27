@@ -52,7 +52,7 @@ SCMS = {
 	customPopup: function(txt,title) {
 	 var performActionText = title ? title : "Action"
 
-	overlib(txt,CAPTION,"&nbsp;" + performActionText, STICKY,BELOW,OFFSETX,0,OFFSETY,12,WIDTH,300,
+	overlib(txt,CAPTION,"&nbsp;" + performActionText, STICKY,BELOW,OFFSETX,0,OFFSETY,12,WIDTH,340,
                              FGCLASS,'cms_popup_text',BGCLASS,'cms_popup_bg',CAPTIONFONTCLASS,'cms_popup_caption',
 		                      MOUSEOFF,CLOSETEXT,'');
 
