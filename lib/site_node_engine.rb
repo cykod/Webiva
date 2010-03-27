@@ -166,7 +166,6 @@ class SiteNodeEngine
                 end
             end
           else
-            raise opts[:connections].inspect if paragraph.display_type=='publications_list' && opts[:repeat_count] == 1
             if opts[:connections][input[0].to_s] && opts[:connections][input[0].to_s][input[1].to_sym]
               paragraph.set_page_connections(input_key.to_sym => opts[:connections][input[0].to_s][input[1].to_sym])
             elsif !opts[:edit] && !opts[:ajax]
@@ -612,6 +611,7 @@ EOF
     if @mode != 'edit'
       # See how many page argument the page paragraphs are expecting
       max_path_level = calculate_max_path_level
+
       if max_path_level < @path_args.length  && @container.node_type != 'M'
         raise MissingPageException.new(@container,@language), "Page Not Found" 
       end
