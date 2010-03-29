@@ -171,11 +171,9 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
 
 
   def edit
-    
    publication = paragraph.content_publication
    content_connection,entry_id = page_connection()
-   options = paragraph.data || {}
-   pub_options = paragraph_options(:edit) # publication.data || {}
+   pub_options = paragraph_options(:edit)
    
    
     if entry_id && entry_id.to_i != 0
@@ -188,36 +186,20 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
       render_paragraph :text => ''
       return
     end
-      
-    if paragraph.data[:return_page]
-      redirect_node = SiteNode.find_by_id(paragraph.data[:return_page])
-      if redirect_node
-        return_page = redirect_node.node_path
-      end
-    end
-      
-    return_page = '#' unless return_page
+     
+    return_page = pub_options.return_page_url
       
     if request.post? && params['entry_' + publication.id.to_s]
     
-      publication.update_entry(entry,params['entry_' + publication.id.to_s],
-          {:user => myself, :renderer => self, :controller => controller })
-      
+      publication.update_entry(entry,params['entry_' + publication.id.to_s],renderer_state)
       new_entry = entry.id ? false : true
       
       if entry.save
         expire_content(publication.content_model_id)
         if publication.update_action_count > 0
-          if new_entry
-      	   publication.run_triggered_actions(entry,'create',myself) 
-	        else
-      	   publication.run_triggered_actions(entry,'edit',myself)
-      	  end
+      	  publication.run_triggered_actions(entry,new_entry ? 'create' : 'edit',myself) 
         end
-        if return_page 
-          redirect_paragraph redirect_node.node_path
-          return
-    	  end
+        return redirect_paragraph(return_page) if return_page
       end
     else 
       if publication.view_action_count > 0

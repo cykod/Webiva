@@ -114,6 +114,10 @@ class ContentNode < DomainModel
       self.last_editor_id = user_id if user_id
     end
     self.save
+
+    if opts[:push_value]
+      generate_content_values!
+    end
   end
 
 
@@ -122,10 +126,18 @@ class ContentNode < DomainModel
   def admin_url
     if self.content_type
       if self.content_type.container
-        self.content_type.container.content_admin_url(self.node_id)
+        if self.content_type.container.respond_to?(:content_admin_url)
+          self.content_type.container.content_admin_url(self.node_id)
+        else
+          raise "#{self.content_type.container_type} needs to define content admin url"
+        end
       else
         cls =self.content_type.content_type.constantize
-        cls.content_admin_url(self.node_id)
+        if cls.respond_to?(:content_admin_url)
+          cls.content_admin_url(self.node_id)
+        else
+          raise "#{cls.to_s} needs to define content admin url"
+        end
       end
     else
       nil

@@ -1001,7 +1001,9 @@ var cmsEdit = {
               style_txt =  cmsEdit.txt.get('selectStyleText') + feature[0];
 
             txt += "<a href='javascript:void(0);' onclick='cClick(); cmsEdit.selectParagraphStyle(\"" + para_index+ "\"," + feature[1] + ");'>" + style_txt  + "</a>";
-            txt += " (<a href='javascript:void(0);' onclick='cClick(); cmsEdit.editParagraphStyle(\"" + para_index+ "\"," + feature[1] + ");'>" +  cmsEdit.txt.get('editStyleText') +  "</a>) <br/>";
+            txt += " (<a href='javascript:void(0);' onclick='cClick(); cmsEdit.editParagraphStyle(\"" + para_index+ "\"," + feature[1] + ");'>" +  cmsEdit.txt.get('editStyleText') +  "</a>)";
+            txt += " (<a href='javascript:void(0);' onclick='cClick(); cmsEdit.copyParagraphStyle(\"" + para_index+ "\"," + feature[1] + ");'>" +  cmsEdit.txt.get('copyStyleText') +  "</a>) <br/>";
+
             });
           });
 
@@ -1078,10 +1080,21 @@ var cmsEdit = {
     var params = $H({ para_index: para_index,
                       paragraph_id: para.paragraph_id,
                       feature_id: feature_id });
-    cmsEdit.styleWin = openWindow(cmsEdit.templateUrl('popup_feature',feature_id) + "?" + Object.toQueryString(params),'EditStyle' + cmsEdit.revisionId,900,600,'yes','yes');
+    cmsEdit.styleWin = openWindow(cmsEdit.templateUrl('popup_feature',feature_id) + "?" + Object.toQueryString(params),'EditStyle' + cmsEdit.revisionId,900,650,'yes','yes');
       cmsEdit.styleWin.focus();
     cClick();
   },
+
+ copyParagraphStyle: function(para_index,feature_id) {
+    var para = cmsEdit.paragraphs.get(para_index);
+    var params = $H({ para_index: para_index,
+                      paragraph_id: para.paragraph_id,
+                      copy_feature_id: feature_id });
+    cmsEdit.styleWin = openWindow(cmsEdit.templateUrl('popup_feature',feature_id) + "?" + Object.toQueryString(params),'EditStyle' + cmsEdit.revisionId,900,650,'yes','yes');
+      cmsEdit.styleWin.focus();
+    cClick();
+  },
+
 
 
   /* Modification History */

@@ -82,16 +82,20 @@ class SiteFeature < DomainModel
   
 
   def self.single_feature_type_hash(site_template_id,feature_type,options = {})
-   features = []
-    SiteFeature.find(:all,:select => 'id,site_template_id,name,feature_type',
-        :conditions => { :site_template_id => site_template_id, :feature_type => feature_type }).map do |feature|
+    features = []
+    if site_template_id 
+      conditions = { :site_template_id => site_template_id, :feature_type => feature_type }
+    else
+      conditions = [ 'site_template_id IS NULL and feature_type = ?',feature_type ]
+    end
+    SiteFeature.find(:all,:select => 'id,site_template_id,name,feature_type',:conditions => conditions).map do |feature|
       features << [ feature.name, feature.id ]
     end
-    
-    if options[:include_all]
+
+    if options[:include_all] && site_template_id
       features +=  self.single_feature_type_hash(nil,feature_type)
     end
-    
+
     features
   end
   

@@ -283,6 +283,11 @@ class TemplatesController < CmsController # :nodoc: all
     if !@feature.id
       @feature.body = SiteFeature.default_feature(@paragraph.feature_type)
     end
+
+    if params[:copy_feature_id]
+      @feature = @feature.clone
+      @feature.name += " (Copy)".t
+    end
     
     if params[:version] && !params[:version].blank?
       flash[:feature_version_load] = params[:version]
