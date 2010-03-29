@@ -125,7 +125,7 @@ describe Editor::PublicationRenderer, :type => :controller do
     it "should be able to display the edit form on an existing entry" do
        @entry = @cm.content_model.create(:string_field => 'This is a test of the emergency broadcast system')
 
-       @rnd = generate_edit_renderer(@publication, { :redirect_page => @view_page_node.id }, { :input => [ :entry_id, @entry.id ] })
+       @rnd = generate_edit_renderer(@publication, { :return_page_id => @view_page_node.id }, { :input => [ :entry_id, @entry.id ] })
        @rnd.should_render_feature('form')
        renderer_get @rnd
     end
@@ -135,7 +135,7 @@ describe Editor::PublicationRenderer, :type => :controller do
          
          @entry = @cm.content_model.create(:string_field => 'This is a test of the emergency broadcast system')
 
-         @rnd = generate_edit_renderer(@publication, { :redirect_page => @view_page_node.id }, { :input => [ :entry_id, @entry.id ] }, :site_feature_id => @feature.id)
+         @rnd = generate_edit_renderer(@publication, { :return_page_id => @view_page_node.id }, { :input => [ :entry_id, @entry.id ] }, :site_feature_id => @feature.id)
          @rnd.should_render_feature('form')
          renderer_get @rnd
          
@@ -147,7 +147,7 @@ describe Editor::PublicationRenderer, :type => :controller do
        @entry.string_field.should == "This is a test of the emergency broadcast system"
 
        @cm.content_model.count.should == 1
-       @rnd = generate_edit_renderer(@publication, { :return_page => @view_page_node.id }, { :input => [ :entry_id, @entry.id ] })
+       @rnd = generate_edit_renderer(@publication, { :return_page_id => @view_page_node.id }, { :input => [ :entry_id, @entry.id ] })
        
        renderer_post @rnd, { "entry_#{@publication.id}" => { :string_field => 'Yay!' } }
 
@@ -170,14 +170,14 @@ describe Editor::PublicationRenderer, :type => :controller do
     end
     
     it "should be display the create form if allowed" do
-       @rnd = generate_edit_renderer(@publication, { :redirect_page => @view_page_node.id,:allow_entry_creation => true })
+       @rnd = generate_edit_renderer(@publication, { :return_page_id => @view_page_node.id,:allow_entry_creation => true })
     
        @rnd.should_render_feature('form')
        renderer_get @rnd
     end 
     
     it "should be able to create a new entry if allowed" do
-       @rnd = generate_edit_renderer(@publication, { :return_page => @view_page_node.id,:allow_entry_creation => true })
+       @rnd = generate_edit_renderer(@publication, { :return_page_id => @view_page_node.id,:allow_entry_creation => true })
        
        @cm.content_model.count.should == 0
 
