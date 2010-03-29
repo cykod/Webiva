@@ -1,11 +1,11 @@
-<%= f.check_boxes :hidden, [['Hide field in forms',true]], :single => true, :label => '' -%>
-<%= f.check_boxes :exclude, [['Exclude field from search keywords',true]], :single => true, :label => '' -%>
+<%= f.check_boxes(:hidden, [['Hide field in forms',true]], :single => true, :label => '') unless @exclude_field_options && @exclude_field_options.include?(:hidden) -%>
+<%= f.check_boxes(:exclude, [['Exclude field from search keywords',true]], :single => true, :label => '') unless @exclude_field_options && @exclude_field_options.include?(:exclude) -%>
 <% field.module_class.field_options_widgets.each do |widget| -%>
   <% case widget 
      when :required  -%>
-     <%= f.check_boxes :required, [['Required',true]], :single => true, :label => '', :description => 'This field must not be empty' %>
+     <%= f.check_boxes(:required, [['Required',true]], :single => true, :label => '', :description => 'This field must not be empty') unless @exclude_field_options && @exclude_field_options.include?(:required) %>
   <% when :unique  -%>
-     <%= f.check_boxes :unique, [['Field must be Unique',true]], :single => true, :label => '', :description => 'Each entry in this model must have a unique value for this field' %>
+     <%= f.check_boxes(:unique, [['Field must be Unique',true]], :single => true, :label => '', :description => 'Each entry in this model must have a unique value for this field') unless @exclude_field_options && @exclude_field_options.include?(:unique) %>
   <% when :regexp  -%>
      <% f.custom_field :regexp, :label => '' do %>
          <%= uf.check_boxes :regexp, [['Value must match regular expression',true]], :single => true, :label => '', :onclick => "$('field_regexp_#{field_index}').style.display = this.checked ? '' : 'none';"  %>
