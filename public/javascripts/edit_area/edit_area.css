@@ -70,7 +70,7 @@ body, html, table, form, textarea{
 
 #selection_field, #selection_field_text{
 	margin: 0; 
-	background-color: #f7f8f9; /*E1F2F9; */
+	background-color: #E1F2F9; 
 /*	height: 1px; */  
 	position: absolute;
 	z-index: 5;
