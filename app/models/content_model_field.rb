@@ -14,18 +14,30 @@ class ContentModelField < DomainModel
 #  acts_as_list
 
   def before_validation
-    self.field_module ||= 'content/core_field'
     self.name = self.name.to_s.strip
   end
   
   def validate
-    self.errors.add(:field_options,'are invalid') unless field_options_model.valid?
+    if self.module_class
+      self.errors.add(:field_options,'are invalid') unless field_options_model.valid?
+    end
   end
 
-  
   serialize :field_options
-  
-  
+
+  def field_type=(type)
+    return unless type
+
+    vals = type.to_s.split('::')
+    if vals.length == 2
+      self.field_module = vals[0]
+      write_attribute :field_type, vals[1]
+    else
+      self.field_module ||= 'content/core_field'
+      write_attribute :field_type, type.to_s
+    end
+  end
+
   def text_value(data)
     if self.module_class
       content_display(data)
@@ -36,6 +48,7 @@ class ContentModelField < DomainModel
   
   def module_class
     return @module_class if @module_class
+    return nil unless self.field_type && self.field_module
     field_class = self.field_type + "_field"
     cls = "#{self.field_module.classify}::#{field_class.classify}".constantize
     @module_class ||= cls.new(self)
