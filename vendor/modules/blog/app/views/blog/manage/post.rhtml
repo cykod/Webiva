@@ -17,7 +17,7 @@
       },
       
       selectTags: function() {
-        SCMS.remoteOverlay("<%= url_for :action => 'add_tags' %>", { existing_tags: $('entry_tags').value } );
+        SCMS.remoteOverlay("<%= url_for :action => 'add_tags', :path => @blog.id %>", { existing_tags: $('entry_tags').value } );
       },
       
      addTagInPopup: function(tag_name) {
@@ -80,7 +80,7 @@
       <%= f.filemanager_image :domain_file_id, :vertical => true, :label => 'Post Image (Optional)' %>
       <%= t.text_field :permalink, :label => 'Permalink (Leave blank to have one created for you)', :vertical => true, :style => 'width:100%;', :noun => 'Permalink' %>
     <% end -%>
-    <%= f.text_field :author, :vertical => true, :required => true, :style=>'width:100%' %>
+    <%= f.text_field :author, :vertical => true, :style=>'width:100%' %>
     <%= f.editor_area :body, :vertical => true, :required => true, :rows => 35, :style=>'width:100%', :content_filter => @blog.content_filter %>
     <%= f.header "Additional Fields" %>
     <%= f.text_field :preview_title, :vertical => true, :size => 80, :label => 'Preview Title (Optional)' %>
@@ -125,12 +125,18 @@
     <label for='entry_status_post_date'><input onclick='PostEditor.updateStatus();' id='entry_status_post_date' name='update_entry[status]' value='post_date' type='radio'  <%= "checked='checked'" if @entry.status == 'published' && ( !@entry.published_at  || @entry.published_at > Time.now ) %> type='radio'><%= "Post Date".t  %><br/>
     <% cms_subfields_for :entry_update, @entry do |t| %>
      <table><%= t.datetime_field :published_at, :label => '', :blank => true, :disabled => !(@entry.status == 'published' && ( !@entry.published_at  || @entry.published_at > Time.now ) ) %></table>
-    <% end -%>
-    </div>
 
+    <% end -%>
+ 
+    </div>
+    <div align='center'>
+   <% cms_unstyled_fields_for :revision, @revision do |f| %>
+      <%= f.submit_tag @entry.id ? 'Update Entry' : 'Create Entry' %>
+    <% end -%>
+   </div>
   </td>
 </table>
 
-
+</form>
 
 </div>

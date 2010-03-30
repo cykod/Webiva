@@ -263,7 +263,7 @@ class ContentController < ModuleController #:nodoc: all
     cms_page_info([ [ 'Content', url_for(:action => 'index') ] , ['Custom Content', url_for(:action => 'custom' ) ], 'Create a Content Model' ],'content')
     
     
-    if request.post?
+    if request.post? && params[:commit]
       @content_model.customized =  true
       @content_model.model_preset = 'custom'
       if @content_model.save
@@ -293,6 +293,8 @@ class ContentController < ModuleController #:nodoc: all
           return
         end
       end
+    elsif request.post? 
+      redirect_to :action => 'custom'
     end
   
   end

@@ -1,17 +1,72 @@
 
 <script>
 FeatureEditor = {
-  
+  cssActive: false,
+
   activateCss: function() {
-     editAreaLoader.init({
+    if(FeatureEditor.cssActive) return false;
+    editAreaLoader.init({
 			  id: "feature_css"	// id of the textarea to transform		
 			  ,start_highlight: true	// if start with highlight
   	    ,allow_resize: "y"
+        ,min_height: 200
 			  ,language: "en"
 			  ,syntax: "css"	
 			  ,change_callback: "FeatureEditor.fileChange"
-		  });
-    FeatureEditor.activateCss = function() {};
+      });
+  },
+
+  activateFeature: function() {
+    editAreaLoader.init({
+			          id: "feature_body"	// id of the textarea to transform		
+			          ,start_highlight: true	// if start with highlight
+			          ,allow_resize: "no"
+			          ,min_height: 200
+			          ,allow_toggle: true
+			          ,language: "en"
+			          ,syntax: "html"	
+			          ,show_line_colors: false
+		          });
+  },
+
+  resizeTextarea: function() {
+      var height = document.viewport.getHeight();
+
+      var controls_height = 150 + $('top_controls').getHeight();
+      var elem_height = height - controls_height;
+
+      
+      $('feature_body').style.height = elem_height + "px";
+      $('feature_documentation').style.height = elem_height + "px";
+      $('feature_css').style.height = elem_height + "px";
+      $('styles_display').style.height = elem_height + "px";
+  },
+
+  killerTimeout: null,
+  killedEditors: false,
+
+
+  killEditors: function(e) {
+     SCMS.select_tab_num(2);
+      FeatureEditor.resizeTextarea();
+      if(FeatureEditor.killerTimeout) clearTimeout(FeatureEditor.killerTimeout);
+      FeatureEditor.killerTimeout = setTimeout(FeatureEditor.activateEditors,700);
+
+      if(FeatureEditor.killedEditors) return false;
+      FeatureEditor.killedEditors = true;
+      editAreaLoader.delete_instance('feature_body');
+      if(FeatureEditor.cssACtive) {
+        editAreaLoader.delete_instance('feature_css');
+        FeatureEditor.cssActive = false;
+     }
+
+  },
+
+  activateEditors: function(e) {
+    FeatureEditor.killerTimeout = null;
+    FeatureEditor.killedEditors = false;
+
+    FeatureEditor.activateFeature();
   },
 		
 	fileChange: function(id) {
@@ -55,7 +110,20 @@ versionWarning: <%= @feature.current_version_id ? true : false %>,
 		  if(confirm('<%= jh "Load a previous version of this feature?".t %>')) {
   		  document.location = '<%= @reload_url %>version=' + version_id;
   		}
-		}  
+    },
+
+  insertFeature: function(e,name,type) {
+    var tg,end_tg = "";
+    var elems = name.split(":");
+    var tg_name = elems[elems.length - 1];
+     if(e.ctrlKey) {
+       tg = "<cms:" + tg_name + ">";
+       end_tg = "</cms:" + tg_name + ">";
+     } else {
+       tg = "<cms:" + tg_name + " />";
+     }
+     editAreaLoader.insertTags('feature_body',tg,end_tg);
+  }
 
 }
 
@@ -69,15 +137,23 @@ TemplateEdit = {
 
 hljs.initHighlightingOnLoad();
 
+Event.observe(document.onresize ? document : window, "resize",FeatureEditor.killEditors);
 
 </script>
 
-<div align='right' id='feature_versions'>
+
+
+<form action='' onsubmit='FeatureEditor.saveChanges(); return false;' method='post' id='feature_form' class='admin_form' >
+<div id='top_controls'>
+<div style='float:right' id='feature_versions'>
   <%= render :partial => 'feature_versions' %>
 </div>
-
-<form action='' onsubmit='FeatureEditor.saveChanges(); return false;' method='post' id='feature_form'>
 <input type='hidden' name='feature[feature_type]' value='<%= @feature.feature_type %>' />
+  <div class='text_field_control' style='padding:10px;'>  
+  <% cms_unstyled_fields_for :feature, @feature do |f| -%>
+      Name: <%= f.text_field :name, :size => 60 %>
+  <% end -%>
+</div>
 <div id='save_notice' class='flash_notice' style='display:none;'>
 </div>
 <div id='ignore_xml' style='display:none; text-align:center;'>
@@ -85,11 +161,11 @@ hljs.initHighlightingOnLoad();
   <input type='checkbox' name='ignore_xml_errors' id='ignore_xml_errors' value='1'  /> <%= "Ignore XML Validation Errors (This is necessary for some advanced features)".t %>
 </label>
 </div>
+</div>
 <% ajax_tabs ['Options','Feature',['CSS','FeatureEditor.activateCss();']],  'Feature' do |t| -%>
   <% t.tab do  -%>
    <div class='admin_content' id='feature_options'>
       <% admin_fields_for :feature, @feature do |f| -%>
-         <%= f.text_field :name, :size => 30 %>
          <%= f.text_field :category, :size => 30 %>
          <%= f.text_field :description,:size => 80 %>
          <%= f.custom_field :feature_type, :value => @feature.feature_type %>
@@ -125,27 +201,18 @@ hljs.initHighlightingOnLoad();
       <tr>
         <td width='100%'>
             <textarea id='feature_body' style='height:450px; width:100%;' name='feature[body]'><%= h @feature.body %></textarea>
-            <script>
-              editAreaLoader.init({
-			          id: "feature_body"	// id of the textarea to transform		
-			          ,start_highlight: true	// if start with highlight
-			          ,allow_resize: "no"
-			          ,min_height: 450
-			          ,allow_toggle: true
-			          ,language: "en"
-			          ,syntax: "html"	
-			          ,show_line_colors: false
-		          });
-
-            </script>
         </td>
         <td nowrap='1'>
           <% if @doc -%>
-          <div id='feature_documentation' class='style_display' style='display:none; width:400px;'>
-          <% @doc.each do |tg| -%>          
-          <div class='template_style'>
+          <div id='feature_documentation' class='style_display'  style='display:none; width:400px;'>
+          <b>Click on a tag to insert it, Ctrl-click to insert a block</b>
+          <% @doc.each_with_index do |tg,idx| -%>          
+            <div class='template_style' id="cms_feature_<%= idx %>" >
             <%= "&nbsp;&nbsp;" * (tg[1].split(":").length) %>&lt;cms:<%= tg[1] %>&gt; - <%= tg[0].humanize %><br/>
           </div>
+          <script>
+            $('cms_feature_<%= idx %>').observe('click',function(e) { return FeatureEditor.insertFeature(e,"<%= jh tg[1] %>","<%= jh tg[0] %>"); });
+          </script>
           <% end -%>
           </div>
           <% end -%>
@@ -186,3 +253,7 @@ hljs.initHighlightingOnLoad();
 </div>
 
 </form>
+<script type='text/javascript'>
+  FeatureEditor.resizeTextarea();
+  FeatureEditor.activateFeature();
+</script>

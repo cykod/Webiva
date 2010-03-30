@@ -347,6 +347,10 @@ FEATURE
       
       c.define_expansion_tag('use_username') { |tag| data[:type] =='username' }
       c.define_expansion_tag('use_email') { |tag| data[:type] =='email'|| data[:type]=='both' }
+
+      data[:options].login_features.each do |feature|
+        feature.feature_instance.feature_tags(c,data[:feature])
+      end
     end
   end
 

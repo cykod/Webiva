@@ -59,7 +59,7 @@ class ContentType < DomainModel
   end
 
   def after_update #:nodoc:
-    self.content_node_values.delete
+    self.content_node_values.clear
   end
 
   # Full name of this content type

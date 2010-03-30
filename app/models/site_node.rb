@@ -231,12 +231,18 @@ class SiteNode < DomainModel
   
   # Returns a select-friendly list of pages with urls (group nodes not included)
   # optionally including the root node as well
-  def self.page_options(include_root = false)
+  def self.page_options(include_root = false, opts={})
     node_type = include_root ? 'node_type IN("P","R","M","J")' : 'node_type IN ("P","M","J")'
     SiteNode.find(:all,:conditions => node_type,
                   :order => 'lft').collect do |page|
-      [ page.node_type != 'R' ? page.node_path : include_root ,page.id ]
+      [ page.node_type != 'R' ? page.node_path : include_root , opts[:url] ? page.node_path : page.id ]
     end
+  end
+
+  # Returns a select-friendly list of pages with urls (group nodes not included)
+  # optionally including the root node as well
+  def self.page_url_options(include_root = false)
+    self.page_options(include_root, :url => true)
   end
 
   # Returns a select-friendly list of pages and groups

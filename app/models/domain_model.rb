@@ -62,6 +62,13 @@ class DomainModel < ActiveRecord::Base
     domain_file_column(field_name)
   end
 
+  def self.has_end_user(field_name,options={})
+    field = options[:relation] || field_name.to_s.gsub(/_id$/,'')
+
+    belongs_to field.to_sym, :class_name => 'EndUser', :foreign_key => options[:foreign_key] || field_name
+    after_save_update_end_user_name(field, options[:name_column]) if options[:name_column]
+  end
+
   # Used to paginate a list of entries, returns a pagination information hash
   # and a list of entries
   # 
@@ -150,6 +157,7 @@ class DomainModel < ActiveRecord::Base
   include ModelExtension::FileInstanceExtension
   include ModelExtension::ContentNodeExtension
   include ModelExtension::ContentCacheExtension
+  include ModelExtension::EndUserExtension
   
   # Adds support for triggered actions to this object
   # 
@@ -658,6 +666,13 @@ class DomainModel < ActiveRecord::Base
     else
       permalink_try
     end
+  end
+
+  # Put something into the remote cache from a delayed worker
+  def self.remote_cache_put(args,result)
+     now = Time.now
+     DataCache.put_remote(args[:remote_type],args[:remote_target],args[:display_string],[ result ,now + args[:expiration].to_i.seconds])
+     DataCache.expire_content(args[:remote_type],args[:remote_target])
   end
   
 

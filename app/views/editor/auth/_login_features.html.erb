@@ -1,0 +1,16 @@
+
+
+
+<input type='hidden' id='login_features_order' name='features_order' value=''/>
+Add a feature: <select name='add_feature' id='login_add_feature'><%= options_for_select @options.available_features %></select><button onclick='LoginEditor.addFeature($("login_add_feature").value); return false;' >Add Feature</button>
+<br/><br/>
+
+<div id='login_features'>
+<% @options.login_features.each_with_index do |feature,idx| -%>
+  <%= render :partial => 'login_feature', :locals => { :feature => feature, :idx => idx } %>
+<% end -%>
+</div>
+
+<script>
+  LoginEditor.recreateFeatureSortables();
+</script>

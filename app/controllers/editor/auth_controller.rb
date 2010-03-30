@@ -3,7 +3,7 @@
 class Editor::AuthController < ParagraphController #:nodoc:all
   permit 'editor_editor'
   
-  user_actions [:add_feature ]
+  user_actions [:add_feature, :add_login_feature]
 
   # Editor for authorization paragraphs
   editor_header "Member Paragraphs", :paragraph_member
@@ -321,7 +321,11 @@ class Editor::AuthController < ParagraphController #:nodoc:all
     def publication_options
       content_model_ids = ContentModelField.find(:all, :conditions => "field_type = 'belongs_to' AND field_module = 'content/core_field'").collect { |fld| fld.content_model_id if fld.relation_class == EndUser }.uniq.compact
 
-      ContentPublication.select_options_with_nil('Publication',:conditions => { :publication_type => 'create', :publication_module => 'content/core_publication', :content_model_id => content_model_ids }) unless content_model_ids.empty?
+      if  content_model_ids.empty?
+        []
+      else
+        ContentPublication.select_options_with_nil('Publication',:conditions => { :publication_type => 'create', :publication_module => 'content/core_publication', :content_model_id => content_model_ids }) unless content_model_ids.empty?
+      end
     end
 
     def publication_field_options
@@ -330,7 +334,10 @@ class Editor::AuthController < ParagraphController #:nodoc:all
   end
 
   class LoginOptions < HashModel
-    default_options :login_type => 'email',:success_page => nil, :forward_login => 'no',:failure_page => nil
+    # For feature stuff
+    include HandlerActions
+
+    default_options :login_type => 'email',:success_page => nil, :forward_login => 'no',:failure_page => nil, :features => []
     integer_options :success_page, :failure_page
     validates_presence_of :forward_login
 
@@ -339,6 +346,23 @@ class Editor::AuthController < ParagraphController #:nodoc:all
 		 fld(:failure_page, :select, :options => :page_options, :label => 'Failure Page'),
 		 fld(:forward_login, :radio_buttons, :options => :forward_login_options, :description => 'If users were locked out of a previous, forward them back to that page.')
 		 )
+
+    def validate
+      if !self.features.is_a?(Array)
+        self.features = self.features.to_a.sort {  |a,b| a[0] <=> b[0]  }.map {  |elm| obj = Handlers::ParagraphFeature.new(elm[1]);  obj.to_hash }
+
+        self.login_features.each do |feature|
+          if !feature.options.valid?
+            self.errors.add_to_base('Feature Error')
+          end
+        end
+       
+      end
+    end
+
+    def options_partial
+      nil
+    end
 
     def self.login_type_options
       [['By Email','email'], ['By Username','username'], ['Either','both']]
@@ -350,6 +374,16 @@ class Editor::AuthController < ParagraphController #:nodoc:all
 
     def self.forward_login_options
       [['Yes','yes'], ['No','no']]
+    end
+
+    def available_features
+      [['--Select a feature to add--','']] + get_handler_options(:editor,:auth_login_feature)
+     end
+
+    def login_features
+      @login_features ||= self.features.map do |feature|
+        Handlers::ParagraphFeature.new(feature.merge({ :feature_type => 'editor_auth_login_feature'}))
+      end
     end
   end
 
@@ -470,6 +504,20 @@ class Editor::AuthController < ParagraphController #:nodoc:all
       @feature.feature_handler = @info[:identifier]   
       @feature.feature_type = 'editor_auth_user_register_feature'
       render :partial => 'user_register_feature', :locals => { :feature => @feature, :idx => params[:index] }
+    else
+      render :nothing => true
+    end  
+    
+  end
+
+  def add_login_feature
+    @info = get_handler_info(:editor,:auth_login_feature,params[:feature_handler])
+    
+    if @info && myself.editor?
+      @feature = Handlers::ParagraphFeature.new({ })
+      @feature.feature_handler = @info[:identifier]   
+      @feature.feature_type = 'editor_auth_login_feature'
+      render :partial => 'login_feature', :locals => { :feature => @feature, :idx => params[:index] }
     else
       render :nothing => true
     end  

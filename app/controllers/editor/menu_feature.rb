@@ -21,18 +21,14 @@ class Editor::MenuFeature < ParagraphFeature #:nodoc:all
                       }
                     ] },
   :default_feature => <<-FEATURE
-<div>
+<ul class='menu'>
   <cms:section>
-    <div class='menu_item'>
-    <cms:link selected_class='selected'><cms:title/></cms:link>
-    <cms:selected>
-      <cms:section>
-        &nbsp;&nbsp;<cms:link selected_class='selected'><cms:title/></cms:link><br/>
-      </cms:section>
-    </cms:selected>
-    </div>
+    <li><cms:link selected_class='selected'><cms:title/></cms:link></li>
+    <cms:menu><ul> <cms:section>
+        <li><cms:link selected_class='selected'><cms:title/></cms:link></li>
+     </cms:section></ul></cms:menu>
   </cms:section>
-</div>
+</ul>
   FEATURE
   
    def item_selected(item,url)

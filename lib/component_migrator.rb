@@ -9,7 +9,7 @@ class ComponentMigrator < ActiveRecord::Migrator  # :nodoc:all
    end
 
    def self.current_version
-     result = DomainModel.connection.select_one("SELECT version FROM #{schema_migrations_table_name} WHERE component = #{DomainModel.connection.quote(current_component)} ORDER BY version DESC")
+     result = DomainModel.connection.select_one("SELECT version FROM #{schema_migrations_table_name} WHERE component = #{DomainModel.connection.quote(current_component)} ORDER BY CONVERT(version,unsigned) DESC")
      if result
       result['version'].to_i
      else

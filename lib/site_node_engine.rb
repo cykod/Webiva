@@ -166,7 +166,6 @@ class SiteNodeEngine
                 end
             end
           else
-            raise opts[:connections].inspect if paragraph.display_type=='publications_list' && opts[:repeat_count] == 1
             if opts[:connections][input[0].to_s] && opts[:connections][input[0].to_s][input[1].to_sym]
               paragraph.set_page_connections(input_key.to_sym => opts[:connections][input[0].to_s][input[1].to_sym])
             elsif !opts[:edit] && !opts[:ajax]
@@ -225,18 +224,24 @@ class SiteNodeEngine
           
           # Add in the rendered css for the editor          
           rnd.output.render_args[:css] = paragraph.site_feature.rendered_css if opts[:edit] && paragraph.site_feature
-
+          
           return rnd.output
         end
         
       else
         if paragraph.display_body.blank? && paragraph.display_body == '' && !opts[:edit]
           return ParagraphRenderer::ParagraphOutput.new(self,:text => "")
+        elsif opts[:edit]
+          return ParagraphRenderer::ParagraphOutput.new(self,:text => "<div class='#{paragraph.display_type}_paragraph'>" +  strip_script_tags(paragraph.display) + "</div>")
         else
           return ParagraphRenderer::ParagraphOutput.new(self,:text => "<div class='#{paragraph.display_type}_paragraph'>" +  paragraph.display + "</div>")
         end
       end
       
+    end
+
+    def strip_script_tags(txt)
+      txt.gsub(/\<script.*\<\/script\>/im,'')
     end
     
     # Renders a paragraph, returns a string containing the outputed html
@@ -292,12 +297,16 @@ EOF
           raise 'Invalid Paragraph Rendering'
         end
         # Add on the Site Feature CSS only if we're in edit mode, otherwise it'll come in on an include
+        if opts[:edit]
+          str = strip_script_tags(str)
+          raise str.inspect if str.include?('<script')
+        end
         str = "<style>#{css}</style>" + str if opts[:edit] && css
         return str
       elsif cls_name == "ParagraphRenderer::CachedOutput"
         return paragraph.output
       elsif paragraph.is_a?(String)
-        paragraph
+       opts[:edit] ? strip_script_tags(paragraph) : paragraph
       elsif paragraph.nil?
         "Nil"
         ""
@@ -318,7 +327,7 @@ EOF
     # can render paragraphs from templates
     def self.append_features(base) #:nodoc:
       super
-      base.helper_method :compile_paragraph, :render_paragraph
+      base.helper_method :compile_paragraph, :render_paragraph, :strip_script_tags
       base.helper_method :webiva_post_process_paragraph, :render_output
       base.hide_action :find_page_from_path
       base.hide_action :handle_document_node
@@ -399,7 +408,23 @@ EOF
     attr_accessor :meta_description
     attr_accessor :meta_keywords
     attr_accessor :content_nodes
-    
+
+    def initialize
+      super
+      @includes = {}
+    end
+
+    def html_set_attribute(part, value={})
+      @includes[part.to_sym] ||= {}
+      @includes[part.to_sym].merge! value
+    end
+
+    def html_include(part, value=[])
+      @includes[part.to_sym] ||= []
+      value = [value] unless value.is_a?(Array)
+      @includes[part.to_sym] += value
+    end
+
     def page?
       true
     end
@@ -586,6 +611,7 @@ EOF
     if @mode != 'edit'
       # See how many page argument the page paragraphs are expecting
       max_path_level = calculate_max_path_level
+
       if max_path_level < @path_args.length  && @container.node_type != 'M'
         raise MissingPageException.new(@container,@language), "Page Not Found" 
       end
@@ -649,9 +675,14 @@ EOF
                   if result.is_a?(ParagraphRenderer::ParagraphOutput)
                     page_connections.merge!(result.page_connections  || {}) 
                     # Get any remaining includes 
-                    result.includes.each do |inc_type,inc_arr|
-                      @page_information[:includes][inc_type] ||= []
-                      @page_information[:includes][inc_type] +=  inc_arr
+                    result.includes.each do |inc_type,inc_value|
+		      if inc_value.is_a?(Hash)
+			@page_information[:includes][inc_type] ||= {}
+			@page_information[:includes][inc_type].merge! inc_value
+		      else
+			@page_information[:includes][inc_type] ||= []
+			@page_information[:includes][inc_type] +=  inc_value
+		      end
                     end
                     if result.content_nodes
                       @page_information[:content_nodes] ||= []
@@ -695,6 +726,9 @@ EOF
     @output.css_site_template_id = @page_information.css_site_template_id
     @output.body = @page_information.render_elements
     @output.includes = @page_information.includes
+    @output.includes[:html_tag] ||= {}
+    @output.includes[:html_tag]['xml:lang'] = @output.language
+    @output.includes[:html_tag]['lang'] = @output.language
     @output.head = @page_information.head
     @output.paction = @page_information.paction
     @output.content_nodes = @page_information.content_nodes

@@ -206,8 +206,8 @@ class ParagraphController < CmsController
 =end  
   def self.editor_for(paragraph,args = {})
     editors = self.get_editor_for || []
-    args[:features] = [ args[:feature] ] if args[:feature]
-    args[:feature] = args[:features][0] if args[:features].is_a?(Array)
+    args[:features] = [ args[:feature].to_s ] if args[:feature]
+    args[:feature] = args[:features][0].to_s if args[:features].is_a?(Array)
     args[:name] ||= paragraph.to_s.titleize
     editors << [ paragraph, args ]
     sing = class << self; self; end

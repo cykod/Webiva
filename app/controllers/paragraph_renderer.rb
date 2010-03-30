@@ -20,7 +20,7 @@ class ParagraphRenderer < ParagraphFeature
       @rnd = rnd
       @render_args = args
     
-      @includes= {}
+      @includes = {}
     end
     attr_reader :rnd
     attr_reader :render_args
@@ -179,7 +179,8 @@ class ParagraphRenderer < ParagraphFeature
     @revision = revision
     @para = para
     @opts = opts 
-    
+
+    @includes = {}
     @js_includes = []
     @css_includes = []
     @head_html = []
@@ -413,6 +414,17 @@ class ParagraphRenderer < ParagraphFeature
     end
   end 
   
+  def html_set_attribute(part, value={})
+    @includes[part.to_sym] ||= {}
+    @includes[part.to_sym].merge! value
+  end
+
+  def html_include(part, value=[])
+    @includes[part.to_sym] ||= []
+    value = [value] unless value.is_a?(Array)
+    @includes[part.to_sym] += value
+  end
+
   # Includes the specified javascript file when the page is rendered
   # uses the standard rails javascript_include_tag syntax
   def require_js(js)
@@ -480,6 +492,7 @@ class ParagraphRenderer < ParagraphFeature
   
   def output #:nodoc:
     if @paragraph_output.is_a?(ParagraphOutput) || @paragraph_output.is_a?(CachedOutput)
+      @paragraph_output.includes = @includes
       @paragraph_output.includes[:css] = @css_includes if @css_includes.length > 0
       @paragraph_output.includes[:js] = @js_includes if @js_includes.length > 0
       @paragraph_output.includes[:head_html] = @head_html if @head_html.length > 0
@@ -613,7 +626,45 @@ an integer representing the number of seconds to keep the element in the cache.
 
   end
   
-  
+
+  # Fetch a element from the remote cache
+  def delayed_cache_fetch(obj,method,args={},display_string=nil,options={ })
+    expiration = options[:expires] || 120 # Default to two minutes
+    display_string = "#{paragraph.id}_#{display_string}"
+    result = nil
+ 
+    result, expired_at = DataCache.get_remote("Paragraph",paragraph.id.to_s,display_string)
+    now = Time.now
+    if result && expired_at && expired_at > now
+      return DefaultsHashObject.new(result)
+    end
+
+    remote_args = args.merge( :remote_type => 'Paragraph', :remote_target => paragraph.id.to_s, :display_string => display_string, :expiration => expiration )
+
+    if editor?
+      logger.warn("Running Editor Delayed worker: #{display_string}")
+      result = obj.send(method, remote_args)
+      if result
+        return DefaultsHashObject.new(result)
+      else
+        return nil
+      end
+    end
+
+    # if we don't have an expired or we are expired and not in the editor
+    # kick of the worker and put the current results in the cache to be updated
+    if !result || !expiration || expired_at <= now
+      DataCache.put_remote("Paragraph",paragraph.id.to_s,display_string,[ result, now + expiration.to_i.seconds ])
+      logger.warn("Running Delayed worker: #{display_string}")
+      if obj.is_a?(Class)
+        DomainModel.run_worker(obj.to_s,nil,method,remote_args)
+      else
+        DomainModel.run_worker(obj.class.to_s,obj.id,method,remote_args)
+      end
+    end
+    
+    return result if result
+  end
 
   
   def self.get_editor_features #:nodoc:
