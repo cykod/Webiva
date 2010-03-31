@@ -25,6 +25,8 @@
      <%= f.text_field :on %>
      <%= f.text_field :off %>
      <%= f.text_field :on_description, :description => 'This appears as a label next to the check box instead of the on value ' %>
+ <% when :folder_id -%>
+     <%= f.filemanager_folder :folder_id %>
   <% end -%>
 <% end -%>
 
