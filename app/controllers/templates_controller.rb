@@ -309,7 +309,6 @@ class TemplatesController < CmsController # :nodoc: all
     begin
       @doc = details[2].document_feature(details[1],data,self,details[3])
     rescue Exception => e
-      raise e
       @doc = nil
     end
     
