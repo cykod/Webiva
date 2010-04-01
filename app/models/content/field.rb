@@ -184,7 +184,8 @@ module Content
 
     @@content_display_methods = {
       :text => "Content::Field.text_value(entry.send(@model_field.field),size,options)",
-      :html => "entry.send(@model_field.field)"
+      :html => "Content::Field.html_value(entry.send(@model_field.field),size,options)",
+      :code => "Content::Field.code_value(entry.send(@model_field.field),size,options)"
     }
     
     # Creates a content_display method of a specific type
@@ -210,6 +211,25 @@ module Content
     # (for more complex or fields for exapmle)
     def content_export(entry)
       content_value(entry)
+    end
+
+
+    def self.code_value(val,size,options={})
+      case size
+      when :excerpt, :form
+       text_value(val,size,options)
+      else
+        val
+      end
+    end
+
+    def self.html_value(val,size,options={})
+      case size
+      when :excerpt
+        text_value( Util::TextFormatter.text_plain_generator(val),size,options)
+      else
+        val
+      end
     end
     
     # Helper method for escaping an html value
@@ -247,9 +267,9 @@ module Content
     def self.content_smart_truncate(val) 
       val = val.to_s
       if(val  && val.length > 30 && !val.include?(' '))
-        white_list_sanitizer.sanitize( truncate(val,:length => 30))
+        truncate(h(val),:length => 30)
       else
-        white_list_sanitizer.sanitize( truncate(val,:length => 60))
+        truncate(h(val),:length => 60)
       end        
     end
     
