@@ -21,29 +21,29 @@ class Editor::ActionRenderer < ParagraphRenderer #:nodoc:all
   def html_headers
 
     @options = paragraph_options(:html_headers)
-    
+
     if !editor?
-    @options.css_files.each do |file|
-      if(file =~ /^images\/(.*)$/)
-        df = DomainFile.find_by_file_path("/#{$1}")
-        file = df.url if df
+      @options.css_files.each do |file|
+        if(file =~ /^images\/(.*)$/)
+          df = DomainFile.find_by_file_path("/#{$1}")
+          file = df.url if df
+        end
+        require_css(file)
       end
-      require_css(file)
+
+      @options.js_files.each do |file|
+        if(file =~ /^images\/(.*)$/)
+          df = DomainFile.find_by_file_path("/#{$1}")
+          file = df.url if df
+        end
+        require_js(file)
+      end
+
+      if !@options.html_header.blank?
+        include_in_head(@options.html_header)
+      end
     end
 
-    @options.js_files.each do |file|
-      if(file =~ /^images\/(.*)$/)
-        df = DomainFile.find_by_file_path("/#{$1}")
-        file = df.url if df
-      end
-      require_js(file)
-    end
-
-    if !@options.html_header.blank?
-      include_in_head(@options.html_header)
-    end
-    end
-    
     render_paragraph :nothing => true
 
   end

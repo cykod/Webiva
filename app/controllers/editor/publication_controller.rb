@@ -50,19 +50,18 @@ class Editor::PublicationController < ParagraphController #:nodoc:all
   def edit
    @publication = @paragraph.content_publication
    
-   @options = EditOptions.new(params[:pub] || @paragraph.data || {})
+   @options = EditOptions.new(params[:edit] || @paragraph.data || {})
    @options.additional_vars(@publication.filter_variables)
    
    return if handle_paragraph_update(@options)
-
-   @pages = [['No Return Page', nil ]] + SiteNode.page_options()
   end
   
   class EditOptions < HashModel
-      default_options :return_page => nil, :options => [], :entry_id => nil, :allow_entry_creation => false
+      attributes :return_page_id => nil, :options => [], :entry_id => nil, :allow_entry_creation => false
+
+      page_options :return_page_id
       
       boolean_options :allow_entry_creation
-      integer_options :return_page,:entry_id
   end
   
   def view

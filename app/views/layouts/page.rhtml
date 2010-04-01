@@ -1,6 +1,6 @@
 <% unless @partial_page -%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-    <html xmlns="http://www.w3.org/1999/xhtml"  <%= "xml:lang='#{@output.language}' lang='#{@output.language}'" %>>
+    <%= tag 'html', {:xmlns => "http://www.w3.org/1999/xhtml"}.merge(@output.includes[:html_tag] || {}), true %>
     <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
       <title><%= @cms_module_page_title || @output.title %></title>
@@ -57,13 +57,15 @@
 </div>
 <% end -%>
 
+<%= @output.includes[:body_start] -%>
+
 <% end -%>
 
 <%= render_output(@page,@output) -%>
 
 <% unless @partial_page -%>
 
-  <% if @google_analytics[:enabled] == 'enabled'  %>
+  <% if @google_analytics[:enabled] == 'enabled'  -%>
 <script type='text/javascript'>
   var _gaq = _gaq || [];
   _gaq.push(['_setAccount', '<%= @google_analytics[:code] %>']);
@@ -78,6 +80,8 @@
   })();
 </script>
   <% end -%>
+
+<%= @output.includes[:body_end] -%>
 
 </body>
 </html>

@@ -247,10 +247,16 @@ class ApplicationController < ActionController::Base
     
   end   
 
+  @@ignored_session_keys = [:domain, :cms_language, :domain_version]
+  def session_safe_clear
+    session.delete_if do |k,v|
+      ! @@ignored_session_keys.include?(k)
+    end
+  end
+
   # Convenience method to log a user in 
   # sets the session and remember cookie 
   def process_login(usr,remember = false)
-#    session.clear
     session[:user_id] = usr.id
     session[:user_model] = usr.class.to_s
     reset_myself
@@ -267,7 +273,7 @@ class ApplicationController < ActionController::Base
     session[:user_id] = nil
     session[:user_model] = nil
     reset_myself
-    session.clear
+    session_safe_clear
     myself
   end
   

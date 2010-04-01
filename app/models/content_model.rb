@@ -93,13 +93,13 @@ class ContentModel < DomainModel
   end
   
    # Return a list of content fields with their modules added in
-  def self.content_fields
-    returning fields = [] do
-      get_handler_info(:content,:fields).each do |info|
-        fields.concat(info[:class].fields)
-      end
+  def self.content_fields(opts={})
+    fields = []
+    get_handler_info(:content,:fields).each do |info|
+      fields.concat(info[:class].fields)
     end
-    
+    fields = fields.reject { |info| ! info[:simple] } if opts[:simple]
+    fields
   end
   
    # Return a hash of content fields with their modules added in
@@ -112,8 +112,13 @@ class ContentModel < DomainModel
   end
 
   # Returns a select-friendly list of available content field types
-  def self.content_field_options
-    self.content_fields.collect { |fld| [ fld[:description].t, fld[:name] ] }
+  def self.content_field_options(opts={})
+    self.content_fields(opts).collect { |fld| [ fld[:description].t, "#{fld[:module]}::#{fld[:name]}" ] }
+  end
+
+  # Returns a select-friendly list of available content field types without relation's
+  def self.simple_content_field_options
+    self.content_field_options(:simple => true)
   end
   
   # Returns all the ContentModelField's of this content model (including a field for the id)

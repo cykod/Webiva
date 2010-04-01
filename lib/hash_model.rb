@@ -184,6 +184,10 @@ class HashModel
           @#{name}_file = DomainFile.find_by_id(self.#{atr})
         end
 
+        def #{name}(force=false)
+          self.#{name}_file(force)
+        end
+
         def #{name}_url(size=nil)
           fl = #{name}_file
           if fl
@@ -221,7 +225,17 @@ class HashModel
     
     @additional_vars = []
   end
-  
+
+  def attributes
+    to_h
+  end
+
+  def attributes=(hsh)
+    hsh.each do |key,value|
+      self.send("#{key.to_s}=",value) if defaults.has_key?(key.to_sym) || self.respond_to?("#{key.to_s}=")
+    end
+  end
+
   def additional_vars(vars)
     @additional_vars += vars
     
@@ -261,21 +275,21 @@ class HashModel
     self.instance_variable_set "@#{opt.to_s}",val.to_i
   end
   
-  def self.human_attribute_name(atr)
-    atr.humanize
-  end
-  
   def method_missing(arg, *args)
     arg = arg.to_s
     if arg == 'hsh=' || arg == 'errors='
       #
     elsif arg[-1..-1] == "="
       raise "Undeclared HashModel variable: #{arg[0..-2]}"
+    elsif self.strict?
+      raise "Missing hash model method #{arg}" unless self.instance_variables.include?("@#{arg}")
+      self.instance_variable_get "@#{arg}"
     else
       self.instance_variable_get "@#{arg}"
     end
   end
   
+  def strict?; false; end
 
   def valid?
     format_data
@@ -324,7 +338,7 @@ class HashModel
   end 
   
   def self.human_name
-    self.class.to_s.humanize
+    self.name.underscore.titleize
   end  
   
   def self.human_attribute_name(attribute)

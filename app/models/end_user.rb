@@ -177,6 +177,11 @@ include ModelExtension::EndUserImportExtension
     @access_token_cache = val
   end
 
+  def has_token?(token)
+    token = token.id if token.is_a?(AccessToken)
+    self.end_user_tokens.active.find_by_access_token_id(token)
+  end
+
   after_save :token_cache_update
 
   def token_cache_update #:nodoc:
@@ -203,7 +208,7 @@ include ModelExtension::EndUserImportExtension
       eut.update_attributes(options.slice(:valid_until,:target,:valid_at))
     end
   end
-  
+
   # Return a list of select options of all users
   def self.select_options(editor=false)
     self.find(:all, :order => 'last_name, first_name',:include => :user_class,
@@ -432,7 +437,20 @@ include ModelExtension::EndUserImportExtension
       self.last_name = name[0]
     end  
   end
-  
+
+  # Checks to see if user has a name
+  def missing_name?
+    self.full_name.blank? && self.first_name.blank? && self.last_name.blank? && self.client_user.nil?
+  end
+
+  # Sets and saves individual name
+  def update_name(val, opts={})
+    return unless self.missing_name?
+    return if val == 'Anonymous'.t || val.blank?
+    self.name = val
+    self.save if self.id
+  end
+
   # Returns an introduction string, either from
   # the attribute or based on gender
   def introduction
@@ -864,10 +882,4 @@ Not doing so could allow a user to change their user profile (for example) and e
     usr.id == self.id; end    
   def is_admin?(usr); #:nodoc:
     usr.id == self.id; end
-  
-  
- 
-
-  
-
 end

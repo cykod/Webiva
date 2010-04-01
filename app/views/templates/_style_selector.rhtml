@@ -1,7 +1,7 @@
 <% if styles -%>
 <% styles.each do |style| -%>
 <div class='template_style'>
-<div title='<%= vh style[0] %>' style='background-color:#white; <%= vh default_styles %><%= vh display_style(merge_style(style,styles)) %>' onclick='TemplateEdit.selectStyle(<%= style[1] %>);'><%= h style[0] %></div>
+<div class='template_title' title='<%= vh style[0] %>' style='background-color:#white; <%= vh default_styles %><%= vh display_style(merge_style(style,styles)) %>' onclick='TemplateEdit.selectStyle(<%= style[1] %>);'><%= h style[0] %></div>
 </div>
 <% end -%>
 <% end -%>

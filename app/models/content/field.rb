@@ -124,7 +124,7 @@ module Content
       :validates_as_email => Proc.new { |cls,fld| cls.validates_as_email fld.model_field.field },
       :validates_date => Proc.new { |cls,fld| cls.validates_date fld.model_field.field,:allow_nil => true },
       :validates_datetime => Proc.new { |cls,fld| cls.validates_datetime fld.model_field.field,:allow_nil => true },
-      :serialize => Proc.new { |cls,fld| cls.serialize fld.model_field.field },
+      :serialize => Proc.new { |cls,fld| cls.serialize fld.model_field.field if cls.respond_to?(:serialize) },
       :validates_numericality => Proc.new { |cls,fld| cls.validates_numericality_of fld.model_field.field, :allow_nil => true },
     }
     
@@ -162,13 +162,30 @@ module Content
           end
         end
         block.call(cls,self) if block
+        setup_hash_model(cls)
       end
     end
     
-    
+    def setup_hash_model(cls) #:nodoc:
+      return unless cls.superclass == HashModel
+
+      case content_field[:representation]
+      when :integer
+        cls.integer_options @model_field.field.to_sym
+      when :boolean
+        cls.boolean_options @model_field.field.to_sym
+      end
+    end
+
+    # Returns field information hash from register_content_fields
+    def content_field
+      @content_field ||= ContentModel.content_field(@model_field.field_module,@model_field.field_type)
+    end
+
     @@content_display_methods = {
       :text => "Content::Field.text_value(entry.send(@model_field.field),size,options)",
-      :html => "entry.send(@model_field.field)"
+      :html => "Content::Field.html_value(entry.send(@model_field.field),size,options)",
+      :code => "Content::Field.code_value(entry.send(@model_field.field),size,options)"
     }
     
     # Creates a content_display method of a specific type
@@ -195,6 +212,25 @@ module Content
     def content_export(entry)
       content_value(entry)
     end
+
+
+    def self.code_value(val,size,options={})
+      case size
+      when :excerpt, :form
+       text_value(val,size,options)
+      else
+        val
+      end
+    end
+
+    def self.html_value(val,size,options={})
+      case size
+      when :excerpt
+        text_value( Util::TextFormatter.text_plain_generator(val),size,options)
+      else
+        val
+      end
+    end
     
     # Helper method for escaping an html value
     def self.text_value(val,size,options={})
@@ -216,7 +252,8 @@ module Content
 
     # Helper method for intelligently truncating text
     def self.snippet(text, wordcount, omission)
-      text.split[0..(wordcount-1)].join(" ") + (text.split.size > wordcount ? " " + omission : "")
+      split_text = text.split
+      split_text[0..(wordcount-1)].join(" ") + (split_text.length > wordcount ? " " + omission : "")
     end
 
     
@@ -230,9 +267,9 @@ module Content
     def self.content_smart_truncate(val) 
       val = val.to_s
       if(val  && val.length > 30 && !val.include?(' '))
-        white_list_sanitizer.sanitize( truncate(val,:length => 30))
+        truncate(h(val),:length => 30)
       else
-        white_list_sanitizer.sanitize( truncate(val,:length => 60))
+        truncate(h(val),:length => 60)
       end        
     end
     
@@ -830,7 +867,7 @@ module Content
   end
   
   class FieldOptions < HashModel #:nodoc:all
-    attributes :required => false, :options => [], :relation_class => nil, :unique => false, :regexp => false, :regexp_code => '', :regexp_message => 'is not formatted correctly', :on => '', :off => '', :on_description => '', :hidden => false, :exclude => false
+    attributes :required => false, :options => [], :relation_class => nil, :unique => false, :regexp => false, :regexp_code => '', :regexp_message => 'is not formatted correctly', :on => '', :off => '', :on_description => '', :hidden => false, :exclude => false, :relation_name => nil, :relation_singular => nil
     
     boolean_options :required, :unique, :regexp, :hidden, :exclude
 

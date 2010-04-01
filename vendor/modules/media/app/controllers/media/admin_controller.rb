@@ -105,7 +105,10 @@ class Media::AdminController < ModuleController
   class Options < HashModel
     include HandlerActions
 
-    attributes :media_video_handler => nil, :media_audio_handler => nil
+    attributes :media_video_handler => 'media/players/video/flv_player',
+      :media_audio_handler => 'media/players/audio/word_press_audio_player'
+
+    validates_presence_of :media_video_handler, :media_audio_handler
 
     def media_video_handlers
       @media_video_handlers ||= self.get_handler_options(:media, :video, true)

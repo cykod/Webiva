@@ -166,7 +166,6 @@ class SiteNodeEngine
                 end
             end
           else
-            raise opts[:connections].inspect if paragraph.display_type=='publications_list' && opts[:repeat_count] == 1
             if opts[:connections][input[0].to_s] && opts[:connections][input[0].to_s][input[1].to_sym]
               paragraph.set_page_connections(input_key.to_sym => opts[:connections][input[0].to_s][input[1].to_sym])
             elsif !opts[:edit] && !opts[:ajax]
@@ -409,7 +408,23 @@ EOF
     attr_accessor :meta_description
     attr_accessor :meta_keywords
     attr_accessor :content_nodes
-    
+
+    def initialize
+      super
+      @includes = {}
+    end
+
+    def html_set_attribute(part, value={})
+      @includes[part.to_sym] ||= {}
+      @includes[part.to_sym].merge! value
+    end
+
+    def html_include(part, value=[])
+      @includes[part.to_sym] ||= []
+      value = [value] unless value.is_a?(Array)
+      @includes[part.to_sym] += value
+    end
+
     def page?
       true
     end
@@ -596,6 +611,7 @@ EOF
     if @mode != 'edit'
       # See how many page argument the page paragraphs are expecting
       max_path_level = calculate_max_path_level
+
       if max_path_level < @path_args.length  && @container.node_type != 'M'
         raise MissingPageException.new(@container,@language), "Page Not Found" 
       end
@@ -659,9 +675,14 @@ EOF
                   if result.is_a?(ParagraphRenderer::ParagraphOutput)
                     page_connections.merge!(result.page_connections  || {}) 
                     # Get any remaining includes 
-                    result.includes.each do |inc_type,inc_arr|
-                      @page_information[:includes][inc_type] ||= []
-                      @page_information[:includes][inc_type] +=  inc_arr
+                    result.includes.each do |inc_type,inc_value|
+		      if inc_value.is_a?(Hash)
+			@page_information[:includes][inc_type] ||= {}
+			@page_information[:includes][inc_type].merge! inc_value
+		      else
+			@page_information[:includes][inc_type] ||= []
+			@page_information[:includes][inc_type] +=  inc_value
+		      end
                     end
                     if result.content_nodes
                       @page_information[:content_nodes] ||= []
@@ -705,6 +726,9 @@ EOF
     @output.css_site_template_id = @page_information.css_site_template_id
     @output.body = @page_information.render_elements
     @output.includes = @page_information.includes
+    @output.includes[:html_tag] ||= {}
+    @output.includes[:html_tag]['xml:lang'] = @output.language
+    @output.includes[:html_tag]['lang'] = @output.language
     @output.head = @page_information.head
     @output.paction = @page_information.paction
     @output.content_nodes = @page_information.content_nodes

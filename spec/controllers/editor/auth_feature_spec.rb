@@ -46,7 +46,8 @@ describe Editor::AuthFeature, :type => :view do
     @login_user = EndUser.new
 
     data = { :login_user => @login_user,
-             :type => @options.login_type
+             :type => @options.login_type,
+             :options => @options
            }
   
     @output = @feature.login_feature(data)
