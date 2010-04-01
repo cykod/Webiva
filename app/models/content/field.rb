@@ -232,7 +232,8 @@ module Content
 
     # Helper method for intelligently truncating text
     def self.snippet(text, wordcount, omission)
-      text.split[0..(wordcount-1)].join(" ") + (text.split.size > wordcount ? " " + omission : "")
+      split_text = text.split
+      split_text[0..(wordcount-1)].join(" ") + (split_text.length > wordcount ? " " + omission : "")
     end
 
     

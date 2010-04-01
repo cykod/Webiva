@@ -138,7 +138,7 @@ class ContentModelField < DomainModel
   end
   
   def content_display(entry,size=:full,options={})
-    self.module_class.content_display(entry,size,options)
+    self.module_class.content_display(entry,size,options.symbolize_keys)
   end
 
   def content_value(entry)
