@@ -79,7 +79,7 @@ module Content::CoreFeature
     module ContentTypeMethods
       def email_target_connect_update
         if update_data = self.email_target_connect
-          self.class.email_target_connect_update(update_data, self)
+          ContentTypeMethods.email_target_connect_update(update_data, self)
         end  
       end
 
