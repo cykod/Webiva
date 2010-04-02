@@ -1,7 +1,7 @@
 <% action_panel :handler => 'content' do |p| -%>
     <% @content_actions.each do |act| %>
       <% if !act[2][:permit] || myself.has_role?(act[2][:permit]) -%>
-        <%= p.link act[0], :url => act[1], :icon => 'add.gif' %>
+        <%= p.link act[0], :url => act[1], :icon => act[2][:icon] || 'add.gif' %>
       <% end -%>
     <% end -%>
     <%= p.link 'Custom Content Models', :action => 'custom', :icon => 'publications.gif' if myself.has_role?('editor_content') %>

@@ -179,7 +179,7 @@ class Content::CoreField < Content::FieldHandler
     setup_model :required
     table_header :string
     
-    content_display :html # Default to non-escaped value
+    content_display :code # Default to non-escaped value
     filter_setup :like, :not_empty
     
     def form_field(f,field_name,field_opts,options={})
@@ -189,6 +189,7 @@ class Content::CoreField < Content::FieldHandler
   end  
   
   class EditorField < Content::CoreField::HtmlField #:nodoc:all
+    content_display :html
     # Everything the same as StringField that we want to display an editor area
     def form_field(f,field_name,field_opts,options={})
       f.editor_area field_name, field_opts.merge(options)

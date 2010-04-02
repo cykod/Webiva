@@ -38,8 +38,8 @@ class Media::GalleryRenderer < ParagraphRenderer
 </div>
   FEATURE
   
-  def galleries_feature(feature,data)
-    parser_context = FeatureContext.new do |c|
+  def galleries_feature(data)
+    webiva_feature('galleries') do |c|
       c.define_tag 'gallery' do |tag|
         result = ''
         galleries = (data[:galleries] || [])
@@ -149,15 +149,7 @@ class Media::GalleryRenderer < ParagraphRenderer
       end
       
       define_pages_tag(c,data[:path],data[:page],data[:pages])
-      
-      c.define_position_tags
-      
     end
-        
-    parser_context.globals.data = data
-  
-    parse_feature(feature,parser_context) 
-    
   end
   
   # Galleries Paragraph Displays a list of galleries with certain conditions
@@ -206,7 +198,7 @@ class Media::GalleryRenderer < ParagraphRenderer
       require_js('redbox')
       require_js('helper/gallery')
       
-      render_paragraph :text => galleries_feature(get_feature('galleries'),data) 
+      render_paragraph :text => galleries_feature(data) 
   end
   
   
@@ -269,9 +261,8 @@ class Media::GalleryRenderer < ParagraphRenderer
     </cms:gallery>
   FEATURE
   
-  def gallery_feature(feature,data) 
-     parser_context = FeatureContext.new do |c|
-
+  def gallery_feature(data) 
+     webiva_feature("gallery") do |c|
       c.define_expansion_tag('no_image') { |t| !data[:images] || data[:images].length == 0  }
 
       c.define_tag 'image' do |tag|
@@ -422,9 +413,6 @@ class Media::GalleryRenderer < ParagraphRenderer
       define_pages_tag(c,data[:page_path],data[:page],data[:pages])
       define_position_tags(c)
    end
-   
-   parse_feature(feature,parser_context) 
-
   end
   
   # Gallery Paragraph Display a specific gallery, based on the Gallery Number input connection
@@ -560,10 +548,7 @@ class Media::GalleryRenderer < ParagraphRenderer
               :can_upload => can_upload,
               :can_edit => can_edit
               }
-      feature_output = gallery_feature(get_feature('gallery'),data) 
-      
-            
-
+      feature_output = gallery_feature(data) 
       
       require_css('redbox')
       require_css('gallery')
@@ -585,7 +570,7 @@ class Media::GalleryRenderer < ParagraphRenderer
                                   :options => gallery_options }
     else
       data = {  }
-      render_paragraph :text => gallery_feature(get_feature('gallery'),data) 
+      render_paragraph :text => gallery_feature(data) 
     end
     
   end

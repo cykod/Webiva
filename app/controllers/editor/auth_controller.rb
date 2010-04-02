@@ -321,7 +321,11 @@ class Editor::AuthController < ParagraphController #:nodoc:all
     def publication_options
       content_model_ids = ContentModelField.find(:all, :conditions => "field_type = 'belongs_to' AND field_module = 'content/core_field'").collect { |fld| fld.content_model_id if fld.relation_class == EndUser }.uniq.compact
 
-      ContentPublication.select_options_with_nil('Publication',:conditions => { :publication_type => 'create', :publication_module => 'content/core_publication', :content_model_id => content_model_ids }) unless content_model_ids.empty?
+      if  content_model_ids.empty?
+        []
+      else
+        ContentPublication.select_options_with_nil('Publication',:conditions => { :publication_type => 'create', :publication_module => 'content/core_publication', :content_model_id => content_model_ids }) unless content_model_ids.empty?
+      end
     end
 
     def publication_field_options

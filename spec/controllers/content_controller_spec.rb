@@ -52,7 +52,7 @@ describe ContentController, "create a content model" do
       end
       
       it "should be able to display the view of an item" do
-        @entry = @cm.content_model.create(:string_field => '<h1>Test Escaped Field</h1>',:date_field => "6/13/2009", :html_field => '<h1>Html Field</h1>')
+        @entry = @cm.content_model.create(:string_field => '<h1>Test Escaped Field</h1>',:date_field => "6/13/2009", :editor_field => '<h1>Editor Field</h1>', :html_field => '<h1>HTML Field</h1>')
 
         get :entry, :path => [ @cm.id, @entry.id ]
 
@@ -60,8 +60,9 @@ describe ContentController, "create a content model" do
         # Make sure escaped field shown correctly
         
         
-        response.body.should include("&lt;h1&gt;Test Escaped Field&lt;/h1&gt;")
-        response.body.should include('<h1>Html Field</h1>')
+        response.should include_text("&lt;h1&gt;Test Escaped Field&lt;/h1&gt;")
+        response.should include_text("&lt;h1&gt;HTML Field&lt;/h1&gt;")
+        response.should include_text('<h1>Editor Field</h1>')
       end
       
 

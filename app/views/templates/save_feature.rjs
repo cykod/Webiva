@@ -7,7 +7,7 @@ if @saved
   
   if @paragraph_index
     page.call("window.opener.cmsEdit.selectParagraphStyle",@paragraph_index,@feature.id)
-    page << "window.opener.cmsEdit.setTemplateFeatures(#{@feature.site_template_id.to_i},'#{@feature.feature_type}',new Array( #{@available_features.collect { |f| "['#{h(f[0])}',#{f[1]}]" }.join(",")}));"
+    page << "window.opener.cmsEdit.setTemplateFeatures(#{@feature.site_template_id.to_i},'#{@feature.feature_type}',new Array( #{@available_features.collect { |f| "['#{jh(f[0])}',#{f[1]}]" }.join(",")}));"
     page << 'window.close()' if @return
   elsif @return
     page.redirect_to url_for(:action => 'features')
