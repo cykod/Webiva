@@ -71,7 +71,7 @@ module Content::CoreFeature
       
       update_data = { :fields => arr, :add_tags => opts.add_target_tags, :update_tags => opts.update_target_tags, :add_source => opts.add_target_source }
 
-      ContentTypeMethods.email_target_connect_update(update_data, result.data_model, result.end_user)
+      ContentTypeMethods.email_target_connect_update(update_data, result.data_model)
     end
 
 
@@ -83,24 +83,22 @@ module Content::CoreFeature
         end  
       end
 
-      def self.email_target_connect_update(update_data, entry, target=nil)
+      def self.email_target_connect_update(update_data, entry)
         connected_fields = update_data[:fields]
 
-        unless target
-          email_field = connected_fields.find() { |fld| fld[1] == 'end_user.email' }
-          begin
-            email = entry.send(email_field[0])
+        email_field = connected_fields.find() { |fld| fld[1] == 'end_user.email' }
+        begin
+          email = entry.send(email_field[0])
           
-            if email.blank?
-              return
-            end
-          rescue Exception => e
-            raise e.to_s
+          if email.blank?
             return
           end
-        
-          target = EndUser.find_target(email, :no_create => true)
+        rescue Exception => e
+          raise e.to_s
+          return
         end
+        
+        target = EndUser.find_target(email, :no_create => true)
 
         address = target.address || EndUserAddress.new()
         
