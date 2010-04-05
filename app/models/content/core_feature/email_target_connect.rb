@@ -71,7 +71,8 @@ module Content::CoreFeature
       
       update_data = { :fields => arr, :add_tags => opts.add_target_tags, :update_tags => opts.update_target_tags, :add_source => opts.add_target_source }
 
-      ContentTypeMethods.email_target_connect_update(update_data, result.data_model)
+      target = ContentTypeMethods.email_target_connect_update(update_data, result.data_model)
+      result.end_user_id = target.id if target && result.end_user_id.nil?
     end
 
 
@@ -91,11 +92,11 @@ module Content::CoreFeature
           email = entry.send(email_field[0])
           
           if email.blank?
-            return
+            return nil
           end
         rescue Exception => e
           raise e.to_s
-          return
+          return nil
         end
         
         target = EndUser.find_target(email, :no_create => true)
@@ -167,6 +168,8 @@ module Content::CoreFeature
         if ok && update_address && address.end_user_id.blank?
           address.update_attribute(:end_user_id,target.id)
         end
+
+        target
       end  
     end
   end
