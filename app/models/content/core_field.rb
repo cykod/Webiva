@@ -495,7 +495,7 @@ class Content::CoreField < Content::FieldHandler
       if !val.is_a?(Array)
          f.object.send("#{field_name}=",val.to_s.split("\n"))
       end
-      f.check_boxes field_name,  @model_field.content_model.content_model.send(@model_field.field + "_select_options") , field_opts.merge(options)
+      f.check_boxes field_name, available_options, field_opts.merge(options)
     end
     
     def content_display(entry,size=:full,options={})
