@@ -37,7 +37,7 @@ namespace :spec do
 
   desc "Run all the specs in an individual modules directory"
   Spec::Rake::SpecTask.new(:webiva_module_rcov) do |t|
-    module_name =ENV['MODULE'].underscore
+    module_name =ENV['MODULE'].to_s.underscore
     t.spec_opts = ['--options', "\"#{RAILS_ROOT}/spec/spec.opts\""]
     t.spec_files = FileList["vendor/modules/#{module_name}/spec/**/*_spec.rb"]
     t.rcov = true
