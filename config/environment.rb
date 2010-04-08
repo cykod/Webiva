@@ -98,7 +98,9 @@ Rails::Initializer.run do |config|
   config.gem 'soap4r', :lib => 'soap/soap'
   config.gem "json"
 
-
+  if RAILS_ENV == 'test'
+    config.gem 'factory_girl',:source => 'http://gemcutter.org'
+  end  
 
   if CMS_CACHE_ACTIVE
     config.gem 'memcache-client', :lib => 'memcache'
