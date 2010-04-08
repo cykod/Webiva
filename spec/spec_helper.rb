@@ -62,6 +62,34 @@ def reset_domain_tables(*tables)
   before_each_parts << callback
 end
 
+def renderer_builder(name,&block)
+  parts = name.split("/")
+
+  define_method("#{parts[-1]}_renderer_helper") do |opts,conns|
+    if block
+      opt_opts = yield
+      opts = opt_opts.merge(opts)
+    end
+    build_renderer("/#{parts[1]}",name,opts,conns)
+  end
+  
+  class_eval <<-METHOD
+   def #{parts[-1]}_renderer(opts={},conns={})
+      #{parts[-1]}_renderer_helper(opts,conns)
+   end
+  METHOD
+
+
+end
+
+def add_factory_girl_path(dir)
+  if !Factory.definition_file_paths.include?(dir)
+    Factory.definition_file_paths <<  dir
+    Factory.definition_file_paths.uniq!
+    Factory.find_definitions
+  end
+end
+
 ActiveSupport::TestCase.fixture_path = RAILS_ROOT + '/spec/fixtures/'
 
 
