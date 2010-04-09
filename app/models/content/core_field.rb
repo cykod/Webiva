@@ -979,10 +979,11 @@ class Content::CoreField < Content::FieldHandler
   
   def self.dynamic_page_connection_value(entry,fld,state = {}) #:nodoc:
     val = state[:page_connection]
-    if fld.content_model_field.field_type == 'options' # validate input if it's an option
-      fnd = fld.content_model_field.module_class.options
-      val = fnd ? val : ''
+    if fld.field_type == 'options' # validate input if it's an option
+      fnd = fld.module_class.options.map { |elm| elm[1] }
+      val = fnd.include?(val) ? val : ''
     end
+    val
   end
   
 end
