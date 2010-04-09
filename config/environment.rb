@@ -185,7 +185,7 @@ Globalize::ModelTranslation.set_table_name('globalize_translations')
  
   
 CACHE.servers =  [ 'localhost:11211' ]
-ActionController::Base.session_options[:expires] = 1800
+ActionController::Base.session_options[:expires] = 10800
 ActionController::Base.session_options[:cache] = CACHE
 
 
