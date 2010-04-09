@@ -186,7 +186,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
     @options.register_features.each do |feature|
       feature.feature_instance.feature_data(@feature)
     end
-    
+
     render_paragraph :feature => :user_register
   end
 
@@ -314,6 +314,8 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
 
     data[:login_user] = myself
     data[:options] = opts
+    data[:current_page] = paragraph_page_url
+    data[:logout_url] = "#{data[:current_page]}?cms_logout=1"
 
     if params[:cms_logout]
       opts.login_features.each do |feature|

@@ -341,7 +341,7 @@ FEATURE
         if editor?
           { :href => 'javascript:void(0);' }
         else
-          { :href => '?cms_logout=1' }
+          { :href => data[:logout_url] }
         end
       end
       
