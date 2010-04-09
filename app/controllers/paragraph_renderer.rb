@@ -487,7 +487,8 @@ class ParagraphRenderer < ParagraphFeature
   
   # Return state of the renderer, include current user, and controller, allowing for override
   def renderer_state(override={ })
-    {:user => myself, :renderer => self, :controller => @controller }.merge(override)
+    conn_type,conn_id = page_connection
+    {:user => myself, :renderer => self, :controller => @controller, :page_connection => conn_id }.merge(override)
   end
   
   def output #:nodoc:
