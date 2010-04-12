@@ -90,18 +90,17 @@ def reset_domain_tables(*tables)
       DomainModel.connection.execute("TRUNCATE #{table.is_a?(Symbol) ? table.to_s.tableize : table}") unless %w(component_schemas).include?(table)
     end
   end
-  before_each_parts << callback
+  before(:each,&callback)
+  after(:each,&callback)
 end
 
 def transaction_reset
-  before(:all) {
+  before(:each)  {  
     DomainFile.root_folder
     UserClass.create_built_in_classes
     SiteVersion.default
-  }
-  prepend_before(:each)  { 
     WebivaCleaner.cleaner.start }
-  append_after(:each) {  WebivaCleaner.cleaner.clean }
+  after(:each) {  WebivaCleaner.cleaner.clean }
 end
 
 # Activate a module in a test (force the activation) so you can use handlers etc.
