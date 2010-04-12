@@ -63,8 +63,8 @@ class PageController < ModuleAppController
     
     
     def renderer_test #:nodoc:
-      output = @test_renderer.send(@test_renderer.paragraph.display_type)   
-      
+      @test_renderer.send(@test_renderer.paragraph.display_type)   
+      output =  @test_renderer.output
       if output.is_a?(ParagraphRenderer::ParagraphOutput)
         render output.render_args
       else

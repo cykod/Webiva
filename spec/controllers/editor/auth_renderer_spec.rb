@@ -74,10 +74,11 @@ describe Editor::AuthRenderer, :type => :controller do
     end
 
     it "shouldn't save if required address fields aren't there" do
+      assert_difference "EndUserAddress.count", 0 do 
         @rnd = generate_renderer(:address_required_fields => ['state'])
-      renderer_post @rnd, :user => { :email => "test@webiva.com", :password => "test", :password_confirmation => "test" }, :address => { :address => '123 Elm St',:city => 'Boston' }
+        renderer_post @rnd, :user => { :email => "test@webiva.com", :password => "test", :password_confirmation => "test" }, :address => { :address => '123 Elm St',:city => 'Boston' }
+      end
 
-      EndUser.count.should == 0
     end
 
     it "should save if all required address fields are there" do

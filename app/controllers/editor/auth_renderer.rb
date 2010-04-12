@@ -240,7 +240,6 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
 
       # if there are no errors on anything
       # save the user,
-
       @failed = true unless all_valid
 
       if all_valid 
@@ -767,9 +766,9 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       model.valid?
 
       required_fields.each do |fld|
-	if model.send(fld.to_sym).blank?
-	  model.errors.add(fld.to_sym, 'is missing')
-	end
+        if model.send(fld.to_sym).blank?
+          model.errors.add(fld.to_sym, 'is missing')
+        end
       end
 
       model.errors.length == 0

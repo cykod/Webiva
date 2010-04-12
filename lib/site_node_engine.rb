@@ -139,7 +139,7 @@ class SiteNodeEngine
       paragraph.language = opts[:language]
       # Handle any paragraph inputs
       # return nil unless we have all the inputs we need
-      if paragraph.connections && paragraph.connections[:inputs].is_a?(Hash)
+      if !opts[:edit] && paragraph.connections && paragraph.connections[:inputs].is_a?(Hash)
         opts[:connections] ||= {}
         paragraph.connections[:inputs].each do |input_key,input|
           if input[0].to_s == "0"
@@ -223,8 +223,29 @@ class SiteNodeEngine
           end
           
           # Add in the rendered css for the editor          
-          rnd.output.render_args[:css] = paragraph.site_feature.rendered_css if opts[:edit] && paragraph.site_feature
-          
+          if opts[:edit] 
+            if paragraph.site_feature_id
+              rnd.output.render_args[:css] = paragraph.site_feature.rendered_css unless paragraph.site_feature.rendered_css.blank?
+            end
+
+            if rnd.output.is_a?(ParagraphRenderer::ParagraphOutput) && rnd.output.includes && rnd.output.includes[:css]
+              css_files = rnd.output.includes[:css]
+              rnd.output.render_args[:css] ||= ''
+              css_files.each do |fl|
+                begin # TODO - extract this and fix path generation
+                  fl += ".css" unless fl[-4..-1] == ".css"
+                  fl = "/stylesheets/" + fl if fl[0..0] != '/'
+                  css = IO.readlines(File.join(Rails.root,"public",fl)).join
+                  rnd.output.render_args[:css] << "\n"
+                  rnd.output.render_args[:css] << css
+                rescue Exception => e
+                  # chomp
+                  raise e if Rails.env != 'production'
+                end
+              end
+            end
+          end
+
           return rnd.output
         end
         

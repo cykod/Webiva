@@ -725,6 +725,9 @@ module WebivaFormElements
   
   end
   
+  def root_page_selector(field,opts = {})
+    self.select(field,SiteNode.page_options('--Add to site root--'.t),opts)
+  end
  
   # Selector that lets you pick a page by id
   def page_selector(field,opts = {})
@@ -1010,7 +1013,7 @@ HTML
 
   def add_page_selector(field,options={ })
 
-    self.select_original("#{field}_id",[['--Select Page--'.t,nil]] + SiteNode.page_options) +
+    self.select_original("#{field}_id",SiteNode.page_options('--Add to Site Root--'.t)) +
       " / " +
       self.text_field_original("#{field}_subpage",:size => 10, :disabled => !@object.send("#{field}_existing").blank?) + 
     "<br/>" + 

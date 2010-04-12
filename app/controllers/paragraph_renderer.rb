@@ -181,9 +181,6 @@ class ParagraphRenderer < ParagraphFeature
     @opts = opts 
 
     @includes = {}
-    @js_includes = []
-    @css_includes = []
-    @head_html = []
     @page_connections = {}
     @paction = nil
     @paction_data = nil
@@ -428,12 +425,13 @@ class ParagraphRenderer < ParagraphFeature
   # Includes the specified javascript file when the page is rendered
   # uses the standard rails javascript_include_tag syntax
   def require_js(js)
+    @includes[:js] ||= []
     if js.is_a?(Array)
       js.each { |fl| require_js(fl) }
     else
       js.downcase!
       js += ".js" unless js[-3..-1] == '.js'
-      @js_includes << js
+      @includes[:js] << js
     end
   end
   
@@ -460,17 +458,19 @@ class ParagraphRenderer < ParagraphFeature
   # Includes the specified css file when the page is rendered
   # uses the standard rails stylesheet_link_tag syntax
   def require_css(css)
+    @includes[:css] ||= []
     if css.is_a?(Array)
-      @css_includes += css
+      @includes[:css] += css
     else
-      @css_includes << css
+      @includes[:css] << css
     end
   end
    
   # Includes some custom html code in the head of the document
   # if you want to use javascript you must explicitly include the <script>..</script> tags
   def include_in_head(html)
-    @head_html << html
+    @includes[:head_html] ||= []
+    @includes[:head_html] << html
   end
 
   def form_authenticity_token #:nodoc:
@@ -494,9 +494,6 @@ class ParagraphRenderer < ParagraphFeature
   def output #:nodoc:
     if @paragraph_output.is_a?(ParagraphOutput) || @paragraph_output.is_a?(CachedOutput)
       @paragraph_output.includes = @includes
-      @paragraph_output.includes[:css] = @css_includes if @css_includes.length > 0
-      @paragraph_output.includes[:js] = @js_includes if @js_includes.length > 0
-      @paragraph_output.includes[:head_html] = @head_html if @head_html.length > 0
       @paragraph_output.page_connections = @page_connections
       @paragraph_output.paction = @paction
       @paragraph_output.page_title = @page_title
@@ -578,6 +575,15 @@ For example:
    # Each page will be cached separately
    renderer_cache(Blog::BlogPost,page) { |cache| ... }
 
+=== Included css and javascript
+
+Renderer cached will automatically cache any javascript and css includes 
+(i.e. require_css / require_js ) that have been included by the end of the
+block, so you can put your includes inside of your renderer_cache block 
+(or even inside of the feature if necessary) and they will get pulled in
+correctly
+
+
 === Expiration
 
 The only option current supported in the options hash is :expires which should be
@@ -603,12 +609,14 @@ an integer representing the number of seconds to keep the element in the cache.
     end
     
     if result
+      @includes = result[:cached_includes].clone
       return DefaultsHashObject.new(result)
     else
       result = DefaultsHashObject.new(result)
       yield result
 
       output = result.to_hash
+      output[:cached_includes] = @includes.clone
 
       unless editor? || options[:skip]
         if obj.nil?

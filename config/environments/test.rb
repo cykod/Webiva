@@ -30,3 +30,4 @@ config.gem "factory_girl",:lib => false,  :source => "http://gemcutter.org"
 config.gem "webrat",:lib => false,  :version => "0.6.0"
 config.gem "nokogiri", :lib => false, :version => "1.3.1"
 config.gem "cucumber-rails", :lib => false, :version => "0.2.4"
+

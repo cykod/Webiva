@@ -131,6 +131,8 @@ include ModelExtension::EndUserImportExtension
   
   
   def before_validation #:nodoc:
+    self.email = self.email.to_s.strip
+    self.user_class_id = UserClass.default_user_class_id if self.user_class_id.blank?
     self.email = self.email.downcase unless self.email.blank?
   end
 
@@ -586,7 +588,33 @@ Not doing so could allow a user to change their user profile (for example) and e
     
     target
   end
+
+  # Return a clone of the current address or work address object 
+  def default_address
+    adr = (self.address &&  !self.address.address.blank?) ? self.address : ( (self.work_address && !self.work_address.blank? ) ? self.work_address : EndUserAddress.new() )
+    adr.first_name = self.first_name
+    adr.last_name = self.last_name
+    adr.end_user_id = self.id
+    adr.clone
+  end
   
+  # Return the current shipping address or the current address if no shipping adr
+  def current_shipping_address
+    if self.shipping_address && !self.shipping_address.address.blank?
+     self.shipping_address
+    else
+      self.default_address
+    end
+  end
+
+  # Return the current billing address
+  def current_billing_address
+    if self.billing_address && !self.billing_address.address.blank?
+     self.billing_address
+    else
+      self.default_address
+    end
+  end
   
   ## Tag Functionality - TODO: Rewrite Needed
   

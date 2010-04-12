@@ -243,9 +243,12 @@ class Configuration < DomainModel
     :general_activation_url => nil,
     :search_handler => nil,
     :site_timezone => nil,
-    :captcha_handler => nil
+    :captcha_handler => nil,
+    :skip_default_feature_css => false
 
     integer_options :default_image_location, :gallery_folder,:user_image_folder, :missing_image_id, :missing_male_image_id, :missing_female_image_id
+
+    boolean_options :skip_default_feature_css
 
     def validate #:nodoc:
        if !search_handler.blank?
