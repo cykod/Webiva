@@ -76,8 +76,17 @@ module HandlerActions
       handlers = get_handlers(component,handler_name,initialized)
       handlers.collect do |handler|
         cls = handler[0].constantize
-        [ cls.send("#{component}_#{handler_name}_handler_info")[:name].t, handler[0].underscore ]
-      end
+
+        if block_given?
+          if yield handler, cls
+            [ cls.send("#{component}_#{handler_name}_handler_info")[:name].t, handler[0].underscore ]
+          else
+            nil
+          end
+        else
+          [ cls.send("#{component}_#{handler_name}_handler_info")[:name].t, handler[0].underscore ]
+        end
+      end.compact
     end
     
     def get_handler_info(component,handler_name,identifier=nil,initialized=false)

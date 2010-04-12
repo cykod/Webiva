@@ -81,7 +81,7 @@ class Dashboard::CoreWidget < Dashboard::WidgetBase #:nodoc:all
 	rss_feed.items[0..@options.show_first-1].each do |item|
 	  pubDate = Time.at item.pubDate.to_i
           if @options.show_description
-            description = truncate(Util::TextFormatter.text_plain_generator(item.description),250)
+            description = truncate(Util::TextFormatter.text_plain_generator(item.description),:length => 250)
           end
 	  rss_items << {'link' => item.link, 'title' => item.title, 'date' => pubDate, 'description' => description}
 	end if rss_feed.is_a?(RSS::Rss)

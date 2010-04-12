@@ -74,6 +74,9 @@ module Content
         else
           field_opts['relation_class'] = nil
         end 
+      },
+      :folder_id => Proc.new { |field,field_opts,options|
+        field_opts['folder_id'] = options[:folder_id].to_i > 0 ? options[:folder_id].to_i : nil
       }
     }
     
@@ -867,7 +870,7 @@ module Content
   end
   
   class FieldOptions < HashModel #:nodoc:all
-    attributes :required => false, :options => [], :relation_class => nil, :unique => false, :regexp => false, :regexp_code => '', :regexp_message => 'is not formatted correctly', :on => '', :off => '', :on_description => '', :hidden => false, :exclude => false, :relation_name => nil, :relation_singular => nil
+    attributes :required => false, :options => [], :relation_class => nil, :unique => false, :regexp => false, :regexp_code => '', :regexp_message => 'is not formatted correctly', :on => '', :off => '', :on_description => '', :hidden => false, :exclude => false, :relation_name => nil, :relation_singular => nil, :folder_id => nil
     
     boolean_options :required, :unique, :regexp, :hidden, :exclude
 

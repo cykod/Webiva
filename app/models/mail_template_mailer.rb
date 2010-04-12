@@ -19,7 +19,7 @@ class MailTemplateMailer < ActionMailer::Base
   #
   # Usage:
   #
-  #     MailTemplateMailer.delivery_message_to_address(
+  #     MailTemplateMailer.deliver_message_to_address(
   #                    'test@domain.com',
   #                    "This is the email subject",
   #                    :text => 'Text body',

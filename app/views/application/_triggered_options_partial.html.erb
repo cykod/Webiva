@@ -1,0 +1,10 @@
+<% tabled_ajax_tabs ['Options','Triggered Actions'], 'Options' do |t| %>
+  <% t.tabled_tab do -%>
+    <%= render :partial => '/application/options_partial', :locals => @options.options_locals(f) -%>
+  <% end -%>
+  <% t.tab do -%>
+    <div id='cms_triggered_actions'>
+      <%= render :partial => '/editor/includes/actions' %>
+    </div>
+  <% end -%>
+<% end -%>

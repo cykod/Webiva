@@ -228,7 +228,7 @@ class Content::CoreField < Content::FieldHandler
   end
   
   class ImageField < Content::Field #:nodoc:all
-    field_options :required
+    field_options :required, :folder_id
     table_header :has_relation
     filter_setup :not_empty, :empty
     
@@ -290,7 +290,7 @@ class Content::CoreField < Content::FieldHandler
       elsif parameters[key].is_a?(String)
         parameters[key] = parameters[key].to_i
       elsif !parameters[key].is_a?(Integer) &&  !parameters[key].blank? 
-        image_folder  = Configuration.options.default_image_location || 1
+        image_folder  = @model_field.field_options['folder_id'] || Configuration.options.default_image_location || 1
         file = DomainFile.create(:filename => parameters[key],
                                  :parent_id => image_folder)
         if @model_field.field_type == 'document' 
@@ -495,7 +495,7 @@ class Content::CoreField < Content::FieldHandler
       if !val.is_a?(Array)
          f.object.send("#{field_name}=",val.to_s.split("\n"))
       end
-      f.check_boxes field_name,  @model_field.content_model.content_model.send(@model_field.field + "_select_options") , field_opts.merge(options)
+      f.check_boxes field_name, available_options, field_opts.merge(options)
     end
     
     def content_display(entry,size=:full,options={})
