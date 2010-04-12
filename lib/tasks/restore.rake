@@ -91,8 +91,12 @@ namespace "cms" do
     # Delete any rendered parts
     DomainModel.connection.execute("DELETE FROM site_template_rendered_parts WHERE 1")
 
-    # Resave update any file store
-    DomainFileInstance.rebuild_all
+    begin
+      # Resave update any file store
+      DomainFileInstance.rebuild_all
+    rescue Exception => e
+      puts("There was a problem rebuilding domain file instances - importing domain anyway")
+    end
 
     
     if(File.exists?(directory + "/storage.tar.gz"))
