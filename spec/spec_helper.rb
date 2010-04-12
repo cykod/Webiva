@@ -5,6 +5,59 @@ require File.expand_path(File.dirname(__FILE__) + "/../config/environment")
 require 'spec/autorun'
 require 'spec/rails'
 
+# Stolen shamelessly from DataBaseCleaner gem - modified to not kill the main Webiva tables
+# but only the domain model tables
+class WebivaCleaner
+
+    def start
+      if DomainModel.connection.respond_to?(:increment_open_transactions)
+        DomainModel.connection.increment_open_transactions
+      else
+        DomainModel.__send__(:increment_open_transactions)
+      end
+
+      DomainModel.connection.begin_db_transaction
+    end
+
+
+    def clean
+      DomainModel.connection.rollback_db_transaction
+
+      if DomainModel.connection.respond_to?(:decrement_open_transactions)
+        DomainModel.connection.decrement_open_transactions
+      else
+        DomainModel.__send__(:decrement_open_transactions)
+      end
+    end
+
+    def connection
+      DomainModel.connection
+    end
+
+    def tables_to_truncate
+       connection.tables -  %w[component_schemas, schema_migrations]
+    end
+
+    def truncate_table(table_name)
+      connection.execute("TRUNCATE TABLE #{connection.quote_table_name(table_name)};")
+    end
+
+
+    def reset
+      connection.disable_referential_integrity do
+        tables_to_truncate.each do |table_name|
+          truncate_table table_name
+        end
+      end
+    end
+
+    def self.cleaner
+      @@cleaner ||= WebivaCleaner.new
+    end
+
+end
+
+
 Spec::Runner.configure do |config|
   # If you're not using ActiveRecord you should remove these
   # lines, delete config/database.yml and disable :active_record
@@ -13,37 +66,15 @@ Spec::Runner.configure do |config|
   config.use_instantiated_fixtures  = false
   config.fixture_path = RAILS_ROOT + '/spec/fixtures/'
 
-  # == Fixtures
-  #
-  # You can declare fixtures for each example_group like this:
-  #   describe "...." do
-  #     fixtures :table_a, :table_b
-  #
-  # Alternatively, if you prefer to declare them only once, you can
-  # do so right here. Just uncomment the next line and replace the fixture
-  # names with your fixtures.
-  #
-  # config.global_fixtures = :table_a, :table_b
-  #
-  # If you declare global fixtures, be aware that they will be declared
-  # for all of your examples, even those that don't use them.
-  #
-  # You can also declare which fixtures to use (for example fixtures for test/fixtures):
-  #
-  # config.fixture_path = RAILS_ROOT + '/spec/fixtures/'
-  #
-  # == Mock Framework
-  #
-  # RSpec uses it's own mocking framework by default. If you prefer to
-  # use mocha, flexmock or RR, uncomment the appropriate line:
-  #
-  # config.mock_with :mocha
-  # config.mock_with :flexmock
-  # config.mock_with :rr
-  #
-  # == Notes
-  # 
-  # For more information take a look at Spec::Runner::Configuration and Spec::Runner
+  config.before(:suite) do
+    WebivaCleaner.cleaner.reset
+  end
+
+  config.before(:each) do
+    UserClass.create_built_in_classes
+    SiteVersion.default
+  end
+
 end
 
 
@@ -60,6 +91,29 @@ def reset_domain_tables(*tables)
     end
   end
   before_each_parts << callback
+end
+
+def transaction_reset
+  before(:all) {
+    DomainFile.root_folder
+    UserClass.create_built_in_classes
+    SiteVersion.default
+  }
+  prepend_before(:each)  { 
+    WebivaCleaner.cleaner.start }
+  append_after(:each) {  WebivaCleaner.cleaner.clean }
+end
+
+# Activate a module in a test (force the activation) so you can use handlers etc.
+def test_activate_module(name,options = nil)
+  mod = SiteModule.activate_module(Domain.find(DomainModel.active_domain_id),name.to_s,:force => true)
+  mod.update_attributes(:status => 'active')
+
+  if options
+    mod_options = "#{name.to_s.classify}::AdminController".constantize.module_options(options)
+    Configuration.set_config_model(mod_options)
+  end
+
 end
 
 def renderer_builder(name,&block)
@@ -271,7 +325,7 @@ module Spec
         para = PageParagraph.create(:display_type => display_parts[-1], :display_module => display_parts[0..-2].join("/"),:data=>data)
         para.attributes = extra_attributes
         para.direct_set_page_connections(page_connections)
-        rnd = para.renderer.new(user_class,controller,para,SiteNode.new(:node_path => site_node_path),PageRevision.new,{})
+        rnd = para.renderer.new(user_class,controller,para,SiteNode.new(:node_path => site_node_path,:site_version_id => SiteVersion.default.id),PageRevision.new,{})
         rnd.extend(RspecRendererExtensions)
         rnd
       end
@@ -446,5 +500,4 @@ def fixture_file_upload(path, mime_type = nil, binary = false)
   ActionController::TestUploadedFile.new("#{fixture_path}#{path}", mime_type, binary)
 end
 
-DomainFile.root_folder
-UserClass.create_built_in_classes
+
