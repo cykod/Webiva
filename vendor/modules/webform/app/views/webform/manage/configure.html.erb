@@ -1,0 +1,75 @@
+<script>
+ContentEditor = {
+   featureIdx: <%= @content_model.content_model_features.size %>,
+
+  
+  submitForm: function() {
+    var arr = Sortable.sequence('features');
+    $('features_order').value = arr.join(",");
+
+  },
+  
+ 
+  addFeature: function(feature) {
+    if(feature) {
+      var index = ContentEditor.featureIdx++;
+      new Ajax.Updater('features',
+                      "<%= url_for :action => 'add_feature', :path => [ @content_model.id ]  %>",
+                      { parameters: { feature_handler: feature, index: index },
+                        insertion: 'bottom',
+                        evalScripts: true,
+                        onComplete: function(req) {
+                          ContentEditor.recreateFeatureSortables();
+                        } });
+    
+    }
+  
+  },
+  
+  recreateFeatureSortables: function() {
+    Sortable.create("features",{ tag: "div", handle: "handle" } ); 
+  },
+  
+  removeFeature: function(idx) {
+    $('feature_delete_' + idx).value  = 1;
+    Element.hide($('feature_' + idx));
+  }
+
+}
+</script>
+
+
+<% action_panel do |p| -%>
+  <%= p.link "Edit Webform Fields", :action => 'edit', :path => @content_model.id, :icon => 'edit.gif' %>
+<% end -%>
+<hr/>
+
+<div class='admin_content'>
+
+<% cms_form_for :content_model, @content_model, :html => { :class => 'admin_form' } do |f| %>
+
+<% tabled_ajax_tabs [ 'Configuration', 'Content Features'], 'Configuration'  do |t| -%>
+
+<% t.tabled_tab do -%>
+<tbody>
+<%= f.text_field :name, :description => 'Display name of the webform',:vertical => true %>
+</tbody>
+<% end -%>
+
+<% t.tabled_tab do -%>
+<tbody>
+<tr>
+  <td colspan='2'>
+    <%= render :partial => 'configure_features' %>
+  </td>
+</tr>
+</tbody>
+<% end -%>
+<tbody>
+<%= f.submit_tag 'Update' %>
+
+</tbody>
+<% end -%>
+<% end -%>
+
+</div>

@@ -1,0 +1,12 @@
+<div id='feature_<%= idx %>' style='border:1px solid #CCCCCC; padding:10px; margin:10px;' class='text_field_control label'>
+<div style='float:right;'>
+  <a href='javascript:void(0);' onclick='ContentEditor.removeFeature(<%= idx %>);'><img src='<%= theme_src('icons/actions/delete.gif') %>'/></a>
+</div>
+<img class='handle' style='cursor:pointer;' src='<%= theme_src('icons/paragraph_move.gif') %>' id='handle_<%= idx %>' align='absmiddle' /> 
+<%= feature.name %><br/>
+<% cms_fields_for "feature[][feature_options]", feature.options do |ff| -%>
+<input type='hidden' name='feature[][feature_handler]' value='<%= feature.feature_handler %>'/>
+  <%= render :partial => feature.options_partial, :locals => { :f => ff, :prefix =>  "feature[][feature_options]", :options => feature.options } %>
+<% end -%>
+</div>
+

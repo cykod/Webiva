@@ -1,0 +1,13 @@
+<input type='hidden' id='features_order' name='features_order' value=''/>
+Add a feature: <select name='add_feature' id='add_feature'><%= options_for_select @available_features %></select><button onclick='ContentEditor.addFeature($("add_feature").value); return false;' >Add Feature</button>
+<br/><br/>
+
+<div id='features'>
+<% @content_model.content_model_features.each_with_index do |feature,idx| -%>
+  <%= render :partial => 'content_model_feature', :locals => { :feature => feature, :idx => idx } %>
+<% end -%>
+</div>
+
+<script>
+  ContentEditor.recreateFeatureSortables();
+</script>

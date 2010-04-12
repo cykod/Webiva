@@ -1,0 +1,61 @@
+<script>
+<%=  active_table_javascript %>
+
+WebformResults = {
+  overlay: function(url) {
+    new Ajax.Request(url,
+                     { method: 'get',
+                       onComplete: function(transport) { SCMS.overlay(transport.responseText); }
+                     });
+  },
+
+  mark_as: function(url, reviewed) {
+    new Ajax.Request(url,
+                     { method: 'post',
+                       parameters: 'result[reviewed]=' + reviewed,
+                       onComplete: function(transport) { $('webform_result_table_update_form').onsubmit(); SCMS.closeOverlay(); }
+                     });
+  }
+}
+
+Exporter = {
+    generate: function() {
+      $('export_download').innerHTML = '<%= jh "Exporting File".t %>';
+      Element.show('export_download');
+      $('export_submit_button').hide();
+      new Ajax.Request("<%= url_for :controller => '/webform/export', :action => 'generate_file', :path => [@webform.id] %>",
+                       { onComplete: function(req) {
+                           setTimeout(Exporter.status,1000);
+                         }
+                       }
+                      );
+    },
+    
+    status: function() {
+      $('export_download').innerHTML = '<%= jh "Still Exporting...".t %>';
+      new Ajax.Request("<%= url_for :controller => '/webform/export', :action => 'status', :path => [@webform.id] %>")
+    },
+    
+    download: function() {
+      $('export_download').innerHTML = '<%= jh "Starting Download".t %>';
+      document.location = "<%= url_for :controller => '/webform/export', :action => 'download_file', :path => [@webform.id] %>";
+      setTimeout(Exporter.backToContent,3000);
+        
+    },
+    
+    backToContent: function() {
+      document.location = "<%= url_for %>";
+    }
+}
+</script>
+
+<div class="admin_content"><ul class="action_panel">  <li><a onclick="Exporter.generate();" href="javascript:void(0);" id="export_submit_button"><img alt="Add" src="/themes/standard/images/icons/actions/add.gif?1259075050" align="absmiddle">Export Results to CSV</a> <span id="export_download"></span></li>
+</ul></div>
+
+<hr/>
+
+<div class='admin_content'>
+<div id='webform_result_table'>
+<%= render :partial => 'webform_result_table' %>
+</div>
+</div>

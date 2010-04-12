@@ -1,0 +1,40 @@
+<script>
+<%=  active_table_javascript %>
+
+WebformResults = {
+  overlay: function(url) {
+    new Ajax.Request(url,
+                     { method: 'get',
+                       onComplete: function(transport) { SCMS.overlay(transport.responseText); }
+                     });
+  },
+
+  mark_as: function(url, reviewed) {
+    new Ajax.Request(url,
+                     { method: 'post',
+                       parameters: 'result[reviewed]=' + reviewed,
+                       onComplete: function(transport) { Widget.update(<%= widget.id %>); SCMS.closeOverlay(); }
+                     });
+  }
+}
+</script>
+
+<table class='mini_table' width='100%'>
+<tr><th>Webform</th><th>Name</th><th>Posted</th>
+<% if ! options.new_results -%>
+  <th>Reviewed</th>
+<% end -%>
+</tr>
+<% results.each do |result| -%>
+<tr>
+<td><a href='javascript:void(0);' onclick='WebformResults.overlay("<%= url_for :controller => '/webform/manage', :action => 'result', :path => [result.webform_form.id, result.id] %>");'><%= h result.name %></a></td>
+<td><a href="<%= url_for :controller => '/webform/manage', :action => 'results', :path => [result.webform_form.id] %>"><%= h result.webform_form.name %></a></td>
+<td><%= distance_of_time_in_words_to_now(result.posted_at) %></td>
+
+<% if ! options.new_results -%>
+  <td><%= result.reviewed ? 'Yes'.t : 'No'.t %></td>
+<% end -%>
+
+</tr>
+<% end -%>
+</table>

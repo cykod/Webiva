@@ -1,0 +1,26 @@
+<%= f.check_boxes :hidden, [['Hide field in forms',true]], :single => true, :label => '' -%>
+<%= f.check_boxes :exclude, [['Exclude field from search keywords',true]], :single => true, :label => '' -%>
+<% field.module_class.field_options_widgets.each do |widget| -%>
+  <% case widget 
+  <% when :regexp  -%>
+     <% f.custom_field :regexp, :label => '' do %>
+         <%= uf.check_boxes :regexp, [['Value must match regular expression',true]], :single => true, :label => '', :onclick => "$('field_regexp_#{field_index}').style.display = this.checked ? '' : 'none';"  %>
+         <div id='field_regexp_<%= field_index %>' <%= "style='display:none;'" unless uf.object.regexp %>>
+             RegExp: <%= uf.text_field :regexp_code %><br/>
+             Message: <%= uf.text_field :regexp_message %>
+             
+         </div>
+     <% end -%>
+  <% when :options -%>
+     <%= f.text_area :options_text, :cols => 60, :rows => 4,:vertical => true, :label => 'Available Options (One per line or Text Value;;db_safe_value)' %>
+  <% when :belongs_to -%>
+     <%= f.select :belongs_to, ContentModel.relationship_classes, :label => 'Belongs to' %>
+ <% when :has_many -%>
+     <%= f.select :belongs_to, ContentModel.relationship_classes, :label => 'Has Many', :description => 'Changing relationship model will destroy existing connections'  %>
+ <% when :on_off_value -%>
+     <%= f.text_field :on %>
+     <%= f.text_field :off %>
+     <%= f.text_field :on_description, :description => 'This appears as a label next to the check box instead of the on value ' %>
+  <% end -%>
+<% end -%>
+

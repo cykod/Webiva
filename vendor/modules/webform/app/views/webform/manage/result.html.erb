@@ -1,0 +1,25 @@
+<div class='cms_form'>
+
+<div align="right">
+<a onclick="SCMS.closeOverlay();" href="javascript:void(0);">[x] close</a>
+</div>
+
+<br/>
+
+<% stat_view do |t| -%>
+  <% @result.content_model.content_model_fields.each do |fld| %>
+  <% if fld.is_type?('/content/core_field/header')  %>
+    <%= t.header fld.name %>
+  <% else -%>
+    <%= t.raw fld.name, fld.content_display(@result.data_model,:form) %>
+  <% end -%>
+  <% end -%>
+<% end -%>
+
+<% if @result.reviewed -%>
+  <input type='button' value='Mark as Unread' onclick='WebformResults.mark_as("<%= url_for %>", "0");'/>
+<% else -%>
+  <input type='button' value='Mark as Read' onclick='WebformResults.mark_as("<%= url_for %>", "1");'/>
+<% end -%>
+
+</div>
