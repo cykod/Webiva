@@ -185,12 +185,8 @@ Globalize::ModelTranslation.set_table_name('globalize_translations')
  
   
 CACHE.servers =  [ 'localhost:11211' ]
-<<<<<<< HEAD:config/environment.rb
-ActionController::Base.session_options[:expires] = 10800
-=======
 
-ActionController::Base.session_options[:expires] = 5400 unless Rails.env == 'development'
->>>>>>> shop-updates:config/environment.rb
+ActionController::Base.session_options[:expires] = 10800 unless Rails.env == 'development'
 ActionController::Base.session_options[:cache] = CACHE
 
 
