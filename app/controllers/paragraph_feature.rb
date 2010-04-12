@@ -202,14 +202,12 @@ class ParagraphFeature
     sing.send :define_method, :available_features do 
       return features
     end 
-    
-    opts[:default_feature] ||= ''
+    default_feature = opts.delete(:default_feature) || '' 
     sing.send :define_method, "get_default_feature_#{type.to_s}" do
-      opts[:default_feature]
+      default_feature
     end
-    opts[:default_data] ||= {}
-    sing.send :define_method, "get_default_data_#{type.to_s}" do
-      opts[:default_data]
+    sing.send :define_method, "get_feature_options_#{type.to_s}" do
+      opts
     end
   end
   
@@ -1037,10 +1035,10 @@ block is non-nil
       if errs.is_a?(Array)
         errs = errs.uniq
         val = errs.collect { |msg| 
-          (t.attr['label'] || field_name.humanize) + " " + msg.t + "<br/>"
+          (t.attr['label'] || field_name.to_s.humanize) + " " + msg.t + "<br/>"
         }.join("\n")
       elsif errs
-        val =(t.attr['label'] || field_name.humanize) + " " + errs.t
+        val =(t.attr['label'] || field_name.to_s.humanize) + " " + errs.t
       end
       
       val
@@ -1057,8 +1055,26 @@ block is non-nil
       
       control_type = options.delete(:control) || 'text_field'
       field_name = options.delete(:field) || tag_name
+      label = options.delete(:label) || field_name.to_s.humanize
       options[:class] ||= control_type
       frm_obj = options[:local] || :form
+      required = options.delete(:required)
+      
+      if control_type != 'radio_buttons' && control_type != 'check_boxes'
+        object_id = field_name
+      else
+        object_id = nil
+      end
+
+      define_tag "#{pre_tag}#{tag_name}_label" do |t|
+        if object_id
+          frm = t.locals.send(frm_obj)
+          req = required ? "<em>*</em>" : ""
+          "<label for='#{frm.object_name}_#{object_id}'>#{t.single? ? label.to_s + req : t.expand}</label>"
+        else
+          t.single? ? label : t.expand
+        end
+      end
       
      
       define_tag "#{pre_tag}#{tag_name}" do |t|
@@ -1779,7 +1795,9 @@ block is non-nil
       end      
       
      end 
-     parse_feature(get_feature(feature_name),parser_context)
+     opts = {}
+     opts[:site_feature_id] = data[:site_feature_id] if data.has_key?(:site_feature_id)
+     parse_feature(get_feature(feature_name,opts),parser_context)
   else
     documenter = FeatureDocumenter.new(self) do |c|
       yield c
@@ -1787,26 +1805,20 @@ block is non-nil
     documenter.method_list.sort { |a,b| a[1] <=> b[1] }
   end
  end
- 
-#  def webiva_custom_feature(feature_content)
-#    parser_context = FeatureContext.new(self) { |c| yield c }
-#    parse_feature(SiteFeature.new(:body_html => feature_content),parser_context)
-# end
-    
+
   
  def get_feature(type,options = {}) #:nodoc:
-    if @para.site_feature && (@para.site_feature.feature_type == :any || @para.site_feature.feature_type == type.to_s)
-      feat = @para.site_feature
-      feat
+    if options.has_key?(:site_feature_id) && @feature_override = SiteFeature.find_by_id(options[:site_feature_id])
+      @feature_override
+    elsif !options.has_key?(:site_feature_id) && @para.site_feature && (@para.site_feature.feature_type == :any || @para.site_feature.feature_type == type.to_s)
+      @para.site_feature
     else
       if @para.content_publication
         SiteFeature.new(:body_html => @para.content_publication.default_feature, :options => {})
       else
-        if options[:class_name]
-          SiteFeature.new(:body_html => options[:class_name].constantize.send("get_default_feature_#{type}"), :options=> { :default => true})
-        else
-          SiteFeature.new(:body_html => self.class.send("get_default_feature_#{type}"), :options=> { :default => true})
-        end
+        opts = self.class.send("get_feature_options_#{type}")
+        require_css(opts[:default_css_file]) if !Configuration.options.skip_default_feature_css && opts[:default_css_file]
+        SiteFeature.new(:body_html => self.class.send("get_default_feature_#{type}"), :options=> { :default => true } )
       end
     end
   end
@@ -1824,13 +1836,13 @@ block is non-nil
       begin
         feature_parser.parse(feature.body_html || feature.body)
       rescue  Radius::MissingEndTagError => err
-        if RAILS_ENV=='test' || myself.editor?
+        if RAILS_ENV!='production' || myself.editor?
           "<div><b>#{'Feature Definition Contains an Error'.t}</b><br/>#{err.to_s.t}</div>"
         else
           ""
         end
       rescue Radius::UndefinedTagError => err
-        if  RAILS_ENV=='test' || myself.editor?
+        if  RAILS_ENV!='production' || myself.editor?
           "<div><b>#{'Feature Definition Contains an Undefined tag:'.t}</b>#{err.to_s.t}</div>"
         else
           ""

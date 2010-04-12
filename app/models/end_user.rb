@@ -131,6 +131,8 @@ include ModelExtension::EndUserImportExtension
   
   
   def before_validation #:nodoc:
+    self.email = self.email.to_s.strip
+    self.user_class_id = UserClass.default_user_class_id if self.user_class_id.blank?
     self.email = self.email.downcase unless self.email.blank?
   end
 

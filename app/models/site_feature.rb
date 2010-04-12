@@ -37,7 +37,7 @@ class SiteFeature < DomainModel
 
   def self.options(type)
     [ [ 'Default'.t, '' ] ] +
-    self.find(:all, :conditions => ['feature_type=?',type]).collect do |feat|
+    self.find(:all, :conditions => ['feature_type=?',type.to_s]).collect do |feat|
       [ feat.name, feat.id ]
     end 
   end

@@ -42,7 +42,7 @@ module HandlerActions
 
     def get_handlers(component,handler,initialized = false)
       component = component.to_sym; handler = handler.to_sym
-      handlers = DataCache.get_cached_container("Handlers","Active") unless initialized || RAILS_ENV == 'development'
+      handlers = DataCache.get_cached_container("Handlers","Active") unless initialized || RAILS_ENV != 'production'
       unless handlers
         mods = initialized ? SiteModule.initialized_modules_info :  SiteModule.enabled_modules_info
         handlers = {}
