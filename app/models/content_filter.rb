@@ -150,7 +150,7 @@ Options:
   end
 
   def self.comment_filter(code,options={}) #:nodoc:
-    safe_link(RedCloth.new(code,[:lite_mode, :filter_html]).to_html)
+    safe_link(RedCloth.new(code,[:lite_mode, :filter_html]).to_html).gsub(/^([ ]+)/) { "&nbsp;" * $1.length }
   end
 
   def self.safe_link(code)
