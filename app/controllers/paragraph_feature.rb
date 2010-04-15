@@ -595,7 +595,7 @@ block is non-nil
         object_id = img[2]
         img = img[0]
       end
-      
+
       attr = tag.attr.clone
       if img 
         icon_size = attr.delete('size') || tag_opts[:size] || nil
@@ -605,16 +605,16 @@ block is non-nil
         shadow = attr.delete('shadow')
         align = attr.delete('align') 
         field = attr.delete('field')
-        
+
         case field
         when 'width':
-            img_tag = img_size[0].to_s
+          img_tag = img_size[0].to_s
         when 'height':
-            img_tag = img_size[1].to_s
+          img_tag = img_size[1].to_s
         when 'dimensions':
-            img_tag =  "width='#{img_size[0].to_s}' height='#{img_size[1].to_s}'"
+          img_tag =  "width='#{img_size[0].to_s}' height='#{img_size[1].to_s}'"
         when 'src':
-            img_tag = img.url(size)
+          img_tag = img.url(size)
         else
           if shadow
             shadow_align = align
@@ -636,7 +636,7 @@ block is non-nil
               attr['style'] += "margin: 0 0 #{border_amt}px #{border_amt}px"
             end
           end
-          
+
           img_url = img.url(size)
           img_opts =  { :src => img_url,:width => img_size[0],:height => img_size[1] }
           attr.symbolize_keys!

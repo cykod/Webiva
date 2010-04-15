@@ -121,8 +121,9 @@ class Editor::MenuFeature < ParagraphFeature #:nodoc:all
                 icon = tag.locals.data[:rev].icon
               end
               
-              if rollover_type = tag.attr.delete('rollover') 
-                @include_menu_js = true
+              if rollover_type = attr.delete('rollover') 
+                #require_js('menu') unless @include_menu_js
+                #@include_menu_js = true
                 if %w(hot disabled selected).include?(rollover_type)
                   rollover_icon = tag.locals.data[:rev].send('icon_' + rollover_type )
                 elsif 

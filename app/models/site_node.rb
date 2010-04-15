@@ -72,6 +72,25 @@ class SiteNode < DomainModel
     end
   end
 
+  # returns a nested set of pages starting with the current element
+  def nested_pages(closed = [])
+    page_hash = {self.id => self}
+
+    nds = SiteNode.find(:all,
+                               :conditions => [ 'lft > ? AND rgt < ? AND site_version_id=?',self.lft,self.rgt,self.site_version_id],
+                               :order => 'lft',
+                               :include => :live_revisions)
+    nds.each do |nd|
+      nd.closed = true if closed.include?(nd.id)
+      page_hash[nd.parent_id].child_cache << nd  if page_hash[nd.parent_id]
+      page_hash[nd.id] = nd
+    end
+
+    self
+  end
+
+
+
   # Find a page by id (only returns pages)
   def self.find_page(page_id)
     self.find_by_id(page_id,:conditions => 'node_type="P"')
@@ -135,7 +154,7 @@ class SiteNode < DomainModel
   
   # Returns the active PageRevision of the passed language, or returns a revision of a different language if the passed language doesn't exist
   def active_revision(language)
-    self.page_revisions.find(:first,:conditions => 'revision_type="real" AND active=1', :order => "language='#{language}' DESC,revision DESC")
+    self.live_revisions.detect { |rev| rev.language == language } || self.live_revisions[0]
   end
   
   # alias for active_revision  

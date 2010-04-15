@@ -5,11 +5,16 @@ class Editor::MenuRenderer < ParagraphRenderer #:nodoc:all
   features '/editor/menu_feature'
   
  def build_automenu_data(root,levels,excluded,page_path='',included=nil,locked=0)
-    page = root.is_a?(SiteNode) ?  root : SiteNode.find_by_id(root)
+    if root.is_a?(SiteNode)
+      page = root
+    else
+       page = SiteNode.find_by_id(root)
+       page = page.nested_pages if page
+    end
     return [] unless page
     
     data = []
-    page.children.each do |page|
+    page.child_cache.each do |page|
       page.menu.each do |pg|
         if (!included || locked <= 0 || included.include?(pg.id)) && !excluded.include?(pg.id)
           rev = pg.active_revision(paragraph.language)
@@ -54,16 +59,14 @@ class Editor::MenuRenderer < ParagraphRenderer #:nodoc:all
     
     if(opts[:root_page] && opts[:levels]) 
       lock_level =@@lock_level_hash[opts[:lock_level]] || 0
-      
+     
       data = { :url =>  request_path,
                :menu => build_automenu_data(opts[:root_page],opts[:levels],opts[:excluded] || [],page_path,lock_level > 0 ? opts[:included] : nil,lock_level)
              }
              
       data[:edit] = true if editor?
-      
+
       render_paragraph :text => menu_feature(data)
-      
-      require_js('menu') if @include_menu_js
     else
       render_paragraph :text => '[Please Configure Automenu]'.t
     end

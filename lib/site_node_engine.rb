@@ -262,7 +262,7 @@ class SiteNodeEngine
     end
 
     def strip_script_tags(txt)
-      txt.gsub(/\<script.*\<\/script\>/im,'')
+      txt.gsub(/\<script.*?\<\/script\>/im,'')
     end
     
     # Renders a paragraph, returns a string containing the outputed html
