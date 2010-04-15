@@ -1797,7 +1797,9 @@ block is non-nil
      end 
      opts = {}
      opts[:site_feature_id] = data[:site_feature_id] if data.has_key?(:site_feature_id)
-     parse_feature(get_feature(feature_name,opts),parser_context)
+     feature = get_feature(feature_name,opts)
+     feature.body_html = single_feature(data[:partial_feature], feature.body_html) unless data[:partial_feature].blank?
+     parse_feature(feature,parser_context)
   else
     documenter = FeatureDocumenter.new(self) do |c|
       yield c
@@ -1806,7 +1808,14 @@ block is non-nil
   end
  end
 
-  
+  def single_feature(tag_name, feature_body)
+    if feature_body =~ /(<cms:#{tag_name}.*?\/cms:#{tag_name}>)/m
+      $1
+    else
+      feature_body
+    end
+  end
+
  def get_feature(type,options = {}) #:nodoc:
     if options.has_key?(:site_feature_id) && @feature_override = SiteFeature.find_by_id(options[:site_feature_id])
       @feature_override
