@@ -7,3 +7,14 @@ Removed tell_friend and tell_friend_link paragraphs
 
 
 Feedback - must add migration 4 into the database manually and remove migration 2 (migration overlap issue) 
+
+# 11 is the old DB name
+paras  = PageParagraph.find(:all,:conditions => 'display_type in ("code","html") AND display_body like "%/system/storage/11%"')
+paras.each do |para|
+ para.display_body = para.display_body.gsub(/\/system\/storage\/11\/([0-9]+)\/[a-zA-Z0-9\.\-_ ]+/,"/__fs__/\\1")
+ para.save
+end
+
+
+PageRevision.find(:all,:conditions => { :active => 1, :revision_type => 'real' }).map(&:make_real)
+
