@@ -394,8 +394,17 @@ class Media::GalleryRenderer < ParagraphRenderer
           tag.expand
         end
       end
-      
-      c.define_tag 'gallery:image:href' do |tag|
+       
+      c.define_link_tag 'gallery:image:' do |t|
+        img = t.locals.image
+        if img && img.domain_file
+          url = img.domain_file.url(t.attr['size'])
+        else
+          nil
+        end
+      end
+
+      c.define_link_tag 'gallery:image:overlay' do |tag|
         img = tag.locals.image
         if img && img.domain_file
           url = img.domain_file.url
@@ -550,14 +559,16 @@ class Media::GalleryRenderer < ParagraphRenderer
               }
       feature_output = gallery_feature(data) 
       
-      require_css('redbox')
-      require_css('gallery')
-  
-      require_js('prototype')
-      require_js('effects')
-      require_js('builder')
-      require_js('redbox')
-      require_js('helper/gallery')
+      if gallery_options.include_javascript
+        require_css('redbox')
+        require_css('gallery')
+
+        require_js('prototype')
+        require_js('effects')
+        require_js('builder')
+        require_js('redbox')
+        require_js('helper/gallery')
+      end
 
       render_paragraph :partial => "/media/gallery/gallery_paragraph", 
                     :locals => { :feature_output => feature_output, 

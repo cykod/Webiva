@@ -48,10 +48,10 @@ class Media::GalleryController < ParagraphController
   
  
   class GalleryOptions < HashModel
-      default_options :gallery_id => nil, :images_per_page => 10,  :list_page => nil,:gallery_create => false,:gallery_category => nil,:description_string => 'Description',:autosort => 'no'
+      attributes :gallery_id => nil, :images_per_page => 10,  :list_page => nil,:gallery_create => false,:gallery_category => nil,:description_string => 'Description',:autosort => 'no', :include_javascript => true
 
       integer_options :gallery_id,:list_page,:images_per_page
-      boolean_options :gallery_create
+      boolean_options :gallery_create, :include_javascript
       validates_numericality_of :images_per_page
   end
     
