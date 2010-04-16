@@ -33,7 +33,7 @@ class PageController < ModuleAppController
     @result = engine.run_paragraph(para,self,myself)
     
     if @result
-      render :text => webiva_post_process_paragraph(render_paragraph(container.is_a?(SiteNode) ? container : container.site_node, revision, @result))
+      render :text => webiva_post_process_paragraph(render_paragraph(container.is_a?(SiteNode) ? container : container.site_node, revision, @result, :ajax => true))
     else
       render :nothing => true
     end

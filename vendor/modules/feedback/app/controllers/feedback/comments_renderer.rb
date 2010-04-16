@@ -4,7 +4,7 @@ class Feedback::CommentsRenderer < ParagraphRenderer
 
   features '/feedback/comments_feature'
 
-  paragraph :comments
+  paragraph :comments, :ajax => true
   paragraph :pingback_auto_discovery
 
   def comments
@@ -30,43 +30,50 @@ class Feedback::CommentsRenderer < ParagraphRenderer
     display_string << (myself.missing_name? ? '_missing_name' : '_have_name')
 
     result = renderer_cache(Comment, display_string, :skip => true ||  request.post? || @options.captcha) do |cache|
+      @cached_connection_hash = cache[:cached_connection_hash] = DomainModel.generate_hash
       @comment = Comment.new
       param_str = 'comment_' + paragraph.id.to_s
       if request.post? && params[param_str]
-	if myself.id || @options.allowed_to_post == 'all'
-	  @comment = Comment.new(:target_type => content_link[0],
-				 :target_id => content_link[1],
-				 :posted_ip => request.remote_ip,
-				 :comment => params[param_str][:comment],
-				 :name => params[param_str][:name],
-				 :end_user_id => myself.id)
+        if myself.id || @options.allowed_to_post == 'all'
+          @comment = Comment.new(:target_type => content_link[0],
+                                 :target_id => content_link[1],
+                                 :posted_ip => request.remote_ip,
+                                 :comment => params[param_str][:comment],
+                                 :name => params[param_str][:name],
+                                 :end_user_id => myself.id)
 
-	  @captcha.validate_object(@comment, :skip => ! @options.captcha)
-	  if @comment.save
-	    target_cls = content_link[0].constantize
-	    if(target_cls && target_cls.respond_to?("comment_posted"))
-	      target_cls.comment_posted(content_link[1])
-	    end
-	    
-	    if paragraph.update_action_count > 0
-	      atr = @comment.attributes.slice('name','posted_ip','posted_at','comment')
-	      atr['target'] = @comment.target.title if @comment.target && @comment.target.respond_to?(:title)
-	      paragraph.run_triggered_actions(atr,'action',myself)
-	    end
+          @captcha.validate_object(@comment, :skip => ! @options.captcha)
+          if @comment.save
+            target_cls = content_link[0].constantize
+            if(target_cls && target_cls.respond_to?("comment_posted"))
+              target_cls.comment_posted(content_link[1])
+            end
 
-	    # Make sure we know if we posted after redirect
-	    flash[:posted_comment] = true if @comment.id
-	    
-	    redirect_paragraph :page
-	    return
-	  end
-	end
+            if paragraph.update_action_count > 0
+              atr = @comment.attributes.slice('name','posted_ip','posted_at','comment')
+              atr['target'] = @comment.target.title if @comment.target && @comment.target.respond_to?(:title)
+              paragraph.run_triggered_actions(atr,'action',myself)
+            end
+
+            # Make sure we know if we posted after redirect
+            if ajax?
+              flash.now[:posted_comment] = true if @comment.id
+              @comment = Comment.new
+            else
+              redirect_paragraph :page
+              flash[:posted_comment] = true if @comment.id
+              return
+            end
+          end
+        end
       end
 
       @comments = Comment.with_rating(@options.show).for_target(content_link[0],content_link[1]).order_by_posted(@options.order.to_s).find(:all)
       @posted_comment = flash[:posted_comment]
       cache[:output] = comments_page_comments_feature
     end
+    
+    insert_page_connection_hash!(result.output,result.cached_connection_hash)
     
     render_paragraph :text => result.output
   end

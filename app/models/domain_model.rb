@@ -306,8 +306,10 @@ class DomainModel < ActiveRecord::Base
   # by turning the hash into an array, sorting the keys
   # and hashing the resultant array - allows Hash's with the same
   # keys and values to generate consistent Hash's
+  # and will sort upto two hashes deep
   def self.hash_hash(hsh)
     arr = hsh.to_a.sort { |a,b| a[0].to_s<=>b[0].to_s }
+    arr.map! { |elm| elm[1].is_a?(Hash) ? [elm[0],elm[1].to_a.sort { |a,b| a[0].to_s<=>b[0].to_s } ] : elm }
     Digest::SHA1.hexdigest(arr.to_s)[0..63]
   end
 

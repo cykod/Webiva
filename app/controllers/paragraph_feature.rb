@@ -721,6 +721,14 @@ block is non-nil
       end
     end
     
+    def define_ajax_form_for_tag(name,arg,options = {},&block)
+      options[:html] ||= {}
+      options[:html][:onsubmit] ||= ''
+      options[:html][:onsubmit] += " new Ajax.Updater('cmspara_#{paragraph.id}','#{ajax_url}',{ evalScripts: true, parameters: Form.serialize(this) }); return false;"
+      define_form_for_tag(name,arg,options,&block)
+      require_js('prototype')
+    end
+
     # Creates a cms_unstyled_form_for object that can be used 
     # in combination with define_field_tag to allows users to 
     # custom style a form
@@ -742,7 +750,10 @@ block is non-nil
           frm_opts[:method] = 'post'
           html_options = html_options_for_form(options.delete(:url),frm_opts)
           html_options['action'] ||= ''
-          frm_tag = tag(:form,html_options,true) + "<CMS:AUTHENTICITY_TOKEN/>" + opts.delete(:code).to_s
+          if pch = opts.delete(:page_connection_hash)
+            pch = "<input type='hidden' name='page_connection_hash' value='#{pch}' />"
+          end
+          frm_tag = tag(:form,html_options,true) + "<CMS:AUTHENTICITY_TOKEN/>" + pch.to_s + opts.delete(:code).to_s
           cms_unstyled_fields_for(arg,obj,opts) do |f|
             tag.locals.send("#{frm_obj}=",f)
             frm_tag + tag.expand + "</form>"

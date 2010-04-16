@@ -377,15 +377,21 @@ module Spec
       
    end
    
-   class ViewExampleGroup < FunctionalExampleGroup
+    class ViewExampleGroup < FunctionalExampleGroup
       def build_feature(feature_class,code=nil)
         if code
           site_feature = mock_model(SiteFeature,:body => code,:body_html => code,:feature_type => :any,:options => {} )
-          paragraph = mock_model(PageParagraph,:site_feature => site_feature, :content_publication => nil)
- 	else
-	  paragraph = mock_model(PageParagraph,:site_feature => nil, :content_publication => nil)
- 	end
-        renderer = mock_model(ParagraphRenderer,:get_handler_info => [],:protect_against_forgery? => false)
+          paragraph = mock_model(PageParagraph,:site_feature => site_feature, :content_publication => nil,:page_revision => PageRevision.new)
+        else
+          paragraph = mock_model(PageParagraph,:site_feature => nil, :content_publication => nil,:page_revision => PageRevision.new)
+        end
+        renderer = mock_model(ParagraphRenderer,
+                              :get_handler_info => [],
+                              :protect_against_forgery? => false,
+                              :require_js => nil,
+                              :paragraph_action_url => '/paragraph',
+                              :paragraph => paragraph)
+
         feature_class.classify.constantize.new(paragraph,renderer)
       end
    end   
