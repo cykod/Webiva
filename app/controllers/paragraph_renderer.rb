@@ -30,6 +30,7 @@ class ParagraphRenderer < ParagraphFeature
     attr_accessor :paction
     attr_accessor :paction_data
     attr_accessor :content_nodes
+    attr_accessor :paragraph_id
     
     def method_missing(method,args)
       @rnd.send(method)
@@ -61,7 +62,7 @@ class ParagraphRenderer < ParagraphFeature
       @page_connections = page_connections
       @page_title = page_title
     end
-    
+
     attr_accessor :output
     attr_accessor :includes
     attr_accessor :page_connections
@@ -453,7 +454,71 @@ class ParagraphRenderer < ParagraphFeature
                          :page_revision => self.paragraph.page_revision.id,
                          :paragraph => self.paragraph.id)
     paragraph_action_url(opts)
-  end    
+  end
+
+  def insert_page_connection_hash!(output,replacement)
+    output.gsub!(replacement,page_connection_hash)
+  end
+
+  # Returns a hash of the page connections and stores them safely in the
+  # session for an ajax call
+  def page_connection_hash
+    return @page_connection_hash if @page_connection_hash
+    conns = self.paragraph.page_connections || {}
+    output_hsh = {}
+    conns.each do |key,val|
+      output_hsh[key] = page_connection_hash_helper(val)
+    end
+    hash_hash = DomainModel.hash_hash(output_hsh)
+    session[:page_connection_hash] ||= {}
+    session[:page_connection_hash][paragraph.id.to_s + "_" + hash_hash] = output_hsh
+
+    @page_connection_hash = hash_hash
+  end
+
+  def set_page_connection_hash(conns) #:nodoc:
+    output_hash = {}
+    conns.each do |key,val|
+      output_hash[key] = set_page_connection_hash_helper(val)
+    end
+    self.paragraph.page_connections = output_hash
+  end
+
+  def page_connection_hash_helper(val) #:nodoc:
+    if val.is_a?(Array)
+       val.map { |sval| page_connection_hash_helper(sval) }
+    elsif val.kind_of?(Hash)
+       output = {}
+       val.each { |key,sval| output[key] = page_connection_hash_helper(sval) }
+       output
+    elsif val.kind_of?(DomainModel)
+      { :domain_model_hash => true, :cls => val.class.to_s, :id => val.id  }
+    elsif val.kind_of?(HashModel)
+      { :hash_model_hash => true, :cls => val.class.to_s, :attr => val.to_hash }
+    else
+      val
+    end
+  end
+
+
+  def set_page_connection_hash_helper(val) # :nodoc:
+    if val.is_a?(Hash)
+      if val[:domain_model_hash]
+        val[:cls].constantize.find(val[:id])
+      elsif val[:hash_model_hash]
+        val[:cls].constantize.new(val[:attr])
+      else
+        output = {}
+        val.each { |key,sval| output[key] = set_page_connection_hash_helper(sval) }
+       output
+      end
+    elsif val.is_a?(Array)
+      val.map { |sval| set_page_connection_hash_helper(sval) }
+    else
+      val
+    end
+  end
+
  
   # Includes the specified css file when the page is rendered
   # uses the standard rails stylesheet_link_tag syntax

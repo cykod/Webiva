@@ -202,6 +202,11 @@ class SiteNodeEngine
           return output
         else
           rnd = cls.new(myself.user_class,self,paragraph,site_node,revision,opts)
+
+          if opts[:ajax] && params[:page_connection_hash]
+            pch = (session[:page_connection_hash] || {})[paragraph.id.to_s + "_" + params[:page_connection_hash]]
+            rnd.set_page_connection_hash(pch) if pch
+          end
           rnd.capture_data = true if  opts[:capture]
           if paragraph.site_feature_id && !opts[:edit]
             # If we're not in the editor, include the feature css
@@ -374,7 +379,8 @@ EOF
             if para.is_a?(String) 
              output += webiva_post_process_paragraph(para)
             else 
-              output+= "<div class='paragraph' >#{webiva_post_process_paragraph(render_paragraph page, output_obj.revision, para)}</div>"
+              para_id = para.is_a?(ParagraphRenderer::ParagraphOutput) ? "id='cmspara_#{para.rnd.paragraph.id}'" : ""
+              output+= "<div class='paragraph' #{para_id}>#{webiva_post_process_paragraph(render_paragraph page, output_obj.revision, para)}</div>"
             end 
           end 
         end 

@@ -42,7 +42,10 @@ class Feedback::CommentsFeature < ParagraphFeature
       
       paragraph_id = data[:paragraph_id] ? data[:paragraph_id] : paragraph.id
 
-      c.form_for_tag('add_comment',"comment_#{paragraph_id}") { |t|  data[:comment] }
+      c.ajax_form_for_tag('add_comment',"comment_#{paragraph_id}") do |t|  
+        { :object => data[:comment] ,
+          :page_connection_hash => data[:cached_connection_hash] }
+      end
         c.form_error_tag('add_comment:errors')
         c.field_tag('add_comment:email')
         c.field_tag('add_comment:website')
