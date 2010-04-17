@@ -111,6 +111,14 @@ class HashModel
     class << self; self end.send(:define_method,"current_boolean_opts") do
       objs
     end
+
+    objs.each do |obj|
+      self.class_eval <<-EOF
+      def #{obj}?
+        ! @#{obj}.blank?
+      end
+      EOF
+    end
   end
 
   def self.float_options(*objs)
