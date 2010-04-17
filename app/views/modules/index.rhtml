@@ -41,11 +41,11 @@ confirmDeactivation: function() {
   <tr id='elem_mod_<%= t[:module] -%>_row'   onmouseover='SCMS.highlightRow(this);'  onmouseout='SCMS.lowlightRow(this);' onclick='SCMS.clickRow("mod","<%= t[:module] -%>"); ModuleEditor.updateButtons(); '>
     <td nowrap='1'>
       <% if (t[:status] == 'active' || t[:status] == 'initialized') && "#{t[:name].to_s.camelcase}::AdminController".constantize.method_defined?('options') %>
-        <b><%= link_to t[:name].humanize.capitalize, { :action => 'edit', :path => t[:module] } %></b>
+        <b><%= link_to t[:name].underscore.titleize, { :action => 'edit', :path => t[:module] } %></b>
       <% elsif t[:status] == 'active' -%>
-          <b><%= t[:name].humanize.capitalize %></b>
+          <b><%= t[:name].underscore.titleize %></b>
       <% else -%>
-          <%= t[:name].humanize.capitalize %>
+          <%= t[:name].underscore.titleize %>
       <% end -%>
     </td>
     <td nowrap='1'><%= t[:status].humanize.t %></td>
