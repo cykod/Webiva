@@ -139,6 +139,7 @@ module ModelExtension::FileInstanceExtension
   end
 
   def content_filter_execute(column_name,rendered_column_name,content_filter={}) #:nodoc:
+    content_filter = content_filter.clone
     html = self.send(column_name).to_s
     if content_filter
       content_filter.symbolize_keys!
