@@ -5,8 +5,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
       <title><%= @cms_module_page_title || @output.title %></title>
       <meta http-equiv='Content-Language' content='<%= @output.language %>' />
-      <% if @output.meta_description %>
-        <meta name='DESCRIPTION' content='<%= vh @output.meta_description %>'/>
+      <% if @output.meta_description || @output.includes[:meta_description] -%>
+        <meta name='DESCRIPTION' content='<%= vh (@output.includes[:meta_description] || @output.meta_description).to_s %>'/>
       <% end -%>
       <% if @output.meta_keywords%>
         <meta name='KEYWORDS' content='<%= vh @output.meta_keywords%>'/>
