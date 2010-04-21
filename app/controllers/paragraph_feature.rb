@@ -401,9 +401,9 @@ block is non-nil
     #      </div>
     #      </cms:posts>
     #      <cms:no_posts><h2>No Posts</h2></cms:no_posts>
-    def define_loop_tag(name,plural=nil)
+    def define_loop_tag(name,plural=nil,options = {})
       name_parts = name.split(":")
-      name_base = name_parts[-1]
+      name_base = options[:local] || name_parts[-1]
       plural = name_base.pluralize unless plural
       name_parts[-1] = plural
       
@@ -1166,6 +1166,18 @@ block is non-nil
       end
     end
 
+    
+    def define_content_model_fields_value_tags(prefix,content_model_fields,options = {})
+      c = self
+     local = options.delete(:local) || 'entry'
+      content_model_fields.each do |fld|
+        fld.site_feature_value_tags(c,prefix,:full,:local => local)
+      end
+    end
+
+    def define_content_model_value_tags(prefix,content_model,options = {})
+      define_content_model_fields_value_tags(prefix,content_model.content_model_fields,options)
+    end
 
     # Defines a list of tags based on a passed-in publication
     # Can only be used in webiva_custom_feature
@@ -1705,6 +1717,17 @@ block is non-nil
 
         end
       end
+    end
+
+    def define_content_model_fields_value_tags(prefix,content_model_fields,options = {})
+      c = self
+      content_model_fields.each do |fld|
+        fld.site_feature_value_tags(c,prefix,:full,:local => local)
+      end
+    end
+
+    def define_content_model_value_tags(prefix,content_model,options = {})
+      define_content_model_fields_value_tags(prefix,content_model.content_model_fields,options)
     end
     
     def define_user_address_tags(name_base,options={}) #:nodoc:

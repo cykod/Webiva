@@ -480,11 +480,7 @@ module EnhancedFormElements
     # Output the error message for a specific field given a label and the field
     def output_error_message(label,field)
       return nil unless @object && @object.errors
-      begin
-        errs = @object.errors.on(field)
-      rescue Exception =>e
-        raise @object.errors.inspect + errs.inspect
-      end
+      errs = @object.errors.on(field)
       if errs.is_a?(Array)
         label = label.gsub(/\:$/,'') # get rid of ending : if there
         opts = errs.pop if errs.last.is_a?(Hash)
@@ -502,10 +498,8 @@ module EnhancedFormElements
         
         return label + " " + emit_label(errs)
       end
-      
       nil
     end  
- 
 
 end
 
