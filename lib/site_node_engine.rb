@@ -302,7 +302,9 @@ class SiteNodeEngine
           paragraph.render_args[:locals] ||= {}
           paragraph.render_args[:locals][:renderer] = paragraph.rnd unless paragraph.render_args[:locals][:renderer]
           @paragraph = paragraph
-          str = "<script type='text/javascript'>" + render_to_string(paragraph.render_args) + "</script>"
+          str = render_to_string(paragraph.render_args)
+          str = "<script type='text/javascript'>" + str + "</script>" unless opts[:ajax]
+          str
         elsif paragraph.render_args[:parent_rjs]
           paragraph.render_args[:partial] = paragraph.render_args.delete(:parent_rjs)
           paragraph.render_args[:locals] ||= {}
