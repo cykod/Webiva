@@ -10,6 +10,8 @@ class ModulesController < CmsController # :nodoc: all
     
     @domain = Domain.find(DomainModel.active_domain_id)
     @available_modules = SiteModule.available_modules(@domain)
+
+    @available_modules = @available_modules.sort { |a,b| a[:name] <=> b[:name] }
    
     expire_site if params[:refresh]
 
