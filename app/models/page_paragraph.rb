@@ -204,6 +204,8 @@ class PageParagraph < DomainModel
   def self.thaw(atr)
     para_id = atr.delete('id') || atr.delete(:id)
     para = PageParagraph.new(atr)
+    para.connections.symbolize_keys! if para.connections
+    para.connections.each { |key,hsh| hsh.symbolize_keys! if hsh.is_a?(Hash) } if para.connections
     para.id = para_id
     para
   end

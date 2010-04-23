@@ -1831,6 +1831,7 @@ block is non-nil
      end 
      opts = {}
      opts[:site_feature_id] = data[:site_feature_id] if data.has_key?(:site_feature_id)
+     opts[:custom_feature_body] = data[:custom_feature_body] if data.has_key?(:custom_feature_body)
      feature = get_feature(feature_name,opts)
      feature.body_html = single_feature(data[:partial_feature], feature.body_html) unless data[:partial_feature].blank?
      parse_feature(feature,parser_context)
@@ -1851,7 +1852,9 @@ block is non-nil
   end
 
  def get_feature(type,options = {}) #:nodoc:
-    if options.has_key?(:site_feature_id) && @feature_override = SiteFeature.find_by_id(options[:site_feature_id])
+    if options.has_key?(:custom_feature_body)
+      SiteFeature.new(:body_html => options[:custom_feature_body], :options => {})
+    elsif options.has_key?(:site_feature_id) && @feature_override = SiteFeature.find_by_id(options[:site_feature_id])
       @feature_override
     elsif !options.has_key?(:site_feature_id) && @para.site_feature && (@para.site_feature.feature_type == :any || @para.site_feature.feature_type == type.to_s)
       @para.site_feature
