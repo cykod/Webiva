@@ -317,6 +317,10 @@ module EnhancedFormElements
       end.join(separator)
     end
 
+    def yes_no(field,opts = {}) 
+      radio_buttons(field,[['Yes'.t,true],['No'.t,false]],opts)
+    end
+
     # Displays multiple selects, with grouped options
     def multiple_grouped_selects(field,choices,options={},html_options={})
       labels = options[:labels].to_s.split(",").map { |elm| elm.to_s.strip }
