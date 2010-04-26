@@ -127,7 +127,7 @@ FEATURE
   
   def user_edit_account_feature(data)
     webiva_custom_feature(:user_edit_account,data) do |c|
-      c.form_for_tag('edit',:user) { |t| data[:usr] ? data[:usr] : nil }
+      c.form_for_tag('edit',:user,:html => { :enctype => 'multipart/form-data' }) { |t| data[:usr] ? data[:usr] : nil }
 
       c.expansion_tag('edit:errors') { |t| data[:failed] }
       c.expansion_tag('edit:updated') { |t| data[:updated] }

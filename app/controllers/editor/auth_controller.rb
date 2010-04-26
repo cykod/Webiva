@@ -16,7 +16,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
 
   editor_for :user_edit_account, :name => 'User Edit Account', :feature => 'user_edit_account', :triggers => [ ['Edit Account','action' ]] 
 
-  editor_for :edit_account, :name => 'Edit Account', :triggers => [ ['Edit Profile','action' ]] 
+#  editor_for :edit_account, :name => 'Edit Account', :triggers => [ ['Edit Profile','action' ]] 
 
  
   editor_for :missing_password, :name => 'Missing Password', :triggers => [ ['Sent Email','action']], :features => ['missing_password']
@@ -73,7 +73,8 @@ class Editor::AuthController < ParagraphController #:nodoc:all
         :gender => ['Gender'.t, :radio_buttons, :gender, { :options => [ ['Male'.t,'m'],['Female'.t,'f' ] ] } ],
         :introduction => ['Introduction'.t, :radio_buttons, :introduction, { :options => [ ['Mr.'.t,'Mr.'],['Mrs.'.t,'Mrs.' ], ['Ms.'.t, 'Ms.'] ] } ],
         :username => [ 'Username'.t,:text_field, :username ],
-        :salutation => [ 'Salutation'.t,:text_field, :salutation ]
+        :salutation => [ 'Salutation'.t,:text_field, :salutation ],
+        :image => [ 'Profile Image'.t,:file_upload, :domain_file_id ]
       }
     end
 
@@ -226,7 +227,8 @@ class Editor::AuthController < ParagraphController #:nodoc:all
         :gender => ['Gender'.t, :radio_buttons, :gender, { :options => [ ['Male'.t,'m'],['Female'.t,'f' ] ] } ],
         :introduction => ['Introduction'.t, :radio_buttons, :introduction, { :options => [ ['Mr.'.t,'Mr.'],['Mrs.'.t,'Mrs.' ], ['Ms.'.t, 'Ms.'] ] } ],
         :username => [ 'Username'.t,:text_field, :username ],
-        :salutation => [ 'Salutation'.t,:text_field, :salutation ]
+        :salutation => [ 'Salutation'.t,:text_field, :salutation ],
+        :domain_file_id => [ 'Upload Profile Image'.t,:file_field, :domain_file_id ]
       }
     end
 

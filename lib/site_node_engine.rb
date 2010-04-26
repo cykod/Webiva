@@ -139,6 +139,108 @@ class SiteNodeEngine
       paragraph.language = opts[:language]
       # Handle any paragraph inputs
       # return nil unless we have all the inputs we need
+
+      return nil unless set_page_connections(paragraph,opts)
+      
+      opts[:language] ||= ( Locale.language ? Locale.language.code : Configuration.languages[0] )
+      opts[:page_path] ||= site_node.node_path
+      rendering_module = paragraph.display_module
+      # We'll have something like /editor/menu
+      if rendering_module
+        return render_module_paragraph(site_node,revision,paragraph,opts)
+      else
+        display_type = paragraph.display_type
+        if paragraph.display_body.blank? && paragraph.display_body == '' && !opts[:edit]
+          return ParagraphRenderer::ParagraphOutput.new(self,:text => "")
+        elsif opts[:edit]
+          return ParagraphRenderer::ParagraphOutput.new(self,:text => "<div class='#{paragraph.display_type}_paragraph'>" +  strip_script_tags(paragraph.display) + "</div>")
+        else
+          return ParagraphRenderer::ParagraphOutput.new(self,:text => "<div class='#{paragraph.display_type}_paragraph'>" +  paragraph.display + "</div>")
+        end
+      end
+    end
+
+    def render_module_paragraph(site_node,revision,paragraph,opts)
+      display_type = paragraph.display_type
+      cls = paragraph.renderer
+      info = paragraph.info
+      output = nil
+      cache_hash=''
+      output = fetch_from_paragraph_cache(info,paragraph,opts) if info[:paragraph_cache] && !opts[:edit]
+
+      return output if output # early out with cached paragraph
+
+      rnd = cls.new(myself.user_class,self,paragraph,site_node,revision,opts)
+
+      set_page_connection_hash(rnd,paragraph) if opts[:ajax] && params[:page_connection_hash]
+
+      rnd.capture_data = true if  opts[:capture]
+      if paragraph.site_feature_id && !opts[:edit]
+        # If we're not in the editor, include the feature css
+        # We have the css attribute from paragraph cached from the thaw
+        if paragraph.render_css.nil? ? (paragraph.site_feature && !paragraph.site_feature.rendered_css.blank?) : paragraph.render_css
+          rnd.require_css("/stylesheet/f#{paragraph.site_feature_id}.css") 
+        end
+      end
+
+      ## Actually Call the method on the renderer ##
+      rnd.send(display_type)
+
+      if info[:paragraph_cache] && !opts[:edit]
+        output = rnd.output
+        output_hash = { :html => render_paragraph(site_node,revision,output,opts),
+          :includes => output.includes,
+          :page_connections => output.page_connections }
+        DataCache.put_container("Paragraph","#{paragraph.display_module}:#{opts[:language]}:#{myself.user_class_id}:#{cache_hash}",output_hash)
+        return ParagraphRenderer::CachedOutput.new(output_hash[:html],output_hash[:includes],output_hash[:page_connections])
+      end
+
+      # Add in the rendered css for the editor          
+      editor_add_rendered_css!(rnd,paragraph) if opts[:edit]
+
+      return rnd.output
+    end
+
+    def fetch_from_paragraph_cach(info,paragraph,opts={})
+      cache_hash = cls.send(info[:paragraph_cache],paragraph,myself.user_class)
+      # If this user class doesn't have a cache hash
+      if cache_hash
+        output_hash = DataCache.get_container("Paragraph","#{paragraph.display_module}:#{opts[:language]}:#{myself.user_class_id}:#{cache_hash}")
+        output = ParagraphRenderer::CachedOutput.new(output_hash[:html],output_hash[:includes],output_hash[:page_connections]) if output_hash
+      end
+    end
+
+
+    def set_page_connection_hash(rnd,paragraph)
+      pch = (session[:page_connection_hash] || {})[paragraph.id.to_s + "_" + params[:page_connection_hash]]
+      rnd.set_page_connection_hash(pch) if pch
+    end
+      
+
+    def editor_add_rendered_css!(rnd,paragraph)
+      if paragraph.site_feature_id
+        rnd.output.render_args[:css] = paragraph.site_feature.rendered_css unless paragraph.site_feature.rendered_css.blank?
+      end
+
+      if rnd.output.is_a?(ParagraphRenderer::ParagraphOutput) && rnd.output.includes && rnd.output.includes[:css]
+        css_files = rnd.output.includes[:css]
+        rnd.output.render_args[:css] ||= ''
+        css_files.each do |fl|
+          begin # TODO - extract this and fix path generation
+            fl += ".css" unless fl[-4..-1] == ".css"
+            fl = "/stylesheets/" + fl if fl[0..0] != '/'
+            css = IO.readlines(File.join(Rails.root,"public",fl)).join
+            rnd.output.render_args[:css] << "\n"
+            rnd.output.render_args[:css] << css
+          rescue Exception => e
+            # chomp
+            raise e if Rails.env != 'production'
+          end
+        end
+      end
+    end
+
+    def set_page_connections(paragraph,opts={})
       if !opts[:edit] && paragraph.connections && paragraph.connections[:inputs].is_a?(Hash)
         opts[:connections] ||= {}
         paragraph.connections[:inputs].each do |input_key,input|
@@ -152,6 +254,8 @@ class SiteNodeEngine
                 paragraph.set_page_connections(input_key => params[:path][2])
             when 'user_target':
                 paragraph.set_page_connections(input_key => myself)
+            when 'logged_in_target':
+                paragraph.set_page_connections(input_key => myself.id ? myself : nil)
             when 'title':
                 if opts[:connections][:title]
                   paragraph.set_page_connections(input_key => [ :title,  opts[:connections][:title] ])
@@ -175,95 +279,7 @@ class SiteNodeEngine
           end
         end
       end
-      
-      
-      display_type = paragraph.display_type
-      
-      
-      opts[:language] ||= ( Locale.language ? Locale.language.code : Configuration.languages[0] )
-      opts[:page_path] ||= site_node.node_path
-      rendering_module = paragraph.display_module
-      # We'll have something like /editor/menu
-      if rendering_module
-        cls = paragraph.renderer
-        info = paragraph.info
-        output = nil
-        cache_hash=''
-        if info[:paragraph_cache] && !opts[:edit]
-           cache_hash = cls.send(info[:paragraph_cache],paragraph,myself.user_class)
-           # If this user class doesn't have a cache hash
-           if cache_hash
-            output_hash = DataCache.get_container("Paragraph","#{paragraph.display_module}:#{opts[:language]}:#{myself.user_class_id}:#{cache_hash}")
-            output = ParagraphRenderer::CachedOutput.new(output_hash[:html],output_hash[:includes],output_hash[:page_connections]) if output_hash
-           end
-        end
-        
-        if output
-          return output
-        else
-          rnd = cls.new(myself.user_class,self,paragraph,site_node,revision,opts)
-
-          if opts[:ajax] && params[:page_connection_hash]
-            pch = (session[:page_connection_hash] || {})[paragraph.id.to_s + "_" + params[:page_connection_hash]]
-            rnd.set_page_connection_hash(pch) if pch
-          end
-          rnd.capture_data = true if  opts[:capture]
-          if paragraph.site_feature_id && !opts[:edit]
-            # If we're not in the editor, include the feature css
-            # We have the css attribute from paragraph cached from the thaw
-            if paragraph.render_css.nil? ? (paragraph.site_feature && !paragraph.site_feature.rendered_css.blank?) : paragraph.render_css
-              rnd.require_css("/stylesheet/f#{paragraph.site_feature_id}.css") 
-            end
-          end
-
-          rnd.send(display_type)
-          
-          if info[:paragraph_cache] && !opts[:edit]
-            output = rnd.output
-              output_hash = { :html => render_paragraph(site_node,revision,output,opts),
-                            :includes => output.includes,
-                            :page_connections => output.page_connections }
-            DataCache.put_container("Paragraph","#{paragraph.display_module}:#{opts[:language]}:#{myself.user_class_id}:#{cache_hash}",output_hash)
-            return ParagraphRenderer::CachedOutput.new(output_hash[:html],output_hash[:includes],output_hash[:page_connections])
-          end
-          
-          # Add in the rendered css for the editor          
-          if opts[:edit] 
-            if paragraph.site_feature_id
-              rnd.output.render_args[:css] = paragraph.site_feature.rendered_css unless paragraph.site_feature.rendered_css.blank?
-            end
-
-            if rnd.output.is_a?(ParagraphRenderer::ParagraphOutput) && rnd.output.includes && rnd.output.includes[:css]
-              css_files = rnd.output.includes[:css]
-              rnd.output.render_args[:css] ||= ''
-              css_files.each do |fl|
-                begin # TODO - extract this and fix path generation
-                  fl += ".css" unless fl[-4..-1] == ".css"
-                  fl = "/stylesheets/" + fl if fl[0..0] != '/'
-                  css = IO.readlines(File.join(Rails.root,"public",fl)).join
-                  rnd.output.render_args[:css] << "\n"
-                  rnd.output.render_args[:css] << css
-                rescue Exception => e
-                  # chomp
-                  raise e if Rails.env != 'production'
-                end
-              end
-            end
-          end
-
-          return rnd.output
-        end
-        
-      else
-        if paragraph.display_body.blank? && paragraph.display_body == '' && !opts[:edit]
-          return ParagraphRenderer::ParagraphOutput.new(self,:text => "")
-        elsif opts[:edit]
-          return ParagraphRenderer::ParagraphOutput.new(self,:text => "<div class='#{paragraph.display_type}_paragraph'>" +  strip_script_tags(paragraph.display) + "</div>")
-        else
-          return ParagraphRenderer::ParagraphOutput.new(self,:text => "<div class='#{paragraph.display_type}_paragraph'>" +  paragraph.display + "</div>")
-        end
-      end
-      
+      true
     end
 
     def strip_script_tags(txt)
@@ -641,10 +657,10 @@ EOF
       # See how many page argument the page paragraphs are expecting
       max_path_level = calculate_max_path_level
 
+
       if max_path_level < @path_args.length  && @container.node_type != 'M'
         raise MissingPageException.new(@container,@language), "Page Not Found" 
       end
-
       page_connections = {}
       loop_cnt = 0
       unrendered = -1
@@ -675,7 +691,7 @@ EOF
                   page_connections[:title_str] = @page_information[:title_str] = create_page_title(nd)
                   page_connections[:title] = @page_information[:title]
                 end
-                
+
                 result = controller.compile_paragraph(@container.is_a?(SiteNode) ?
                                                       @container : @container.site_node, 
                                                       @page_information.revision,
@@ -691,7 +707,7 @@ EOF
                   if result.is_a?(ParagraphRenderer::ParagraphRedirect)
                     @output = RedirectOutput.new
                     @output.status = result.args.delete(:status)  if result.args.is_a?(Hash)
-                    
+
                     @output.paction = result.paction if result.paction
                     @output.redirect = result.args
                     return @output # exit early if we can 
@@ -700,18 +716,18 @@ EOF
                     return DocumentOutput.new(result.render_args)
                   end
 
-                  
+
                   if result.is_a?(ParagraphRenderer::ParagraphOutput)
                     page_connections.merge!(result.page_connections  || {}) 
                     # Get any remaining includes 
                     result.includes.each do |inc_type,inc_value|
-		      if inc_value.is_a?(Hash)
-			@page_information[:includes][inc_type] ||= {}
-			@page_information[:includes][inc_type].merge! inc_value
-		      else
-			@page_information[:includes][inc_type] ||= []
-			@page_information[:includes][inc_type] +=  inc_value
-		      end
+                      if inc_value.is_a?(Hash)
+                        @page_information[:includes][inc_type] ||= {}
+                        @page_information[:includes][inc_type].merge! inc_value
+                      else
+                        @page_information[:includes][inc_type] ||= []
+                        @page_information[:includes][inc_type] +=  inc_value
+                      end
                     end
                     if result.content_nodes
                       @page_information[:content_nodes] ||= []
@@ -719,7 +735,7 @@ EOF
                     end
                     @page_information[:paction] = result.paction if result.paction
                   end
-                  
+
                   @page_information[:title].merge!(result.page_title)   if result.page_title
 
                   part[:paragraphs][idx] = result
@@ -737,6 +753,7 @@ EOF
       end
     end
   
+
 
     # Finally, it we made it here, lets output a page
     @output = PageOutput.new

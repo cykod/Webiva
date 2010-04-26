@@ -188,6 +188,11 @@ module ModelExtension::ContentCacheExtension
 
     module CacheClassMethods
 
+      def cache_expire_by_id(item_id)
+         DataCache.expire_content(self.to_s,"ID#{item_id}")
+         content_cache_expire_list
+      end
+
       # Expire any lists data cache elements
       def content_cache_expire_list 
         logger.warn("Content Cache Expire List: #{self.to_s}") unless RAILS_ENV == 'production'

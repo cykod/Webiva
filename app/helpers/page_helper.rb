@@ -20,15 +20,19 @@ module PageHelper
     style = ''
    end
    tbl_type =options[:type] == 'div' ? 'div' : 'table'
+
+   if options[:class]
+     extra_class = " " + options[:class]
+   end
    
    div_id = options[:container_id] || tbl.name
    concat(register_table_js(tbl,div_id,options[:refresh_url]))
    concat("<form id='#{tbl.name}_update_form' action='' onsubmit='return false;'>") unless options[:no_form]
    
    if tbl_type == 'table'
-      concat("<#{tbl_type} cellspacing='0' cellpadding='0' class='user_#{tbl_type}' #{style} >")
+      concat("<#{tbl_type} cellspacing='0' cellpadding='0' class='user_#{tbl_type}#{extra_class}' #{style} >")
    else
-     concat("<#{tbl_type} class='user_#{tbl_type}' #{style} >")
+     concat("<#{tbl_type} class='user_#{tbl_type}#{extra_class}' #{style} >")
    end
    
    

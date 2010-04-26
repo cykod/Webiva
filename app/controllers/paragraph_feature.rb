@@ -401,9 +401,9 @@ block is non-nil
     #      </div>
     #      </cms:posts>
     #      <cms:no_posts><h2>No Posts</h2></cms:no_posts>
-    def define_loop_tag(name,plural=nil)
+    def define_loop_tag(name,plural=nil,options = {})
       name_parts = name.split(":")
-      name_base = name_parts[-1]
+      name_base = options[:local] || name_parts[-1]
       plural = name_base.pluralize unless plural
       name_parts[-1] = plural
       
@@ -1166,6 +1166,18 @@ block is non-nil
       end
     end
 
+    
+    def define_content_model_fields_value_tags(prefix,content_model_fields,options = {})
+      c = self
+     local = options.delete(:local) || 'entry'
+      content_model_fields.each do |fld|
+        fld.site_feature_value_tags(c,prefix,:full,:local => local)
+      end
+    end
+
+    def define_content_model_value_tags(prefix,content_model,options = {})
+      define_content_model_fields_value_tags(prefix,content_model.content_model_fields,options)
+    end
 
     # Defines a list of tags based on a passed-in publication
     # Can only be used in webiva_custom_feature
@@ -1706,6 +1718,17 @@ block is non-nil
         end
       end
     end
+
+    def define_content_model_fields_value_tags(prefix,content_model_fields,options = {})
+      c = self
+      content_model_fields.each do |fld|
+        fld.site_feature_value_tags(c,prefix,:full,:local => local)
+      end
+    end
+
+    def define_content_model_value_tags(prefix,content_model,options = {})
+      define_content_model_fields_value_tags(prefix,content_model.content_model_fields,options)
+    end
     
     def define_user_address_tags(name_base,options={}) #:nodoc:
       define_value_tag("#{name_base}:display")
@@ -1808,6 +1831,7 @@ block is non-nil
      end 
      opts = {}
      opts[:site_feature_id] = data[:site_feature_id] if data.has_key?(:site_feature_id)
+     opts[:custom_feature_body] = data[:custom_feature_body] if data.has_key?(:custom_feature_body)
      feature = get_feature(feature_name,opts)
      feature.body_html = single_feature(data[:partial_feature], feature.body_html) unless data[:partial_feature].blank?
      parse_feature(feature,parser_context)
@@ -1828,7 +1852,9 @@ block is non-nil
   end
 
  def get_feature(type,options = {}) #:nodoc:
-    if options.has_key?(:site_feature_id) && @feature_override = SiteFeature.find_by_id(options[:site_feature_id])
+    if options.has_key?(:custom_feature_body)
+      SiteFeature.new(:body_html => options[:custom_feature_body], :options => {})
+    elsif options.has_key?(:site_feature_id) && @feature_override = SiteFeature.find_by_id(options[:site_feature_id])
       @feature_override
     elsif !options.has_key?(:site_feature_id) && @para.site_feature && (@para.site_feature.feature_type == :any || @para.site_feature.feature_type == type.to_s)
       @para.site_feature

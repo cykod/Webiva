@@ -200,18 +200,19 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       @business = @usr.work_address ||  @usr.build_work_address(:address_name => 'Business Address'.t, :country => @options.country )
 
       if @options.publication
-	field = @options.content_publication_user_field
-	model_class = @options.publication.content_model.model_class
+        field = @options.content_publication_user_field
+        model_class = @options.publication.content_model.model_class
         @model = model_class.find(:first, :conditions => {field.to_sym => myself.id}) || model_class.new(field.to_sym => myself.id)
       end
     end
 
     if request.post? && params[:user] && !editor? && myself.id
-      
+
+      handle_image_upload(params[:user],:domain_file_id)
       # Assign a slice of params to the user
       @usr.attributes = params[:user].slice(*(@options.required_fields + @options.optional_fields + @options.always_required_fields).uniq)
       unless @usr.editor?
-	@usr.user_class_id = @options.user_class_id if @usr.user_class_id.blank? || @options.modify_profile == 'modify'
+        @usr.user_class_id = @options.user_class_id if @usr.user_class_id.blank? || @options.modify_profile == 'modify'
       end
 
       # check everything is valid
@@ -225,8 +226,9 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
         end
       end
 
+
       all_valid = false unless @usr.errors.length == 0
-     
+
       # same for address
       all_valid = false unless assign_entry(@address, params[:address], @options.available_address_field_list.keys, @options.address_required_fields)
 
@@ -243,7 +245,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       @failed = true unless all_valid
 
       if all_valid 
-      
+
         if params[:address]
           @address.save
           @usr.address_id = @address.id
@@ -267,16 +269,16 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
             update_subscriptions(@usr,@options.include_subscriptions,params[:subscription])
           end
 
-	  @model.save if @model
+          @model.save if @model
 
-	  if @options.access_token_id
-	    tkn = AccessToken.find_by_id(@options.access_token_id)
-	    @usr.add_token!(tkn) if tkn
-	  end
+          if @options.access_token_id
+            tkn = AccessToken.find_by_id(@options.access_token_id)
+            @usr.add_token!(tkn) if tkn
+          end
           # run any triggered actions
           paragraph.run_triggered_actions(@usr,'action',@usr)
 
-	  # send mail template if we have one
+          # send mail template if we have one
           if @options.mail_template_id.to_i > 0 && @mail_template = MailTemplate.find_by_id(@options.mail_template_id)
             vars = {}
             @mail_template.deliver_to_user(@usr,vars)
@@ -289,8 +291,8 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
             return
           end
 
-	  flash[:notice] = 'Account Updated'.t
-	  @updated = true
+          flash[:notice] = 'Account Updated'.t
+          @updated = true
         end
       end
     end
@@ -495,7 +497,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
     @required_fields = %w(email)
     @optional_fields = %w{first_name last_name gender username dob}
     @adr_fields = %w(company phone fax address city state zip country)
-    
+
     @user = myself
     @address = @user.address ? @user.address : @user.build_address(:address_name => 'Default Address'.t )
     @work_address = @user.work_address ? @user.work_address : @user.build_work_address(:address_name => 'Default Work Address'.t )
@@ -513,7 +515,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
         @address.validate_registration(:home,opts.address == 'required',opts.address_type )
         all_valid = false unless @address.errors.empty?
       end
-      
+
       if opts.work_address != 'off'
         @work_address.attributes = params[:work_address].slice(*@adr_fields)
         @work_address.country = opts.country unless opts.country.blank?
@@ -522,9 +524,9 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       end
 
       if opts.content_publication.to_i > 0
-	fill_entry(@publication,@entry,@user)
-	
-	all_valid = false unless @entry.valid?
+        fill_entry(@publication,@entry,@user)
+
+        all_valid = false unless @entry.valid?
       end
 
       @user.valid?
@@ -538,16 +540,16 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
           @user.address_id = @address.id
         end
         if opts.work_address != 'off'
-	  @work_address.save
-	  @user.work_address_id = @work_address.id
+          @work_address.save
+          @user.work_address_id = @work_address.id
         end
 
         @user.save
 
-	if !opts.add_tags.to_s.empty?
-	  @user.tag_names_add(opts.add_tags)
-	end
-        
+        if !opts.add_tags.to_s.empty?
+          @user.tag_names_add(opts.add_tags)
+        end
+
         if opts.include_subscriptions.is_a?(Array) && opts.include_subscriptions.length > 0
           update_subscriptions(@user,opts.include_subscriptions,params[:subscription])
         end 
@@ -556,17 +558,17 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
           paragraph.run_triggered_actions(@user,'action',@user)
         end
 
-	paragraph_action(myself.action('/editor/auth/edit_account_profile', :identifier => @user.email))
-	
+        paragraph_action(myself.action('/editor/auth/edit_account_profile', :identifier => @user.email))
+
         if opts.success_page
           nd = SiteNode.find_by_id(opts.success_page)
           if nd 
             redirect_paragraph nd.node_path if nd
             return 
-	  end
-	end
-	render_paragraph :text => 'Successfully Edited Profile'.t 
-	return
+          end
+        end
+        render_paragraph :text => 'Successfully Edited Profile'.t 
+        return
       end
     end
 
@@ -579,12 +581,12 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
 
     render_paragraph :partial => '/editor/auth/edit_account',
       :locals => { :user => @user, 
-      :opts => opts.to_h.merge(:vertical => opts.form_display == 'vertical'), 
-      :fields => @optional_fields,
-      :address => @address,
-      :work_address => @work_address,
-      :subscriptions => @subscriptions,
-      :reset_password => flash['reset_password'] }
+        :opts => opts.to_h.merge(:vertical => opts.form_display == 'vertical'), 
+        :fields => @optional_fields,
+        :address => @address,
+        :work_address => @work_address,
+        :subscriptions => @subscriptions,
+        :reset_password => flash['reset_password'] }
   end
 
 # update users subscriptions

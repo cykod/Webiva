@@ -336,6 +336,7 @@ class SiteModule < DomainModel
 
   def post_initialization!
     if  self.status == 'initialized' 
+      self.admin_controller_class.content_node_type_generate
       if ( self.admin_controller_class.method_defined?('options') ||
            self.admin_controller_class.respond_to?('module_options') )
         if self.admin_controller_class.respond_to?('module_options')
