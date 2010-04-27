@@ -43,7 +43,7 @@ class Feed::PageFeature < ParagraphFeature
   def local_expansion_tag(c,tag_name,key,local)
     c.expansion_tag(tag_name) do |t|
       obj = t.locals.send(local)
-      t.locals.send("#{key}=",obj[key])
+      t.locals.send("#{key}=",obj[key]) if obj
     end
   end
 
