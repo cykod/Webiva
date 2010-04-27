@@ -150,7 +150,7 @@ class ContentHashModel
       if fld.is_type?('/content/core_field/header')
         nil
       else
-        h(fld.name) + spacer + fld.content_display(data_model,style)
+        h(fld.name).to_s + spacer + fld.content_display(data_model,style).to_s
       end
     end.select { |fld| ! fld.nil? }.join(separator)
   end
