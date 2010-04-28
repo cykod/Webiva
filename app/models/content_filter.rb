@@ -22,6 +22,7 @@ class ContentFilter < DomainModel
   class << self;
     include ActionView::Helpers::TagHelper
     include ActionView::Helpers::TextHelper
+    include ActionView::Helpers::UrlHelper
   end
 
   @@built_in_filters = [ ['Full HTML','full_html'],
