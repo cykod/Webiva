@@ -435,8 +435,7 @@ include ModelExtension::EndUserImportExtension
       self.first_name = other_names[0]
       self.middle_name = other_names[1..-1].join(" ") if other_names[1..-1]
     else
-      self.first_name = ''
-      self.last_name = name[0]
+      self.first_name = name[0]
     end  
   end
 
