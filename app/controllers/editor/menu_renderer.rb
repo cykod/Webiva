@@ -114,7 +114,6 @@ class Editor::MenuRenderer < ParagraphRenderer #:nodoc:all
     
 
     render_paragraph :text => menu_feature(data)
-    require_js('menu') if @include_menu_js
   end
   
 
@@ -205,6 +204,26 @@ class Editor::MenuRenderer < ParagraphRenderer #:nodoc:all
     end
    end
    info
+  end
+
+  paragraph :page_title 
+
+  def page_title
+    conn_type,conn_data = page_connection
+    if conn_type == :title
+      @title = conn_data
+    end
+
+    unless @title
+      rev = revision
+      if rev
+        @title = rev.title.to_s.empty? ? site_node.title.humanize.capitalize : rev.title
+      else
+        @title = site_node.title.humanize
+      end
+    end
+      
+    render_paragraph :text => page_title_feature
   end
   
   def bread_crumbs

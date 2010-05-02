@@ -141,6 +141,7 @@ class Editor::MenuFeature < ParagraphFeature #:nodoc:all
 
  
           c.define_tag 'section:popup' do |tag|
+            require_js('menu') unless @include_menu_js
             @include_menu_js = true
             opts = []
             opts << "offset_x: #{jvh tag.attr['offset_x']}" if tag.attr['offset_x']
@@ -275,6 +276,15 @@ FEATURE
   end
 
 
+  feature :page_title, :default_feature => <<-FEATURE
+   <h1><cms:title/></h1>
+FEATURE
+
+  def page_title_feature(data)
+    webiva_feature('page_title') do |c|
+      c.h_tag('title') { |t| data[:title] }
+    end
+  end
 
 
 
