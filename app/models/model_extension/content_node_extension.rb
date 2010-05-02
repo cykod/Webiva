@@ -131,14 +131,13 @@ module ModelExtension::ContentNodeExtension
 
     def content_node_type_update #:nodoc:
       opts = self.content_node_type_options
-       
-       title_field = (opts[:title_field] || 'name').to_s
-       url_field = (opts[:url_field] || 'id').to_s
-       
+
        # Get the name of the content
        content_name = self.resolve_argument(opts[:content_name],:name)
-      
-      if !self.content_type || content_name != self.content_type.content_name
+
+       if !self.content_type
+        self.content_node_type_create
+      elsif content_name != self.content_type.content_name
         self.content_type.update_attributes(:content_name => content_name)
       end
 
