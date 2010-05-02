@@ -331,6 +331,19 @@ block is non-nil
         end
       end
     end
+
+    def escape_value_helper(value,escape) #:nodoc:
+      case escape
+      when 'value':
+        vh(value)
+      when 'javascript':
+        jh(value)
+      when 'javascript_value':
+        jvh(value)
+      else
+        h(value)
+      end
+    end
     
     # Defines a value tag, which is the standard tag that 
     # is used to output a piece of content. Using value_tag
@@ -344,11 +357,28 @@ block is non-nil
     # Which would only display the Name: .. text if the return value of the block
     # isn't blank.
     #
+    # You can pass an "escape" attribute set to html, value, javascript or javascript_value
+    # to escape the output of a tag as necessary
+    #
+    # You can also use the value as an expansion tag by passing any of the following:
+    #  max="MAX VALUE", min="MIN_VALUE", not_equals="COMPARE VALUE",
+    #  equals="COMPARE VALUE", contains="Multiple,Comma,Separated,Values"
+    #
+    #  For example:
+    #
+    #       <cms:age min='21'>Alcohol Reference</cms:age>
+    #
+    #  Which would only expand if the value of age is greater than 21
+    #  
     def define_value_tag(name,field='value',&block)
       define_tag(name) do |tag|
         val = yield(tag)
         if tag.single?
-          val
+          if tag.attr['escape']
+            escape_value_helper(val,tag.attr['escape']) 
+          else 
+            val
+          end
         else
           value_tag_helper(tag,field,val)
         end
@@ -954,25 +984,25 @@ block is non-nil
     end
   end
   
-    def define_captcha_tag(name,options={})  #:nodoc:
-      define_tag(name) do |t| 
-        captcha = yield t
-	if captcha
-	  captcha.generate(t.attr.merge(options))
-	else
-	  nil
-	end
-      end
-
-      define_value_tag(name+'_error') do |t|
-	captcha = yield t
-	if captcha
-	  captcha.valid? ? nil : (t.attr['message'] || 'Captcha is invalid')
-	else
-	  nil
-	end
+  def define_captcha_tag(name,options={})  #:nodoc:
+    define_tag(name) do |t| 
+      captcha = yield t
+      if captcha
+        captcha.generate(t.attr.merge(options))
+      else
+        nil
       end
     end
+
+    define_value_tag(name+'_error') do |t|
+      captcha = yield t
+      if captcha
+        captcha.valid? ? nil : (t.attr['message'] || 'Captcha is invalid')
+      else
+        nil
+      end
+    end
+  end
     
     # Defines a field tag used with define_form_for_tag
     # Most options are passed directly through to the appropriate field options
@@ -1054,7 +1084,56 @@ block is non-nil
       
       val
     end
-    
+
+    # Fields is a list array of arrays like:
+    #  [ :tag_name, "Label", :field_control, :field_name, options = {} ]
+    def define_form_fields_tag(base,fields,options = {})
+      local = options[:local] || 'form'
+
+      fields.each do |fld|
+          define_form_field_tag("#{base}:#{fld[0]}",fld[4].merge(:label => fld[1], :control => fld[2], :field => fld[3] ))
+      end
+
+      define_loop_tag(base,nil,:local => 'field') { |t| fields }
+
+      define_tag("#{base}:item") do |t|
+        tag_name = t.attr['tag'] || 'li'
+        if !t.single?
+          "<#{tag_name} class='#{t.locals.field[2]}'>" + t.expand + "</#{tag_name}>"
+        else 
+          "<#{tag_name} class='#{t.locals.field[2]}'>" + form_fields_helper(t,local,t.locals.field) +  "</#{tag_name}>"
+        end
+      end
+
+      define_tag("#{base}:item:label") { |t| form_fields_label_helper(t,local,t.locals.field) }
+
+      define_tag("#{base}:item:control") do |t|
+        form_field_tag_helper(t,t.locals.send(local),t.locals.field[2],t.locals.field[3],t.locals.field[4])
+      end
+
+      define_value_tag "#{base}:error" do |t|
+        form_field_error_tag_helper(t,t.locals.send(local),t.locals.field[3])
+      end
+
+    end
+
+    def form_fields_label_helper(t,local,field)
+      object_id = field[2] if ![:radio_buttons,:check_boxes].include?(field[2])
+      frm = t.locals.send(local)
+      req = field[4][:required] ? "<em>*</em>" : ""
+      label = field[1]
+      if object_id 
+        "<label for='#{frm.object_name}_#{object_id}'>#{label.to_s + req}</label>"
+      else
+        "<label>#{label}</label>"
+      end
+    end
+
+    def form_fields_helper(t,local,field)
+      form_fields_label_helper(t,local,field) + 
+        form_field_tag_helper(t,t.locals.send(local),field[2],field[3],field[4])
+    end
+
     def define_form_field_tag(name,options={},&block) #:nodoc:
       options = options.clone
       
@@ -1220,110 +1299,7 @@ block is non-nil
       end
 
       if publication.form?
-        
-        
-        c.define_tag("#{prefix}:has_many_field") do |t|
-          frm = t.locals.send(frm_obj)
-          available_fields = publication.content_publication_fields.map(&:content_model_field).map { |fld| [ fld.feature_tag_name, fld.id, fld ]}
-
-          fields = t.attr['fields'].split(",").map { |fld| fld.strip.blank? ? nil : fld.strip }.compact
-
-          active_fields = available_fields.select { |fld| fields.include?(fld[0]) }.map { |fld| fld[2] } 
-          t.locals.has_many_fields = active_fields
-          t.locals.has_many_values = t.locals.has_many_fields.map do  |fld|
-            frm.object.send("#{fld.field_options['relation_singular']}_ids")
-          end
-
-
-          # TODO: Yeah, not so hot - needs to be extract to core_field somehow
-          if active_fields[0] && cls = active_fields[0].relation_class
-            cm =  active_fields[0].content_model_relation
-
-            if t.attr['display'] && display_field = cm.content_model_fields.detect { |fld| fld.field == t.attr['display'] }
-              display_field = display_field.field
-            else
-              display_field = "identifier_name"
-            end
-              
-
-
-            if t.attr['filter_by'] && filter_field = cm.content_model_fields.detect { |fld| fld.field == t.attr['filter_by'] }
-              conditions = { filter_field.field => t.attr['filter'] }
-            else
-              conditions = nil
-            end
-
-            if t.attr['order'] && order_field = cm.content_model_fields.detect { |fld| fld.field == t.attr['order'] }
-              order_by = "`#{order_field.field}`"
-            else
-              order_by = nil
-            end
-            arr = cls.find(:all,:order => order_by,:conditions => conditions)
-            if t.attr['group'] && group_field = cm.content_model_fields.detect { |fld| fld.field == t.attr['group'] }
-
-              if t.attr['group_2nd'] && group_2nd_field =  cm.content_model_fields.detect { |fld| fld.field == t.attr['group_2nd'] }
-                available_options =  {}
-                arr.group_by { |elm| group_field.content_display(elm) }.each do |key,arr2|
-                  arr2.group_by { |elm|  group_2nd_field.content_display(elm) }.each do |key2,arr3|
-                    available_options[key] ||= {}
-                    available_options[key][key2] = arr3.map { |elm| [ elm.send(display_field), elm.id ] }
-                  end
-                end
-                arr = available_options.to_a.map do |elm|
-                  [ elm[0],
-                    elm[1].to_a.sort { |a,b| a[0].to_s.downcase <=> b[0].to_s.downcase }.map { |elm2| { :name => elm2[0], :items => elm2[1] } }
-                  ]
-                end.sort { |a,b| a[0].to_s.downcase <=> b[0].to_s.downcase }.map { |elm| { :name => elm[0], :items => elm[1] } }
-              else
-                available_options =  {}
-                arr.group_by { |elm| group_field.content_display(elm) }.each do |key,arr|
-                  
-                  available_options[key] = arr.map { |elm| [  elm.send(display_field), elm.id ] }
-                end
-                arr = available_options.to_a.sort { |a,b| a[0].to_s.downcase <=> b[0].to_s.downcase }.map { |elm| { :name => elm[0], :items => elm[1] } }
-              end
-            else
-              arr.map! { |elm| [ elm.send(display_field), elm.id ] }
-            end
-            output = ''
-            output << has_many_field_helper(1,t,arr,0)
-          end
-          output
-        end
-
-        c.value_tag("#{prefix}:has_many_field:grouping") { |t| t.locals.has_many_grouping }
-        c.define_tag("#{prefix}:has_many_field:entries") do |t|
-          pre = t.attr['pre'] || ''
-          post = t.attr['post'] || ''
-          prefix = t.attr['prefix']
-          align = t.attr['align'] || 'center'
-          if !t.locals.has_many_entry
-            nil
-          else 
-            frm = t.locals.send(frm_obj)
-
-            field_names = t.locals.has_many_fields.map { |fld|  "#{fld.field_options['relation_singular']}_ids" }
-            output = ''
-            values = t.locals.has_many_values
-
-            t.locals.has_many_entry.each do |ent|
-              output <<  pre + (prefix ?  "<tr><td class='has_many_label'>#{ent[0]}</td>" : "<tr>")
-              t.locals.has_many_fields.each_with_index do |fld,idx|
-                output << "<td align='#{align}' class='has_many_item'>" +
-                  check_box_tag("#{frm.object_name}[#{field_names[idx]}][]",
-                                ent[1],
-                                values[idx].include?(ent[1]),
-                                :id => "#{frm.object_name}_#{field_names[idx]}_#{ent[1]}") + "</td>"
-              end
-              output <<( prefix ? "</tr>" :  "<td class='value_label'>#{ent[0]}</td></tr>") + post
-            end
-            output
-          end
-        end
-
-        c.value_tag("#{prefix}:has_many_field:level") { |t| t.locals.has_many_level } 
-
-        
+               
         c.loop_tag("#{prefix}:field") do |t|
           fields = publication.content_publication_fields.select { |fld| fld.field_type == 'input' && fld.content_model_field.data_field? }
           if t.attr['except']
@@ -1337,8 +1313,21 @@ block is non-nil
           fields
         end
 
+        define_tag("#{prefix}:field:item") do |t|
+          tag_name = t.attr['tag'] || 'li'
+          if !t.single?
+            "<#{tag_name} class='#{t.locals.field.content_model_field.field_type}_model_field' >" + t.expand + "</#{tag_name}>"
+          else 
+            "<#{tag_name} class='#{t.locals.field.content_model_field.field_type}_model_field' >" + publication_form_fields_helper(t,frm_obj,t.locals.field) +  "</#{tag_name}>"
+          end
+        end
+
         c.value_tag("#{prefix}:field:label") do |t|
-          t.locals.field.label
+          req = t.locals.field.required? ? "<em>*</em>" : ""
+          label = t.locals.field.label
+          frm = t.locals.send(frm_obj)
+          object_id = t.locals.field.content_model_field.field
+          "<label for='#{frm.object_name}_#{object_id}'>#{label.to_s + req}</label>"
         end
 
         c.value_tag("#{prefix}:field:required") do |t|
@@ -1356,6 +1345,18 @@ block is non-nil
         end
       end
 
+    end
+
+    def publication_form_fields_helper(t,frm_obj,field)
+      req = field.required? ? "<em>*</em>" : ""
+      label = field.label
+      frm = t.locals.send(frm_obj)
+      object_id = field.content_model_field.field
+      opts = { :label => t.locals.field.label }.merge(t.locals.field.data)
+      opts[:size] = t.attr['size'] if t.attr['size']
+
+      "<label for='#{frm.object_name}_#{object_id}'>#{label.to_s + req}</label>" +
+      field.form_field(t.locals.send(frm_obj),opts.merge(t.attr.symbolize_keys))
     end
 
     # Defines a page_list tag called pages on the base as well as tags for 
@@ -1568,10 +1569,10 @@ block is non-nil
           nil
         elsif tag.attr['icon'] || (tag.attr['type'] == 'image')
             img_src = (tag.single? ? tag.attr['icon'] : tag.expand)
-            "<form class='post_button_form' action='#{vh url}' #{onsubmit} method='#{method}'><input class='#{cls}' type='image' value='submit' src='#{vh img_src}'/></form>"
+            "<form class='post_button_form' style='display:inline;' action='#{vh url}' #{onsubmit} method='#{method}'><CMS:AUTHENTICITY_TOKEN/><input class='#{cls}' type='image' value='submit' src='#{vh img_src}'/></form>"
         else
           button_value = (tag.attr['value'] || (tag.single? ? button_value : tag.expand))
-          "<form class='post_button_form' action='#{vh url}'  #{onsubmit}  method='#{method}'><input class='#{cls}' type='submit' value='#{qvh(button_value)}'/></form>"
+          "<form class='post_button_form'  style='display:inline;' action='#{vh url}'  #{onsubmit}  method='#{method}'><CMS:AUTHENTICITY_TOKEN/><input class='#{cls}' type='submit' value='#{qvh(button_value)}'/></form>"
         end      
       end
     end
