@@ -57,6 +57,27 @@ class PageRevision < DomainModel
     SiteTemplate.find(1)
   end
 
+  def node_path
+    if self.revision_container.is_a?(SiteNode)
+      self.revision_container.node_path
+    else
+      self.revision_container.site_node.node_path
+    end
+  end
+
+
+  def full_page_paragraphs
+    if self.revision_container.is_a?(SiteNode)
+      container = self.revision_container
+      paras = container.full_framework_paragraphs(self.language,true)
+    else
+      container = self.revision_container.site_node
+      paras = container.full_framework_paragraphs(self.language,false,self.revision_container.position)
+    end
+    paras + self.page_paragraphs
+  end
+
+
 
   def used_images
     DomainFileInstance.find(:all,:conditions => { :target_type => 'PageParagraph', :target_id => page_paragraph_ids }, :include => :domain_file).map(&:domain_file).uniq

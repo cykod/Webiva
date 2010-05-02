@@ -180,6 +180,14 @@ class SiteNodeModifier < DomainModel
 
   end
 
+  def active_language_revision(language)
+    # Get the first real, active revisions from this framework that's available
+    self.page_revisions.find(:first,
+                             :conditions => "revision_type = 'real' AND active=1",
+                             :order => "language=#{PageRevision.quote_value(language)} DESC"
+                            )
+
+  end
 
   protected
 
@@ -217,13 +225,10 @@ class SiteNodeModifier < DomainModel
     page_information[:domain] = self.modifier_data[:limit_to_domain] unless page_information[:domain]
   end
 
+
   def apply_modifier_framework!(engine,page_information)
-    # Get the first real, active revisions from this framework that's available
-    rev = self.page_revisions.find(:first,
-                                  :conditions => "revision_type = 'real' AND active=1",
-                                  :order => "language=#{PageRevision.quote_value(engine.language)} DESC"
-                                  )
-    # If there's a valid revision     
+    rev = active_language_revision(engine.language)
+       # If there's a valid revision     
     if rev
       
       # Use this as the revision, unless we have a one already

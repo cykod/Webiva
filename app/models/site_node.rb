@@ -229,6 +229,46 @@ class SiteNode < DomainModel
   def page_type #:nodoc:
     "page"
   end
+
+  def full_framework_paragraphs(language,before_only=false,before_idx=nil)
+    node_list = self.self_and_ancestors.reverse
+    page_paragraphs = { }
+    zone_clears =  {}
+
+    node_list.each do |nd|
+      if nd == self
+        modifiers = nd.framework_and_template_modifiers(before_only,before_idx).reverse
+      else 
+        modifiers = nd.framework_and_template_modifiers.reverse
+      end
+
+      modifiers.each do |md|
+        if md.modifier_type == 'template'
+          if md.modifier_data[:clear_frameworks] == 'yes'
+            break # early out
+          end
+        elsif md.modifier_type == 'framework'
+          paras = md.active_language_revision(language).page_paragraphs
+          paras.each do |para|
+            if para.display_type == 'clear'
+              zone_clears[para.zone_idx] = para.page_revision_id
+            elsif !zone_clears[para.zone_idx] || zone_clears[para.zone_idx] == para.page_revision_id
+              page_paragraphs[para.zone_idx] ||= []
+              page_paragraphs[para.zone_idx] << para
+            end
+          end
+        end
+      end
+    end
+    page_paragraphs.values.inject([]) { |a,b| a + b }
+  end
+
+
+  def framework_and_template_modifiers(before_only=false,before_idx=nil)
+    self.modifiers(before_only,before_idx).select { |md| md.modifier_type == 'framework' || md.modifier_type == 'template' }
+  end
+
+
   
   # Returns a list of modifiers, optionally only those before
   # the page (and then optionally only those before the passed index)

@@ -239,9 +239,9 @@ class EditController < ModuleController # :nodoc: all
       if para.is_a?(Array) && para.length == 2
         nil
       elsif para.is_a?(Array) && !para[5] 
-        @paragraph_hash[para[1]] = para 
+        @paragraph_hash["#{para[3]}_#{para[1]}"] = para 
       else
-        @paragraph_hash["#{para[1]}_#{para[5]}" ] = para 
+        @paragraph_hash["#{para[3]}_#{para[1]}_#{para[5]}" ] = para 
       end
     end
     
@@ -592,7 +592,7 @@ class EditController < ModuleController # :nodoc: all
     @page = @container_cls.find(@container_id)
     @revision = @page.page_revisions.find(params[:path][2])
     
-    @paragraphs = @revision.page_paragraphs
+    @paragraphs = @revision.full_page_paragraphs # include paras 
     
 #    if @page.is_a?(SiteNode) || true
     @outputs = {
@@ -607,10 +607,11 @@ class EditController < ModuleController # :nodoc: all
                 [ 0, 'Page', :page_arg_2, "Argument #3 - " + @page.node_path + "/xxx/yyy/ZZZ", :path ]
 
               ],
-      :title => [ [  0, 'Page Title', :title, 'Page Title', :title ]],
-                   :user => [ [ 0, 'User ID', :user_id, 'User ID', :user ] ],
-                   :target => [ [ 0, 'Active User', :user_target, 'User', :target ] ],                   
-                   :user_class => [ [0, 'User Profile', :user_class_id, 'User Profile', :user_class ] ]
+      :title => [ [  0, 'Page Title Full', :title, 'Page Title', :title ]],
+      :title_str => [ [  0, 'Page Title String', :title_str, 'Page Title', :title_str ]],
+      :user => [ [ 0, 'User ID', :user_id, 'User ID', :user ] ],
+      :target => [ [ 0, 'Active User', :user_target, 'User', :target ] ],                   
+      :user_class => [ [0, 'User Profile', :user_class_id, 'User Profile', :user_class ] ]
                  }
 #    else
 #      @outputs = {}
@@ -622,6 +623,8 @@ class EditController < ModuleController # :nodoc: all
         para_info = para.editor_info
         
         info = para.content_publication.page_connections
+
+        # Map all the available outputs
         if info[:outputs]
           info[:output].each do |pout|
             @outputs[pout[2]] ||= []
@@ -629,7 +632,8 @@ class EditController < ModuleController # :nodoc: all
           end
         end
 
-        if info[:inputs]
+        # But only those inputs for the current page
+        if info[:inputs] && para.page_revision_id == @revision.id
           selected_input = (para.connections||{})[:inputs] || {}
           info[:inputs].each do |key,input|
 
@@ -649,12 +653,14 @@ class EditController < ModuleController # :nodoc: all
         
         if info[:outputs]
           info[:outputs].each do |pout|
+            output_name = para.page_revision_id == @revision.id ? info[:name] : "(#{para.page_revision.node_path}) #{info[:name]}"
             @outputs[pout[2]] ||= []
-            @outputs[pout[2]] << [para.identity_hash || para.id.to_s, info[:name]] + pout
+            @outputs[pout[2]] << [para.identity_hash || para.id.to_s, output_name] + pout
           end
         end 
-        
-        if info[:inputs]
+       
+
+        if info[:inputs] && para.page_revision_id == @revision.id
           if info[:inputs].is_a?(Array)
             selected = (para.connections||{})[:inputs] || {}
             selected_value = selected[:input].map(&:to_s).join("|") if  selected[:input]
@@ -677,7 +683,6 @@ class EditController < ModuleController # :nodoc: all
                 :input => input,
                 :selected => selected_value }
             end
-          
           end
         end
       end
