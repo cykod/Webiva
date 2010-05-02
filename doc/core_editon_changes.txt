@@ -16,5 +16,5 @@ paras.each do |para|
 end
 
 
-PageRevision.find(:all,:conditions => { :active => 1, :revision_type => 'real' }).map(&:make_real)
+PageRevision.find(:all,:conditions => { :active => 1, :revision_type => 'real' }, :include => :page_paragraphs).each { |rev| rev.page_paragraphs.map(&:save); rev.make_real } 
 
