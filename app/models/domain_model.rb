@@ -349,7 +349,7 @@ class DomainModel < ActiveRecord::Base
   def resolve_argument(arg,default = :name)
    if arg.is_a?(Proc) 
       arg.call(self)
-   elsif arg.is_a?(String)
+   elsif arg.is_a?(String) || arg.is_a?(Fixnum)
       arg
    elsif !arg.blank?
       self.send(arg.to_sym)
