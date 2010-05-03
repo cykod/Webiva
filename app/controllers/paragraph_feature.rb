@@ -566,7 +566,7 @@ block is non-nil
     # of the local variable to find the user object (defaults to the name of the tag)
     #
     #     expansion_tag('user') { |t| t.locals.user = data[:user] }
-    #     user_details_tags('user') { |t| t.locals.user }
+    #     user_details_tags('user', :local => 'user')
     #
     # Would define expansion tags for: myself,male,female,address,work_address
     # and would define value tag for:
