@@ -43,21 +43,21 @@ class Feed::PageFeature < ParagraphFeature
   def local_expansion_tag(c,tag_name,key,local)
     c.expansion_tag(tag_name) do |t|
       obj = t.locals.send(local)
-      t.locals.send("#{key}=",obj[key])
+      t.locals.send("#{key}=",obj[key]) if obj
     end
   end
 
   def value_tag_helper(c,tag_name,name_base_blank,key,local)
     if key =~ /^.*\_at$/
-     c.date_tag(tag_name,DEFAULT_DATETIME_FORMAT.t) { |t| obj = t.locals.send(local); obj[key] }
+     c.date_tag(tag_name,DEFAULT_DATETIME_FORMAT.t) { |t| obj = t.locals.send(local); obj[key] if obj }
     elsif key =~ /^.*\_on$/
-     c.date_tag(tag_name,DEFAULT_DATE_FORMAT.t) { |t|  obj = t.locals.send(local); obj[key] }
+     c.date_tag(tag_name,DEFAULT_DATE_FORMAT.t) { |t|  obj = t.locals.send(local); obj[key] if obj }
     elsif key =~ /^(.*)\_url$/
-     c.link_tag(name_base_blank + ":" +  $1) {  |t| obj = t.locals.send(local); obj[key] }
+     c.link_tag(name_base_blank + ":" +  $1) {  |t| obj = t.locals.send(local); obj[key] if obj }
     elsif key =~ /^.*\url$/
-     c.link_tag(name_base_blank) {  |t| obj = t.locals.send(local); obj[key] }
+     c.link_tag(name_base_blank) {  |t| obj = t.locals.send(local); obj[key] if obj }
     else
-      c.value_tag(tag_name) { |t|  obj = t.locals.send(local); obj[key] }
+      c.value_tag(tag_name) { |t|  obj = t.locals.send(local); obj[key] if obj }
     end
   end
 end

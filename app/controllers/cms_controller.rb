@@ -283,21 +283,6 @@ class CmsController < ApplicationController
     end
   end
 
-  # Checks if a parameter exists in parms, then the session, otherwise sets it to the
-  # default value, sets the session and returns the value
-  #
-  # Used primarily for toggles on the backend (like archived in structure)
-  def handle_session_parameter(parameter_name,default_val = nil,options = {})
-
-    parameter_name = parameter_name.to_sym
-    # Show return to be explicit what we are doing (setting session value & returning)
-    if params.has_key?(parameter_name)
-      return session[parameter_name] = params[parameter_name]
-    else
-      return session[parameter_name] || default_val
-    end
-  end
-
   # Sets the current page title and breadcrumbs 
   # in each controller method
   def cms_page_path(pages,info,menu_js=nil,section=nil)
