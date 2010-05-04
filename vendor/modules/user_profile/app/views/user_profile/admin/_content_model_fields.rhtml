@@ -1,0 +1,5 @@
+<% if @profile_type.content_model %>
+<% cms_subfields_for :user_profile_type, @profile_type do |sf| -%>
+  <%= sf.select :content_model_field_id, @profile_type.content_model_field_options, :label => 'User Field'%> 
+<% end -%>
+<% end -%>

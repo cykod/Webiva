@@ -1,0 +1,14 @@
+<div class='admin_content'>
+<% active_table_for :user_profile_table, @tbl, :refresh_url => url_for(:action => 'display_user_profile_table', :path => ""), 
+:actions => [ ['Delete','delete','Are you sure you want to delete these profiles?']] do |t| -%>
+
+
+   <% active_tr 'user_profile', t.id do |tr| %>
+   <td><%= tr.checkbox %></td>
+   <td><%= link_to h(t.name), :action => :edit_profile_type, :path => [t.id] %></td>
+    <td><%= h t.content_model ? t.content_model.name : "none" %></td>
+    <td><%= h t.user_profile_type_user_classes.collect { |p| p.user_class.name }.join "," %></td>
+
+   <% end -%>
+  <% end -%>
+</div>
