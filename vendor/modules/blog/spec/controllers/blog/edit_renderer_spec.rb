@@ -16,10 +16,9 @@ describe Blog::EditRenderer, :type => :controller do
     mock_editor
     @blog = Blog::BlogBlog.create(:name => 'Test Blog', :content_filter => 'full_html', :is_user_blog => true)
     @category = @blog.blog_categories.create :name => 'new'
-    @post = @blog.blog_posts.new
+    @post = @blog.blog_posts.new :title => 'Test Post', :body => 'Test Body'
     @post.publish 5.minutes.ago
-    @rev = @post.blog_post_revisions.new :title => 'Test Post', :body => 'Test Body'
-    @post.save_revision! @rev
+    @post.save
     @blog.target = @post
     @blog.save
 

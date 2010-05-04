@@ -15,17 +15,28 @@ class Blog::PageController < ParagraphController
   
   editor_for :entry_detail, :name => 'Blog Entry Detail', :features => ['blog_entry_detail'],
                        :inputs => { :input => [[ :post_permalink, 'Blog Post Permalink', :path ]],
-                                    :blog => [[ :container, 'Blog Target', :target],
-                                              [:blog_id,'Blog ID',:path ]]
+                                    :blog => [[:blog_id,'Blog ID',:path ]]
                                   },
                        :outputs => [[:content_id, 'Content Identifier', :content],
                                     [:post, 'Blog Post', :post_id ]]
+                                  
+  editor_for :targeted_entry_detail, :name => "Targeted Blog Entry Detail",  :features => ['blog_entry_detail'],
+                      :inputs => { 
+                         :input => [[ :post_permalink, 'Blog Post Permalink', :path ]],
+                         :blog => [[ :container, 'Blog Target', :target]]
+                         },
+                        :outputs => [[:content_id, 'Content Identifier', :content],
+                                     [:post, 'Blog Post', :post_id ]]
+
+
+
 
   editor_for :categories, :name => 'Blog Categories' ,:features => ['blog_categories'],
                         :inputs => [[:category, 'Selected Category', :blog_category_id]]
  
   class EntryListOptions < HashModel
-    attributes :blog_id => nil, :items_per_page => 10, :detail_page => nil, :include_in_path => nil
+    attributes :blog_id => nil, :items_per_page => 10, :detail_page => nil, :include_in_path => nil,:blog_target_id => nil
+
 
     def detail_page_id
       self.detail_page
@@ -37,8 +48,11 @@ class Blog::PageController < ParagraphController
     options_form(fld(:blog_id, :select, :options => :blog_options),
 		 fld(:detail_page, :page_selector),
 		 fld(:include_in_path, :select, :options => :include_in_path_options),
-		 fld(:items_per_page, :select, :options => (1..50).to_a)
+   	 fld(:items_per_page, :select, :options => (1..50).to_a),
+     fld(:blog_target_id, :select, :options => :blog_target_options)
 		 )
+
+    def blog_target_options; Blog::BlogTarget.select_options_with_nil; end
 
     def blog_options
       [['---Use Page Connection---'.t,'']] + Blog::BlogBlog.find_select_options(:all,:order=>'name')
@@ -73,6 +87,19 @@ class Blog::PageController < ParagraphController
        ["Include Blog ID in detail path", "blog_id"],
        ["Include Target ID in detail path", "target_id"]]
     end
+  end
+
+
+  class TargetedEntryDetailOptions < HashModel
+    attributes :blog_target_id => nil
+
+    validates_presence_of :blog_target_id
+    options_form(fld(:blog_target_id, :select, :options => :blog_target_options))
+
+    def blog_target_options; Blog::BlogTarget.select_options_with_nil; end
+
+    canonical_paragraph "Blog::BlogTarget", :blog_target_id
+
   end
   
   class CategoriesOptions < HashModel

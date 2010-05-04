@@ -7,9 +7,8 @@ describe Blog::BlogPostsCategory do
   it "should be able to set blog post categories" do
     @blog = Blog::BlogBlog.create :name => 'Test Blog', :content_filter => 'full_html'
     @category = @blog.blog_categories.create :name => 'Test Category'
-    @post = @blog.blog_posts.new
-    @rev = Blog::BlogPostRevision.new(:title => 'Test Post', :body => 'Testerama',:author => 'Anonymous')
-    @post.save_revision! @rev
+    @post = @blog.blog_posts.new :title => 'Test Post', :body => 'Testerama',:author => 'Anonymous'
+    @post.save
 
     assert_difference 'Blog::BlogPostsCategory.count', 1 do
       @post.set_categories! [@category.id]

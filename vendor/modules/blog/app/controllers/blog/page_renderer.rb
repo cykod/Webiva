@@ -7,6 +7,7 @@ class Blog::PageRenderer < ParagraphRenderer
   paragraph :entry_list
   paragraph :entry_detail
   paragraph :categories
+  paragraph :targeted_entry_detail
   
   features '/blog/page_feature'
 
@@ -85,7 +86,7 @@ class Blog::PageRenderer < ParagraphRenderer
 
   def entry_detail
     @options = paragraph_options(:entry_detail)
-    
+
     blog = get_blog
     return render_paragraph :text => (@options.blog_id > 0 ? '[Configure paragraph]' : '') unless blog
 
@@ -95,19 +96,19 @@ class Blog::PageRenderer < ParagraphRenderer
     result = renderer_cache(blog, display_string) do |cache|
       entry = nil
       if editor?
-	entry = blog.blog_posts.find(:first,:conditions => ['blog_posts.status = "published" AND blog_blog_id=? ',blog.id])
+        entry = blog.blog_posts.find(:first,:conditions => ['blog_posts.status = "published" AND blog_blog_id=? ',blog.id])
       elsif conn_type == :post_permalink
-	entry = blog.find_post_by_permalink(conn_id) if conn_id
+        entry = blog.find_post_by_permalink(conn_id) if conn_id
       end
 
       cache[:output] = blog_entry_detail_feature(:entry => entry,
-						 :list_page => get_list_page,
-						 :detail_page => site_node.node_path,
-						 :blog => blog)
+                                                 :list_page => get_list_page,
+                                                 :detail_page => site_node.node_path,
+                                                 :blog => blog)
       cache[:title] = entry ? entry.title : ''
       cache[:entry_id] = entry ? entry.id : nil
     end
-    
+
     if result.entry_id
       set_page_connection(:content_id, ['Blog::BlogPost',result.entry_id] )
       set_page_connection(:post, result.entry_id )
@@ -122,6 +123,52 @@ class Blog::PageRenderer < ParagraphRenderer
 
     render_paragraph :text => result.output
   end
+
+  def targeted_entry_detail
+    @options = paragraph_options(:targeted_entry_detail)
+    return render_paragraph :text => "[Configure Paragraph]" unless @options.blog_target_id > 0
+
+    blog = get_blog
+
+    return render_paragraph :text => '' unless blog
+
+    conn_type, conn_id = page_connection()
+    display_string = "#{conn_type}_#{conn_id}_#{myself.user_class_id}"
+
+    result = renderer_cache(blog, display_string) do |cache|
+      entry = nil
+      if editor?
+        entry = blog.blog_posts.find(:first,:conditions => ['blog_posts.status = "published" AND blog_blog_id=? ',blog.id])
+      elsif conn_type == :post_permalink
+        entry = blog.find_post_by_permalink(conn_id) if conn_id
+      end
+
+      cache[:output] = blog_entry_detail_feature(:entry => entry,
+                                                 :list_page => get_list_page,
+                                                 :detail_page => site_node.node_path,
+                                                 :blog => blog)
+      cache[:title] = entry ? entry.title : ''
+      cache[:entry_id] = entry ? entry.id : nil
+    end
+
+    if result.entry_id
+      set_page_connection(:content_id, ['Blog::BlogPost',result.entry_id] )
+      set_page_connection(:post, result.entry_id )
+      set_title(result.title)
+      set_content_node(['Blog::BlogPost', result.entry_id])
+    else
+      raise SiteNodeEngine::MissingPageException.new( site_node, language ) unless editor?
+    end
+
+    require_css('gallery')
+
+    render_paragraph :text => result.output
+  end
+
+
+
+
+
 
   def categories
     @options = paragraph_options(:categories)
@@ -155,7 +202,7 @@ class Blog::PageRenderer < ParagraphRenderer
     else
       conn_type, conn_id = page_connection(:blog)
       if conn_type == :container
-        Blog::BlogBlog.find_by_target_type_and_target_id(conn_id.class.to_s, conn_id.id)
+        Blog::BlogBlog.find_by_target_type_and_target_id(conn_id.class.to_s, conn_id.id,:conditions => {:blog_target_id => @options.blog_target_id})
       elsif conn_type == :blog_id
         Blog::BlogBlog.find_by_id(conn_id.to_i)
       end

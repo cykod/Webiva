@@ -56,13 +56,13 @@ class Blog::ManageController < ModuleController
   end
   
   def generate_mail_generate
-    @post = @blog.blog_posts.find(params[:post_id],:include => :active_revision)
+    @post = @blog.blog_posts.find(params[:post_id])
 
     @align = params[:opts][:align] == 'left' ? 'left' : 'right'
     @padding = params[:opts][:align] == 'left' ? 'padding:0 10px 10px 0;' : 'padding:0 0 10px 0px;'
-    @img = "<img class='blog_image' src='#{@post.active_revision.domain_file.url(:small)}' align='#{@align}' style='#{@padding}'>" if params[:opts][:align] != 'none' && @post.active_revision.domain_file
+    @img = "<img class='blog_image' src='#{@post.domain_file.url(:small)}' align='#{@align}' style='#{@padding}'>" if params[:opts][:align] != 'none' && @post.domain_file
     
-    @title = "<h1 class='blog_title'>#{h(@post.active_revision.title)}</h1>"
+    @title = "<h1 class='blog_title'>#{h(@post.title)}</h1>"
 
     @post_content = "<div class='blog_entry'>"
     
@@ -72,7 +72,7 @@ class Blog::ManageController < ModuleController
       @post_content += @img.to_s + @title
     end
     @post_content += "\n<div class='blog_body'>"
-    @post_content += @post.active_revision.body + "</div><div class='blog_clear' style='clear:both;'>&nbsp;</div></div>"
+    @post_content += @post.body_content + "</div><div class='blog_clear' style='clear:both;'>&nbsp;</div></div>"
   end
             
                 
@@ -114,12 +114,12 @@ class Blog::ManageController < ModuleController
   end
   
   def mail_template
-     @entry = @blog.blog_posts.find(params[:path][1],:include => :active_revision) 
+     @entry = @blog.blog_posts.find(params[:path][1])
      
      
-     @mail_template = MailTemplate.create(:name => @blog.name + ":" + @entry.active_revision.title, 
-					  :subject => @entry.active_revision.title,
-					  :body_html => @entry.active_revision.body,
+     @mail_template = MailTemplate.create(:name => @blog.name + ":" + @entry.title, 
+					  :subject => @entry.title,
+					  :body_html => @entry.body,
 					  :generate_text_body => true,
 					  :body_type => 'html,text')
                                        
@@ -128,7 +128,7 @@ class Blog::ManageController < ModuleController
   end
 
   def post
-     @entry = @blog.blog_posts.find(params[:path][1],:include => :active_revision) if params[:path][1]
+     @entry = @blog.blog_posts.find(params[:path][1]) if params[:path][1]
 
       @header = <<-EOF
         <script>
@@ -138,32 +138,20 @@ class Blog::ManageController < ModuleController
                                  }
         </script>
       EOF
-      @header += "<script src='/javascripts/cms_form_editor.js' type='text/javascript'></script>"
-
+      require_js('cms_form_editor')
 
      if @entry
-       @revision = @entry.active_revision.clone
-       blog_path(@blog,[ 'Edit Entry: %s', nil, @revision.title ])
-
-       @selected_category_ids = params[:categories] || @entry.category_ids
-      
+       blog_path(@blog,[ 'Edit Entry: %s', nil, @entry.title ])
      else
-       cms_page_info [ ["Content",url_for(:controller => '/content') ], [ "%s",url_for(:action => 'index', :path => @blog.id),@blog.name], 'Post New Entry' ], "content"
        blog_path(@blog,"Post New Entry")
-
        @entry = @blog.blog_posts.build()
-       @revision = Blog::BlogPostRevision.new()
-
-       @selected_category_ids = params[:categories] || []
      end
+     @selected_category_ids = params[:categories] || @entry.category_ids
 
-     @revision.author = myself.name if @revision.author.blank?
+     @entry.author = myself.name if @entry.author.blank?
 
-     if request.post? && params[:revision]
-        @revision.attributes = params[:revision]
+     if request.post? && params[:entry]
         @entry.attributes = params[:entry]
-
-        @revision.end_user_id = myself.id
 
         case params[:update_entry][:status]
         when 'draft':
@@ -174,16 +162,14 @@ class Blog::ManageController < ModuleController
           @entry.publish(params[:entry_update][:published_at].blank? ? Time.now : (params[:entry_update][:published_at]))
         end
     
-        if(@entry.valid? && @revision.valid?)
-	    @entry.save
-            @entry.save_revision!(@revision)
+        if @entry.save
+          @entry.set_categories!(params[:categories])
+          @blog.send_pingbacks(@entry)
 
-            @entry.set_categories!(params[:categories])
-	    @blog.send_pingbacks(@entry)
-
-            redirect_to :action => 'index', :path => @blog.id 
-            return 
+          redirect_to :action => 'index', :path => @blog.id 
+          return 
         end
+        raise @entry.errors.full_messages.inspect
 
      end
 

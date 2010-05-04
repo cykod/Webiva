@@ -8,9 +8,8 @@ describe Blog::ManageController do
     mock_editor
     @blog = Blog::BlogBlog.create(:name => 'Test Blog', :content_filter => 'full_html')
     @category = @blog.blog_categories.create :name => 'Test Category'
-    @post = @blog.blog_posts.new
-    @rev = @post.blog_post_revisions.new :title => 'Test Post', :body => 'Test Body'
-    @post.save_revision! @rev
+    @post = @blog.blog_posts.new(:title => 'Test Post',:body => 'Test Body')
+    @post.save
   end
 
   it "should be able to render index page" do
@@ -87,7 +86,7 @@ describe Blog::ManageController do
 
   it "should be able to create a post" do
     assert_difference 'Blog::BlogPost.count', 1 do
-      post 'post', :path => [@blog.id], :revision => {:title => 'New Blog Title', :body => 'New Blog Body'}, :update_entry => {:status => 'draft'}
+      post 'post', :path => [@blog.id], :entry => {:title => 'New Blog Title', :body => 'New Blog Body'}, :update_entry => {:status => 'draft'}
     end
 
     response.should redirect_to(:action => 'index', :path => @blog.id)
@@ -102,7 +101,7 @@ describe Blog::ManageController do
     @blog.should_receive(:send_pingbacks)
 
     assert_difference 'Blog::BlogPost.count', 1 do
-      post 'post', :path => [@blog.id], :revision => {:title => 'New Blog Title', :body => 'New Blog Body'}, :update_entry => {:status => 'publish_now'}
+      post 'post', :path => [@blog.id], :entry => {:title => 'New Blog Title', :body => 'New Blog Body'}, :update_entry => {:status => 'publish_now'}
     end
 
     response.should redirect_to(:action => 'index', :path => @blog.id)
@@ -119,7 +118,7 @@ describe Blog::ManageController do
     published_at = 1.hour.ago
 
     assert_difference 'Blog::BlogPost.count', 1 do
-      post 'post', :path => [@blog.id], :revision => {:title => 'New Blog Title', :body => 'New Blog Body'}, :update_entry => {:status => 'post_date'}, :entry_update => {:published_at => published_at}
+      post 'post', :path => [@blog.id], :entry => {:title => 'New Blog Title', :body => 'New Blog Body'}, :update_entry => {:status => 'post_date'}, :entry_update => {:published_at => published_at}
     end
 
     response.should redirect_to(:action => 'index', :path => @blog.id)
@@ -131,7 +130,7 @@ describe Blog::ManageController do
 
   it "should be able to edit a post" do
     assert_difference 'Blog::BlogPost.count', 0 do
-      post 'post', :path => [@blog.id, @post.id], :revision => {:title => 'New Blog Title'}, :update_entry => {:status => 'draft'}
+      post 'post', :path => [@blog.id, @post.id], :entry => {:title => 'New Blog Title', :body => 'Test Body'}, :update_entry => {:status => 'draft'}
     end
 
     response.should redirect_to(:action => 'index', :path => @blog.id)
@@ -142,7 +141,7 @@ describe Blog::ManageController do
 
   it "should be able to edit a post and add categories" do
     assert_difference 'Blog::BlogPost.count', 0 do
-      post 'post', :path => [@blog.id, @post.id], :revision => {:title => 'New Blog Title'}, :update_entry => {:status => 'draft'}, :categories => [@category.id]
+      post 'post', :path => [@blog.id, @post.id], :entry => {:title => 'New Blog Title'}, :update_entry => {:status => 'draft'}, :categories => [@category.id]
     end
 
     response.should redirect_to(:action => 'index', :path => @blog.id)
@@ -161,7 +160,7 @@ describe Blog::ManageController do
     @post_category.should_not be_nil
 
     assert_difference 'Blog::BlogPost.count', 0 do
-      post 'post', :path => [@blog.id, @post.id], :revision => {:title => 'New Blog Title'}, :update_entry => {:status => 'draft'}, :categories => []
+      post 'post', :path => [@blog.id, @post.id], :entry => {:title => 'New Blog Title'}, :update_entry => {:status => 'draft'}, :categories => []
     end
 
     response.should redirect_to(:action => 'index', :path => @blog.id)

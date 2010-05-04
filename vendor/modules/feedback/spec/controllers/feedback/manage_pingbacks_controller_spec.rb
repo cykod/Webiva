@@ -6,11 +6,12 @@ describe Feedback::ManagePingbacksController do
 
   include FeedbackTestHelper
 
-  reset_domain_tables :feedback_pingbacks, :comments, :content_nodes, :content_node_values, :blog_posts
+  reset_domain_tables :feedback_pingbacks, :comments, :content_nodes, :content_node_values, :blog_posts, :blog_blogs, :blog_post_revisions
 
   before(:each) do
     mock_editor
-    @post = Blog::BlogPost.create
+    blog = Blog::BlogBlog.create(:name=>'Blog',:content_filter => 'full_html' )
+    @post = blog.blog_posts.create(:title => 'Test Title', :body => 'Test Body')
     @link = '/test-post'
     @type = ContentType.create :component => 'blog', :container_type => 'Blog::BlogBlog', :container_id => 1, :content_type => 'Blog::BlogPost', :content_name => 'Mock Blog', :title_field => 'title'
     @node = @type.content_nodes.create :node => @post
