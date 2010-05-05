@@ -258,19 +258,19 @@ class SiteNodeEngine
                 paragraph.set_page_connections(input_key => myself.id ? myself : nil)
             when 'title':
                 if opts[:connections][:title]
-                  paragraph.set_page_connections(input_key => [ :title,  opts[:connections][:title] ])
+                  paragraph.set_page_connections(input_key =>  opts[:connections][:title])
                 elsif !opts[:edit]
                   return nil
                 end
             when 'title_str':
                 if opts[:connections][:title_str]
-                  paragraph.set_page_connections(input_key => [ :title,  opts[:connections][:title_str] ])
+                  paragraph.set_page_connections(input_key => opts[:connections][:title_str] )
                 elsif !opts[:edit]
                   return nil
                 end
             end
           else
-            if opts[:connections][input[0].to_s] && opts[:connections][input[0].to_s][input[1].to_sym]
+            if opts[:connections][input[0].to_s] && opts[:connections][input[0].to_s].has_key?(input[1].to_sym)
               paragraph.set_page_connections(input_key.to_sym => opts[:connections][input[0].to_s][input[1].to_sym])
             elsif !opts[:edit] && !opts[:ajax]
               return nil
@@ -749,7 +749,7 @@ EOF
       end 
 
       if unrendered > 0 
-        # raise page_connections.inspect + ': Unrendered Paragraphs'
+        #raise page_connections.inspect + ': Unrendered Paragraphs'
       end
     end
   

@@ -5,10 +5,13 @@ class Editor::MenuController < ParagraphController #:nodoc:all
   
   # Make sure we are the editor for menu and automenu paragraphs as well as site maps 
   editor_header "Navigation Paragraphs", :paragraph_navigation
-  editor_for :automenu, :name => 'Automatic Menu', :features => ['menu'], :inputs => [ [ :path, 'Page Path',:integer ] ]
-  editor_for :menu, :name => 'Links Menu', :features => ['menu']
-  editor_for :site_map, :name => 'Site Map', :features => ['site_map']
-  editor_for :bread_crumbs, :name => 'Bread Crumbs', :features => ['bread_crumb']
+  editor_for :automenu, :name => 'Automatic Menu', :feature => 'menu', 
+                        :inputs => [ [ :path, 'Page Path',:integer ] ]
+  editor_for :menu, :name => 'Links Menu', :feature => 'menu'
+  editor_for :site_map, :name => 'Site Map', :feature => 'site_map'
+  editor_for :bread_crumbs, :name => 'Bread Crumbs', :feature => 'bread_crumb'
+
+  editor_for :page_title, :name => "Page Title", :inputs => [ [ :title,"Page Title",:title_str]], :feature => :page_title, :no_options => true
 
   def menu
   

@@ -55,7 +55,7 @@ class Blog::EditFeature < ParagraphFeature
 
   def blog_edit_write_feature(data)
     webiva_feature(:blog_edit_write) do |c|
-      c.form_for_tag('post','post',:code => "<input type='hidden' id='post_publish' name='publish_post' value=''/>") { |t| data[:revision] }
+      c.form_for_tag('post','post',:code => "<input type='hidden' id='post_publish' name='publish_post' value=''/>") { |t| data[:entry ] }
         c.form_error_tag('post:errors')
         c.field_tag('post:title',:size => 50)
         c.field_tag('post:body',:control => 'editor_area', :rows => 20, :cols => 60)        

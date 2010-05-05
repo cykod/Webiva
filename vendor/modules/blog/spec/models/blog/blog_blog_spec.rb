@@ -6,7 +6,7 @@ require  File.expand_path(File.dirname(__FILE__)) + "/../../../../../../spec/spe
 describe Blog::BlogBlog do
 
 
-  reset_domain_tables :blog_blogs, :blog_posts, :blog_post_revisions, :blog_posts_categories, :blog_categories, :content_nodes, :content_types
+  reset_domain_tables :blog_blogs, :blog_posts, :blog_post_revisions, :blog_posts_categories, :blog_categories, :content_nodes, :content_types, :blog_targets,:end_users
 
   before(:each) do
     @blog = Blog::BlogBlog.new
@@ -41,9 +41,21 @@ describe Blog::BlogBlog do
   
   it "should change the content_filter to markdown_safe for user blogs" do
     @blog.name = 'Test Blog'
+    @blog.target = EndUser.push_target('tester@webiva.org')
     @blog.is_user_blog = true
     @blog.save.should be_true
-    @blog.content_filter.should == 'markdown_safe'
+    @blog.content_filter.should == 'safe_html'
+  end
+
+  it "should create a blog target if it's a user blog" do
+    assert_difference "Blog::BlogTarget.count", 1 do 
+      @blog.is_user_blog = true
+      @blog.target = EndUser.push_target('tester@webiva.org')
+      @blog.name = "User Blog"
+      @blog.save.should be_true
+    end
+    ContentType.count.should == 1
+
   end
 
 end

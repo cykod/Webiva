@@ -66,6 +66,7 @@ class ContentPublication < DomainModel
 				)
   	end
   end
+
   
   def assign_entry(entry,values = {},application_state = {})
     application_state = application_state.merge({:values => values })
@@ -104,8 +105,7 @@ class ContentPublication < DomainModel
       false
     end
   end
-  
-  
+
   def form?
     self.publication_type_class.respond_to?(:render_form)
   end

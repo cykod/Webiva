@@ -4,7 +4,7 @@ require 'hpricot'
 
 class Blog::BlogPostRevision < DomainModel
 
-  validates_presence_of :title, :body
+  validates_presence_of :title
 
   belongs_to :blog_post, :class_name => 'Blog::BlogPost', :foreign_key => 'blog_post_id'
 
@@ -12,15 +12,20 @@ class Blog::BlogPostRevision < DomainModel
   has_domain_file :media_file_id
   
   apply_content_filter(:body => :body_html)  do |revision|
-    { :filter => revision.blog_post.blog_blog.content_filter,
-      :folder_id => revision.blog_post.blog_blog.folder_id
+    { :filter => revision.blog_blog.content_filter,
+      :folder_id => revision.blog_blog.folder_id
     }
   end
 
   apply_content_filter(:preview => :preview_html)  do |revision|
-    { :filter => revision.blog_post.blog_blog.content_filter,
-      :folder_id => revision.blog_post.blog_blog.folder_id
+    { :filter => revision.blog_blog.content_filter,
+      :folder_id => revision.blog_blog.folder_id
     }
+  end
+
+  attr_writer :blog_blog
+  def blog_blog
+    @blog_blog || self.blog_post.blog_blog
   end
 
   def body_content

@@ -8,19 +8,23 @@ class Blog::BlogBlog < DomainModel
 
   belongs_to :target, :polymorphic => true
 
-  has_many :blog_posts, :dependent => :destroy
+  belongs_to :blog_target
+
+  has_many :blog_posts, :dependent => :destroy, :include => :active_revision
   has_many :blog_categories, :class_name => 'Blog::BlogCategory', :dependent => :destroy, :order => 'blog_categories.name'
 
   cached_content # Add cached content support 
 
   attr_accessor :add_to_site
 
+  alias_method :targeted_blog, :target
+
   include SiteAuthorizationEngine::Target
   access_control :edit_permission
   
   serialize :options
   
-  content_node_type :blog, "Blog::BlogPost", :content_name => :name,:title_field => :title, :url_field => :permalink # Or field_name or Proc.new
+  content_node_type :blog, "Blog::BlogPost", :content_name => :name,:title_field => :title, :url_field => :permalink, :except => Proc.new { |blg| blg.is_user_blog? }
   
   def self.create_user_blog(name,target)
     self.create(:name => name, :target => target, :is_user_blog => true)
@@ -94,7 +98,10 @@ class Blog::BlogBlog < DomainModel
   end
 
   def before_validation_on_create
-    self.content_filter = 'markdown_safe' if self.is_user_blog?
+    if self.is_user_blog?
+      self.content_filter = 'safe_html' if self.is_user_blog?
+      self.blog_target_id = Blog::BlogTarget.fetch_for_target(self.target)
+    end
   end
 
   def send_pingbacks(post)

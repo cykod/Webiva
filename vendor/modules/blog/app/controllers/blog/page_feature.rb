@@ -84,9 +84,9 @@ class Blog::PageFeature < ParagraphFeature
     c.value_tag('blog_target_id') { |t| data[:blog].target_id } 
     
     
-    c.value_tag('entry:embedded_media') { |tag| tag.locals.entry.active_revision.embedded_media }
+    c.value_tag('entry:embedded_media') { |tag| tag.locals.entry.embedded_media }
     
-    c.media_tag('entry:media_file') { |tag| tag.locals.entry.active_revision.media_file }
+    c.media_tag('entry:media_file') { |tag| tag.locals.entry.media_file }
     
     c.date_tag('entry:published_at',"%H:%M%p on %B %d %Y".t) { |t|  t.locals.entry.published_at }
     c.image_tag('entry:image') { |t| t.locals.entry.image }
@@ -95,17 +95,17 @@ class Blog::PageFeature < ParagraphFeature
     
     
     %w(title author).each do |elem|
-      c.value_tag('entry:' + elem) { |tag| h(tag.locals.entry.active_revision.send(elem)) }
+      c.value_tag('entry:' + elem) { |tag| h(tag.locals.entry.send(elem)) }
     end
     
-    c.value_tag('entry:body') { |tag| tag.locals.entry.active_revision.body_content }
-    c.value_tag('entry:preview') {  |tag| tag.locals.entry.active_revision.preview_content }
+    c.value_tag('entry:body') { |tag| tag.locals.entry.body_content }
+    c.value_tag('entry:preview') {  |tag| tag.locals.entry.preview_content }
 
     c.value_tag 'entry:preview_title' do |tag|
-      h(tag.locals.entry.active_revision.preview_title.blank? ? tag.locals.entry.active_revision.title : tag.locals.entry.active_revision.preview_title)
+      h(tag.locals.entry.preview_title.blank? ? tag.locals.entry.title : tag.locals.entry.preview_title)
     end
 
-    c.expansion_tag('entry:more') { |tag| !tag.locals.entry.active_revision.preview.blank? }
+    c.expansion_tag('entry:more') { |tag| !tag.locals.entry.preview.blank? }
     c.link_tag('entry:detail') { |tag|  "#{data[:detail_page]}/#{tag.locals.entry.permalink}" }
     c.link_tag('entry:full_detail') { |tag| "#{Configuration.domain_link(data[:detail_page].to_s + '/' + tag.locals.entry.permalink.to_s)}" }
 
@@ -113,7 +113,7 @@ class Blog::PageFeature < ParagraphFeature
       categories = tag.locals.entry.blog_categories(true).collect(&:name)
       categories = categories[0..tag.attr['limit'].to_i] if tag.attr['limit']
       if categories.length > 0
-	categories.map! { |cat| "<a href='#{data[:list_page]}/category/#{CGI::escape(cat)}'>#{h cat}</a>" } if tag.attr['no_link']
+	categories.map! { |cat| "<a href='#{data[:list_page]}/category/#{CGI::escape(cat)}'>#{h cat}</a>" } unless tag.attr['no_link']
 	categories.join(", ")
       else 
 	nil

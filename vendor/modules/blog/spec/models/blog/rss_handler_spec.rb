@@ -8,10 +8,9 @@ describe Blog::RssHandler do
     mock_editor
     @blog = Blog::BlogBlog.create(:name => 'Test Blog', :content_filter => 'full_html')
     @category = @blog.blog_categories.create :name => 'new'
-    @post = @blog.blog_posts.new
+    @post = @blog.blog_posts.new  :title => 'Test Post', :body => 'Test Body'
     @post.publish 5.minutes.ago
-    @rev = @post.blog_post_revisions.new :title => 'Test Post', :body => 'Test Body'
-    @post.save_revision! @rev
+    @post.save
     @detail_page_node = SiteVersion.default.root.add_subpage('detail')
     @rss_page_node = SiteVersion.default.root.add_subpage('rss')
     @options = Blog::RssHandler::Options.new :feed_identifier => "#{@rss_page_node.id},#{@blog.id},#{@detail_page_node.id}", :limit => 10

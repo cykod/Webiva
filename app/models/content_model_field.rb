@@ -10,6 +10,11 @@ class ContentModelField < DomainModel
   belongs_to :content_model
 
   has_many :content_relations, :dependent => :delete_all
+
+  named_scope :core_fields, lambda { |name|
+    { :conditions => { :field_module => 'content/core_field',
+                       :field_type => name } }
+  }
   
 #  acts_as_list
 

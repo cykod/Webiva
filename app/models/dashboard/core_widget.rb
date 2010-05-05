@@ -69,32 +69,37 @@ class Dashboard::CoreWidget < Dashboard::WidgetBase #:nodoc:all
 
     if ! rss_items || rss_items.length == 0
       begin
-	uri = URI.parse(@options.url)
-	raise "Invalid URL" unless uri.is_a?(URI::HTTP) || uri.is_a?(URI::HTTPS)
+        uri = URI.parse(@options.url)
+        raise "Invalid URL" unless uri.is_a?(URI::HTTP) || uri.is_a?(URI::HTTPS)
 
-	rss_feed = ''
-	timeout(@options.timeout_in_seconds) do
-	  rss_feed = RSS::Parser.parse(Net::HTTP.get(uri),false)
-	end
+        feed_data = nil
+        timeout(@options.timeout_in_seconds) do
+          data_feed = Net::HTTP.get_response(uri)
+          case data_feed
+          when Net::HTTPSuccess;  feed_data = data_feed
+          when Net::HTTPRedirection; feed_data =  Net::HTTP.get_response(URI.parse(data_feed['location']))
+          end
+        end
+        rss_feed =  RSS::Parser.parse(feed_data.body.to_s,false)
 
-	rss_items = []
-	rss_feed.items[0..@options.show_first-1].each do |item|
-	  pubDate = Time.at item.pubDate.to_i
+        rss_items = []
+        rss_feed.items[0..@options.show_first-1].each do |item|
+          pubDate = Time.at item.pubDate.to_i
           if @options.show_description
             description = truncate(Util::TextFormatter.text_plain_generator(item.description),:length => 250)
           end
-	  rss_items << {'link' => item.link, 'title' => item.title, 'date' => pubDate, 'description' => description}
-	end if rss_feed.is_a?(RSS::Rss)
+          rss_items << {'link' => item.link, 'title' => item.title, 'date' => pubDate, 'description' => description}
+        end if rss_feed.is_a?(RSS::Rss)
       rescue TimeoutError
-	editor_widget.cache_put('Widget', [], nil, @options.valid_for.minutes)
-	logger.warn( "Timed out fetching rss feed for #{@options.url}" )
-	render_widget :text => 'Timed out fetching RSS feed.'
-	return
+        editor_widget.cache_put('Widget', [], nil, @options.valid_for.minutes)
+        logger.warn( "Timed out fetching rss feed for #{@options.url}" )
+        render_widget :text => 'Timed out fetching RSS feed.'
+        return
       rescue Exception => e
-	editor_widget.cache_put('Widget', [], nil, @options.valid_for.minutes)
-	logger.warn( "failed to fetch rss feed for #{@options.url}, errror: #{e}" )
-	render_widget :text => 'Failed to fetch RSS feed.'
-	return
+        editor_widget.cache_put('Widget', [], nil, @options.valid_for.minutes)
+        logger.warn( "failed to fetch rss feed for #{@options.url}, errror: #{e}" )
+        render_widget :text => 'Failed to fetch RSS feed.'
+        return
       end
 
       editor_widget.cache_put('Widget', rss_items, nil, @options.valid_for.minutes)

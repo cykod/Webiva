@@ -7,10 +7,10 @@ describe Blog::PageFeature, :type => :view do
   before(:each) do
     @blog = Blog::BlogBlog.create(:name => 'Test Blog', :content_filter => 'full_html')
     @category = @blog.blog_categories.create :name => 'new'
-    @post = @blog.blog_posts.new
+    @post = @blog.blog_posts.new :title => 'Test Post', :body => 'Test Body'
+
     @post.publish(5.minutes.ago)
-    @rev = @post.blog_post_revisions.new :title => 'Test Post', :body => 'Test Body'
-    @post.save_revision! @rev
+    @post.save
     @feature = build_feature('/blog/page_feature')
 
     @detail_page_node = SiteVersion.default.root.add_subpage('detail')
@@ -29,7 +29,7 @@ describe Blog::PageFeature, :type => :view do
 					       :identifier => nil
 					       )
 
-    @output.should include( @rev.title )
+    @output.should include( @post.title )
   end
 
   it "should render a entry detail paragraph" do
@@ -39,7 +39,7 @@ describe Blog::PageFeature, :type => :view do
 						 :list_page => @list_page_node.node_path
 						 )
 
-    @output.should include( @rev.title )
+    @output.should include( @post.title )
   end
 
   it "should render a categories paragraph" do
@@ -53,11 +53,11 @@ describe Blog::PageFeature, :type => :view do
 					       )
 
     @output.should include( @category.name )
-    @output.should include( @rev.title )
+    @output.should include( @post.title )
   end
 
   it "should render a preview paragraph" do
-    @rev.preview = 'Preview Test'
+    @post.preview = 'Preview Test'
 
     @output = @feature.blog_post_preview_feature(:entry => @post
 						 )

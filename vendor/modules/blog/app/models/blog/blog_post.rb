@@ -13,6 +13,7 @@ class Blog::BlogPost < DomainModel
   has_many :blog_posts_categories
   has_many :blog_categories, :through => :blog_posts_categories
   
+  validates_presence_of :title
 
   validates_length_of :permalink, :allow_nil => true, :maximum =>  64
   
@@ -29,11 +30,32 @@ class Blog::BlogPost < DomainModel
   
   has_content_tags
   
-  content_node :container_type => 'Blog::BlogBlog', :container_field => 'blog_blog_id',
+  content_node :container_type => :content_node_container_type,  :container_field => Proc.new { |post| post.content_node_container_id },
   :preview_feature => '/blog/page_feature/blog_post_preview'
+
+  def revision
+    @revision ||= self.active_revision ? self.active_revision.clone : Blog::BlogPostRevision.new
+  end
+
+  # Special permalink for targeted blogs
+  def target_permalink
+    "#{self.blog_blog.targeted_blog.url}/#{self.permalink}"
+  end
 
   def content_node_body(language)
     self.active_revision.body_html if self.active_revision
+  end
+
+  def content_node_container_type
+    self.blog_blog.is_user_blog? ? "Blog::BlogTarget" : 'Blog::BlogBlog'
+  end
+
+  def content_node_container_id
+    self.blog_blog.is_user_blog? ? 'blog_target_id' : 'blog_blog_id'
+  end
+
+  def blog_target_id
+    self.blog_blog.blog_target_id
   end
 
   def comments_count
@@ -64,7 +86,6 @@ class Blog::BlogPost < DomainModel
     self.blog_categories.collect(&:id)
   end
 
-
   def set_categories!(category_ids)
     categories_to_delete = []
     categories_to_add = []
@@ -94,31 +115,38 @@ class Blog::BlogPost < DomainModel
     self.blog_categories.reload
 
   end
-  
-  def preview
-    self.active_revision.preview.blank? ? self.active_revision.body : self.active_revision.preview
+
+
+  [ :title, :media_file_id, :domain_file_id, :body, :end_user_id, :keywords,
+    :author, :embedded_media, :preview_title, :preview ].each do |fld|
+    class_eval("def #{fld}; self.revision.#{fld}; end")
+    class_eval("def #{fld}=(val); self.revision.#{fld} = val; end")
+    end
+
+  [ :domain_file, :preview_content, :end_user,:media_file, :body_content ].each do |fld|
+    class_eval("def #{fld}; self.revision.#{fld}; end")
   end
 
-  def title
-    self.active_revision.title
-  end 
-
-  def image
-    self.active_revision.domain_file
-  end
-  
-  def media_file
-    self.active_revision.media_file
-  end
+  def image; self.revision.domain_file; end
 
   def self.get_content_description 
     "Blog Post".t 
   end
+  
+  def preview
+    self.revision.preview.blank? ? self.body_content : self.preview_content
+  end
 
   def self.get_content_options
-    self.find(:all,:order => 'title',:include => 'active_revision').collect do |item|
-      [ item.active_revision.title,item.id ]
+    self.find(:all,:order => 'title',:include => 'revision').collect do |item|
+      [ item.revision.title,item.id ]
     end
+  end
+
+  include ActionView::Helpers::TextHelper
+
+  def generate_preview
+   self.revision.preview =  truncate(Util::TextFormatter.text_plain_generator(self.revision.body),:length => 140 )
   end
 
   def self.comment_posted(blog_id)
@@ -126,27 +154,30 @@ class Blog::BlogPost < DomainModel
     DataCache.expire_content("Blog")
     DataCache.expire_content("BlogPost")
   end
-  
-  def save_revision!(revision)
-    self.reload(:lock => true) if self.id
-    Blog::BlogPostRevision.transaction do
-      self.active_revision.update_attribute(:status,'old') if self.id && self.active_revision
-      
-      self.save if !self.id
 
-      revision.status = 'active'
-      revision.blog_post = self
-      
-      revision.save
 
-      # make the new revision the active revision
-      self.active_revision = revision
-      self.generate_permalink!
-      self.save
-    end
+  def before_save
+    self.active_revision.update_attribute(:status,'old') if self.active_revision
+    @revision = @revision.clone
+
+    @revision.status = 'active'
+    @revision.blog_blog = self.blog_blog
+    @revision.blog_post_id = self.id if self.id
+    @revision.save
+
+    self.blog_post_revision_id = @revision.id
+    self.generate_permalink!
   end
-  
-  
+
+  def after_create
+    @revision.update_attribute(:blog_post_id,self.id)
+    @revision= nil
+  end
+
+  def after_update
+    @revision = nil
+  end
+
   def publish_now
     # then unless it's already published, set it to published and update the published_at time
     unless(self.status == 'published' && self.published_at && self.published_at < Time.now) 

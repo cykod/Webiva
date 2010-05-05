@@ -82,8 +82,10 @@ class ContentNode < DomainModel
     opts = opts.symbolize_keys
     if self.content_type_id.blank?
       if opts[:container_type] # If there is a container field
-        container_type = opts.delete(:container_type)
-        container_id = item.send(opts.delete(:container_field))
+        container_type = item.resolve_argument(opts.delete(:container_type))
+        container_field = opts.delete(:container_field)
+        container_id = item.send(container_field.is_a?(Proc) ? container_field.call(item) : container_field)
+
         self.content_type = ContentType.find_by_container_type_and_container_id(container_type,container_id)
       else
         self.content_type = ContentType.find_by_content_type(item.class.to_s)

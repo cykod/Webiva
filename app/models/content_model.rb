@@ -205,7 +205,7 @@ class ContentModel < DomainModel
   # Returns a select-friendly list of available relationship classes
   def self.relationship_classes
     content_models = ContentModel.find(:all,:order => 'name')
-    clses = [ [ 'User', 'end_user' ] ] + content_models.collect { |mdl| [ mdl.name, mdl.table_name ] }
+    clses = [ [ 'User', 'end_user' ], ['(Other)', 'other'] ] + content_models.collect { |mdl| [ mdl.name, mdl.table_name ] }
   end
 
   def destroy_linked_content #:nodoc:
@@ -246,6 +246,17 @@ class ContentModel < DomainModel
     else
       return entry.update_attributes(entry_attributes(parameters))
     end
+  end
+
+  # render an edit form from the fields
+  def edit_form(f,options = {})
+    options= options.clone
+    except=options.delete(:except).to_i
+    self.content_model_fields.map do |fld|
+      if fld.id != except
+        fld.form_field(f)
+      end
+    end.compact.join
   end
   
   # Checks a list of content_model_fields given a list of ids

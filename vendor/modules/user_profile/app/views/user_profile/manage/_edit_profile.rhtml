@@ -1,0 +1,7 @@
+
+<% admin_form_for :entry, @profile_entry.content_model_entry, :html => { :onsubmit => "ProfileData.editProfile(); return false;", :id => "profiles" } do |f| -%>
+  <%= hidden_field_tag "profile_type_id", @profile_entry.user_profile_type_id %>
+  <%= @profile_entry.user_profile_type.content_model.edit_form(f,:except =>  @profile_entry.user_profile_type.content_model_field_id ) %>
+  <%= f.submit_tag @profile_entry.content_model_entry.id ? 'Update' : 'Create' %> 
+<% end -%>
+

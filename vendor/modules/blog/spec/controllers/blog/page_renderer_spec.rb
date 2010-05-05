@@ -16,9 +16,8 @@ describe Blog::PageRenderer, :type => :controller do
     mock_editor
     @blog = Blog::BlogBlog.create(:name => 'Test Blog', :content_filter => 'full_html')
     @category = @blog.blog_categories.create :name => 'new'
-    @post = @blog.blog_posts.new
-    @rev = @post.blog_post_revisions.new :title => 'Test Post', :body => 'Test Body'
-    @post.save_revision! @rev
+    @post = @blog.blog_posts.new  :title => 'Test Post', :body => 'Test Body'
+    @post.save
   end
 
   it "should be able to list posts" do
@@ -42,14 +41,15 @@ describe Blog::PageRenderer, :type => :controller do
   end
 
   it "should be able to list posts from target page connection" do
+    @blog.is_user_blog = true
     @blog.target = @post
     @blog.save.should be_true
 
-    options = {}
+    options = { :blog_target_id => @blog.blog_target_id}
     inputs = { :blog => [:container, @post] }
     @rnd = generate_page_renderer('entry_list', options, inputs)
 
-    Blog::BlogBlog.should_receive(:find_by_target_type_and_target_id).with(@post.class.to_s, @post.id).and_return(@blog)
+    Blog::BlogBlog.should_receive(:find_by_target_type_and_target_id).with(@post.class.to_s, @post.id,:conditions => { :blog_target_id => @blog.blog_target_id } ).and_return(@blog)
 
     renderer_get @rnd
   end
@@ -101,14 +101,15 @@ describe Blog::PageRenderer, :type => :controller do
   end
 
   it "should be able to display a post by permalink using blog target" do
+    @blog.is_user_blog = true
     @blog.target = @post
     @blog.save.should be_true
 
-    options = {}
+    options = { :blog_target_id => @blog.blog_target_id }
     inputs = { :input => [:post_permalink, @post.permalink], :blog => [:container, @post] }
     @rnd = generate_page_renderer('entry_detail', options, inputs)
 
-    Blog::BlogBlog.should_receive(:find_by_target_type_and_target_id).with(@post.class.to_s, @post.id).and_return(@blog)
+    Blog::BlogBlog.should_receive(:find_by_target_type_and_target_id).with(@post.class.to_s, @post.id,:conditions => { :blog_target_id => @blog.blog_target_id }).and_return(@blog)
     @blog.should_receive(:find_post_by_permalink).with(@post.permalink).and_return(@post)
 
     renderer_get @rnd
