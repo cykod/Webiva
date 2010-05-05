@@ -1044,9 +1044,12 @@ HTML
     output = hidden_field field
     output += "<span class='inline_file_preview' id='#{object_name}_#{field}_preview'"
     output += ' style="display:none;"' if value.blank?
-    output += ">#{preview}</span>"
+    output += "><span id='#{object_name}_#{field}_preview_content'>#{preview}</span> "
+    output += content_tag :a, 'clear'.t, {:class => 'inline_file_clear', :href => 'javascript:void(0);', :onclick => "$('#{object_name}_#{field}').value = ''; $('#{object_name}_#{field}_preview_content').innerHTML = ''; $('#{object_name}_#{field}_preview').hide(); $('#{object_name}_#{field}_frame').show(); $('#{object_name}_#{field}_frame').src = $('#{object_name}_#{field}_frame').src;"}
+    output += "</span>"
     output += "<iframe src='#{url}' "
     output += options.collect { |k,v| "#{k}='#{v}'" }.join(' ')
+    output += ' style="display:none;"' unless value.blank?
     output += '></iframe>'
   end
 end
