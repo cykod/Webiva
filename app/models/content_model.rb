@@ -188,7 +188,7 @@ class ContentModel < DomainModel
     field_class = dynamic_fields_class(module_info)
     
     # return the class and the calling method
-    if field_class && field_class.dynamic_field_hash[field_info.to_sym]
+    if field_info && field_class && field_class.dynamic_field_hash[field_info.to_sym]
       field_method = "dynamic_#{field_info}_value"
       [ field_class, field_method ]
     else
