@@ -10,9 +10,15 @@ class InlineFileUpload < HashModel
   domain_file_options :file_id
 
   def handle_file_upload(renderer, params)
-    if ! params[:file][:url].blank?
+    uri = nil
+    begin
+      uri = URI.parse(params[:file][:url])
+    rescue
+    end
+
+    if uri
       begin
-        domain_file = DomainFile.create :filename => URI.parse(params[:file][:url]), :creator_id => renderer.myself.id
+        domain_file = DomainFile.create :filename => uri, :creator_id => renderer.myself.id
         params[:file][:file_id] = domain_file.id if domain_file.id
         self.file_id = domain_file.id
       rescue Exception => e
