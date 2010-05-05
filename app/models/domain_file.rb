@@ -7,6 +7,8 @@ require "find"
 require 'ftools'
 require 'fileutils'
 require 'RMagick'
+require 'net/http'
+require 'uri'
 
 =begin rdoc
 DomainFile's represent files uploaded into the filemanager. Any file uploaded into webiva from
@@ -76,6 +78,8 @@ class DomainFile < DomainModel
     if @file_data.is_a? File
       # Trick from file_column - make File look like an uploaded file by most accounts
       @file_data.extend DomainFile::FileCompat
+    elsif @file_data.is_a? URI
+      @file_data.extend DomainFile::URICompat
     end
    end
    
@@ -236,7 +240,12 @@ class DomainFile < DomainModel
     end  
    end
    
-   
+   def validate
+     if @file_data && @file_data.respond_to?(:download)
+       errors.add(:filename, 'invalid') unless @file_data.download
+     end
+   end
+
    # This is called before the file is saved for the first time (we don't have an id)
    def preprocess_file #:nodoc:
 
@@ -344,6 +353,7 @@ class DomainFile < DomainModel
       self.stored_at = Time.now 
 
       mime = MIME::Types.type_for(self.abs_filename)
+      mime = [MIME::Type.simplified(@file_data.content_type)] if mime.empty? && @file_data.respond_to?(:content_type) && ! @file_data.content_type.blank?
       self.mime_type = mime[0] ? mime[0].to_s : 'application/octet-stream'
 
       # Unless we're skipping the transform on this
@@ -1154,7 +1164,18 @@ class DomainFile < DomainModel
     end
   end
   
-  
+  def self.download(uri, limit=10)
+    raise ArgumentError, 'HTTP redirect too deep' if limit == 0
+
+    uri = URI.parse(uri) if uri.is_a?(String)
+    response = Net::HTTP.get_response(uri)
+    case response
+    when Net::HTTPSuccess     then response
+    when Net::HTTPRedirection then download(response['location'], limit - 1)
+    else
+      response.error!
+    end
+  end
 
   protected 
 
@@ -1208,5 +1229,46 @@ class DomainFile < DomainModel
       nil
     end
   end   
-  
+
+  module URICompat
+    attr_accessor :response
+
+    def original_filename
+      return @original_filename if @original_filename
+      @original_filename = self.to_s
+
+      mime = MIME::Types.type_for(@original_filename)
+      return @original_filename unless mime.empty?
+      return @original_filename unless self.response
+
+      mime = MIME::Types[MIME::Type.simplified(self.content_type)]
+      return @original_filename if mime.empty?
+
+      # get the first extension
+      ext = mime[0].to_a[1][0]
+      @original_filename << ".#{ext}"
+    end
+
+    def size
+      self.response ? self.response.body.length : nil
+    end
+
+    def read
+      self.download unless self.response
+      self.response ? self.response.body : nil
+    end
+
+    def download
+      begin
+        self.response = DomainFile.download(self)
+      rescue Exception => e
+        Rails.logger.error "failed to download #{self.to_s}, #{e}"
+        nil
+      end
+    end
+
+    def content_type
+      self.response ? self.response['content-type'] : nil
+    end
+  end
 end

@@ -435,8 +435,7 @@ include ModelExtension::EndUserImportExtension
       self.first_name = other_names[0]
       self.middle_name = other_names[1..-1].join(" ") if other_names[1..-1]
     else
-      self.first_name = ''
-      self.last_name = name[0]
+      self.first_name = name[0]
     end  
   end
 
@@ -884,4 +883,24 @@ Not doing so could allow a user to change their user profile (for example) and e
     usr.id == self.id; end    
   def is_admin?(usr); #:nodoc:
     usr.id == self.id; end
+
+  def run_update_profile_photo(args)
+    url = args[:url]
+
+    uri = nil
+    begin
+      uri = URI.parse(url)
+    rescue URI::InvalidURIError => e
+      logger.error e
+      return
+    end
+
+    photo = DomainFile.create :filename => uri, :parent_id => Configuration.options.user_image_folder
+
+    if photo.id
+      self.domain_file_id = photo.id
+      self.admin_edit = true if self.email.blank?
+      self.save
+    end
+  end
 end
