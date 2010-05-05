@@ -1019,4 +1019,34 @@ HTML
     "<br/>" + 
     self.check_boxes_original("#{field}_existing", [["Add to an existing page",true]], :single => true, :onclick => " $('#{object_name}_#{field}_subpage').disabled = this.checked")
   end
+
+  def inline_file_upload(field, options={})
+    options[:width] ||= '100%'
+    options[:height] ||= 35
+    options[:frameborder] ||= 0
+    options[:marginwidth] ||= 0
+    options[:marginheight] ||= 0
+    options[:name] = "#{@object_name}_#{field}_frame"
+    options[:id] = options[:name]
+
+    url = options.delete(:url)
+    url += "?upload=1&file[object]=#{@object_name}&file[field]=#{field}"
+    url += '&' + options.delete(:params).collect { |k,v| "#{k}=#{CGI::escape(v)}" }.join('&') if options[:params]
+
+    value = @object.send(field)
+    preview = ''
+    unless value.blank?
+      file_field = field.to_s.sub /_id$/, ''
+      file = @object.send(file_field)
+      preview = "<img src='#{file.thumbnail_url('standard/', :thumb)}' /> #{file.name}"
+    end
+
+    output = hidden_field field
+    output += "<span class='inline_file_preview' id='#{object_name}_#{field}_preview'"
+    output += ' style="display:none;"' if value.blank?
+    output += ">#{preview}</span>"
+    output += "<iframe src='#{url}' "
+    output += options.collect { |k,v| "#{k}='#{v}'" }.join(' ')
+    output += '></iframe>'
+  end
 end

@@ -1,0 +1,26 @@
+<%
+form_options[:html] ||= {}
+form_options[:html][:multipart] = true
+-%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<%= javascript_include_tag "/javascripts/prototype.js" %>
+<style>
+* {
+  padding: 0;
+  margin: 0;
+}
+</style>
+</head>
+<body>
+
+<% cms_unstyled_form_for :file, file, form_options do |f| -%>
+<%= hidden_field_tag :upload, 1 %>
+<%= f.hidden_field :object %>
+<%= f.hidden_field :field %>
+<%= f.file_field :file_id, :onchange => 'this.form.submit();' %>
+<% end -%>
+
+</body>
+</html>
