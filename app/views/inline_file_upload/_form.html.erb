@@ -15,12 +15,18 @@ form_options[:html][:multipart] = true
 </head>
 <body>
 
+<div id="upload_form">
 <% cms_unstyled_form_for :file, file, form_options do |f| -%>
 <%= hidden_field_tag :upload, 1 %>
 <%= f.hidden_field :object %>
 <%= f.hidden_field :field %>
-<%= f.file_field :file_id, :onchange => 'this.form.submit();' %>
+<%= f.file_field :file_id, :onchange => '$("upload_form").hide(); $("uploading").show(); this.form.submit();' %>
 <% end -%>
+</div>
+
+<div id="uploading" style="display:none;">
+Please wait file is uploading...
+</div>
 
 </body>
 </html>
