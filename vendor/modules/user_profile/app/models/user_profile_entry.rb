@@ -53,17 +53,11 @@ class UserProfileEntry < DomainModel
     end
     entry
   end
-
-  def method_missing(methd)
-    self.end_user.send(methd)
-  end
-
-  def name
-    self.end_user.name
-  end
-
-  def image 
-    self.end_user.image
+  
+  %w(name image full_name first_name last_name gender dob source address billing_address work_address shipping_address salutation middle_name lead_source username cell_phone introduction suffix second_image).each do |fld|
+    class_eval <<-METHOD
+      def #{fld}; self.end_user.#{fld}; end
+    METHOD
   end
 
   def add_url
