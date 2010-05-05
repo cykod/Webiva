@@ -95,7 +95,6 @@ module Content::CoreFeature
             return nil
           end
         rescue Exception => e
-          raise e.to_s
           return nil
         end
         
