@@ -1022,7 +1022,7 @@ HTML
 
   def inline_file_upload(field, options={})
     options[:width] ||= '100%'
-    options[:height] ||= 35
+    options[:height] ||= 50
     options[:frameborder] ||= 0
     options[:marginwidth] ||= 0
     options[:marginheight] ||= 0
