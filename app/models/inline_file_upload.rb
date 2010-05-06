@@ -18,7 +18,7 @@ class InlineFileUpload < HashModel
 
     if uri
       begin
-        domain_file = DomainFile.create :filename => uri, :creator_id => renderer.myself.id
+        domain_file = DomainFile.create :filename => uri, :creator_id => renderer.myself.id, :parent_id => self.folder_id
         params[:file][:file_id] = domain_file.id if domain_file.id
         self.file_id = domain_file.id
       rescue Exception => e
