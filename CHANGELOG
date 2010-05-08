@@ -1,4 +1,26 @@
 
+0.9.20 - 2010-05-08
+-------------------
+- support for inline file upload widget
+- added user profile module
+- blog module overhaul
+- targeted user blog overhaul w/ canonical content
+- content model edit form support
+- title page connections, simple title paragraph type
+- editor overhaul
+- automatic user profile image updating
+- generic feed paragraph fixes
+- SiteNodeEngine refactor
+- menu.js fix
+- renderer_cache rework to support includes
+- simple content module included
+- webform module included
+- support for default css files for site features
+- better rcov support
+- support for oauth, other autentication mechanisms
+- bounce support capability for emails
+
+
 
 0.9.10 - 2010-03-01
 -------------------
