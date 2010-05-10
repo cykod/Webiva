@@ -56,13 +56,13 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
     
     def perform(action_data={},user = nil)
     
-      data_vars = action_data.is_a?(DomainModel) ? action_data.attributes.symbolize_keys :  (action_data.is_a?(Hash) ? action_data : {})
+      data_vars = action_data.is_a?(DomainModel) ? action_data.triggered_attributes.symbolize_keys :  (action_data.is_a?(Hash) ? action_data : {})
       data_vars = data_vars.symbolize_keys
     
       # Find out who we are emailing
       if options.email_to == 'autorespond'
         begin
-          emails = [ action_data.is_a?(DomainModel) ? (action_data.attributes['email'] || action_data.attributes['email_address']) : (action_data['email']  || action_data['email_address']) ]
+          emails = [ action_data.is_a?(DomainModel) ? (action_data.triggered_attributes['email'] || action_data.triggered_attributes['email_address']) : (action_data['email']  || action_data['email_address']) ]
         rescue
           return false
         end
@@ -85,7 +85,7 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
           body += "<br/>" + publication.render_html(action_data)
         end
       elsif options.include_data == 'y'
-        action_data = action_data.attributes if action_data.is_a?(DomainModel)
+        action_data = action_data.triggered_attributes if action_data.is_a?(DomainModel)
         if action_data.is_a?(Hash)
           body += "<br/><table>"
           action_data.each do |key,val|
@@ -103,7 +103,7 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
           MailTemplateMailer.deliver_message_to_address(email,options.subject,msg_options)
         end    
       elsif options.send_type == 'template'
-        action_data = action_data.attributes if action_data.is_a?(DomainModel)
+        action_data = action_data.triggered_attributes if action_data.is_a?(DomainModel)
         variables = action_data.clone
         variables.stringify_keys!
         variables['DATA'] = body

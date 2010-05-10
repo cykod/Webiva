@@ -464,7 +464,11 @@ include ModelExtension::EndUserImportExtension
       ''
     end
   end
-  
+
+  def triggered_attributes
+    @triggered_attributes ||= self.attribute.merge(:name => self.name)
+  end
+
   def before_save #:nodoc:
     if self.password && !self.password.empty?
       self.salt = EndUser.generate_hash if self.salt.blank?
