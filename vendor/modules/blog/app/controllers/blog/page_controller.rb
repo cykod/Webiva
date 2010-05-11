@@ -91,7 +91,7 @@ class Blog::PageController < ParagraphController
 
 
   class TargetedEntryDetailOptions < HashModel
-    attributes :blog_target_id => nil
+    attributes :blog_target_id => 0
 
     validates_presence_of :blog_target_id
     options_form(fld(:blog_target_id, :select, :options => :blog_target_options))
