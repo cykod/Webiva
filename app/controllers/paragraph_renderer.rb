@@ -504,7 +504,7 @@ class ParagraphRenderer < ParagraphFeature
   def set_page_connection_hash_helper(val) # :nodoc:
     if val.is_a?(Hash)
       if val[:domain_model_hash]
-        val[:cls].constantize.find(val[:id])
+        val[:cls].constantize.find_by_id(val[:id])
       elsif val[:hash_model_hash]
         val[:cls].constantize.new(val[:attr])
       else
