@@ -840,12 +840,22 @@ block is non-nil
       end
           
       define_tag name do |tag|
-        frm = tag.locals.send(frm_obj)
-        if frm && frm.object && frm.object.errors && frm.object.errors.length > 0
+        if block_given?
+          objs = yield tag
+          objs = [ objs ] unless objs.is_a?(Array)
+        else
+          frm = tag.locals.send(frm_obj)
+          objs = [ frm.object ] if frm && frm.object
+        end
+        objs ||= []
+        objs = objs.compact
+        error_count = objs.inject(0) { |acc,obj| acc + obj.errors.length } 
+        if error_count > 0 
+          messages = objs.inject([]) { |acc,obj| acc + obj.errors.full_messages }.join(tag.attr['separator'] || "<br/>")
           if tag.single?
-            frm.object.errors.full_messages.join(tag.attr['separator'] || "<br/>")
+            messages
           else
-            tag.locals.value = frm.object.errors.full_messages.join(tag.attr['separator'] || "<br/>")
+            tag.locals.value = messages
             tag.expand           
           end          
         else
