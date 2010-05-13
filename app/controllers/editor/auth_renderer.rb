@@ -43,7 +43,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
 
     if request.post? && params[:user] && !@registered
       # See we already have an unregistered user with this email
-      @usr = EndUser.find_visited_target(params[:user][:email])
+      @usr = EndUser.find_target(params[:user][:email],:no_create => true)
       
       if @usr.registered?
         # If not, we need to create a new user

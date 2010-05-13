@@ -8,9 +8,9 @@ class Editor::AuthFeature < ParagraphFeature #:nodoc:all
 You are already registered
 </cms:registered>
 <cms:register> 
- <ul class='webiva_form register_form'>
+ <ol class='webiva_form register_form'>
+  <cms:errors><li class='errors'><cms:value/></li></cms:errors>
   <!-- enter form elements directly -->
-  <cms:errors/>
   
   <li><cms:email_label/><cms:email/></li>
 
@@ -26,7 +26,7 @@ You are already registered
 
   <li class='captcha'><cms:captcha/></li>
   <li class='button'><cms:submit/></li>
-  </ul>
+  </ol>
 </cms:register>
 
 
@@ -83,10 +83,10 @@ FEATURE
   <cms:reset_password>Reset your password.</cms:reset_password>
   <cms:updated>Account Updated.</cms:updated>
 
- <ul class='webiva_form edit_account_form'>
+ <ol class='webiva_form edit_account_form'>
  <!-- enter form elements directly -->
-  <cms:errors/>
-  
+  <cms:errors><li class='errors'><cms:value/></li></cms:errors>
+
   <li><cms:email_label/><cms:email/></li>
 
   <cms:any_field except='email'>
@@ -100,7 +100,7 @@ FEATURE
  </cms:publication>
 
  <li class='button'><cms:submit/></li>
-  </ul>
+  </ol>
 </cms:edit>
 
 
@@ -163,8 +163,12 @@ FEATURE
       fields
     end
     c.value_tag("#{prefix}:#{fields_name}:label") do |t|
-      req = required_fields.include? t.locals.send(fields_name)[0].to_s
-      t.locals.send(fields_name)[1][0] + (req ? "<em>*</em>" : "")
+      fld =  t.locals.send(fields_name)
+      frm =  t.locals.form
+      req = required_fields.include? fld[0].to_s
+      content_tag("label",
+                  t.locals.send(fields_name)[1][0] + (req ? "<em>*</em>" : ""),
+                 :for => "#{frm.object_name}_#{fld[1[2]]}")
     end
     c.value_tag("#{prefix}:#{fields_name}:control") do |t|
       frm = t.locals.form
