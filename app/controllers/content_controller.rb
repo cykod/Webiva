@@ -25,7 +25,10 @@ class ContentController < ModuleController #:nodoc: all
   register_handler :content, :feature, "Content::CoreFeature::KeywordGenerator"
   
   register_handler :trigger, :actions, "Trigger::CoreTrigger"
-  
+
+  register_handler :user_segment, :fields, 'EndUserSegmentField'
+  register_handler :user_segment, :fields, 'EndUserActionSegmentField'
+
   def index
     @content_models,@content_actions = CmsController.get_content_models_and_actions
 
