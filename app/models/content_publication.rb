@@ -87,7 +87,7 @@ class ContentPublication < DomainModel
     
     self.content_publication_fields.each do |fld|
       if fld.data && fld.data[:required]
-        if fld.content_model_field.text_value(entry).blank?
+        if fld.content_model_field.content_value(entry).blank?
           entry.errors.add(fld.content_model_field.field,'is missing')
         end
       end
