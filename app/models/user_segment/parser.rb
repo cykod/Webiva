@@ -1,0 +1,4 @@
+
+class UserSegment::Parser
+
+end
