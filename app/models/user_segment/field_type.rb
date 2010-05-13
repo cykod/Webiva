@@ -1,15 +1,15 @@
 
 class UserSegment::FieldType
 
-  def self.user_segment_field_type_operations
-    @user_segment_field_type_operations ||= {}
-  end
+  def self.user_segment_field_type_operations; {}; end
 
   def self.has_operation?(operation)
     self.user_segment_field_type_operations[operation.to_sym] ? true : false
   end
     
   def self.register_operation(operation, args=[], options={})
+    operations = self.user_segment_field_type_operations
+
     arguments = []
     argument_names = []
     argument_options = []
@@ -29,9 +29,14 @@ class UserSegment::FieldType
       argument_options << opts
     end
 
-    name = options[:name] || operation.to_s.humanize
+    
+    operations[operation.to_sym] = options.merge(:arguments => arguments, :argument_names => argument_names, :argument_options => argument_options)
+    operations[operation.to_sym][:name] ||= operation.to_s.humanize
 
-    self.user_segment_field_type_operations[operation.to_sym] = options.merge(:name => name, :arguments => arguments, :argument_names => argument_names, :argument_options => argument_options)
+    sing = class << self; self; end
+    sing.send :define_method, :user_segment_field_type_operations do 
+      operations
+    end 
   end
 
   # converts a string to the correct type
@@ -43,10 +48,10 @@ class UserSegment::FieldType
     when :float, :double
       return value.to_f if value.is_a?(Numeric) || value =~ /^(\d+|\.\d+|\d+\.\d+)$/
     when :string
-      return value
+      return value if value.is_a?(String)
     when :date, :datetime
       begin
-        return value if value.is_a?(::Time)
+        return value if value.is_a?(Time)
         return Time.parse(value)
       rescue
       end
@@ -55,8 +60,9 @@ class UserSegment::FieldType
       return value if value
     when :boolean
       return value if value.is_a?(TrueClass) || value.is_a?(FalseClass)
-      return true if value == '1' || value.downcase == 'true'
-      return false if value == '0' || value.downcase == 'false'
+      value = value.downcase if value.is_a?(String)
+      return true if value == 1 || value == '1' || value == 'true'
+      return false if value == 0 || value == '0' || value == 'false'
     end
 
     nil

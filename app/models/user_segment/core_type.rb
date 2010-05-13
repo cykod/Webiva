@@ -1,7 +1,7 @@
 
 class UserSegment::CoreType
 
-  @@datetime_format_options = ['day', 'days', 'week', 'weeks', 'month', 'months', 'year', 'years']
+  @@datetime_format_options = ['second', 'seconds', 'minute', 'minutes', 'hour', 'hours', 'day', 'days', 'week', 'weeks', 'month', 'months', 'year', 'years']
   def self.datetime_format_options
     @@datetime_format_options
   end
@@ -37,16 +37,34 @@ class UserSegment::CoreType
       cls.scoped(:conditions => ["#{field} > ?", value])
     end
 
+    register_operation :greater_than_or_equal_to, [['Value', :integer]]
+
+    def self.greater_than_or_equal_to(cls, field, value)
+      cls.scoped(:conditions => ["#{field} >= ?", value])
+    end
+
     register_operation :less_than, [['Value', :integer]]
 
     def self.less_than(cls, field, value)
       cls.scoped(:conditions => ["#{field} < ?", value])
     end
 
+    register_operation :less_than_or_equal_to, [['Value', :integer]]
+
+    def self.less_than_or_equal_to(cls, field, value)
+      cls.scoped(:conditions => ["#{field} <= ?", value])
+    end
+
     register_operation :equals, [['Value', :integer]]
 
     def self.equals(cls, field, value)
       cls.scoped(:conditions => ["#{field} = ?", value])
+    end
+
+    register_operation :is, [['Value', :integer]]
+
+    def self.is(cls, field, value)
+      self.equals(cls, field, value)
     end
   end
 
