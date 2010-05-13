@@ -40,7 +40,8 @@ user object. See the method's description for more details.
 =end
 class EndUser < DomainModel
 
-include ModelExtension::EndUserImportExtension
+   include ModelExtension::EndUserImportExtension
+   include WebivaCaptcha::ModelSupport
 
 
   validates_confirmation_of :password

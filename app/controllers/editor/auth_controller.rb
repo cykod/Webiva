@@ -41,9 +41,9 @@ class Editor::AuthController < ParagraphController #:nodoc:all
     :address_required_fields => [],
     :content_publication_id => nil, :source => nil, :lockout_redirect => false,
     :require_activation => false, :activation_page_id => nil,
-    :features => []
+    :features => [], :require_captcha => false
 
-    boolean_options :lockout_redirect, :require_activation
+    boolean_options :lockout_redirect, :require_activation, :require_captcha
 
     page_options :success_page_id, :activation_page_id 
    
@@ -51,7 +51,9 @@ class Editor::AuthController < ParagraphController #:nodoc:all
 
 
     def validate
-      if !self.features.is_a?(Array)
+      self.required_fields = [] if @passed_hash[:required_fields].blank?
+      self.optional_fields = [] if @passed_hash[:optional_fields].blank?
+       if !self.features.is_a?(Array)
         self.features = self.features.to_a.sort {  |a,b| a[0] <=> b[0]  }.map {  |elm| obj = Handlers::ParagraphFeature.new(elm[1]);  obj.to_hash }
 
         self.register_features.each do |feature|
@@ -193,7 +195,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
     include HandlerActions
 
     
-    attributes :required_fields => [ ],
+    attributes :required_fields => [ 'email', 'password', 'password_confirmation'],
     :user_class_id => nil,  :modify_profile => 'keep', :mail_template_id => nil,
     :optional_fields => [ 'first_name','last_name'],
     :success_page_id => nil,
@@ -208,6 +210,8 @@ class Editor::AuthController < ParagraphController #:nodoc:all
     validates_presence_of :user_class_id
 
     def validate
+      self.required_fields = [] if @passed_hash[:required_fields].blank?
+      self.optional_fields = [] if @passed_hash[:optional_fields].blank?
       if self.content_publication_id
 	if self.content_publication_user_field
 	  errors.add(:content_publication_user_field) unless self.publication_field_options.rassoc self.content_publication_user_field

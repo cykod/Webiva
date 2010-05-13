@@ -39,6 +39,8 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       feature.feature_instance.generate(params)
     end
 
+    @captcha = WebivaCaptcha.new(self) if @options.require_captcha
+
     if request.post? && params[:user] && !@registered
       # See we already have an unregistered user with this email
       @usr = EndUser.find_visited_target(params[:user][:email])
@@ -56,6 +58,8 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
 
       # check everything is valid
       all_valid = true
+      @captcha.validate_object(@usr) if @captcha
+
       @usr.valid?
 
       # go over each required field - add an error if it's missing
@@ -191,7 +195,6 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
   end
 
   def user_edit_account
-
     @options = paragraph_options(:user_edit_account)
 
     if myself.id
@@ -206,8 +209,8 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       end
     end
 
-    if request.post? && params[:user] && !editor? && myself.id
-
+    if request.post? && ( params[:user] || params[:model] ) && !editor? && myself.id
+      params[:user] ||= {}
       handle_image_upload(params[:user],:domain_file_id)
       # Assign a slice of params to the user
       @usr.attributes = params[:user].slice(*(@options.required_fields + @options.optional_fields + @options.always_required_fields).uniq)

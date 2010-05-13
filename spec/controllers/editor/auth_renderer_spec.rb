@@ -125,7 +125,7 @@ describe Editor::AuthRenderer, :type => :controller do
       mock_user
     end
 
-    def generate_renderer(data = {})
+    def generate_renderer(data = {:required_fields => [ ]})
       # Set a user class b/c we need one
       build_renderer('/page','/editor/auth/user_edit_account',data,{})
     end
@@ -193,7 +193,7 @@ describe Editor::AuthRenderer, :type => :controller do
     end
 
     it "should be able to add tag names" do
-      @rnd = generate_renderer(:add_tags => 'test1,test2')
+      @rnd = generate_renderer(:add_tags => 'test1,test2',:required_fields => [])
       renderer_post @rnd, :user => { :first_name => 'first' }
       @myself.tag_names.should == ['test1','test2']
     end
@@ -202,7 +202,7 @@ describe Editor::AuthRenderer, :type => :controller do
       token = AccessToken.create :token_name => 'token'
       token.id.should_not be_nil
 
-      @rnd = generate_renderer(:access_token_id => token.id)
+      @rnd = generate_renderer(:access_token_id => token.id, :required_fields => [])
       renderer_post @rnd, :user => { :first_name => 'First' }
 
       @myself.errors.length.should == 0
@@ -215,7 +215,7 @@ describe Editor::AuthRenderer, :type => :controller do
 
       MailTemplateMailer.should_receive(:deliver_to_user)
 
-      @rnd = generate_renderer(:mail_template_id => @email_template.id)
+      @rnd = generate_renderer(:mail_template_id => @email_template.id, :required_fields => [])
       renderer_post @rnd, :user => { :first_name => 'First' }
 
       @myself.errors.length.should == 0
@@ -223,7 +223,7 @@ describe Editor::AuthRenderer, :type => :controller do
     end
 
     it "should change user class id" do
-      @rnd = generate_renderer(:user_class_id => 2, :modify_profile => 'modify')
+      @rnd = generate_renderer(:user_class_id => 2, :modify_profile => 'modify', :required_fields => [])
       renderer_post @rnd, :user => { :first_name => 'First' }
 
       @myself.errors.length.should == 0

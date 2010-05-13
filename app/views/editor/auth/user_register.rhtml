@@ -49,7 +49,8 @@ UserRegisterEditor = {
    :description => 'Account registration requires a password' %>
    <%= f.page_selector :success_page_id, :required => true %>
    <%= f.page_selector :already_registered_page_id %>
-   <%= f.radio_buttons :lockout_redirect, [['Yes'.t,true],['No'.t,false]], :label => 'Redirect to lockout', :description => 'Should we redirect back to the page user was originally\nlocked out of (if it exists)' %>
+   <%= f.yes_no :require_captcha %>
+   <%= f.yes_no :lockout_redirect, :label => 'Redirect to lockout', :description => 'Should we redirect back to the page user was originally\nlocked out of (if it exists)' %>
    <%= f.radio_buttons :require_activation, [['Yes'.t,true],['No'.t,false]], :label => 'Require activation',:description => 'If set to yes, the user will need to click on a link in the registration email\n to activate their account.\nUsers will also not be logged in automatically.'   -%>
    <%= f.select :registration_template_id, [['--Select Template--'.t,nil]] + MailTemplate.select_options %>
    <%= f.page_selector :activation_page_id, :description => 'Page to link to in activation template (if require activation is on)' -%>

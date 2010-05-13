@@ -7,36 +7,26 @@ class Editor::AuthFeature < ParagraphFeature #:nodoc:all
 <cms:registered>
 You are already registered
 </cms:registered>
-<cms:register>
+<cms:register> 
+ <ul class='webiva_form register_form'>
   <!-- enter form elements directly -->
-  <div class='item'>
-     <cms:email_error><div class='error'><cms:value/></div></cms:email_error>
-     <div class='label'>Email*:</div>
-     <div class='field'><cms:email/></div>
-  </div>
+  <cms:errors/>
+  
+  <li><cms:email_label/><cms:email/></li>
 
   <cms:any_field except='email'>
-  <div class='item'>
-     <cms:error><div class='error'><cms:value/></div></cms:error>
-     <div class='label'><cms:label/><cms:required>*</cms:required>:</div>
-     <div class='field'><cms:control/></div>
-  </div>
+     <li><cms:label/><cms:control/></li>
   </cms:any_field>
   <!-- optional fields except='field1' or fields="field1,field2" options work too -->
 
 
  <cms:publication>
- <cms:field>
-  <div class='item'>
-     <cms:error><div class='error'><cms:value/></div></cms:error>
-     <div class='label'><cms:label/><cms:required>*</cms:required>:</div>
-     <div class='field'><cms:control/></div>
-  </div>
-  </cms:field>
-  </cms:publication>
+ <cms:field><cms:item/></cms:field>
+ </cms:publication>
 
-
-  <cms:submit/>
+  <li class='captcha'><cms:captcha/></li>
+  <li class='button'><cms:submit/></li>
+  </ul>
 </cms:register>
 
 
@@ -47,7 +37,7 @@ FEATURE
       c.expansion_tag('registered') { |t| data[:registered] }
       c.form_for_tag('register',:user) { |t| data[:usr] ? data[:usr] : nil }
 
-      c.expansion_tag('register:errors') { |t| data[:failed] }
+      c.form_error_tag('register:errors') { |t| [ data[:usr], data[:address], data[:business], data[:model] ]}
 
       data[:options].all_field_list.each do |fld|
         c.field_tag("register:#{fld[0]}",{ :control => fld[1][1]}.merge(fld[1][3]||{}))
@@ -77,7 +67,8 @@ FEATURE
       else
         c.expansion_tag('register:publication') { |t| nil }
       end
-      
+      c.captcha_tag('register:captcha') { |t| data[:captcha]}
+
       c.button_tag('register:submit')
 
       data[:options].register_features.each do |feature|
@@ -92,34 +83,24 @@ FEATURE
   <cms:reset_password>Reset your password.</cms:reset_password>
   <cms:updated>Account Updated.</cms:updated>
 
-  <!-- enter form elements directly -->
-  <div class='item'>
-     <cms:email_error><div class='error'><cms:value/></div></cms:email_error>
-     <div class='label'>Email*:</div>
-     <div class='field'><cms:email/></div>
-  </div>
+ <ul class='webiva_form edit_account_form'>
+ <!-- enter form elements directly -->
+  <cms:errors/>
+  
+  <li><cms:email_label/><cms:email/></li>
 
   <cms:any_field except='email'>
-  <div class='item'>
-     <cms:error><div class='error'><cms:value/></div></cms:error>
-     <div class='label'><cms:label/><cms:required>*</cms:required>:</div>
-     <div class='field'><cms:control/></div>
-  </div>
+     <li><cms:label/><cms:control/></li>
   </cms:any_field>
   <!-- optional fields except='field1' or fields="field1,field2" options work too -->
 
+
  <cms:publication>
- <cms:field>
-  <div class='item'>
-     <cms:error><div class='error'><cms:value/></div></cms:error>
-     <div class='label'><cms:label/><cms:required>*</cms:required>:</div>
-     <div class='field'><cms:control/></div>
-  </div>
-  </cms:field>
-  </cms:publication>
+ <cms:field><cms:item/></cms:field>
+ </cms:publication>
 
-
-  <cms:submit/>
+ <li class='button'><cms:submit/></li>
+  </ul>
 </cms:edit>
 
 
@@ -128,8 +109,8 @@ FEATURE
   def user_edit_account_feature(data)
     webiva_custom_feature(:user_edit_account,data) do |c|
       c.form_for_tag('edit',:user,:html => { :enctype => 'multipart/form-data' }) { |t| data[:usr] ? data[:usr] : nil }
+      c.form_error_tag('edit:errors') { |t| [ data[:usr], data[:address], data[:business], data[:model] ]}
 
-      c.expansion_tag('edit:errors') { |t| data[:failed] }
       c.expansion_tag('edit:updated') { |t| data[:updated] }
       c.expansion_tag('edit:reset_password') { |t| data[:reset_password] }
 
@@ -138,7 +119,7 @@ FEATURE
       end
 
       ['any_field','required_field','optional_field'].each do |fields|
-        user_fields_helper('edit',c,fields,data,(data[:options].always_required_fields + data[:options].required_fields))
+        user_fields_helper('edit',c,fields,data,data[:options].required_fields)
       end
 
       c.fields_for_tag('edit:address',:address) { |t| data[:address] ? data[:address] : nil }
@@ -182,7 +163,8 @@ FEATURE
       fields
     end
     c.value_tag("#{prefix}:#{fields_name}:label") do |t|
-      t.locals.send(fields_name)[1][0]
+      req = required_fields.include? t.locals.send(fields_name)[0].to_s
+      t.locals.send(fields_name)[1][0] + (req ? "<em>*</em>" : "")
     end
     c.value_tag("#{prefix}:#{fields_name}:control") do |t|
       frm = t.locals.form
