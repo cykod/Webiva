@@ -660,11 +660,11 @@ module UserSegmentOption
       if r3
         r2 = r3
       else
-        r4 = _nt_integer
+        r4 = _nt_float
         if r4
           r2 = r4
         else
-          r5 = _nt_float
+          r5 = _nt_integer
           if r5
             r2 = r5
           else
@@ -706,7 +706,7 @@ module UserSegmentOption
 
   module String2
     def eval(env={})
-      text_value[1..-2]
+      text_value[1..-2].gsub('\"', '"').gsub('\\\'', "'")
     end
   end
 
@@ -721,95 +721,142 @@ module UserSegmentOption
       return cached
     end
 
-    i0, s0 = index, []
+    i0 = index
+    i1, s1 = index, []
     if has_terminal?('"', false, index)
-      r1 = instantiate_node(SyntaxNode,input, index...(index + 1))
+      r2 = instantiate_node(SyntaxNode,input, index...(index + 1))
       @index += 1
     else
       terminal_parse_failure('"')
-      r1 = nil
+      r2 = nil
     end
-    s0 << r1
-    if r1
-      s2, i2 = [], index
+    s1 << r2
+    if r2
+      s3, i3 = [], index
       loop do
-        i3 = index
-        i4, s4 = index, []
-        i5 = index
-        if has_terminal?('"', false, index)
-          r6 = instantiate_node(SyntaxNode,input, index...(index + 1))
-          @index += 1
+        i4 = index
+        if has_terminal?('\"', false, index)
+          r5 = instantiate_node(SyntaxNode,input, index...(index + 2))
+          @index += 2
         else
-          terminal_parse_failure('"')
-          r6 = nil
-        end
-        if r6
+          terminal_parse_failure('\"')
           r5 = nil
-        else
-          @index = i5
-          r5 = instantiate_node(SyntaxNode,input, index...index)
         end
-        s4 << r5
         if r5
-          if index < input_length
-            r7 = instantiate_node(SyntaxNode,input, index...(index + 1))
+          r4 = r5
+        else
+          if has_terminal?('\G[^"]', true, index)
+            r6 = true
             @index += 1
           else
-            terminal_parse_failure("any character")
-            r7 = nil
+            r6 = nil
           end
-          s4 << r7
-        end
-        if s4.last
-          r4 = instantiate_node(SyntaxNode,input, i4...index, s4)
-          r4.extend(String0)
-        else
-          @index = i4
-          r4 = nil
+          if r6
+            r4 = r6
+          else
+            @index = i4
+            r4 = nil
+          end
         end
         if r4
-          r3 = r4
-        else
-          if has_terminal?('\"', false, index)
-            r8 = instantiate_node(SyntaxNode,input, index...(index + 2))
-            @index += 2
-          else
-            terminal_parse_failure('\"')
-            r8 = nil
-          end
-          if r8
-            r3 = r8
-          else
-            @index = i3
-            r3 = nil
-          end
-        end
-        if r3
-          s2 << r3
+          s3 << r4
         else
           break
         end
       end
-      r2 = instantiate_node(SyntaxNode,input, i2...index, s2)
-      s0 << r2
-      if r2
+      r3 = instantiate_node(SyntaxNode,input, i3...index, s3)
+      s1 << r3
+      if r3
         if has_terminal?('"', false, index)
-          r9 = instantiate_node(SyntaxNode,input, index...(index + 1))
+          r7 = instantiate_node(SyntaxNode,input, index...(index + 1))
           @index += 1
         else
           terminal_parse_failure('"')
-          r9 = nil
+          r7 = nil
         end
-        s0 << r9
+        s1 << r7
       end
     end
-    if s0.last
-      r0 = instantiate_node(SyntaxNode,input, i0...index, s0)
-      r0.extend(String1)
+    if s1.last
+      r1 = instantiate_node(SyntaxNode,input, i1...index, s1)
+      r1.extend(String0)
+    else
+      @index = i1
+      r1 = nil
+    end
+    if r1
+      r0 = r1
       r0.extend(String2)
     else
-      @index = i0
-      r0 = nil
+      i8, s8 = index, []
+      if has_terminal?("'", false, index)
+        r9 = instantiate_node(SyntaxNode,input, index...(index + 1))
+        @index += 1
+      else
+        terminal_parse_failure("'")
+        r9 = nil
+      end
+      s8 << r9
+      if r9
+        s10, i10 = [], index
+        loop do
+          i11 = index
+          if has_terminal?("\\'", false, index)
+            r12 = instantiate_node(SyntaxNode,input, index...(index + 2))
+            @index += 2
+          else
+            terminal_parse_failure("\\'")
+            r12 = nil
+          end
+          if r12
+            r11 = r12
+          else
+            if has_terminal?('\G[^\']', true, index)
+              r13 = true
+              @index += 1
+            else
+              r13 = nil
+            end
+            if r13
+              r11 = r13
+            else
+              @index = i11
+              r11 = nil
+            end
+          end
+          if r11
+            s10 << r11
+          else
+            break
+          end
+        end
+        r10 = instantiate_node(SyntaxNode,input, i10...index, s10)
+        s8 << r10
+        if r10
+          if has_terminal?("'", false, index)
+            r14 = instantiate_node(SyntaxNode,input, index...(index + 1))
+            @index += 1
+          else
+            terminal_parse_failure("'")
+            r14 = nil
+          end
+          s8 << r14
+        end
+      end
+      if s8.last
+        r8 = instantiate_node(SyntaxNode,input, i8...index, s8)
+        r8.extend(String1)
+      else
+        @index = i8
+        r8 = nil
+      end
+      if r8
+        r0 = r8
+        r0.extend(String2)
+      else
+        @index = i0
+        r0 = nil
+      end
     end
 
     node_cache[:string][start_index] = r0
@@ -1005,9 +1052,6 @@ module UserSegmentOption
   end
 
   module Float2
-  end
-
-  module Float3
     def eval(env={})
       text_value.to_f
     end
@@ -1026,30 +1070,59 @@ module UserSegmentOption
 
     i0 = index
     i1, s1 = index, []
-    if has_terminal?('\G[1-9]', true, index)
-      r2 = true
-      @index += 1
-    else
+    s2, i2 = [], index
+    loop do
+      if has_terminal?('\G[0-9]', true, index)
+        r3 = true
+        @index += 1
+      else
+        r3 = nil
+      end
+      if r3
+        s2 << r3
+      else
+        break
+      end
+    end
+    if s2.empty?
+      @index = i2
       r2 = nil
+    else
+      r2 = instantiate_node(SyntaxNode,input, i2...index, s2)
     end
     s1 << r2
     if r2
-      s3, i3 = [], index
-      loop do
-        if has_terminal?('\G[0-9]', true, index)
-          r4 = true
-          @index += 1
-        else
-          r4 = nil
-        end
-        if r4
-          s3 << r4
-        else
-          break
-        end
+      if has_terminal?('.', false, index)
+        r4 = instantiate_node(SyntaxNode,input, index...(index + 1))
+        @index += 1
+      else
+        terminal_parse_failure('.')
+        r4 = nil
       end
-      r3 = instantiate_node(SyntaxNode,input, i3...index, s3)
-      s1 << r3
+      s1 << r4
+      if r4
+        s5, i5 = [], index
+        loop do
+          if has_terminal?('\G[0-9]', true, index)
+            r6 = true
+            @index += 1
+          else
+            r6 = nil
+          end
+          if r6
+            s5 << r6
+          else
+            break
+          end
+        end
+        if s5.empty?
+          @index = i5
+          r5 = nil
+        else
+          r5 = instantiate_node(SyntaxNode,input, i5...index, s5)
+        end
+        s1 << r5
+      end
     end
     if s1.last
       r1 = instantiate_node(SyntaxNode,input, i1...index, s1)
@@ -1060,104 +1133,53 @@ module UserSegmentOption
     end
     if r1
       r0 = r1
+      r0.extend(Float2)
     else
-      i5, s5 = index, []
+      i7, s7 = index, []
       if has_terminal?('.', false, index)
-        r6 = instantiate_node(SyntaxNode,input, index...(index + 1))
+        r8 = instantiate_node(SyntaxNode,input, index...(index + 1))
         @index += 1
       else
         terminal_parse_failure('.')
-        r6 = nil
+        r8 = nil
       end
-      s5 << r6
-      if r6
-        s7, i7 = [], index
+      s7 << r8
+      if r8
+        s9, i9 = [], index
         loop do
           if has_terminal?('\G[0-9]', true, index)
-            r8 = true
+            r10 = true
             @index += 1
           else
-            r8 = nil
+            r10 = nil
           end
-          if r8
-            s7 << r8
+          if r10
+            s9 << r10
           else
             break
           end
         end
-        if s7.empty?
-          @index = i7
-          r7 = nil
-        else
-          r7 = instantiate_node(SyntaxNode,input, i7...index, s7)
-        end
-        s5 << r7
-      end
-      if s5.last
-        r5 = instantiate_node(SyntaxNode,input, i5...index, s5)
-        r5.extend(Float1)
-      else
-        @index = i5
-        r5 = nil
-      end
-      if r5
-        r0 = r5
-      else
-        i9, s9 = index, []
-        s10, i10 = [], index
-        loop do
-          if has_terminal?('\G[0-9]', true, index)
-            r11 = true
-            @index += 1
-          else
-            r11 = nil
-          end
-          if r11
-            s10 << r11
-          else
-            break
-          end
-        end
-        if s10.empty?
-          @index = i10
-          r10 = nil
-        else
-          r10 = instantiate_node(SyntaxNode,input, i10...index, s10)
-        end
-        s9 << r10
-        if r10
-          if has_terminal?('.', false, index)
-            r12 = instantiate_node(SyntaxNode,input, index...(index + 1))
-            @index += 1
-          else
-            terminal_parse_failure('.')
-            r12 = nil
-          end
-          s9 << r12
-          if r12
-            if has_terminal?('\G[0-9]', true, index)
-              r13 = true
-              @index += 1
-            else
-              r13 = nil
-            end
-            s9 << r13
-          end
-        end
-        if s9.last
-          r9 = instantiate_node(SyntaxNode,input, i9...index, s9)
-          r9.extend(Float2)
-          r9.extend(Float3)
-        else
+        if s9.empty?
           @index = i9
           r9 = nil
-        end
-        if r9
-          r0 = r9
         else
-          @index = i0
-          r0 = nil
+          r9 = instantiate_node(SyntaxNode,input, i9...index, s9)
         end
+        s7 << r9
+      end
+      if s7.last
+        r7 = instantiate_node(SyntaxNode,input, i7...index, s7)
+        r7.extend(Float1)
+      else
+        @index = i7
+        r7 = nil
+      end
+      if r7
+        r0 = r7
+        r0.extend(Float2)
+      else
+        @index = i0
+        r0 = nil
       end
     end
 
