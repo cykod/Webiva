@@ -15,4 +15,8 @@ describe UserSegment::FieldHandler do
     UserSegment::FieldHandler.user_segment_fields[:created][:type].should == UserSegment::CoreType::DateTimeType
     UserSegment::FieldHandler.user_segment_fields[:created][:name].should == 'EndUser.created'
   end
+
+  it "should always return the EndUserSegmentField as the first handler" do
+    UserSegment::FieldHandler.handlers[0][:class] == EndUserSegmentField
+  end
 end

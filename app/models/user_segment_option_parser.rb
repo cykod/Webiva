@@ -1324,14 +1324,20 @@ module UserSegmentOption
   end
 
   module Not1
-    def space
-      elements[1]
+    def space1
+      elements[0]
+    end
+
+    def space2
+      elements[2]
     end
   end
 
   module Not2
     def eval(env={})
-      empty? ? nil : 'not'
+	return nil if empty?
+      return 'not' if text_value.strip.downcase == 'not' || text_value.strip.downcase == '!'
+	nil
     end
   end
 
@@ -1347,76 +1353,80 @@ module UserSegmentOption
     end
 
     i0, s0 = index, []
-    i2 = index
-    i3, s3 = index, []
-    if has_terminal?('\G[nN]', true, index)
-      r4 = true
-      @index += 1
-    else
-      r4 = nil
-    end
-    s3 << r4
-    if r4
-      if has_terminal?('\G[oO]', true, index)
+    r1 = _nt_space
+    s0 << r1
+    if r1
+      i3 = index
+      i4, s4 = index, []
+      if has_terminal?('\G[nN]', true, index)
         r5 = true
         @index += 1
       else
         r5 = nil
       end
-      s3 << r5
+      s4 << r5
       if r5
-        if has_terminal?('\G[tT]', true, index)
+        if has_terminal?('\G[oO]', true, index)
           r6 = true
           @index += 1
         else
           r6 = nil
         end
-        s3 << r6
+        s4 << r6
         if r6
-          if has_terminal?(' ', false, index)
-            r7 = instantiate_node(SyntaxNode,input, index...(index + 1))
+          if has_terminal?('\G[tT]', true, index)
+            r7 = true
             @index += 1
           else
-            terminal_parse_failure(' ')
             r7 = nil
           end
-          s3 << r7
+          s4 << r7
+          if r7
+            if has_terminal?(' ', false, index)
+              r8 = instantiate_node(SyntaxNode,input, index...(index + 1))
+              @index += 1
+            else
+              terminal_parse_failure(' ')
+              r8 = nil
+            end
+            s4 << r8
+          end
         end
       end
-    end
-    if s3.last
-      r3 = instantiate_node(SyntaxNode,input, i3...index, s3)
-      r3.extend(Not0)
-    else
-      @index = i3
-      r3 = nil
-    end
-    if r3
-      r2 = r3
-    else
-      if has_terminal?('!', false, index)
-        r8 = instantiate_node(SyntaxNode,input, index...(index + 1))
-        @index += 1
+      if s4.last
+        r4 = instantiate_node(SyntaxNode,input, i4...index, s4)
+        r4.extend(Not0)
       else
-        terminal_parse_failure('!')
-        r8 = nil
+        @index = i4
+        r4 = nil
       end
-      if r8
-        r2 = r8
+      if r4
+        r3 = r4
       else
-        @index = i2
-        r2 = nil
+        if has_terminal?('!', false, index)
+          r9 = instantiate_node(SyntaxNode,input, index...(index + 1))
+          @index += 1
+        else
+          terminal_parse_failure('!')
+          r9 = nil
+        end
+        if r9
+          r3 = r9
+        else
+          @index = i3
+          r3 = nil
+        end
       end
-    end
-    if r2
-      r1 = r2
-    else
-      r1 = instantiate_node(SyntaxNode,input, index...index)
-    end
-    s0 << r1
-    if r1
-      r9 = _nt_space
-      s0 << r9
+      if r3
+        r2 = r3
+      else
+        r2 = instantiate_node(SyntaxNode,input, index...index)
+      end
+      s0 << r2
+      if r2
+        r10 = _nt_space
+        s0 << r10
+      end
     end
     if s0.last
       r0 = instantiate_node(SyntaxNode,input, i0...index, s0)

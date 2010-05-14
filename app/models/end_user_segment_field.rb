@@ -15,5 +15,6 @@ class EndUserSegmentField < UserSegment::FieldHandler
   register_field :registered, UserSegment::CoreType::BooleanType
   register_field :activated, UserSegment::CoreType::BooleanType
   register_field :id, UserSegment::CoreType::NumberType
+  register_field :user_level, UserSegment::CoreType::NumberType
 
 end

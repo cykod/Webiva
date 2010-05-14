@@ -1,5 +1,6 @@
 
 class UserSegment::FieldHandler
+  include HandlerActions
 
   def self.user_segment_fields; {}; end
 
@@ -18,5 +19,11 @@ class UserSegment::FieldHandler
     sing.send :define_method, :user_segment_fields do 
       fields
     end 
+  end
+
+  def self.handlers
+    ([ self.get_handler_info(:user_segment, :fields, 'end_user_segment_field'),
+       self.get_handler_info(:user_segment, :fields, 'end_user_action_segment_field')] +
+       self.get_handler_info(:user_segment, :fields)).uniq
   end
 end

@@ -122,9 +122,11 @@ grammar UserSegmentOption
   end
 
   rule not
-    ([nN] [oO] [tT] ' ' / '!')? space {
+    space ([nN] [oO] [tT] ' ' / '!')? space {
       def eval(env={})
-        empty? ? nil : 'not'
+	return nil if empty?
+        return 'not' if text_value.strip.downcase == 'not' || text_value.strip.downcase == '!'
+	nil
       end
     }
   end
