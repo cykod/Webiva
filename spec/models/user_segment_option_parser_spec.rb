@@ -89,4 +89,27 @@ describe UserSegmentOptionParser do
     CODE
     parse(code).should == [['not', {:field => 'created', :operation => 'since', :arguments => [1, "days"], :child => {:field => 'registered', :operation => 'is', :arguments => [true], :child => {:field => 'logged_in', :operation => 'is', :arguments => [false], :child => nil}}}]]
   end
+
+  it "should be able to or operations" do
+    code = <<-CODE
+    created.since(1, "days") + registered.is(true)
+    CODE
+    parse(code).should == [[nil, {:field => 'created', :operation => 'since', :arguments => [1, "days"], :child => nil}, {:field => 'registered', :operation => 'is', :arguments => [true], :child => nil}]]
+
+    code = <<-CODE
+    created.since(1, "days") + registered.is(true) + test.is('good')
+    CODE
+    parse(code).should == [[nil, {:field => 'created', :operation => 'since', :arguments => [1, "days"], :child => nil}, {:field => 'registered', :operation => 'is', :arguments => [true], :child => nil}, {:field => 'test', :operation => 'is', :arguments => ['good'], :child => nil}]]
+  end
+
+  it "should be able to and operations" do
+    code = <<-CODE
+    created.since(1, "days")
+    registered.is(true)
+    CODE
+    parse(code).should == [
+      [nil, {:field => 'created', :operation => 'since', :arguments => [1, "days"], :child => nil}],
+      [nil, {:field => 'registered', :operation => 'is', :arguments => [true], :child => nil}]
+    ]
+  end
 end
