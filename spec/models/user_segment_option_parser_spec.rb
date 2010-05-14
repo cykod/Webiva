@@ -112,4 +112,17 @@ describe UserSegmentOptionParser do
       [nil, {:field => 'registered', :operation => 'is', :arguments => [true], :child => nil}]
     ]
   end
+
+  it "should parse a complaticated set of operations" do
+    code = <<-CODE
+    created.since(1  , "days").born.before('yesterday')+   registered.is( true )
+    registered.is( true )
+    not    test.is( false ) + product.purchased( 'computer' ).created.since(       1, 'day'  )
+    CODE
+    parse(code).should == [
+      [nil, {:field => 'created', :operation => 'since', :arguments => [1, "days"], :child => {:field => 'born', :operation => 'before', :arguments => ['yesterday'], :child => nil}}, {:field => 'registered', :operation => 'is', :arguments => [true], :child => nil}],
+      [nil, {:field => 'registered', :operation => 'is', :arguments => [true], :child => nil}],
+      ['not', {:field => 'test', :operation => 'is', :arguments => [false], :child => nil}, {:field => 'product', :operation => 'purchased', :arguments => ['computer'], :child => {:field => 'created', :operation => 'since', :arguments => [1, 'day'], :child => nil}}]
+    ]
+  end
 end
