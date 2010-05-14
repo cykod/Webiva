@@ -50,22 +50,22 @@ class UserSegment < DomainModel
     @end_user_ids
   end
 
-  def each(&block)
+  def each(opts={}, &block)
     self.user_segment_caches.each do |segement|
-      segement.each &block
+      segement.each opts, &block
     end
   end
 
-  def each_with_index(&block)
+  def each_with_index(opts={}, &block)
     idx = 0
     self.user_segment_caches.each do |segement|
-      idx = segement.each_with_index idx, &block
+      idx = segement.each_with_index idx, opts, &block
     end
   end
 
-  def find(&block)
+  def find(opts={}, &block)
     self.user_segment_caches.each do |segement|
-      user = segement.find &block
+      user = segement.find opts, &block
       return user if user
     end
   end
