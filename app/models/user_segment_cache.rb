@@ -10,20 +10,22 @@ class UserSegmentCache < DomainModel
     self.created_at = Time.now unless self.created_at
   end
 
-  def end_users
-    @end_users ||= EndUser.find(:all, :conditions => {:id => self.id_list})
+  def end_users(opts={})
+    return @end_users if @end_users
+    users_by_id = EndUser.find(:all, :conditions => {:id => self.id_list}).index_by(&:id)
+    @end_users = self.id_list.map { |id| users_by_id[id] }.compact
   end
 
-  def each
-    self.end_users.each { |user| yield user }
+  def each(opts={})
+    self.end_users(opts).each { |user| yield user }
   end
 
-  def each_with_index(idx=0)
-    self.end_users.each { |user| yield user, idx; idx = idx.succ }
+  def each_with_index(idx=0, opts={})
+    self.end_users(opts).each { |user| yield user, idx; idx = idx.succ }
     idx
   end
 
-  def find
-    self.end_users.find { |user| yield user }
+  def find(opts={})
+    self.end_users(opts).find { |user| yield user }
   end
 end
