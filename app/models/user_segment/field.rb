@@ -80,7 +80,7 @@ class UserSegment::Field < HashModel
   end
 
   def handler
-    @handler ||= self.get_handler_info(:user_segment, :fields).find { |info| info[:class].has_field?(self.field) }
+    @handler ||= UserSegment::FieldHandler.handlers.find { |info| info[:class].has_field?(self.field) }
   end
 
   def handler=(handler)

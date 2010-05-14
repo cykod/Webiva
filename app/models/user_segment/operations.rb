@@ -21,6 +21,9 @@ class UserSegment::Operations
   def parse(text)
     if options = self.parser.parse(text)
       self.operations = options.eval
+      true
+    else
+      false
     end
   end
 
