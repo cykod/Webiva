@@ -20,6 +20,8 @@ class UserSegments < ActiveRecord::Migration
       t.datetime :created_at
     end
 
+    add_index :user_segment_caches, [:user_segment_id], :name => 'user_segment_cache_segment_idx'
+
     create_table :user_segment_analytics, :force => true do |t|
       t.integer :user_segment_id
       t.text :fields
@@ -29,6 +31,8 @@ class UserSegments < ActiveRecord::Migration
       t.string :step
       t.timestamps
     end
+
+    add_index :user_segment_analytics, [:user_segment_id], :name => 'user_segment_analytics_segment_idx'
   end
 
   def self.down
