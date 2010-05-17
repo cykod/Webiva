@@ -74,7 +74,8 @@ class EndUser < DomainModel
   has_many :addresses, :class_name => 'EndUserAddress', :dependent => :destroy
 
   has_one :tag_cache, :dependent => :destroy
-  
+  has_one :end_user_cache, :dependent => :destroy, :class_name => 'EndUserCache'
+
   has_many :end_user_cookies, :dependent => :delete_all, :class_name => 'EndUserCookie'
 
   has_many :end_user_actions, :dependent => :delete_all
@@ -126,6 +127,10 @@ class EndUser < DomainModel
     if @tag_cache
       self.tag(@tag_cache)
     end
+  end
+
+  def after_save #:nodoc:
+    self.end_user_cache ? self.end_user_cache.save : EndUserCache.create(:end_user_id => self.id)
   end
 
   ## Validation Fucntions 
