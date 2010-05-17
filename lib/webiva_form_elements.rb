@@ -881,8 +881,6 @@ HTML
     existing_options = @object.send(field).map do |elm|
       idx+=1
       <<-TXT
- <input type='hidden' name='#{@object_name}[#{field}][][#{id_field}]' value='' />
- #{"<input type='hidden' name='#{@object_name}[#{field}][][#{position_field}]' value='' />" if sortable}
       <div class='ordered_selection_list_item' id='#{obj_name}_#{field}_element_#{elm.send(id_field)}'>
 <div class='ordered_selection_list_remove'><a href='javascript:void(0);' onclick='OrderedList.delete("#{obj_name}_#{field}", "#{elm.send(id_field)}");'>X</a></div>
            #{h elm.name}
