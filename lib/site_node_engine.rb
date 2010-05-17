@@ -218,7 +218,7 @@ class SiteNodeEngine
       
 
     def editor_add_rendered_css!(rnd,paragraph)
-      if paragraph.site_feature_id
+      if paragraph.site_feature_id && paragraph.site_feature
         rnd.output.render_args[:css] = paragraph.site_feature.rendered_css unless paragraph.site_feature.rendered_css.blank?
       end
 
