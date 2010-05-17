@@ -108,26 +108,32 @@ class UserSegment < DomainModel
       }, items ]
   end
 
-  def search(offset=0, args={})
+  def search(args={})
     args = args.clone.symbolize_keys!
     
-    page_size = args.delete(:per_page).to_i
-    page_size = 20 if page_size <= 0
+    offset = args.delete(:offset).to_i
+    limit = args.delete(:limit).to_i
+    limit = 20 if limit <= 0
 
     cache_offset = offset % UserSegmentCache::SIZE
+
+    if args[:scope].nil?
+      args[:scope] = EndUser.scoped(:conditions => args.delete(:conditions), :joins => args.delete(:joins))
+      args[:end_user_field] = :id
+    end
 
     ids = []
     ((offset / UserSegmentCache::SIZE).to_i..self.user_segment_caches.length-1).each do |position|
       cache = self.user_segment_caches.find_by_position(position)
-      cache_offset, cache_ids = cache.search(cache_offset, args.merge(:limit => page_size-ids.length))
+      cache_offset, cache_ids = cache.search(cache_offset, args.merge(:limit => limit-ids.length))
       ids = ids + cache_ids
       offset = UserSegmentCache::SIZE * position + cache_offset
       cache_offset = 0
-      break if ids.length >= page_size
+      break if ids.length >= limit
     end
 
-    args.delete(:conditions)
-    args.delete(:joins)
+    args.delete(:scope)
+    args.delete(:end_user_field)
     users = EndUser.find(:all, args.merge(:conditions => {:id => ids}))
     return [offset, users]
   end

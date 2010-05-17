@@ -28,13 +28,14 @@ class UserSegmentCache < DomainModel
     num_chunks = (self.id_list.size / batch_size).to_i
     num_chunks = num_chunks.succ if (self.id_list.length % batch_size) > 0
 
-    base_scope = EndUser.scoped(opts)
+    base_scope = opts.delete(:scope) || EndUser
+    end_user_field = opts.delete(:end_user_field) || :end_user_id
 
     ids = []
     ((offset/batch_size).to_i..num_chunks-1).each do |chunk|
       sub_list = self.id_list[offset..(offset+batch_size-1)]
-      scope = base_scope.scoped(:select => 'id', :conditions => {:id => sub_list})
-      users_by_id = scope.find(:all).index_by(&:id)
+      scope = base_scope.scoped(:select => end_user_field.to_s, :conditions => {end_user_field.to_sym => sub_list})
+      users_by_id = scope.find(:all).index_by(&end_user_field.to_sym)
       ids = ids + sub_list.map { |id| users_by_id[id] ? id : nil }.compact unless users_by_id.empty?
       offset = offset + batch_size
       break if ids.length > limit
