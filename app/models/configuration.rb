@@ -40,7 +40,13 @@ class Configuration < DomainModel
   # Get a configuration HashModel by class either using values or pull it from the configurations table
   def self.get_config_model(mdl,values = nil)
     key=  mdl.to_s.underscore
-    mdl.new(values || get(key) || {})
+
+    if values
+      mdl.new((get(key)||{ }).symbolize_keys.merge((values || {}).symbolize_keys)) 
+    else
+      mdl.new(get(key)||{})
+    end
+
   end
   
   # Put a configuration HashModel into the configurations table 
