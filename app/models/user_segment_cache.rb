@@ -19,6 +19,33 @@ class UserSegmentCache < DomainModel
     ids.map { |id| users_by_id[id] }.compact
   end
 
+  def search(offset=0, opts={})
+    opts = opts.clone.symbolize_keys!
+    opts.delete(:offset)
+    opts.delete(:include)
+    limit = opts.delete(:limit) || 20
+    batch_size = opts.delete(:batch_size) || DEFAULT_BATCH_SIZE
+    num_chunks = (self.id_list.size / batch_size).to_i
+    num_chunks = num_chunks.succ if (self.id_list.length % batch_size) > 0
+
+    base_scope = EndUser.scoped(opts)
+
+    ids = []
+    ((offset/batch_size).to_i..num_chunks-1).each do |chunk|
+      sub_list = self.id_list[offset..(offset+batch_size-1)]
+      scope = base_scope.scoped(:select => 'id', :conditions => {:id => sub_list})
+      users_by_id = scope.find(:all).index_by(&:id)
+      ids = ids + sub_list.map { |id| users_by_id[id] ? id : nil }.compact unless users_by_id.empty?
+      offset = offset + batch_size
+      break if ids.length > limit
+    end
+
+    has_more = ids.length > limit
+    ids = ids[0..limit-1] if has_more
+    offset = ids.size > 0 ? self.id_list.index(ids[-1]) : 0
+    [offset, ids]
+  end
+
   def find_in_batches(opts={})
     limit = opts[:batch_size] || DEFAULT_BATCH_SIZE
     offset = 0
