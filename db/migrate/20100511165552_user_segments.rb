@@ -34,11 +34,20 @@ class UserSegments < ActiveRecord::Migration
     end
 
     add_index :user_segment_analytics, [:user_segment_id], :name => 'user_segment_analytics_segment_idx'
+
+    create_table :end_user_caches, :force => true, :options => "ENGINE=MyISAM" do |t|
+      t.integer :end_user_id
+      t.text :data
+    end
+
+    add_index :end_user_caches, [:end_user_id], :name => 'end_user_caches_idx', :unique => true
+    execute "CREATE FULLTEXT INDEX end_user_caches_data_index ON end_user_caches (data)"
   end
 
   def self.down
     drop_table :user_segments
     drop_table :user_segment_caches
     drop_table :user_segment_analytics
+    drop_table :end_user_caches
   end
 end
