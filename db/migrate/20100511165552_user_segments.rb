@@ -16,7 +16,8 @@ class UserSegments < ActiveRecord::Migration
 
     create_table :user_segment_caches, :force => true do |t|
       t.integer :user_segment_id
-      t.text :id_list
+      t.integer :position
+      t.text :id_list, :limit => 16777215
       t.datetime :created_at
     end
 

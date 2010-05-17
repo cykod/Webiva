@@ -1,7 +1,7 @@
 
 class UserSegment < DomainModel
 
-  has_many :user_segment_caches, :order => 'created_at, id', :dependent => :destroy, :class_name => 'UserSegmentCache'
+  has_many :user_segment_caches, :order => 'position', :dependent => :destroy, :class_name => 'UserSegmentCache'
   serialize :segment_options
   serialize :fields
 
@@ -26,14 +26,14 @@ class UserSegment < DomainModel
     self.user_segment_caches.delete_all
 
     self.order_by = 'created_at DESC' unless self.order_by
-    ids = EndUser.find(:all, :select => 'id', :conditions => {:id => self.operations.end_user_ids}, :order => self.order_by)
+    ids = EndUser.find(:all, :select => 'id', :conditions => {:id => self.operations.end_user_ids}, :order => self.order_by).collect &:id
 
-    num_segements = (self.operations.end_user_ids.length / 1000)
-    num_segements = num_segements + 1 if (self.operations.end_user_ids.length % 1000) > 0
+    num_segements = (self.operations.end_user_ids.length / UserSegmentCache::SIZE)
+    num_segements = num_segements + 1 if (self.operations.end_user_ids.length % UserSegmentCache::SIZE) > 0
 
     (0..num_segements-1).each do |idx|
-      start = idx * 1000
-      self.user_segment_caches.create :id_list => ids[start..start+999]
+      start = idx * UserSegmentCache::SIZE
+      self.user_segment_caches.create :id_list => ids[start..start+UserSegmentCache::SIZE-1], :position => idx
     end
 
     self.last_ran_at = Time.now
@@ -56,6 +56,14 @@ class UserSegment < DomainModel
     end
   end
 
+  def collect(opts={}, &block)
+    data = []
+    self.user_segment_caches.each do |segement|
+      data = data + segement.collect(opts, &block)
+    end
+    data
+  end
+
   def each_with_index(opts={}, &block)
     idx = 0
     self.user_segment_caches.each do |segement|
@@ -68,6 +76,36 @@ class UserSegment < DomainModel
       user = segement.find opts, &block
       return user if user
     end
+  end
+
+  def paginate(page,args = {})
+    args = args.clone.symbolize_keys!
+    window_size =args.delete(:window) || 2
+    
+    page_size = args.delete(:per_page).to_i
+    page_size = 20 if page_size <= 0
+
+    total_count = self.last_count
+    pages = (total_count.to_f / (page_size || 10)).ceil
+    pages = 1 if pages < 1
+    page = (page ? page.to_i : 1).clamp(1,pages)
+      
+    offset = (page-1) * page_size
+
+    position = (offset / UserSegmentCache::SIZE).to_i
+
+    cache = self.user_segment_caches.find_by_position(position)
+    items = cache ? cache.fetch_users(:offset => (offset % UserSegmentCache::SIZE), :limit => page_size) : []
+
+    [ { :pages => pages, 
+        :page => page, 
+        :window_size => window_size, 
+        :total => total_count,
+        :per_page => page_size,
+        :first => offset+1,
+        :last => offset + items.length,
+        :count => items.length
+      }, items ]
   end
 end
 
