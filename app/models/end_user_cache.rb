@@ -13,7 +13,8 @@ class EndUserCache < DomainModel
       self.end_user.name,
       self.end_user.user_class.name,
       self.end_user.source,
-      self.end_user.registered? ? 'registered' : nil
+      self.end_user.registered? ? 'registered' : nil,
+      self.end_user.tag_names.join(" ")
     ]
   end
 
