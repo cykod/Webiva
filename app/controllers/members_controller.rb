@@ -7,7 +7,8 @@ class MembersController < CmsController # :nodoc: all
   layout 'manage'
   
   cms_admin_paths "people",
-                  "People" => { :controller => '/members' }
+                  "People" => { :controller => '/members' },
+                  "Segments" => { :action => 'segments' }
   
   
   # need to include 
@@ -29,7 +30,7 @@ class MembersController < CmsController # :nodoc: all
 
   def segmentations
     return @segmentations if @segmentations
-    @segmentations = UserSegment.find(:all, :conditions => {:main_page => true}, :order => 'name')
+    @segmentations = UserSegment.find(:all, :conditions => {:main_page => true, :status => 'finished'}, :order => 'name')
     @segmentations << self.segment if self.segment && ! @segmentations.find { |seg| seg.id == self.segment.id }
     @segmentations
   end
@@ -167,16 +168,19 @@ class MembersController < CmsController # :nodoc: all
    active_table :user_segments_table,
                 UserSegment,
                 [ hdr(:icon, 'check', :width => '16'),
+                  hdr(:icon, '', :width => '32'),
                   :main_page,
                   :name,
                   :description,
+                  :status,
                   :last_count,
                   :last_ran_at,
-                  :created_at
+                  :created_at,
+                  :updated_at
                 ]
 
   def user_segments_table(display=true)
-    @active_table_output = user_segments_table_generate params, :order => 'created_at DESC'
+    @active_table_output = user_segments_table_generate params, :order => 'updated_at DESC'
     render :partial => 'user_segments_table' if display
   end
 
@@ -186,17 +190,36 @@ class MembersController < CmsController # :nodoc: all
   end
 
   def create_segment
-    cms_page_path ['People'], 'Create a Segment'
+    cms_page_path ['People', 'Segments'], 'Create a Segment'
 
     @segment = UserSegment.new params[:segment]
 
     if request.post? && params[:segment]
       @segment.save
       if @segment.id
-        @segment.cache_ids
+        @segment.refresh
         redirect_to :action => 'segments'
       end
     end
+  end
+
+  def edit_segment
+    @segment = UserSegment.find params[:path][0]
+
+    cms_page_path ['People', 'Segments'], '%s Segment' / @segment.name
+
+    if request.post? && params[:segment]
+      if @segment.update_attributes params[:segment]
+        @segment.refresh
+        redirect_to :action => 'segments'
+      end
+    end
+  end
+
+  def refresh_segment
+    @segment = UserSegment.find params[:path][0]
+    @segment.refresh
+    redirect_to :action => 'segments'
   end
 
   def create

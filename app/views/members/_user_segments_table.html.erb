@@ -5,11 +5,24 @@
                     :update => 'user_segments_table' do |t| %>
 <tr <%= highlight_row "user",t.id %>  >
   <td nowrap='1'><%= entry_checkbox 'user',t.id %></td>
+  <td align='center' nowrap='1'>
+  <% if t.ready? -%>
+    <a href="<%= url_for :action => 'edit_segment', :path => t.id %>"><%= theme_image_tag('icons/actions/edit.gif') %></a>
+  <% end -%>
+  </td>
   <td align='center'><%= t.main_page ? 'Yes'.t : 'No'.t %></td>
-  <td nowrap='1'><%= h t.name %></td>
+  <td nowrap='1'>
+  <% if t.ready? -%>
+    <a href="<%= url_for :action => 'index', :path => t.id %>"><%= h t.name %></a>
+  <% else -%>
+    <%= t.name %>
+  <% end -%>
+  </td>
   <td><%= h(t.description ? t.description : '') %></td>
+  <td align='center'><%= t.status %></td>
   <td align='center'><%= t.last_count %></td>
-  <td align='center'><%= t.last_ran_at.strftime(DEFAULT_DATETIME_FORMAT.t) %></td>
+  <td align='center'><%= t.last_ran_at.strftime(DEFAULT_DATETIME_FORMAT.t) if t.last_ran_at %></td>
   <td align='center'><%= t.created_at.strftime(DEFAULT_DATETIME_FORMAT.t) %></td>
+  <td align='center'><%= t.updated_at.strftime(DEFAULT_DATETIME_FORMAT.t) %></td>
 </tr>
 <% end -%>
