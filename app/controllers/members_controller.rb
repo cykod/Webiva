@@ -18,11 +18,7 @@ class MembersController < CmsController # :nodoc: all
                   hdr(:static, 'Profile', :width => '70'),
                   hdr(:static, 'Image', :width => '70'),
                   'Name',
-                  'Email',
-                  hdr(:static, 'Src. Type', :label => 'Src. Type'),
-                  hdr(:static, 'Src.', :label => 'Src.'),
-                  hdr(:static, 'Created', :width => '120'),
-                  hdr(:static, 'Reg.', :label => 'Reg.', :width => '120')
+                  'Email'
                 ],
                 :count_callback => 'count_end_users',
                 :find_callback => 'find_end_users'
@@ -32,7 +28,10 @@ class MembersController < CmsController # :nodoc: all
   
 
   def segmentations
-    @segmentations ||= UserSegment.find(:all, :conditions => {:main_page => true}, :order => 'name')
+    return @segmentations if @segmentations
+    @segmentations = UserSegment.find(:all, :conditions => {:main_page => true}, :order => 'name')
+    @segmentations << self.segment if self.segment && ! @segmentations.find { |seg| seg.id == self.segment.id }
+    @segmentations
   end
 
   def segment
@@ -41,12 +40,7 @@ class MembersController < CmsController # :nodoc: all
 
   def count_end_users(opts)
     if self.search_results
-      pages, users = self.search_results
-      if self.search.user_segment
-        self.search.offsets.length * self.search.per_page - (self.search.per_page - users.length)
-      else
-        pages[:total]
-      end
+      self.search.total
     elsif self.segment
       self.segment.last_count
     else
@@ -56,10 +50,9 @@ class MembersController < CmsController # :nodoc: all
 
   def find_end_users(opts)
     if self.search_results
-      pages, users = self.search_results
-      users
+      self.search.users
     elsif self.segment
-      pages, users = self.segment.paginate self.search.page, :per_page => 25
+      pages, users = self.segment.paginate self.search.page, :per_page => 25, :include => [:user_class, :domain_file]
       users
     else
       EndUser.find(:all, :conditions => 'client_user_id IS NULL', :include => [:user_class, :domain_file], :offset => opts[:offset], :limit => opts[:limit], :order => opts[:order])
@@ -81,7 +74,7 @@ class MembersController < CmsController # :nodoc: all
   end
 
   def search_results
-    @search_results ||= self.search.search if self.search.terms
+    @search_results ||= self.search.search(:include => [:user_class, :domain_file]) if self.search.terms
   end
 
   def get_user_classes
@@ -170,7 +163,42 @@ class MembersController < CmsController # :nodoc: all
 
     display_targets_table(false)
   end
-  
+
+   active_table :user_segments_table,
+                UserSegment,
+                [ hdr(:icon, 'check', :width => '16'),
+                  :main_page,
+                  :name,
+                  :description,
+                  :last_count,
+                  :last_ran_at,
+                  :created_at
+                ]
+
+  def user_segments_table(display=true)
+    @active_table_output = user_segments_table_generate params, :order => 'created_at DESC'
+    render :partial => 'user_segments_table' if display
+  end
+
+  def segments
+    cms_page_path ['People'], 'Segments'
+    user_segments_table(false)
+  end
+
+  def create_segment
+    cms_page_path ['People'], 'Create a Segment'
+
+    @segment = UserSegment.new params[:segment]
+
+    if request.post? && params[:segment]
+      @segment.save
+      if @segment.id
+        @segment.cache_ids
+        redirect_to :action => 'segments'
+      end
+    end
+  end
+
   def create
     cms_page_path ['People'],'Create Contact'
 
