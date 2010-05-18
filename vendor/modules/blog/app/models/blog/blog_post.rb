@@ -29,6 +29,13 @@ class Blog::BlogPost < DomainModel
   # Add cached content support, but make sure we update the blog cache element
   
   has_content_tags
+
+
+  def validate
+    if self.status == 'published'  && !self.published_at.is_a?(Time)
+      self.errors.add(:published_at,'is invalid')
+    end
+  end
   
   content_node :container_type => :content_node_container_type,  :container_field => Proc.new { |post| post.content_node_container_id },
   :preview_feature => '/blog/page_feature/blog_post_preview'

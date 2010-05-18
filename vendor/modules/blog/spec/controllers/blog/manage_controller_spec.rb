@@ -118,7 +118,7 @@ describe Blog::ManageController do
     published_at = 1.hour.ago
 
     assert_difference 'Blog::BlogPost.count', 1 do
-      post 'post', :path => [@blog.id], :entry => {:title => 'New Blog Title', :body => 'New Blog Body'}, :update_entry => {:status => 'post_date'}, :entry_update => {:published_at => published_at}
+      post 'post', :path => [@blog.id], :entry => {:title => 'New Blog Title', :body => 'New Blog Body', :published_at => published_at}, :update_entry => {:status => 'post_date'}
     end
 
     response.should redirect_to(:action => 'index', :path => @blog.id)

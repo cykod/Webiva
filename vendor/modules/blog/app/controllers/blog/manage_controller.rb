@@ -159,7 +159,7 @@ class Blog::ManageController < ModuleController
         when 'publish_now' # if we want to publish the article now
           @entry.publish_now
         when 'post_date'
-          @entry.publish(params[:entry_update][:published_at].blank? ? Time.now : (params[:entry_update][:published_at]))
+          @entry.publish(params[:entry][:published_at].blank? ? Time.now : (params[:entry][:published_at]))
         end
     
         if @entry.save
@@ -169,8 +169,6 @@ class Blog::ManageController < ModuleController
           redirect_to :action => 'index', :path => @blog.id 
           return 
         end
-        raise @entry.errors.full_messages.inspect
-
      end
 
      @categories = @blog.blog_categories
