@@ -106,22 +106,14 @@
 
 <hr/>
 
-<div style='height:auto !important; height:70px; min-height:70px;'>
-<% ajax_tabs [ 'Tags','Segmentations'], 'Tags' do |t| %>
-  <% t.tab do -%>
-    <div id='tags_list'>
-    <%= render :partial => 'tags' %>
-    </div>
-  <% end -%>
-  <% t.tab do  -%>
-    <div id='segmentations_tab'>
-    <%= render :partial => 'segmentations' %>
-    </div>
-  <% end -%>
-<% end -%>
+<div class="member_search">
+<%= form_tag %>
+<%= text_field_tag :terms, @search.terms %>
+<%= submit_tag 'Search' %>
+</form>
+
 </div>
 <hr/>
-<div class='admin_content'>
 
 <script>
   <%= active_table_javascript %>
