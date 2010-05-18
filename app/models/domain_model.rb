@@ -437,7 +437,6 @@ class DomainModel < ActiveRecord::Base
        len =  self.send(collection,true).length
        elm.update_attributes(data_elem)
      else
-       raise data_elem.inspect  + current_collection.inspect
        current_collection.create(data_elem) 
      end
    end
