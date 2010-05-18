@@ -192,11 +192,10 @@ class MembersController < CmsController # :nodoc: all
   def create_segment
     cms_page_path ['People', 'Segments'], 'Create a Segment'
 
-    @segment = UserSegment.new params[:segment]
+    @segment = UserSegment.new :main_page => true
 
     if request.post? && params[:segment]
-      @segment.save
-      if @segment.id
+      if @segment.update_attributes params[:segment]
         @segment.refresh
         redirect_to :action => 'segments'
       end
