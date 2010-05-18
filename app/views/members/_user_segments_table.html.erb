@@ -1,0 +1,15 @@
+<% active_table_for :user_segments_table, @active_table_output,
+                    :class => 'active_table',
+                    :width => '100%',
+                    :more_actions => [ ['Delete Segments','delete','Delete the selected segments?'] ],
+                    :update => 'user_segments_table' do |t| %>
+<tr <%= highlight_row "user",t.id %>  >
+  <td nowrap='1'><%= entry_checkbox 'user',t.id %></td>
+  <td align='center'><%= t.main_page ? 'Yes'.t : 'No'.t %></td>
+  <td nowrap='1'><%= h t.name %></td>
+  <td><%= h(t.description ? t.description : '') %></td>
+  <td align='center'><%= t.last_count %></td>
+  <td align='center'><%= t.last_ran_at.strftime(DEFAULT_DATETIME_FORMAT.t) %></td>
+  <td align='center'><%= t.created_at.strftime(DEFAULT_DATETIME_FORMAT.t) %></td>
+</tr>
+<% end -%>

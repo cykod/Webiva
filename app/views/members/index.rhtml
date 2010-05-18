@@ -90,9 +90,12 @@
 
     tableAction: function(action,params) {
       ActiveTable.action(action,null,"email_targets_table","<%= url_for :action => 'display_targets_table' %>",'targets_table',params);
+    },
+
+    changeSegments: function() {
+      id = $('user_segments_user_segment_id').value;
+      window.location = id ? "/website/members/index/" + id : "/website/members"
     }
-    
-  
   }
 </script>
 
@@ -102,18 +105,34 @@
   <%= p.link "Download Visible Targets",:icon => 'download.gif', :controller => :member_export %>
   <%= p.link "Tag List", :icon => 'show.gif', :action => 'tags' %>
   <%= p.link "Access Tokens", :icon => 'access.gif', :controller => '/access_token' if myself.has_role?('editor_access_tokens') %>
+  <%= p.link "Segments", :icon => 'access.gif', :action => 'segments' %>
 <% end -%>
 
 <hr/>
 
-<div class="member_search">
+<div class="user_segments" style="float:right; width: 300px; text-align:right; padding:5px;">
 <%= form_tag %>
-<%= text_field_tag :terms, @search.terms %>
-<%= submit_tag 'Search' %>
+<% if @segment && @segment.last_ran_at -%>
+  <a href="#">Edit</a> | <a href="#">Refresh</a>
+<% end -%>
+<%= select_tag :user_segment_id, options_for_select([['Everyone', nil]] + @segmentations.collect { |seg| [seg.name, seg.id] }, (@segment ? @segment.id : nil)), :onchange => 'MemberEditor.changeSegments();', :id => 'user_segments_user_segment_id', :style => 'width:200px;' %>
+<br/>
+<% if @segment && @segment.last_ran_at -%>
+<span style="font-size:11px;"><%= 'updated on %s' / @segment.last_ran_at.strftime(DEFAULT_DATETIME_FORMAT.t) %></span>
+<br/>
+<% end -%>
+<a href="<%= url_for :action => 'create_segment' %>">Create a Segment</a>
 </form>
-
 </div>
-<hr/>
+
+<div class="member_search" style="padding:5px; width:320px;">
+<%= form_tag %>
+<%= text_field_tag :terms, @search.terms, :id => 'members_search_terms' %>
+<%= submit_tag 'Search'.t %>
+</form>
+</div>
+
+<hr style="clear:both;"/>
 
 <script>
   <%= active_table_javascript %>
@@ -124,3 +143,7 @@
 
 
 </div>
+
+<script>
+$('members_search_terms').focus();
+</script>

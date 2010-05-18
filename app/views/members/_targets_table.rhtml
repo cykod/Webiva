@@ -36,14 +36,6 @@
         t.editor? ? h(email) : content_tag(:a, email, {:href => url_for(:action => 'edit', :path => t.id)})
     %>
   </td>
-  <td align='center'><%= h @source_options[t.source] %></td>
-  <td align='center'><%= h t.lead_source.blank? ? '-' : t.lead_source %></td>
-  <td align='center'>
-    <%= t.created_at ? t.created_at.strftime(DEFAULT_DATE_FORMAT.t) : '-' %>
-  </td>
-  <td align='center'>
-    <%= t.registered_at ? t.registered_at.strftime(DEFAULT_DATE_FORMAT.t) : '-' %>
-  </td>
 </tr>  
 
 <% end -%>
