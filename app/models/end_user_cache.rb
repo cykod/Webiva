@@ -3,6 +3,8 @@ class EndUserCache < DomainModel
   belongs_to :end_user
   validates_presence_of :end_user_id
 
+  named_scope :search, lambda { |query| {:conditions => ['MATCH (data) AGAINST (?)', query], :order => "MATCH (data) AGAINST (#{self.quote_value(query)}) DESC"} }
+
   def before_save
     self.data = self.get_end_user_data.delete_if { |v| v.blank? }.join(' ')
   end

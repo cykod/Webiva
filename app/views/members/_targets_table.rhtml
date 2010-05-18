@@ -1,15 +1,3 @@
-<% if @update_tags -%>
-<script>
-  <%= render :partial => 'update_tags' -%>
-</script>
-<% end -%>
-
-<% if @update_segments -%>
-<script>
-  <%= render :partial => 'update_segmentations' -%>
-</script>
-<% end -%>
-
 <% @user_classes = []
    @user_level_options = EndUser.user_level_select_options
    @source_options = EndUser.source_options_hash
@@ -21,9 +9,10 @@
    @user_class_objs.each  { |cls| @user_classes[cls.id] = h(cls.name.t) } %>
 
 <% active_table_for :email_targets_table, @active_table_output,
-                    :refresh_url => url_for(:action => 'display_targets_table'),
+                    :refresh_url => url_for(:action => 'display_targets_table', :path => @segment ? @segment.id : nil, :terms => @search.terms, :offsets => @search.offsets.empty? ? nil : @search.offsets),
                     :class => 'active_table',
                     :width => '100%',
+                    :next => @search.user_segment && @search.terms ? 'more' : '&gt;',
                     :actions => [ ['Add Tags','js','MemberEditor.addTags();'],
                                    ['Remove Tags','js','MemberEditor.removeTags();']
                                 ],
@@ -33,32 +22,27 @@
   <td nowrap='1'>
     <%= entry_checkbox 'user',t.id %>
   </td>
+  <td align='center' nowrap='1'><%= t.user_class ? t.user_class.name : '-'  %></td>
   <td align='center'>
-    <% unless  @user_class_index[t.user_class_id].editor? %>
-      <a href='/website/members/edit/<%= t.id %>'><%= theme_image_tag 'icons/table_actions/edit.gif' %></a>
-    <% end -%>
-  </td>
-  <td nowrap='1' align='center'><%= t.user_level %></td>
-  <td><a href='/website/members/view/<%= t.id %>'><%= h t.email.blank? ? 'No Email'.t : t.email %></a></td>
-  <td>
-    <%= h(truncate(t.first_name,:length => 30)) %>
+    <%= image = t.image ? t.image.image_tag(:thumb) : 'No Image'.t
+        t.editor? ? image : content_tag(:a, image, {:href => url_for(:action => 'edit', :path => t.id)})
+    %>
   </td>
   <td>
-    <%= h(truncate(t.last_name ,:llength => 30)) %>
+    <%= t.editor? ? h(t.name) : content_tag(:a, t.name, {:href => url_for(:action => 'edit', :path => t.id)}) %>
   </td>
   <td>
+    <%= email = t.email.blank? ? 'No Email'.t : t.email
+        t.editor? ? h(email) : content_tag(:a, email, {:href => url_for(:action => 'edit', :path => t.id)})
+    %>
+  </td>
+  <td align='center'><%= h @source_options[t.source] %></td>
+  <td align='center'><%= h t.lead_source.blank? ? '-' : t.lead_source %></td>
+  <td align='center'>
     <%= t.created_at ? t.created_at.strftime(DEFAULT_DATE_FORMAT.t) : '-' %>
   </td>
-  <td>
+  <td align='center'>
     <%= t.registered_at ? t.registered_at.strftime(DEFAULT_DATE_FORMAT.t) : '-' %>
-  </td>
-
-  <td nowrap='1'><%= @user_classes[t.user_class_id] if t.user_class_id  %></td>
-  <td><%= h @source_options[t.source] %></td>
-  <td><%= h t.lead_source.blank? ? '-' : t.lead_source %></td>
-  <td valign='baseline'><%   user_tags = t.tag_cache_tags.to_s.split(",") %>
-                        <%= user_tags[0..5].collect {|tag| "<a href='javascript:void(0);' onclick='MemberEditor.viewTag(\"#{jh tag}\");'>#{tag}</a>" }.join(", ") %>
-                         <%= "+(#{user_tags.length-6})" if user_tags.length > 6 %>
   </td>
 </tr>  
 

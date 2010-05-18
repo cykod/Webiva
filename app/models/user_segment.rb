@@ -26,7 +26,7 @@ class UserSegment < DomainModel
     self.user_segment_caches.delete_all
 
     self.order_by = 'created_at DESC' unless self.order_by
-    ids = EndUser.find(:all, :select => 'id', :conditions => {:id => self.operations.end_user_ids}, :order => self.order_by).collect &:id
+    ids = EndUser.find(:all, :select => 'id', :conditions => {:id => self.operations.end_user_ids, :client_user_id => nil}, :order => self.order_by).collect &:id
 
     num_segements = (self.operations.end_user_ids.length / UserSegmentCache::SIZE)
     num_segements = num_segements + 1 if (self.operations.end_user_ids.length % UserSegmentCache::SIZE) > 0
@@ -78,7 +78,7 @@ class UserSegment < DomainModel
     end
   end
 
-  def paginate(page,args = {})
+  def paginate(page=1, args={})
     args = args.clone.symbolize_keys!
     window_size =args.delete(:window) || 2
     

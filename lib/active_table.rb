@@ -261,7 +261,6 @@ module ActiveTable
         #entry_count = model_class.find(:first,count_by,count_options)
         #entry_count = entry_count.cnt
         
-        
         page = (opts.delete(:page) || 1).to_i
         pages_count = (entry_count.to_f / per_page).ceil.to_i
         pages_count = 1 if pages_count < 1
@@ -295,11 +294,7 @@ module ActiveTable
           pages = [ 1, '..' ] +  pages[1..-1]
         end
         
-        if end_page == pages_count
-          pages
-        elsif end_page == pages_count
-          pages << pages_count 
-        elsif end_page < pages_count
+        if end_page < pages_count
           pages += [ '..', pages_count ]
         end
         
