@@ -130,6 +130,10 @@ class Blog::BlogPost < DomainModel
     class_eval("def #{fld}=(val); self.revision.#{fld} = val; end")
     end
 
+  def name
+     self.revision.title
+  end
+
   [ :domain_file, :preview_content, :end_user,:media_file, :body_content ].each do |fld|
     class_eval("def #{fld}; self.revision.#{fld}; end")
   end
