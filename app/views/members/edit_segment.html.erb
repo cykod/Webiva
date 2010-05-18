@@ -1,0 +1,9 @@
+
+<% admin_form_for :segment, @segment do |f| -%>
+<%= f.text_field :name %>
+<%= f.text_area :description, :rows => 3 %>
+<%= f.check_boxes :main_page, [['display on people page', true]], :single => true  %>
+<%= f.text_area :segment_options_text, :rows => 8, :label => 'Operations' %>
+<%= f.spacer %>
+<%= f.cancel_submit_buttons 'Cancel', 'Save' %>
+<% end -%>

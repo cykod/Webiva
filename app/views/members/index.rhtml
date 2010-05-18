@@ -113,7 +113,7 @@
 <div class="user_segments" style="float:right; width: 300px; text-align:right; padding:5px;">
 <%= form_tag %>
 <% if @segment && @segment.last_ran_at -%>
-  <a href="#">Edit</a> | <a href="#">Refresh</a>
+  <a href="<%= url_for :action => 'edit_segment', :path => @segment.id %>">Edit</a> | <a href="<%= url_for :action => 'refresh_segment', :path => @segment.id %>">Refresh</a>
 <% end -%>
 <%= select_tag :user_segment_id, options_for_select([['Everyone', nil]] + @segmentations.collect { |seg| [seg.name, seg.id] }, (@segment ? @segment.id : nil)), :onchange => 'MemberEditor.changeSegments();', :id => 'user_segments_user_segment_id', :style => 'width:200px;' %>
 <br/>

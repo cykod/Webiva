@@ -1,11 +1,18 @@
 
 class UserSegment < DomainModel
 
-  has_many :user_segment_caches, :order => 'position', :dependent => :destroy, :class_name => 'UserSegmentCache'
+  has_many :user_segment_caches, :order => 'position', :dependent => :delete_all, :class_name => 'UserSegmentCache'
   serialize :segment_options
   serialize :fields
 
   validates_presence_of :name
+  validates_presence_of :segment_options
+
+  def ready?; self.status == 'finished'; end
+
+  def validate
+    self.errors.add(:segment_options_text, 'is invalid') if self.segment_options_text && self.segment_options.nil?
+  end
 
   def operations
     return @operations if @operations
@@ -15,6 +22,7 @@ class UserSegment < DomainModel
   end
 
   def segment_options_text=(text)
+    text = text.gsub("\r", '').strip
     self.write_attribute :segment_options_text, text
     @operations = UserSegment::Operations.new
     @operations.parse text
@@ -22,7 +30,23 @@ class UserSegment < DomainModel
     text
   end
 
-  def cache_ids
+  def refresh
+    if self.status == 'new' || self.ready?
+      self.status = 'refreshing'
+      self.save
+
+      if EndUser.count < 50000
+        self.cache_ids
+      else
+        self.run_worker(:cache_ids)
+      end
+    end
+  end
+
+  def cache_ids(opts={})
+    self.status = 'calculating'
+    self.save
+
     self.user_segment_caches.delete_all
 
     self.order_by = 'created_at DESC' unless self.order_by
@@ -36,6 +60,7 @@ class UserSegment < DomainModel
       self.user_segment_caches.create :id_list => ids[start..start+UserSegmentCache::SIZE-1], :position => idx
     end
 
+    self.status = 'finished'
     self.last_ran_at = Time.now
     self.last_count = ids.length
     self.save
@@ -136,6 +161,10 @@ class UserSegment < DomainModel
     args.delete(:end_user_field)
     users = EndUser.find(:all, args.merge(:conditions => {:id => ids}))
     return [offset, users]
+  end
+
+  def before_create
+    self.status = 'new'
   end
 end
 
