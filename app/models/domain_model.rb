@@ -432,10 +432,12 @@ class DomainModel < ActiveRecord::Base
    # find the elements to add
    data.each do |data_elem|
      cur_id = data_elem[foreign_key]
-     elm = current_collection.detect { |elm| elm.send(foreign_key) == cur_id }
+     elm = current_collection.detect { |elm| elm.send(foreign_key) == cur_id.to_i }
      if elm
+       len =  self.send(collection,true).length
        elm.update_attributes(data_elem)
      else
+       raise data_elem.inspect  + current_collection.inspect
        current_collection.create(data_elem) 
      end
    end
@@ -445,7 +447,7 @@ class DomainModel < ActiveRecord::Base
  def through_connection_cache(collection,data) #:nodoc:
    if(data)
      col = self.send(collection.to_sym)
-     data.map { |elm| col.build(elm) }
+     data.map { |elm| col.new(elm) }
    else
      self.send(collection.to_sym)
    end
