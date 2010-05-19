@@ -1067,9 +1067,9 @@ var cmsEdit = {
                       paragraph_id: para.paragraph_id,
                       feature_id: feature_id });
     cmsEdit.pageChanged();
-    new Ajax.Updater( 'cms_paragraph_' + para_index,
-                      cmsEdit.url('set_paragraph_feature'),
+    new Ajax.Request( cmsEdit.url('set_paragraph_feature'),
                      { parameters: params.toQueryString(),
+                       onComplete: function(req) { Element.replace('cms_paragraph_' + para_index, req.responseText); },
                        evalScripts:true
                      });
     cClick();
