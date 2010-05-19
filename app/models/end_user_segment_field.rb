@@ -9,12 +9,11 @@ class EndUserSegmentField < UserSegment::FieldHandler
     }
   end
 
-  register_field :email, UserSegment::CoreType::StringType
-  register_field :gender, UserSegment::CoreType::StringType
-  register_field :created, UserSegment::CoreType::DateTimeType, :field => :created_at
-  register_field :registered, UserSegment::CoreType::BooleanType
-  register_field :activated, UserSegment::CoreType::BooleanType
-  register_field :id, UserSegment::CoreType::NumberType
-  register_field :user_level, UserSegment::CoreType::NumberType
+  register_field :email, UserSegment::CoreType::StringType, :name => 'User: Email'
+  register_field :gender, UserSegment::CoreType::StringType, :name => 'User: Gender'
+  register_field :created, UserSegment::CoreType::DateTimeType, :field => :created_at, :name => 'User: Created'
+  register_field :registered, UserSegment::CoreType::BooleanType, :name => 'User: Registered'
+  register_field :activated, UserSegment::CoreType::BooleanType, :name => 'User: Activated'
+  register_field :user_level, UserSegment::CoreType::NumberType, :name => 'User: User Level'
 
 end

@@ -208,8 +208,10 @@ class MembersController < CmsController # :nodoc: all
     @options = self.class.module_options(params[:options])
     
     if request.post? && @options.valid?
-      Configuration.set_config_model(@options)
-      flash[:notice] = "Updated Everyone options".t 
+      if params[:commit]
+        Configuration.set_config_model(@options)
+        flash[:notice] = "Updated Everyone options".t 
+      end
       redirect_to :action => 'index'
       return
     end    
@@ -241,9 +243,13 @@ class MembersController < CmsController # :nodoc: all
   def create_segment
     cms_page_path ['People', 'Segments'], 'Create a Segment'
 
+    @builder = UserSegment::OperationBuilder.new nil
+
     @segment = UserSegment.new :main_page => true
 
     if request.post? && params[:segment]
+      return redirect_to :action => 'index' unless params[:commit]
+
       if @segment.update_attributes params[:segment]
         @segment.refresh
         redirect_to :action => 'segments'
@@ -256,7 +262,11 @@ class MembersController < CmsController # :nodoc: all
 
     cms_page_path ['People', 'Segments'], '%s Segment' / @segment.name
 
+    @builder = UserSegment::OperationBuilder.new nil
+
     if request.post? && params[:segment]
+      return redirect_to :action => 'index', :path => @segment.id unless params[:commit]
+
       if @segment.update_attributes params[:segment]
         if @segment.should_refresh?
           @segment.refresh
@@ -273,10 +283,14 @@ class MembersController < CmsController # :nodoc: all
 
     cms_page_path ['People', 'Segments'], 'Copy %s Segment' / segment_to_copy.name
 
+    @builder = UserSegment::OperationBuilder.new nil
+
     @segment = UserSegment.new segment_to_copy.attributes.symbolize_keys.slice(:name, :description, :fields, :main_page, :segment_options_text, :order_by)
     @segment.name += ' (Copy)' unless request.post?
 
     if request.post? && params[:segment]
+      return redirect_to :action => 'index', :path => segment_to_copy.id unless params[:commit]
+
       if @segment.update_attributes params[:segment]
         @segment.refresh
         redirect_to :action => 'segments'
@@ -288,6 +302,16 @@ class MembersController < CmsController # :nodoc: all
     @segment = UserSegment.find params[:path][0]
     @segment.refresh
     redirect_to :action => 'segments'
+  end
+
+  def builder
+    cms_page_path ['People'], 'Operation Builder'
+
+    @builder = UserSegment::OperationBuilder.new nil
+
+    if request.post? && params[:builder]
+      @builder.build(params[:builder])
+    end
   end
 
   def create

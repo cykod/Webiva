@@ -1,7 +1,5 @@
 
 class UserSegment::Field < HashModel
-  include HandlerActions
-
   attributes :field => nil, :operation => nil, :arguments => [], :child => nil
 
   validates_presence_of :field
@@ -65,6 +63,10 @@ class UserSegment::Field < HashModel
 
   def operation_argument_options
     self.operation_info[:argument_options] if self.operation_info
+  end
+
+  def operation_argument_names
+    self.operation_info[:argument_names] if self.operation_info
   end
 
   def operation_info
