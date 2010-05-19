@@ -8,6 +8,11 @@ class UserSegment < DomainModel
   validates_presence_of :name
   validates_presence_of :segment_options
 
+  def initialize(opts={})
+    super
+    self.fields = [] unless self.fields
+  end
+
   def ready?; self.status == 'finished'; end
 
   def validate
@@ -165,6 +170,14 @@ class UserSegment < DomainModel
 
   def before_create
     self.status = 'new'
+  end
+
+  def self.fields_options
+    [['Source', 'source'], ['Date of Birth', 'dob'], ['Gender', 'gender'], ['Created', 'created_at'], ['Registered', 'registered_at']]
+  end
+
+  def self.order_by_options
+    [['Created Desc', 'created_at DESC'], ['Created Asc', 'created_at'], ['Email', 'email']]
   end
 end
 
