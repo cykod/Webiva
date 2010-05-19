@@ -27,8 +27,8 @@
     %>
   </td>
 
-  <% if @segment && @segment.fields -%>
-    <% @segment.fields.each do |field| -%>
+  <% if @fields -%>
+    <% @fields.each do |field| -%>
       <%=
           value = t.send(field)
           if value.is_a?(DomainModel)

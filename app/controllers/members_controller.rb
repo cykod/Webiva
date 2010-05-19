@@ -104,11 +104,16 @@ class MembersController < CmsController # :nodoc: all
       ActiveTable::StaticHeader.new('Email')
     ]
 
+    @fields = []
     if self.segment && self.segment.fields
-      self.segment.fields.each do |field|
-        option = UserSegment.fields_options.rassoc(field)
-        @generated_active_table_columns << ActiveTable::StaticHeader.new(option[1], :label => option[0]) if option
-      end
+      @fields = self.segment.fields
+    else self.class.module_options && self.class.module_options.fields
+      @fields = self.class.module_options.fields
+    end
+
+    @fields.each do |field|
+      option = UserSegment.fields_options.rassoc(field)
+      @generated_active_table_columns << ActiveTable::StaticHeader.new(option[1], :label => option[0]) if option
     end
 
     active_table_generate('end_users', EndUser, @generated_active_table_columns, {:count_callback => 'count_end_users', :find_callback => 'find_end_users'}, opts, *find_options)
@@ -145,7 +150,7 @@ class MembersController < CmsController # :nodoc: all
       handle_table_actions
     end
 
-    @active_table_output = email_targets_table_generate params, :per_page => 25, :include => :tag_cache, :conditions => 'client_user_id IS NULL', :order => 'created_at DESC'
+    @active_table_output = email_targets_table_generate params, :per_page => 25, :include => :tag_cache, :conditions => 'client_user_id IS NULL', :order => self.class.module_options.order_by
 
     if display
       @update_tags = true
@@ -197,6 +202,37 @@ class MembersController < CmsController # :nodoc: all
     render :partial => 'user_segments_table' if display
   end
 
+  def options
+    cms_page_path ['People'], "Everyone Options"
+    
+    @options = self.class.module_options(params[:options])
+    
+    if request.post? && @options.valid?
+      Configuration.set_config_model(@options)
+      flash[:notice] = "Updated Everyone options".t 
+      redirect_to :action => 'index'
+      return
+    end    
+  end
+  
+  def self.module_options(vals=nil)
+    Configuration.get_config_model(Options,vals)
+  end
+
+  class Options < HashModel
+    attributes :fields => [], :order_by => 'created_at DESC'
+
+    def validate
+      if self.fields
+        self.errors.add(:fields, 'is invalid') if self.fields.find { |f| UserSegment.fields_options.rassoc(f).nil? }
+      end
+
+      if self.order_by
+        self.errors.add(:order_by, 'is invalid') unless UserSegment.order_by_options.rassoc(self.order_by)
+      end
+    end
+  end
+
   def segments
     cms_page_path ['People'], 'Segments'
     user_segments_table(false)
@@ -222,8 +258,12 @@ class MembersController < CmsController # :nodoc: all
 
     if request.post? && params[:segment]
       if @segment.update_attributes params[:segment]
-        @segment.refresh if @segment.should_refresh?
-        redirect_to :action => 'segments'
+        if @segment.should_refresh?
+          @segment.refresh
+          redirect_to :action => 'segments'
+        else
+          redirect_to :action => 'index', :path => @segment.id
+        end
       end
     end
   end
