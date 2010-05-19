@@ -36,6 +36,12 @@ class UserSegment < DomainModel
     text
   end
 
+  def order_by=(order)
+    @should_refresh = self.order_by != order
+    self.write_attribute :order_by, order
+    order
+  end
+
   def should_refresh?
     @should_refresh
   end
