@@ -1,22 +1,12 @@
-<% @user_classes = []
-   @user_level_options = EndUser.user_level_select_options
-   @source_options = EndUser.source_options_hash
-   @view = "View".t
-   @edit = "Edit".t 
-   @delete = "Delete".t
-   @user_class_objs = UserClass.find(:all)
-   @user_class_index = @user_class_objs.index_by(&:id)
-   @user_class_objs.each  { |cls| @user_classes[cls.id] = h(cls.name.t) } %>
-
 <% active_table_for :email_targets_table, @active_table_output,
                     :refresh_url => url_for(:action => 'display_targets_table', :path => @segment ? @segment.id : nil, :terms => @search.terms, :offsets => @search.offsets.empty? ? nil : @search.offsets),
                     :class => 'active_table',
                     :width => '100%',
                     :next => @search.user_segment && @search.terms ? 'more' : '&gt;',
-                    :actions => [ ['Add Tags','js','MemberEditor.addTags();'],
-                                   ['Remove Tags','js','MemberEditor.removeTags();']
+                    :actions => [['Add Tags','js','MemberEditor.addTags();'],
+                                 ['Remove Tags','js','MemberEditor.removeTags();']
                                 ],
-                    :more_actions => [ ['Delete Targets','delete','Delete the selected users?'] ],
+                    :more_actions => [['Delete Targets','delete','Delete the selected users?']],
                     :update => 'targets_table' do |t| %>
 <tr <%= highlight_row "user",t.id %>  >
   <td nowrap='1'>
@@ -36,6 +26,23 @@
         t.editor? ? h(email) : content_tag(:a, email, {:href => url_for(:action => 'edit', :path => t.id)})
     %>
   </td>
+
+  <% if @segment && @segment.fields -%>
+    <% @segment.fields.each do |field| -%>
+      <%=
+          value = t.send(field)
+          if value.is_a?(DomainModel)
+           "<td align='center'>#{value.name}</td>"
+          elsif value.is_a?(Time)
+           "<td align='center'>#{value.strftime(DEFAULT_DATETIME_FORMAT.t)}</td>"
+          elsif value.nil?
+           "<td align='center'>-</td>"
+          else
+           "<td align='center'>#{value}</td>"
+          end
+      %>
+    <% end -%>
+  <% end -%>
 </tr>  
 
 <% end -%>

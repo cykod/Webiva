@@ -28,11 +28,16 @@ class UserSegment < DomainModel
 
   def segment_options_text=(text)
     text = text.gsub("\r", '').strip
+    @should_refresh = self.segment_options_text != text
     self.write_attribute :segment_options_text, text
     @operations = UserSegment::Operations.new
     @operations.parse text
     self.segment_options = @operations.valid? ? self.operations.to_a : nil
     text
+  end
+
+  def should_refresh?
+    @should_refresh
   end
 
   def refresh
@@ -173,7 +178,7 @@ class UserSegment < DomainModel
   end
 
   def self.fields_options
-    [['Source', 'source'], ['Date of Birth', 'dob'], ['Gender', 'gender'], ['Created', 'created_at'], ['Registered', 'registered_at']]
+    [['Source', 'source'], ['Date of Birth', 'dob'], ['Gender', 'gender'], ['Created', 'created_at'], ['Registered', 'registered_at'], ['User Class', 'user_class']]
   end
 
   def self.order_by_options
