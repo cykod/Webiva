@@ -1,10 +1,10 @@
 <% active_table_for :user_segments_table, @active_table_output,
-                    :class => 'active_table',
-                    :width => '100%',
-                    :more_actions => [ ['Delete Segments','delete','Delete the selected segments?'] ],
-                    :update => 'user_segments_table' do |t| %>
-<tr <%= highlight_row "user",t.id %>  >
-  <td nowrap='1'><%= entry_checkbox 'user',t.id %></td>
+                    :refresh_url => url_for(:action => 'user_segments_table'),
+                    :style => 'width:100%',
+                    :actions => [['Add to Main Page', 'add'], ['Remove from Main Page', 'remove']],
+                    :more_actions => [['Delete Segments','delete','Delete the selected segments?']] do |t| %>
+<tr <%= highlight_row "user_segments",t.id %>  >
+  <td nowrap='1'><%= entry_checkbox 'user_segments',t.id %></td>
   <td align='center' nowrap='1'>
   <% if t.ready? -%>
     <a href="<%= url_for :action => 'edit_segment', :path => t.id %>"><%= theme_image_tag('icons/actions/edit.gif') %></a>

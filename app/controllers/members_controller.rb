@@ -155,11 +155,6 @@ class MembersController < CmsController # :nodoc: all
   def index
     cms_page_path [], "People"
     
-    #unless params[:refresh]
-      #session[:et] = nil
-      #session[:et_segment] = nil
-    #end
-    
     segmentations
 
     display_targets_table(false)
@@ -180,6 +175,16 @@ class MembersController < CmsController # :nodoc: all
                 ]
 
   def user_segments_table(display=true)
+    active_table_action 'user_segments' do |act,ids|
+      case act
+      when 'delete': UserSegment.destroy(ids)
+      when 'add'
+        UserSegment.update_all('main_page = 1', :id => ids)
+      when 'remove'
+        UserSegment.update_all('main_page = 0', :id => ids)
+      end
+    end
+
     @active_table_output = user_segments_table_generate params, :order => 'updated_at DESC'
     render :partial => 'user_segments_table' if display
   end
