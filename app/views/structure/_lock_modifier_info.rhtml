@@ -88,7 +88,7 @@ LockEditor = {
   <%= f.page_selector :redirect, :label => 'On Lockout Redirect Users To:', :vertical => true %>
   <%= f.check_boxes :options, [ [ 'Override Previous Locks','override' ] ], :label => '',:vertical => true %>
   
-  <%= f.cancel_submit_buttons 'Cancel','Update', { :onclick=>'LockEditor.hideEdit();' } , { :onclick=>'LockEditor.submitForm();' } -%>
+  <%= f.cancel_submit_buttons 'Cancel','Update', { :onclick=>'LockEditor.hideEdit();' } , { } -%>
 <% end -%>
 
 
