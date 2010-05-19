@@ -107,4 +107,10 @@ class UserSegment::Field < HashModel
     @child_field.handler = self.handler
     @child_field
   end
+
+  def to_expr
+    output = "#{field}.#{operation}(" + self.arguments.collect { |arg| arg.is_a?(String) || arg.is_a?(Time) ? "\"#{arg}\"" : arg.to_s }.join(', ') + ")"
+    output += self.child.to_s if self.child
+    output
+  end
 end

@@ -47,4 +47,9 @@ class UserSegment::Operations
     return [] unless @operations
     @operations.collect { |op| op.to_a }
   end
+
+  def to_expr
+    return '' unless @operations
+    @operations.collect { |op| op.to_expr }.join("\n")
+  end
 end
