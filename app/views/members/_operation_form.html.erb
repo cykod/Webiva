@@ -1,0 +1,30 @@
+
+<div id="operation_builder">
+<% admin_form_for :builder, @builder do |f| -%>
+<%= f.check_boxes :operator, [['not', 'not']], :single => true, :label => 'I am' %>
+<%= f.select :field, @builder.field_options, :label => 'looking for' %>
+<%= f.select :operation, @builder.operation_options %>
+
+  <% @builder.operation_arguments.each_with_index do |arg, idx| -%>
+    <% arg_options = @builder.operation_argument_options[idx]
+       label = @builder.operation_argument_names[idx]
+       if arg_options[:options] -%>
+      <%= f.select "argument#{idx}", arg_options[:options], :label => label %>
+    <% else -%>
+      <%= f.text_field "argument#{idx}", :label => label %>
+    <% end -%>
+  <% end -%>
+
+<%= f.submit 'Build' %>
+<% end -%>
+
+<div class="operation">
+<span>Expression:</span><br/>
+<textarea style="width:400px; height: 50px;" readonly>
+<%= @builder.to_expr %>
+</textarea>
+</div>
+
+</div>
+
+
