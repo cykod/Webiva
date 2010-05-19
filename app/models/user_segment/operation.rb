@@ -38,4 +38,10 @@ class UserSegment::Operation
   def to_a
     [@operator] + @fields.collect { |fld| fld.to_h }
   end
+
+  def to_expr
+    output = @operator == 'not' ? 'not ' : ''
+    output = @fields.collect { |fld| fld.to_expr }.join(' + ')
+    output
+  end
 end

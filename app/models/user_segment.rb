@@ -190,5 +190,9 @@ class UserSegment < DomainModel
   def self.order_by_options
     [['Created Desc', 'created_at DESC'], ['Created Asc', 'created_at'], ['Email', 'email']]
   end
+
+  def to_expr
+    self.operations.to_expr
+  end
 end
 
