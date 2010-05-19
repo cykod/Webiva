@@ -12,21 +12,9 @@ class MembersController < CmsController # :nodoc: all
   
   
   # need to include 
-   include ActiveTable::Controller   
-   active_table :email_targets_table,
-                EndUser,
-                [ hdr(:icon, 'check', :width => '16'),
-                  hdr(:static, 'Profile', :width => '70'),
-                  hdr(:static, 'Image', :width => '70'),
-                  'Name',
-                  'Email'
-                ],
-                :count_callback => 'count_end_users',
-                :find_callback => 'find_end_users'
-                
+  include ActiveTable::Controller   
   
   protected 
-  
 
   def segmentations
     return @segmentations if @segmentations
@@ -107,6 +95,25 @@ class MembersController < CmsController # :nodoc: all
     end
   end
   
+  def email_targets_table_generate(opts,*find_options)
+    @generated_active_table_columns = [
+      ActiveTable::IconHeader.new('check', :width => '16'),
+      ActiveTable::StaticHeader.new('Profile', :width => '70'),
+      ActiveTable::StaticHeader.new('Image', :width => '70'),
+      ActiveTable::StaticHeader.new('Name'),
+      ActiveTable::StaticHeader.new('Email')
+    ]
+
+    if self.segment && self.segment.fields
+      self.segment.fields.each do |field|
+        option = UserSegment.fields_options.rassoc(field)
+        @generated_active_table_columns << ActiveTable::StaticHeader.new(option[1], :label => option[0]) if option
+      end
+    end
+
+    active_table_generate('end_users', EndUser, @generated_active_table_columns, {:count_callback => 'count_end_users', :find_callback => 'find_end_users'}, opts, *find_options)
+  end
+
   public 
   
   def lookup_autocomplete
@@ -132,7 +139,6 @@ class MembersController < CmsController # :nodoc: all
     render :partial => 'lookup_autocomplete'
   end
   
-
   def display_targets_table(display = true)
 
     if params[:table_action] || params[:segment_action]
@@ -154,7 +160,9 @@ class MembersController < CmsController # :nodoc: all
   # Members editing
   def index
     cms_page_path [], "People"
-    
+
+    return redirect_to(:action => 'segments') if self.segment && ! self.segment.ready?
+
     segmentations
 
     display_targets_table(false)
@@ -211,6 +219,22 @@ class MembersController < CmsController # :nodoc: all
     @segment = UserSegment.find params[:path][0]
 
     cms_page_path ['People', 'Segments'], '%s Segment' / @segment.name
+
+    if request.post? && params[:segment]
+      if @segment.update_attributes params[:segment]
+        @segment.refresh if @segment.should_refresh?
+        redirect_to :action => 'segments'
+      end
+    end
+  end
+
+  def copy_segment
+    segment_to_copy = UserSegment.find params[:path][0]
+
+    cms_page_path ['People', 'Segments'], 'Copy %s Segment' / segment_to_copy.name
+
+    @segment = UserSegment.new segment_to_copy.attributes.symbolize_keys.slice(:name, :description, :fields, :main_page, :segment_options_text, :order_by)
+    @segment.name += ' (Copy)' unless request.post?
 
     if request.post? && params[:segment]
       if @segment.update_attributes params[:segment]
