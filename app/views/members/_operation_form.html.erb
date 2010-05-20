@@ -14,16 +14,10 @@
       <%= f.text_field "argument#{idx}", :label => label %>
     <% end -%>
   <% end -%>
-
-<%= f.submit 'Build' %>
+<%= f.submit_tag 'Build' %>
+<%= f.spacer %>
+<%= f.text_area :to_expr, :style => 'width:400px; height: 50px;', :readonly => true, :label => 'Expression' %>
 <% end -%>
-
-<div class="operation">
-<span>Expression:</span><br/>
-<textarea style="width:400px; height: 50px;" readonly>
-<%= @builder.to_expr %>
-</textarea>
-</div>
 
 </div>
 
