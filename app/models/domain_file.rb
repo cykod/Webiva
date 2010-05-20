@@ -1177,6 +1177,15 @@ class DomainFile < DomainModel
     end
   end
 
+  def self.remote_image_size(uri, limit=10)
+    begin
+      response = self.download(uri, limit)
+      ImageSize.new(response.body).get_size
+    rescue
+      nil
+    end
+  end
+
   protected 
 
   def self.generate_prefix
