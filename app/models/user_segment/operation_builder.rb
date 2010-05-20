@@ -1,6 +1,6 @@
 
 class UserSegment::OperationBuilder < HashModel
-  attributes :operator => nil, :field => 'created', :operation => 'since', :arguments => []
+  attributes :operator => nil, :field => 'created', :operation => 'since', :arguments => [], :child => nil
 
   def operator_options
     [['Not', 'not'], ['', nil]]

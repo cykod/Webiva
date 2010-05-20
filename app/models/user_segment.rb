@@ -8,12 +8,11 @@ class UserSegment < DomainModel
   validates_presence_of :name
   validates_presence_of :segment_options
 
-  def initialize(opts={})
-    super
-    self.fields = [] unless self.fields
-  end
-
   def ready?; self.status == 'finished'; end
+
+  def fields
+    self.read_attribute(:fields) || []
+  end
 
   def validate
     self.errors.add(:segment_options_text, 'is invalid') if self.segment_options_text && self.segment_options.nil?

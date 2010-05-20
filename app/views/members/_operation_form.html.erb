@@ -17,29 +17,30 @@ OperationBuilder = {
 }
 </script>
 
-<fieldset id="operation_builder">
+<fieldset id="operation_builder" style="padding:5px;">
 <legend>User Segment Syntax Helper</legend>
 <% cms_unstyled_form_for :builder, @builder, :html => {:id => 'builder', :onsubmit => 'OperationBuilder.updateExpression(); return false;'} do |f| -%>
-<ul>
-<li>
-<lable><%= 'I am'.t %></label>
-<%= f.check_boxes :operator, [['not', 'not']], :single => true %>
+<ul style="list-style:none;">
+<li style="display:inline;">
+<%= 'I am'.t %>
+(<%= f.check_boxes :operator, [['not', 'not']], :single => true, :separator => '' %>)
 </li>
-<li>
-<label><%= 'looking for'.t %></label>
+
+<li style="display:inline;">
+<%= 'looking for'.t %>
   <%= f.select :field, @builder.field_options, {}, :onchange => 'OperationBuilder.updateOperations();' %>
 </li>
 
-<div id="operation" class="operation">
+<div id="operation" class="operation" style="padding: 5px;">
 <%= render :partial => 'operation_form_operation' %>
 </div>
 
-<li class="submit">
-<%= f.submit_tag 'Build' %>
-</li>
-
 <li id="expression">
 <%= render :partial => 'operation_form_expression' %>
+</li>
+
+<li class="submit" style="padding-top:5px;">
+<%= f.submit_tag 'Build' %>
 </li>
 
 <% end -%>

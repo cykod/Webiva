@@ -1,17 +1,18 @@
 
 <% cms_unstyled_fields_for :builder, @builder do |f| %>
-<ul>
+<table style="padding:5px;">
   <% @builder.operation_arguments.each_with_index do |arg, idx| -%>
-    <li>
-    <label><%= "Argument #{idx+1}" %></label>
+    <tr>
+    <td class="label"><%= @builder.operation_argument_names[idx] %></td>
+    <td class="argument">
     <% arg_options = @builder.operation_argument_options[idx]
-       label = @builder.operation_argument_names[idx]
        if arg_options[:options] -%>
-      <%= f.select "argument#{idx}", arg_options[:options], :label => label %>
+      <%= f.select "argument#{idx}", arg_options[:options] %>
     <% else -%>
-      <%= f.text_field "argument#{idx}", :label => label %>
+      <%= f.text_field "argument#{idx}" %>
     <% end -%>
-    </li>
+    </td>
+    </tr>
   <% end -%>
-</ul>
+</table>
 <% end %>
