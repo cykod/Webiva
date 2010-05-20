@@ -1,7 +1,7 @@
 
 <% cms_unstyled_fields_for :builder, @builder do |f| %>
-<li>
-<%= f.select :operation, @builder.operation_options, {}, :onchange => 'OperationBuilder.updateArguments();' %>
+<li style="padding-left: 5px;">
+<%= f.select :operation, @builder.operation_options, {}, :onchange => 'OperationBuilder.updateArguments();', :style => 'width:250px;' %>
 </li>
 
 <li id="arguments" class="arguments">

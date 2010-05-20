@@ -311,8 +311,9 @@ class MembersController < CmsController # :nodoc: all
 
     if request.post? && params[:builder]
       @builder.build(params[:builder])
-      render :inline => @builder.to_expr
     end
+
+    render :action => 'builder', :layout => 'manage_window'
   end
 
   def update_builder
