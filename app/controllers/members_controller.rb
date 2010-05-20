@@ -311,7 +311,17 @@ class MembersController < CmsController # :nodoc: all
 
     if request.post? && params[:builder]
       @builder.build(params[:builder])
+      render :inline => @builder.to_expr
     end
+  end
+
+  def update_builder
+    @builder = UserSegment::OperationBuilder.new nil
+    @builder.build(params[:builder])
+    return render :partial => 'operation_form_arguments' if params[:arguments]
+    return render :partial => 'operation_form_operation' if params[:operation]
+    return render :partial => 'operation_form_expression' if params[:expression]
+    return :nothing => true
   end
 
   def create

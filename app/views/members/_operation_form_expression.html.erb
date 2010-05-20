@@ -1,0 +1,4 @@
+
+<% cms_unstyled_fields_for :builder, @builder do |f| -%>
+<%= f.text_area_tag :expr, @builder.to_expr, :style => 'width:400px; height: 50px;', :readonly => true %>
+<% end -%>
