@@ -357,7 +357,11 @@ class DomainModel < ActiveRecord::Base
       self.send(default)
    end
   end       
-  
+
+  # Returns the models attributes plus any additional attributes.
+  # for example: EndUser triggered_attributes { self.attributes.merge( :name => self.name ) }
+  def triggered_attributes; self.attributes; end
+
  # Does variable replacement of strings surrounded by two percent signs
  # for example: %%VARIABLE%% with elements from the vars hash
  #
