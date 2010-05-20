@@ -1,0 +1,11 @@
+
+<% cms_unstyled_fields_for :builder, @builder do |f| %>
+<li>
+<%= f.select :operation, @builder.operation_options, {}, :onchange => 'OperationBuilder.updateArguments();' %>
+</li>
+
+<li id="arguments" class="arguments">
+<%= render :partial => 'operation_form_arguments' %>
+</li>
+
+<% end %>

@@ -1,24 +1,49 @@
 
-<div id="operation_builder">
-<% admin_form_for :builder, @builder do |f| -%>
-<%= f.check_boxes :operator, [['not', 'not']], :single => true, :label => 'I am' %>
-<%= f.select :field, @builder.field_options, :label => 'looking for' %>
-<%= f.select :operation, @builder.operation_options %>
+<script>
+OperationBuilder = {
+  updateOperations: function() {
+    <%= remote_function :url => url_for(:action => 'update_builder', :operation => 1), :submit => 'builder', :update => 'operation' %>;
+    OperationBuilder.updateExpression();
+  },
 
-  <% @builder.operation_arguments.each_with_index do |arg, idx| -%>
-    <% arg_options = @builder.operation_argument_options[idx]
-       label = @builder.operation_argument_names[idx]
-       if arg_options[:options] -%>
-      <%= f.select "argument#{idx}", arg_options[:options], :label => label %>
-    <% else -%>
-      <%= f.text_field "argument#{idx}", :label => label %>
-    <% end -%>
-  <% end -%>
-<%= f.submit_tag 'Build' %>
-<%= f.spacer %>
-<%= f.text_area :to_expr, :style => 'width:400px; height: 50px;', :readonly => true, :label => 'Expression' %>
-<% end -%>
+  updateArguments: function() {
+    <%= remote_function :url => url_for(:action => 'update_builder', :arguments => 1), :submit => 'builder', :update => 'arguments' %>;
+    OperationBuilder.updateExpression();
+  },
 
+  updateExpression: function() {
+    <%= remote_function :url => url_for(:action => 'update_builder', :expression => 1), :submit => 'builder', :update => 'expression' %>;
+  }
+}
+</script>
+
+<fieldset id="operation_builder">
+<legend>User Segment Syntax Helper</legend>
+<% cms_unstyled_form_for :builder, @builder, :html => {:id => 'builder', :onsubmit => 'OperationBuilder.updateExpression(); return false;'} do |f| -%>
+<ul>
+<li>
+<lable><%= 'I am'.t %></label>
+<%= f.check_boxes :operator, [['not', 'not']], :single => true %>
+</li>
+<li>
+<label><%= 'looking for'.t %></label>
+  <%= f.select :field, @builder.field_options, {}, :onchange => 'OperationBuilder.updateOperations();' %>
+</li>
+
+<div id="operation" class="operation">
+<%= render :partial => 'operation_form_operation' %>
 </div>
 
+<li class="submit">
+<%= f.submit_tag 'Build' %>
+</li>
 
+<li id="expression">
+<%= render :partial => 'operation_form_expression' %>
+</li>
+
+<% end -%>
+
+</fieldset>
+
+<%= observe_form 'builder', :frequency => 1, :function => 'OperationBuilder.updateExpression();' %>
