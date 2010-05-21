@@ -8,14 +8,14 @@ class UserSegment::CoreType
 
 
   class DateTimeType < UserSegment::FieldType
-    register_operation :before, [['Value', :integer], ['Format', :option, {:options => UserSegment::CoreType.datetime_format_options}]]
+    register_operation :before, [['Value', :integer], ['Format', :option, {:options => UserSegment::CoreType.datetime_format_options, :description => 'ago'}]]
 
     def self.before(cls, field, value, format)
       time = value.send(format).ago
       cls.scoped(:conditions => ["#{field} <= ?", time])
     end
 
-    register_operation :since, [['Value', :integer], ['Format', :option, {:options => UserSegment::CoreType.datetime_format_options}]]
+    register_operation :since, [['Value', :integer], ['Format', :option, {:options => UserSegment::CoreType.datetime_format_options, :description => 'ago'}]]
 
     def self.since(cls, field, value, format)
       time = value.send(format).ago
@@ -83,7 +83,7 @@ class UserSegment::CoreType
   end
 
   class BooleanType < UserSegment::FieldType
-    register_operation :is, [['Boolean', :boolean]]
+    register_operation :is, [['', :boolean]]
 
     def self.is(cls, field, string)
       cls.scoped(:conditions => ["#{field} = ?", string])

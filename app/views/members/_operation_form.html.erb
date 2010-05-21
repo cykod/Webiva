@@ -13,14 +13,22 @@ OperationBuilder = {
 
   updateExpression: function() {
     <%= remote_function :url => url_for(:action => 'update_builder', :expression => 1), :submit => 'builder', :update => 'expression' %>;
+  },
+
+  appendExpression: function() {
+    <%= remote_function :url => url_for(:action => 'update_builder', :commit => 1), :submit => 'builder' %>;
+  },
+
+  appendOptionsText: function(expr) {
+    with(window.opener) { setTimeout(function(){UserSegment.appendOptionsText(expr);}, 1); }
   }
 }
 </script>
 
-<fieldset id="operation_builder" style="padding:5px;">
-<legend>User Segment Syntax Helper</legend>
-<% cms_unstyled_form_for :builder, @builder, :html => {:id => 'builder', :onsubmit => 'OperationBuilder.updateExpression(); return false;'} do |f| -%>
-<ul style="list-style:none;">
+<fieldset id="operation_builder" style="padding:10px 10px 20px 10px; margin:5px;">
+<legend style="font-size:14px; font-weight:bold;">User List Syntax Builder</legend>
+<% cms_unstyled_form_for :builder, @builder, :html => {:id => 'builder', :onsubmit => 'OperationBuilder.appendExpression(); return false;', :class => "admin_form"} do |f| -%>
+<ul style="list-style:none; color:#3B648C; font-weight: bold;">
 <li style="display:inline;">
 <%= 'I am'.t %>
 (<%= f.check_boxes :operator, [['not', 'not']], :single => true, :separator => '' %>)
@@ -28,10 +36,10 @@ OperationBuilder = {
 
 <li style="display:inline;">
 <%= 'looking for'.t %>
-  <%= f.select :field, @builder.field_options, {}, :onchange => 'OperationBuilder.updateOperations();' %>
+  <%= f.select :field, @builder.field_options, {}, :onchange => 'OperationBuilder.updateOperations();', :style => 'width:200px;' %>
 </li>
 
-<div id="operation" class="operation" style="padding: 5px;">
+<div id="operation" class="operation">
 <%= render :partial => 'operation_form_operation' %>
 </div>
 
@@ -39,8 +47,8 @@ OperationBuilder = {
 <%= render :partial => 'operation_form_expression' %>
 </li>
 
-<li class="submit" style="padding-top:5px;">
-<%= f.submit_tag 'Build' %>
+<li style="padding-top:5px; width:400px; text-align:right;">
+<%= f.cancel_submit_buttons 'Close', 'Add to Operations', {:onclick => 'window.close();'} %>
 </li>
 
 <% end -%>

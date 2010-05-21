@@ -1,0 +1,2 @@
+
+page.call 'OperationBuilder.appendOptionsText', @builder.to_expr
