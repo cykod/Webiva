@@ -98,6 +98,8 @@ namespace "cms" do
       puts("There was a problem rebuilding domain file instances - importing domain anyway")
     end
 
+    SiteTemplate.find(:all).map(&:save)
+    SiteFeature.find(:all).map(&:save)
     
     if(File.exists?(directory + "/storage.tar.gz"))
       
