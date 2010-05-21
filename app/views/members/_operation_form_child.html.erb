@@ -1,0 +1,11 @@
+
+<% cms_unstyled_fields_for form_id, builder do |f| -%>
+<li>
+  <%= f.select :field, builder.field_options, {}, :onchange => 'OperationBuilder.updateOperations();', :style => 'width:200px;' %>
+</li>
+
+<div class="operation">
+<%= render :partial => 'operation_form_operation', :locals => {:builder => builder, :form_id => form_id} %>
+</div>
+
+<% end -%>

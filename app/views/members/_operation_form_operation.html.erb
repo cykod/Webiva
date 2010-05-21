@@ -1,17 +1,27 @@
 
-<% cms_unstyled_fields_for :builder, @builder do |f| %>
+<% cms_unstyled_fields_for form_id, builder do |f| %>
 
-<% if @builder.operation_options.length == 1 -%>
+<% if builder.operation_options.length == 1 -%>
   <%= f.hidden_field :operation %>
 <% else -%>
   <li style="padding: 10px 0 0 5px;">
-  <%= f.select :operation, @builder.operation_options, {}, :onchange => 'OperationBuilder.updateArguments();', :style => 'width:140px;' %>
+  <%= f.select :operation, builder.operation_options, {}, :onchange => 'OperationBuilder.updateOperations();', :style => 'width:140px;' %>
   <span style="font-size:10px; color:#999999;">function</span>
   </li>
 <% end -%>
 
-<li id="arguments" class="arguments">
-<%= render :partial => 'operation_form_arguments' %>
+<li class="arguments">
+<%= render :partial => 'operation_form_arguments', :locals => {:form_id => form_id, :builder => builder} %>
 </li>
+
+<li>
+<%= f.select :condition, builder.condition_options, {}, :onchange => 'OperationBuilder.updateOperations();' %>
+</li>
+
+<% unless builder.condition.blank? -%>
+<div id="children">
+<%= render :partial => 'operation_form_child', :locals => {:builder => builder.child_field, :form_id => "#{form_id}[child]"} %>
+</div>
+<% end -%>
 
 <% end %>

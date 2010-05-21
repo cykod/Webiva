@@ -6,11 +6,6 @@ OperationBuilder = {
     OperationBuilder.updateExpression();
   },
 
-  updateArguments: function() {
-    <%= remote_function :url => url_for(:action => 'update_builder', :arguments => 1), :submit => 'builder', :update => 'arguments' %>;
-    OperationBuilder.updateExpression();
-  },
-
   updateExpression: function() {
     <%= remote_function :url => url_for(:action => 'update_builder', :expression => 1), :submit => 'builder', :update => 'expression' %>;
   },
@@ -40,7 +35,7 @@ OperationBuilder = {
 </li>
 
 <div id="operation" class="operation">
-<%= render :partial => 'operation_form_operation' %>
+<%= render :partial => 'operation_form_operation', :locals => {:builder => @builder, :form_id => 'builder'} %>
 </div>
 
 <li id="expression">
