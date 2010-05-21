@@ -42,6 +42,8 @@ class UserSegment::FieldType
   # converts a string to the correct type
   # supported types are :integer, :float, :double, :date, :datetime, :option, :boolean
   def self.convert_to(value, type, opts={})
+    return value if value.nil?
+
     case type
     when :integer
       return value.to_i if value.is_a?(Integer) || value =~ /^\d+$/
@@ -56,7 +58,15 @@ class UserSegment::FieldType
       rescue
       end
     when :option
-      value = opts[:options].find { |o| o.downcase == value.downcase }
+      value = opts[:options].find do |o|
+        if o.is_a?(Array)
+          o[1].downcase == value.downcase
+        else
+          o.downcase == value.downcase
+        end
+      end
+
+      return value[1] if value.is_a?(Array)
       return value if value
     when :boolean
       return value if value.is_a?(TrueClass) || value.is_a?(FalseClass)
