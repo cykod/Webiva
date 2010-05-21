@@ -13,7 +13,7 @@ class UserSegment::Field < HashModel
     end
 
     unless self.operation.blank?
-      self.errors.add(:operation, 'invalid operation') unless self.type_class && self.type_class.has_operation?(self.operation)
+      self.errors.add(:operation, 'invalid operation') if ! self.type_class || ! self.type_class.has_operation?(self.operation)
 
       if self.operation_info
         self.errors.add(:arguments, 'are missing') if self.arguments.empty? && ! self.operation_arguments.empty?
@@ -25,7 +25,7 @@ class UserSegment::Field < HashModel
       end
     end
 
-    self.errors.add(:child, 'is invalid') if self.child_field && ! self.child_field.valid?
+    self.errors.add(:child, 'is invalid') if self.child && self.child_field && ! self.child_field.valid?
   end
 
   def count
@@ -74,7 +74,7 @@ class UserSegment::Field < HashModel
   end
 
   def type_class
-    @type_class ||= self.handler_class.user_segment_fields[self.field.to_sym][:type] if self.handler_class
+    @type_class ||= self.handler_class.user_segment_fields[self.field.to_sym][:type] if self.handler_class && self.handler_class.user_segment_fields && self.handler_class.user_segment_fields[self.field.to_sym]
   end
 
   def model_field
@@ -82,7 +82,7 @@ class UserSegment::Field < HashModel
   end
 
   def handler
-    @handler ||= UserSegment::FieldHandler.handlers.find { |info| info[:class].has_field?(self.field) }
+    @handler ||= UserSegment::FieldHandler.handlers.find { |info| info[:class].has_field?(self.field) } unless self.field.blank?
   end
 
   def handler=(handler)
@@ -110,9 +110,9 @@ class UserSegment::Field < HashModel
     @child_field
   end
 
-  def to_expr
+  def to_expr(opts={})
     output = "#{field}.#{operation}(" + self.arguments.collect { |arg| arg.is_a?(String) || arg.is_a?(Time) ? "\"#{arg}\"" : arg.to_s }.join(', ') + ")"
-    output += self.child.to_s if self.child
+    output += '.' + self.child_field.to_expr if self.child && self.child_field && opts[:nochild].nil?
     output
   end
 end

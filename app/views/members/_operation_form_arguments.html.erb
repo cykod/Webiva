@@ -1,15 +1,15 @@
 
-<% cms_unstyled_fields_for :builder, @builder do |f| %>
+<% cms_unstyled_fields_for form_id, builder do |f| %>
 <table style="padding:5px;">
-  <% @builder.operation_arguments.each_with_index do |arg, idx| -%>
+  <% builder.operation_arguments.each_with_index do |arg, idx| -%>
     <tr>
-    <td class="label" valign="baseline"><%= @builder.operation_argument_names[idx] %></td>
+    <td class="label" valign="baseline"><%= builder.operation_argument_names[idx] %></td>
     <td class="data" valign="baseline">
-    <% arg_options = @builder.operation_argument_options[idx]
+    <% arg_options = builder.operation_argument_options[idx]
        description = arg_options[:description]
        if arg_options[:options] -%>
       <%= f.select "argument#{idx}", arg_options[:options] %>
-    <% elsif @builder.operation_arguments[idx] == :boolean -%>
+    <% elsif builder.operation_arguments[idx] == :boolean -%>
       <%= f.yes_no "argument#{idx}" %>
     <% else -%>
       <%= f.text_field "argument#{idx}" %>

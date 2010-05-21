@@ -320,8 +320,7 @@ class MembersController < CmsController # :nodoc: all
   def update_builder
     @builder = UserSegment::OperationBuilder.new nil
     @builder.build(params[:builder])
-    return render :partial => 'operation_form_arguments' if params[:arguments]
-    return render :partial => 'operation_form_operation' if params[:operation]
+    return render :partial => 'operation_form_operation', :locals => {:builder => @builder, :form_id => 'builder'} if params[:operation]
     return render :partial => 'operation_form_expression' if params[:expression]
     return render :nothing => true unless params[:commit]
   end
