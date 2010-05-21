@@ -8,7 +8,7 @@ class MembersController < CmsController # :nodoc: all
   
   cms_admin_paths "people",
                   "People" => { :controller => '/members' },
-                  "Segments" => { :action => 'segments' }
+                  "List" => { :action => 'segments' }
   
   
   # need to include 
@@ -236,12 +236,12 @@ class MembersController < CmsController # :nodoc: all
   end
 
   def segments
-    cms_page_path ['People'], 'Segments'
+    cms_page_path ['People'], 'List'
     user_segments_table(false)
   end
 
   def create_segment
-    cms_page_path ['People', 'Segments'], 'Create a Segment'
+    cms_page_path ['People', 'List'], 'Create a List'
 
     @builder = UserSegment::OperationBuilder.new nil
 
@@ -260,7 +260,7 @@ class MembersController < CmsController # :nodoc: all
   def edit_segment
     @segment = UserSegment.find params[:path][0]
 
-    cms_page_path ['People', 'Segments'], '%s Segment' / @segment.name
+    cms_page_path ['People', 'List'], '%s List' / @segment.name
 
     @builder = UserSegment::OperationBuilder.new nil
 
@@ -281,7 +281,7 @@ class MembersController < CmsController # :nodoc: all
   def copy_segment
     segment_to_copy = UserSegment.find params[:path][0]
 
-    cms_page_path ['People', 'Segments'], 'Copy %s Segment' / segment_to_copy.name
+    cms_page_path ['People', 'List'], 'Copy %s List' / segment_to_copy.name
 
     @builder = UserSegment::OperationBuilder.new nil
 
@@ -308,6 +308,7 @@ class MembersController < CmsController # :nodoc: all
     cms_page_path ['People'], 'Operation Builder'
 
     @builder = UserSegment::OperationBuilder.new nil
+    @builder.build(:field => 'created', :operation => 'since', :argument0 => 2, :argument1 => 'days')
 
     if request.post? && params[:builder]
       @builder.build(params[:builder])
@@ -322,7 +323,7 @@ class MembersController < CmsController # :nodoc: all
     return render :partial => 'operation_form_arguments' if params[:arguments]
     return render :partial => 'operation_form_operation' if params[:operation]
     return render :partial => 'operation_form_expression' if params[:expression]
-    return :nothing => true
+    return render :nothing => true unless params[:commit]
   end
 
   def create

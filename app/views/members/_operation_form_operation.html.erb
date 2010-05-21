@@ -1,8 +1,14 @@
 
 <% cms_unstyled_fields_for :builder, @builder do |f| %>
-<li style="padding-left: 5px;">
-<%= f.select :operation, @builder.operation_options, {}, :onchange => 'OperationBuilder.updateArguments();', :style => 'width:250px;' %>
-</li>
+
+<% if @builder.operation_options.length == 1 -%>
+  <%= f.hidden_field :operation %>
+<% else -%>
+  <li style="padding: 10px 0 0 5px;">
+  <%= f.select :operation, @builder.operation_options, {}, :onchange => 'OperationBuilder.updateArguments();', :style => 'width:140px;' %>
+  <span style="font-size:10px; color:#999999;">function</span>
+  </li>
+<% end -%>
 
 <li id="arguments" class="arguments">
 <%= render :partial => 'operation_form_arguments' %>

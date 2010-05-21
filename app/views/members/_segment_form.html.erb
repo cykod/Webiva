@@ -1,3 +1,14 @@
+<script>
+UserSegment = {
+  appendOptionsText: function(expr) {
+    if($('segment_segment_options_text').value != '') {
+      $('segment_segment_options_text').value += "\n";
+    }
+    $('segment_segment_options_text').value += expr;
+  }
+}
+</script>
+
 <% admin_form_for :segment, @segment do |f| -%>
 <%= f.text_field :name %>
 <%= f.text_area :description, :rows => 3 %>
@@ -5,7 +16,7 @@
 <%= f.check_boxes :main_page, [['display on people page', true]], :single => true  %>
 <%= f.ordered_array :fields, UserSegment.fields_options, :label => 'Fields to Display' %>
 <% f.custom_field '' do %>
-<a href="javascript:void(0)" onclick='openWindow("<%= url_for(:action => "builder") %>" ,"operationBuilder",500,500,"yes","yes");'>Builder</a>
+<a href="javascript:void(0)" onclick='openWindow("<%= url_for(:action => "builder") %>" ,"operationBuilder",440,500,"yes","yes");'>Builder</a>
 <% end %>
 <%= f.text_area :segment_options_text, :rows => 8, :label => 'Operations' %>
 <%= f.spacer %>
