@@ -9,7 +9,7 @@ class EndUserActionSegmentField < UserSegment::FieldHandler
   end
 
   register_field :renderer, UserSegment::CoreType::StringType
-  register_field :action, UserSegment::CoreType::StringType
+  register_field :action, EndUserActionSegmentType::ActionType
   register_field :created, UserSegment::CoreType::DateTimeType, :field => :created_at
   register_field :occurred, UserSegment::CoreType::DateTimeType, :field => :action_at
 
