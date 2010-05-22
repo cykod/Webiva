@@ -90,7 +90,6 @@ class MailManagerController < CmsController # :nodoc: all
     end
   
     template_id = params[:path][0]
-    @mail_template = MailTemplate.find_by_id(template_id) || MailTemplate.new(:body_type => 'html')
     
     @design_templates = [['--No Design Template--','']] + SiteTemplate.find_select_options(:all,:order => 'name',:conditions => 'template_type = "mail"')
     
@@ -100,15 +99,15 @@ class MailManagerController < CmsController # :nodoc: all
       cms_page_path [ "E-marketing" ,"Mail Templates" ], "Edit Mail Template"
     end
     
-    @mail_template = MailTemplate.find_by_id(template_id) || MailTemplate.new(:body_type => 'html', :template_type => @handler_info && @handler_info[:template_type] ? @handler_info[:template_type] : 'site')
-    
+    @mail_template = MailTemplate.find_by_id(template_id) || MailTemplate.new(:body_type => 'text,html', :template_type => @handler_info && @handler_info[:template_type] ? @handler_info[:template_type] : 'site')
+
     if request.post?
       if save_template
         DataCache.expire_content("Mailing")
-	if @handler_info
-	  if redirect_url = @handler_info[:class].mail_template_save(@mail_template, self)
-	    redirect_to redirect_url
-	  end
+        if @handler_info
+          if redirect_url = @handler_info[:class].mail_template_save(@mail_template, self)
+            redirect_to redirect_url
+          end
         else
           redirect_to :action => 'templates'
         end
