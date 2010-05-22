@@ -1,6 +1,10 @@
 
 class TestTarget
   attr_accessor :id
+
+  def self.get_content_description
+    "Test Target"
+  end
 end
 
 module FeedbackTestHelper

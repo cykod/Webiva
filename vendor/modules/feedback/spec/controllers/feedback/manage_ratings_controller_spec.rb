@@ -9,6 +9,7 @@ describe Feedback::ManageRatingsController do
   reset_domain_tables :end_user,:feedback_end_user_ratings,:feedback_ratings
 
   before(:each) do
+    mock_editor
     @user = create_end_user
     @user.save
 
@@ -29,7 +30,7 @@ describe Feedback::ManageRatingsController do
   it "should handle table list" do 
       # Test all the permutations of an active table
     controller.should handle_active_table(:user_ratings_table) do |args|
-      post 'user_ratings_table', args
+      post 'user_ratings_table', args.merge(:path => [@user.id])
     end
   end
 

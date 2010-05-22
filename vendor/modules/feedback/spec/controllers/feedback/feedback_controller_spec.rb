@@ -9,6 +9,7 @@ describe Feedback::FeedbackController do
   reset_domain_tables :end_user,:comments
 
   before(:each) do
+    mock_editor
     @user = create_end_user
     @user.save
 
@@ -28,7 +29,7 @@ describe Feedback::FeedbackController do
   it "should handle table list" do 
       # Test all the permutations of an active table
     controller.should handle_active_table(:user_comments_table) do |args|
-      post 'user_comments_table', args
+      post 'user_comments_table', args.merge(:path => [ @user.id] )
     end
   end
 

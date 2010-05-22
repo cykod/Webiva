@@ -143,8 +143,9 @@ class Feed::RssRenderer < ParagraphRenderer
     end
     
     output = @nodes.collect do |nd|
-          "<link rel='alternate' type='application/rss+xml' title='#{vh nd.page_modifier.modifier_data[:feed_title]}' href='#{vh nd.node_path}' />"
-      end.join("\n")
+      nd.page_modifier.modifier_data ||= {}
+      "<link rel='alternate' type='application/rss+xml' title='#{vh nd.page_modifier.modifier_data[:feed_title]}' href='#{vh nd.node_path}' />"
+    end.join("\n")
     
     include_in_head(output)
     render_paragraph :nothing => true
