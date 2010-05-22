@@ -29,7 +29,7 @@ class CmsController < ApplicationController
   # Filter method validating that the current user has an
   # editor user class. Skip this filters to get around the requirement.
   def validate_is_editor
-    if myself && myself.user_class
+    if myself.id && myself.user_class
       if !myself.user_class.editor?
         redirect_to :controller => '/manage/access', :action => 'denied'
       end
