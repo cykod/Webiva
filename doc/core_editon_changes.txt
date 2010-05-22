@@ -15,6 +15,24 @@ paras.each do |para|
  para.save
 end
 
+update component_schemas SET version='1' WHERE component='feedback';
+
+vi db/004_additional_comment_fields.rb 
+comment out both up migrations
+
+rake cms:migrate_domain_components COMPONENT=feedback 
+
 
 PageRevision.find(:all,:conditions => { :active => 1, :revision_type => 'real' }, :include => :page_paragraphs).each { |rev| rev.page_paragraphs.map(&:save); rev.make_real } 
+
+
+# Need to create 
+
+Blog::BlogBlog.find(:all).map(&:save)
+ContentModel.find(:all).map(&:save)
+
+ SiteModule.activated_modules.each do |mod|
+        mod.admin_controller_class.content_node_type_generate
+      end
+      Editor::AdminController.content_node_type_generate
 
