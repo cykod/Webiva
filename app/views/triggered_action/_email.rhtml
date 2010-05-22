@@ -8,7 +8,7 @@
 </tbody>
 <tbody id='template_message' <%= "style='display:none;'" if @action_options.send_type != 'template' %>>
   <%= f.header 'Mail Template' %>
-  <%= f.select :mail_template_id, MailTemplate.find_select_options(:all,:order => 'name') %>
+  <%= f.select :mail_template_id, MailTemplate.site_template_options %>
 <tbody>
   <%= f.header 'Sending Details' %>
   <%= f.radio_buttons :email_to, [['A User profile','user_class'],['One or more specific addresses','addresses'],['Autorespond to submitter','autorespond']],  :label => 'Who to email', :required => true, :onchange => "SCMS.toggle(['email_user_classes','email_addresses'],[this.value=='user_class',this.value=='addresses']);", :separator => '<br/>' %>
