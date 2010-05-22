@@ -188,6 +188,9 @@ class HandleActiveTableMatcher
     @controller = controller
     
     @cols = controller.send("#{@table_name}_columns",{})
+
+    usr = @controller.send(:myself)
+    @error_msgs << "User is not an editor - use mock_editor to make handle_active_table work" if !usr.editor?
     
     # Go through each column
     @cols.each do |header|
