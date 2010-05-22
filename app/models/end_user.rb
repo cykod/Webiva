@@ -467,7 +467,7 @@ class EndUser < DomainModel
   end
 
   def triggered_attributes
-    @triggered_attributes ||= self.attribute.merge(:name => self.name)
+    @triggered_attributes ||= self.attributes.merge(:name => self.name)
   end
 
   def before_save #:nodoc:
