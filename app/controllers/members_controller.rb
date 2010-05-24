@@ -310,6 +310,8 @@ class MembersController < CmsController # :nodoc: all
 
     @segment = UserSegment.find_by_id params[:path][0]
     @builder = @segment ? UserSegment::OperationBuilder.create_builder(@segment) : UserSegment::OperationBuilder.new(nil)
+    @filter = params[:filter]
+    @builder.build(UserSegment::OperationBuilder.get_prebuilt_filter(@filter)) if @filter
 
     if request.post? && params[:builder]
       @builder.build(params[:builder])

@@ -28,7 +28,7 @@ class UserSegment::Operation
       if ids
         @end_user_ids = ids - @end_user_ids
       else
-        @end_user_ids = EndUser.find(:all, :select => 'id', :conditions => ['id not in(?)', @end_user_ids]).collect &:id
+        @end_user_ids = (@end_user_ids.empty? ? EndUser.find(:all, :select => 'id') : EndUser.find(:all, :select => 'id', :conditions => ['id NOT IN(?)', @end_user_ids])).collect &:id
       end
     end
 

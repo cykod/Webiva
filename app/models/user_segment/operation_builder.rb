@@ -122,4 +122,20 @@ class UserSegment::OperationBuilder < HashModel
     builder.build(user_segment.operations.to_builder)
     builder
   end
+
+  def self.prebuilt_filters
+    [
+      ['New registered users in the last week', {:field => 'registered', :operation => 'is', :argument0 => true, :condition => 'and', :child => {:field => 'created', :operation => 'since', :argument0 => 1, :argument1 => 'week'}}],
+      ['Users that have not logged in the last 7 days', {:operator => 'not', :field => 'user_action', :operation => 'is', :argument0 => '/editor/auth/login', :condition => 'and', :child => {:field => 'occurred', :operation => 'since', :argument0 => 7, :argument1 => 'days'}}]
+    ]
+  end
+
+  def self.prebuilt_filters_options
+    [['Custom', 'custom']] + self.prebuilt_filters.collect { |filter| [filter[0], filter[0].gsub(/[^a-zA-Z0-9]/, '').downcase] }
+  end
+
+  def self.get_prebuilt_filter(filter)
+    value = self.prebuilt_filters.find { |f| f[0].gsub(/[^a-zA-Z0-9]/, '').downcase == filter }
+    value ? value[1] : {}
+  end
 end

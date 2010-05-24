@@ -1,3 +1,22 @@
 
-<%= render :partial => 'operation_form' %>
+<% if @filter.nil? && @segment.nil? && @builder.field.nil? -%>
+
+<fieldset id="operation_builder" style="padding:10px 10px 20px 10px; margin:5px;">
+<legend style="font-size:14px; font-weight:bold;">Rule Builder</legend>
+<% form_tag do |f| -%>
+<ul style="list-style:none; color:#3B648C; font-weight: bold;">
+<li>Pre-built filters
+  <%= select_tag :filter, options_for_select(UserSegment::OperationBuilder.prebuilt_filters_options), :style => 'width:200px;' %>
+</li>
+<li style="padding-top:5px; width:400px; text-align:left;">
+<%= submit_tag 'Select' %>
+</li>
+</ul>
+</form>
+<% end -%>
+
+</fieldset>
+<% else -%>
+  <%= render :partial => 'operation_form' %>
+<% end -%>
 
