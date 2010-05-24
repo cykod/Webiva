@@ -5,10 +5,14 @@
     <tr>
     <td class="label" valign="baseline"><%= builder.operation_argument_names[idx] %></td>
     <td class="data" valign="baseline">
-    <% arg_options = builder.operation_argument_options[idx]
+
+    <% 
+       arg_options = builder.operation_argument_options[idx]
        description = arg_options[:description]
-       if arg_options[:options] -%>
-      <%= f.select "argument#{idx}", arg_options[:options] %>
+    %>
+
+    <% if arg_options[:options] -%>
+      <%= arg_options[:form_field] == 'radio_buttons' ? f.radio_buttons("argument#{idx}", arg_options[:options]) : f.select("argument#{idx}", arg_options[:options]) %>
     <% elsif builder.operation_arguments[idx] == :boolean -%>
       <%= f.yes_no "argument#{idx}" %>
     <% else -%>

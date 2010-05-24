@@ -36,7 +36,9 @@ OperationBuilder = {
 </li>
 
 <div id="operation" class="operation">
-<%= render :partial => 'operation_form_operation', :locals => {:builder => @builder, :form_id => 'builder'} %>
+  <% if @builder.operation_options.length > 0 -%>
+    <%= render :partial => 'operation_form_operation', :locals => {:builder => @builder, :form_id => 'builder'} %>
+  <% end -%>
 </div>
 
 <li id="expression">

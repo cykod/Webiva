@@ -309,7 +309,6 @@ class MembersController < CmsController # :nodoc: all
     cms_page_path ['People'], 'Operation Builder'
 
     @builder = UserSegment::OperationBuilder.new nil
-    @builder.build(:field => 'created', :operation => 'since', :argument0 => 2, :argument1 => 'days')
 
     if request.post? && params[:builder]
       @builder.build(params[:builder])

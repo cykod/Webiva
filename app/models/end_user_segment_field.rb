@@ -10,7 +10,7 @@ class EndUserSegmentField < UserSegment::FieldHandler
   end
 
   register_field :email, UserSegment::CoreType::StringType, :name => 'Users: Email'
-  register_field :gender, UserSegment::CoreType::StringType, :name => 'Users: Gender'
+  register_field :gender, EndUserSegmentType::GenderType, :name => 'Users: Gender'
   register_field :created, UserSegment::CoreType::DateTimeType, :field => :created_at, :name => 'Users: Created'
   register_field :registered, UserSegment::CoreType::BooleanType, :name => 'Users: Registered'
   register_field :activated, UserSegment::CoreType::BooleanType, :name => 'Users: Activated'
