@@ -19,9 +19,7 @@
 </li>
 
 <% unless builder.condition.blank? -%>
-<div id="children">
-<%= render :partial => 'operation_form_child', :locals => {:builder => builder.child_field, :form_id => "#{form_id}[child]"} %>
-</div>
+<%= render :partial => 'operation_form_child', :locals => {:builder => builder.child_field, :form_id => "#{form_id}[child]", :condition => builder.condition} %>
 <% end -%>
 
 <% end %>

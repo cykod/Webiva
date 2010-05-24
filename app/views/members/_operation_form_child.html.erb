@@ -1,5 +1,12 @@
 
 <% cms_unstyled_fields_for form_id, builder do |f| -%>
+
+<% if condition == 'with' -%>
+  <li>
+  <%= f.check_boxes :operator, [['not', 'not']], :single => true, :separator => '' %>
+  </li>
+<% end -%>
+
 <li>
   <%= f.select :field, builder.field_options, {}, :onchange => 'OperationBuilder.updateOperations();', :style => 'width:200px;' %>
 </li>
