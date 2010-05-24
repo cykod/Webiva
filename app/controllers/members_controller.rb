@@ -10,7 +10,6 @@ class MembersController < CmsController # :nodoc: all
                   "People" => { :controller => '/members' },
                   "User Lists" => { :action => 'segments' }
   
-  
   # need to include 
   include ActiveTable::Controller   
   
