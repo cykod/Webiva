@@ -35,6 +35,17 @@ class UserSegment::Operation
     @end_user_ids
   end
 
+  def to_builder(opts={})
+    options = nil
+    @fields.reverse.each do |fld|
+      options = fld.to_builder(opts)
+      opts[:condition] = 'or'
+      opts[:child] = options
+    end
+    options[:operator] = @operator
+    options
+  end
+
   def to_a
     [@operator] + @fields.collect { |fld| fld.to_h }
   end

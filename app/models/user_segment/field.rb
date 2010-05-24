@@ -115,4 +115,16 @@ class UserSegment::Field < HashModel
     output += '.' + self.child_field.to_expr if self.child && self.child_field && opts[:nochild].nil?
     output
   end
+
+  def to_builder(opts={})
+    options = self.to_h.slice(:field, :operation)
+    self.arguments.each_with_index { |arg, idx| options["argument#{idx}".to_sym] = arg }
+    if self.child_field
+      options[:condition] = 'and'
+      options[:child] = self.child_field.to_builder(opts)
+    else
+      options.merge!(opts)
+    end
+    options
+  end
 end

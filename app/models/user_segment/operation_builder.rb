@@ -116,4 +116,10 @@ class UserSegment::OperationBuilder < HashModel
   def child_field
     @child_field ||= UserSegment::OperationBuilder.new nil
   end
+
+  def self.create_builder(user_segment)
+    builder = UserSegment::OperationBuilder.new nil
+    builder.build(user_segment.operations.to_builder)
+    builder
+  end
 end

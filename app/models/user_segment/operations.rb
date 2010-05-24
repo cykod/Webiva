@@ -43,6 +43,18 @@ class UserSegment::Operations
     end
   end
 
+  def to_builder
+    return {} unless @operations
+    options = nil
+    opts = {}
+    @operations.reverse.each do |op|
+      options = op.to_builder(opts)
+      opts[:condition] = 'with'
+      opts[:child] = options
+    end
+    options
+  end
+
   def to_a
     return [] unless @operations
     @operations.collect { |op| op.to_a }
