@@ -105,7 +105,7 @@
   <%= p.link "Download Visible Targets",:icon => 'download.gif', :controller => :member_export %>
   <%= p.link "Tag List", :icon => 'show.gif', :action => 'tags' %>
   <%= p.link "Access Tokens", :icon => 'access.gif', :controller => '/access_token' if myself.has_role?('editor_access_tokens') %>
-  <%= p.link "Segments", :icon => 'access.gif', :action => 'segments' %>
+  <%= p.link "User Lists", :icon => 'access.gif', :action => 'segments' %>
 <% end -%>
 
 <hr/>
@@ -113,7 +113,7 @@
 <div class="user_segments" style="float:right; width: 300px; text-align:right; padding:5px;">
 <%= form_tag %>
 <% if @segment && @segment.last_ran_at -%>
-  <a href="<%= url_for :action => 'edit_segment', :path => @segment.id %>">Edit</a> | <a href="<%= url_for :action => 'refresh_segment', :path => @segment.id %>">Refresh</a>
+   <a href="<%= url_for :action => 'refresh_segment', :path => @segment.id %>">Refresh</a> | <a href="<%= url_for :action => 'edit_segment', :path => @segment.id %>">Edit</a>
 <% else -%>
   <a href="<%= url_for :action => 'options' %>">Edit</a>
 <% end -%>
@@ -123,7 +123,7 @@
 <span style="font-size:11px;"><%= 'updated on %s' / @segment.last_ran_at.strftime(DEFAULT_DATETIME_FORMAT.t) %></span>
 <br/>
 <% end -%>
-<a href="<%= url_for :action => 'create_segment' %>">Create a Segment</a>
+<a href="<%= url_for :action => 'create_segment' %>">Create a User List</a>
 </form>
 </div>
 

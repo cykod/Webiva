@@ -8,7 +8,7 @@ class MembersController < CmsController # :nodoc: all
   
   cms_admin_paths "people",
                   "People" => { :controller => '/members' },
-                  "List" => { :action => 'segments' }
+                  "User Lists" => { :action => 'segments' }
   
   
   # need to include 
@@ -98,6 +98,7 @@ class MembersController < CmsController # :nodoc: all
   def email_targets_table_generate(opts,*find_options)
     @generated_active_table_columns = [
       ActiveTable::IconHeader.new('check', :width => '16'),
+      ActiveTable::StaticHeader.new('', :width => '24'),
       ActiveTable::StaticHeader.new('Profile', :width => '70'),
       ActiveTable::StaticHeader.new('Image', :width => '70'),
       ActiveTable::StaticHeader.new('Name'),
@@ -236,12 +237,12 @@ class MembersController < CmsController # :nodoc: all
   end
 
   def segments
-    cms_page_path ['People'], 'List'
+    cms_page_path ['People'], 'User Lists'
     user_segments_table(false)
   end
 
   def create_segment
-    cms_page_path ['People', 'List'], 'Create a List'
+    cms_page_path ['People', 'User Lists'], 'Create a User List'
 
     @builder = UserSegment::OperationBuilder.new nil
 
@@ -260,7 +261,7 @@ class MembersController < CmsController # :nodoc: all
   def edit_segment
     @segment = UserSegment.find params[:path][0]
 
-    cms_page_path ['People', 'List'], '%s List' / @segment.name
+    cms_page_path ['People', 'User Lists'], '%s User List' / @segment.name
 
     @builder = UserSegment::OperationBuilder.new nil
 
@@ -281,7 +282,7 @@ class MembersController < CmsController # :nodoc: all
   def copy_segment
     segment_to_copy = UserSegment.find params[:path][0]
 
-    cms_page_path ['People', 'List'], 'Copy %s List' / segment_to_copy.name
+    cms_page_path ['People', 'User Lists'], 'Copy %s User List' / segment_to_copy.name
 
     @builder = UserSegment::OperationBuilder.new nil
 

@@ -10,8 +10,9 @@ class EndUserActionSegmentType
 
     register_operation :is, [['Action', :option, {:options => EndUserActionSegmentType::ActionType.action_options}]]
 
-    def self.is(cls, field, action)
-      cls.scoped(:conditions => ["#{field} = ?", action])
+    def self.is(cls, field, path)
+      path = path.split('/')
+      cls.scoped(:conditions => ["renderer = ? and action = ?", path[0..-2].join('/'), path[-1]])
     end
   end
 end

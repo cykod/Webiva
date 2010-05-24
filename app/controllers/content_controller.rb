@@ -28,6 +28,7 @@ class ContentController < ModuleController #:nodoc: all
 
   register_handler :user_segment, :fields, 'EndUserSegmentField'
   register_handler :user_segment, :fields, 'EndUserActionSegmentField'
+  register_handler :user_segment, :fields, 'EndUserCacheSegmentField'
 
   def index
     @content_models,@content_actions = CmsController.get_content_models_and_actions

@@ -4,8 +4,10 @@
   <%= f.select :field, builder.field_options, {}, :onchange => 'OperationBuilder.updateOperations();', :style => 'width:200px;' %>
 </li>
 
-<div class="operation">
-<%= render :partial => 'operation_form_operation', :locals => {:builder => builder, :form_id => form_id} %>
-</div>
+  <% if builder.operation_options.length > 0 -%>
+    <div class="operation">
+    <%= render :partial => 'operation_form_operation', :locals => {:builder => builder, :form_id => form_id} %>
+    </div>
+  <% end -%>
 
 <% end -%>

@@ -13,12 +13,12 @@ UserSegment = {
 <%= f.text_field :name %>
 <%= f.text_area :description, :rows => 3 %>
 <%= f.select :order_by, UserSegment.order_by_options %>
-<%= f.check_boxes :main_page, [['display on people page', true]], :single => true  %>
+<%= f.check_boxes :main_page, [['add to quick select list', true]], :single => true  %>
 <%= f.ordered_array :fields, UserSegment.fields_options, :label => 'Fields to Display' %>
 <% f.custom_field '' do %>
-<a href="javascript:void(0)" onclick='openWindow("<%= url_for(:action => "builder") %>" ,"operationBuilder",440,500,"yes","yes");'>Builder</a>
+<a href="javascript:void(0)" onclick='openWindow("<%= url_for(:action => "builder") %>" ,"operationBuilder",440,500,"yes","yes");'>Create a rule</a>
 <% end %>
-<%= f.text_area :segment_options_text, :rows => 8, :label => 'Operations' %>
+<%= f.text_area :segment_options_text, :rows => 8, :style => 'width:400px;', :label => 'Filter' %>
 <%= f.spacer %>
 <%= f.cancel_submit_buttons 'Cancel', (@segment.id ? 'Save' : 'Create') %>
 <% end -%>

@@ -14,7 +14,7 @@
 <%= render :partial => 'operation_form_arguments', :locals => {:form_id => form_id, :builder => builder} %>
 </li>
 
-<li>
+<li style="padding-bottom:5px;">
 <%= f.select :condition, builder.condition_options, {}, :onchange => 'OperationBuilder.updateOperations();' %>
 </li>
 

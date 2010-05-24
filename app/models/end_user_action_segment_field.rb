@@ -8,9 +8,10 @@ class EndUserActionSegmentField < UserSegment::FieldHandler
     }
   end
 
-  register_field :renderer, UserSegment::CoreType::StringType
-  register_field :action, EndUserActionSegmentType::ActionType
-  register_field :created, UserSegment::CoreType::DateTimeType, :field => :created_at
-  register_field :occurred, UserSegment::CoreType::DateTimeType, :field => :action_at
+  register_field :user_action, EndUserActionSegmentType::ActionType, :name => 'User Actions'
+  register_field :action, UserSegment::CoreType::StringType, :name => 'User Actions: Action'
+  register_field :renderer, UserSegment::CoreType::StringType, :name => 'User Actions: Renderer'
+  register_field :created, UserSegment::CoreType::DateTimeType, :field => :created_at, :name => 'User Actions: Created'
+  register_field :occurred, UserSegment::CoreType::DateTimeType, :field => :action_at, :name => 'User Actions: Occurred'
 
 end
