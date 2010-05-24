@@ -16,7 +16,7 @@ UserSegment = {
 <%= f.check_boxes :main_page, [['add to quick select list', true]], :single => true  %>
 <%= f.ordered_array :fields, UserSegment.fields_options, :label => 'Fields to Display' %>
 <% f.custom_field '' do %>
-<a href="javascript:void(0)" onclick='openWindow("<%= url_for(:action => "builder") %>" ,"operationBuilder",440,500,"yes","yes");'>Create a rule</a>
+<a href="javascript:void(0)" onclick='openWindow("<%= url_for(:action => "builder", :path => @segment.id) %>" ,"operationBuilder",440,500,"yes","yes");'><%= @segment.id ? 'Edit filter'.t : 'Create a filter'.t %></a>
 <% end %>
 <%= f.text_area :segment_options_text, :rows => 8, :style => 'width:400px;', :label => 'Filter' %>
 <%= f.spacer %>
