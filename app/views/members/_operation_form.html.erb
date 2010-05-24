@@ -15,7 +15,7 @@ OperationBuilder = {
   },
 
   appendOptionsText: function(expr) {
-    with(window.opener) { setTimeout(function(){UserSegment.appendOptionsText(expr);}, 1); }
+    with(window.opener) { setTimeout(function(){UserSegment.<%= @segment ? 'replaceOptionsText' : 'appendOptionsText' %>(expr);}, 1); }
     setTimeout(function(){window.close();}, 1);
   }
 }
@@ -46,7 +46,7 @@ OperationBuilder = {
 </li>
 
 <li style="padding-top:5px; width:400px; text-align:right;">
-<%= f.cancel_submit_buttons 'Close', 'Add to Filter', {:onclick => 'window.close();'} %>
+<%= f.cancel_submit_buttons 'Close', (@segment ? 'Update Filter' : 'Add to Filter'), {:onclick => 'window.close();'} %>
 </li>
 
 <% end -%>
