@@ -3,6 +3,7 @@ class UserSegments < ActiveRecord::Migration
     create_table :user_segments, :force => true do |t|
       t.string :name
       t.text :description
+      t.string :segment_type
       t.string :status
       t.boolean :main_page
       t.datetime :last_ran_at

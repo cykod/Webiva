@@ -89,6 +89,11 @@ class MembersController < CmsController # :nodoc: all
           update_users.each do |user|
             user.tag_names = '' if user
           end
+        when 'add_users'
+          custom_segment = UserSegment.find params[:user_segment_id]
+          custom_segment.add_ids params[:user].keys.collect { |uid| uid.to_i }
+        when 'remove_users'
+          self.segment.remove_ids(params[:user].keys.collect { |uid| uid.to_i }) if self.segment && self.segment.segment_type == 'custom'
         end
       end
     end
@@ -178,6 +183,7 @@ class MembersController < CmsController # :nodoc: all
                 [ hdr(:icon, 'check', :width => '16'),
                   hdr(:icon, '', :width => '32'),
                   :main_page,
+                  :segment_type,
                   :name,
                   :description,
                   :status,
@@ -245,7 +251,7 @@ class MembersController < CmsController # :nodoc: all
 
     @builder = UserSegment::OperationBuilder.new nil
 
-    @segment = UserSegment.new :main_page => true
+    @segment = UserSegment.new :main_page => true, :segment_type => 'filtered'
 
     if request.post? && params[:segment]
       return redirect_to :action => 'index' unless params[:commit]
@@ -261,8 +267,6 @@ class MembersController < CmsController # :nodoc: all
     @segment = UserSegment.find params[:path][0]
 
     cms_page_path ['People', 'User Lists', [@segment.name, url_for(:action => 'index', :path => @segment.id)]], 'Edit List'
-
-    @builder = UserSegment::OperationBuilder.new nil
 
     if request.post? && params[:segment]
       return redirect_to :action => 'index', :path => @segment.id unless params[:commit]
@@ -283,9 +287,7 @@ class MembersController < CmsController # :nodoc: all
 
     cms_page_path ['People', 'User Lists', [segment_to_copy.name, url_for(:action => 'index', :path => segment_to_copy.id)]], 'Copy List'
 
-    @builder = UserSegment::OperationBuilder.new nil
-
-    @segment = UserSegment.new segment_to_copy.attributes.symbolize_keys.slice(:name, :description, :fields, :main_page, :segment_options_text, :order_by)
+    @segment = UserSegment.new segment_to_copy.attributes.symbolize_keys.slice(:name, :description, :fields, :main_page, :segment_options_text, :order_by, :segment_type)
     @segment.name += ' (Copy)' unless request.post?
 
     if request.post? && params[:segment]
@@ -301,6 +303,7 @@ class MembersController < CmsController # :nodoc: all
   def refresh_segment
     @segment = UserSegment.find params[:path][0]
     @segment.refresh
+    return redirect_to(:action => 'index', :path => @segment.id) if @segment.segment_type == 'custom'
     redirect_to :action => 'segments'
   end
 
@@ -325,6 +328,21 @@ class MembersController < CmsController # :nodoc: all
     return render :partial => 'operation_form_operation', :locals => {:builder => @builder, :form_id => 'builder'} if params[:operation]
     return render :partial => 'operation_form_expression' if params[:expression]
     return render :nothing => true unless params[:commit]
+  end
+
+  def add_users_form
+    @segment = UserSegment.find params[:segment][:id] if params[:choice] == 'existing'
+
+    unless @segment
+      @segment = UserSegment.new :main_page => true, :segment_type => 'custom'
+
+      if request.post? && params[:segment]
+        @segment.update_attributes params[:segment]
+      end
+    end
+
+    @segments = UserSegment.find(:all, :conditions => {:segment_type => 'custom'}, :order => 'name')
+    render :partial => 'add_users_form'
   end
 
   def create
@@ -518,7 +536,7 @@ class MembersController < CmsController # :nodoc: all
   
     @existing_tags = []
     @users.each do |usr|
-      if !usr.tag_cache.tags.blank?
+      if usr.tag_cache && !usr.tag_cache.tags.blank?
 	@existing_tags  += usr.tag_cache.tags.split(",")
       end
     end

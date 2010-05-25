@@ -1,10 +1,14 @@
-<% active_table_for :email_targets_table, @active_table_output,
+<%
+   segment_action = @segment && @segment.segment_type == 'custom' ? ['Remove Users from List', 'remove_users'] : ['Add Users to List','js','MemberEditor.addUsersToList();']
+
+   active_table_for :email_targets_table, @active_table_output,
                     :refresh_url => url_for(:action => 'display_targets_table', :path => @segment ? @segment.id : nil, :terms => @search.terms, :offsets => @search.offsets.empty? ? nil : @search.offsets),
                     :class => 'active_table',
                     :width => '100%',
                     :next => @search.user_segment && @search.terms ? 'more' : '&gt;',
                     :actions => [['Add Tags','js','MemberEditor.addTags();'],
-                                 ['Remove Tags','js','MemberEditor.removeTags();']
+                                 ['Remove Tags','js','MemberEditor.removeTags();'],
+                                 segment_action
                                 ],
                     :more_actions => [['Delete Targets','delete','Delete the selected users?']],
                     :update => 'targets_table' do |t| %>

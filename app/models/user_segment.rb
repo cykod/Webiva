@@ -6,7 +6,7 @@ class UserSegment < DomainModel
   serialize :fields
 
   validates_presence_of :name
-  validates_presence_of :segment_options
+  validates_presence_of :segment_type
 
   def ready?; self.status == 'finished'; end
 
@@ -15,7 +15,10 @@ class UserSegment < DomainModel
   end
 
   def validate
-    self.errors.add(:segment_options_text, 'is invalid') if self.segment_options_text && self.segment_options.nil?
+    if self.segment_type == 'filtered'
+      self.errors.add(:segment_options_text, 'is invalid') if self.segment_options_text && self.segment_options.nil?
+      self.errors.add(:segment_options, 'is missing') if self.segment_options.nil?
+    end
   end
 
   def operations
@@ -50,10 +53,14 @@ class UserSegment < DomainModel
       self.status = 'refreshing'
       self.save
 
-      if EndUser.count < 50000
-        self.cache_ids
-      else
-        self.run_worker(:cache_ids)
+      if self.segment_type == 'filtered'
+        if EndUser.count < 50000
+          self.cache_ids
+        else
+          self.run_worker(:cache_ids)
+        end
+      elsif self.segment_type == 'custom'
+        self.add_ids []
       end
     end
   end
@@ -62,13 +69,37 @@ class UserSegment < DomainModel
     self.status = 'calculating'
     self.save
 
+    self.sort_ids self.operations.end_user_ids
+  end
+
+  def add_ids(ids)
+    self.status = 'adding'
+    self.save
+
+    ids = (self.end_user_ids + ids).uniq
+    self.sort_ids ids
+  end
+
+  def remove_ids(ids)
+    self.status = 'removing'
+    self.save
+
+    ids = (self.end_user_ids - ids).uniq
+
+    self.sort_ids ids
+  end
+
+  def sort_ids(ids)
+    self.status = 'sorting'
+    self.save
+
     self.user_segment_caches.delete_all
 
     self.order_by = 'created_at DESC' unless self.order_by
-    ids = EndUser.find(:all, :select => 'id', :conditions => {:id => self.operations.end_user_ids, :client_user_id => nil}, :order => self.order_by).collect &:id
+    ids = EndUser.find(:all, :select => 'id', :conditions => {:id => ids, :client_user_id => nil}, :order => self.order_by).collect &:id
 
-    num_segements = (self.operations.end_user_ids.length / UserSegmentCache::SIZE)
-    num_segements = num_segements + 1 if (self.operations.end_user_ids.length % UserSegmentCache::SIZE) > 0
+    num_segements = (ids.length / UserSegmentCache::SIZE)
+    num_segements = num_segements + 1 if (ids.length % UserSegmentCache::SIZE) > 0
 
     (0..num_segements-1).each do |idx|
       start = idx * UserSegmentCache::SIZE

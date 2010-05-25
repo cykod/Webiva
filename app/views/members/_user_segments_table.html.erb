@@ -11,6 +11,7 @@
   <% end -%>
   </td>
   <td align='center'><%= t.main_page ? 'Yes'.t : 'No'.t %></td>
+  <td align='center'><%= t.segment_type %></td>
   <td nowrap='1'>
   <% if t.ready? -%>
     <a href="<%= url_for :action => 'index', :path => t.id %>"><%= h t.name %></a>
