@@ -164,9 +164,9 @@ class MembersController < CmsController # :nodoc: all
   
   # Members editing
   def index
-    cms_page_path [], "People"
-
     return redirect_to(:action => 'segments') if self.segment && ! self.segment.ready?
+
+    cms_page_path ["People"], self.segment ? self.segment.name : 'Everyone'.t
 
     segmentations
 
@@ -260,7 +260,7 @@ class MembersController < CmsController # :nodoc: all
   def edit_segment
     @segment = UserSegment.find params[:path][0]
 
-    cms_page_path ['People', 'User Lists'], '%s User List' / @segment.name
+    cms_page_path ['People', 'User Lists', [@segment.name, url_for(:action => 'index', :path => @segment.id)]], 'Edit List'
 
     @builder = UserSegment::OperationBuilder.new nil
 
@@ -281,7 +281,7 @@ class MembersController < CmsController # :nodoc: all
   def copy_segment
     segment_to_copy = UserSegment.find params[:path][0]
 
-    cms_page_path ['People', 'User Lists'], 'Copy %s User List' / segment_to_copy.name
+    cms_page_path ['People', 'User Lists', [segment_to_copy.name, url_for(:action => 'index', :path => segment_to_copy.id)]], 'Copy List'
 
     @builder = UserSegment::OperationBuilder.new nil
 
