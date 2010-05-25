@@ -83,7 +83,7 @@ class UserSegment::FieldType
   end
 
   def self.model_options(opts={})
-    opts[:class].find(:all, {:select => 'id, name', :order => 'name'}.merge(opts[:options] || {})).collect { |item| [item.name, item.id] }
+    opts[:class].select_options
   end
 
   def self.convert_arguments(arguments, types, options)

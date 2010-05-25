@@ -56,6 +56,8 @@ class UserSegmentCache < DomainModel
       users = self.fetch_users(:offset => offset, :limit => limit)
       offset = offset + limit
       yield users
+      users = nil
+      GC.start
     end
   end
 
