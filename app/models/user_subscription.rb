@@ -11,9 +11,10 @@ class UserSubscription < DomainModel
   has_many :unsubscribed_entries, :class_name => 'UserSubscriptionEntry', :conditions => 'verified = 1 AND subscribed=0'
   
   def after_create #:nodoc:all
-    MarketSegment.create(:user_subscription_id => self.id, :name => 'Subscribers to '.t + self.name ,:segment_type => 'subscription',
-                         :options => { 'user_subscription_id' =>  self.id },
-                         :description => 'Sends an Campaign to all users who are subscribed to this subscription'.t )
+    segment = UserSegment.create(:name => 'Subscribers to '.t + self.name, :segment_type => 'filtered',
+                                 :description => 'Sends an Campaign to all users who are subscribed to this subscription'.t,
+                                 :segment_options_text => "user_subscription_id.is(#{self.id})")
+    segment.refresh
   end
   
   def after_update #:nodoc:all

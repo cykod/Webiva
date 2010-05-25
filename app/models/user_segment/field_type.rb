@@ -40,7 +40,7 @@ class UserSegment::FieldType
   end
 
   # converts a string to the correct type
-  # supported types are :integer, :float, :double, :date, :datetime, :option, :boolean
+  # supported types are :integer, :float, :double, :date, :datetime, :option, :boolean, :model
   def self.convert_to(value, type, opts={})
     return value if value.nil?
 
@@ -73,9 +73,17 @@ class UserSegment::FieldType
       value = value.downcase if value.is_a?(String)
       return true if value == 1 || value == '1' || value == 'true'
       return false if value == 0 || value == '0' || value == 'false'
+    when :model
+      options = self.model_options(opts)
+      values = options.rassoc(value.to_i)
+      return values[1] if values
     end
 
     nil
+  end
+
+  def self.model_options(opts={})
+    opts[:class].find(:all, {:select => 'id, name', :order => 'name'}.merge(opts[:options] || {})).collect { |item| [item.name, item.id] }
   end
 
   def self.convert_arguments(arguments, types, options)
