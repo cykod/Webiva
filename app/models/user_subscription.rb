@@ -3,8 +3,6 @@
 class UserSubscription < DomainModel
   validates_presence_of :name
   
-  has_one :market_segment, :dependent => :destroy
-
   has_many :user_subscription_entries, :dependent => :delete_all, :include => :end_user
   
   has_many :active_subscriptions, :class_name => 'UserSubscriptionEntry', :conditions => 'verified = 1 AND subscribed=1'
@@ -15,13 +13,6 @@ class UserSubscription < DomainModel
                                  :description => 'Sends an Campaign to all users who are subscribed to this subscription'.t,
                                  :segment_options_text => "user_subscription_id.is(#{self.id})")
     segment.refresh
-  end
-  
-  def after_update #:nodoc:all
-    if self.market_segment
-      self.market_segment.name = 'Subscribers to '.t + self.name
-      self.market_segment.save
-    end
   end
   
   # Subscribe a user via a admin subscription
