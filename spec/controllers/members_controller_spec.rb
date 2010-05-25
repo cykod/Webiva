@@ -258,31 +258,6 @@ describe MembersController do
 	@user1.reload
 	@user1.tag_names.empty?.should be_true
       end
-
-      it "should be able to save segment" do
-	assert_difference 'MarketSegment.count', 1 do
-	  @output = post 'display_targets_table', :table_action => '', :save_segment => 'new_test_segment'
-	end
-      end
-
-      it "should be able to load a segment" do
-	assert_difference 'MarketSegment.count', 0 do
-	  MarketSegment.should_receive(:find_by_id).with(1).and_return(nil)
-	  @output = post 'display_targets_table', :table_action => '', :load_segment => 1
-	end
-      end
-
-      it "should be able to delete a segment" do
-	@segment = MarketSegment.create :name => 'new_test_segment', :segment_type => 'members'
-	@segment.id.should_not be_nil
-
-	assert_difference 'MarketSegment.count', -1 do
-	  @output = post 'display_targets_table', :table_action => '', :delete_segment => @segment.id
-	end
-
-	@segment = MarketSegment.find_by_name('new_test_segment')
-	@segment.should be_nil
-      end
     end
 
     it "should render generate_vip page" do
