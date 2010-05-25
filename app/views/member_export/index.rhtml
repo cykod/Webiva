@@ -1,3 +1,7 @@
+<%
+  segment_id = @segment ? @segment.id : nil
+-%>
+
 <script>
   Exporter = {
 
@@ -5,7 +9,7 @@
       $('export_download').innerHTML = '<%= jh "Exporting File".t %>';
       Element.show('export_download');
       $('submit_button').disabled = true;
-      new Ajax.Request("<%= url_for :action => 'generate_file' %>",
+      new Ajax.Request("<%= url_for :action => 'generate_file', :path => segment_id %>",
                        { parameters: Form.serialize('export_form'), 
                          onComplete: function(req) {
                            setTimeout(Exporter.status,1000);
@@ -16,24 +20,27 @@
     
     status: function() {
       $('export_download').innerHTML = '<%= jh "Still Exporting...".t %>';
-      new Ajax.Request("<%= url_for :action => 'status' %>")
+      new Ajax.Request("<%= url_for :action => 'status', :path => segment_id %>")
     },
     
     download: function() {
       $('export_download').innerHTML = '<%= jh "Starting Download".t %>';
-      document.location = "<%= url_for :action => 'download_file' %>";
+      document.location = "<%= url_for :action => 'download_file', :path => segment_id %>";
       setTimeout(Exporter.backToContent,3000);
         
     },
     
     backToContent: function() {
-      document.location = "<%= url_for :controller => '/members', :action => 'index', :refresh => 1 %>";
+      document.location = "<%= url_for :controller => '/members', :action => 'index', :path => segment_id, :refresh => 1 %>";
       
     }
   }
 </script>
+
 <div class='admin_content'>
+
 <h4><%= "Exporting ".t %><%= sprintf("%d members".t,@member_count.to_i) %></h4>
+
 <% cms_form_for :export, @export, :html => { :onsubmit => 'Exporter.generate(); return false;', :id => 'export_form' } do |f| %>
 <%= f.check_boxes :include, @include_options, :vertical => true, :separator => '<br/>', :label => 'Include in export' %>
 <tr>
@@ -43,12 +50,6 @@
     <span style='display:none;' id='export_download'><%= "Exporting File".t %></span>
   </td>
 </tr>
-
-
-
 <% end -%>
 
-<script>
-  Exporter.updateForm();
-</script>
 </div>

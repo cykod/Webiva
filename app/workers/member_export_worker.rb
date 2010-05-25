@@ -24,18 +24,28 @@ class MemberExportWorker <  Workling::Base #:nodoc:all
     filename  = tmp_path + dmn.id.to_s + "_member_export"
     
     results[:filename] = filename
+
+    @segment = UserSegment.find_by_id args[:user_segment_id]
     
-    current_segment = MarketSegment.new(:segment_type => 'members',:options => args[:export_segmentation])
-    
-    @members = current_segment.target_find
-     
     CSV.open(filename,'w') do |writer|
-      @members.each_with_index do |user,idx|
-        user.export_csv(writer,  :header => idx == 0,
-                                 :include => args[:export_options])
+      if @segment
+        @segment.each_with_index do |user,idx|
+          user.export_csv(writer, :header => idx == 0,
+                          :include => args[:export_options])
+        end
+      else
+        idx = 0
+        EndUser.find_in_batches(:conditions => {:client_user_id => nil}) do |users|
+          users.each do |user|
+            user.export_csv(writer, :header => idx == 0,
+                            :include => args[:export_options])
+            idx = idx.succ
+          end
+        end
       end
     end
-    results[:entries] = @members.length
+
+    results[:entries] = @segment ? @segment.last_count : EndUser.count(:conditions => {:client_user_id => nil})
     results[:type] = 'csv'
     results[:completed] = 1
 

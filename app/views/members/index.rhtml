@@ -115,7 +115,7 @@
 <% action_panel :handler => 'members' do |p| -%>
   <%= p.link "Add a user",:icon => 'add.gif', :action => 'create' %>
   <%= p.link "Import Email Targets",:icon => 'upload.gif', :controller => :member_import %>
-  <%= p.link "Download Visible Targets",:icon => 'download.gif', :controller => :member_export %>
+  <%= p.link "Download Visible Targets",:icon => 'download.gif', :controller => :member_export, :action => 'index', :path => @segment ? @segment.id : nil %>
   <%= p.link "Tag List", :icon => 'show.gif', :action => 'tags' %>
   <%= p.link "Access Tokens", :icon => 'access.gif', :controller => '/access_token' if myself.has_role?('editor_access_tokens') %>
   <%= p.link "User Lists", :icon => 'access.gif', :action => 'segments' %>
