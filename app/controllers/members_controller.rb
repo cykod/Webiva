@@ -23,7 +23,7 @@ class MembersController < CmsController # :nodoc: all
   end
 
   def segment
-    @segment ||= UserSegment.find_by_id params[:path][0]
+    @segment ||= UserSegment.find_by_id(params[:path][0]) if params[:path]
   end
 
   def count_end_users(opts)
@@ -99,8 +99,10 @@ class MembersController < CmsController # :nodoc: all
     end
   end
   
-  def email_targets_table_generate(opts,*find_options)
-    @generated_active_table_columns = [
+  def email_targets_table_columns(opts={})
+    return @email_targets_table_columns if @email_targets_table_columns
+
+    @email_targets_table_columns = [
       ActiveTable::IconHeader.new('check', :width => '16'),
       ActiveTable::StaticHeader.new('', :width => '24'),
       ActiveTable::StaticHeader.new('Profile', :width => '70'),
@@ -118,10 +120,14 @@ class MembersController < CmsController # :nodoc: all
 
     @fields.each do |field|
       option = UserSegment.fields_options.rassoc(field)
-      @generated_active_table_columns << ActiveTable::StaticHeader.new(option[1], :label => option[0]) if option
+      @email_targets_table_columns << ActiveTable::StaticHeader.new(option[1], :label => option[0]) if option
     end
 
-    active_table_generate('end_users', EndUser, @generated_active_table_columns, {:count_callback => 'count_end_users', :find_callback => 'find_end_users'}, opts, *find_options)
+    @email_targets_table_columns
+  end
+
+  def email_targets_table_generate(opts,*find_options)
+    active_table_generate('end_users', EndUser, self.email_targets_table_columns, {:count_callback => 'count_end_users', :find_callback => 'find_end_users'}, opts, *find_options)
   end
 
   public 
