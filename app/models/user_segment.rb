@@ -5,6 +5,8 @@ class UserSegment < DomainModel
   serialize :segment_options
   serialize :fields
 
+  belongs_to :market_segment, :dependent => :destroy
+
   validates_presence_of :name
   validates_presence_of :segment_type
 
@@ -223,6 +225,20 @@ class UserSegment < DomainModel
 
   def to_expr
     self.operations.to_expr
+  end
+
+  def after_create #:nodoc:all
+    self.market_segment = MarketSegment.create(:name => self.name ,:segment_type => 'user_segment',
+                                               :options => {:user_segment_id =>  self.id},
+                                               :description => 'Sends a Campaign to all users in this list'.t)
+    self.save
+  end
+
+  def after_save #:nodoc:all
+    if self.market_segment && self.market_segment.name != self.name
+      self.market_segment.name = self.name
+      self.market_segment.save
+    end
   end
 end
 

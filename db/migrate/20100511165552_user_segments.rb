@@ -4,6 +4,7 @@ class UserSegments < ActiveRecord::Migration
       t.string :name
       t.text :description
       t.string :segment_type
+      t.integer :market_segment_id
       t.string :status
       t.boolean :main_page
       t.datetime :last_ran_at
@@ -24,18 +25,6 @@ class UserSegments < ActiveRecord::Migration
 
     add_index :user_segment_caches, [:user_segment_id], :name => 'user_segment_cache_segment_idx'
 
-    create_table :user_segment_analytics, :force => true do |t|
-      t.integer :user_segment_id
-      t.text :fields
-      t.text :results
-      t.datetime :start_date
-      t.datetime :end_date
-      t.string :step
-      t.timestamps
-    end
-
-    add_index :user_segment_analytics, [:user_segment_id], :name => 'user_segment_analytics_segment_idx'
-
     create_table :end_user_caches, :force => true, :options => "ENGINE=MyISAM" do |t|
       t.integer :end_user_id
       t.text :data
@@ -48,7 +37,6 @@ class UserSegments < ActiveRecord::Migration
   def self.down
     drop_table :user_segments
     drop_table :user_segment_caches
-    drop_table :user_segment_analytics
     drop_table :end_user_caches
   end
 end
