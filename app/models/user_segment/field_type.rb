@@ -75,7 +75,8 @@ class UserSegment::FieldType
       return false if value == 0 || value == '0' || value == 'false'
     when :model
       options = self.model_options(opts)
-      values = options.rassoc(value.to_i)
+      value = value.to_i if options.size > 0 && options[0].is_a?(Array) && options[0][1].is_a?(Integer)
+      values = options.rassoc(value)
       return values[1] if values
     end
 

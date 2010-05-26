@@ -4,11 +4,11 @@ class EndUserActionSegmentType
   class ActionType < UserSegment::FieldType
     include HandlerActions
 
-    def self.action_options
+    def self.select_options(opts={})
       self.get_handlers(:action).collect { |handler| [handler[1][:description], handler[1][:handler].to_s] }
     end
 
-    register_operation :is, [['Action', :option, {:options => EndUserActionSegmentType::ActionType.action_options}]]
+    register_operation :is, [['Action', :model, {:class => EndUserActionSegmentType::ActionType}]]
 
     def self.is(cls, field, path)
       path = path.split('/')
