@@ -111,7 +111,16 @@ class UserSegment::Field < HashModel
   end
 
   def to_expr(opts={})
-    output = "#{field}.#{operation}(" + self.arguments.collect { |arg| arg.is_a?(String) || arg.is_a?(Time) ? "\"#{arg}\"" : arg.to_s }.join(', ') + ")"
+    output = "#{field}.#{operation}(" + self.arguments.collect do |arg|
+      if arg.is_a?(String)
+        "\"#{arg}\""
+      elsif arg.is_a?(Time)
+        "\"#{arg.strftime('%m/%d/%Y %H:%M:%S')}\""
+      else
+        arg.to_s
+      end
+    end.join(', ') + ")"
+
     output += '.' + self.child_field.to_expr if self.child && self.child_field && opts[:nochild].nil?
     output
   end

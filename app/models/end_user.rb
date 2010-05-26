@@ -130,6 +130,7 @@ class EndUser < DomainModel
   end
 
   def after_save #:nodoc:
+    self.end_user_cache = EndUserCache.find_by_end_user_id(self.id) unless self.end_user_cache
     self.end_user_cache ? self.end_user_cache.save : EndUserCache.create(:end_user_id => self.id)
   end
 

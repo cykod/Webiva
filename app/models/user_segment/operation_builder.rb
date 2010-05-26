@@ -95,7 +95,8 @@ class UserSegment::OperationBuilder < HashModel
   def method_missing(arg, *args)
     arg = arg.to_s
     if arg =~ /^argument(\d+)$/
-      self.arguments[$1.to_i]
+      val = self.arguments[$1.to_i]
+      val.strftime('%m/%d/%Y %H:%M:%S') if val.is_a?(Time)
     elsif arg =~ /^argument(\d+)=$/
       self.arguments[$1.to_i] = self.convert_to(args[0], $1.to_i) if $1.to_i < self.operation_arguments.length
     else
