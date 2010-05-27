@@ -32,7 +32,7 @@ class UserSegment < DomainModel
 
   def segment_options_text=(text)
     text = text.gsub("\r", '').strip
-    @should_refresh = @should_refresh || self.segment_options_text != text
+    self.should_refresh = self.segment_options_text != text
     self.write_attribute :segment_options_text, text
     @operations = UserSegment::Operations.new
     @operations.parse text
@@ -41,13 +41,21 @@ class UserSegment < DomainModel
   end
 
   def order_by=(order)
-    @should_refresh = @should_refresh || self.order_by != order
+    self.should_refresh = self.order_by != order
     self.write_attribute :order_by, order
     order
   end
 
-  def should_refresh?
+  def should_refresh
     @should_refresh
+  end
+
+  def should_refresh=(refresh)
+    @should_refresh ||= refresh
+  end
+
+  def should_refresh?
+    self.should_refresh
   end
 
   def refresh
@@ -216,7 +224,7 @@ class UserSegment < DomainModel
   end
 
   def self.fields_options
-    [['Source', 'source'], ['Date of Birth', 'dob'], ['Gender', 'gender'], ['Created', 'created_at'], ['Registered', 'registered_at'], ['User Class', 'user_class']]
+    [['Source', 'source'], ['Date of Birth', 'dob'], ['Gender', 'gender'], ['Created', 'created_at'], ['Registered', 'registered_at'], ['User Class', 'user_class'], ['Tags', 'tag_names']]
   end
 
   def self.order_by_options

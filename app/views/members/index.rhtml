@@ -89,7 +89,7 @@
     },
 
     tableAction: function(action,params) {
-      ActiveTable.action(action,null,"email_targets_table","<%= url_for :action => 'display_targets_table' %>",'targets_table',params);
+      ActiveTable.action(action,null,"email_targets_table","<%= url_for :action => 'display_targets_table', :path => @segment ? @segment.id : nil, :terms => @search.terms, :offsets => @search.offsets.empty? ? nil : @search.offsets %>",'targets_table',params);
     },
 
     changeSegments: function() {
