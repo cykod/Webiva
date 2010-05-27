@@ -30,7 +30,7 @@ module StyledFormBuilderGenerator #:nodoc:
                   args << opts
                 end
               end
-              super(field,*args)
+              self.send("#{fld}_original",field,*args)
             end
             
             # We are going to mutate this in the options_func
