@@ -32,7 +32,7 @@ class UserSegment < DomainModel
 
   def segment_options_text=(text)
     text = text.gsub("\r", '').strip
-    @should_refresh = self.segment_options_text != text
+    @should_refresh = @should_refresh || self.segment_options_text != text
     self.write_attribute :segment_options_text, text
     @operations = UserSegment::Operations.new
     @operations.parse text
@@ -41,7 +41,7 @@ class UserSegment < DomainModel
   end
 
   def order_by=(order)
-    @should_refresh = self.order_by != order
+    @should_refresh = @should_refresh || self.order_by != order
     self.write_attribute :order_by, order
     order
   end
