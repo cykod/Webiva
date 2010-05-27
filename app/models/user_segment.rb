@@ -9,18 +9,14 @@ class UserSegment < DomainModel
 
   validates_presence_of :name
   validates_presence_of :segment_type
+  validates_presence_of :segment_options_text, :if => Proc.new { |seg| seg.segment_type == 'filtered' }
+
+  validates_inclusion_of :segment_type, :in => %w(filtered custom)
 
   def ready?; self.status == 'finished'; end
 
   def fields
     self.read_attribute(:fields) || []
-  end
-
-  def validate
-    if self.segment_type == 'filtered'
-      self.errors.add(:segment_options_text, 'is invalid') if self.segment_options_text && self.segment_options.nil?
-      self.errors.add(:segment_options, 'is missing') if self.segment_options.nil?
-    end
   end
 
   def operations
