@@ -10,6 +10,14 @@ describe UserSegment::Field do
     EndUser.push_target('test3@test.dev', :activated => false)
   end
 
+  it "should be valid or invalid" do
+    @field = UserSegment::Field.new :field => 'created', :operation => 'before', :arguments => [1, 'days']
+    @field.valid?.should be_true
+
+    @field = UserSegment::Field.new :field => 'created', :operation => 'invalid_operation', :arguments => [1, 'days']
+    @field.valid?.should be_false
+  end
+
   it "should be able to use handler" do
     @field = UserSegment::Field.new :field => 'created', :operation => 'before', :arguments => [1, 'days']
 

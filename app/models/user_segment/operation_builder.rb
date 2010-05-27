@@ -15,6 +15,7 @@ class UserSegment::OperationBuilder < HashModel
 
   def validate
     self.errors.add(:field, 'is invalid') unless self.user_segment_field.valid?
+    self.errors.add(:condition, 'is invalid') unless self.condition_options.rassoc(self.condition)
     self.errors.add(:condition, 'is invalid') if ! self.condition.blank? && ! self.child_field.valid?
   end
 
@@ -24,7 +25,7 @@ class UserSegment::OperationBuilder < HashModel
     self.operation = opts[:operation]
     self.condition = opts[:condition]
     self.parent = opts[:parent]
-    unless self.field.blank?
+    unless self.operation_options.empty?
       unless self.operation_options.rassoc(self.operation)
         self.operation = self.operation_options[0][1]
         @user_segment_field = nil

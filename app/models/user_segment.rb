@@ -227,6 +227,10 @@ class UserSegment < DomainModel
     self.operations.to_expr
   end
 
+  def to_builder
+    self.operations.to_builder
+  end
+
   def after_create #:nodoc:all
     self.market_segment = MarketSegment.create(:name => self.name ,:segment_type => 'user_segment',
                                                :options => {:user_segment_id =>  self.id},

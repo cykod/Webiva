@@ -23,7 +23,8 @@ class UserSegment::FieldHandler
 
   def self.handlers
     ([ self.get_handler_info(:user_segment, :fields, 'end_user_segment_field'),
-       self.get_handler_info(:user_segment, :fields, 'end_user_action_segment_field')] +
+       self.get_handler_info(:user_segment, :fields, 'end_user_action_segment_field'),
+       self.get_handler_info(:user_segment, :fields, 'end_user_tag_segment_field')] +
        self.get_handler_info(:user_segment, :fields)).uniq
   end
 end
