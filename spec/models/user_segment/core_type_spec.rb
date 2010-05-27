@@ -108,4 +108,20 @@ describe UserSegment::CoreType do
       @type.is(EndUser, :activated, false).count.should == 1
     end
   end
+
+  describe "MatchType" do
+    before(:each) do
+      EndUser.push_target('test1@test.dev', :first_name => 'Doug', :activated => true)
+      EndUser.push_target('test2@test.dev', :last_name => 'Smith', :activated => true)
+      EndUser.push_target('test3@test.dev', :activated => true)
+      EndUser.push_target('test4@test.dev', :activated => false)
+
+      @type = UserSegment::CoreType::MatchType
+    end
+
+    it "should return users using search" do
+      @type.search(EndUserCache, :data, 'doug').count.should == 1
+      @type.search(EndUserCache, :data, 'blah').count.should == 0
+    end
+  end
 end

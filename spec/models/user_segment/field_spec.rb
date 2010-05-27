@@ -60,4 +60,22 @@ describe UserSegment::Field do
     @field.count.should == 1
     @field.end_user_ids.length.should == 1
   end
+
+  it "should be able to create the expression" do
+    @field = UserSegment::Field.new :field => 'created', :operation => 'before', :arguments => [1, 'days'], :child => {:field => 'activated', :operation => 'is', :arguments => [false], :child => {:field => 'email', :operation => 'like', :arguments => ['test%@test.dev']}}
+    @field.valid?.should == true
+
+    @field.to_expr.should == "created.before(1, \"days\").activated.is(false).email.like(\"test%@test.dev\")"
+    @field.to_expr(:nochild => 1).should == "created.before(1, \"days\")"
+  end
+
+  it "should be able to create the builder hash" do
+    @field = UserSegment::Field.new :field => 'created', :operation => 'before', :arguments => [1, 'days'], :child => {:field => 'activated', :operation => 'is', :arguments => [false], :child => {:field => 'email', :operation => 'like', :arguments => ['test%@test.dev']}}
+    @field.valid?.should == true
+
+    @field.to_builder.should == {:field => 'created', :operation => 'before', :condition => 'and', :argument0 => 1, :argument1 => 'days', :child => {:field => 'activated', :operation => 'is', :argument0 => false, :condition => 'and', :child => {:field => 'email', :operation => 'like', :argument0 => 'test%@test.dev'}}}
+
+
+    @field.to_builder(:condition => 'with', :child => {:field => 'registered', :operation => 'is', :argument0 => true}).should == {:field => 'created', :operation => 'before', :condition => 'and', :argument0 => 1, :argument1 => 'days', :child => {:field => 'activated', :operation => 'is', :argument0 => false, :condition => 'and', :child => {:field => 'email', :operation => 'like', :argument0 => 'test%@test.dev', :condition => 'with', :child => {:field => 'registered', :operation => 'is', :argument0 => true}}}}
+  end
 end

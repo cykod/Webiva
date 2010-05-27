@@ -22,12 +22,16 @@ describe UserSegment::Operation do
     @operation.count.should == 3
     @operation.end_user_ids.length.should == 3
     @operation.to_a.should == [nil, @field.to_h]
+    @operation.to_expr.should == 'created.before(1, "days")'
+    @operation.to_builder.should == {:operator => nil, :field => 'created', :operation => 'before', :argument0 => 1, :argument1 => 'days'}
 
     @operation = UserSegment::Operation.new 'not', [@field]
     @operation.valid?.should be_true
     @operation.count.should == 4
     @operation.end_user_ids.length.should == 4
     @operation.to_a.should == ['not', @field.to_h]
+    @operation.to_expr.should == 'not created.before(1, "days")'
+    @operation.to_builder.should == {:operator => 'not', :field => 'created', :operation => 'before', :argument0 => 1, :argument1 => 'days'}
   end
 
   it "should be able to concat fields" do
@@ -39,11 +43,15 @@ describe UserSegment::Operation do
     @operation.count.should == 7
     @operation.end_user_ids.length.should == 6
     @operation.to_a.should == [nil, @field1.to_h, @field2.to_h]
+    @operation.to_expr.should == 'created.before(1, "days") + activated.is(false)'
+    @operation.to_builder.should == {:operator => nil, :field => 'created', :operation => 'before', :argument0 => 1, :argument1 => 'days', :condition => 'or', :child => {:field => 'activated', :operation => 'is', :argument0 => false}}
 
     @operation = UserSegment::Operation.new 'not', [@field1, @field2]
     @operation.valid?.should be_true
     @operation.count.should == 7
     @operation.end_user_ids.length.should == 1
     @operation.to_a.should == ['not', @field1.to_h, @field2.to_h]
+    @operation.to_expr.should == 'not created.before(1, "days") + activated.is(false)'
+    @operation.to_builder.should == {:operator => 'not', :field => 'created', :operation => 'before', :argument0 => 1, :argument1 => 'days', :condition => 'or', :child => {:field => 'activated', :operation => 'is', :argument0 => false}}
   end
 end

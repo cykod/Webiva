@@ -93,7 +93,7 @@ class UserSegment::CoreType
   class MatchType < UserSegment::FieldType
     register_operation :search, [['Query', :string]]
 
-    def self.like(cls, field, query)
+    def self.search(cls, field, query)
       cls.scoped(:conditions => ["MATCH (#{field}) AGAINST (?)", query])
     end
   end

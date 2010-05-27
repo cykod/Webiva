@@ -2,6 +2,8 @@ require File.dirname(__FILE__) + "/../../spec_helper"
 
 describe UserSegment::FieldType do
 
+  reset_domain_tables :tags
+
   it "should convert value to integer" do
     UserSegment::FieldType.convert_to("0", :integer).should == 0
     UserSegment::FieldType.convert_to(0, :integer).should == 0
@@ -36,7 +38,7 @@ describe UserSegment::FieldType do
 
   it "should convert value to time" do
     time = Time.parse "1/1/1990"
-    UserSegment::FieldType.convert_to(time.strftime("1/1/1990"), :datetime).should == time
+    UserSegment::FieldType.convert_to("1/1/1990", :datetime).should == time
     time = Time.now
     UserSegment::FieldType.convert_to(time, :datetime).should == time
   end
@@ -86,5 +88,17 @@ describe UserSegment::FieldType do
     converted = UserSegment::FieldType.convert_arguments([1, 'Day'], operation[:arguments], operation[:argument_options])
     converted[0].should == 1
     converted[1].should == 'day'
+  end
+
+  it "should support model options" do
+    bunnies = Tag.get_tag('bunnies')
+    rabbits = Tag.get_tag('rabbits')
+    poster = Tag.get_tag('poster')
+    walker = Tag.get_tag('walker')
+
+    UserSegment::FieldType.convert_to(bunnies.id.to_s, :model, :class => Tag).should == bunnies.id
+    UserSegment::FieldType.convert_to(poster.id, :model, :class => Tag).should == poster.id
+    UserSegment::FieldType.convert_to(98789, :model, :class => Tag).should be_nil
+    UserSegment::FieldType.convert_to('Walker', :model, :class => Tag).should be_nil
   end
 end

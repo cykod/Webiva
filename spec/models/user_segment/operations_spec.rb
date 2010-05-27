@@ -103,6 +103,7 @@ describe UserSegment::Operations do
     @operations.to_a.should == options
     @operations.end_user_ids.length.should == 1
     @operations.end_user_ids.include?(@user6.id).should be_true
+    @operations.to_expr.should == "not created.since(3, \"days\") + user_level.is(1)\nactivated.is(true)"
+    @operations.to_builder.should == {:operator => 'not', :condition => 'or', :field => 'created', :operation => 'since', :argument0 => 3, :argument1 => 'days', :child => {:field => 'user_level', :operation => 'is', :argument0 => 1, :condition => 'with', :child => {:operator => nil, :field => 'activated', :operation => 'is', :argument0 => true}}}
   end
-
 end
