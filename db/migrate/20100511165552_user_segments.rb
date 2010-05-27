@@ -32,11 +32,15 @@ class UserSegments < ActiveRecord::Migration
 
     add_index :end_user_caches, [:end_user_id], :name => 'end_user_caches_idx', :unique => true
     execute "CREATE FULLTEXT INDEX end_user_caches_data_index ON end_user_caches (data)"
+
+    execute "ALTER TABLE end_user_tags ADD COLUMN id INT PRIMARY KEY AUTO_INCREMENT"
   end
 
   def self.down
     drop_table :user_segments
     drop_table :user_segment_caches
     drop_table :end_user_caches
+
+    execute "ALTER TABLE end_user_tags DROP COLUMN id"
   end
 end

@@ -29,6 +29,7 @@ class ContentController < ModuleController #:nodoc: all
   register_handler :user_segment, :fields, 'EndUserSegmentField'
   register_handler :user_segment, :fields, 'EndUserActionSegmentField'
   register_handler :user_segment, :fields, 'EndUserCacheSegmentField'
+  register_handler :user_segment, :fields, 'EndUserTagSegmentField'
   register_handler :user_segment, :fields, 'UserSubscriptionEntrySegmentField'
 
   def index

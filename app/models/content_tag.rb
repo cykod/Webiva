@@ -14,7 +14,8 @@ class ContentTag < DomainModel
                     :select => 'content_tags.name as name, content_tags.id, COUNT(content_tag_tags.id) as cnt',
                     :joins => :content_tag_tags,:order => 'content_tags.name',:group => 'content_tags.id')
     content_tags.collect do |tg|
-      { :name => tg.name, :count => tg.cnt, :id => tg.id }
+      size = sizes.size < tg.cnt.to_i ? sizes[-1] : sizes[tg.cnt-1]
+      { :name => tg.name, :count => tg.cnt, :id => tg.id, :size => size }
     end
   end
 

@@ -18,7 +18,7 @@ module ModelExtension::EndUserImportExtension
       fields << [ 'vip_number', 'VIP Number'.t ]
     end
     if opts.include?('tags')
-      fields << ['tag_cache_tags', 'Tags'.t ]
+      fields << ['tag_names', 'Tags'.t ]
     end
     
     

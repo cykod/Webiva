@@ -107,7 +107,7 @@ describe Editor::AuthRenderer, :type => :controller do
       renderer_post @rnd, :user => { :email => "test@webiva.com" }
       EndUser.count.should == 1
       usr = EndUser.find(:first)
-      usr.tag_names.should == ['test1','test2']
+      usr.tag_names.should == 'Test1, Test2'
     end
 
     it "should be able to set the user source" do
@@ -195,7 +195,8 @@ describe Editor::AuthRenderer, :type => :controller do
     it "should be able to add tag names" do
       @rnd = generate_renderer(:add_tags => 'test1,test2',:required_fields => [])
       renderer_post @rnd, :user => { :first_name => 'first' }
-      @myself.tag_names.should == ['test1','test2']
+      @myself.reload
+      @myself.tag_names.should == 'Test1, Test2'
     end
 
     it "should set access token" do

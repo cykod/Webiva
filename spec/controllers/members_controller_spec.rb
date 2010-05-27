@@ -230,33 +230,33 @@ describe MembersController do
 
     describe "handle end_user table actions" do
       it "should be able to delete a user" do
-	@output = post 'display_targets_table', :table_action => 'delete', :user => {@user1.id => 1}
+	@output = post 'display_targets_table', :table_action => 'delete', :user => {@user1.id => @user1.id}
 	@deleted_user = EndUser.find_by_id @user1.id
 	@deleted_user.should be_nil
       end
 
       it "should be able to add tags to users" do
-	@output = post 'display_targets_table', :table_action => 'add_tags', :user => {@user1.id => 1}, :added_tags => 'new_tag'
+	@output = post 'display_targets_table', :table_action => 'add_tags', :user => {@user1.id => @user1.id}, :added_tags => 'new_tag'
 	@user1.reload
-	@user1.tag_names.include?('new_tag').should be_true
+	@user1.tag_names.include?('New_tag').should be_true
       end
 
       it "should be able to remove tags to users" do
 	@user1.tag(['new_tag'])
 	@user1.reload
-	@user1.tag_names.include?('new_tag').should be_true
-	@output = post 'display_targets_table', :table_action => 'remove_tags', :user => {@user1.id => 1}, :removed_tags => 'new_tag'
+	@user1.tag_names.include?('New_tag').should be_true
+	@output = post 'display_targets_table', :table_action => 'remove_tags', :user => {@user1.id => @user1.id}, :removed_tags => 'new_tag'
 	@user1.reload
-	@user1.tag_names.include?('new_tag').should_not be_true
+	@user1.tag_names.include?('New_tag').should_not be_true
       end
 
       it "should be able to clear tags to users" do
 	@user1.tag(['new_tag'])
 	@user1.reload
-	@user1.tag_names.include?('new_tag').should be_true
-	@output = post 'display_targets_table', :table_action => 'clear_tags', :user => {@user1.id => 1}
+	@user1.tag_names.include?('New_tag').should be_true
+	@output = post 'display_targets_table', :table_action => 'clear_tags', :user => {@user1.id => @user1.id}
 	@user1.reload
-	@user1.tag_names.empty?.should be_true
+	@user1.tag_names.blank?.should be_true
       end
     end
 

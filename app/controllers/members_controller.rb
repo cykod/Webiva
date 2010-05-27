@@ -87,7 +87,7 @@ class MembersController < CmsController # :nodoc: all
           end
         when 'clear_tags'
           update_users.each do |user|
-            user.tag_names = '' if user
+            user.clear_tags! if user
           end
         when 'add_users'
           custom_segment = UserSegment.find params[:user_segment_id]
@@ -161,7 +161,7 @@ class MembersController < CmsController # :nodoc: all
       handle_table_actions
     end
 
-    @active_table_output = email_targets_table_generate params, :per_page => 25, :include => :tag_cache, :conditions => 'client_user_id IS NULL', :order => self.class.module_options.order_by
+    @active_table_output = email_targets_table_generate params, :per_page => 25, :conditions => 'client_user_id IS NULL', :order => self.class.module_options.order_by
 
     if display
       @update_tags = true
@@ -533,18 +533,15 @@ class MembersController < CmsController # :nodoc: all
   end
 
   def add_tags_form
-    @tags = EndUser.tags_count(:order => 'name')
     render :partial => 'add_tags_form'
   end
   
   def remove_tags_form
-    @users = EndUser.find(:all,:conditions => [ 'end_users.id IN (' + params[:user_ids].to_a.collect { |uid| DomainModel.connection.quote(uid) }.join(",") + ")" ], :include => :tag_cache)
+    @users = EndUser.find(:all,:conditions => [ 'end_users.id IN (' + params[:user_ids].to_a.collect { |uid| DomainModel.connection.quote(uid) }.join(",") + ")" ])
   
     @existing_tags = []
     @users.each do |usr|
-      if usr.tag_cache && !usr.tag_cache.tags.blank?
-	@existing_tags  += usr.tag_cache.tags.split(",")
-      end
+      @existing_tags  += usr.tags_array if usr.tags_array
     end
     @existing_tags.uniq!
     

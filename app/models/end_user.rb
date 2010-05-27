@@ -73,7 +73,6 @@ class EndUser < DomainModel
   belongs_to :work_address, :class_name => 'EndUserAddress', :foreign_key => :work_address_id
   has_many :addresses, :class_name => 'EndUserAddress', :dependent => :destroy
 
-  has_one :tag_cache, :dependent => :destroy
   has_one :end_user_cache, :dependent => :destroy, :class_name => 'EndUserCache'
 
   has_many :end_user_cookies, :dependent => :delete_all, :class_name => 'EndUserCookie'
@@ -84,10 +83,10 @@ class EndUser < DomainModel
 
   has_many :access_tokens, :through => :end_user_tokens
   
-  acts_as_taggable :join_table => 'end_user_tags', :join_class_name => 'EndUserTag'
-
-  has_many :end_user_tags, :class_name => 'EndUserTag'
-  #has_many :tags, :through => :user_tags
+  has_many :end_user_tags
+  has_many :tags, :through => :end_user_tags
+  after_save :tag_cache_after_save
+  include ContentTagFunctionality
   
   belongs_to :source_user, :class_name => 'EndUser'
   
@@ -121,12 +120,6 @@ class EndUser < DomainModel
 
   if CMS_EDITOR_LOGIN_SUPPORT 
    after_save :update_editor_login
-  end
-
-  def after_create #:nodoc:
-    if @tag_cache
-      self.tag(@tag_cache)
-    end
   end
 
   def after_save #:nodoc:
@@ -626,182 +619,81 @@ Not doing so could allow a user to change their user profile (for example) and e
     end
   end
   
-  ## Tag Functionality - TODO: Rewrite Needed
-  
-  # attr_reader :tag_cache
-  
-  # Model issue 
+  # Returns a list of existing tags
+  def self.tag_options
+    Tag.select_options
+  end
+
+  # Returns a tag cloud
+  def self.tag_cloud(sizes=[])
+    Tag.get_tag_cloud
+  end
+
   def clear_tags! #:nodoc:
-    connection.execute("DELETE FROM end_user_tags WHERE end_user_id=" + quote_value(self.id))
+    self.end_user_tags.delete_all
+  end
+
+  def tags_array
+    if @tag_name_cache.is_a?(Array)
+      @tag_name_cache
+    else
+      self.tags.collect(&:name)
+    end
   end
 
   # Immediately tag this user with the listed tags, saving them to the tag cache
   # if the user hasn't been saved yet
-  def tag(tags_list, options = {})
-     if !self.id
-      if !@tag_cache.to_s.blank?
-        @tag_cache = @tag_cache.split(",")
-      else
-        @tag_cache = []
-      end
-      @tag_cache << tags_list.to_s unless tags_list.blank?      
-      @tag_cache = @tag_cache.join(",")
-      return 
+  def tag(tags_list, options={})
+    if self.id
+      tags_list = tags_list.join(",") if tags_list.is_a?(Array)
+      self.add_tags(tags_list)
+    else
+      @tag_name_cache ||= []
+      tags_list = self.tag_name_helper(tags_list) unless tags_list.is_a?(Array)
+      @tag_name_cache = @tag_name_cache + tags_list
     end
-    super
-    update_tag_cache(self.tag_names(true).join(","))
-
   end
 
   # Immediately remove the listed tags from the user
   def tag_remove(tags, options = {})
-    super
-    update_tag_cache(self.tag_names(true).join(","))
+    self.remove_tags(tags)
   end
 
-  def update_tag_cache(names) #:nodoc:
-    (self.tag_cache || self.build_tag_cache).update_attribute(:tags,names)
-  end
-
-  
   def tag_names_add(tag_list,options={})  #:nodoc:
-    self.tag(tag_list,options.merge({:separator => ',', :clear => false}))
+    self.tag(tag_list)
   end 
-  
-  # Immediately tag a user given the a string of comma-separated tags
-  def tag_names=(tags,options={})
-    self.tag_names_original(tags,options.merge({:separator => ',', :clear => true}))
-  end
 
-  # returns a list of tag_cached_tags, optionally joined on find
-  def tag_cache_tags
-    if self.attributes.has_key?('tag_cache_tags')
-      self.attributes['tag_cache_tags']
-    else
-     (self.tag_cache ? self.tag_cache.tags : '')
-    end
-  end
   def tag_cache_tmp
-    @tag_cache
+    @tag_name_cache
   end
 
-  # Finds end userse that are tagged with 
-  # [:any]
-  #   Any of the named tags
-  # [:all]
-  #   All of the named tags
-  def self.find_tagged_with(options = {}) 
-          options = { :separator => ' ' }.merge(options)
-          
-          tag_names = Taggable::Acts::AsTaggable.split_tag_names(options[:any] || options[:all], options[:separator], normalizer)
-          raise "No tags were passed to :any or :all options" if tag_names.empty?
-
-          o, o_pk, o_fk, t, tn, t_pk, t_fk, jt = set_locals_for_sql
-          sql = "SELECT #{o}.*, tag_cache.tags as tag_cache_tags FROM (#{jt}, #{o}, #{t}) LEFT JOIN tag_cache ON ( #{o}.#{o_pk} = tag_cache.end_user_id ) WHERE #{jt}.#{t_fk} = #{t}.#{t_pk} 
-                AND #{o}.#{o_pk} = #{jt}.#{o_fk}"
-          sql << " AND  ("
-          sql << tag_names.collect {|tag| sanitize_sql( ["#{t}.#{tn} = ?",tag])}.join(" OR ")
-          sql << ")"
-          sql << " AND #{sanitize_sql(options[:conditions])}" if options[:conditions]
-          if postgresql?
-            sql << " GROUP BY #{model_columns_for_sql}"
-          else
-            sql << " GROUP BY #{o}.#{o_pk}"
-          end
-          sql << " HAVING COUNT(#{o}.#{o_pk}) = #{tag_names.length}" if options[:all]              
-          sql << " ORDER BY #{options[:order]} " if options[:order]
-          add_limit!(sql, options)
-          
-          find_by_sql(sql)
+  def tag_cache_after_save #:nodoc:
+    if @tag_name_cache.is_a?(Array)
+      @tag_name_cache.uniq!
+      tags = self.end_user_tags
+        
+      @existing_tags = []
+      tags.each do |tg|
+        if tg.tag && @tag_name_cache.include?(tg.tag.name)
+          @existing_tags << tg.tag.name
+        else
+          tg.destroy
+          tg.tag.destroy if(tg.tag && tg.tag.end_user_tags.size == 0)
+        end
+      end
+        
+      @tag_name_cache.each do |tag_name|
+        unless @existing_tags.include?(tag_name)
+          tg = Tag.get_tag(tag_name)
+          # Be explicit about the content_type for Content models (which don't have a real class name)
+          self.end_user_tags.create(:tag_id => tg.id)
+        end
+      end
+    end
+      
+    @tag_name_cache = nil
   end
 
-  # Counts the number of users tagged with :any or :all of certain tags
-  def self.count_tagged_with(options = {}) 
-          options = { :separator => ' ' }.merge(options)
-          
-          tag_names = Taggable::Acts::AsTaggable.split_tag_names(options[:any] || options[:all], options[:separator], normalizer)
-          raise "No tags were passed to :any or :all options" if tag_names.empty?
-
-          o, o_pk, o_fk, t, tn, t_pk, t_fk, jt = set_locals_for_sql
-          sql = "SELECT COUNT(DISTINCT #{o}.id) as cnt FROM (#{jt}, #{o}, #{t})  WHERE #{jt}.#{t_fk} = #{t}.#{t_pk} 
-                AND #{o}.#{o_pk} = #{jt}.#{o_fk}"
-          sql << " AND  ("
-          sql << tag_names.collect {|tag| sanitize_sql( ["#{t}.#{tn} = ?",tag])}.join(" OR ")
-          sql << ")"
-          sql << " AND #{sanitize_sql(options[:conditions])}" if options[:conditions]
-          if options[:all]
-            sql << " GROUP BY  #{o}.#{o_pk}"
-            sql << " HAVING COUNT(#{o}.#{o_pk}) = #{tag_names.length}"               
-            sql = 'SELECT COUNT(*) FROM (' + sql + ') as counter'
-          end
-          count_by_sql(sql)
-  end  
-  
-  # Same as EndUser#find_tagged_with except it returns users not tagged with certain tags
-  def self.find_not_tagged_with(options = {})
-    options = { :separator => ',' }.merge(options)
-
-    tag_names = Taggable::Acts::AsTaggable.split_tag_names(options[:any] || options[:all], options[:separator], normalizer)
-    
-    
-
-    o, o_pk, o_fk, t, tn, t_pk, t_fk, jt = set_locals_for_sql
-    sql = "SELECT #{o}.*, tag_cache.tags as tag_cache_tags FROM #{o} LEFT JOIN tag_cache ON ( #{o}.#{o_pk} = tag_cache.end_user_id ) LEFT JOIN #{jt} ON (  #{o}.#{o_pk} = #{jt}.#{o_fk} ) LEFT JOIN  #{t} ON ( #{jt}.#{t_fk} = #{t}.#{t_pk}
-	  "
-	  
-    sql << " AND  ("
-    sql << tag_names.collect {|tag| sanitize_sql( ["#{t}.#{tn} = ?",tag])}.join(" OR ")
-    sql << ") )"
-    sql << " WHERE #{sanitize_sql(options[:conditions])}" if options[:conditions]
-    if postgresql?
-      sql << " GROUP BY #{model_columns_for_sql}"
-    else
-      sql << " GROUP BY #{o}.#{o_pk}"
-    end
-    if options[:any]
-      sql << " HAVING COUNT(#{t}.id) = 0 "
-    else
-      sql << " HAVING COUNT(#{t}.id) <  " + tag_names.length.to_s
-    end
-    sql << " ORDER BY #{options[:order]} " if options[:order]
-    add_limit!(sql, options)
-
-    find_by_sql(sql)
-  end
-  
-  # Same as EndUser#count_tagged_with except it counts users not tagged with certain tags
-  def self.count_not_tagged_with(options = {})
-    options = { :separator => ',' }.merge(options)
-
-    tag_names = Taggable::Acts::AsTaggable.split_tag_names(options[:any] || options[:all], options[:separator], normalizer)
-    
-    
-
-    o, o_pk, o_fk, t, tn, t_pk, t_fk, jt = set_locals_for_sql
-    sql = "SELECT COUNT(DISTINCT #{o}.id) FROM #{o}  LEFT JOIN #{jt} ON (  #{o}.#{o_pk} = #{jt}.#{o_fk} ) LEFT JOIN  #{t} ON ( #{jt}.#{t_fk} = #{t}.#{t_pk}
-	  "
-	  
-    sql << " AND  ("
-    sql << tag_names.collect {|tag| sanitize_sql( ["#{t}.#{tn} = ?",tag])}.join(" OR ")
-    sql << ") )"
-    sql << " WHERE #{sanitize_sql(options[:conditions])}" if options[:conditions]
-    if postgresql?
-      sql << " GROUP BY #{model_columns_for_sql}"
-    else
-      sql << " GROUP BY #{o}.#{o_pk}"
-    end
-    if options[:any]
-      sql << " HAVING COUNT(#{t}.id) = 0 "
-    else
-      sql << " HAVING COUNT(#{t}.id) <  " + tag_names.length.to_s
-    end
-
-    sql = 'SELECT COUNT(*) FROM (' + sql + ') as counter'
-
-    count_by_sql(sql)
-  end
-  
-  
   # Validates a users registration given a list of required fields
   def validate_registration(opts = {})
     fields = %w(gender first_name last_name dob username)
@@ -813,8 +705,6 @@ Not doing so could allow a user to change their user profile (for example) and e
     end
   
   end
-
-  
   
   # Return a hashed password given an optional salt
   def self.hash_password(pw,salt=nil) 

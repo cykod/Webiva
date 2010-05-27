@@ -100,7 +100,7 @@ MemberEditor = {
   <%= f.header 'Tags' %>
   <tr>
     <td colspan='2'>
-      <textarea name='user_options[tag_names]' id='user_options_tag_names' cols='50' rows='4'><%= h @user.tag_names.join(", ") %></textarea> <br>
+      <textarea name='user_options[tag_names]' id='user_options_tag_names' cols='50' rows='4'><%= h @user.tag_names %></textarea> <br>
       <%= "Example: Red, Blue".t %>
     </td>
   </tr>
@@ -201,16 +201,9 @@ MemberEditor = {
 </td>
 <td valign='top'>
 <b><%= "Existing Tags".t %></b> - <%= "Click to add a tag".t %><br/><br/>
-  <% cloud = []
-      EndUser.cloud(EndUser.tags_count(:order => 'count DESC'), %w(12 14 16 18 20)) do |tg, font_size|
-        cloud << [tg,font_size]
-      end
-  %>
-  <% cloud.each do |tag| %>
-    <a href='javascript:void(0);' onclick='MemberEditor.addTag("<%= jvh tag[0] %>");'  style='font-size:<%= tag[1] %>px;'><%= h tag[0] %></a>
-    
+  <% EndUser.tag_cloud(%w(12 14 16 18 20)).each do |tag| %>
+    <a href='javascript:void(0);' onclick='MemberEditor.addTag("<%= jvh tag[:name] %>");'  style='font-size:<%= tag[:size] %>px;'><%= h tag[:name] %></a>
   <% end -%>
-
 <br/><br/>
 </td>
 </tr>
