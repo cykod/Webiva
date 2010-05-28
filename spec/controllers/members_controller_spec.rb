@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + "/../spec_helper"
 describe MembersController do
   integrate_views
 
-  reset_domain_tables :end_users, :user_subscriptions, :user_subscription_entries, :tags, :mail_templates, :end_user_addresses, :tag_notes, :end_user_tags, :market_segments
+  reset_domain_tables :end_users, :user_subscriptions, :user_subscription_entries, :tags, :mail_templates, :end_user_addresses, :tag_notes, :end_user_tags, :market_segments, :user_segments, :user_segment_caches
 
   describe "editor tests" do
     before(:each) do
@@ -288,8 +288,6 @@ describe MembersController do
   end
 
   describe "user lists" do
-    reset_domain_tables :user_segments
-
     before(:each) do
       mock_editor
       @user1 = EndUser.push_target('user1@test.dev', :first_name => 'User1', :last_name => 'Last1')
