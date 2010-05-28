@@ -91,9 +91,10 @@ class MembersController < CmsController # :nodoc: all
           end
         when 'add_users'
           custom_segment = UserSegment.find params[:user_segment_id]
-          custom_segment.add_ids params[:user].keys.collect { |uid| uid.to_i }
+          custom_segment.add_ids params[:user].keys.collect { |uid| uid.to_i } if custom_segment && custom_segment.segment_type == 'custom'
         when 'remove_users'
-          self.segment.remove_ids(params[:user].keys.collect { |uid| uid.to_i }) if self.segment && self.segment.segment_type == 'custom'
+          custom_segment = UserSegment.find params[:user_segment_id]
+          custom_segment.remove_ids(params[:user].keys.collect { |uid| uid.to_i }) if custom_segment && custom_segment.segment_type == 'custom'
         end
       end
     end
@@ -218,7 +219,7 @@ class MembersController < CmsController # :nodoc: all
     cms_page_path ['People'], "Everyone Options"
     
     @options = self.class.module_options(params[:options])
-    
+
     if request.post? && @options.valid?
       if params[:commit]
         Configuration.set_config_model(@options)
@@ -316,7 +317,7 @@ class MembersController < CmsController # :nodoc: all
   def builder
     cms_page_path ['People'], 'Operation Builder'
 
-    @segment = UserSegment.find_by_id params[:path][0]
+    @segment = UserSegment.find_by_id params[:path][0] if params[:path]
     @builder = @segment ? UserSegment::OperationBuilder.create_builder(@segment) : UserSegment::OperationBuilder.new(nil)
     @filter = params[:filter]
     @builder.build(UserSegment::OperationBuilder.get_prebuilt_filter(@filter)) if @filter
