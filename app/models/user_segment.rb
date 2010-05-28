@@ -150,6 +150,7 @@ class UserSegment < DomainModel
       user = segement.find opts, &block
       return user if user
     end
+    nil
   end
 
   def paginate(page=1, args={})

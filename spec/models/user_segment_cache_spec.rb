@@ -12,6 +12,7 @@ describe UserSegmentCache do
     @user5 = EndUser.push_target('test5@test.dev', :activated => false, :user_level => 2)
     @user6 = EndUser.push_target('test6@test.dev', :created_at => 10.days.ago, :last_name => 'Smith', :activated => true, :user_level => 3)
     @user7 = EndUser.push_target('test7@test.dev', :first_name => 'Doug', :activated => false, :user_level => 1)
+    @user8 = EndUser.push_target('test8@test.dev', :first_name => 'Doug', :activated => true)
 
     @id_list = [@user7.id, @user2.id, @user1.id, @user5.id, @user4.id, @user6.id, @user3.id]
   end
