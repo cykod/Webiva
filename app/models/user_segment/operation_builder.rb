@@ -21,9 +21,11 @@ class UserSegment::OperationBuilder < HashModel
 
   def build(opts={})
     self.operator = opts[:operator]
+    self.operator = nil if self.operator.blank?
     self.field = opts[:field]
     self.operation = opts[:operation]
     self.condition = opts[:condition]
+    self.condition = nil if self.condition.blank?
     self.parent = opts[:parent]
     unless self.operation_options.empty?
       unless self.operation_options.rassoc(self.operation)
