@@ -15,7 +15,7 @@ class EndUserSegmentType
 
   class SourceType < UserSegment::FieldType
     def self.select_options
-      EndUser.find(:all, :select => 'DISTINCT source').collect(&:source).sort
+      EndUser.find(:all, :select => 'DISTINCT source').collect(&:source).reject { |source| source.blank? }.sort.collect { |source| [source, source] }
     end
 
     register_operation :is, [['Source', :model, {:class => EndUserSegmentType::SourceType}]]
@@ -27,7 +27,7 @@ class EndUserSegmentType
 
   class LeadSourceType < UserSegment::FieldType
     def self.select_options
-      EndUser.find(:all, :select => 'DISTINCT lead_source').collect(&:lead_source).sort
+      EndUser.find(:all, :select => 'DISTINCT lead_source').collect(&:lead_source).reject { |lead_source| lead_source.blank? }.sort.collect { |source| [source, source] }
     end
 
     register_operation :is, [['Lead Source', :model, {:class => EndUserSegmentType::LeadSourceType}]]
