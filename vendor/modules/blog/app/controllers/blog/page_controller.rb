@@ -35,7 +35,7 @@ class Blog::PageController < ParagraphController
                         :inputs => [[:category, 'Selected Category', :blog_category_id]]
  
   class EntryListOptions < HashModel
-    attributes :blog_id => nil, :items_per_page => 10, :detail_page => nil, :include_in_path => nil,:blog_target_id => nil
+    attributes :blog_id => nil, :items_per_page => 10, :detail_page => nil, :include_in_path => nil,:blog_target_id => nil, :category => nil
 
 
     def detail_page_id
@@ -49,7 +49,8 @@ class Blog::PageController < ParagraphController
 		 fld(:detail_page, :page_selector),
 		 fld(:include_in_path, :select, :options => :include_in_path_options),
    	 fld(:items_per_page, :select, :options => (1..50).to_a),
-     fld(:blog_target_id, :select, :options => :blog_target_options)
+     fld(:blog_target_id, :select, :options => :blog_target_options),
+     fld(:category,:text_field)
 		 )
 
     def blog_target_options; Blog::BlogTarget.select_options_with_nil; end

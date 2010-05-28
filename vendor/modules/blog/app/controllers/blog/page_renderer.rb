@@ -44,6 +44,11 @@ class Blog::PageRenderer < ParagraphRenderer
       end
     end
 
+    if !@options.category.blank?
+      list_type ='category'
+      list_type_identifier = @options.category
+    end
+
     if list_type == 'category'
       set_page_connection(:category, list_type_identifier)
     end
