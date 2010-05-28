@@ -3,15 +3,15 @@ require 'treetop'
 class UserSegment::Operations
 
   def end_user_ids
-    return @end_user_ids if @end_user_ids
     return [] unless self.valid?
 
+    ids = nil
     self.operations.sort_by { |op| op.count }.each do |op|
-      @end_user_ids = op.end_user_ids(@end_user_ids)
-      return [] if @end_user_ids.empty?
+      ids = op.end_user_ids(ids)
+      return [] if ids.empty?
     end
 
-    @end_user_ids
+    ids
   end
 
   def parser

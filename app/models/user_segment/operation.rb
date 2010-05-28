@@ -18,21 +18,19 @@ class UserSegment::Operation
   end
 
   def end_user_ids(ids=nil)
-    return @end_user_ids if @end_user_ids
-
-    @end_user_ids = []
-    @fields.each { |fld| @end_user_ids = @end_user_ids + fld.end_user_ids(ids) }
-    @end_user_ids.uniq!
+    user_ids = []
+    @fields.each { |fld| user_ids = user_ids + fld.end_user_ids(ids) }
+    user_ids.uniq!
 
     if @operator == 'not'
       if ids
-        @end_user_ids = ids - @end_user_ids
+        user_ids = ids - user_ids
       else
-        @end_user_ids = (@end_user_ids.empty? ? EndUser.find(:all, :select => 'id') : EndUser.find(:all, :select => 'id', :conditions => ['id NOT IN(?)', @end_user_ids])).collect &:id
+        user_ids = (user_ids.empty? ? EndUser.find(:all, :select => 'id') : EndUser.find(:all, :select => 'id', :conditions => ['id NOT IN(?)', user_ids])).collect &:id
       end
     end
 
-    @end_user_ids
+    user_ids
   end
 
   def to_builder(opts={})

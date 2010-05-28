@@ -119,12 +119,9 @@ class UserSegment < DomainModel
   end
 
   def end_user_ids
-    return @end_user_ids if @end_user_ids
-    @end_user_ids = []
-    self.user_segment_caches.each do |segement|
-      @end_user_ids = @end_user_ids + segement.id_list
+    self.user_segment_caches.inject([]) do |ids, segement|
+      ids + segement.id_list
     end
-    @end_user_ids
   end
 
   def each(opts={}, &block)

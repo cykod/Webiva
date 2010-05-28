@@ -33,10 +33,9 @@ class UserSegment::Field < HashModel
   end
 
   def end_user_ids(ids=nil)
-    return @end_user_ids if @end_user_ids
     scope = self.get_scope
     scope = scope.scoped(:conditions => {self.end_user_field  => ids}) if ids
-    @end_user_ids = scope.find(:all, :select => self.end_user_field).collect &self.end_user_field
+    scope.find(:all, :select => self.end_user_field).collect &self.end_user_field
   end
 
   def get_scope(scope=nil)
