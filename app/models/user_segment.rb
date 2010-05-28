@@ -20,19 +20,19 @@ class UserSegment < DomainModel
   end
 
   def operations
-    return @operations if @operations
-    @operations = UserSegment::Operations.new
-    @operations.operations = self.segment_options if self.segment_options
-    @operations
+    return @filter if @filter
+    @filter = UserSegment::Filter.new
+    @filter.operations = self.segment_options if self.segment_options
+    @filter
   end
 
   def segment_options_text=(text)
     text = text.gsub("\r", '').strip
     self.should_refresh = self.segment_options_text != text
     self.write_attribute :segment_options_text, text
-    @operations = UserSegment::Operations.new
-    @operations.parse text
-    self.segment_options = @operations.valid? ? self.operations.to_a : nil
+    @filter = UserSegment::Filter.new
+    @filter.parse text
+    self.segment_options = @filter.valid? ? self.operations.to_a : nil
     text
   end
 

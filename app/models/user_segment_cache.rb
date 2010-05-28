@@ -15,6 +15,7 @@ class UserSegmentCache < DomainModel
 
   def fetch_users(opts={})
     ids = opts[:offset] && opts[:limit] ? self.id_list[opts[:offset]..opts[:offset]+opts[:limit]-1] : self.id_list
+    return [] if ! ids || ids.empty?
     users_by_id = EndUser.find(:all, :conditions => {:id => ids}).index_by(&:id)
     ids.map { |id| users_by_id[id] }.compact
   end
@@ -28,7 +29,7 @@ class UserSegmentCache < DomainModel
     num_chunks = (self.id_list.size / batch_size).to_i
     num_chunks = num_chunks.succ if (self.id_list.length % batch_size) > 0
 
-    base_scope = opts.delete(:scope) || EndUser
+    base_scope = opts.delete(:scope) || EndUserCache
     end_user_field = opts.delete(:end_user_field) || :end_user_id
 
     ids = []
@@ -43,7 +44,7 @@ class UserSegmentCache < DomainModel
 
     has_more = ids.length > limit
     ids = ids[0..limit-1] if has_more
-    offset = ids.size > 0 ? self.id_list.index(ids[-1]) : 0
+    offset = ids.size > 0 ? self.id_list.index(ids[-1]) : self.id_list.length - 1
     [offset, ids]
   end
 

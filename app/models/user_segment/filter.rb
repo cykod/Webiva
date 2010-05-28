@@ -1,6 +1,6 @@
 require 'treetop'
 
-class UserSegment::Operations
+class UserSegment::Filter
 
   def end_user_ids
     return [] unless self.valid?

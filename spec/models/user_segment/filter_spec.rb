@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + "/../../spec_helper"
 
-describe UserSegment::Operations do
+describe UserSegment::Filter do
 
   reset_domain_tables :end_users
 
@@ -15,7 +15,7 @@ describe UserSegment::Operations do
   end
 
   it "should return the end user ids from a given set of options" do
-    @operations = UserSegment::Operations.new
+    @operations = UserSegment::Filter.new
     options = [[nil, {:field => 'created', :operation => 'since', :arguments => [3, 'days'], :child => nil}]]
     @operations.operations = options
     @operations.valid?.should == true
@@ -24,7 +24,7 @@ describe UserSegment::Operations do
   end
 
   it "should be able to refine end user ids based on multiple operations" do
-    @operations = UserSegment::Operations.new
+    @operations = UserSegment::Filter.new
     options = [
       [nil, {:field => 'created', :operation => 'since', :arguments => [3, 'days'], :child => nil}],
       [nil, {:field => 'activated', :operation => 'is', :arguments => [true], :child => nil}]
@@ -36,7 +36,7 @@ describe UserSegment::Operations do
   end
 
   it "should return the end user ids from a given set operations syntax" do
-    @operations = UserSegment::Operations.new
+    @operations = UserSegment::Filter.new
     options = [[nil, {:field => 'created', :operation => 'since', :arguments => [3, 'days'], :child => nil}]]
     code = <<-CODE
     created.since(3, "days")
@@ -46,7 +46,7 @@ describe UserSegment::Operations do
     @operations.to_a.should == options
     @operations.end_user_ids.length.should == 5
 
-    @operations = UserSegment::Operations.new
+    @operations = UserSegment::Filter.new
     options = [['not', {:field => 'created', :operation => 'since', :arguments => [3, 'days'], :child => nil}]]
     code = <<-CODE
     not created.since(3, "days")
@@ -58,7 +58,7 @@ describe UserSegment::Operations do
   end
 
   it "should be able to refine end user ids with multiple operations" do
-    @operations = UserSegment::Operations.new
+    @operations = UserSegment::Filter.new
     options = [
       [nil, {:field => 'created', :operation => 'since', :arguments => [3, 'days'], :child => nil}],
       [nil, {:field => 'activated', :operation => 'is', :arguments => [true], :child => nil}]
@@ -74,7 +74,7 @@ describe UserSegment::Operations do
     @operations.end_user_ids.include?(@user1.id).should be_true
     @operations.end_user_ids.include?(@user4.id).should be_true
 
-    @operations = UserSegment::Operations.new
+    @operations = UserSegment::Filter.new
     options = [
       ['not', {:field => 'created', :operation => 'since', :arguments => [3, 'days'], :child => nil}],
       [nil, {:field => 'activated', :operation => 'is', :arguments => [true], :child => nil}]
@@ -89,7 +89,7 @@ describe UserSegment::Operations do
     @operations.end_user_ids.length.should == 1
     @operations.end_user_ids.include?(@user6.id).should be_true
 
-    @operations = UserSegment::Operations.new
+    @operations = UserSegment::Filter.new
     options = [
       ['not', {:field => 'created', :operation => 'since', :arguments => [3, 'days'], :child => nil}, {:field => 'user_level', :operation => 'is', :arguments => [1], :child => nil}],
       [nil, {:field => 'activated', :operation => 'is', :arguments => [true], :child => nil}]
