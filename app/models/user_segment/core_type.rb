@@ -69,13 +69,13 @@ class UserSegment::CoreType
   end
 
   class StringType < UserSegment::FieldType
-    register_operation :like, [['String', :string]]
+    register_operation :like, [['String', :string]], :description => 'use % for wild card matches'
 
     def self.like(cls, field, string)
       cls.scoped(:conditions => ["#{field} like ?", string])
     end
 
-    register_operation :is, [['String', :string]]
+    register_operation :is, [['String', :string]], :description => 'exact match'
 
     def self.is(cls, field, string)
       cls.scoped(:conditions => ["#{field} = ?", string])
@@ -83,7 +83,7 @@ class UserSegment::CoreType
   end
 
   class BooleanType < UserSegment::FieldType
-    register_operation :is, [['', :boolean]]
+    register_operation :is, [['Boolean', :boolean]]
 
     def self.is(cls, field, string)
       cls.scoped(:conditions => ["#{field} = ?", string])
@@ -91,7 +91,7 @@ class UserSegment::CoreType
   end
 
   class MatchType < UserSegment::FieldType
-    register_operation :search, [['Query', :string]]
+    register_operation :search, [['Query', :string]], :description => 'full text search'
 
     def self.search(cls, field, query)
       cls.scoped(:conditions => ["MATCH (#{field}) AGAINST (?)", query])

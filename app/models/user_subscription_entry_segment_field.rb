@@ -3,7 +3,7 @@ class UserSubscriptionEntrySegmentField < UserSegment::FieldHandler
 
   def self.user_segment_fields_handler_info
     {
-      :name => 'User Subscription Entry Segment Fields',
+      :name => 'User Subscription Fields',
       :domain_model_class => UserSubscriptionEntry
     }
   end

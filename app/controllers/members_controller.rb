@@ -326,9 +326,12 @@ class MembersController < CmsController # :nodoc: all
     @segment = UserSegment.find params[:path][0]
   end
 
-  def builder
-    cms_page_path ['People'], 'Operation Builder'
+  def builder_help
+    @handlers = UserSegment::FieldHandler.handlers
+    render :action => 'builder_help', :layout => 'manage_window'
+  end
 
+  def builder
     @segment = UserSegment.find_by_id params[:path][0] if params[:path]
     @builder = @segment ? UserSegment::OperationBuilder.create_builder(@segment) : UserSegment::OperationBuilder.new(nil)
     @filter = params[:filter]

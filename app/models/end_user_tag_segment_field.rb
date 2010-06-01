@@ -3,7 +3,7 @@ class EndUserTagSegmentField < UserSegment::FieldHandler
 
   def self.user_segment_fields_handler_info
     {
-      :name => 'End User Tag Segment Fields',
+      :name => 'User Tag Fields',
       :domain_model_class => EndUserTag
     }
   end
@@ -22,5 +22,5 @@ class EndUserTagSegmentField < UserSegment::FieldHandler
     end
   end
 
-  register_field :tag, EndUserTagSegmentField::EndUserTagType, :field => :tag_id, :name => 'Users: Tag'
+  register_field :tag, EndUserTagSegmentField::EndUserTagType, :field => :tag_id, :name => 'Tag'
 end

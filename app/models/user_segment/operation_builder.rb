@@ -60,6 +60,24 @@ class UserSegment::OperationBuilder < HashModel
     @field_options = [['Select a field', nil]] + @field_options.sort { |a, b| a[0] <=> b[0] }
   end
 
+  def field_group_options
+    return @field_group_options if @field_group_options
+    @field_group_options = []
+    seen_options = {}
+    UserSegment::FieldHandler.handlers.each do |handler|
+      if self.parent.nil? || self.parent.user_segment_field.handler == handler
+        options = []
+        handler[:class].user_segment_fields.each do |field, values|
+          options << [values[:name], field.to_s] unless seen_options[field.to_s]
+          seen_options[field.to_s] = 1
+        end
+        options.sort! { |a, b| a[0] <=> b[0] }
+        @field_group_options << [handler[:name], options]
+      end
+    end
+    @field_group_options = [['', [['Select a field', nil]]]] + @field_group_options
+  end
+
   def user_segment_field
     return @user_segment_field if @user_segment_field
     @user_segment_field = UserSegment::Field.new :field => self.field, :operation => self.operation, :arguments => self.arguments

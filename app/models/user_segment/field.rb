@@ -7,10 +7,12 @@ class UserSegment::Field < HashModel
 
   def strict?; true; end
 
-  def failure_reasons; @failure_reasons; end
+  def failure_reasons; @failure_reasons || []; end
 
   def add_error(attr, message)
     @failure_reasons ||= []
+
+    self.errors.add(attr, message)
 
     case attr
     when :field
@@ -22,8 +24,6 @@ class UserSegment::Field < HashModel
     when :child
       @failure_reasons = @failure_reasons + self.child_field.failure_reasons
     end
-
-    self.errors.add(attr, message)
   end
 
   def validate
