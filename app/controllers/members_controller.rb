@@ -319,8 +319,11 @@ class MembersController < CmsController # :nodoc: all
   def refresh_segment
     @segment = UserSegment.find params[:path][0]
     @segment.refresh
-    return redirect_to(:action => 'index', :path => @segment.id) if @segment.segment_type == 'custom'
-    redirect_to :action => 'segments'
+    render :partial => 'refresh_segment'
+  end
+
+  def refresh_segment_status
+    @segment = UserSegment.find params[:path][0]
   end
 
   def builder

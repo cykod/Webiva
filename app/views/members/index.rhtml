@@ -108,6 +108,14 @@
     addUsersToListTableAction: function(id) {
       this.tableAction('add_users', "user_segment_id=" + id);
       SCMS.closeOverlay();
+    },
+
+    refreshUserList: function() {
+      SCMS.remoteOverlay("<%= url_for :action => 'refresh_segment', :path => @segment ? @segment.id : nil %>");
+    },
+
+    refreshUserListStatus: function() {
+      <%= remote_function :url => url_for(:action => 'refresh_segment_status', :path => @segment ? @segment.id : nil) %>;
     }
   }
 </script>
@@ -126,7 +134,7 @@
 <div class="user_segments" style="float:right; width: 300px; text-align:right; padding:5px;">
 <%= form_tag %>
 <% if @segment && @segment.last_ran_at -%>
-   <a href="<%= url_for :action => 'refresh_segment', :path => @segment.id %>">Refresh</a> | <a href="<%= url_for :action => 'edit_segment', :path => @segment.id %>">Edit</a>
+   <a onclick="MemberEditor.refreshUserList();" href="javascript:void(0);">Refresh</a> | <a href="<%= url_for :action => 'edit_segment', :path => @segment.id %>">Edit</a>
 <% else -%>
   <a href="<%= url_for :action => 'options' %>">Edit</a>
 <% end -%>
