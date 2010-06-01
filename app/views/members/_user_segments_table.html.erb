@@ -1,9 +1,15 @@
+<%
+refresh_table = false
+-%>
 <% active_table_for :user_segments_table, @active_table_output,
                     :refresh_url => url_for(:action => 'user_segments_table'),
                     :style => 'width:100%',
                     :actions => [['Add to Main Page', 'add'], ['Remove from Main Page', 'remove']],
                     :more_actions => [['Copy User Lists', 'duplicate'], ['Delete User Lists','delete','Delete the selected lists?']] do |t| %>
 <tr <%= highlight_row "user_segments",t.id %>  >
+<%
+  refresh_table ||= ! t.ready?
+-%>
   <td nowrap='1'><%= entry_checkbox 'user_segments',t.id %></td>
   <td align='center' nowrap='1'>
   <% if t.ready? -%>
@@ -18,12 +24,18 @@
   <% end -%>
   </td>
   <td align='center'><%= t.main_page ? 'Yes'.t : 'No'.t %></td>
-  <td align='center'><%= t.segment_type %></td>
+  <td align='center'><%= t.segment_type_display %></td>
   <td><%= h(t.description ? t.description : '') %></td>
-  <td align='center'><%= t.status %></td>
+  <td align='center'><%= t.status_display %></td>
   <td align='center'><%= t.last_count %></td>
   <td align='center'><%= t.last_ran_at.strftime(DEFAULT_DATETIME_FORMAT.t) if t.last_ran_at %></td>
   <td align='center'><%= t.created_at.strftime(DEFAULT_DATETIME_FORMAT.t) %></td>
   <td align='center'><%= t.updated_at.strftime(DEFAULT_DATETIME_FORMAT.t) %></td>
 </tr>
+<% end -%>
+
+<% if refresh_table -%>
+<script>
+setTimeout(function() {ActiveTable.refresh("user_segments_table", "<%= url_for(:action => 'user_segments_table') %>", "user_segments_table");}, 1000);
+</script>
 <% end -%>

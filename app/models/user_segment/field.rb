@@ -20,7 +20,7 @@ class UserSegment::Field < HashModel
     when :arguments
       @failure_reasons << "Arguments #{message} for '#{self.field}.#{self.operation}()'"
     when :child
-      @failure_reasons = @failure_reasons + self.child.failure_reasons
+      @failure_reasons = @failure_reasons + self.child_field.failure_reasons
     end
 
     self.errors.add(attr, message)
