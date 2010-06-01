@@ -186,7 +186,8 @@ class ModuleAppController < ApplicationController
     begin
       raise SiteNodeEngine::MissingPageException.new(nil,nil) unless page
       engine = SiteNodeEngine.new(page,:display => session[:cms_language], :path => path_args)
-      @output = engine.run(self,myself)
+      @output = engine.run(self,myself,:error_page => true)
+      raise SiteNodeEngine::MissingPageException.new(nil,nil) unless @output.page?
       set_robots!
       render :template => '/page/index', :layout => 'page', :status => "404 Not Found"
       return  
@@ -201,7 +202,7 @@ class ModuleAppController < ApplicationController
     begin
       page,path_args = find_page_from_path(["500"],DomainModel.active_domain[:site_version_id])
       engine = SiteNodeEngine.new(page,:display => session[:cms_language], :path => path_args)
-      @output = engine.run(self,myself)
+      @output = engine.run(self,myself,:error_page => true)
       set_robots!
       render :template => '/page/index', :layout => 'page', :status => 500
       return  

@@ -2,7 +2,7 @@
                     :refresh_url => url_for(:action => 'user_segments_table'),
                     :style => 'width:100%',
                     :actions => [['Add to Main Page', 'add'], ['Remove from Main Page', 'remove']],
-                    :more_actions => [['Delete Segments','delete','Delete the selected segments?']] do |t| %>
+                    :more_actions => [['Copy User Lists', 'duplicate'], ['Delete User Lists','delete','Delete the selected lists?']] do |t| %>
 <tr <%= highlight_row "user_segments",t.id %>  >
   <td nowrap='1'><%= entry_checkbox 'user_segments',t.id %></td>
   <td align='center' nowrap='1'>
@@ -10,8 +10,6 @@
     <a href="<%= url_for :action => 'edit_segment', :path => t.id %>"><%= theme_image_tag('icons/actions/edit.gif') %></a>
   <% end -%>
   </td>
-  <td align='center'><%= t.main_page ? 'Yes'.t : 'No'.t %></td>
-  <td align='center'><%= t.segment_type %></td>
   <td nowrap='1'>
   <% if t.ready? -%>
     <a href="<%= url_for :action => 'index', :path => t.id %>"><%= h t.name %></a>
@@ -19,6 +17,8 @@
     <%= t.name %>
   <% end -%>
   </td>
+  <td align='center'><%= t.main_page ? 'Yes'.t : 'No'.t %></td>
+  <td align='center'><%= t.segment_type %></td>
   <td><%= h(t.description ? t.description : '') %></td>
   <td align='center'><%= t.status %></td>
   <td align='center'><%= t.last_count %></td>

@@ -106,7 +106,6 @@ class MembersController < CmsController # :nodoc: all
     @email_targets_table_columns = [
       ActiveTable::IconHeader.new('check', :width => '16'),
       ActiveTable::StaticHeader.new('', :width => '24'),
-      ActiveTable::StaticHeader.new('Profile', :width => '70'),
       ActiveTable::StaticHeader.new('Image', :width => '70'),
       ActiveTable::StaticHeader.new('Name'),
       ActiveTable::StaticHeader.new('Email')
@@ -129,6 +128,14 @@ class MembersController < CmsController # :nodoc: all
 
   def email_targets_table_generate(opts,*find_options)
     active_table_generate('end_users', EndUser, self.email_targets_table_columns, {:count_callback => 'count_end_users', :find_callback => 'find_end_users'}, opts, *find_options)
+  end
+
+  def user_segment_type_select_options
+    UserSegment.segment_type_select_options
+  end
+
+  def user_segment_status_select_options
+    UserSegment.status_select_options
   end
 
   public 
@@ -189,11 +196,11 @@ class MembersController < CmsController # :nodoc: all
                 UserSegment,
                 [ hdr(:icon, 'check', :width => '16'),
                   hdr(:icon, '', :width => '32'),
-                  :main_page,
-                  :segment_type,
                   :name,
+                  :main_page,
+                  hdr(:options, :segment_type, :options => :user_segment_type_select_options),
                   :description,
-                  :status,
+                  hdr(:options, :status, :options => :user_segment_status_select_options),
                   :last_count,
                   :last_ran_at,
                   :created_at,
@@ -208,6 +215,8 @@ class MembersController < CmsController # :nodoc: all
         UserSegment.update_all('main_page = 1', :id => ids)
       when 'remove'
         UserSegment.update_all('main_page = 0', :id => ids)
+      when 'duplicate'
+        ids.each { |id| UserSegment.create_copy id }
       end
     end
 

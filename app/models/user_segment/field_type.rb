@@ -58,6 +58,7 @@ class UserSegment::FieldType
       rescue
       end
     when :option
+      return nil unless value.is_a?(String)
       value = opts[:options].find do |o|
         if o.is_a?(Array)
           o[1].downcase == value.downcase

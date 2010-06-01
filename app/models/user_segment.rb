@@ -11,12 +11,25 @@ class UserSegment < DomainModel
   validates_presence_of :segment_type
   validates_presence_of :segment_options_text, :if => Proc.new { |seg| seg.segment_type == 'filtered' }
 
-  validates_inclusion_of :segment_type, :in => %w(filtered custom)
+  has_options :segment_type, [['Filtered', 'filtered'], ['Custom', 'custom']]
 
+  has_options :status,
+    [['New', 'new'],
+     ['Finished', 'finished'],
+     ['Refreshing', 'refreshing'],
+     ['Calculating', 'calculating'],
+     ['Adding', 'adding'],
+     ['Removing', 'removing'],
+     ['Sorting', 'sorting']]
+    
   def ready?; self.status == 'finished'; end
 
   def fields
     self.read_attribute(:fields) || []
+  end
+
+  def validate
+    self.errors.add(:segment_options_text, nil, :message => self.operations.failure_reason) if self.segment_options_text && self.segment_options.nil?
   end
 
   def operations
@@ -32,7 +45,11 @@ class UserSegment < DomainModel
     self.write_attribute :segment_options_text, text
     @filter = UserSegment::Filter.new
     @filter.parse text
-    self.segment_options = @filter.valid? ? self.operations.to_a : nil
+    if @filter.valid?
+      self.segment_options = self.operations.to_a
+    else
+      self.segment_options = nil
+    end
     text
   end
 
@@ -218,7 +235,7 @@ class UserSegment < DomainModel
   end
 
   def self.fields_options
-    [['Source', 'source'], ['Date of Birth', 'dob'], ['Gender', 'gender'], ['Created', 'created_at'], ['Registered', 'registered_at'], ['User Class', 'user_class'], ['Tags', 'tag_names']]
+    [['Source', 'source'], ['Date of Birth', 'dob'], ['Gender', 'gender'], ['Created', 'created_at'], ['Registered', 'registered_at'], ['Profile', 'user_class'], ['Tags', 'tag_names']]
   end
 
   def self.order_by_options
@@ -244,6 +261,26 @@ class UserSegment < DomainModel
     if self.market_segment && self.market_segment.name != self.name
       self.market_segment.name = self.name
       self.market_segment.save
+    end
+  end
+
+  def self.create_copy(id)
+    segment_to_copy = UserSegment.find_by_id(id)
+    return nil unless segment_to_copy
+
+    @segment = UserSegment.new segment_to_copy.attributes.symbolize_keys.slice(:name, :description, :fields, :main_page, :segment_options_text, :order_by, :segment_type)
+    @segment.name += ' (Copy)'
+
+    return nil unless @segment.save
+    @segment.refresh
+    @segment
+  end
+
+  def list_name
+    if self.segment_type == 'filtered'
+      self.name + ' (Filtered)'
+    else
+      self.name + ' (Custom)'
     end
   end
 end

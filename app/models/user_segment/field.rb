@@ -7,25 +7,45 @@ class UserSegment::Field < HashModel
 
   def strict?; true; end
 
-  def validate
-    unless self.field.blank?
-      self.errors.add(:field, 'invalid field') unless self.handler
+  def failure_reasons; @failure_reasons; end
+
+  def add_error(attr, message)
+    @failure_reasons ||= []
+
+    case attr
+    when :field
+      @failure_reasons << "'#{self.field}' is an invalid field"
+    when :operation
+      @failure_reasons << "'#{self.operation}' is an invalid function on '#{self.field}'"
+    when :arguments
+      @failure_reasons << "Arguments #{message} for '#{self.field}.#{self.operation}()'"
+    when :child
+      @failure_reasons = @failure_reasons + self.child.failure_reasons
     end
 
-    unless self.operation.blank?
-      self.errors.add(:operation, 'invalid operation') if ! self.type_class || ! self.type_class.has_operation?(self.operation)
+    self.errors.add(attr, message)
+  end
+
+  def validate
+    unless self.field.blank?
+      
+      self.add_error(:field, 'invalid field') unless self.handler
+    end
+
+    unless self.handler.nil? || self.operation.blank?
+      self.add_error(:operation, 'invalid operation') if ! self.type_class || ! self.type_class.has_operation?(self.operation)
 
       if self.operation_info
-        self.errors.add(:arguments, 'are missing') if self.arguments.empty? && ! self.operation_arguments.empty?
+        self.add_error(:arguments, 'are missing') if self.arguments.empty? && ! self.operation_arguments.empty?
 
         unless self.arguments.empty?
-          self.errors.add(:arguments, 'are incorrect') unless self.arguments.size == self.operation_arguments.size
-          self.errors.add(:arguments, 'are invalid') if self.arguments.size == self.operation_arguments.size && ! self.valid_arguments?
+          self.add_error(:arguments, 'are incorrect') unless self.arguments.size == self.operation_arguments.size
+          self.add_error(:arguments, 'are invalid') if self.arguments.size == self.operation_arguments.size && ! self.valid_arguments?
         end
       end
     end
 
-    self.errors.add(:child, 'is invalid') if self.child && self.child_field && ! self.child_field.valid?
+    self.add_error(:child, 'is invalid') if self.child && self.child_field && ! self.child_field.valid?
   end
 
   def count
