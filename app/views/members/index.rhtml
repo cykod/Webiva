@@ -171,7 +171,7 @@
 <script>
 $('members_search_terms').focus();
 
-<% if @segment && @segment.last_ran_at < 1.day.ago -%>
+<% if @segment && @segment.segment_type == 'filtered' && @segment.last_ran_at < 1.day.ago -%>
 MemberEditor.refreshUserList();
 <% end -%>
 </script>
