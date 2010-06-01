@@ -23,8 +23,12 @@ UserSegment = {
   <% if @segment.segment_type == 'filtered' -%>
     <% f.custom_field '' do %>
       <a href="javascript:void(0)" onclick='openWindow("<%= url_for(:action => "builder", :path => @segment.id) %>" ,"operationBuilder",460,500,"yes","yes");'><%= @segment.id ? 'Edit filter'.t : 'Create a filter'.t %></a>
+
     <% end %>
     <%= f.text_area :segment_options_text, :rows => 8, :style => 'width:400px;', :label => 'Filter' %>
+    <% f.custom_field '' do %>
+      <div align="right"><a href="javascript:void(0)" onclick='openWindow("<%= url_for(:action => "builder_help", :path => @segment.id) %>" ,"operationBuilder",750,600,"yes","yes");'><%= 'Filter help'.t %></a></div>
+    <% end %>
   <% end -%>
 
 <%= f.spacer %>
