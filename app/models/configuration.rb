@@ -85,7 +85,7 @@ class Configuration < DomainModel
   # domain that's missing form the cache
   def self.fetch_domain_configuration(domain_name)
     cfg = DataCache.get_domain_info(domain_name)
-    return cfg[0] if cfg 
+    return cfg[0] if cfg
 
     dmn = Domain.find_by_name(domain_name)
     # Handle domain level redirects
@@ -102,8 +102,7 @@ class Configuration < DomainModel
     end
     # Otherwise cache the database to avoid a req on the domain
     # table
-    cfg = dmn.attributes
-    cfg.symbolize_keys!
+    cfg = dmn.get_info
     DataCache.set_domain_info(domain_name,[cfg])
     cfg
   end

@@ -7,7 +7,9 @@
 # that multiple sites can share the same content.
 class Domain < SystemModel 
   belongs_to :client
-  
+
+  belongs_to :domain_database
+
   has_many :domain_modules, :dependent => :destroy
   
   
@@ -114,5 +116,31 @@ class Domain < SystemModel
     SiteTemplate.create_default_template
     Editor::AdminController.content_node_type_generate
     Dashboard::CoreWidget.add_default_widgets
+  end
+
+  def database_file
+    "#{RAILS_ROOT}/config/sites/#{self.database}.yml"
+  end
+
+  def get_info
+    info = self.attributes.symbolize_keys
+    if self.domain_database
+      info[:domain_database] = self.domain_database.attributes.symbolize_keys
+    else
+      info[:domain_database] = {:name => self.database, :options => YAML.load_file(self.database_file), :max_client_users => nil, :available_file_storage => nil}
+    end
+
+    info
+  end
+
+  def save_database_file
+    return unless File.exists?(self.database_file)
+
+    if self.domain_database
+      self.domain_database.update_attributes :options => YAML.load_file(self.database_file)
+    else
+      self.create_domain_database :name => self.database, :options => YAML.load_file(self.database_file)
+      self.save
+    end
   end
 end
