@@ -19,7 +19,7 @@ describe UserSegment do
     @segment = UserSegment.new
     @segment.valid?.should be_false
     @segment.should have(1).error_on(:name)
-    @segment.should have(2).error_on(:segment_type)
+    @segment.should have(1).error_on(:segment_type)
     @segment.should have(0).error_on(:segment_options_text)
 
     @segment = UserSegment.new :segment_type => 'filtered'
