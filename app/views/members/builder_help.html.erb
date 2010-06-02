@@ -1,6 +1,7 @@
 <style>
 ul {
   list-style: none;
+  font-size: 11px;
 }
 ul ul {
   padding-left: 20px;
@@ -12,19 +13,34 @@ ul li.fields {
 ul ul li {
   padding-bottom: 3px;
 }
+span.heading {
+  font-size: 13px;
+  font-weight: bold;
+}
 </style>
 
 <%
   types = {}
   seen_fields = {}
 %>
-<div class="cms_form" style="width:720px;">
+<div class="cms_form" style="width:720px; padding:5px;">
+
+<h4>Instructions</h4>
+
+<p>
+A filter is a set of operations used to create a list of users. An operation is a field and its method.
+<br/>
+Ex: <b>created</b>.<u>since</u>(7, "days") - Will return all the user who where created in the last 7 days.
+<br/>
+<br/>
+</p>
 
 <div id="builder_fields" style="width:400px; padding-right:20px; float:left;">
+<h2 style="border-bottom: 1px solid #000; width: 300px;">Fields</h2>
 <ul>
 <% @handlers.each do |info| -%>
 
-  <li class="fields"><h3><%= info[:name] %></h3>
+  <li class="fields"><span class="heading"><%= info[:name] %></span>
   <ul>
   <% info[:class].user_segment_fields.keys.collect { |key| key.to_s }.sort.each do |key| -%>
     <% field_name = key
@@ -47,13 +63,14 @@ ul ul li {
 </div>
 
 <div id="builder_types" style="width:300px; float:right;">
+<h2 style="border-bottom: 1px solid #000; width: 300px;">Types</h2>
 <ul>
 <% types.sort.each do |type_name, type_class| -%>
   <li><b><%= type_name %></b>
   <ul>
   <% type_class.user_segment_field_type_operations.keys.collect { |key| key.to_s }.sort.each do |key| -%>
     <% operation = type_class.user_segment_field_type_operations[key.to_sym] -%>
-    <li><%= key %>(<%= operation[:argument_names].join(', ') %>) <%= h(' - ' + operation[:description]) if operation[:description] %>
+    <li><u><%= key %></u>(<%= operation[:argument_names].join(', ') %>) <%= h(' - ' + operation[:description]) if operation[:description] %>
       <ul>
       <% operation[:arguments].each_with_index do |arg,idx| -%>
         <li><%= operation[:argument_names][idx] %> - <em><%= arg %></em>
