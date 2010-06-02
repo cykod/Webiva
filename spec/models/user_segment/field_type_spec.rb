@@ -101,4 +101,12 @@ describe UserSegment::FieldType do
     UserSegment::FieldType.convert_to(98789, :model, :class => Tag).should be_nil
     UserSegment::FieldType.convert_to('Walker', :model, :class => Tag).should be_nil
   end
+
+  it "should support multiple option types" do
+    UserSegment::FieldType::convert_to('day', :option, :options => ['day', 'days', 'week', 'weeks']).should == 'day'
+    UserSegment::FieldType::convert_to('day', :option, :options => [['Day', 'day'], ['Days', 'days'], ['Week', 'week'], ['Weeks', 'weeks']]).should == 'day'
+    UserSegment::FieldType::convert_to(3, :option, :options => [1, 2, 4, 5, 3]).should == 3
+    UserSegment::FieldType::convert_to(false, :option, :options => [true, false]).should == false
+    UserSegment::FieldType::convert_to(nil, :option, :options => [true, false]).should == nil
+  end
 end

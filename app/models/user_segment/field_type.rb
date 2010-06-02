@@ -58,17 +58,17 @@ class UserSegment::FieldType
       rescue
       end
     when :option
-      return nil unless value.is_a?(String)
+      value = value.downcase if value.is_a?(String)
       value = opts[:options].find do |o|
         if o.is_a?(Array)
-          o[1].downcase == value.downcase
+          o[1] == value
         else
-          o.downcase == value.downcase
+          o == value
         end
       end
 
       return value[1] if value.is_a?(Array)
-      return value if value
+      return value
     when :boolean
       return value if value.is_a?(TrueClass) || value.is_a?(FalseClass)
       value = value.downcase if value.is_a?(String)
