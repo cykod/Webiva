@@ -77,8 +77,12 @@ class UserSegment::FieldType
     when :model
       options = self.model_options(opts)
       value = value.to_i if options.size > 0 && options[0].is_a?(Array) && options[0][1].is_a?(Integer)
-      values = options.rassoc(value)
-      return values[1] if values
+      if options[0].is_a?(Array)
+        values = options.rassoc(value)
+        return values[1] if values
+      else
+        return value if options.include?(value)
+      end
     end
 
     nil

@@ -17,4 +17,22 @@ class UserSubscriptionEntrySegmentField < UserSegment::FieldHandler
   end
 
   register_field :user_subscription_id, UserSubscriptionEntrySegmentField::UserSubscriptionType, :name => 'User Subscription'
+
+  def self.field_heading(field)
+    self.user_segment_fields[field][:name]
+  end
+
+  def self.get_handler_data(ids, fields)
+    UserSubscriptionEntry.find(:all, :include => :user_subscription, :conditions => {:end_user_id => ids}).group_by(&:end_user_id)
+  end
+
+  def self.field_output(user, handler_data, field)
+    return nil unless handler_data[user.id]
+
+    if field == :user_subscription_id
+      handler_data[user.id].collect{ |s| s.user_subscription.name }.join(', ')
+    else
+      nil
+    end
+  end
 end

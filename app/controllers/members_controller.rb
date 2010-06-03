@@ -40,10 +40,10 @@ class MembersController < CmsController # :nodoc: all
     if self.search_results
       self.search.users
     elsif self.segment
-      pages, users = self.segment.paginate self.search.page, :per_page => 25, :include => [:user_class, :domain_file]
+      pages, users = self.segment.paginate self.search.page, :per_page => 25
       users
     else
-      EndUser.find(:all, :conditions => 'client_user_id IS NULL', :include => [:user_class, :domain_file], :offset => opts[:offset], :limit => opts[:limit], :order => opts[:order])
+      EndUser.find(:all, :conditions => 'client_user_id IS NULL', :offset => opts[:offset], :limit => opts[:limit], :order => opts[:order], :include => opts[:include], :joins => opts[:joins])
     end
   end
 

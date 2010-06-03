@@ -250,11 +250,11 @@ class UserSegment < DomainModel
   end
 
   def self.fields_options
-    UserSegment::FieldHandler.display_fields.collect { |field, info| [info[:handler].field_heading(field), field.to_s] }
+    UserSegment::FieldHandler.display_fields.collect { |field, info| [info[:handler].field_heading(field), field.to_s] }.sort { |a, b| a[0] <=> b[0] }
   end
 
   def self.order_by_options
-    UserSegment::FieldHandler.sortable_fields.collect { |field, info| [info[:handler].field_heading(field), field.to_s] }
+    UserSegment::FieldHandler.sortable_fields.collect { |field, info| [info[:handler].field_heading(field), field.to_s] }.sort { |a, b| a[0] <=> b[0] }
   end
 
   def to_expr

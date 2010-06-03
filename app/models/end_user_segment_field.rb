@@ -9,7 +9,7 @@ class EndUserSegmentField < UserSegment::FieldHandler
     }
   end
 
-  register_field :email, UserSegment::CoreType::StringType, :name => 'Email', :sortable => true
+  register_field :email, UserSegment::CoreType::StringType, :name => 'Email', :sortable => true, :search_only => true
   register_field :gender, EndUserSegmentType::GenderType, :name => 'Gender', :sortable => true
   register_field :created, UserSegment::CoreType::DateTimeType, :field => :created_at, :name => 'Created', :sortable => true
   register_field :registered, UserSegment::CoreType::BooleanType, :name => 'Registered', :sortable => true
