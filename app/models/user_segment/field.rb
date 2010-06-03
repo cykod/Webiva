@@ -155,4 +155,8 @@ class UserSegment::Field < HashModel
     end
     options
   end
+
+  def field_output(end_user, handler_data)
+    self.handler_class.field_output(end_user, handler_data, self.field.to_sym)
+  end
 end

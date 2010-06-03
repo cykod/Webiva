@@ -8,6 +8,5 @@ class EndUserCacheSegmentField < UserSegment::FieldHandler
     }
   end
 
-  register_field :cache, UserSegment::CoreType::MatchType, :field => :data, :name => 'Cache'
-
+  register_field :cache, UserSegment::CoreType::MatchType, :field => :data, :name => 'Cache', :search_only => true
 end

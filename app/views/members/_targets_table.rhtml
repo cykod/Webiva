@@ -33,19 +33,11 @@
     %>
   </td>
 
-  <% if @fields -%>
-    <% @fields.each do |field| -%>
+  <% if @segment_fields -%>
+    <% @segment_fields.each do |field| -%>
       <%=
-          value = t.send(field)
-          if value.is_a?(DomainModel)
-           "<td align='center'>#{value.name}</td>"
-          elsif value.is_a?(Time)
-           "<td align='center'>#{value.strftime(DEFAULT_DATETIME_FORMAT.t)}</td>"
-          elsif value.nil?
-           "<td align='center'>-</td>"
-          else
-           "<td align='center'>#{value}</td>"
-          end
+          value = field.field_output(t, @handlers_data[field.handler_class.to_s])
+          "<td align='center'>#{value}</td>"
       %>
     <% end -%>
   <% end -%>

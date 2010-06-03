@@ -10,8 +10,11 @@ class UserSegment < DomainModel
   validates_presence_of :name
   validates_presence_of :segment_type
   validates_presence_of :segment_options_text, :if => Proc.new { |seg| seg.segment_type == 'filtered' }
+  validates_presence_of :order_by
+  validates_presence_of :order_direction
 
   has_options :segment_type, [['Filtered', 'filtered'], ['Custom', 'custom']]
+  has_options :order_direction, [['Ascending', 'ASC'], ['Descending', 'DESC']]
 
   has_options :status,
     [['New', 'new'],
@@ -26,6 +29,11 @@ class UserSegment < DomainModel
 
   def fields
     self.read_attribute(:fields) || []
+  end
+
+  def before_validation #:nodoc:
+    self.order_by = 'created_at' if self.order_by.blank?
+    self.order_direction = 'DESC' if self.order_direction.blank?
   end
 
   def validate
@@ -57,6 +65,12 @@ class UserSegment < DomainModel
     self.should_refresh = self.order_by != order
     self.write_attribute :order_by, order
     order
+  end
+
+  def order_direction=(direction)
+    self.should_refresh = self.order_direction != direction
+    self.write_attribute :order_direction, direction
+    direction
   end
 
   def should_refresh
@@ -118,8 +132,9 @@ class UserSegment < DomainModel
 
     self.user_segment_caches.delete_all
 
-    self.order_by = 'created_at DESC' unless self.order_by
-    ids = EndUser.find(:all, :select => 'id', :conditions => {:id => ids, :client_user_id => nil}, :order => self.order_by).collect &:id
+    sort_field = UserSegment::FieldHandler.sortable_fields[self.order_by.to_sym]
+    scope = EndUser.scoped(sort_field[:handler].order_options(self.order_by, self.order_direction))
+    ids = scope.find(:all, :select => 'DISTINCT end_users.id', :conditions => {:id => ids, :client_user_id => nil}).collect &:id
 
     num_segements = (ids.length / UserSegmentCache::SIZE)
     num_segements = num_segements + 1 if (ids.length % UserSegmentCache::SIZE) > 0
@@ -235,11 +250,11 @@ class UserSegment < DomainModel
   end
 
   def self.fields_options
-    [['Source', 'source'], ['Date of Birth', 'dob'], ['Gender', 'gender'], ['Created', 'created_at'], ['Registered', 'registered_at'], ['Profile', 'user_class'], ['Tags', 'tag_names']]
+    UserSegment::FieldHandler.display_fields.collect { |field, info| [info[:handler].field_heading(field), field.to_s] }
   end
 
   def self.order_by_options
-    [['Created Desc', 'created_at DESC'], ['Created Asc', 'created_at'], ['Email', 'email']]
+    UserSegment::FieldHandler.sortable_fields.collect { |field, info| [info[:handler].field_heading(field), field.to_s] }
   end
 
   def to_expr
@@ -282,6 +297,19 @@ class UserSegment < DomainModel
     else
       self.name + ' (Custom)'
     end
+  end
+
+  def self.segment_fields(fields)
+    fields.collect { |field| UserSegment::Field.new :field => field }
+  end
+
+  def self.get_handlers_data(ids, segment_fields)
+    handlers = {}
+    segment_fields.each { |sf| handlers[sf.handler_class] ||= []; handlers[sf.handler_class] << sf.model_field }
+
+    data = {}
+    handlers.each { |handler, fields| data[handler.to_s] = handler.get_handler_data(ids, fields) }
+    data
   end
 end
 

@@ -29,42 +29,28 @@ class UserSegment::CoreType
     end
   end
 
+  @@number_type_operators = ['>', '>=', '=', '<=', '<']
+  def self.number_type_operators
+    @@number_type_operators
+  end
 
   class NumberType < UserSegment::FieldType
-    register_operation :greater_than, [['Value', :integer]]
+    register_operation :is, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]]
 
-    def self.greater_than(cls, field, value)
-      cls.scoped(:conditions => ["#{field} > ?", value])
+    def self.is(cls, field, operator, value)
+      cls.scoped(:conditions => ["#{field} #{operator} ?", value])
     end
 
-    register_operation :greater_than_or_equal_to, [['Value', :integer]]
+    register_operation :sum, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]]
 
-    def self.greater_than_or_equal_to(cls, field, value)
-      cls.scoped(:conditions => ["#{field} >= ?", value])
+    def self.sum(cls, field, operator, value)
+      cls.scoped(:select => "SUM(#{field}) as #{field}_sum", :group => field, :having => "#{field}_sum #{operator} #{value}")
     end
 
-    register_operation :less_than, [['Value', :integer]]
+    register_operation :average, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]]
 
-    def self.less_than(cls, field, value)
-      cls.scoped(:conditions => ["#{field} < ?", value])
-    end
-
-    register_operation :less_than_or_equal_to, [['Value', :integer]]
-
-    def self.less_than_or_equal_to(cls, field, value)
-      cls.scoped(:conditions => ["#{field} <= ?", value])
-    end
-
-    register_operation :equals, [['Value', :integer]]
-
-    def self.equals(cls, field, value)
-      cls.scoped(:conditions => ["#{field} = ?", value])
-    end
-
-    register_operation :is, [['Value', :integer]]
-
-    def self.is(cls, field, value)
-      self.equals(cls, field, value)
+    def self.average(cls, field, operator, value)
+      cls.scoped(:select => "AVERAGE(#{field}) as #{field}_average", :group => field, :having => "#{field}_average #{operator} #{value}")
     end
   end
 

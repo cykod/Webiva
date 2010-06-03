@@ -118,6 +118,8 @@ class MembersController < CmsController # :nodoc: all
       @fields = self.class.module_options.fields
     end
 
+    @segment_fields = UserSegment.segment_fields(@fields)
+
     @fields.each do |field|
       option = UserSegment.fields_options.rassoc(field)
       @email_targets_table_columns << ActiveTable::StaticHeader.new(option[1], :label => option[0]) if option
@@ -169,7 +171,9 @@ class MembersController < CmsController # :nodoc: all
       handle_table_actions
     end
 
-    @active_table_output = email_targets_table_generate params, :per_page => 25, :conditions => 'client_user_id IS NULL', :order => self.class.module_options.order_by
+    @active_table_output = email_targets_table_generate params, self.class.module_options.order_options.merge(:per_page => 25, :conditions => 'client_user_id IS NULL')
+
+    @handlers_data = UserSegment.get_handlers_data(@active_table_output.data(&:id), @segment_fields)
 
     if display
       @update_tags = true
@@ -244,7 +248,7 @@ class MembersController < CmsController # :nodoc: all
   end
 
   class Options < HashModel
-    attributes :fields => [], :order_by => 'created_at DESC'
+    attributes :fields => [], :order_by => 'created', :order_direction => 'DESC'
 
     def validate
       if self.fields
@@ -254,6 +258,15 @@ class MembersController < CmsController # :nodoc: all
       if self.order_by
         self.errors.add(:order_by, 'is invalid') unless UserSegment.order_by_options.rassoc(self.order_by)
       end
+
+      if self.order_direction
+        self.errors.add(:order_direction, 'is invalid') unless UserSegment.order_direction_options.include?(self.order_direction)
+      end
+    end
+
+    def order_options
+      sort_field = UserSegment::FieldHandler.sortable_fields[self.order_by.to_sym]
+      sort_field[:handler].order_options(self.order_by, self.order_direction)
     end
   end
 
@@ -267,7 +280,7 @@ class MembersController < CmsController # :nodoc: all
 
     @builder = UserSegment::OperationBuilder.new nil
 
-    @segment = UserSegment.new :main_page => true, :segment_type => 'filtered'
+    @segment = UserSegment.new :main_page => true, :segment_type => 'filtered', :order_by => 'created', :order_direction => 'DESC'
 
     if request.post? && params[:segment]
       return redirect_to :action => 'index' unless params[:commit]
