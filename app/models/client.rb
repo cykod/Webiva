@@ -6,4 +6,5 @@
 class Client < SystemModel 
   has_many :client_users, :dependent => :destroy
   has_many :domains, :dependent => :destroy
+  has_many :domain_database, :destroy => :destroy
 end

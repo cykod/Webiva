@@ -127,7 +127,7 @@ class Domain < SystemModel
     if self.domain_database
       info[:domain_database] = self.domain_database.attributes.symbolize_keys
     else
-      info[:domain_database] = {:name => self.database, :options => YAML.load_file(self.database_file), :max_client_users => nil, :available_file_storage => nil}
+      info[:domain_database] = {:client_id => self.client_id, :name => self.database, :options => YAML.load_file(self.database_file), :max_client_users => nil, :available_file_storage => nil}
     end
 
     info
@@ -139,7 +139,7 @@ class Domain < SystemModel
     if self.domain_database
       self.domain_database.update_attributes :options => YAML.load_file(self.database_file)
     else
-      self.create_domain_database :name => self.database, :options => YAML.load_file(self.database_file)
+      self.create_domain_database :client_id => self.client_id, :name => self.database, :options => YAML.load_file(self.database_file)
       self.save
     end
   end
