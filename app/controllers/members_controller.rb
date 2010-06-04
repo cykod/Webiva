@@ -252,11 +252,11 @@ class MembersController < CmsController # :nodoc: all
 
     def validate
       if self.fields
-        self.errors.add(:fields, 'is invalid') if self.fields.find { |f| UserSegment.fields_options.rassoc(f).nil? }
+        self.errors.add(:fields, 'is invalid') if self.fields.find { |f| self.fields_options.rassoc(f).nil? }
       end
 
       if self.order_by
-        self.errors.add(:order_by, 'is invalid') unless UserSegment.order_by_options.rassoc(self.order_by)
+        self.errors.add(:order_by, 'is invalid') unless self.order_by_options.rassoc(self.order_by)
       end
 
       if self.order_direction
@@ -267,6 +267,14 @@ class MembersController < CmsController # :nodoc: all
     def order_options
       sort_field = UserSegment::FieldHandler.sortable_fields[self.order_by.to_sym]
       sort_field[:handler].order_options(self.order_by, self.order_direction)
+    end
+
+    def fields_options
+      UserSegment.fields_options
+    end
+
+    def order_by_options
+      UserSegment.order_by_options(:end_user_only => true)
     end
   end
 

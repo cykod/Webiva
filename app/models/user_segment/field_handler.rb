@@ -29,10 +29,11 @@ class UserSegment::FieldHandler
        self.get_handler_info(:user_segment, :fields)).uniq
   end
 
-  def self.sortable_fields
+  def self.sortable_fields(opts={})
     fields = {}
     self.handlers.each do |handler|
       next unless handler[:class].respond_to?(:order_options)
+      next if opts[:end_user_only] && handler[:domain_model_class] != EndUser
       handler[:class].user_segment_fields.each do |field, info|
         next unless info[:sortable]
         next if fields[field]
@@ -42,7 +43,7 @@ class UserSegment::FieldHandler
     fields
   end
 
-  def self.display_fields
+  def self.display_fields(opts={})
     fields = {}
     self.handlers.each do |handler|
       next unless handler[:class].respond_to?(:field_output)
