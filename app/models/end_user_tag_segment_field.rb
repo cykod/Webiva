@@ -15,7 +15,7 @@ class EndUserTagSegmentField < UserSegment::FieldHandler
       Tag.find(:all, :select => 'name').collect(&:name).sort.collect { |name| [name, name] }
     end
 
-    def self.is(cls, field, name)
+    def self.is(cls, group_field, field, name)
       tg = Tag.find_by_name name
       id = tg ? tg.id : 0
       cls.scoped(:conditions => ["#{field} = ?", id])

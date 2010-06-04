@@ -11,7 +11,7 @@ class UserSubscriptionEntrySegmentField < UserSegment::FieldHandler
   class UserSubscriptionType < UserSegment::FieldType
     register_operation :is, [['User Subscription', :model, {:class => UserSubscription}]]
 
-    def self.is(cls, field, id)
+    def self.is(cls, group_field, field, id)
       cls.scoped(:conditions => ["#{field} = ?", id])
     end
   end

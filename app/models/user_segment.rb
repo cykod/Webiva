@@ -135,6 +135,9 @@ class UserSegment < DomainModel
     # remove client users
     ids = EndUser.find(:all, :select => 'id', :conditions => {:id => ids, :client_user_id => nil}).collect &:id
 
+    self.order_by ||= 'created'
+    self.order_direction ||= 'DESC'
+
     sort_field = UserSegment::FieldHandler.sortable_fields[self.order_by.to_sym]
     scope = sort_field[:handler].sort_scope(self.order_by, self.order_direction)
     end_user_field = sort_field[:handler].user_segment_fields_handler_info[:end_user_field] || :end_user_id

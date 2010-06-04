@@ -55,13 +55,18 @@ class UserSegment::Field < HashModel
   def end_user_ids(ids=nil)
     scope = self.get_scope
     scope = scope.scoped(:conditions => {self.end_user_field  => ids}) if ids
-    scope.find(:all, :select => self.end_user_field).collect &self.end_user_field
+
+    # this is because scopes do not combine selects
+    select = self.end_user_field.to_s
+    select += ", #{scope.proxy_options[:select]}" if scope.proxy_options[:select]
+
+    scope.find(:all, :select => select).collect &self.end_user_field
   end
 
   def get_scope(scope=nil)
     return @scope if @scope
     scope ||= self.domain_model_class
-    @scope = self.type_class.send(self.operation, scope, self.model_field, *self.converted_arguments)
+    @scope = self.type_class.send(self.operation, scope, self.end_user_field, self.model_field, *self.converted_arguments)
     @scope = self.child_field.get_scope(@scope) if self.child_field
     @scope
   end

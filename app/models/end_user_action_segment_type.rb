@@ -10,7 +10,7 @@ class EndUserActionSegmentType
 
     register_operation :is, [['Action', :model, {:class => EndUserActionSegmentType::UserActionType}]]
 
-    def self.is(cls, field, path)
+    def self.is(cls, group_field, field, path)
       path = path.split('/')
       cls.scoped(:conditions => ["#{field[0]} = ? and #{field[1]} = ?", path[0..-2].join('/'), path[-1]])
     end
@@ -24,7 +24,7 @@ class EndUserActionSegmentType
 
     register_operation :is, [['Action', :model, {:class => EndUserActionSegmentType::ActionType}]]
 
-    def self.is(cls, field, action)
+    def self.is(cls, group_field, field, action)
       cls.scoped(:conditions => ["#{field} = ?", action])
     end
   end
@@ -37,7 +37,7 @@ class EndUserActionSegmentType
 
     register_operation :is, [['Renderer', :model, {:class => EndUserActionSegmentType::RendererType}]]
 
-    def self.is(cls, field, renderer)
+    def self.is(cls, group_field, field, renderer)
       cls.scoped(:conditions => ["#{field} = ?", renderer])
     end
   end
