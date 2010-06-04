@@ -202,7 +202,7 @@ class UserSegment < DomainModel
     position = (offset / UserSegmentCache::SIZE).to_i
 
     cache = self.user_segment_caches.find_by_position(position)
-    items = cache ? cache.fetch_users(:offset => (offset % UserSegmentCache::SIZE), :limit => page_size) : []
+    items = cache ? cache.fetch_users(:offset => (offset % UserSegmentCache::SIZE), :limit => page_size, :include => args[:include]) : []
 
     [ { :pages => pages, 
         :page => page, 

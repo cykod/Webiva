@@ -36,14 +36,15 @@ class MembersController < CmsController # :nodoc: all
     end
   end
 
-  def find_end_users(opts)
+  def find_end_users(opts={})
     if self.search_results
       self.search.users
     elsif self.segment
-      pages, users = self.segment.paginate self.search.page, :per_page => 25
+      pages, users = self.segment.paginate self.search.page, :per_page => 25, :include => opts[:include]
       users
     else
-      EndUser.find(:all, :conditions => 'client_user_id IS NULL', :offset => opts[:offset], :limit => opts[:limit], :order => opts[:order], :include => opts[:include], :joins => opts[:joins])
+      opts = opts.merge(self.class.module_options.order_options)
+      EndUser.find(:all, :conditions => 'client_user_id IS NULL', :offset => opts[:offset], :limit => opts[:limit], :order => opts[:order], :include => opts[:include])
     end
   end
 
@@ -171,7 +172,7 @@ class MembersController < CmsController # :nodoc: all
       handle_table_actions
     end
 
-    @active_table_output = email_targets_table_generate params, self.class.module_options.order_options.merge(:per_page => 25, :conditions => 'client_user_id IS NULL')
+    @active_table_output = email_targets_table_generate params, :per_page => 25, :include => [:user_class, :domain_file]
 
     @handlers_data = UserSegment.get_handlers_data(@active_table_output.data(&:id), @segment_fields)
 
@@ -265,8 +266,10 @@ class MembersController < CmsController # :nodoc: all
     end
 
     def order_options
-      sort_field = UserSegment::FieldHandler.sortable_fields[self.order_by.to_sym]
-      sort_field[:handler].order_options(self.order_by, self.order_direction)
+      info = UserSegment::FieldHandler.sortable_fields(:end_user_only => true)[self.order_by.to_sym]
+      return {:order => 'created_at DESC'} unless info
+      field = info[:field]
+      {:order => "#{field} #{self.order_direction}"}
     end
 
     def fields_options

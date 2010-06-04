@@ -16,7 +16,7 @@ class UserSegmentCache < DomainModel
   def fetch_users(opts={})
     ids = opts[:offset] && opts[:limit] ? self.id_list[opts[:offset]..opts[:offset]+opts[:limit]-1] : self.id_list
     return [] if ! ids || ids.empty?
-    users_by_id = EndUser.find(:all, :conditions => {:id => ids}).index_by(&:id)
+    users_by_id = EndUser.find(:all, :conditions => {:id => ids}, :include => opts[:include]).index_by(&:id)
     ids.map { |id| users_by_id[id] }.compact
   end
 
