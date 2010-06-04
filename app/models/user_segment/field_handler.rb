@@ -41,6 +41,13 @@ class UserSegment::FieldHandler
         next unless info[:sortable]
         next if fields[field]
         fields[field] = info
+
+        if info[:sort_methods]
+          info[:sort_methods].each do |name, method|
+            field_method = "#{field}_#{method}".to_sym
+            fields[field_method] = info.merge(:base_field => field, :sort_method => method, :name => name) unless fields[field_method]
+          end
+        end
       end
     end
 
