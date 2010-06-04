@@ -24,8 +24,8 @@ class EndUserTagSegmentField < UserSegment::FieldHandler
 
   register_field :tag, EndUserTagSegmentField::EndUserTagType, :field => :tag_id, :name => 'Tag', :sortable => true
 
-  def self.order_options(order_by, direction)
-    {:include => [:end_user_tags, :tags], :order => "tags.name #{direction}"}
+  def self.sort_scope(order_by, direction)
+    EndUserTag.scoped :joins => :tag, :order => "tags.name #{direction}"
   end
 
   def self.field_heading(field)

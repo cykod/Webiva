@@ -132,9 +132,15 @@ class UserSegment < DomainModel
 
     self.user_segment_caches.delete_all
 
+    # remove client users
+    ids = EndUser.find(:all, :select => 'id', :conditions => {:id => ids, :client_user_id => nil}).collect &:id
+
     sort_field = UserSegment::FieldHandler.sortable_fields[self.order_by.to_sym]
-    scope = EndUser.scoped(sort_field[:handler].order_options(self.order_by, self.order_direction))
-    ids = scope.find(:all, :select => 'DISTINCT end_users.id', :conditions => {:id => ids, :client_user_id => nil}).collect &:id
+    scope = sort_field[:handler].sort_scope(self.order_by, self.order_direction)
+    end_user_field = sort_field[:handler].user_segment_fields_handler_info[:end_user_field] || :end_user_id
+    sorted_ids = scope.find(:all, :select => "DISTINCT #{end_user_field}", :conditions => {end_user_field => ids}).collect &end_user_field
+
+    ids = sorted_ids + (ids - sorted_ids)
 
     num_segements = (ids.length / UserSegmentCache::SIZE)
     num_segements = num_segements + 1 if (ids.length % UserSegmentCache::SIZE) > 0

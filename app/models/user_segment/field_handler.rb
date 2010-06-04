@@ -32,7 +32,7 @@ class UserSegment::FieldHandler
   def self.sortable_fields(opts={})
     fields = {}
     self.handlers.each do |handler|
-      next unless handler[:class].respond_to?(:order_options)
+      next unless handler[:class].respond_to?(:sort_scope)
       next if opts[:end_user_only] && handler[:domain_model_class] != EndUser
       handler[:class].user_segment_fields.each do |field, info|
         next unless info[:sortable]

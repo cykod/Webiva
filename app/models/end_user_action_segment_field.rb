@@ -14,12 +14,12 @@ class EndUserActionSegmentField < UserSegment::FieldHandler
   register_field :created, UserSegment::CoreType::DateTimeType, :field => :created_at, :name => 'User Actions: Created'
   register_field :occurred, UserSegment::CoreType::DateTimeType, :field => :action_at, :name => 'User Actions: Occurred', :sortable => true
 
-  def self.order_options(order_by, direction)
+  def self.sort_scope(order_by, direction)
     if order_by.to_sym == :user_action
-      {:include => [:end_user_actions], :order => "end_user_actions.renderer #{direction}, end_user_actions.action #{direction}"}
+      EndUserAction.scoped :order => "renderer #{direction}, action #{direction}"
     else
       field = self.user_segment_fields[order_by.to_sym][:field]
-      {:include => [:end_user_actions], :order => "end_user_actions.#{field} #{direction}"}
+      EndUserAction.scoped :order => "#{field} #{direction}"
     end
   end
 

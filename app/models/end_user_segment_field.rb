@@ -26,9 +26,9 @@ class EndUserSegmentField < UserSegment::FieldHandler
   register_field :introduction, UserSegment::CoreType::StringType, :name => 'Introduction', :sortable => true
   register_field :suffix, UserSegment::CoreType::StringType, :name => 'Suffix', :sortable => true
 
-  def self.order_options(order_by, direction)
+  def self.sort_scope(order_by, direction)
     field = self.user_segment_fields[order_by.to_sym][:field]
-    {:order => "end_users.#{field} #{direction}"}
+    EndUser.scoped :order => "end_users.#{field} #{direction}"
   end
 
   def self.field_display_value(user, field)
