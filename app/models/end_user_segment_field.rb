@@ -31,40 +31,10 @@ class EndUserSegmentField < UserSegment::FieldHandler
     EndUser.scoped :order => "end_users.#{field} #{direction}"
   end
 
-  def self.field_display_value(user, field)
-    display_field = self.user_segment_fields[field.to_sym][:display_field]
-
-    value = t.send(display_field)
-    if value.is_a?(DomainModel)
-      value.name
-    elsif value.is_a?(Time)
-      value.strftime(DEFAULT_DATETIME_FORMAT.t)
-    elsif value.nil?
-      '-'
-    else
-      value.to_s
-    end
-  end
-
   def self.get_handler_data(ids, fields)
   end
 
-  def self.field_heading(field)
-    self.user_segment_fields[field][:name]
-  end
-
   def self.field_output(user, handler_data, field)
-    display_field = self.user_segment_fields[field][:display_field]
-
-    value = user.send(display_field)
-    return nil if value.nil?
-
-    if value.is_a?(DomainModel)
-      value.name
-    elsif value.is_a?(Time)
-      value.strftime(DEFAULT_DATETIME_FORMAT.t)
-    else
-      value.to_s
-    end
+    UserSegment::FieldType.field_output(user, handler_data, field)
   end
 end

@@ -22,14 +22,10 @@ class EndUserTagSegmentField < UserSegment::FieldHandler
     end
   end
 
-  register_field :tag, EndUserTagSegmentField::EndUserTagType, :field => :tag_id, :name => 'Tag', :sortable => true
+  register_field :tag, EndUserTagSegmentField::EndUserTagType, :field => :tag_id, :name => 'Tag', :sortable => true, :display_field => :tag
 
   def self.sort_scope(order_by, direction)
     EndUserTag.scoped :joins => :tag, :order => "tags.name #{direction}"
-  end
-
-  def self.field_heading(field)
-    self.user_segment_fields[field][:name]
   end
 
   def self.get_handler_data(ids, fields)
@@ -37,12 +33,6 @@ class EndUserTagSegmentField < UserSegment::FieldHandler
   end
 
   def self.field_output(user, handler_data, field)
-    return nil unless handler_data[user.id]
-
-    if field == :tag
-      handler_data[user.id].collect{ |ut| ut.tag.name }.join(', ')
-    else
-      nil
-    end
+    UserSegment::FieldType.field_output(user, handler_data, field)
   end
 end

@@ -97,4 +97,52 @@ class UserSegment::FieldType
       self.convert_to(arguments[idx], types[idx], options[idx])
     end
   end
+
+  def self.field_output(mdl, handler_data, field)
+    info = UserSegment::FieldHandler.display_fields[field]
+    return nil unless info
+
+    display_field = info[:display_field]
+
+    value = nil
+    if handler_data.nil?
+      return nil unless mdl.respond_to?(display_field)
+      value = mdl.send(display_field)
+    else
+      return nil unless handler_data[mdl.id]
+
+      data = handler_data[mdl.id]
+      if data.is_a?(Array)
+        value = data.collect { |d| d.send(display_field) }
+
+        case info[:display_method]
+        when 'max'
+          value = value.max
+        when 'min'
+          value = value.min
+        when 'sum'
+          value = value.inject(0) { |a,b| a + b }
+        when 'average'
+          value = value.inject(0) { |a,b| a + b } / value.size
+        when 'count'
+          value = value.size
+        end
+
+        if value.is_a?(Array)
+          value = value.collect do |v|
+            v = v.strftime(DEFAULT_DATETIME_FORMAT.t) if v.is_a?(Time)
+            v = v.name if v.is_a?(DomainModel)
+            v
+          end
+          value = value.join(', ')
+        end
+      else
+        value = data.send(display_field)
+      end
+    end
+
+    value = value.strftime(DEFAULT_DATETIME_FORMAT.t) if value.is_a?(Time)
+    value = value.name if value.is_a?(DomainModel)
+    value
+  end
 end

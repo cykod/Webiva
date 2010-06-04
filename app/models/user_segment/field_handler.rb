@@ -30,6 +30,9 @@ class UserSegment::FieldHandler
   end
 
   def self.sortable_fields(opts={})
+    key = 'user_segment_sortable_fields_' + opts.to_s
+    return DataCache.local_cache(key) if DataCache.local_cache(key)
+
     fields = {}
     self.handlers.each do |handler|
       next unless handler[:class].respond_to?(:sort_scope)
@@ -40,10 +43,14 @@ class UserSegment::FieldHandler
         fields[field] = info
       end
     end
-    fields
+
+    DataCache.put_local_cache(key, fields)
   end
 
   def self.display_fields(opts={})
+    key = 'user_segment_display_fields_' + opts.to_s
+    return DataCache.local_cache(key) if DataCache.local_cache(key)
+
     fields = {}
     self.handlers.each do |handler|
       next unless handler[:class].respond_to?(:field_output)
@@ -51,8 +58,22 @@ class UserSegment::FieldHandler
         next if info[:search_only]
         next if fields[field]
         fields[field] = info
+
+        if info[:display_methods]
+          info[:display_methods].each do |name, method|
+            field_method = "#{field}_#{method}".to_sym
+            fields[field_method] = info.merge(:base_field => field, :display_method => method, :name => "#{info[:name]} #{name}") unless fields[field_method]
+          end
+        end
       end
     end
-    fields
+
+    DataCache.put_local_cache(key, fields)
+  end
+
+  def self.field_heading(field)
+    info = self.display_fields[field]
+    return '' unless info
+    info[:name]
   end
 end

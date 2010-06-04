@@ -16,6 +16,7 @@ class UserSubscriptionEntrySegmentField < UserSegment::FieldHandler
     end
   end
 
+  register_field :num_subscription, UserSegment::CoreType::CountType, :field => :end_user_id, :name => '# Subscriptions', :display_method => 'count'
   register_field :user_subscription_id, UserSubscriptionEntrySegmentField::UserSubscriptionType, :name => 'User Subscription'
 
   def self.field_heading(field)
@@ -27,12 +28,6 @@ class UserSubscriptionEntrySegmentField < UserSegment::FieldHandler
   end
 
   def self.field_output(user, handler_data, field)
-    return nil unless handler_data[user.id]
-
-    if field == :user_subscription_id
-      handler_data[user.id].collect{ |s| s.user_subscription.name }.join(', ')
-    else
-      nil
-    end
+    UserSegment::FieldType.field_output(user, handler_data, field)
   end
 end

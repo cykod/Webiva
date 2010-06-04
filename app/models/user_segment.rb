@@ -312,9 +312,14 @@ class UserSegment < DomainModel
     fields.collect { |field| UserSegment::Field.new :field => field }
   end
 
-  def self.get_handlers_data(ids, segment_fields)
+  def self.get_handlers_data(ids, fields)
     handlers = {}
-    segment_fields.each { |sf| handlers[sf.handler_class] ||= []; handlers[sf.handler_class] << sf.model_field }
+    fields.each do |field|
+      info = UserSegment::FieldHandler.display_fields[field.to_sym]
+      next unless info
+      handlers[info[:handler]] ||= []
+      handlers[info[:handler]] << field.to_sym
+    end
 
     data = {}
     handlers.each { |handler, fields| data[handler.to_s] = handler.get_handler_data(ids, fields) }

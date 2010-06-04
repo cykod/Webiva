@@ -119,11 +119,9 @@ class MembersController < CmsController # :nodoc: all
       @fields = self.class.module_options.fields
     end
 
-    @segment_fields = UserSegment.segment_fields(@fields)
-
     @fields.each do |field|
-      option = UserSegment.fields_options.rassoc(field)
-      @email_targets_table_columns << ActiveTable::StaticHeader.new(option[1], :label => option[0]) if option
+      info = UserSegment::FieldHandler.display_fields[field.to_sym]
+      @email_targets_table_columns << ActiveTable::StaticHeader.new(field, :label => info[:handler].field_heading(field.to_sym)) if info
     end
 
     @email_targets_table_columns
@@ -174,7 +172,7 @@ class MembersController < CmsController # :nodoc: all
 
     @active_table_output = email_targets_table_generate params, :per_page => 25, :include => [:user_class, :domain_file]
 
-    @handlers_data = UserSegment.get_handlers_data(@active_table_output.data(&:id), @segment_fields)
+    @handlers_data = UserSegment.get_handlers_data(@active_table_output.data(&:id), @fields)
 
     if display
       @update_tags = true

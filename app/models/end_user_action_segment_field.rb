@@ -8,7 +8,7 @@ class EndUserActionSegmentField < UserSegment::FieldHandler
     }
   end
 
-  register_field :user_action, EndUserActionSegmentType::UserActionType, :field => [:renderer, :action], :name => 'User Actions', :display_field => :description, :sortable => true
+  register_field :user_action, EndUserActionSegmentType::UserActionType, :field => [:renderer, :action], :name => 'User Actions', :display_field => :description, :sortable => true, :display_field => :description
   register_field :action, EndUserActionSegmentType::ActionType, :name => 'User Actions: Action', :sortable => true
   register_field :renderer, EndUserActionSegmentType::RendererType, :name => 'User Actions: Renderer', :sortable => true
   register_field :created, UserSegment::CoreType::DateTimeType, :field => :created_at, :name => 'User Actions: Created'
@@ -32,13 +32,6 @@ class EndUserActionSegmentField < UserSegment::FieldHandler
   end
 
   def self.field_output(user, handler_data, field)
-    return nil unless handler_data[user.id]
-
-    display_field = self.user_segment_fields[field][:display_field]
-    handler_data[user.id].collect do |item|
-      value = item.send(display_field)
-      value = value.strftime(DEFAULT_DATETIME_FORMAT.t) if value.is_a?(Time)
-      value
-    end.join(', ')
+    UserSegment::FieldType.field_output(user, handler_data, field)
   end
 end
