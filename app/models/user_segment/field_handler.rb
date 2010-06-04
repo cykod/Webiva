@@ -62,7 +62,7 @@ class UserSegment::FieldHandler
         if info[:display_methods]
           info[:display_methods].each do |name, method|
             field_method = "#{field}_#{method}".to_sym
-            fields[field_method] = info.merge(:base_field => field, :display_method => method, :name => "#{info[:name]} #{name}") unless fields[field_method]
+            fields[field_method] = info.merge(:base_field => field, :display_method => method, :name => name) unless fields[field_method]
           end
         end
       end
