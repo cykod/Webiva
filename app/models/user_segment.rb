@@ -32,7 +32,7 @@ class UserSegment < DomainModel
   end
 
   def before_validation #:nodoc:
-    self.order_by = 'created_at' if self.order_by.blank?
+    self.order_by = 'created' if self.order_by.blank?
     self.order_direction = 'DESC' if self.order_direction.blank?
   end
 
