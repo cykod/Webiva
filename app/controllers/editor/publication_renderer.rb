@@ -164,6 +164,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
       publication.run_triggered_actions(entry,'view',myself) 
     end
     
+    set_page_connection(:content_id, [publication.content_model.table_name.camelcase,entry.id] ) if entry 
     require_css('gallery')
     
     render_paragraph :text => display_feature(publication,{ :entry => entry, :return_page => return_page, :offset => connection_offset, :publication => publication, :page_href => site_node.node_path, :filter_options => options })
