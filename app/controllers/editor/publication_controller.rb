@@ -10,7 +10,8 @@ class Editor::PublicationController < ParagraphController #:nodoc:all
    editor_for :create, :name => 'Entry Create Form', :features => ['publication_entry_create_form'], :hidden => true,
              :inputs =>  [ [ :entry_id, 'Entry Identifier', :integer ] ]
    editor_for :view, :name => 'Entry Display Form', :features => ['publication_entry_display_form'], :hidden => true,
-              :inputs =>  [ [ :entry_id, 'Entry Identifier', :integer ], [:entry_offset, 'Entry Offset', :integer ]]
+              :inputs =>  [ [ :entry_id, 'Entry Identifier', :integer ], [:entry_offset, 'Entry Offset', :integer ]],
+              :outputs => [[:content_id, 'Content Identifier', :content]]
    editor_for :list, :name => 'Entry List', :features => ['publication_entry_list'], :hidden => true
    
    editor_for :edit, :name => 'Entry Edit', 
@@ -72,8 +73,6 @@ class Editor::PublicationController < ParagraphController #:nodoc:all
    
    @options.additional_vars(@publication.filter_variables)
    
-
-      
     return if handle_paragraph_update(@options)
     
     @pages = [['No Return Page'.t, nil ]] + SiteNode.page_options()

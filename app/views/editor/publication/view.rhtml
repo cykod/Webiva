@@ -3,7 +3,7 @@
 
 <% tabled_form_for :pub, @options, 
           :html => { :id => 'edit_entry',
-                     :onsubmit => "cmsEdit.submitParagraphData(this,'#{url_for :action => 'edit'}',#{@paragraph.id},#{@paragraph_index}); return false;"
+                     :onsubmit => "cmsEdit.submitParagraphData(this,'#{url_for :action => 'view'}',#{@paragraph.id},#{@paragraph_index}); return false;"
                    }  do |f| -%>
 <%= f.select :entry_id, @entries,:label => 'Entry to display' %>                   
 <%= f.select :return_page, @pages, :label => 'Return Page' %>
