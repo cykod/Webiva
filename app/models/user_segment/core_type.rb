@@ -41,36 +41,36 @@ class UserSegment::CoreType
       cls.scoped(:conditions => ["#{field} #{operator} ?", value])
     end
 
-    register_operation :sum, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]]
+    register_operation :sum, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]], :complex => true
 
     def self.sum(cls, group_field, field, operator, value)
-      cls.scoped(:select => "SUM(#{field}) as #{field}_sum", :group => group_field, :having => "#{field}_sum #{operator} #{value}")
+      cls.scoped(:select => "#{field}, SUM(#{field}) as #{field}_sum", :group => group_field, :having => "#{field}_sum #{operator} #{value}")
     end
 
-    register_operation :average, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]]
+    register_operation :average, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]], :complex => true
 
     def self.average(cls, group_field, field, operator, value)
-      cls.scoped(:select => "AVERAGE(#{field}) as #{field}_average", :group => group_field, :having => "#{field}_average #{operator} #{value}")
+      cls.scoped(:select => "#{field}, AVERAGE(#{field}) as #{field}_average", :group => group_field, :having => "#{field}_average #{operator} #{value}")
     end
 
-    register_operation :min, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]]
+    register_operation :min, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]], :complex => true
 
     def self.min(cls, group_field, field, operator, value)
-      cls.scoped(:select => "MIN(#{field}) as #{field}_min", :group => group_field, :having => "#{field}_min #{operator} #{value}")
+      cls.scoped(:select => "#{field}, MIN(#{field}) as #{field}_min", :group => group_field, :having => "#{field}_min #{operator} #{value}")
     end
 
-    register_operation :max, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]]
+    register_operation :max, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]], :complex => true
 
     def self.max(cls, group_field, field, operator, value)
-      cls.scoped(:select => "MAX(#{field}) as #{field}_max", :group => group_field, :having => "#{field}_max #{operator} #{value}")
+      cls.scoped(:select => "#{field}, MAX(#{field}) as #{field}_max", :group => group_field, :having => "#{field}_max #{operator} #{value}")
     end
   end
 
   class CountType < UserSegment::FieldType
-    register_operation :count, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]]
+    register_operation :count, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]], :complex => true
 
     def self.count(cls, group_field, field, operator, value)
-      cls.scoped(:select => "COUNT(#{field}) as #{field}_count", :group => group_field, :having => "#{field}_count #{operator} #{value}")
+      cls.scoped(:select => "#{field}, COUNT(#{field}) as #{field}_count", :group => group_field, :having => "#{field}_count #{operator} #{value}")
     end
   end
 

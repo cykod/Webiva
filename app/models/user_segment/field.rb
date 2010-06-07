@@ -12,13 +12,16 @@ class UserSegment::Field < HashModel
   def add_error(attr, message)
     @failure_reasons ||= []
 
-    self.errors.add(attr, message)
+    self.errors.add(attr, message) unless attr == :complex
 
     case attr
     when :field
       @failure_reasons << "'#{self.field}' is an invalid field"
     when :operation
       @failure_reasons << "'#{self.operation}' is an invalid function on '#{self.field}'"
+    when :complex
+      self.errors.add(:operation, 'is invalid')
+      @failure_reasons << "Too many complex functions combined. Move '#{self.field}.#{self.operation}()' to a new line."
     when :arguments
       @failure_reasons << "Arguments #{message} for '#{self.field}.#{self.operation}()'"
     when :child
@@ -45,7 +48,24 @@ class UserSegment::Field < HashModel
       end
     end
 
-    self.add_error(:child, 'is invalid') if self.child && self.child_field && ! self.child_field.valid?
+    if self.child && self.child_field
+      if self.child_field.valid?
+        is_complex = self.complex_operation
+        c = self.child_field
+        while c
+          if c.complex_operation
+            if is_complex
+              # error
+              self.add_error(:complex, 'too many')
+            end
+            is_complex = true
+          end
+          c = c.child_field
+        end
+      else
+        self.add_error(:child, 'is invalid')
+      end
+    end
   end
 
   def count
@@ -55,12 +75,8 @@ class UserSegment::Field < HashModel
   def end_user_ids(ids=nil)
     scope = self.get_scope
     scope = scope.scoped(:conditions => {self.end_user_field  => ids}) if ids
-
-    # this is because scopes do not combine selects
-    select = self.end_user_field.to_s
-    select += ", #{scope.proxy_options[:select]}" if scope.proxy_options[:select]
-
-    scope.find(:all, :select => select).collect &self.end_user_field
+    scope = scope.scoped(:select => self.end_user_field)
+    scope.find(:all).collect &self.end_user_field
   end
 
   def get_scope(scope=nil)
@@ -95,6 +111,10 @@ class UserSegment::Field < HashModel
 
   def operation_info
     @operation_info ||= self.type_class.user_segment_field_type_operations[self.operation.to_sym] if self.type_class
+  end
+
+  def complex_operation
+    self.operation_info[:complex] if self.operation_info
   end
 
   def type_class
