@@ -16,8 +16,15 @@ class UserSubscriptionEntrySegmentField < UserSegment::FieldHandler
     end
   end
 
-  register_field :num_subscription, UserSegment::CoreType::CountType, :field => :end_user_id, :name => '# Subscriptions', :display_method => 'count'
-  register_field :user_subscription_id, UserSubscriptionEntrySegmentField::UserSubscriptionType, :name => 'User Subscription'
+  register_field :num_subscriptions, UserSegment::CoreType::CountType, :field => :end_user_id, :name => '# Subscriptions', :display_method => 'count', :sort_method => 'count', :sortable => true
+  register_field :user_subscription_id, UserSubscriptionEntrySegmentField::UserSubscriptionType, :name => 'User Subscription', :display_field => :user_subscription
+
+  def self.sort_scope(order_by, direction)
+    info = UserSegment::FieldHandler.sortable_fields[order_by.to_sym]
+    sort_method = info[:sort_method]
+    field = info[:field]
+    UserSubscriptionEntry.scoped(:select => "end_user_id, #{sort_method}(#{field}) as #{field}_#{sort_method}", :group => :end_user_id, :order => "#{field}_#{sort_method} #{direction}")
+  end
 
   def self.field_heading(field)
     self.user_segment_fields[field][:name]
