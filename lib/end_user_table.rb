@@ -14,7 +14,8 @@ class EndUserTable
     @options = options
   end
   
-  attr_reader :renderer, :name, :options, :columns, :mdl
+  attr_reader :renderer, :name, :options, :columns, :mdl, :page_connection_hash
+  attr_writer :page_connection_hash
   
   
   module Controller  
@@ -30,7 +31,7 @@ class EndUserTable
     end
 
     def end_user_table_action(tbl)
-     if(request.post? && params[:end_user_table_action] && params[tbl.name.to_s + "_row"].is_a?(Hash)) 
+     if(request.post? && !params[:end_user_table_action].blank? && params[tbl.name.to_s + "_row"].is_a?(Hash)) 
       yield params[:end_user_table_action],params[tbl.name.to_s + "_row"].values
      end
    end
@@ -191,7 +192,7 @@ class EndUserTable
         from_entry = find_options[:offset] + 1
         to_entry = find_options[:offset] + per_page
         to_entry = entry_count if(to_entry > entry_count)        
-        
+        tbl.page_connection_hash = page_connection_hash
         tbl.set_meta_data({ :page => page, :pages => pages, :pages_count => pages_count, :per_page => per_page, :count => entry_count, :from => from_entry, :to => to_entry  })
         tbl.data = tbl.options[:find_callback] ? self.send(tbl.options[:find_callback],find_options) : model_class.find(:all,find_options)
     end
