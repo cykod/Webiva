@@ -50,7 +50,7 @@ class UserSegment::CoreType
     register_operation :average, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]], :complex => true
 
     def self.average(cls, group_field, field, operator, value)
-      cls.scoped(:select => "#{field}, AVERAGE(#{field}) as #{field}_average", :group => group_field, :having => "#{field}_average #{operator} #{value}")
+      cls.scoped(:select => "#{field}, AVG(#{field}) as #{field}_average", :group => group_field, :having => "#{field}_average #{operator} #{value}")
     end
 
     register_operation :min, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]], :complex => true

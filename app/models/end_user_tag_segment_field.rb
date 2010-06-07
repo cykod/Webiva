@@ -23,9 +23,18 @@ class EndUserTagSegmentField < UserSegment::FieldHandler
   end
 
   register_field :tag, EndUserTagSegmentField::EndUserTagType, :field => :tag_id, :name => 'Tag', :sortable => true, :display_field => :tag
+  register_field :num_tags, UserSegment::CoreType::CountType, :field => :end_user_id, :name => '# Tags', :display_method => 'count', :sort_method => 'count', :sortable => true
 
   def self.sort_scope(order_by, direction)
-    EndUserTag.scoped :joins => :tag, :order => "tags.name #{direction}"
+    info = UserSegment::FieldHandler.sortable_fields[order_by.to_sym]
+
+    if order_by.to_sym == :num_tags
+      sort_method = info[:sort_method]
+      field = info[:field]
+      EndUserTag.scoped(:select => "end_user_id, #{sort_method}(#{field}) as #{field}_#{sort_method}", :group => :end_user_id, :order => "#{field}_#{sort_method} #{direction}")
+    else
+      EndUserTag.scoped :joins => :tag, :order => "tags.name #{direction}"
+    end
   end
 
   def self.get_handler_data(ids, fields)

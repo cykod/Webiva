@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + "/../../spec_helper"
 
 describe UserSegment::CoreType do
 
-  reset_domain_tables :end_users, :end_user_caches
+  reset_domain_tables :end_users, :end_user_caches, :end_user_actions
 
   describe "DateTimeType" do
     before(:each) do
@@ -34,10 +34,22 @@ describe UserSegment::CoreType do
 
   describe "NumberType" do
     before(:each) do
-      EndUser.push_target('test1@test.dev', :user_level => 1)
-      EndUser.push_target('test2@test.dev', :user_level => 2)
-      EndUser.push_target('test3@test.dev', :user_level => 3)
-      EndUser.push_target('test4@test.dev', :user_level => 3)
+      @user1 = EndUser.push_target('test1@test.dev', :user_level => 1)
+      @user2 = EndUser.push_target('test2@test.dev', :user_level => 2)
+      @user3 = EndUser.push_target('test3@test.dev', :user_level => 3)
+      @user4 = EndUser.push_target('test4@test.dev', :user_level => 3)
+
+      EndUserAction.create :end_user_id => @user1.id, :level => 3, :renderer => 'editor/auth', :action => 'login'
+      EndUserAction.create :end_user_id => @user1.id, :level => 4, :renderer => 'editor/auth', :action => 'login'
+      EndUserAction.create :end_user_id => @user1.id, :level => 2, :renderer => 'editor/auth', :action => 'login'
+
+      EndUserAction.create :end_user_id => @user2.id, :level => 3, :renderer => 'editor/auth', :action => 'login'
+      EndUserAction.create :end_user_id => @user2.id, :level => 2, :renderer => 'editor/auth', :action => 'login'
+
+      EndUserAction.create :end_user_id => @user3.id, :level => 1, :renderer => 'editor/auth', :action => 'login'
+      EndUserAction.create :end_user_id => @user3.id, :level => 1, :renderer => 'editor/auth', :action => 'login'
+
+      EndUserAction.create :end_user_id => @user4.id, :level => 3, :renderer => 'editor/auth', :action => 'login'
 
       @type = UserSegment::CoreType::NumberType
     end
@@ -71,6 +83,59 @@ describe UserSegment::CoreType do
       @type.is(EndUser, :id, :user_level, '=', 2).count.should == 1
       @type.is(EndUser, :id, :user_level, '=', 3).count.should == 2
       @type.is(EndUser, :id, :user_level, '=', 3).count.should == 2
+    end
+
+    it "should be able to find users based on the sum" do
+      @type.sum(EndUserAction, :end_user_id, :level, '>', 3).find(:all).size.should == 2
+      @type.sum(EndUserAction, :end_user_id, :level, '>=', 3).find(:all).size.should == 3
+      @type.sum(EndUserAction, :end_user_id, :level, '<', 3).find(:all).size.should == 1
+    end
+
+    it "should be able to find users based on the max" do
+      @type.max(EndUserAction, :end_user_id, :level, '>', 3).find(:all).size.should == 1
+      @type.max(EndUserAction, :end_user_id, :level, '>=', 3).find(:all).size.should == 3
+      @type.max(EndUserAction, :end_user_id, :level, '<', 3).find(:all).size.should == 1
+    end
+
+    it "should be able to find users based on the min" do
+      @type.min(EndUserAction, :end_user_id, :level, '>', 3).find(:all).size.should == 0
+      @type.min(EndUserAction, :end_user_id, :level, '>=', 3).find(:all).size.should == 1
+      @type.min(EndUserAction, :end_user_id, :level, '<', 3).find(:all).size.should == 3
+    end
+
+    it "should be able to find users based on the average" do
+      @type.average(EndUserAction, :end_user_id, :level, '>', 3).find(:all).size.should == 0
+      @type.average(EndUserAction, :end_user_id, :level, '>=', 3).find(:all).size.should == 2
+      @type.average(EndUserAction, :end_user_id, :level, '<', 3).find(:all).size.should == 2
+    end
+  end
+
+  describe "CountType" do
+    before(:each) do
+      @user1 = EndUser.push_target('test1@test.dev', :user_level => 1)
+      @user2 = EndUser.push_target('test2@test.dev', :user_level => 2)
+      @user3 = EndUser.push_target('test3@test.dev', :user_level => 3)
+      @user4 = EndUser.push_target('test4@test.dev', :user_level => 3)
+
+      EndUserAction.create :end_user_id => @user1.id, :level => 3, :renderer => 'editor/auth', :action => 'login'
+      EndUserAction.create :end_user_id => @user1.id, :level => 4, :renderer => 'editor/auth', :action => 'login'
+      EndUserAction.create :end_user_id => @user1.id, :level => 2, :renderer => 'editor/auth', :action => 'login'
+
+      EndUserAction.create :end_user_id => @user2.id, :level => 3, :renderer => 'editor/auth', :action => 'login'
+      EndUserAction.create :end_user_id => @user2.id, :level => 2, :renderer => 'editor/auth', :action => 'login'
+
+      EndUserAction.create :end_user_id => @user3.id, :level => 1, :renderer => 'editor/auth', :action => 'login'
+      EndUserAction.create :end_user_id => @user3.id, :level => 1, :renderer => 'editor/auth', :action => 'login'
+
+      EndUserAction.create :end_user_id => @user4.id, :level => 3, :renderer => 'editor/auth', :action => 'login'
+
+      @type = UserSegment::CoreType::CountType
+    end
+
+    it "should return users using count" do
+      @type.count(EndUserAction, :end_user_id, :end_user_id, '>', 2).find(:all).size.should == 1
+      @type.count(EndUserAction, :end_user_id, :end_user_id, '>=', 2).find(:all).size.should == 3
+      @type.count(EndUserAction, :end_user_id, :end_user_id, '=', 1).find(:all).size.should == 1
     end
   end
 
