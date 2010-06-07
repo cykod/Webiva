@@ -70,7 +70,7 @@ Ex: <b>created</b>.<u>since</u>(7, "days") - Will return all the user who where 
   <ul>
   <% type_class.user_segment_field_type_operations.keys.collect { |key| key.to_s }.sort.each do |key| -%>
     <% operation = type_class.user_segment_field_type_operations[key.to_sym] -%>
-    <li><u><%= key %></u>(<%= operation[:argument_names].join(', ') %>) <%= h(' - ' + operation[:description]) if operation[:description] %>
+    <li><%= '* ' if operation[:complex] %><u><%= key %></u>(<%= operation[:argument_names].join(', ') %>) <%= h(' - ' + operation[:description]) if operation[:description] %>
       <ul>
       <% operation[:arguments].each_with_index do |arg,idx| -%>
         <li><%= operation[:argument_names][idx] %> - <em><%= arg %></em>
@@ -88,6 +88,7 @@ Ex: <b>created</b>.<u>since</u>(7, "days") - Will return all the user who where 
   </li>
 <% end -%>
 </ul>
+<p>* complex functions can not be combined using <b>AND</b> condition</p>
 </div>
 
 <br style="clear:both;"/>

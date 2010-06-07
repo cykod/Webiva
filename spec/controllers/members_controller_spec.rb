@@ -427,7 +427,7 @@ describe MembersController do
 
   it "should be able to update options" do
     mock_editor
-    post 'options', :commit => 1, :options => {:order_by => 'created_at', :fields => ['gender']}
+    post 'options', :commit => 1, :options => {:order_by => 'created', :order_direction => 'DESC', :fields => ['gender']}
     controller.class.module_options.fields.should == ['gender']
   end
 end

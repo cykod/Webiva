@@ -24,7 +24,7 @@ describe EndUserTagSegmentField do
 
     it "should be able to find user by tag" do
       @type.select_options.length.should == 8
-      @type.is(EndUserTag, :tag_id, 'One').count.should == 2
+      @type.is(EndUserTag, :end_user_id, :tag_id, 'One').count.should == 2
     end
   end
 end

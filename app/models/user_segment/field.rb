@@ -110,7 +110,7 @@ class UserSegment::Field < HashModel
   end
 
   def operation_info
-    @operation_info ||= self.type_class.user_segment_field_type_operations[self.operation.to_sym] if self.type_class
+    @operation_info ||= self.type_class.user_segment_field_type_operations[self.operation.to_sym] if self.operation && self.type_class
   end
 
   def complex_operation

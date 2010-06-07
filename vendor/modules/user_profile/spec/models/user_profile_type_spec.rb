@@ -11,6 +11,10 @@ describe UserProfileType do
                                          :user_classes => [ { 'id' => UserClass.default_user_class_id.to_s } ])
   end
 
+  after do
+    SiteModule.destroy_all
+  end
+
   specify {@prof_type.should be_valid}
 end
 

@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + "/../../spec_helper"
 
 describe UserSegment::CoreType do
 
-  reset_domain_tables :end_users
+  reset_domain_tables :end_users, :end_user_caches
 
   describe "DateTimeType" do
     before(:each) do

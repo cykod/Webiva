@@ -14,8 +14,8 @@ describe EndUserSegmentType do
     end
 
     it "should return users using based on gender" do
-      @type.is(EndUser, :gender, 'm').count.should == 1
-      @type.is(EndUser, :gender, 'f').count.should == 2
+      @type.is(EndUser, :id, :gender, 'm').count.should == 1
+      @type.is(EndUser, :id, :gender, 'f').count.should == 2
     end
   end
 
@@ -30,8 +30,8 @@ describe EndUserSegmentType do
 
     it "should return users using based on source" do
       @type.select_options.length.should == 2
-      @type.is(EndUser, :source, 'import').count.should == 2
-      @type.is(EndUser, :source, 'site').count.should == 1
+      @type.is(EndUser, :id, :source, 'import').count.should == 2
+      @type.is(EndUser, :id, :source, 'site').count.should == 1
     end
   end
 
@@ -46,8 +46,8 @@ describe EndUserSegmentType do
 
     it "should return users using based on lead_source" do
       @type.select_options.length.should == 2
-      @type.is(EndUser, :lead_source, 'import').count.should == 2
-      @type.is(EndUser, :lead_source, 'site').count.should == 1
+      @type.is(EndUser, :id, :lead_source, 'import').count.should == 2
+      @type.is(EndUser, :id, :lead_source, 'site').count.should == 1
     end
   end
 end

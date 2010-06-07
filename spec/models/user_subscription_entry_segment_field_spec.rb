@@ -31,7 +31,7 @@ describe UserSubscriptionEntrySegmentField do
     end
 
     it "should be able to find user from their subscriptions" do
-      @type.is(UserSubscriptionEntry, :user_subscription_id, @subscription3.id).count.should == 2
+      @type.is(UserSubscriptionEntry, :end_user_id, :user_subscription_id, @subscription3.id).count.should == 2
     end
   end
 end
