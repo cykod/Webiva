@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + "/../../spec_helper"
 
 describe UserSegment::FieldType do
 
-  reset_domain_tables :tags
+  reset_domain_tables :tags, :end_users, :end_user_tags
 
   it "should convert value to integer" do
     UserSegment::FieldType.convert_to("0", :integer).should == 0
@@ -103,10 +103,25 @@ describe UserSegment::FieldType do
   end
 
   it "should support multiple option types" do
-    UserSegment::FieldType::convert_to('day', :option, :options => ['day', 'days', 'week', 'weeks']).should == 'day'
-    UserSegment::FieldType::convert_to('day', :option, :options => [['Day', 'day'], ['Days', 'days'], ['Week', 'week'], ['Weeks', 'weeks']]).should == 'day'
-    UserSegment::FieldType::convert_to(3, :option, :options => [1, 2, 4, 5, 3]).should == 3
-    UserSegment::FieldType::convert_to(false, :option, :options => [true, false]).should == false
-    UserSegment::FieldType::convert_to(nil, :option, :options => [true, false]).should == nil
+    UserSegment::FieldType.convert_to('day', :option, :options => ['day', 'days', 'week', 'weeks']).should == 'day'
+    UserSegment::FieldType.convert_to('day', :option, :options => [['Day', 'day'], ['Days', 'days'], ['Week', 'week'], ['Weeks', 'weeks']]).should == 'day'
+    UserSegment::FieldType.convert_to(3, :option, :options => [1, 2, 4, 5, 3]).should == 3
+    UserSegment::FieldType.convert_to(false, :option, :options => [true, false]).should == false
+    UserSegment::FieldType.convert_to(nil, :option, :options => [true, false]).should == nil
+  end
+
+  it "should be able to output symble types" do
+    @user1 = EndUser.push_target('test1@test.dev', :first_name => 'First', :last_name => 'Last')
+    @user1.tag 'one'
+    @user1.tag 'two'
+    @user1.tag 'three'
+    @user1.tag 'four'
+
+    UserSegment::FieldType.field_output(@user1, nil, :last_name).should == 'Last'
+    UserSegment::FieldType.field_output(@user1, nil, 'last_name').should be_nil
+
+    handler_data = @user1.end_user_tags
+
+    UserSegment::FieldType.field_output(@user1, {@user1.id => handler_data}, :num_tags).should == 4
   end
 end
