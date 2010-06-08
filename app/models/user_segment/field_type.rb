@@ -6,12 +6,32 @@ The type determines the operations/functions availble to a field.
 =end
 class UserSegment::FieldType
 
+  # A hash of all the operations for this type
   def self.user_segment_field_type_operations; {}; end
 
+  # Whether or not this type has the operation
   def self.has_operation?(operation)
     self.user_segment_field_type_operations[operation.to_sym] ? true : false
   end
-    
+
+  # Registers operation to be applied to a field.
+  #
+  # name of the operation
+  # list of arguments required by the operation
+  #  an argument is name, type, options
+  #  Ex: [['Format', :option, {:options => [['Day', 'day'], ['Weeks', 'week'] ...], :description => 'ago'}]
+  #  argument options
+  #  [:options]
+  #    An array of select options
+  #  [:description]
+  #    The description used in the filter builder
+  #  [:class]
+  #    When the argument is type :model.  It uses this class to determine the select options.
+  # Additional options
+  # [:description]
+  #   A brief description used when creating the help
+  # [:complex]
+  #   When set to true this operation can not be combined with any other combined operation
   def self.register_operation(operation, args=[], options={})
     operations = self.user_segment_field_type_operations
 
@@ -93,16 +113,19 @@ class UserSegment::FieldType
     nil
   end
 
+  # An array of the model options
   def self.model_options(opts={})
     opts[:class].select_options
   end
 
+  # An array of the arguments converted to their correct types
   def self.convert_arguments(arguments, types, options)
     (0..arguments.length-1).collect do |idx|
       self.convert_to(arguments[idx], types[idx], options[idx])
     end
   end
 
+  # A default method for displaying the data of a field
   def self.field_output(mdl, handler_data, field)
     info = UserSegment::FieldHandler.display_fields[field]
     return nil unless info
