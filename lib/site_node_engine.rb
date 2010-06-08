@@ -626,7 +626,7 @@ EOF
   # Run the site node engine, given an ActiveController and a user 
   # this will compile all paragraph and return the appropriate subclass of
   # SiteNodeEngine::Output
-  def run(controller,user)
+  def run(controller,user,options = {})
     
     nd = generate_page_information(controller,user)    
 
@@ -704,14 +704,14 @@ EOF
                 # We may not have a result if the page connections
                 # aren't fullfilled yet
                 if result
-                  if result.is_a?(ParagraphRenderer::ParagraphRedirect)
+                  if result.is_a?(ParagraphRenderer::ParagraphRedirect) && !options[:error_page]
                     @output = RedirectOutput.new
                     @output.status = result.args.delete(:status)  if result.args.is_a?(Hash)
 
                     @output.paction = result.paction if result.paction
                     @output.redirect = result.args
                     return @output # exit early if we can 
-                  elsif result.is_a?(ParagraphRenderer::ParagraphData)
+                  elsif result.is_a?(ParagraphRenderer::ParagraphData)  && !options[:error_page]
                     # if we just have data, we need to do a direct output
                     return DocumentOutput.new(result.render_args)
                   end

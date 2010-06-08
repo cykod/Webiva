@@ -17,14 +17,20 @@ UserSegment = {
 <%= f.text_field :name %>
 <%= f.text_area :description, :rows => 3 %>
 <%= f.select :order_by, UserSegment.order_by_options %>
+<%= f.radio_buttons :order_direction, UserSegment.order_direction_select_options %>
 <%= f.check_boxes :main_page, [['add to quick select list', true]], :single => true  %>
 <%= f.ordered_array :fields, UserSegment.fields_options, :label => 'Fields to Display' %>
 
   <% if @segment.segment_type == 'filtered' -%>
-    <% f.custom_field '' do %>
-      <a href="javascript:void(0)" onclick='openWindow("<%= url_for(:action => "builder", :path => @segment.id) %>" ,"operationBuilder",460,500,"yes","yes");'><%= @segment.id ? 'Edit filter'.t : 'Create a filter'.t %></a>
+    <% f.custom_field 'Filter' do %>
+      <div><a href="javascript:void(0)" onclick='openWindow("<%= url_for(:action => "builder", :path => @segment.id) %>" ,"operationBuilder",460,500,"yes","yes");'><%= @segment.id ? 'Edit filter'.t : 'Create a filter'.t %></a></div>
+
+      <div>
+        <%= "<div style='padding: 2px 0 2px 0' class='error'>#{f.output_error_message('Filter', :segment_options_text)}</div>" if @segment.errors[:segment_options_text] %>
+        <%= text_area_tag 'segment[segment_options_text]', @segment.segment_options_text, :rows => 8, :style => 'width:400px;' %>
+      </div>
+      <div align="right"><a href="javascript:void(0)" onclick='openWindow("<%= url_for(:action => "builder_help", :path => @segment.id) %>" ,"operationBuilder",750,600,"yes","yes");'><%= 'What is a filter?'.t %></a></div>
     <% end %>
-    <%= f.text_area :segment_options_text, :rows => 8, :style => 'width:400px;', :label => 'Filter' %>
   <% end -%>
 
 <%= f.spacer %>

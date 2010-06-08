@@ -6,8 +6,15 @@ class UserSegment::Operation
     @fields = fields
   end
 
+  def error_on_field; @error_on_field; end
+
   def valid?
-    @fields.each { |fld| return false unless fld.valid? }
+    @fields.each do |fld|
+      unless fld.valid?
+        @error_on_field = fld
+        return false
+      end
+    end
     true
   end
 

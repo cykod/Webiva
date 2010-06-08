@@ -58,16 +58,17 @@ class UserSegment::FieldType
       rescue
       end
     when :option
+      value = value.downcase if value.is_a?(String)
       value = opts[:options].find do |o|
         if o.is_a?(Array)
-          o[1].downcase == value.downcase
+          o[1] == value
         else
-          o.downcase == value.downcase
+          o == value
         end
       end
 
       return value[1] if value.is_a?(Array)
-      return value if value
+      return value
     when :boolean
       return value if value.is_a?(TrueClass) || value.is_a?(FalseClass)
       value = value.downcase if value.is_a?(String)
@@ -76,8 +77,12 @@ class UserSegment::FieldType
     when :model
       options = self.model_options(opts)
       value = value.to_i if options.size > 0 && options[0].is_a?(Array) && options[0][1].is_a?(Integer)
-      values = options.rassoc(value)
-      return values[1] if values
+      if options[0].is_a?(Array)
+        values = options.rassoc(value)
+        return values[1] if values
+      else
+        return value if options.include?(value)
+      end
     end
 
     nil
@@ -91,5 +96,53 @@ class UserSegment::FieldType
     (0..arguments.length-1).collect do |idx|
       self.convert_to(arguments[idx], types[idx], options[idx])
     end
+  end
+
+  def self.field_output(mdl, handler_data, field)
+    info = UserSegment::FieldHandler.display_fields[field]
+    return nil unless info
+
+    display_field = info[:display_field]
+
+    value = nil
+    if handler_data.nil?
+      return nil unless mdl.respond_to?(display_field)
+      value = mdl.send(display_field)
+    else
+      return nil unless handler_data[mdl.id]
+
+      data = handler_data[mdl.id]
+      if data.is_a?(Array)
+        value = data.collect { |d| d.send(display_field) }
+
+        case info[:display_method]
+        when 'max'
+          value = value.max
+        when 'min'
+          value = value.min
+        when 'sum'
+          value = value.inject(0) { |a,b| a + b }
+        when 'average'
+          value = value.inject(0) { |a,b| a + b } / value.size
+        when 'count'
+          value = value.size
+        end
+
+        if value.is_a?(Array)
+          value = value.collect do |v|
+            v = v.strftime(DEFAULT_DATETIME_FORMAT.t) if v.is_a?(Time)
+            v = v.name if v.is_a?(DomainModel)
+            v
+          end
+          value = value.join(', ')
+        end
+      else
+        value = data.send(display_field)
+      end
+    end
+
+    value = value.strftime(DEFAULT_DATETIME_FORMAT.t) if value.is_a?(Time)
+    value = value.name if value.is_a?(DomainModel)
+    value
   end
 end

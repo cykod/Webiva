@@ -36,14 +36,15 @@ class MembersController < CmsController # :nodoc: all
     end
   end
 
-  def find_end_users(opts)
+  def find_end_users(opts={})
     if self.search_results
       self.search.users
     elsif self.segment
-      pages, users = self.segment.paginate self.search.page, :per_page => 25, :include => [:user_class, :domain_file]
+      pages, users = self.segment.paginate self.search.page, :per_page => 25, :include => opts[:include]
       users
     else
-      EndUser.find(:all, :conditions => 'client_user_id IS NULL', :include => [:user_class, :domain_file], :offset => opts[:offset], :limit => opts[:limit], :order => opts[:order])
+      opts = opts.merge(self.class.module_options.order_options)
+      EndUser.find(:all, :conditions => 'client_user_id IS NULL', :offset => opts[:offset], :limit => opts[:limit], :order => opts[:order], :include => opts[:include])
     end
   end
 
@@ -106,7 +107,6 @@ class MembersController < CmsController # :nodoc: all
     @email_targets_table_columns = [
       ActiveTable::IconHeader.new('check', :width => '16'),
       ActiveTable::StaticHeader.new('', :width => '24'),
-      ActiveTable::StaticHeader.new('Profile', :width => '70'),
       ActiveTable::StaticHeader.new('Image', :width => '70'),
       ActiveTable::StaticHeader.new('Name'),
       ActiveTable::StaticHeader.new('Email')
@@ -120,8 +120,8 @@ class MembersController < CmsController # :nodoc: all
     end
 
     @fields.each do |field|
-      option = UserSegment.fields_options.rassoc(field)
-      @email_targets_table_columns << ActiveTable::StaticHeader.new(option[1], :label => option[0]) if option
+      info = UserSegment::FieldHandler.display_fields[field.to_sym]
+      @email_targets_table_columns << ActiveTable::StaticHeader.new(field, :label => info[:handler].field_heading(field.to_sym)) if info
     end
 
     @email_targets_table_columns
@@ -129,6 +129,14 @@ class MembersController < CmsController # :nodoc: all
 
   def email_targets_table_generate(opts,*find_options)
     active_table_generate('end_users', EndUser, self.email_targets_table_columns, {:count_callback => 'count_end_users', :find_callback => 'find_end_users'}, opts, *find_options)
+  end
+
+  def user_segment_type_select_options
+    UserSegment.segment_type_select_options
+  end
+
+  def user_segment_status_select_options
+    UserSegment.status_select_options
   end
 
   public 
@@ -162,7 +170,9 @@ class MembersController < CmsController # :nodoc: all
       handle_table_actions
     end
 
-    @active_table_output = email_targets_table_generate params, :per_page => 25, :conditions => 'client_user_id IS NULL', :order => self.class.module_options.order_by
+    @active_table_output = email_targets_table_generate params, :per_page => 25, :include => [:user_class, :domain_file]
+
+    @handlers_data = UserSegment.get_handlers_data(@active_table_output.data(&:id), @fields)
 
     if display
       @update_tags = true
@@ -189,11 +199,11 @@ class MembersController < CmsController # :nodoc: all
                 UserSegment,
                 [ hdr(:icon, 'check', :width => '16'),
                   hdr(:icon, '', :width => '32'),
-                  :main_page,
-                  :segment_type,
                   :name,
+                  :main_page,
+                  hdr(:options, :segment_type, :options => :user_segment_type_select_options),
                   :description,
-                  :status,
+                  hdr(:options, :status, :options => :user_segment_status_select_options),
                   :last_count,
                   :last_ran_at,
                   :created_at,
@@ -208,6 +218,8 @@ class MembersController < CmsController # :nodoc: all
         UserSegment.update_all('main_page = 1', :id => ids)
       when 'remove'
         UserSegment.update_all('main_page = 0', :id => ids)
+      when 'duplicate'
+        ids.each { |id| UserSegment.create_copy id }
       end
     end
 
@@ -235,16 +247,35 @@ class MembersController < CmsController # :nodoc: all
   end
 
   class Options < HashModel
-    attributes :fields => [], :order_by => 'created_at DESC'
+    attributes :fields => [], :order_by => 'created', :order_direction => 'DESC'
 
     def validate
       if self.fields
-        self.errors.add(:fields, 'is invalid') if self.fields.find { |f| UserSegment.fields_options.rassoc(f).nil? }
+        self.errors.add(:fields, 'is invalid') if self.fields.find { |f| self.fields_options.rassoc(f).nil? }
       end
 
       if self.order_by
-        self.errors.add(:order_by, 'is invalid') unless UserSegment.order_by_options.rassoc(self.order_by)
+        self.errors.add(:order_by, 'is invalid') unless self.order_by_options.rassoc(self.order_by)
       end
+
+      if self.order_direction
+        self.errors.add(:order_direction, 'is invalid') unless UserSegment.order_direction_options.include?(self.order_direction)
+      end
+    end
+
+    def order_options
+      info = UserSegment::FieldHandler.sortable_fields(:end_user_only => true)[self.order_by.to_sym]
+      return {:order => 'created_at DESC'} unless info
+      field = info[:field]
+      {:order => "#{field} #{self.order_direction}"}
+    end
+
+    def fields_options
+      UserSegment.fields_options
+    end
+
+    def order_by_options
+      UserSegment.order_by_options(:end_user_only => true)
     end
   end
 
@@ -258,7 +289,7 @@ class MembersController < CmsController # :nodoc: all
 
     @builder = UserSegment::OperationBuilder.new nil
 
-    @segment = UserSegment.new :main_page => true, :segment_type => 'filtered'
+    @segment = UserSegment.new :main_page => true, :segment_type => 'filtered', :order_by => 'created', :order_direction => 'DESC'
 
     if request.post? && params[:segment]
       return redirect_to :action => 'index' unless params[:commit]
@@ -310,13 +341,19 @@ class MembersController < CmsController # :nodoc: all
   def refresh_segment
     @segment = UserSegment.find params[:path][0]
     @segment.refresh
-    return redirect_to(:action => 'index', :path => @segment.id) if @segment.segment_type == 'custom'
-    redirect_to :action => 'segments'
+    render :partial => 'refresh_segment'
+  end
+
+  def refresh_segment_status
+    @segment = UserSegment.find params[:path][0]
+  end
+
+  def builder_help
+    @handlers = UserSegment::FieldHandler.handlers
+    render :action => 'builder_help', :layout => 'manage_window'
   end
 
   def builder
-    cms_page_path ['People'], 'Operation Builder'
-
     @segment = UserSegment.find_by_id params[:path][0] if params[:path]
     @builder = @segment ? UserSegment::OperationBuilder.create_builder(@segment) : UserSegment::OperationBuilder.new(nil)
     @filter = params[:filter]

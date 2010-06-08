@@ -19,7 +19,6 @@
   <td align='center' nowrap='1'>
   <%= t.editor? ? '' : content_tag(:a, theme_image_tag('icons/actions/edit.gif'), {:href => url_for(:action => 'edit', :path => t.id)}) %>
   </td>
-  <td align='center' nowrap='1'><%= t.user_class ? t.user_class.name : '-'  %></td>
   <td align='center'>
     <%= image = t.image ? t.image.image_tag(:thumb) : 'No Image'.t
         t.editor? ? image : content_tag(:a, image, {:href => url_for(:action => 'view', :path => t.id)})
@@ -37,16 +36,10 @@
   <% if @fields -%>
     <% @fields.each do |field| -%>
       <%=
-          value = t.send(field)
-          if value.is_a?(DomainModel)
-           "<td align='center'>#{value.name}</td>"
-          elsif value.is_a?(Time)
-           "<td align='center'>#{value.strftime(DEFAULT_DATETIME_FORMAT.t)}</td>"
-          elsif value.nil?
-           "<td align='center'>-</td>"
-          else
-           "<td align='center'>#{value}</td>"
-          end
+          info = UserSegment::FieldHandler.display_fields[field.to_sym]
+          next unless info
+          value = info[:handler].field_output(t, @handlers_data[info[:handler].to_s], field.to_sym)
+          "<td align='center'>#{value}</td>"
       %>
     <% end -%>
   <% end -%>

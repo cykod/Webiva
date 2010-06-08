@@ -10,90 +10,96 @@ class UserSegment::CoreType
   class DateTimeType < UserSegment::FieldType
     register_operation :before, [['Value', :integer], ['Format', :option, {:options => UserSegment::CoreType.datetime_format_options, :description => 'ago'}]]
 
-    def self.before(cls, field, value, format)
+    def self.before(cls, group_field, field, value, format)
       time = value.send(format).ago
       cls.scoped(:conditions => ["#{field} <= ?", time])
     end
 
     register_operation :since, [['Value', :integer], ['Format', :option, {:options => UserSegment::CoreType.datetime_format_options, :description => 'ago'}]]
 
-    def self.since(cls, field, value, format)
+    def self.since(cls, group_field, field, value, format)
       time = value.send(format).ago
       cls.scoped(:conditions => ["#{field} >= ?", time])
     end
 
     register_operation :between, [['From', :datetime], ['To', :datetime]]
 
-    def self.between(cls, field, from, to)
+    def self.between(cls, group_field, field, from, to)
       cls.scoped(:conditions => ["#{field} between ? and ?", from, to])
     end
   end
 
+  @@number_type_operators = ['>', '>=', '=', '<=', '<']
+  def self.number_type_operators
+    @@number_type_operators
+  end
 
   class NumberType < UserSegment::FieldType
-    register_operation :greater_than, [['Value', :integer]]
+    register_operation :is, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]]
 
-    def self.greater_than(cls, field, value)
-      cls.scoped(:conditions => ["#{field} > ?", value])
+    def self.is(cls, group_field, field, operator, value)
+      cls.scoped(:conditions => ["#{field} #{operator} ?", value])
     end
 
-    register_operation :greater_than_or_equal_to, [['Value', :integer]]
+    register_operation :sum, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]], :complex => true
 
-    def self.greater_than_or_equal_to(cls, field, value)
-      cls.scoped(:conditions => ["#{field} >= ?", value])
+    def self.sum(cls, group_field, field, operator, value)
+      cls.scoped(:select => "#{field}, SUM(#{field}) as #{field}_sum", :group => group_field, :having => "#{field}_sum #{operator} #{value}")
     end
 
-    register_operation :less_than, [['Value', :integer]]
+    register_operation :average, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]], :complex => true
 
-    def self.less_than(cls, field, value)
-      cls.scoped(:conditions => ["#{field} < ?", value])
+    def self.average(cls, group_field, field, operator, value)
+      cls.scoped(:select => "#{field}, AVG(#{field}) as #{field}_average", :group => group_field, :having => "#{field}_average #{operator} #{value}")
     end
 
-    register_operation :less_than_or_equal_to, [['Value', :integer]]
+    register_operation :min, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]], :complex => true
 
-    def self.less_than_or_equal_to(cls, field, value)
-      cls.scoped(:conditions => ["#{field} <= ?", value])
+    def self.min(cls, group_field, field, operator, value)
+      cls.scoped(:select => "#{field}, MIN(#{field}) as #{field}_min", :group => group_field, :having => "#{field}_min #{operator} #{value}")
     end
 
-    register_operation :equals, [['Value', :integer]]
+    register_operation :max, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]], :complex => true
 
-    def self.equals(cls, field, value)
-      cls.scoped(:conditions => ["#{field} = ?", value])
+    def self.max(cls, group_field, field, operator, value)
+      cls.scoped(:select => "#{field}, MAX(#{field}) as #{field}_max", :group => group_field, :having => "#{field}_max #{operator} #{value}")
     end
+  end
 
-    register_operation :is, [['Value', :integer]]
+  class CountType < UserSegment::FieldType
+    register_operation :count, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]], :complex => true
 
-    def self.is(cls, field, value)
-      self.equals(cls, field, value)
+    def self.count(cls, group_field, field, operator, value)
+      cls.scoped(:select => "#{field}, COUNT(#{field}) as #{field}_count", :group => group_field, :having => "#{field}_count #{operator} #{value}")
     end
   end
 
   class StringType < UserSegment::FieldType
-    register_operation :like, [['String', :string]]
+    register_operation :like, [['String', :string]], :description => 'use % for wild card matches'
 
-    def self.like(cls, field, string)
+    def self.like(cls, group_field, field, string)
       cls.scoped(:conditions => ["#{field} like ?", string])
     end
 
-    register_operation :is, [['String', :string]]
+    register_operation :is, [['String', :string]], :description => 'exact match'
 
-    def self.is(cls, field, string)
+    def self.is(cls, group_field, field, string)
       cls.scoped(:conditions => ["#{field} = ?", string])
     end
   end
 
   class BooleanType < UserSegment::FieldType
-    register_operation :is, [['', :boolean]]
+    register_operation :is, [['Boolean', :boolean]]
 
-    def self.is(cls, field, string)
+    def self.is(cls, group_field, field, string)
       cls.scoped(:conditions => ["#{field} = ?", string])
     end
   end
 
   class MatchType < UserSegment::FieldType
-    register_operation :search, [['Query', :string]]
+    register_operation :search, [['Query', :string]], :description => 'full text search'
 
-    def self.search(cls, field, query)
+    def self.search(cls, group_field, field, query)
       cls.scoped(:conditions => ["MATCH (#{field}) AGAINST (?)", query])
     end
   end

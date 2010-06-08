@@ -18,18 +18,28 @@ class UserSegment::Filter
     @parser ||= UserSegmentOptionParser.new
   end
 
+  def failure_reason; @failure_reason; end
+
   def parse(text)
     if options = self.parser.parse(text)
       self.operations = options.eval
       true
     else
+      @failure_reason = self.parser.failure_reason
       false
     end
   end
 
   def valid?
     return false unless self.operations
-    self.operations.each { |op| return false unless op.valid? }
+    line = 1
+    self.operations.each do |op|
+      unless op.valid?
+        @failure_reason = "error on Line #{line}: " + op.error_on_field.failure_reasons.join("\n")
+        return false
+      end
+      line = line.succ
+    end
     true
   end
 

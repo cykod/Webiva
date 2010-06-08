@@ -7,25 +7,64 @@ class UserSegment::Field < HashModel
 
   def strict?; true; end
 
+  def failure_reasons; @failure_reasons || []; end
+
+  def add_error(attr, message)
+    @failure_reasons ||= []
+
+    self.errors.add(attr, message) unless attr == :complex
+
+    case attr
+    when :field
+      @failure_reasons << "'#{self.field}' is an invalid field"
+    when :operation
+      @failure_reasons << "'#{self.operation}' is an invalid function on '#{self.field}'"
+    when :complex
+      self.errors.add(:operation, 'is invalid')
+      @failure_reasons << "Too many complex functions combined. Move '#{self.field}.#{self.operation}()' to a new line."
+    when :arguments
+      @failure_reasons << "Arguments #{message} for '#{self.field}.#{self.operation}()'"
+    when :child
+      @failure_reasons = @failure_reasons + self.child_field.failure_reasons
+    end
+  end
+
   def validate
     unless self.field.blank?
-      self.errors.add(:field, 'invalid field') unless self.handler
+      
+      self.add_error(:field, 'invalid field') unless self.handler
     end
 
-    unless self.operation.blank?
-      self.errors.add(:operation, 'invalid operation') if ! self.type_class || ! self.type_class.has_operation?(self.operation)
+    unless self.handler.nil? || self.operation.blank?
+      self.add_error(:operation, 'invalid operation') if ! self.type_class || ! self.type_class.has_operation?(self.operation)
 
       if self.operation_info
-        self.errors.add(:arguments, 'are missing') if self.arguments.empty? && ! self.operation_arguments.empty?
+        self.add_error(:arguments, 'are missing') if self.arguments.empty? && ! self.operation_arguments.empty?
 
         unless self.arguments.empty?
-          self.errors.add(:arguments, 'are incorrect') unless self.arguments.size == self.operation_arguments.size
-          self.errors.add(:arguments, 'are invalid') if self.arguments.size == self.operation_arguments.size && ! self.valid_arguments?
+          self.add_error(:arguments, 'are incorrect') unless self.arguments.size == self.operation_arguments.size
+          self.add_error(:arguments, 'are invalid') if self.arguments.size == self.operation_arguments.size && ! self.valid_arguments?
         end
       end
     end
 
-    self.errors.add(:child, 'is invalid') if self.child && self.child_field && ! self.child_field.valid?
+    if self.child && self.child_field
+      if self.child_field.valid?
+        is_complex = self.complex_operation
+        c = self.child_field
+        while c
+          if c.complex_operation
+            if is_complex
+              self.add_error(:complex, 'too many')
+            end
+            is_complex = true
+          end
+          c = c.child_field
+        end
+      else
+        self.add_error(:child, 'is invalid')
+      end
+    end
   end
 
   def count
@@ -35,13 +74,14 @@ class UserSegment::Field < HashModel
   def end_user_ids(ids=nil)
     scope = self.get_scope
     scope = scope.scoped(:conditions => {self.end_user_field  => ids}) if ids
-    scope.find(:all, :select => self.end_user_field).collect &self.end_user_field
+    scope = scope.scoped(:select => self.end_user_field)
+    scope.find(:all).collect &self.end_user_field
   end
 
   def get_scope(scope=nil)
     return @scope if @scope
     scope ||= self.domain_model_class
-    @scope = self.type_class.send(self.operation, scope, self.model_field, *self.converted_arguments)
+    @scope = self.type_class.send(self.operation, scope, self.end_user_field, self.model_field, *self.converted_arguments)
     @scope = self.child_field.get_scope(@scope) if self.child_field
     @scope
   end
@@ -69,7 +109,11 @@ class UserSegment::Field < HashModel
   end
 
   def operation_info
-    @operation_info ||= self.type_class.user_segment_field_type_operations[self.operation.to_sym] if self.type_class
+    @operation_info ||= self.type_class.user_segment_field_type_operations[self.operation.to_sym] if self.operation && self.type_class
+  end
+
+  def complex_operation
+    self.operation_info[:complex] if self.operation_info
   end
 
   def type_class

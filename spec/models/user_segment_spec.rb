@@ -19,7 +19,7 @@ describe UserSegment do
     @segment = UserSegment.new
     @segment.valid?.should be_false
     @segment.should have(1).error_on(:name)
-    @segment.should have(2).error_on(:segment_type)
+    @segment.should have(1).error_on(:segment_type)
     @segment.should have(0).error_on(:segment_options_text)
 
     @segment = UserSegment.new :segment_type => 'filtered'
@@ -212,7 +212,8 @@ describe UserSegment do
     @id_list = [@user1.id, @user2.id, @user3.id, @user6.id, @user8.id]
     @segment.end_user_ids.should == @id_list
 
-    @segment.order_by = 'created_at'
+    @segment.order_by = 'created'
+    @segment.order_direction = 'ASC'
     @segment.should_refresh?.should be_true
     @segment.refresh
     @segment.end_user_ids.should == @id_list.reverse

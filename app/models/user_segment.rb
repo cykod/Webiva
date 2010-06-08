@@ -10,13 +10,34 @@ class UserSegment < DomainModel
   validates_presence_of :name
   validates_presence_of :segment_type
   validates_presence_of :segment_options_text, :if => Proc.new { |seg| seg.segment_type == 'filtered' }
+  validates_presence_of :order_by
+  validates_presence_of :order_direction
 
-  validates_inclusion_of :segment_type, :in => %w(filtered custom)
+  has_options :segment_type, [['Filtered', 'filtered'], ['Custom', 'custom']]
+  has_options :order_direction, [['Ascending', 'ASC'], ['Descending', 'DESC']]
 
+  has_options :status,
+    [['New', 'new'],
+     ['Finished', 'finished'],
+     ['Refreshing', 'refreshing'],
+     ['Calculating', 'calculating'],
+     ['Adding', 'adding'],
+     ['Removing', 'removing'],
+     ['Sorting', 'sorting']]
+    
   def ready?; self.status == 'finished'; end
 
   def fields
     self.read_attribute(:fields) || []
+  end
+
+  def before_validation #:nodoc:
+    self.order_by = 'created' if self.order_by.blank?
+    self.order_direction = 'DESC' if self.order_direction.blank?
+  end
+
+  def validate
+    self.errors.add(:segment_options_text, nil, :message => self.operations.failure_reason) if self.segment_options_text && self.segment_options.nil?
   end
 
   def operations
@@ -32,7 +53,11 @@ class UserSegment < DomainModel
     self.write_attribute :segment_options_text, text
     @filter = UserSegment::Filter.new
     @filter.parse text
-    self.segment_options = @filter.valid? ? self.operations.to_a : nil
+    if @filter.valid?
+      self.segment_options = self.operations.to_a
+    else
+      self.segment_options = nil
+    end
     text
   end
 
@@ -40,6 +65,12 @@ class UserSegment < DomainModel
     self.should_refresh = self.order_by != order
     self.write_attribute :order_by, order
     order
+  end
+
+  def order_direction=(direction)
+    self.should_refresh = self.order_direction != direction
+    self.write_attribute :order_direction, direction
+    direction
   end
 
   def should_refresh
@@ -101,8 +132,19 @@ class UserSegment < DomainModel
 
     self.user_segment_caches.delete_all
 
-    self.order_by = 'created_at DESC' unless self.order_by
-    ids = EndUser.find(:all, :select => 'id', :conditions => {:id => ids, :client_user_id => nil}, :order => self.order_by).collect &:id
+    # remove client users
+    ids = EndUser.find(:all, :select => 'id', :conditions => {:id => ids, :client_user_id => nil}).collect &:id
+
+    self.order_by ||= 'created'
+    self.order_direction ||= 'DESC'
+
+    sort_field = UserSegment::FieldHandler.sortable_fields[self.order_by.to_sym]
+    scope = sort_field[:handler].sort_scope(self.order_by, self.order_direction)
+    end_user_field = sort_field[:handler].user_segment_fields_handler_info[:end_user_field] || :end_user_id
+    scope = scope.scoped(:select => "DISTINCT #{end_user_field}") unless scope.proxy_options[:select]
+    sorted_ids = scope.find(:all, :conditions => {end_user_field => ids}).collect &end_user_field
+
+    ids = sorted_ids + (ids - sorted_ids)
 
     num_segements = (ids.length / UserSegmentCache::SIZE)
     num_segements = num_segements + 1 if (ids.length % UserSegmentCache::SIZE) > 0
@@ -153,6 +195,12 @@ class UserSegment < DomainModel
     nil
   end
 
+  def find_in_batches(opts={}, &block)
+    self.user_segment_caches.each do |segement|
+      segement.find_in_batches(opts, &block)
+    end
+  end
+
   def paginate(page=1, args={})
     args = args.clone.symbolize_keys!
     window_size =args.delete(:window) || 2
@@ -170,7 +218,7 @@ class UserSegment < DomainModel
     position = (offset / UserSegmentCache::SIZE).to_i
 
     cache = self.user_segment_caches.find_by_position(position)
-    items = cache ? cache.fetch_users(:offset => (offset % UserSegmentCache::SIZE), :limit => page_size) : []
+    items = cache ? cache.fetch_users(:offset => (offset % UserSegmentCache::SIZE), :limit => page_size, :include => args[:include]) : []
 
     [ { :pages => pages, 
         :page => page, 
@@ -217,12 +265,12 @@ class UserSegment < DomainModel
     self.status = 'new'
   end
 
-  def self.fields_options
-    [['Source', 'source'], ['Date of Birth', 'dob'], ['Gender', 'gender'], ['Created', 'created_at'], ['Registered', 'registered_at'], ['User Class', 'user_class'], ['Tags', 'tag_names']]
+  def self.fields_options(opts={})
+    UserSegment::FieldHandler.display_fields(opts).collect { |field, info| [info[:handler].field_heading(field), field.to_s] }.sort { |a, b| a[0] <=> b[0] }
   end
 
-  def self.order_by_options
-    [['Created Desc', 'created_at DESC'], ['Created Asc', 'created_at'], ['Email', 'email']]
+  def self.order_by_options(opts={})
+    UserSegment::FieldHandler.sortable_fields(opts).collect { |field, info| [info[:handler].field_heading(field), field.to_s] }.sort { |a, b| a[0] <=> b[0] }
   end
 
   def to_expr
@@ -245,6 +293,44 @@ class UserSegment < DomainModel
       self.market_segment.name = self.name
       self.market_segment.save
     end
+  end
+
+  def self.create_copy(id)
+    segment_to_copy = UserSegment.find_by_id(id)
+    return nil unless segment_to_copy
+
+    @segment = UserSegment.new segment_to_copy.attributes.symbolize_keys.slice(:name, :description, :fields, :main_page, :segment_options_text, :order_by, :segment_type)
+    @segment.name += ' (Copy)'
+
+    return nil unless @segment.save
+    @segment.refresh
+    @segment
+  end
+
+  def list_name
+    if self.segment_type == 'filtered'
+      self.name + ' (Filtered)'
+    else
+      self.name + ' (Custom)'
+    end
+  end
+
+  def self.segment_fields(fields)
+    fields.collect { |field| UserSegment::Field.new :field => field }
+  end
+
+  def self.get_handlers_data(ids, fields)
+    handlers = {}
+    fields.each do |field|
+      info = UserSegment::FieldHandler.display_fields[field.to_sym]
+      next unless info
+      handlers[info[:handler]] ||= []
+      handlers[info[:handler]] << field.to_sym
+    end
+
+    data = {}
+    handlers.each { |handler, fields| data[handler.to_s] = handler.get_handler_data(ids, fields) }
+    data
   end
 end
 

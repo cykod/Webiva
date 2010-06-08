@@ -13,6 +13,7 @@ class UserSegments < ActiveRecord::Migration
       t.text :segment_options
       t.text :segment_options_text
       t.string :order_by
+      t.string :order_direction
       t.timestamps
     end
 

@@ -161,7 +161,12 @@ class DataCache
     content_target_string = content_type_string  + "::" + content_target
     display_location_string= content_target_string + "::" + display_location.to_s
     
-    ret_val = CACHE.get_multi(container_string,content_type_string,content_target_string,display_location_string)
+    ret_val = nil
+    begin
+      ret_val = CACHE.get_multi(container_string,content_type_string,content_target_string,display_location_string)
+    rescue ArgumentError => e
+      return nil
+    end
 
     val = ret_val[display_location_string]
     return nil unless val

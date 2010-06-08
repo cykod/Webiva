@@ -8,7 +8,7 @@ class EndUserSegmentType
 
     register_operation :is, [['Gender', :option, {:options => EndUserSegmentType::GenderType.gender_options, :form_field => 'radio_buttons'}]]
 
-    def self.is(cls, field, gender)
+    def self.is(cls, group_field, field, gender)
       cls.scoped(:conditions => ["#{field} = ?", gender])
     end
   end
@@ -20,7 +20,7 @@ class EndUserSegmentType
 
     register_operation :is, [['Source', :model, {:class => EndUserSegmentType::SourceType}]]
 
-    def self.is(cls, field, source)
+    def self.is(cls, group_field, field, source)
       cls.scoped(:conditions => ["#{field} = ?", source])
     end
   end
@@ -32,7 +32,7 @@ class EndUserSegmentType
 
     register_operation :is, [['Lead Source', :model, {:class => EndUserSegmentType::LeadSourceType}]]
 
-    def self.is(cls, field, source)
+    def self.is(cls, group_field, field, source)
       cls.scoped(:conditions => ["#{field} = ?", source])
     end
   end

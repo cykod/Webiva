@@ -3,27 +3,38 @@ class EndUserSegmentField < UserSegment::FieldHandler
 
   def self.user_segment_fields_handler_info
     {
-      :name => 'End User Segment Fields',
+      :name => 'User Fields',
       :domain_model_class => EndUser,
       :end_user_field => :id
     }
   end
 
-  register_field :email, UserSegment::CoreType::StringType, :name => 'Users: Email'
-  register_field :gender, EndUserSegmentType::GenderType, :name => 'Users: Gender'
-  register_field :created, UserSegment::CoreType::DateTimeType, :field => :created_at, :name => 'Users: Created'
-  register_field :registered, UserSegment::CoreType::BooleanType, :name => 'Users: Registered'
-  register_field :activated, UserSegment::CoreType::BooleanType, :name => 'Users: Activated'
-  register_field :user_level, UserSegment::CoreType::NumberType, :name => 'Users: User Level'
-  register_field :dob, UserSegment::CoreType::DateTimeType, :name => 'Users: DOB'
-  register_field :last_name, UserSegment::CoreType::StringType, :name => 'Users: Last Name'
-  register_field :first_name, UserSegment::CoreType::StringType, :name => 'Users: First Name'
-  register_field :source, EndUserSegmentType::SourceType, :name => 'Users: Source'
-  register_field :lead_source, EndUserSegmentType::LeadSourceType, :name => 'Users: Lead Source'
-  register_field :registered_at, UserSegment::CoreType::DateTimeType, :name => 'Users: Registered At'
-  register_field :referrer, UserSegment::CoreType::StringType, :name => 'Users: Referrer'
-  register_field :username, UserSegment::CoreType::StringType, :name => 'Users: Username'
-  register_field :introduction, UserSegment::CoreType::StringType, :name => 'Users: Introduction'
-  register_field :suffix, UserSegment::CoreType::StringType, :name => 'Users: Suffix'
+  register_field :email, UserSegment::CoreType::StringType, :name => 'Email', :sortable => true, :search_only => true
+  register_field :gender, EndUserSegmentType::GenderType, :name => 'Gender', :sortable => true
+  register_field :created, UserSegment::CoreType::DateTimeType, :field => :created_at, :name => 'Created', :sortable => true
+  register_field :registered, UserSegment::CoreType::BooleanType, :name => 'Registered', :sortable => true
+  register_field :activated, UserSegment::CoreType::BooleanType, :name => 'Activated', :sortable => true
+  register_field :user_level, UserSegment::CoreType::NumberType, :name => 'User Level', :sortable => true
+  register_field :dob, UserSegment::CoreType::DateTimeType, :name => 'DOB', :sortable => true
+  register_field :last_name, UserSegment::CoreType::StringType, :name => 'Last Name', :sortable => true
+  register_field :first_name, UserSegment::CoreType::StringType, :name => 'First Name', :sortable => true
+  register_field :source, EndUserSegmentType::SourceType, :name => 'Source', :sortable => true
+  register_field :lead_source, EndUserSegmentType::LeadSourceType, :name => 'Lead Source', :sortable => true
+  register_field :registered_at, UserSegment::CoreType::DateTimeType, :name => 'Registered At', :sortable => true
+  register_field :referrer, UserSegment::CoreType::StringType, :name => 'Referrer', :sortable => true
+  register_field :username, UserSegment::CoreType::StringType, :name => 'Username', :sortable => true
+  register_field :introduction, UserSegment::CoreType::StringType, :name => 'Introduction', :sortable => true
+  register_field :suffix, UserSegment::CoreType::StringType, :name => 'Suffix', :sortable => true
 
+  def self.sort_scope(order_by, direction)
+    field = self.user_segment_fields[order_by.to_sym][:field]
+    EndUser.scoped :order => "end_users.#{field} #{direction}"
+  end
+
+  def self.get_handler_data(ids, fields)
+  end
+
+  def self.field_output(user, handler_data, field)
+    UserSegment::FieldType.field_output(user, handler_data, field)
+  end
 end

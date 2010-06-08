@@ -640,7 +640,7 @@ class DomainModel < ActiveRecord::Base
           unless @existing_tags.include?(tag_name)
             tg = ContentTag.get_tag(self.class.to_s,tag_name)
             # Be explicit about the content_type for Content models (which don't have a real class name)
-            self.content_tag_tags.create(:content_tag_id => tg.id,:content_type => self.class.to_s,:content_id => self.id)
+            self.content_tag_tags.create(:content_tag => tg,:content_type => self.class.to_s)
           end
         end
       end

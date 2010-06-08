@@ -19,7 +19,7 @@ describe EndUserActionSegmentType do
     it "should be able to find users" do
       @type = EndUserActionSegmentType::UserActionType
       @type.select_options
-      @type.is(EndUserAction, [:renderer, :action], '/editor/auth/login').count.should == 5
+      @type.is(EndUserAction, :end_user_id, [:renderer, :action], '/editor/auth/login').count.should == 5
     end
   end
 
@@ -27,7 +27,7 @@ describe EndUserActionSegmentType do
     it "should be able to find users" do
       @type = EndUserActionSegmentType::ActionType
       @type.select_options.length.should == 2
-      @type.is(EndUserAction, :action, 'login').count.should == 5
+      @type.is(EndUserAction, :end_user_id, :action, 'login').count.should == 5
     end
   end
 
@@ -35,7 +35,7 @@ describe EndUserActionSegmentType do
     it "should be able to find users" do
       @type = EndUserActionSegmentType::RendererType
       @type.select_options.length.should == 1
-      @type.is(EndUserAction, :renderer, '/editor/auth').count.should == 8
+      @type.is(EndUserAction, :end_user_id, :renderer, '/editor/auth').count.should == 8
     end
   end
 end

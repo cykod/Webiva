@@ -108,6 +108,14 @@
     addUsersToListTableAction: function(id) {
       this.tableAction('add_users', "user_segment_id=" + id);
       SCMS.closeOverlay();
+    },
+
+    refreshUserList: function() {
+      SCMS.remoteOverlay("<%= url_for :action => 'refresh_segment', :path => @segment ? @segment.id : nil %>");
+    },
+
+    refreshUserListStatus: function() {
+      <%= remote_function :url => url_for(:action => 'refresh_segment_status', :path => @segment ? @segment.id : nil) %>;
     }
   }
 </script>
@@ -126,11 +134,11 @@
 <div class="user_segments" style="float:right; width: 300px; text-align:right; padding:5px;">
 <%= form_tag %>
 <% if @segment && @segment.last_ran_at -%>
-   <a href="<%= url_for :action => 'refresh_segment', :path => @segment.id %>">Refresh</a> | <a href="<%= url_for :action => 'edit_segment', :path => @segment.id %>">Edit</a>
+   <a onclick="MemberEditor.refreshUserList();" href="javascript:void(0);">Refresh</a> | <a href="<%= url_for :action => 'edit_segment', :path => @segment.id %>">Edit</a>
 <% else -%>
   <a href="<%= url_for :action => 'options' %>">Edit</a>
 <% end -%>
-<%= select_tag :user_segment_id, options_for_select([['Everyone', nil]] + @segmentations.collect { |seg| [seg.name, seg.id] }, (@segment ? @segment.id : nil)), :onchange => 'MemberEditor.changeSegments();', :id => 'user_segments_user_segment_id', :style => 'width:200px;' %>
+<%= select_tag :user_segment_id, options_for_select([['Everyone', nil]] + @segmentations.collect { |seg| [seg.list_name, seg.id] }, (@segment ? @segment.id : nil)), :onchange => 'MemberEditor.changeSegments();', :id => 'user_segments_user_segment_id', :style => 'width:200px;' %>
 <br/>
 <% if @segment && @segment.last_ran_at -%>
 <span style="font-size:11px;"><%= 'updated on %s' / @segment.last_ran_at.strftime(DEFAULT_DATETIME_FORMAT.t) %></span>
@@ -145,6 +153,7 @@
 <%= text_field_tag :terms, @search.terms, :id => 'members_search_terms' %>
 <%= submit_tag 'Search'.t %>
 </form>
+<%= "<a href='#{url_for}'>Clear search</a>" if @search.terms %>
 </div>
 
 <hr style="clear:both;"/>
@@ -161,4 +170,8 @@
 
 <script>
 $('members_search_terms').focus();
+
+<% if @segment && @segment.segment_type == 'filtered' && @segment.last_ran_at < 1.day.ago -%>
+MemberEditor.refreshUserList();
+<% end -%>
 </script>

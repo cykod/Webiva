@@ -19,6 +19,14 @@ describe UserSegment::OperationBuilder do
     build(:field => 'email', :operation => 'is', :argument0 => 'test@test.dev').valid?.should be_true
     segment.valid?.should be_true
 
+    build(:field => 'email', :argument0 => 'test@test.dev').valid?.should be_true
+
+    build(:field => 'num_tags', :operation => 'count', :argument0 => '>', :argument1 => 1).valid?.should be_true
+    build(:field => 'num_tags', :operation => 'count', :argument0 => '>', :argument1 => 1, :condition => 'and').valid?.should be_false
+    build(:field => 'num_tags', :operation => 'count', :argument0 => '>', :argument1 => 1, :condition => 'and', :child => {:field => 'num_tags', :operation => 'count', :argument0 => '<', :argument1 => 3}).valid?.should be_false
+    build(:field => 'num_tags', :operation => 'count', :argument0 => '>', :argument1 => 1, :condition => 'with', :child => {:field => 'num_tags', :operation => 'count', :argument0 => '<', :argument1 => 3}).valid?.should be_true
+    build(:field => 'num_tags', :operation => 'count', :argument0 => '>', :argument1 => 1, :condition => 'with', :child => {:field => 'num_tags', :argument0 => '<', :argument1 => 3}).valid?.should be_true
+
     # if the field is invalid the builder is invalid
     build(:field => 'invalid_email_field', :operation => 'is', :argument0 => 'test@test.dev').valid?.should be_false
 

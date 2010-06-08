@@ -16,6 +16,21 @@ describe UserSegment::Field do
 
     @field = UserSegment::Field.new :field => 'created', :operation => 'invalid_operation', :arguments => [1, 'days']
     @field.valid?.should be_false
+
+    @field = UserSegment::Field.new :field => 'created', :operation => nil, :arguments => [1, 'days']
+    @field.valid?.should be_false
+
+    @field = UserSegment::Field.new :field => 'created', :operation => 'before', :arguments => [1, 'days'], :child => {:field => 'registered', :operation => 'is', :arguments => [true]}
+    @field.valid?.should be_true
+
+    @field = UserSegment::Field.new :field => 'user_level', :operation => 'sum', :arguments => ['>', 1]
+    @field.valid?.should be_true
+
+    @field = UserSegment::Field.new :field => 'user_level', :operation => 'sum', :arguments => ['<', 2]
+    @field.valid?.should be_true
+
+    @field = UserSegment::Field.new :field => 'user_level', :operation => 'sum', :arguments => ['>', 1], :child => {:field => 'user_level', :operation => 'sum', :arguments => ['<', 2]}
+    @field.valid?.should be_false
   end
 
   it "should be able to use handler" do
