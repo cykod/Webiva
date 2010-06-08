@@ -195,6 +195,12 @@ class UserSegment < DomainModel
     nil
   end
 
+  def find_in_batches(opts={}, &block)
+    self.user_segment_caches.each do |segement|
+      segement.find_in_batches(opts, &block)
+    end
+  end
+
   def paginate(page=1, args={})
     args = args.clone.symbolize_keys!
     window_size =args.delete(:window) || 2
