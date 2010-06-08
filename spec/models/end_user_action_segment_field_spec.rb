@@ -12,6 +12,7 @@ describe EndUserActionSegmentField do
       else
         obj.has_attribute?(value[:field]).should be_true
       end
+      obj.respond_to?(value[:display_field]).should be_true
     end
   end
 
