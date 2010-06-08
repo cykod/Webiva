@@ -139,7 +139,11 @@ class DataCache
   # content_target = the affected content like the blog.id or blogpost.id
   # display_location = the specific display instance (like a paragraph / etc )
   def self.put_content(content_type,content_target,display_location,data,expiration = 0) 
-    CACHE.set("#{DomainModel.active_domain_db}::Content::#{content_type}::#{content_target}::#{display_location}",[ Time.now.to_f,  data ],expiration )
+    begin
+      CACHE.set("#{DomainModel.active_domain_db}::Content::#{content_type}::#{content_target}::#{display_location}",[ Time.now.to_f,  data ],expiration )
+    rescue ArgumentError => e
+      # chomp
+    end
   end
 
   # Pull a piece of content into the remote cache. The cache can be expired
@@ -162,10 +166,10 @@ class DataCache
     display_location_string= content_target_string + "::" + display_location.to_s
     
     ret_val = nil
-    begin
+    begin 
       ret_val = CACHE.get_multi(container_string,content_type_string,content_target_string,display_location_string)
     rescue ArgumentError => e
-      return nil
+      ret_val = { }
     end
 
     val = ret_val[display_location_string]
