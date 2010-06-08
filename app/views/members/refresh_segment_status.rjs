@@ -1,6 +1,6 @@
 if @segment.ready?
-  page << 'SCMS.closeOverlay();'
   page << 'MemberEditor.updateSegment();'
+  page << 'SCMS.closeOverlay();'
 else
   page << 'setTimeout(MemberEditor.refreshUserListStatus, 1000);'
 end
