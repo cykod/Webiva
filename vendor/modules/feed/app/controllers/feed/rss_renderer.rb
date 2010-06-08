@@ -137,15 +137,19 @@ class Feed::RssRenderer < ParagraphRenderer
     @options = paragraph.data || {}
     
     if !@options[:module_node_id].blank? && @options[:module_node_id].to_i > 0
-      @nodes = [ SiteNode.find_by_id(@options[:module_node_id]) ]
+      @nodes = [ SiteNode.find_by_id(@options[:module_node_id]) ].compact
     else
       @nodes = SiteNode.find(:all,:conditions =>  ['node_type = "M" AND module_name = "/feed/rss"' ],:include => :page_modifier)
     end
     
     output = @nodes.collect do |nd|
-      nd.page_modifier.modifier_data ||= {}
-      "<link rel='alternate' type='application/rss+xml' title='#{vh nd.page_modifier.modifier_data[:feed_title]}' href='#{vh nd.node_path}' />"
-    end.join("\n")
+      if nd.page_modifier 
+        nd.page_modifier.modifier_data ||= {}
+        "<link rel='alternate' type='application/rss+xml' title='#{vh nd.page_modifier.modifier_data[:feed_title]}' href='#{vh nd.node_path}' />"
+      else
+        nil
+      end
+    end.compact.join("\n")
     
     include_in_head(output)
     render_paragraph :nothing => true

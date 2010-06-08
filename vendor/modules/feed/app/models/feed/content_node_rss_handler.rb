@@ -28,7 +28,11 @@ class Feed::ContentNodeRssHandler
 	       :link => Configuration.domain_link(node.link)
       }
 
-      categories = [node.content_type.type_description, node.content_type.content_name].collect { |c| c unless c.blank? }.compact
+      if node.content_type
+        categories = [node.content_type.type_description, node.content_type.content_name].collect { |c| c unless c.blank? }.compact
+      else
+        categories = []
+      end
       item[:categories] = categories unless categories.empty?
 #      unless node.content_type.content_name.blank? && node.content_type.type_description.blank?
 #          item[:description] = "#{node.content_type.content_name} #{node.content_type.type_description}"
