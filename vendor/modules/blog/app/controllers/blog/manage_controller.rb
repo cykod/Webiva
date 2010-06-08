@@ -6,7 +6,7 @@ class Blog::ManageController < ModuleController
 
   permit 'blog_config', :only => [ :configure, :delete ]
 
-  before_filter :check_view_permission, :except => [ :configure, :delete, :display_blog_list_table, :list ]
+  before_filter :check_view_permission, :except => [ :configure, :delete, :display_blog_list_table, :list, :generate_mail, :generate_mail_generate ]
 
   component_info 'Blog'
   
@@ -56,7 +56,7 @@ class Blog::ManageController < ModuleController
   end
   
   def generate_mail_generate
-    @post = @blog.blog_posts.find(params[:post_id])
+    @post = Blog::BlogPost.find(params[:post_id])
 
     @align = params[:opts][:align] == 'left' ? 'left' : 'right'
     @padding = params[:opts][:align] == 'left' ? 'padding:0 10px 10px 0;' : 'padding:0 0 10px 0px;'
