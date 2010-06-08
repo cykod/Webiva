@@ -1,4 +1,9 @@
 
+=begin rdoc
+A user segment field type creates the scopes that the used segment filter.
+The type determines the operations/functions availble to a field.
+
+=end
 class UserSegment::FieldType
 
   def self.user_segment_field_type_operations; {}; end

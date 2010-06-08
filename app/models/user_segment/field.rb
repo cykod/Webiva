@@ -78,10 +78,24 @@ class UserSegment::Field < HashModel
     scope.find(:all).collect &self.end_user_field
   end
 
+  def get_default_scope
+    scope = self.handler_class.user_segment_fields[self.field.to_sym][:scope]
+    if scope
+      if scope.is_a?(Hash)
+        self.domain_model_class.scoped scope
+      elsif scope.is_a?(Proc)
+        scope.call
+      elsif scope.is_a?(ActiveRecord::NamedScope::Scope)
+        scope
+      end
+    else
+      self.domain_model_class
+    end
+  end
+
   def get_scope(scope=nil)
     return @scope if @scope
-    scope ||= self.domain_model_class
-    @scope = self.type_class.send(self.operation, scope, self.end_user_field, self.model_field, *self.converted_arguments)
+    @scope = self.type_class.send(self.operation, self.get_default_scope, self.end_user_field, self.model_field, *self.converted_arguments)
     @scope = self.child_field.get_scope(@scope) if self.child_field
     @scope
   end
@@ -122,6 +136,10 @@ class UserSegment::Field < HashModel
 
   def model_field
     self.handler_class.user_segment_fields[self.field.to_sym][:field] if self.handler_class
+  end
+
+  def default_scope
+    self.handler_class.user_segment_fields[self.field.to_sym][:scope] if self.handler_class
   end
 
   def handler

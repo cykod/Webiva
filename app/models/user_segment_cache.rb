@@ -1,4 +1,10 @@
 
+=begin rdoc
+A user segment cache is used to store the list of user ids.
+
+Should not be used directly. Instead use UserSegment methods.
+
+=end
 class UserSegmentCache < DomainModel
   SIZE = 25000
   DEFAULT_BATCH_SIZE = 1000
@@ -9,7 +15,7 @@ class UserSegmentCache < DomainModel
 
   validates_presence_of :user_segment_id
 
-  def before_create
+  def before_create #:nodoc:
     self.created_at = Time.now unless self.created_at
   end
 
