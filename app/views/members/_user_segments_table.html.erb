@@ -36,6 +36,6 @@ refresh_table = false
 
 <% if refresh_table -%>
 <script>
-setTimeout(function() {ActiveTable.refresh("user_segments_table", "<%= url_for(:action => 'user_segments_table') %>", "user_segments_table");}, 5000);
+setTimeout(function() {ActiveTable.refresh("user_segments_table", "<%= url_for(:action => 'user_segments_table') %>", "user_segments_table");}, 20000);
 </script>
 <% end -%>
