@@ -26,6 +26,10 @@ h1.blue {
 
 }
 
+h1.lightblue {
+  color:#a6cdda;
+}
+
 h2 {
   font-size:14px;
   color: #111111;
@@ -47,6 +51,12 @@ h4 {
   font-size:13px;
   color:#3b648c;
 
+}
+
+span.description {
+  font-size: 11px;
+  font-weight: normal;
+  color: #777777;
 }
 
 .clearfix:after {
@@ -1435,6 +1445,40 @@ td.error {
 
 }
 
+/* Campaign Box listing steps above a page */
+
+.camp_steps_box {
+  margin:0;
+  padding:10px 0 10px 55px;
+  text-align:center;
+}
+
+
+.camp_steps_box td {
+  padding: 5px 15px 5px 15px;
+  text-align: center;
+  width: 180px;
+  color:#3b648c;
+  font-weight: bold;
+  font-size: 11px;
+  background-color:#c3e3e7;
+}
+
+.camp_steps_box td a {
+  color:#3b648c;
+}
+
+.camp_steps_box td.arrow {
+  text-align: center;
+  width: 30px;
+  color:#3b648c;
+  background-color:#fff;
+}
+
+.camp_steps_box td.selected {
+  background-color:#f3e380;
+}
+
 ol.admin_list {
 
 
@@ -2349,3 +2393,66 @@ background-color: #eeeeee;
 background-color: #ffffff;
 }
 
+table.display_table {
+  border-width: 0;
+  border-spacing: 0;
+  border-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+table.display_table th {
+  background-color:#c3e3e7;
+  color:#3b648c;
+  text-align: left;
+  font-size: 12px;
+  padding:7px 0 7px 10px;
+}
+
+table.display_table td {
+  border-width: 0;
+  border-spacing: 0;
+  border-style: none;
+  padding: 0;
+  margin: 0;
+  vertical-align: top;
+}
+
+table.display_table td.separator {
+  font-size: 0;
+  border-left: 1px dotted #aaa;
+  width: 1px;
+}
+
+table.display_table td.spacer {
+  font-size: 0;
+  width: 4px;
+}
+
+table.display_table td.base {
+  background-color:#c3e3e7;
+  font-size: 0;
+  height: 10px;
+}
+
+table.display_table td.title {
+  background-color:#eeeeee;
+  color:#3b648c;
+  font-weight: bold;
+  text-align: left;
+  font-size: 11px;
+  padding:5px 0 5px 10px;
+}
+
+table.display_table td.label {
+  color:#3b648c;
+  font-weight: bold;
+  text-align: right;
+  font-size: 11px;
+  padding:3px;
+}
+
+table.display_table td.field {
+  font-size: 11px;
+  padding:3px 0 3px 0;
+}
