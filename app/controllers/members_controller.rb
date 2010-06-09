@@ -439,15 +439,26 @@ class MembersController < CmsController # :nodoc: all
   end
 
   def edit
-    cms_page_path ['People'],'Edit Contact'
+    @segment = UserSegment.find_by_id(params[:path][1])  unless params[:path][1].blank?
+
+    display_user_actions_table(false)
+ 
+    if @segment
+      cms_page_path [ 'People',
+                      ["%s",url_for(:action => 'index',:path => [ @segment.id ]),@segment.name]
+                    ],['Edit %s',nil,@user.name.to_s.strip.blank? ? @user.email : @user.name ] 
+    else
+      cms_page_path ['People'],'Edit Contact'
+    end
     
+
     user_id = params[:path][0]
     
     @user = EndUser.find(user_id)
 
     
     if @user.client_user_id || (@user.user_class.editor? && !myself.has_role?('editor_editors'))
-      redirect_to :action => 'index'
+      redirect_to :action => 'index', :path => @segment ? [ @segment.id ] : nil
       return
     end
 
@@ -458,7 +469,8 @@ class MembersController < CmsController # :nodoc: all
 
         # Don't let user class be upgrade to editor if the user can edit those
         if @user.user_class.editor? && !myself.has_role?('editor_editors')
-          redirect_to :action => 'index'
+          redirect_to :action => 'index', :path => @segment ? [ @segment.id ] : nil
+
           return
         end
 
@@ -489,11 +501,13 @@ class MembersController < CmsController # :nodoc: all
           @user.action('/members/edit',:admin_user_id => myself.id, :level => 0)
           update_subscriptions(@user,params[:subscription])
           flash[:notice] = 'Saved User: "%s" ' / (@user.email.blank? ? @user.name : @user.email)
-          redirect_to :action =>'index'
+          redirect_to :action =>'index', :path => @segment ? [ @segment.id ] : nil
+
           return
         end
       else
-        redirect_to :action =>'index'
+        redirect_to :action =>'index', :path => @segment ? [ @segment.id ] : nil
+
         return
       end
     end
@@ -536,9 +550,17 @@ class MembersController < CmsController # :nodoc: all
   def view
     @user = EndUser.find(params[:path][0])
 
+    @segment = UserSegment.find_by_id(params[:path][1])  unless params[:path][1].blank?
+
     display_user_actions_table(false)
-  
-    cms_page_path [ 'People'],['%s',nil,@user.name.to_s.strip.blank? ? @user.email : @user.name ] 
+ 
+    if @segment
+      cms_page_path [ 'People',
+                      ["%s",url_for(:action => 'index',:path => [ @segment.id ]),@segment.name]
+                    ],['%s',nil,@user.name.to_s.strip.blank? ? @user.email : @user.name ] 
+    else
+      cms_page_path [ 'People'],['%s',nil,@user.name.to_s.strip.blank? ? @user.email : @user.name ] 
+    end
     
     handlers = get_handler_info(:members,:view)
 
