@@ -320,6 +320,21 @@ class MembersController < CmsController # :nodoc: all
     end
   end
 
+  def edit_segment_filter
+    @segment = UserSegment.find params[:path][0]
+
+    if request.post? && params[:segment]
+      return redirect_to :action => 'index', :path => @segment.id unless params[:commit]
+
+      if @segment.update_attributes params[:segment]
+        @segment.refresh if @segment.should_refresh?
+        render :partial => 'refresh_segment'
+      end
+    else
+      render :partial => 'edit_segment_filter'
+    end
+  end
+
   def copy_segment
     segment_to_copy = UserSegment.find params[:path][0]
 

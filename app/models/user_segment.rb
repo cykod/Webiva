@@ -1,4 +1,14 @@
 
+=begin rdoc
+A user segment is a stored list of user ids. There are 2 types of user segments.
+A custom segment is a list of selected users.  A filtered segment contains a 
+filter which is stored in the segment options. This filter is used to generate a
+list of user ids to store.
+
+Ex: Setting the filter to registered.is(true) would store all the registered users
+in a user segment.
+
+=end
 class UserSegment < DomainModel
 
   has_many :user_segment_caches, :order => 'position', :dependent => :delete_all, :class_name => 'UserSegmentCache'
@@ -24,9 +34,11 @@ class UserSegment < DomainModel
      ['Adding', 'adding'],
      ['Removing', 'removing'],
      ['Sorting', 'sorting']]
-    
+
+  # Determines if the segment is ready for use.
   def ready?; self.status == 'finished'; end
 
+  # A list of fields to display
   def fields
     self.read_attribute(:fields) || []
   end
@@ -36,10 +48,11 @@ class UserSegment < DomainModel
     self.order_direction = 'DESC' if self.order_direction.blank?
   end
 
-  def validate
+  def validate #:nodoc:
     self.errors.add(:segment_options_text, nil, :message => self.operations.failure_reason) if self.segment_options_text && self.segment_options.nil?
   end
 
+  # Returns the filter used to generate the segment.
   def operations
     return @filter if @filter
     @filter = UserSegment::Filter.new
@@ -47,7 +60,7 @@ class UserSegment < DomainModel
     @filter
   end
 
-  def segment_options_text=(text)
+  def segment_options_text=(text) #:nodoc:
     text = text.gsub("\r", '').strip
     self.should_refresh = self.segment_options_text != text
     self.write_attribute :segment_options_text, text
@@ -61,30 +74,32 @@ class UserSegment < DomainModel
     text
   end
 
-  def order_by=(order)
+  def order_by=(order) #:nodoc:
     self.should_refresh = self.order_by != order
     self.write_attribute :order_by, order
     order
   end
 
-  def order_direction=(direction)
+  def order_direction=(direction) #:nodoc:
     self.should_refresh = self.order_direction != direction
     self.write_attribute :order_direction, direction
     direction
   end
 
-  def should_refresh
+  def should_refresh #:nodoc:
     @should_refresh
   end
 
-  def should_refresh=(refresh)
+  def should_refresh=(refresh) #:nodoc:
     @should_refresh ||= refresh
   end
 
+  # Determines whether or not to refresh the segment based on changes to the model.
   def should_refresh?
     self.should_refresh
   end
 
+  # Refreshes the segment.
   def refresh
     if self.status == 'new' || self.ready?
       self.status = 'refreshing'
@@ -102,6 +117,7 @@ class UserSegment < DomainModel
     end
   end
 
+  # Use the filter to store a list of user ids.
   def cache_ids(opts={})
     self.status = 'calculating'
     self.save
@@ -109,6 +125,7 @@ class UserSegment < DomainModel
     self.sort_ids self.operations.end_user_ids
   end
 
+  # Adds the user ids to the segment.
   def add_ids(ids)
     self.status = 'adding'
     self.save
@@ -117,6 +134,7 @@ class UserSegment < DomainModel
     self.sort_ids ids
   end
 
+  # Removes the user ids from the segment.
   def remove_ids(ids)
     self.status = 'removing'
     self.save
@@ -126,6 +144,7 @@ class UserSegment < DomainModel
     self.sort_ids ids
   end
 
+  # Sort the user ids based on the order_by and order_direction.
   def sort_ids(ids)
     self.status = 'sorting'
     self.save
@@ -160,18 +179,25 @@ class UserSegment < DomainModel
     self.save
   end
 
+  # Returns all the user ids.
   def end_user_ids
     self.user_segment_caches.inject([]) do |ids, segement|
       ids + segement.id_list
     end
   end
 
+  # Loops through each user in the segment.
+  #
+  # yields user
   def each(opts={}, &block)
     self.user_segment_caches.each do |segement|
       segement.each opts, &block
     end
   end
 
+  # Loops through each user collecting data specified by the block.
+  #
+  # yeilds user
   def collect(opts={}, &block)
     data = []
     self.user_segment_caches.each do |segement|
@@ -180,6 +206,9 @@ class UserSegment < DomainModel
     data
   end
 
+  # Loops through each user in the segment.
+  #
+  # yields user, idx
   def each_with_index(opts={}, &block)
     idx = 0
     self.user_segment_caches.each do |segement|
@@ -187,6 +216,7 @@ class UserSegment < DomainModel
     end
   end
 
+  # Finds a specific user in the segment.
   def find(opts={}, &block)
     self.user_segment_caches.each do |segement|
       user = segement.find opts, &block
@@ -195,12 +225,17 @@ class UserSegment < DomainModel
     nil
   end
 
+  # Loops through batches of users. Useful when pulling additional user data from other models.
+  #
+  # yields users
   def find_in_batches(opts={}, &block)
     self.user_segment_caches.each do |segement|
       segement.find_in_batches(opts, &block)
     end
   end
 
+  # Used to paginate a list of users, returns the same pagination hash as DomainModel.paginate
+  # and a list of users
   def paginate(page=1, args={})
     args = args.clone.symbolize_keys!
     window_size =args.delete(:window) || 2
@@ -231,6 +266,21 @@ class UserSegment < DomainModel
       }, items ]
   end
 
+  # Returns the offset of the last user found and the list of users
+  #
+  # Search criteria can be specified in 2 ways.
+  #
+  # Using a condition
+  # args = {:conditions => ["created_at > ? ", 7.days.ago]}
+  #
+  # Using a scope
+  # args = {:scope => EndUserCache.search('pascal'), :end_user_field => :end_user_id}
+  #
+  # Specifying a scope can be useful. It allows you to search for users in another model from a segment.
+  #
+  # args[:offset] is the index of first user to search
+  #
+  # args[:limit] is the maximum number of users to return
   def search(args={})
     args = args.clone.symbolize_keys!
     
@@ -261,22 +311,26 @@ class UserSegment < DomainModel
     return [offset, users]
   end
 
-  def before_create
+  def before_create #:nodoc:
     self.status = 'new'
   end
 
+  # Returns a list of display fields
   def self.fields_options(opts={})
     UserSegment::FieldHandler.display_fields(opts).collect { |field, info| [info[:handler].field_heading(field), field.to_s] }.sort { |a, b| a[0] <=> b[0] }
   end
 
+  # Returns a list of sortable fields
   def self.order_by_options(opts={})
     UserSegment::FieldHandler.sortable_fields(opts).collect { |field, info| [info[:handler].field_heading(field), field.to_s] }.sort { |a, b| a[0] <=> b[0] }
   end
 
+  # Returns the text version of the filter
   def to_expr
     self.operations.to_expr
   end
 
+  # Returns the hash used to setup the UserSegment::OperaionBuilder
   def to_builder
     self.operations.to_builder
   end
@@ -295,6 +349,7 @@ class UserSegment < DomainModel
     end
   end
 
+  # Creates a copy of the segment.
   def self.create_copy(id)
     segment_to_copy = UserSegment.find_by_id(id)
     return nil unless segment_to_copy
@@ -307,6 +362,7 @@ class UserSegment < DomainModel
     @segment
   end
 
+  # Returns the name of the segment with its type.
   def list_name
     if self.segment_type == 'filtered'
       self.name + ' (Filtered)'
@@ -315,10 +371,7 @@ class UserSegment < DomainModel
     end
   end
 
-  def self.segment_fields(fields)
-    fields.collect { |field| UserSegment::Field.new :field => field }
-  end
-
+  # Returns the data required to output the fields value.
   def self.get_handlers_data(ids, fields)
     handlers = {}
     fields.each do |field|

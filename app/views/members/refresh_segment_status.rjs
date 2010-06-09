@@ -1,4 +1,6 @@
 if @segment.ready?
+  page.replace_html 'user_segment_info', ("%d users found, " / @segment.last_count) + ('last updated on %s' / @segment.last_ran_at.strftime(DEFAULT_DATETIME_FORMAT.t))
+  page << 'MemberEditor.updateSegment();'
   page << 'SCMS.closeOverlay();'
 else
   page << 'setTimeout(MemberEditor.refreshUserListStatus, 1000);'
