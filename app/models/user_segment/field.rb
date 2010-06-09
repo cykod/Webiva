@@ -81,7 +81,7 @@ class UserSegment::Field < HashModel
   def get_default_scope(scope=nil)
     scope ||= self.domain_model_class
     base_scope = self.handler_class.user_segment_fields[self.field.to_sym][:scope]
-    scope.scoped base_scope if base_scope
+    scope = scope.scoped base_scope if base_scope
     scope
   end
 
