@@ -762,27 +762,30 @@ EOF
   end
 
   class WizardSteps
-    def initialize(wizard_step,wizard_max_step) 
+    def initialize(wizard_step,wizard_max_step,opts={}) 
       @wizard_step = wizard_step
       @wizard_max_step = wizard_max_step
+      @options = opts
     end
     
     def step(number,txt,url = {})
     
+      tag = @options[:tag] || 'span'
+      css_class = @options[:class] || 'large_ajax_link_selected'
       if number == @wizard_step
-        "<b class='large_ajax_link_selected'>#{number}. #{txt}</b>"
+        "<#{tag} class='#{css_class}'>#{txt}</#{tag}>"
       elsif number <= @wizard_max_step
         
-        "<a href='#{url}'>#{number}. #{txt}</a>"
+        "<#{tag}><a href='#{url}'>#{txt}</a></#{tag}>"
       else
-        "#{number}. #{txt}"
+        "<#{tag}>#{txt}</#{tag}>"
       end
     end
     
   end
   
-  def wizard_steps(wizard_step,wizard_max_step) 
-    yield WizardSteps.new(wizard_step,wizard_max_step)
+  def wizard_steps(wizard_step,wizard_max_step,opts={}) 
+    yield WizardSteps.new(wizard_step,wizard_max_step,opts)
   end
 
 end
