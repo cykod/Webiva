@@ -10,7 +10,7 @@ class UserSegment::OperationBuilder < HashModel
   end
 
   def condition_options
-    [['', nil], ['And', 'and'], ['Or', 'or'], ['With', 'with']]
+    [['', nil], ['Combined', 'and'], ['Or', 'or'], ['And', 'with']]
   end
 
   def validate
@@ -96,6 +96,8 @@ class UserSegment::OperationBuilder < HashModel
     @operation_options = []
 
     is_complex = self.already_complex
+
+    Rails.logger.error "field: #{self.field} operation: #{self.operation} is_complex: #{is_complex} condition: #{self.condition}"
 
     if self.user_segment_field.type_class
       @operation_options = self.user_segment_field.type_class.user_segment_field_type_operations.collect do |operation, values|
