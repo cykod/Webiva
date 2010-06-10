@@ -97,8 +97,6 @@ class UserSegment::OperationBuilder < HashModel
 
     is_complex = self.already_complex
 
-    Rails.logger.error "field: #{self.field} operation: #{self.operation} is_complex: #{is_complex} condition: #{self.condition}"
-
     if self.user_segment_field.type_class
       @operation_options = self.user_segment_field.type_class.user_segment_field_type_operations.collect do |operation, values|
         if is_complex && values[:complex]
