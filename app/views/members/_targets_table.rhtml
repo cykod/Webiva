@@ -12,13 +12,13 @@
                                 ],
                     :more_actions => [['Delete Targets','delete','Delete the selected users?']],
                     :update => 'targets_table' do |t| %>
-<% user_url = url_for(:action => 'view',  :path => [ t.id, @segment.id ]) %>
+<% user_url = url_for(:action => 'view',  :path => [ t.id, @segment ? @segment.id : nil].compact) %>
 <tr <%= highlight_row "user",t.id %>  >
   <td nowrap='1'>
     <%= entry_checkbox 'user',t.id %>
   </td>
   <td align='center' nowrap='1'>
-    <%= t.editor? ? '' : link_to(theme_image_tag('icons/actions/edit.gif'), :action => 'edit', :path => [ t.id, @segment.id ]) %>
+    <%= t.editor? ? '' : link_to(theme_image_tag('icons/actions/edit.gif'), :action => 'edit', :path => [ t.id, @segment ? @segment.id : nil ].compact) %>
   </td>
   <td align='center'>
     <%= image = t.image ? t.image.image_tag(:icon) : ''
