@@ -87,7 +87,8 @@ class Manage::DomainsController < CmsController # :nodoc: all
     else
       if request.post? && params[:domain][:email_enabled]
         @domain.update_attributes(:email_enabled => params[:domain][:email_enabled],
-                                  :ssl_enabled => params[:domain][:ssl_enabled])
+                                  :ssl_enabled => params[:domain][:ssl_enabled],
+                                  :max_file_storage => params[:domain][:max_file_storage])
         
         if @domain.email_enabled
           DomainEmail.setup_domain_emails

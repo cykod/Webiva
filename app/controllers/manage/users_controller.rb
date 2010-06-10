@@ -43,7 +43,7 @@ class Manage::UsersController < CmsController # :nodoc: all
                     "Edit User"
                  ],"system"
   
-    @client_user = myself.client_user.client.client_users.find_by_id(params[:path][0]) || myself.client_user.client.client_users.new
+    @client_user = myself.client_user.client.client_users.find_by_id(params[:path][0]) || myself.client_user.client.client_users.new(:client_admin => false, :system_admin => false)
     @create_user = @client_user.id ?  false : true
     
     if request.post?
@@ -69,7 +69,7 @@ class Manage::UsersController < CmsController # :nodoc: all
                  ],"system"
      # edit all func is only for system admins
     permit 'system_admin' do
-      @client_user = ClientUser.find_by_id(params[:path][0]) || ClientUser.new(:client_id => session[:active_client_company])
+      @client_user = ClientUser.find_by_id(params[:path][0]) || ClientUser.new(:client_id => session[:active_client_company], :client_admin => false, :system_admin => false)
       @create_user = @client_user.id ?  false : true
     
       

@@ -10,6 +10,9 @@
 <% cms_form_for :domain, @domain do |f| %>
     <%= f.radio_buttons :email_enabled, [ ['Yes', true ], ['No', false ] ], :label => 'Handle Emails on Domain' %>
     <%= f.radio_buttons :ssl_enabled, [ ['Yes', true ], ['No', false ] ], :label => 'Domain has SSL Certificate' %>
+    <% if @domain.domain_database -%>
+      <%= f.text_field :max_file_storage, :unit => 'MB', :description => "%s MB remaining" / number_with_delimiter(@domain.client.available_file_storage) %>
+    <% end -%>
     <%= f.submit_tag 'Update' %>
 <% end -%>
 </div>

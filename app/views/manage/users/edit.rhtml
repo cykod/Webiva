@@ -2,7 +2,7 @@
 
 <% admin_form_for :client_user,@client_user, :url => { :action =>myself.has_role?('system_admin') ? 'edit_all':'edit', :path => @client_user.id ? [ @client_user.id ] : nil } do |f| %>
   <%= render :partial => 'form', :locals => { :f => f }  %>
-  <%= f.cancel_submit_buttons 'Cancel','Edit' %>
+  <%= f.cancel_submit_buttons 'Cancel', @create_user ? 'Create' : 'Edit' %>
 <% end %>
 
 </div>

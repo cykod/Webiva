@@ -34,11 +34,35 @@ class Domain < SystemModel
     self.inactive_message = 'Site Currently Down for Maintenance' if self.blank?
   end
 
+  def validate
+    self.errors.add(:max_file_storage, 'too large') if self.max_file_storage > self.client.available_file_storage
+  end
+
   def after_save #:nodoc:
     # Clear the domain information out of any cache
-    DataCache.set_domain_info(self.name,nil)
+    if self.domain_database
+      self.domain_database.save
+    else
+      DataCache.set_domain_info(self.name,nil)
+    end
   end
-  
+
+  def max_client_users
+    self.domain_database ? self.domain_database.max_client_users : nil
+  end
+
+  def max_client_users=(max)
+    self.domain_database.max_client_users = max if self.domain_database
+  end
+
+  def max_file_storage
+    self.domain_database ? self.domain_database.max_file_storage : nil
+  end
+
+  def max_file_storage=(max)
+    self.domain_database.max_file_storage = max if self.domain_database
+  end
+
   def status_display
     self.status.capitalize.t
   end
@@ -127,7 +151,7 @@ class Domain < SystemModel
     if self.domain_database
       info[:domain_database] = self.domain_database.attributes.symbolize_keys
     else
-      info[:domain_database] = {:client_id => self.client_id, :name => self.database, :options => YAML.load_file(self.database_file), :max_client_users => nil, :available_file_storage => nil}
+      info[:domain_database] = {:client_id => self.client_id, :name => self.database, :options => YAML.load_file(self.database_file), :max_client_users => nil, :max_file_storage => nil}
     end
 
     info
