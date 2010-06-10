@@ -348,7 +348,8 @@ class EndUser < DomainModel
   # Checks if a user has any of the expanded roles passed in
   # as an array of Role objects
   def has_any_role?(expanded_roles)
-    expanded_roles.find { |role| has_role?(role) } ? true : false
+    r = expanded_roles.find { |role| return true if has_role?(role) }
+    false
   end
 
   # Checks if a user has end of the expanded roles passed in
@@ -360,8 +361,8 @@ class EndUser < DomainModel
 
   # Checks if this user has a certain role (not expanded) on an optional target
   def has_role?(role,target=nil)
-    role = role.to_s
     if(self.client_user_id && self.user_class_id == UserClass.client_user_class_id)
+      role = role.to_s
       case role
       when 'system_admin'
         self.client_user.system_admin?
@@ -371,6 +372,7 @@ class EndUser < DomainModel
         true
       end
     else
+      role = role.to_s unless role.is_a?(Integer)
       return false if role == 'system_admin' || role == 'client_admin' || role == 'client_user'
       roles_list.include?(Role.expand_role(role,target))
     end
