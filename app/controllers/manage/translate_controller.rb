@@ -8,8 +8,7 @@ class Manage::TranslateController < CmsController # :nodoc: all
 
   helper :translate
 
-  # need to be at least a client admin
-  permit 'client_admin'
+  permit 'system_admin'
   layout 'manage'
 
     # need to include 

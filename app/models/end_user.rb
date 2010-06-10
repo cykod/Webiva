@@ -159,9 +159,15 @@ class EndUser < DomainModel
   # return an associated ClientUser object if one exists
   # (ClientUser is a SystemModel class)
   def client_user
-    return nil unless client_user_id
     return @client_user if @client_user
+    return nil unless client_user_id
     @client_user = ClientUser.find_by_id(client_user_id)
+  end
+
+  # return an associated Client object if one exists
+  # (Client is a SystemModel class)
+  def client
+    self.client_user ? self.client_user.client : nil
   end
 
   # Return an Array of subscription ids
@@ -342,47 +348,30 @@ class EndUser < DomainModel
   # Checks if a user has any of the expanded roles passed in
   # as an array of Role objects
   def has_any_role?(expanded_roles)
-    # Client users have all roles
-    if(self.client_user_id && self.user_class_id == UserClass.client_user_class_id)
-      true
-    else
-       permitted = false
-      roles_list.each do |role|
-        if expanded_roles.include?(role)
-          permitted = true
-          break
-        end
-      end
-
-      permitted
-    end
+    expanded_roles.find { |role| has_role?(role) } ? true : false
   end
 
   # Checks if a user has end of the expanded roles passed in
   # as an array of Role objects
   def has_all_roles?(expanded_roles)
-    # Client users have all roles
-    if(self.client_user_id && self.user_class_id == UserClass.client_user_class_id)
-      true
-    else
-      permitted = true
-      expanded_roles.each do |role|
-        if !roles_list.include?(role)
-          permitted = false
-          break
-        end
-      end
-      permitted
-    end
+    expanded_roles.each { |role| return false unless has_role?(role) }
+    true
   end
-
-
 
   # Checks if this user has a certain role (not expanded) on an optional target
   def has_role?(role,target=nil)
+    role = role.to_s
     if(self.client_user_id && self.user_class_id == UserClass.client_user_class_id)
-      true
+      case role
+      when 'system_admin'
+        self.client_user.system_admin?
+      when 'client_admin'
+        self.client_user.system_admin? || self.client_user.client_admin?
+      else
+        true
+      end
     else
+      return false if role == 'system_admin' || role == 'client_admin' || role == 'client_user'
       roles_list.include?(Role.expand_role(role,target))
     end
   end

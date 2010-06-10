@@ -3,17 +3,7 @@
 class Manage::UsersController < CmsController # :nodoc: all
 
   # need to be at least a client admin
-  permit 'client_admin'
-
-  before_filter :validate_admin
-  def validate_admin
-    unless myself.client_user.system_admin?
-      redirect_to :controller => '/manage/system'
-      return false
-    end
-    
-  end
-
+  permit ['system_admin','client_admin']
   layout "manage"
 
   def index
@@ -21,19 +11,19 @@ class Manage::UsersController < CmsController # :nodoc: all
                     "Client Users"
                  ],"system"
     
-    if myself.client_user.system_admin?
-      session[:active_client_company] ||= myself.client_user.client_id 
+    if self.system_admin?
+      session[:active_client_company] ||= self.client_user.client_id 
       session[:active_client_company] = params[:active_client_company] if params[:active_client_company]
       
       @active_client = session[:active_client_company]
       @client = Client.find(@active_client)
       @clients = Client.find(:all,:order => 'name')
-    else 
-      @client = myself.client_user.client
+      @users = @client.client_users.find(:all, :order => 'username')
+    else
+      @client = self.client
+      @users = @client.client_users.find(:all, :order => 'username', :conditions => {:system_admin => false})
     end
   
-    @users = @client.client_users.find(:all, :order => 'username')
-    
     render :action => 'list'
   end
   
@@ -43,15 +33,21 @@ class Manage::UsersController < CmsController # :nodoc: all
                     "Edit User"
                  ],"system"
   
-    @client_user = myself.client_user.client.client_users.find_by_id(params[:path][0]) || myself.client_user.client.client_users.new(:client_admin => false, :system_admin => false)
+    @client_user = self.client.client_users.find_by_id(params[:path][0]) || self.client.client_users.new(:client_admin => false, :system_admin => false)
     @create_user = @client_user.id ?  false : true
-    
+
+    if @client_user.id
+      unless self.system_admin?
+        return redirect_to :action => 'index' if @client_user.system_admin? || @client_user.client_id != self.client.id
+      end
+    end
+
     if request.post?
       if params[:commit]
         params[:client_user][:client_admin] = false unless params[:client_user][:client_admin]
         del params[:client_user][:system_admin] if params[:client_user][:system_admin]
-        params[:client_user][:client_id] = myself.client_user.client_id
-        if @client_user.update_attributes(params[:client_user])
+        params[:client_user][:client_id] = self..client_user.client_id
+        if @client_user.update_attributes(params[:client_user].slice(:username, :password, :domain_database_id, :client_admin))
           redirect_to :action => 'index'
           return
         end
@@ -63,6 +59,8 @@ class Manage::UsersController < CmsController # :nodoc: all
   end
   
   def edit_all
+    return redirect_to :action => 'edit' unless self.system_admin?
+
     cms_page_info [ ["System",url_for(:controller => '/manage/system',:action => 'index') ], 
                     [ "Client Users", url_for(:action => 'index') ],
                     "Edit User"
@@ -94,12 +92,11 @@ class Manage::UsersController < CmsController # :nodoc: all
   end
 
   def destroy
-
-    if myself.has_role?('system_admin')
-      @client_user = ClientUser.find(:first, :conditions => ['id = ?',params[:path][0]]);
-
+    if self.system_admin?
+      @client_user = ClientUser.find_by_id params[:path][0]
     else
-      @client_user = myself.client_user.client.client_users.find(:first, :conditions => ['id = ?',params[:path][0]]);
+      @client_user = self.client.client_users.find_by_id params[:path][0]
+      @client_user = nil if @client_user && (@client_user.system_admin? || @client_user.client_id != self.client.id)
     end
 
     if @client_user && request.post?
@@ -109,6 +106,10 @@ class Manage::UsersController < CmsController # :nodoc: all
     end
 
     redirect_to :action => 'index'
-
   end
+
+  protected
+
+  include Manage::SystemController::Base
+
 end
