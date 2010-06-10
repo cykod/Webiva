@@ -46,7 +46,11 @@ class Blog::BlogPost < DomainModel
 
   # Special permalink for targeted blogs
   def target_permalink
-    "#{self.blog_blog.targeted_blog.url}/#{self.permalink}"
+    if self.blog_blog.targeted_blog
+      "#{self.blog_blog.targeted_blog.url}/#{self.permalink}"
+    else
+      self.permalink
+    end
   end
 
   def content_node_body(language)
