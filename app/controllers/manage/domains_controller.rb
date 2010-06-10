@@ -127,10 +127,10 @@ class Manage::DomainsController < CmsController # :nodoc: all
   def add
     cms_page_info [ ['System',url_for(:controller => '/manage/system')], ['Domains',url_for(:controller => '/manage/domains')], 'Add Domain'],'system'
 
-    if myself.client_user.system_admin? || myself.client_user.client.domains.count < myself.client_user.client.domain_limit
+    if myself.client_user.system_admin? || myself.client_user.client.can_add_database?
       @domain = Domain.new
     else
-      flash[:notice] = 'Domain Limit Reached'
+      flash[:notice] = 'Database Limit Reached'
       redirect_to :action => 'index'
       return
     end

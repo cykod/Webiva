@@ -30,7 +30,7 @@ class Manage::ClientsController < CmsController # :nodoc: all
                 Client,
                 [ ActiveTable::IconHeader.new('', :width=>10),
                   ActiveTable::StringHeader.new('clients.name',:label => 'Name'),
-                  ActiveTable::StaticHeader.new('Domains/Limit')
+                  ActiveTable::StaticHeader.new('Databases/Limit')
                 ]
 
   def display_client_table(display=true)

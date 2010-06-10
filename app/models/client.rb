@@ -6,5 +6,13 @@
 class Client < SystemModel 
   has_many :client_users, :dependent => :destroy
   has_many :domains, :dependent => :destroy
-  has_many :domain_database, :destroy => :destroy
+  has_many :domain_databases, :dependent => :destroy
+
+  def num_databases
+    self.domain_databases.count
+  end
+
+  def can_add_database?
+    self.num_databases < self.domain_limit
+  end
 end

@@ -7,7 +7,7 @@
 <tr <%= highlight_row 'client',t.id %>>
   <td><%= entry_checkbox 'client',t.id %></td>
   <td><%= link_to t.name, :action => "edit", :path => t %></td>
-  <td align="center"> <%= t.domains.length %> / <%= t.domain_limit %></td>
+  <td align="center"> <%= t.num_databases %> / <%= t.domain_limit %></td>
 </tr>
 
 <% end -%>
