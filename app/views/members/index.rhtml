@@ -1,4 +1,9 @@
 <script>
+<% if @segment -%>
+  ActiveTable.order = function(update_element,url,table_name,field) {
+    SCMS.remoteOverlay("<%= url_for :action => 'sort_segment', :path => @segment ? @segment.id : nil %>", 'order=' + field);
+  }
+<% end -%>
 
   MemberEditor = {
     

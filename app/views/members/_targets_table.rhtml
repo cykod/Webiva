@@ -20,8 +20,12 @@
   <%= t.editor? ? '' : content_tag(:a, theme_image_tag('icons/actions/edit.gif'), {:href => url_for(:action => 'edit', :path => t.id)}) %>
   </td>
   <td align='center'>
-    <%= image = t.image ? t.image.image_tag(:thumb) : 'No Image'.t
-        t.editor? ? image : content_tag(:a, image, {:href => url_for(:action => 'view', :path => t.id)})
+    <%= image = t.image ? t.image.image_tag(:thumb) : nil
+        if image
+          t.editor? ? image : content_tag(:a, image, {:href => url_for(:action => 'view', :path => t.id)})
+        else
+          '-'
+        end
     %>
   </td>
   <td>

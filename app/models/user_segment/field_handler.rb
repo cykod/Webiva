@@ -132,6 +132,7 @@ class UserSegment::FieldHandler
   # A default method for all handlers to display the heading
   def self.field_heading(field)
     info = self.display_fields[field.to_sym]
+    info = self.sortable_fields[field.to_sym] unless info
     return '' unless info
     info[:name]
   end

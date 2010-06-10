@@ -50,6 +50,8 @@ class UserSegment < DomainModel
 
   def validate #:nodoc:
     self.errors.add(:segment_options_text, nil, :message => self.operations.failure_reason) if self.segment_options_text && self.segment_options.nil?
+    self.errors.add(:order_by, 'is invalid') unless self.class.order_by_options.rassoc(self.order_by)
+    self.errors.add(:order_direction, 'is invalid') unless self.class.order_direction_options_hash[self.order_direction]
   end
 
   # Returns the filter used to generate the segment.
@@ -86,6 +88,14 @@ class UserSegment < DomainModel
     direction
   end
 
+  def order
+    if self.order_direction == 'ASC'
+      self.order_by
+    else
+      "#{self.order_by} DESC"
+    end
+  end
+
   def should_refresh #:nodoc:
     @should_refresh
   end
@@ -117,6 +127,27 @@ class UserSegment < DomainModel
     end
   end
 
+  def resort(order)
+    field, direction = order.to_s.split(' ')
+    direction = 'ASC' if direction.blank?
+    self.order_by = field
+    self.order_direction = direction
+    if self.save
+      if self.should_refresh?
+        if self.last_count < 50000
+          self.sort
+        else
+          self.run_worker(:sort)
+        end
+      end
+    end
+  end
+
+  # Sorts the ids
+  def sort(opts={})
+    self.sort_ids(self.end_user_ids, :sort_only => true)
+  end
+
   # Use the filter to store a list of user ids.
   def cache_ids(opts={})
     self.status = 'calculating'
@@ -145,7 +176,7 @@ class UserSegment < DomainModel
   end
 
   # Sort the user ids based on the order_by and order_direction.
-  def sort_ids(ids)
+  def sort_ids(ids, opts={})
     self.status = 'sorting'
     self.save
 
@@ -174,8 +205,8 @@ class UserSegment < DomainModel
     end
 
     self.status = 'finished'
-    self.last_ran_at = Time.now
-    self.last_count = ids.length
+    self.last_ran_at = Time.now unless opts[:sort_only]
+    self.last_count = ids.length unless opts[:sort_only]
     self.save
   end
 

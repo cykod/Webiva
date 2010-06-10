@@ -43,8 +43,7 @@ class MembersController < CmsController # :nodoc: all
       pages, users = self.segment.paginate self.search.page, :per_page => 25, :include => opts[:include]
       users
     else
-      opts = opts.merge(self.class.module_options.order_options)
-      EndUser.find(:all, :conditions => 'client_user_id IS NULL', :offset => opts[:offset], :limit => opts[:limit], :order => opts[:order], :include => opts[:include])
+      EndUser.find(:all, :conditions => 'client_user_id IS NULL', :offset => opts[:offset], :limit => opts[:limit], :order => self.class.module_options.order(opts), :include => opts[:include])
     end
   end
 
@@ -109,26 +108,51 @@ class MembersController < CmsController # :nodoc: all
       ActiveTable::StaticHeader.new('', :width => '24'),
       ActiveTable::StaticHeader.new('Image', :width => '70'),
       ActiveTable::StaticHeader.new('Name'),
-      ActiveTable::StaticHeader.new('Email')
+      ActiveTable::OrderHeader.new('email')
     ]
 
     @fields = []
+    end_user_only = true
     if self.segment && self.segment.fields
       @fields = self.segment.fields
+      end_user_only = false
     else self.class.module_options && self.class.module_options.fields
       @fields = self.class.module_options.fields
+      end_user_only = true
     end
 
     @fields.each do |field|
       info = UserSegment::FieldHandler.display_fields[field.to_sym]
-      @email_targets_table_columns << ActiveTable::StaticHeader.new(field, :label => info[:handler].field_heading(field.to_sym)) if info
+      if info
+        if UserSegment::FieldHandler.sortable_fields(:end_user_only => end_user_only)[field.to_sym]
+          @email_targets_table_columns << ActiveTable::OrderHeader.new(field, :label => info[:handler].field_heading(field.to_sym))
+        else
+          @email_targets_table_columns << ActiveTable::StaticHeader.new(field, :label => info[:handler].field_heading(field.to_sym))
+        end
+      end
     end
 
     @email_targets_table_columns
   end
 
+  def email_targets_table_name
+    if self.segment
+      "end_users_segment_#{self.segment.id}"
+    else
+      'end_users'
+    end
+  end
+
   def email_targets_table_generate(opts,*find_options)
-    active_table_generate('end_users', EndUser, self.email_targets_table_columns, {:count_callback => 'count_end_users', :find_callback => 'find_end_users'}, opts, *find_options)
+    active_table_generate(self.email_targets_table_name, EndUser, self.email_targets_table_columns, {:count_callback => 'count_end_users', :find_callback => 'find_end_users'}, opts, *find_options)
+  end
+
+  def email_targets_table_order(opts)
+    active_table_order(self.email_targets_table_name, self.email_targets_table_columns, opts)
+  end
+
+  def email_targets_table_set_order(order)
+    active_table_set_order(self.email_targets_table_name, self.email_targets_table_columns, order)
   end
 
   def user_segment_type_select_options
@@ -235,6 +259,7 @@ class MembersController < CmsController # :nodoc: all
     if request.post? && @options.valid?
       if params[:commit]
         Configuration.set_config_model(@options)
+        self.email_targets_table_set_order @options.order
         flash[:notice] = "Updated Everyone options".t 
       end
       redirect_to :action => 'index'
@@ -263,11 +288,18 @@ class MembersController < CmsController # :nodoc: all
       end
     end
 
-    def order_options
-      info = UserSegment::FieldHandler.sortable_fields(:end_user_only => true)[self.order_by.to_sym]
+    def order(opts={})
+      field = self.order_by
+      direction = self.order_direction
+      if opts[:order]
+        field, direction = opts[:order].split(' ')
+      end
+      direction = 'ASC' unless direction
+
+      info = UserSegment::FieldHandler.sortable_fields(:end_user_only => true)[field.to_sym]
       return {:order => 'created_at DESC'} unless info
       field = info[:field]
-      {:order => "#{field} #{self.order_direction}"}
+      "#{field} #{direction}"
     end
 
     def fields_options
@@ -310,6 +342,8 @@ class MembersController < CmsController # :nodoc: all
       return redirect_to :action => 'index', :path => @segment.id unless params[:commit]
 
       if @segment.update_attributes params[:segment]
+        self.email_targets_table_set_order @segment.order
+
         if @segment.should_refresh?
           @segment.refresh
           redirect_to :action => 'segments'
@@ -327,6 +361,8 @@ class MembersController < CmsController # :nodoc: all
       return redirect_to :action => 'index', :path => @segment.id unless params[:commit]
 
       if @segment.update_attributes params[:segment]
+        self.email_targets_table_set_order @segment.order
+
         @segment.refresh if @segment.should_refresh?
         render :partial => 'refresh_segment'
       end
@@ -356,6 +392,12 @@ class MembersController < CmsController # :nodoc: all
   def refresh_segment
     @segment = UserSegment.find params[:path][0]
     @segment.refresh
+    render :partial => 'refresh_segment'
+  end
+
+  def sort_segment
+    @segment = UserSegment.find params[:path][0]
+    @segment.resort email_targets_table_order(params)
     render :partial => 'refresh_segment'
   end
 
