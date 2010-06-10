@@ -130,7 +130,7 @@ class ParagraphController < CmsController
     if request.post?
       if opts.valid?
         @paragraph.data = opts.to_h
-        @paragraph.site_feature_id = params[:site_feature_id]
+        @paragraph.site_feature_id = params[:site_feature_id] if params.has_key?(:site_feature_id)
         @paragraph.save
         render_paragraph_update
         return true
