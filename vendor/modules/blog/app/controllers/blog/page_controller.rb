@@ -42,7 +42,7 @@ class Blog::PageController < ParagraphController
       self.detail_page
     end
 
-    integer_options :blog_id, :items_per_page
+    integer_options :blog_id, :items_per_page, :detail_page
     page_options :detail_page_id
 
     options_form(fld(:blog_id, :select, :options => :blog_options),

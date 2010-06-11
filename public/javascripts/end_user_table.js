@@ -14,6 +14,12 @@ var EndUserTable = {
   }, 
   
   update:function(table_name,parameters) {
+    if(!parameters) {
+      $(table_name + '_table_action').value = '';
+      var form = $(table_name + '_update_form');
+      parameters = Form.serialize(form)
+
+    }
     tbl = EndUserTable.tables[table_name];
     new Ajax.Updater(tbl[1],tbl[0], {
           parameters: parameters,

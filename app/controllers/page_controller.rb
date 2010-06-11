@@ -30,12 +30,16 @@ class PageController < ModuleAppController
     
     engine = SiteNodeEngine.new(container,:display => session[:cms_language], :path => [])
     
-    @result = engine.run_paragraph(para,self,myself)
+    begin
+      @result = engine.run_paragraph(para,self,myself)
+    rescue SiteNodeEngine::MissingPageException => e
+      @result = nil
+    end
     
     if @result
       render :text => webiva_post_process_paragraph(render_paragraph(container.is_a?(SiteNode) ? container : container.site_node, revision, @result, :ajax => true))
     else
-      render :nothing => true
+      render :nothing => true, :status => 404
     end
   end
   

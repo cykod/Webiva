@@ -184,6 +184,7 @@ class ContentNode < DomainModel
 
   def link(type_preload = nil)
     type_preload ||= self.content_type
+    return "#" unless type_preload
     node ? (self.content_url_override || type_preload.content_link(node)) : ''
   end
 

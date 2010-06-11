@@ -21,7 +21,7 @@ class Blog::EditFeature < ParagraphFeature
   def blog_edit_list_feature(data)
     webiva_feature(:blog_edit_list) do |c|
       c.link_tag('write') { |t| data[:edit_url] }
-      c.end_user_table_tag('post_table','post',:container_id => "paragraph_#{paragraph.id}", :no_pages => data[:mini] ? true : nil,
+      c.end_user_table_tag('post_table','post',:container_id => "cmspara_#{paragraph.id}", :no_pages => data[:mini] ? true : nil,
            :actions => data[:mini] ? nil : [['Delete','delete','Delete the selected posts?']]) { |t| data[:tbl] }
         c.link_tag('post_table:row:edit') { |t| "#{data[:edit_url]}/#{t.locals.post.permalink}" }
         c.value_tag('post_table:row:title') { |t| h t.locals.post.title }

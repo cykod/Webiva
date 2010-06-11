@@ -190,6 +190,11 @@ class Content::CoreField < Content::FieldHandler
   
   class EditorField < Content::CoreField::HtmlField #:nodoc:all
     content_display :html
+    setup_model(:required) do |cls,fld| 
+      unless cls.superclass == HashModel
+       cls.before_save() { |entry|  entry.send("#{fld.model_field.field}=",ContentFilter.wysiwyg_replace_images(entry.send(fld.model_field.field)) )  }
+      end
+    end
     # Everything the same as StringField that we want to display an editor area
     def form_field(f,field_name,field_opts,options={})
       f.editor_area field_name, field_opts.merge(options)
@@ -552,7 +557,11 @@ class Content::CoreField < Content::FieldHandler
     
     def content_display(entry,size=:full,options = {})
       dt = entry.send(@model_field.field)
-      dt ? dt.localize(options[:format] || DEFAULT_DATETIME_FORMAT) : ''
+      begin
+        dt ? dt.localize(options[:format] || DEFAULT_DATETIME_FORMAT) : ''
+      rescue Exception => e
+        ''
+      end
     end
     
   

@@ -83,6 +83,7 @@ class SiteFeature < DomainModel
 
   def self.single_feature_type_hash(site_template_id,feature_type,options = {})
     features = []
+    feature_type = feature_type.to_s
     if site_template_id 
       conditions = { :site_template_id => site_template_id, :feature_type => feature_type }
     else
