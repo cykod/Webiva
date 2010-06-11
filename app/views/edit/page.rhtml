@@ -5,7 +5,7 @@
      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <script> var AUTH_TOKEN = "<%= form_authenticity_token.to_s %>";</script>
     <%= stylesheet_link_tag 'common' %>
-    <% @output.head %>
+    <%= @output.head %>
     
     <%= theme_stylesheet_link_tag  "main" %>
     <%= javascript_include_tag :defaults %>
@@ -55,7 +55,8 @@ tinyMCE.init({
           content_css: "<%= url_for :controller => 'public', :action => 'stylesheet', :path => [ @output.css_site_template_id, @output.language ], :editor => 1 %>",
           debug : false,
           relative_urls : false,
-	  remove_script_host : true,
+	        remove_script_host : true,
+          gecko_spellcheck : true,
           setupcontent_callback: "mceSetupContent",
           handle_event_callback: "mceEventCallback",
           execcommand_callback: "mceExecCallback",
