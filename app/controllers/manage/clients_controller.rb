@@ -2,18 +2,7 @@
 
 class Manage::ClientsController < CmsController # :nodoc: all
 
-  # Only system administrators can access this controller
-  permit 'client_user'
-  
-  before_filter :validate_admin
-  def validate_admin
-    unless myself.client_user.system_admin?
-      redirect_to :controller => '/manage/system'
-      return false
-    end
-    
-  end
-
+  permit 'system_admin'
   layout 'manage'
 
   def index
@@ -58,7 +47,7 @@ class Manage::ClientsController < CmsController # :nodoc: all
                     [ "Clients", url_for(:action => 'index') ],
                     "New Client"
                  ],"system"
-    @client = Client.new
+    @client = Client.new :domain_limit => 10, :max_client_users => 100, :max_file_storage => 100000
   end
 
   def create

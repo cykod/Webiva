@@ -13,7 +13,8 @@ class DomainQuota < ActiveRecord::Migration
     add_column :client_users, :domain_database_id, :integer
     add_column :client_users, :salt, :string
 
-    add_index :client_users, [:username], :name => 'client_users_username_idx', :unique => true
+    add_index :client_users, :username, :unique => true
+    add_index :clients, :name, :unique => true
   end
 
   def self.down
@@ -24,5 +25,8 @@ class DomainQuota < ActiveRecord::Migration
     remove_column :clients, :max_file_storage
     remove_column :client_users, :domain_database_id
     remove_column :client_users, :salt
+
+    remove_index :client_users, :username
+    remove_index :clients, :name
   end
 end

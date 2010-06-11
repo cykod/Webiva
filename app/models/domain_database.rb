@@ -8,18 +8,16 @@ class DomainDatabase < SystemModel
   validates_presence_of :name
   validates_uniqueness_of :name
 
-  validates_presence_of :options
-
   validates_numericality_of :max_file_storage
 
   serialize :options
 
-  def before_validation
+  def  before_validation_on_create
     self.max_file_storage = 10000 unless self.max_file_storage
   end
 
   def validate
-    self.errors.add(:max_file_storage, 'too large') if self.max_file_storage > self.client.available_file_storage
+    self.errors.add(:max_file_storage, 'is too large') if self.max_file_storage > self.client.available_file_storage
   end
 
   def after_save #:nodoc:

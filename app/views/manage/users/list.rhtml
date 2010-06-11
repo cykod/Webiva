@@ -27,16 +27,12 @@
     </tr>
 <% @users.each do |usr| -%>    
     <tr>
-        <td><%= link_to theme_icon(:table,'icons/actions/edit.gif'),  :action => myself.has_role?('system_admin') ? "edit_all" : "edit", :path => usr %>
-            <%= link_to usr.username, :action => 'edit_all', :path => usr %></td>
+        <td><%= link_to theme_icon(:table,'icons/actions/edit.gif'), :action => myself.has_role?('system_admin') ? "edit_all" : "edit", :path => usr %>
+            <%= link_to usr.username, :action => myself.has_role?('system_admin') ? "edit_all" : "edit", :path => usr %></td>
         <td align="center">
-            <% if usr.system_admin? -%>
-              <%= 'System Admin'.t -%>
-            <% else -%>
-              <%= usr.client_admin? ? "Yes":"No" %>
-            <% end -%>
+          <%= usr.system_admin? ? 'System Admin'.t : (usr.client_admin? ? "Yes".t : "No".t) %>
         </td>
-          <td><%= link_to theme_icon(:table,'icons/actions/delete.gif'),{:action => "destroy", :path => usr}, :method => 'post', :confirm => 'Are you sure?' %> </td>
+        <td><%= link_to(theme_icon(:table,'icons/actions/delete.gif'),{:action => "destroy", :path => usr}, :method => 'post', :confirm => 'Are you sure?') unless usr.id == myself.client_user.id %></td>
     </tr>
 <% end -%>
 

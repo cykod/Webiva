@@ -46,7 +46,7 @@ class Manage::UsersController < CmsController # :nodoc: all
       if params[:commit]
         params[:client_user][:client_admin] = false unless params[:client_user][:client_admin]
         del params[:client_user][:system_admin] if params[:client_user][:system_admin]
-        params[:client_user][:client_id] = self..client_user.client_id
+        params[:client_user][:client_id] = self.client_user.client_id
         if @client_user.update_attributes(params[:client_user].slice(:username, :password, :domain_database_id, :client_admin))
           redirect_to :action => 'index'
           return
@@ -59,7 +59,7 @@ class Manage::UsersController < CmsController # :nodoc: all
   end
   
   def edit_all
-    return redirect_to :action => 'edit' unless self.system_admin?
+    return redirect_to :action => 'edit', :path => params[:path] unless self.system_admin?
 
     cms_page_info [ ["System",url_for(:controller => '/manage/system',:action => 'index') ], 
                     [ "Client Users", url_for(:action => 'index') ],
@@ -96,8 +96,10 @@ class Manage::UsersController < CmsController # :nodoc: all
       @client_user = ClientUser.find_by_id params[:path][0]
     else
       @client_user = self.client.client_users.find_by_id params[:path][0]
-      @client_user = nil if @client_user && (@client_user.system_admin? || @client_user.client_id != self.client.id)
+      @client_user = nil if @client_user && @client_user.system_admin?
     end
+
+    @client_user = nil if @client_user && @client_user.id == self.client_user.id
 
     if @client_user && request.post?
       if @client_user.destroy

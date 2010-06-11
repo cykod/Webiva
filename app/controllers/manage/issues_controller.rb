@@ -3,15 +3,6 @@
 class Manage::IssuesController < CmsController # :nodoc: all
 
   permit 'system_admin'
-  before_filter :validate_admin
-  def validate_admin
-    unless myself.client_user.system_admin?
-      redirect_to :controller => '/manage/system'
-      return false
-    end
-    
-  end
-  
   layout 'manage'
 
   private
@@ -166,4 +157,8 @@ class Manage::IssuesController < CmsController # :nodoc: all
     redirect_to :action => 'index'
     
   end
+
+  protected
+
+  include Manage::SystemController::Base
 end

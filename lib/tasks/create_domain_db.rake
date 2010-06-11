@@ -62,7 +62,11 @@ namespace "cms" do
 		}
 		
 
-      dmn.create_domain_database :client_id => dmn.client_id, :name => dmn.database, :options => options
+      if dmn.domain_database
+        dmn.domain_database.update_attributes :options => options
+      else
+        dmn.create_domain_database :client_id => dmn.client_id, :name => dmn.database, :options => options
+      end
       dmn.save
 
       ActiveRecord::Base.logger = Logger.new(STDOUT)

@@ -35,32 +35,30 @@ class Domain < SystemModel
   end
 
   def validate
-    self.errors.add(:max_file_storage, 'too large') if self.max_file_storage > self.client.available_file_storage
+    self.errors.add(:max_file_storage, 'is too large') if self.max_file_storage && self.max_file_storage > self.client.available_file_storage
   end
 
   def after_save #:nodoc:
     # Clear the domain information out of any cache
     if self.domain_database
       self.domain_database.save
+    elsif @max_file_storage
+      self.create_domain_database :client_id => self.client_id, :name => self.database, :max_file_storage => @max_file_storage
     else
       DataCache.set_domain_info(self.name,nil)
     end
   end
 
-  def max_client_users
-    self.domain_database ? self.domain_database.max_client_users : nil
-  end
-
-  def max_client_users=(max)
-    self.domain_database.max_client_users = max if self.domain_database
-  end
-
   def max_file_storage
-    self.domain_database ? self.domain_database.max_file_storage : nil
+    self.domain_database ? self.domain_database.max_file_storage : @max_file_storage
   end
 
   def max_file_storage=(max)
-    self.domain_database.max_file_storage = max if self.domain_database
+    if self.domain_database
+      self.domain_database.max_file_storage = max.to_i
+    else
+      @max_file_storage = max.to_i
+    end
   end
 
   def status_display

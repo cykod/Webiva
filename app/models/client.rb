@@ -8,8 +8,13 @@ class Client < SystemModel
   has_many :domains, :dependent => :destroy
   has_many :domain_databases, :dependent => :destroy
 
-  validates_numericality_of :max_client_users, :greater_than => 0
-  validates_numericality_of :max_file_storage, :greater_than => 0
+  validates_presence_of :name, :domain_limit, :max_client_users, :max_file_storage
+
+  validates_uniqueness_of :name
+
+  validates_numericality_of :domain_limit
+  validates_numericality_of :max_client_users
+  validates_numericality_of :max_file_storage
 
   def before_validation
     self.max_client_users = 100 unless self.max_client_users
