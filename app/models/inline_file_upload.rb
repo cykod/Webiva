@@ -10,6 +10,8 @@ class InlineFileUpload < HashModel
   domain_file_options :file_id
 
   def handle_file_upload(renderer, params)
+    return unless DomainFile.available_file_storage > 0
+
     uri = nil
     begin
       uri = URI.parse(params[:file][:url])

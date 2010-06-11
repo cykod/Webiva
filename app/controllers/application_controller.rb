@@ -458,7 +458,7 @@ class ApplicationController < ActionController::Base
   # Handles a front-end file upload by turning an uploaded file into a domain file id
   def handle_file_upload(parameters,key,options = {}) 
     
-    if !parameters[key].to_s.empty?
+    if !parameters[key].to_s.empty? && DomainFile.available_file_storage > 0
       image_folder  = options[:folder] || Configuration.options.default_image_location
       file = DomainFile.create(:skip_transform => true,:filename => parameters[key],:parent_id => image_folder,:creator_id => myself.id )
       if file.id
@@ -479,7 +479,7 @@ class ApplicationController < ActionController::Base
     
     if parameters[key.to_s + "_clear"].to_s == '0'
       parameters[key] = nil
-    elsif !parameters[key].to_s.empty?
+    elsif !parameters[key].to_s.empty? && DomainFile.available_file_storage > 0
       image_folder  = options[:folder] || Configuration.options.default_image_location
       file = DomainFile.create(:filename => parameters[key],
                                :parent_id => image_folder,

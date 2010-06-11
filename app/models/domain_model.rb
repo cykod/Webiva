@@ -191,7 +191,12 @@ class DomainModel < ActiveRecord::Base
   # This would activate the domain with id 1 from the Domain table
   def self.activate_domain(domain_info,environment='production',save_connection = true)
     DataCache.reset_local_cache
-  
+
+    if domain_info.is_a?(Hash) && domain_info[:domain_database].nil?
+      raise 'Missing domain_database, use get_info instead of attributes' unless Rails.env == 'production'
+      domain_info = domain_info[:id]
+    end
+
     unless domain_info.is_a?(Hash)
       if domain_info.is_a?(Integer)
       	domain_info = Domain.find_by_id(domain_info).get_info

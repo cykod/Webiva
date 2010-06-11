@@ -242,8 +242,10 @@ class DomainFile < DomainModel
    end
    
    def validate
-     if @file_data && @file_data.respond_to?(:download)
-       errors.add(:filename, 'invalid') unless @file_data.download
+     if @file_data
+       if @file_data.respond_to?(:download)
+         errors.add(:filename, 'invalid') unless @file_data.download
+       end
      end
    end
 
