@@ -15,7 +15,9 @@ class Role < DomainModel
   belongs_to :authorizable, :polymorphic => true
 
   validates_presence_of :name
-  
+
+  @@system_roles = %w(system_admin client_admin client_user)
+
   def self.user_classes(role_name)
     rl = self.find_by_name(role_name)
     return [] unless rl
@@ -68,7 +70,13 @@ class Role < DomainModel
 
     # If a role doesn't exist, doesn't mean we have it
     roles = Role.find(:all,:select => 'name,id',:conditions => ['name IN (?) AND authorizable_type IS NULL AND authorizable_id IS NULL',what]).index_by(&:name)
-    what.map { |elm| roles[elm] ? roles[elm].id : nil }
+    what.map do |elm|
+      if @@system_roles.include?(elm)
+        elm
+      else
+        roles[elm] ? roles[elm].id : nil
+      end
+    end
   end
 
   def self.expand_role(what,obj=nil)
@@ -84,5 +92,4 @@ class Role < DomainModel
     end
   end
 
-  
 end
