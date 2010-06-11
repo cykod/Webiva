@@ -14,7 +14,7 @@ class MemberExportWorker <  Workling::Base #:nodoc:all
     # args = { :domain_id, :content_model_id, :export_download, :export_format, :range_start, :range_end }
     
     dmn = Domain.find(args[:domain_id])
-    DomainModel.activate_domain(dmn.attributes,'migrator',false)
+    DomainModel.activate_domain(dmn.get_info,'migrator',false)
     
     results[:completed] = false
     

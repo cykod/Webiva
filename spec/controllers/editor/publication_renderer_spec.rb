@@ -20,7 +20,7 @@ describe Editor::PublicationRenderer, :type => :controller do
 
     # Switch to migrator
     @defaults_config_file = YAML.load_file("#{RAILS_ROOT}/config/defaults.yml")
-    DomainModel.activate_domain(Domain.find(@defaults_config_file['testing_domain']).attributes,'migrator',false)    
+    DomainModel.activate_domain(Domain.find(@defaults_config_file['testing_domain']).get_info,'migrator',false)    
     
     DomainModel.connection.reconnect!
     # Kill the spec test table if no-go

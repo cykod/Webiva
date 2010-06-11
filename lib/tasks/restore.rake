@@ -86,7 +86,7 @@ namespace "cms" do
     cms_import_db(local_db_config['migrator'],directory + "/domain.sql")
 
     # Activate the domain
-    DomainModel.activate_domain(dmn.attributes)
+    DomainModel.activate_domain(dmn.get_info)
   
     # Delete any rendered parts
     DomainModel.connection.execute("DELETE FROM site_template_rendered_parts WHERE 1")

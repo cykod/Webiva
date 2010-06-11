@@ -2,6 +2,8 @@ require 'sha1'
 require 'logger'
 
 class DomainDatabase < SystemModel
+  DEFAULT_MAX_FILE_STORAGE = 10.gigabytes / 1.megabyte
+
   belongs_to :client
   has_many :domains
 
@@ -13,7 +15,7 @@ class DomainDatabase < SystemModel
   serialize :options
 
   def  before_validation_on_create
-    self.max_file_storage = 10000 unless self.max_file_storage
+    self.max_file_storage = DomainDatabase::DEFAULT_MAX_FILE_STORAGE unless self.max_file_storage
   end
 
   def validate

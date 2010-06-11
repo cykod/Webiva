@@ -145,13 +145,13 @@ class Manage::DomainsController < CmsController # :nodoc: all
       return
     end
 
-    @domain.max_file_storage = 10000 unless @domain.max_file_storage
+    @domain.max_file_storage = DomainDatabase::DEFAULT_MAX_FILE_STORAGE unless @domain.max_file_storage
     
     if request.post? && params[:domain]
       if @domain.domain_type == 'domain'
 	if params[:domain][:database] == 'create'
           @domain.attributes = params[:domain].slice(:www_prefix,:active)
-          @domain.max_file_storage = params[:domain][:max_file_storage].blank? ? 10000 : params[:domain][:max_file_storage].to_i
+          @domain.max_file_storage = params[:domain][:max_file_storage].blank? ? DomainDatabase::DEFAULT_MAX_FILE_STORAGE : params[:domain][:max_file_storage].to_i
 
 	  @domain.status = 'initializing'
 	  if @domain.save

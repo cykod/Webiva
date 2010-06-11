@@ -10,6 +10,7 @@ if @file
   else
     page.replace_html :file_manager_body, :partial => '/file/details/file_details', :locals => {:file => @file }
   end
+
   page << "$('details_#{@file.id}').file_info = #{fm_file_info(@file).to_json};"
   page << "FileEditor.markSelection(#{@file.id});"
   page << 'FileEditor.showDetails();'

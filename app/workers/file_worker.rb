@@ -17,7 +17,7 @@ class FileWorker <  Workling::Base #:nodoc:all
     return false unless domain
     
     # Don't Save connection
-    DomainModel.activate_domain(domain.attributes,'production',false)
+    DomainModel.activate_domain(domain.get_info,'production',false)
   
     @uploaded_ids = []
     

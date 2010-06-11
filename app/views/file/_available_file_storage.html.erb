@@ -1,0 +1,9 @@
+<% if DomainFile.available_file_storage == 0 -%>
+<span style="color:red;"><%= 'File storage limit reached'.t %></span>
+<% elsif (DomainFile.available_file_storage.to_f / DomainFile.max_file_storage.to_f) <= 0.10 -%>
+<span style="color:red;"><%= 'Available file storage is low'.t %></span>
+<% end -%>
+
+<%= "%s Used" / number_to_human_size(DomainFile.used_file_storage, :precision => 2) %> /
+<%= "%s Available" / number_to_human_size(DomainFile.available_file_storage, :precision => 2) %>
+

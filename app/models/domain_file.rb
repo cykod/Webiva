@@ -58,7 +58,8 @@ class DomainFile < DomainModel
   has_many :instances, :class_name => 'DomainFileInstance', :dependent => :delete_all
   has_many :versions, :class_name => 'DomainFileVersion', :dependent => :destroy, :order => 'domain_file_versions.id DESC'
   
-  
+  cached_content
+
    ###########
    # Core File Methods
    ###########
@@ -1184,6 +1185,22 @@ class DomainFile < DomainModel
     rescue
       nil
     end
+  end
+
+  def self.used_file_storage
+    return self.cache_fetch_list('used_file_storage') if self.cache_fetch_list('used_file_storage')
+    used = DomainFile.sum(:file_size)
+    self.cache_put_list('used_file_storage', used)
+    used
+  end
+
+  def self.max_file_storage
+    Configuration.domain_info.max_file_storage.megabytes
+  end
+
+  def self.available_file_storage
+    available = self.max_file_storage - self.used_file_storage
+    available > 0 ? available : 0
   end
 
   protected 

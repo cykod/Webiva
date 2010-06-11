@@ -47,7 +47,7 @@ class Manage::ClientsController < CmsController # :nodoc: all
                     [ "Clients", url_for(:action => 'index') ],
                     "New Client"
                  ],"system"
-    @client = Client.new :domain_limit => 10, :max_client_users => 100, :max_file_storage => 100000
+    @client = Client.new :domain_limit => Client::DEFAULT_DOMAIN_LIMIT, :max_client_users => Client::DEFAULT_MAX_CLIENTS, :max_file_storage => Client::DEFAULT_MAX_FILE_STORAGE
   end
 
   def create

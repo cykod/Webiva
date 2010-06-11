@@ -3,7 +3,11 @@
 # A System Model that represents a entity that owns
 # one or more websites. Clients have a limit
 # on the number of domains they can create
-class Client < SystemModel 
+class Client < SystemModel
+  DEFAULT_DOMAIN_LIMIT = 10
+  DEFAULT_MAX_CLIENTS = 10
+  DEFAULT_MAX_FILE_STORAGE = 100.gigabytes / 1.megabyte
+
   has_many :client_users, :dependent => :destroy
   has_many :domains, :dependent => :destroy
   has_many :domain_databases, :dependent => :destroy
@@ -17,8 +21,8 @@ class Client < SystemModel
   validates_numericality_of :max_file_storage
 
   def before_validation
-    self.max_client_users = 100 unless self.max_client_users
-    self.max_file_storage = 100000 unless self.max_file_storage
+    self.max_client_users = Client::DEFAULT_MAX_CLIENTS unless self.max_client_users
+    self.max_file_storage = Client::DEFAULT_MAX_FILE_STORAGE unless self.max_file_storage
   end
 
   def num_databases
@@ -34,7 +38,7 @@ class Client < SystemModel
   end
 
   def available_client_users
-    return 10 unless self.max_client_users
+    return Client::DEFAULT_MAX_CLIENTS unless self.max_client_users
     available = self.max_client_users - self.num_client_users
     available > 0 ? available : 0
   end
@@ -44,7 +48,7 @@ class Client < SystemModel
   end
 
   def available_file_storage
-    return 10000 unless self.max_file_storage
+    return Client::DEFAULT_MAX_FILE_STORAGE unless self.max_file_storage
     available = self.max_file_storage - self.used_file_storage
     available > 0 ? available : 0
   end
