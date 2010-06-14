@@ -416,11 +416,11 @@ describe ContentController, "create a content model" do
     it "should check to see if user can see content" do
       mock_editor('test@webiva.com',[:editor_content, :editor_content_configure]) # no permissions
 
-      @myself.should_receive(:has_role?).any_number_of_times.with('editor_content').and_return(true)
-      @myself.should_receive(:has_role?).any_number_of_times.with(:editor_content).and_return(true)
-      @myself.should_receive(:has_role?).any_number_of_times.with('editor_content_configure').and_return(true)
-      @myself.should_receive(:has_role?).any_number_of_times.with(:editor_content_configure).and_return(true)
+      @myself.should_receive(:has_role?).exactly(1).with(:editor_content).and_return(true)
+      @myself.should_receive(:has_role?).exactly(1).with(:editor_content_configure).and_return(true)
       @myself.should_receive(:has_role?).exactly(0).with(:view_access_control, anything()).and_return(true)
+      @myself.should_receive(:has_role?).any_number_of_times.with(anything()).and_return(false)
+
       get :index
     end
 
@@ -429,25 +429,14 @@ describe ContentController, "create a content model" do
 
       @cm.update_attributes(:view_access_control => true)
 
-      @myself.should_receive(:has_role?).any_number_of_times.with('editor_content').and_return(true)
-      @myself.should_receive(:has_role?).any_number_of_times.with(:editor_content).and_return(true)
-      @myself.should_receive(:has_role?).any_number_of_times.with('editor_content_configure').and_return(false)
-      @myself.should_receive(:has_role?).any_number_of_times.with(:editor_content_configure).and_return(false)
-      @myself.should_receive(:has_role?).any_number_of_times.with(:view_access_control, anything()).and_return(true)
+      @myself.should_receive(:has_role?).exactly(1).with(:editor_content).and_return(true)
+      @myself.should_receive(:has_role?).exactly(1).with(:editor_content_configure).and_return(false)
+      @myself.should_receive(:has_role?).exactly(1).with(:view_access_control, anything()).and_return(true)
+      @myself.should_receive(:has_role?).any_number_of_times.with(anything()).and_return(false)
+
       get :index
 
       @cm.update_attributes(:view_access_control => false)
-    end
-
-    it "should check to see if user can see content without view acces controls" do
-      mock_editor('test@webiva.com',[:editor_content]) # no permissions
-
-      @myself.should_receive(:has_role?).any_number_of_times.with('editor_content').and_return(true)
-      @myself.should_receive(:has_role?).any_number_of_times.with(:editor_content).and_return(true)
-      @myself.should_receive(:has_role?).any_number_of_times.with('editor_content_configure').and_return(false)
-      @myself.should_receive(:has_role?).any_number_of_times.with(:editor_content_configure).and_return(false)
-      @myself.should_receive(:has_role?).exactly(0).with(:view_access_control, anything())
-      get :index
     end
 
     it "should check to see if user can edit content" do
@@ -455,8 +444,13 @@ describe ContentController, "create a content model" do
 
       @cm.update_attributes(:edit_access_control => true)
 
+      editor_content_role = Role.find_by_name 'editor_content'
+
+      @myself.should_receive(:has_role?).exactly(1).with(editor_content_role.id).and_return(true)
       @myself.should_receive(:has_role?).any_number_of_times.with(:editor_content_configure).and_return(false)
       @myself.should_receive(:has_role?).any_number_of_times.with('edit_access_control', anything()).and_return(true)
+      @myself.should_receive(:has_role?).any_number_of_times.with(anything()).and_return(false)
+
       controller.should_receive(:deny_access!).exactly(0)
       get :edit_entry, :path => [@cm.id]
 
@@ -468,8 +462,13 @@ describe ContentController, "create a content model" do
 
       @cm.update_attributes(:edit_access_control => true)
 
+       editor_content_role = Role.find_by_name 'editor_content'
+
+      @myself.should_receive(:has_role?).exactly(1).with(editor_content_role.id).and_return(true)
       @myself.should_receive(:has_role?).any_number_of_times.with(:editor_content_configure).and_return(false)
       @myself.should_receive(:has_role?).any_number_of_times.with('edit_access_control', anything()).and_return(false)
+      @myself.should_receive(:has_role?).any_number_of_times.with(anything()).and_return(false)
+
       controller.should_receive(:deny_access!).once
       get :edit_entry, :path => [@cm.id]
 
