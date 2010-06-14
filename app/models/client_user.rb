@@ -15,6 +15,8 @@ class ClientUser < SystemModel
   validates_presence_of :username
   validates_uniqueness_of :username
 
+  validates_presence_of :client_id
+
   attr_accessor :password
   attr_accessor :activated_client
   
@@ -24,6 +26,12 @@ class ClientUser < SystemModel
     if self.password && self.password.length > 0
       self.salt = self.class.generate_hash if self.salt.blank?
       self.hashed_password = ClientUser.hash_password(self.password, self.salt)
+    end
+  end
+
+  def validate
+    if self.id.nil? && self.client
+      self.errors.add_to_base('Max users for client') if self.client.available_client_users == 0
     end
   end
 
