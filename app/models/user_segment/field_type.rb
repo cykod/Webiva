@@ -171,6 +171,8 @@ class UserSegment::FieldType
 
     value = value.strftime(DEFAULT_DATETIME_FORMAT.t) if value.is_a?(Time)
     value = value.name if value.is_a?(DomainModel)
+    value = 'Yes'.t if value.is_a?(TrueClass)
+    value = 'No'.t if value.is_a?(FalseClass)
     value
   end
 end

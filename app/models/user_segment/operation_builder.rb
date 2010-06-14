@@ -10,7 +10,7 @@ class UserSegment::OperationBuilder < HashModel
   end
 
   def condition_options
-    [['', nil], ['And', 'and'], ['Or', 'or'], ['With', 'with']]
+    [['', nil], ['Combined', 'and'], ['Or', 'or'], ['And', 'with']]
   end
 
   def validate

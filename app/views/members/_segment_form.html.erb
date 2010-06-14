@@ -29,7 +29,7 @@ UserSegment = {
         <%= "<div style='padding: 2px 0 2px 0' class='error'>#{f.output_error_message('Filter', :segment_options_text)}</div>" if @segment.errors[:segment_options_text] %>
         <%= text_area_tag 'segment[segment_options_text]', @segment.segment_options_text, :rows => 8, :style => 'width:400px;' %>
       </div>
-      <div align="right"><a href="javascript:void(0)" onclick='openWindow("<%= url_for(:action => "builder_help", :path => @segment.id) %>" ,"operationBuilder",750,600,"yes","yes");'><%= 'What is a filter?'.t %></a></div>
+      <div align="right"><a href="javascript:void(0)" onclick='openWindow("<%= url_for(:action => "builder_help", :path => @segment.id) %>" ,"operationBuilderHelper",750,600,"yes","yes");'><%= 'What is a filter?'.t %></a></div>
     <% end %>
   <% end -%>
 
