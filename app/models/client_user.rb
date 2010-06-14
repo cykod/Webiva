@@ -48,6 +48,7 @@ class ClientUser < SystemModel
                :conditions => ["username = ? and (system_admin=1 OR client_id=?)",username,client_id])
     hashed_password = self.hash_password(password || "", usr.salt) if usr
     if usr && usr.hashed_password == hashed_password
+      usr = nil unless usr.system_admin? || usr.client_admin? || usr.domain_database_id.nil? || usr.domain_database_id == DomainModel.active_domain[:domain_database_id]
       usr
     else
       nil

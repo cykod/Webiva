@@ -369,6 +369,7 @@ class EndUser < DomainModel
       when 'client_admin'
         self.client_user.system_admin? || self.client_user.client_admin?
       else
+        return false unless self.client_user.system_admin? || self.client_user.client_admin? || self.client_user.domain_database_id.nil? || self.client_user.domain_database_id == DomainModel.active_domain[:domain_database_id]
         true
       end
     else
