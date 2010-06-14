@@ -192,7 +192,7 @@ class Content::CoreField < Content::FieldHandler
     content_display :html
     setup_model(:required) do |cls,fld| 
       unless cls.superclass == HashModel
-       cls.before_save() { |entry|  entry.send("#{fld.model_field.field}=",ContentFilter.wysiwyg_replace_images(entry.send(fld.model_field.field)) )  }
+       cls.before_save() { |entry|  entry.send("#{fld.model_field.field}=",ContentFilter.wysiwyg_replace_images(entry.send(fld.model_field.field).to_s) )  }
       end
     end
     # Everything the same as StringField that we want to display an editor area
