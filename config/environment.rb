@@ -109,7 +109,7 @@ Rails::Initializer.run do |config|
 end
 
 # Only use X_SEND_FILE if it's enabled and we're not in test mode
-USE_X_SEND_FILE =  (RAILS_ENV == 'test' || RAILS_ENV == 'cucumber' || RAILS_ENV == 'selenium') ? false : (defaults_config_file['use_x_send_file'] || false)
+USE_X_SEND_FILE =  (Rails.env == 'test' || Rails.env == 'cucumber' || Rails.env == 'selenium') ? false : (defaults_config_file['use_x_send_file'] || false)
 
  memcache_options = {
     :c_threshold => 10_000,
@@ -126,13 +126,13 @@ CACHE = MemCache.new memcache_options
 Workling::Remote.dispatcher = Workling::Remote::Runners::StarlingRunner.new
 Workling::Return::Store::Base # Load the base module first
 Workling::Return::Store.instance = CACHE
-if RAILS_ENV == 'production'
-  Workling::Base.logger = ActiveSupport::BufferedLogger.new(File.dirname(__FILE__) + "/../log/workling_#{RAILS_ENV}.log", ActiveSupport::BufferedLogger::INFO)
+if Rails.env == 'production'
+  Workling::Base.logger = ActiveSupport::BufferedLogger.new(File.dirname(__FILE__) + "/../log/workling_#{Rails.env}.log", ActiveSupport::BufferedLogger::INFO)
 else
-  Workling::Base.logger = DevelopmentLogger.new(File.dirname(__FILE__) + "/../log/workling_#{RAILS_ENV}.log", 0, 0)
+  Workling::Base.logger = DevelopmentLogger.new(File.dirname(__FILE__) + "/../log/workling_#{Rails.env}.log", 0, 0)
 end
 
-ActionMailer::Base.logger = nil unless RAILS_ENV == 'development'
+ActionMailer::Base.logger = nil unless Rails.env == 'development'
 
 # Copy Assets over
 
@@ -147,10 +147,10 @@ Dir.glob("#{RAILS_ROOT}/vendor/modules/[a-z]*") do |file|
 end
 
 
-ActionMailer::Base.logger = nil unless ENV['RAILS_ENV'] == 'development'
+ActionMailer::Base.logger = nil unless Rails.env == 'development'
 
 
-if RAILS_ENV == 'test'
+if Rails.env == 'test'
     if defaults_config_file['testing_domain']
       ActiveRecord::Base.establish_connection(YAML.load_file("#{RAILS_ROOT}/config/cms.yml")['test'])
       SystemModel.establish_connection(YAML.load_file("#{RAILS_ROOT}/config/cms.yml")['test'])
@@ -159,7 +159,7 @@ if RAILS_ENV == 'test'
       raise 'No Available Testing Database!'
     end
 end 
-if RAILS_ENV == 'cucumber' || RAILS_ENV == 'selenium'
+if Rails.env == 'cucumber' || Rails.env == 'selenium'
     if defaults_config_file['cucumber_domain']
       ActiveRecord::Base.establish_connection(YAML.load_file("#{RAILS_ROOT}/config/cms.yml")['cucumber'])
       SystemModel.establish_connection(YAML.load_file("#{RAILS_ROOT}/config/cms.yml")['cucumber'])
@@ -205,3 +205,16 @@ Locale.set_base_language('en-US')
 
 gem 'soap4r'
 
+def activate_domain!(domain)
+  DomainModel.activate_domain domain
+end
+
+def reload_domain!
+  domain = DomainModel.active_domain
+  reload!
+  unless domain.blank?
+    puts "Activating #{domain[:name]}..."
+    activate_domain! domain
+  end
+  true
+end
