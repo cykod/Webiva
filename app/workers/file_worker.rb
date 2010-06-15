@@ -61,7 +61,9 @@ class FileWorker <  Workling::Base #:nodoc:all
     if(args[:replace_same])
       @uploaded_ids = DomainFile.find(:all,:conditions => { :id => @uploaded_ids }).map { |fl| fl.replace_same }.map(&:id)
     end 
-    
+
+    @upload_file.update_attributes(:server_id => Server.server_id) if @upload_file.server_id != Server.server_id
+
     Workling.return.set(args[:uid],{  :uploaded_ids => @uploaded_ids, :processed => true } )
   end
 
