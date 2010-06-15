@@ -34,6 +34,6 @@ class DomainDatabase < SystemModel
   end
 
   def domain_name
-    self.first_domain.name
+    self.first_domain ? self.first_domain.name : self.name
   end
 end

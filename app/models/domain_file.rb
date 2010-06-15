@@ -196,8 +196,10 @@ class DomainFile < DomainModel
    after_update :update_image_instances
    validate_on_create :preprocess_file
    after_create :process_file
-   
-   after_destroy :cleanup_file
+   before_create :set_server
+   before_save :update_server_hash
+
+   before_destroy :cleanup_file
    
    def process_file_update #:nodoc:
     if @file_data && self.id
@@ -224,7 +226,15 @@ class DomainFile < DomainModel
     end
     update_file_path
    end
-   
+
+   def set_server
+     self.server_id = Server.server_id unless self.server_id
+   end
+
+   def update_server_hash
+     self.server_hash = DomainModel.generate_hash unless self.server_hash
+   end
+
    def update_image_instances #:nodoc:
     if @file_change
       if self.instances.length > 0
@@ -405,7 +415,7 @@ class DomainFile < DomainModel
    
    # Check if the storage directory exists, if so, delete
    def cleanup_file #:nodoc:
-    self.processor_handler.destroy_remote! if self.processor != 'local'
+    self.processor_handler.destroy_remote! if self.processor_handler
     if !prefix.blank? && (File.directory?(abs_storage_directory))
       FileUtils.rm_rf(abs_storage_directory)
     end
@@ -818,7 +828,11 @@ class DomainFile < DomainModel
     FileUtils.rm_rf(dir)
     
   end
-  
+
+  def server
+    @server ||= Server.find_by_id(self.server_id) if self.server_id
+  end
+
   protected 
   
   def self.order_sql(order) #:nodoc:
@@ -963,9 +977,28 @@ class DomainFile < DomainModel
     def initialize(conn,df); @connection=conn, @df = df; end 
     
     # Don't need to do anything 
-    def copy_local!(dest_size=nil); true; end
+    def copy_local!(dest_size=nil)
+      return true unless @df.server
+
+      url = "/website/transmit_file/file/#{DomainModel.active_domain_id}/#{@df.id}/#{@df.server_hash}"
+      response = @df.server.fetch(url)
+      return false unless Net::HTTPSuccess === response
+
+      FileUtils.mkpath(@df.abs_storage_directory)
+      File.open(@df.local_filename, "wb") { |f| f.write(response.body) }
+      true
+    end
+
     def copy_remote!; true; end
-    def destroy_remote!; true; end
+
+    def destroy_remote!;
+      if @df.server_hash
+        url = "/website/transmit_file/delete/#{DomainModel.active_domain_id}/#{@df.id}/#{@df.server_hash}"
+        Server.send_to_all url
+      end
+      true
+    end
+
     def revision_support; true; end
     
     def update_private!(value)

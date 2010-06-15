@@ -190,9 +190,6 @@ ActionController::Base.session_options[:expires] = 10800 unless Rails.env == 'de
 ActionController::Base.session_options[:cache] = CACHE
 
 
-
-
-
 # Globalize Setup
 include Globalize
 
