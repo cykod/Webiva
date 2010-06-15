@@ -14,7 +14,6 @@ class TransmitFileController < ApplicationController
 
   def delete
     dir = @domain_file.abs_storage_directory
-    Rails.logger.error "removing folder #{dir}"
     FileUtils.rm_rf(dir) if File.directory?(dir)
     render :nothing => true
   end
