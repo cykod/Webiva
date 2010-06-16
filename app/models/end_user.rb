@@ -884,7 +884,7 @@ Not doing so could allow a user to change their user profile (for example) and e
   def run_update_profile_photo(args)
     url = args[:url]
 
-    return unless DomainModel.available_file_storage > 0
+    return unless DomainFile.available_file_storage > 0
 
     uri = nil
     begin
