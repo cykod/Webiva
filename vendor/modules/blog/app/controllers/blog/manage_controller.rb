@@ -4,9 +4,9 @@ class Blog::ManageController < ModuleController
   
   permit 'blog_writer', :except => [ :configure] 
 
-  permit 'blog_config', :only => [ :configure, :delete ]
+  permit 'blog_config', :only => [ :configure, :delete, :import ]
 
-  before_filter :check_view_permission, :except => [ :configure, :delete, :display_blog_list_table, :list, :generate_mail, :generate_mail_generate ]
+  before_filter :check_view_permission, :except => [ :configure, :delete, :display_blog_list_table, :list, :generate_mail, :generate_mail_generate, :import ]
 
   component_info 'Blog'
   
@@ -241,6 +241,20 @@ class Blog::ManageController < ModuleController
     cms_page_path ['Content'], 'Site Blogs'
     display_blog_list_table(false)
   end
+
+  def import
+    @blog = Blog::BlogBlog.find(params[:path][0])
+    blog_path(@blog,"Import Blog")
+
+    if request.post? && params[:import] && @file = DomainFile.find_by_id(params[:import][:import_file_id])
+      if params[:commit]
+         @blog.import_file(@file,myself)
+      end
+      redirect_to :action => 'index', :path => [ @blog.id ]
+    end
+
+
+  end
   
   protected
   
@@ -265,5 +279,7 @@ class Blog::ManageController < ModuleController
       end
     end
   end
+
+
 
 end
