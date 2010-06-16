@@ -1,0 +1,1 @@
+page.replace_html :available_file_storage, :partial => '/file/available_file_storage'

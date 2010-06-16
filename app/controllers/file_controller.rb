@@ -379,4 +379,7 @@ class FileController < CmsController # :nodoc: all
       render :partial => 'edit_file'
     end
   end
+
+  def update_storage
+  end
 end
