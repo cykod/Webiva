@@ -16,6 +16,7 @@ class TransmitFileController < ApplicationController
     key = params[:path][1]
     DomainFile::LocalProcess.get_directories_to_delete(key).each do |dir|
       dir = "#{RAILS_ROOT}/public/" + dir
+      Rails.logger.error "deleteing dir: #{dir}"
       FileUtils.rm_rf(dir) if File.directory?(dir)
     end
 

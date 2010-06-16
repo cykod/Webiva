@@ -1013,7 +1013,7 @@ class DomainFile < DomainModel
 
     def self.set_directories_to_delete(dirs)
       dirs = [dirs] unless dirs.is_a?(Array)
-      key = "Domain:#{DomainModel.active_domain_id}:DomainFile:delete:#{self.generate_hash}"
+      key = "Domain:#{DomainModel.active_domain_id}:DomainFile:delete:#{DomainModel.generate_hash}"
       CACHE.set(key,dirs)
       key
     end
