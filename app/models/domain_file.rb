@@ -13,7 +13,7 @@ require 'uri'
 =begin rdoc
 DomainFile's represent files uploaded into the filemanager. Any file uploaded into webiva from
 a site creates a domain file entry.
-
+'
 =end
 class DomainFile < DomainModel
 
@@ -88,7 +88,6 @@ class DomainFile < DomainModel
    def replace(file)
     return false if self.folder? || file.folder?
     return false if self.id == file.id
-    self.reload(:lock => true)
     File.open(file.filename,"rb") do |f|
       self.filename = f
       self.name = file.name
@@ -158,38 +157,37 @@ class DomainFile < DomainModel
    # This file actually rename the file 
    # on the file system
    def rename(new_name)
-   
-    return false if new_name.blank?
+     return false if new_name.blank?
 
-    if self.folder?
-      self.update_attributes(:name => new_name)
-      return true
-    end
-   
-    new_name = DomainFile.sanitize_filename(new_name)
-    if File.extname(new_name)[1..-1] != self.extension
-      return false
-    end
-    
-    return false if new_name.blank?
+     if self.folder?
+       self.update_attributes(:name => new_name)
+       return true
+     end
 
-    self.filename # get a local copy of the file
-   
-    tmp_dir = DomainFile.generate_temporary_directory
-    new_filename = File.join(tmp_dir,new_name)
-    if FileUtils.copy_file(self.local_filename,new_filename,true)
-      File.open(new_filename,"rb") do |f|
-        self.filename = f
-        self.process_immediately = true
-        self.name = new_name
-        if(self.save)
-          FileUtils.rm_rf(tmp_dir)
-          return true
-        end
-      end
-    end
-    FileUtils.rm_rf(tmp_dir)
-    return false
+     new_name = DomainFile.sanitize_filename(new_name)
+     if File.extname(new_name)[1..-1] != self.extension
+       return false
+     end
+
+     return false if new_name.blank?
+
+     self.filename # get a local copy of the file
+
+     tmp_dir = DomainFile.generate_temporary_directory
+     new_filename = File.join(tmp_dir,new_name)
+     if FileUtils.copy_file(self.local_filename,new_filename,true)
+       File.open(new_filename,"rb") do |f|
+         self.filename = f
+         self.process_immediately = true
+         self.name = new_name
+         if(self.save)
+           FileUtils.rm_rf(tmp_dir)
+           return true
+         end
+       end
+     end
+     FileUtils.rm_rf(tmp_dir)
+     return false
    end
    
    before_update :process_file_update
@@ -207,9 +205,11 @@ class DomainFile < DomainModel
       # save the older version in a subdirectory (with a unguessable hash)
       # check for FileInstances
       
-      self.processor_handler.copy_local! if self.processor != 'local'
-      
-      self.processor_handler.destroy_remote! if self.processor != 'local'
+      self.processor_handler.copy_local! if self.processor_handler
+
+      self.server_id = Server.server_id
+
+      self.processor_handler.destroy_remote! if self.processor_handler
 
       # Remove all the old versions of the file
       if DomainFileVersion.archive(self) 
@@ -994,7 +994,7 @@ class DomainFile < DomainModel
     def destroy_remote!;
       if @df.server_hash
         url = "/website/transmit_file/delete/#{DomainModel.active_domain_id}/#{@df.id}/#{@df.server_hash}"
-        Server.send_to_all url
+        Server.send_to_all url, :except => [Server.server_id]
       end
       true
     end

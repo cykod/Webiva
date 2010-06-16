@@ -40,10 +40,11 @@ class Server < SystemModel
     Net::HTTP.get_response(URI.parse(self.link(url)))
   end
 
-  def self.send_to_all(url)
+  def self.send_to_all(url, opts={})
     Server.find(:all).each do |server|
       # only web and workling servers have a web server running
       next unless server.web || server.workling
+      next if opts[:except] && opts[:except].include?(server.id)
       response = server.fetch(url)
       logger.error "failed to fetch #{url} from #{server.hostname}" unless Net::HTTPSuccess === response
     end
