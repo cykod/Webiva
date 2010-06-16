@@ -181,10 +181,10 @@ end
 
 Globalize::ModelTranslation.set_table_name('globalize_translations')
 
-  
- 
-  
-CACHE.servers =  [ 'localhost:11211' ]
+
+cache_servers = CMS_DEFAULTS['memcache_servers'] || ['localhost:11211']
+cache_servers = [cache_servers] unless cache_servers.is_a?(Array)
+CACHE.servers =  cache_servers
 
 ActionController::Base.session_options[:expires] = 10800 unless Rails.env == 'development'
 ActionController::Base.session_options[:cache] = CACHE
