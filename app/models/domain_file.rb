@@ -205,18 +205,17 @@ class DomainFile < DomainModel
       # save the older version in a subdirectory (with a unguessable hash)
       # check for FileInstances
       
-      self.processor_handler.copy_local! if self.processor_handler
+      self.filename
 
       self.server_id = Server.server_id
 
-      self.processor_handler.destroy_remote! if self.processor_handler
+      # destroy_remote! is called inside DomainFileVersion.archive(self)
+      #self.processor_handler.destroy_remote! if self.processor_handler
 
       # Remove all the old versions of the file
       if DomainFileVersion.archive(self) 
         self.version_count += 1
       end
-
-      
 
       self.file_type = nil
       preprocess_file
@@ -478,7 +477,7 @@ class DomainFile < DomainModel
    # Return the absolute filename, valid for opening a file on the server
    # Thumbnails are stored in subdirectories prefixed with the file size (../small/file.jpg)
    def abs_filename(size=nil,force=false); 
-     fl = "#{RAILS_ROOT}/public" + self.relative_filename(size,force); 
+     fl = "#{RAILS_ROOT}/public" + self.relative_filename(size,force);
      self.processor_handler.copy_local!(size) if !force && !File.exists?(fl)
 
      fl
@@ -947,7 +946,6 @@ class DomainFile < DomainModel
   # modify the processor the file is using'
   # will delete all old versions of the file
   def update_processor(options = {}) #:nodoc:
-    
     if(options[:new_file] || self.processor_handler.copy_local! )
       self.processor_handler.destroy_remote! unless options[:new_file]
       if(Configuration.file_types.processors.include?(options[:processor]))
@@ -979,6 +977,7 @@ class DomainFile < DomainModel
     # Don't need to do anything 
     def copy_local!(dest_size=nil)
       return true unless @df.server
+      return true if Server.server_id == @df.server.id
 
       url = "/website/transmit_file/file/#{DomainModel.active_domain_id}/#{@df.id}/#{@df.server_hash}"
       response = @df.server.fetch(url)
@@ -993,8 +992,10 @@ class DomainFile < DomainModel
 
     def destroy_remote!;
       if @df.server_hash
-        url = "/website/transmit_file/delete/#{DomainModel.active_domain_id}/#{@df.id}/#{@df.server_hash}"
+        key = self.class.set_directories_to_delete(@df.storage_directory)
+        url = "/website/transmit_file/delete/#{DomainModel.active_domain_id}/#{key}"
         Server.send_to_all url, :except => [Server.server_id]
+        self.class.clear_directories_to_delete(key)
       end
       true
     end
@@ -1009,7 +1010,21 @@ class DomainFile < DomainModel
       # Strip off the final directory so we don't move to a subdirectory 
       File.move(old_directory,@df.abs_storage_directory.split("/")[0..-2].join("/"))
     end
-    
+
+    def self.set_directories_to_delete(dirs)
+      dirs = [dirs] unless dirs.is_a?(Array)
+      key = "Domain:#{DomainModel.active_domain_id}:DomainFile:delete:#{self.generate_hash}"
+      CACHE.set(key,dirs)
+      key
+    end
+
+    def self.get_directories_to_delete(key)
+      CACHE.get(key) || []
+    end
+
+    def self.clear_directories_to_delete(key)
+      CACHE.delete(key)
+    end
   end  	
 
   # Dummy connection used for LocalProcessor
@@ -1238,7 +1253,7 @@ class DomainFile < DomainModel
     available > 0 ? available : 0
   end
 
-  protected 
+  protected
 
   def self.generate_prefix
     digest  = Digest::SHA1.hexdigest(Time.now.to_s + rand(1000000000000).to_s)

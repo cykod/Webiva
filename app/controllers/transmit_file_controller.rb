@@ -1,7 +1,7 @@
 
 class TransmitFileController < ApplicationController
 
-  before_filter :fetch_domain_file
+  before_filter :fetch_domain_file, :except => [:delete]
 
   def file
     filename = @domain_file.filename(@file_size)
@@ -13,8 +13,12 @@ class TransmitFileController < ApplicationController
   end
 
   def delete
-    dir = @domain_file.abs_storage_directory
-    FileUtils.rm_rf(dir) if File.directory?(dir)
+    key = params[:path][1]
+    DomainFile::LocalProcess.get_directories_to_delete(key).each do |dir|
+      dir = "#{RAILS_ROOT}/public/" + dir
+      FileUtils.rm_rf(dir) if File.directory?(dir)
+    end
+
     render :nothing => true
   end
 
