@@ -57,7 +57,7 @@ class Blog::PageRenderer < ParagraphRenderer
 
     result = renderer_cache(Blog::BlogPost, display_string) do |cache|
       blog = get_blog
-      return render_paragraph :text => (@options.blog_id > 0 ? '[Configure paragraph]' : '') unless blog
+      return render_paragraph :text => (@options.blog_id.to_i > 0 ? '[Configure paragraph]' : '') unless blog
 
       detail_page =  get_detail_page
       items_per_page = (@options.items_per_page || 1).to_i
