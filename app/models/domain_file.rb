@@ -205,7 +205,7 @@ class DomainFile < DomainModel
       # save the older version in a subdirectory (with a unguessable hash)
       # check for FileInstances
       
-      self.filename
+      fl = self.filename
 
       self.server_id = Server.server_id
 
@@ -363,8 +363,9 @@ class DomainFile < DomainModel
       File.chmod(0664,self.local_filename)
       
       
-      self.file_size = File.size(self.local_filename);
+      self.file_size = File.size(self.local_filename)
       self.stored_at = Time.now 
+      self.mtime = File.mtime(self.local_filename)
 
       mime = MIME::Types.type_for(self.abs_filename)
       mime = [MIME::Type.simplified(@file_data.content_type)] if mime.empty? && @file_data.respond_to?(:content_type) && ! @file_data.content_type.blank?
@@ -472,16 +473,20 @@ class DomainFile < DomainModel
    end
 
    # Just get get the local filename without forcing a copy
-   def local_filename(size=nil)
-     abs_filename(size,true)
+   def local_filename(size=nil,force=false)
+     "#{RAILS_ROOT}/public" + self.relative_filename(size,force);
+   end
+
+   def file_exists?(fl=nil)
+     fl ||= self.local_filename(size, force)
+     File.exists?(fl) && (self.server_id == Server.server_id || File.mtime(self.local_filename) == self.mtime)
    end
 
    # Return the absolute filename, valid for opening a file on the server
    # Thumbnails are stored in subdirectories prefixed with the file size (../small/file.jpg)
    def abs_filename(size=nil,force=false); 
-     fl = "#{RAILS_ROOT}/public" + self.relative_filename(size,force);
-     self.processor_handler.copy_local!(size) if !force && !File.exists?(fl)
-
+     fl = self.local_filename(size, force)
+     self.processor_handler.copy_local!(size) if !force && !self.file_exists?(fl)
      fl
    end
    alias_method :filename, :abs_filename
@@ -1010,6 +1015,7 @@ class DomainFile < DomainModel
 
       FileUtils.mkpath(@df.abs_storage_directory)
       File.open(@df.local_filename, "wb") { |f| f.write(response.body) }
+      File.utime(File.atime(@df.local_filename).to_i, @df.mtime.to_i, @df.local_filename) if @df.mtime
       true
     end
 

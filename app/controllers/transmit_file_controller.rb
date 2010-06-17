@@ -4,6 +4,15 @@ class TransmitFileController < ApplicationController
   before_filter :fetch_domain_file, :except => [:delete]
 
   def file
+    # this is for existing sites
+    unless @domain_file.mtime
+      # this should always be true, but just in case make sure the mtime is only coming from the owner
+      if @domain_file.server_id == Server.server_id
+        @domain_file.mtime = File.mtime(@domain_file.local_filename)
+        @domain_file.save
+      end
+    end
+
     filename = @domain_file.filename(@file_size)
     mime_types =  MIME::Types.type_for(filename) 
     send_file(filename,
