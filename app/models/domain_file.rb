@@ -209,13 +209,7 @@ class DomainFile < DomainModel
 
       self.server_id = Server.server_id
 
-      # destroy_remote! is called inside DomainFileVersion.archive(self)
-      #self.processor_handler.destroy_remote! if self.processor_handler
-
-      # Remove all the old versions of the file
-      if DomainFileVersion.archive(self) 
-        self.version_count += 1
-      end
+      self.version_count += 1 if DomainFileVersion.archive(self)
 
       self.file_type = nil
       preprocess_file

@@ -47,7 +47,8 @@ class DomainFileVersion < DomainModel
                                  :file_size => file.file_size,
                                  :creator_id => file.creator_id,
                                  :version_hash => version_hash,
-                                 :stored_at => file.stored_at)
+                                 :stored_at => file.stored_at,
+                                 :server_id => Server.server_id)
   end
   
   
@@ -126,7 +127,28 @@ class DomainFileVersion < DomainModel
     return nil unless self.meta_info[:image_size]
     self.meta_info[:image_size][:height]
   end
-  
+
+  def server
+    @server ||= Server.find_by_id(self.server_id) if self.server_id
+  end
+
+  def copy_local!
+    return true unless self.server_id
+    return true if self.server_id == Server.server_id
+
+    url = "/website/transmit_file/file_version/#{DomainModel.active_domain_id}/#{self.domain_file.id}/#{self.domain_file.server_hash}/#{self.id}"
+    response = self.server.fetch(url)
+    return false unless Net::HTTPSuccess === response
+
+    FileUtils.mkpath(self.abs_storage_directory)
+    File.open(self.filename, "wb") { |f| f.write(response.body) }
+
+    self.server_id = Server.server_id
+    self.save
+
+    true
+  end
+
  protected 
   def self.generate_version_hash
     now = Time.now

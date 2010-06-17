@@ -165,4 +165,13 @@ class Domain < SystemModel
       self.save
     end
   end
+
+  def self.each(env='production', ids=nil)
+    domains = Domain.find(:all, :conditions => 'domain_type = "domain" AND `database` != "" AND `status`="initialized"').collect { |dmn| dmn.get_info }.uniq
+    domains.each do |dmn|
+      ActiveRecord::Base.establish_connection(dmn[:domain_database][:options][env])
+      DomainModel.activate_domain(dmn, env)
+      yield dmn
+    end
+  end
 end

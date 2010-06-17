@@ -6,18 +6,12 @@ namespace "cms" do
 
     raise "server id not set" unless Server.server_id
 
-    domains = Domain.find(:all, :conditions => 'domain_type = "domain" AND `database` != "" AND `status`="initialized"').collect { |dmn| dmn.get_info }
-    
     ActiveRecord::Base.logger = Logger.new(STDOUT)
 
-    domains.each do |dmn|
-      puts 'Updating server_id for Domain Files on ' + dmn[:name]
-      db_file = dmn[:domain_database][:options]
-
-      ActiveRecord::Base.establish_connection(db_file['production'])
-      DomainModel.activate_domain(dmn, 'production')
-
-      DomainFile.update_all "server_id = #{Server.server_id}"
+    Domain.each do |domain|
+      puts 'Updating server_id for Domain Files on ' + domain[:name]
+      DomainFile.update_all "server_id = #{Server.server_id}", "server_id is NULL"
+      DomainFileVersion.update_all "server_id = #{Server.server_id}", "server_id is NULL"
     end
   end
 end
