@@ -25,7 +25,7 @@ module PageHelper
      extra_class = " " + options[:class]
    end
    
-   div_id = options[:container_id] || "cmspara_#{paragraph.id}"
+   div_id = options[:container_id] || "cmspara_#{tbl.renderer.paragraph.id}"
    concat(register_table_js(tbl,div_id,options[:refresh_url]))
    concat("<form id='#{tbl.name}_update_form' action='' onsubmit='return false;'>") unless options[:no_form]
    concat("<input type='hidden' name='page_connection_hash' value='#{tbl.page_connection_hash}' />") unless options[:no_form]
