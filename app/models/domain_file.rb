@@ -478,7 +478,7 @@ class DomainFile < DomainModel
    end
 
    def file_exists?(fl=nil)
-     fl ||= self.local_filename(size, force)
+     fl ||= self.local_filename
      File.exists?(fl) && (self.server_id == Server.server_id || File.mtime(self.local_filename) == self.mtime)
    end
 
