@@ -34,7 +34,7 @@ class Blog::RssHandler
         item = { :title => post.title,
                  :guid => post.id,
                  :published_at => post.published_at.to_s(:rfc822),
-                 :description => replace_relative_urls(post.preview)
+                 :description => replace_relative_urls(@options.full ? post.body_content : post.preview)
                 }
         post.blog_categories.each do |cat|
           item[:categories] ||= []
@@ -90,7 +90,7 @@ class Blog::RssHandler
  end 
 
   class Options < Feed::AdminController::RssModuleOptions
-    attributes :feed_identifier => nil, :limit => 10
+    attributes :feed_identifier => nil, :limit => 10, :full => false
 
     validates_presence_of :feed_identifier, :limit
     validates_numericality_of :limit
@@ -98,7 +98,8 @@ class Blog::RssHandler
     integer_options :limit
 
     options_form(fld(:feed_identifier, :select, :options => :feed_identifier_options, :label => 'Feed'),
-		 fld(:limit, :text_field)
+		 fld(:limit, :text_field),
+     fld(:full,:yes_no)
 		 )
 
     def validate
@@ -113,13 +114,13 @@ class Blog::RssHandler
       opts = [['--Select Feed--', nil]]
     
       revisions.each do |rev|
-	par = rev.page_paragraphs[0]
-	blog = Blog::BlogBlog.find_by_id(par.data[:blog_id]) if par
-	detail_page = par.data[:detail_page] if par && par.data[:detail_page]
-      
-	if par && blog && rev.revision_container.is_a?(SiteNode)
-	  opts << [ blog.name + ' - ' + rev.revision_container.node_path, "#{rev.revision_container_id},#{blog.id},#{detail_page}" ]
-	end
+        par = rev.page_paragraphs.detect { |p| p.display_module =='/blog/page' && p.display_type == 'entry_list' }
+        blog = Blog::BlogBlog.find_by_id(par.data[:blog_id]) if par
+        detail_page = par.data[:detail_page] if par && par.data[:detail_page]
+
+        if par && blog && rev.revision_container.is_a?(SiteNode)
+          opts << [ blog.name + ' - ' + rev.revision_container.node_path, "#{rev.revision_container_id},#{blog.id},#{detail_page}" ]
+        end
       end
       opts
     end
