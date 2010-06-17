@@ -221,7 +221,9 @@ class DomainFile < DomainModel
       preprocess_file
       process_file(true)
       
-      @file_change = true      
+      @file_change = true
+
+      DataCache.put_local_cache('used_file_storage', nil)
     end
     update_file_path
    end
@@ -231,7 +233,7 @@ class DomainFile < DomainModel
    end
 
    def update_server_hash
-     self.server_hash = DomainModel.generate_hash unless self.server_hash
+     self.server_hash = DomainModel.generate_hash unless self.server_hash || self.folder?
    end
 
    def update_image_instances #:nodoc:
@@ -494,6 +496,29 @@ class DomainFile < DomainModel
    # Return the absolute storage directory - valid for opening a file  on the server 
    def abs_storage_directory; "#{RAILS_ROOT}/public" + self.storage_base + "/" + self.prefix + "/"; end
    
+   def storage_directories
+     dirs = []
+     if self.folder?
+      self.children.each do |child|
+         if child.folder?
+           dirs += child.storage_directories
+         else
+           dirs << child.storage_directory
+         end
+       end
+     else
+       dirs << self.storage_directory
+     end
+     dirs
+   end
+
+   def disable_destroy_remote
+     self.server_hash = nil
+     self.children.each do |child|
+       child.server_hash = nil
+       child.disable_destroy_remote if child.folder?
+     end
+   end
 
    # Return the base storage subdirectory (under public)
    def self.storage_subdir; DomainModel.active_domain[:file_store].to_s; end
@@ -991,7 +1016,7 @@ class DomainFile < DomainModel
     def copy_remote!; true; end
 
     def destroy_remote!;
-      if @df.server_hash
+      if @df.server_hash && ! @df.folder?
         key = self.class.set_directories_to_delete(@df.storage_directory)
         url = "/website/transmit_file/delete/#{DomainModel.active_domain_id}/#{key}"
         Server.send_to_all url, :except => [Server.server_id]
@@ -1238,9 +1263,19 @@ class DomainFile < DomainModel
   end
 
   def self.used_file_storage
-    return self.cache_fetch_list('used_file_storage') if self.cache_fetch_list('used_file_storage')
+    return DataCache.local_cache('used_file_storage') if DataCache.local_cache('used_file_storage')
+
+    # fetch from CACHE and store in local cache
+    used = self.cache_fetch_list('used_file_storage')
+    if used
+      DataCache.put_local_cache('used_file_storage', used)
+      return used
+    end
+
+    # calculate used file storage
     used = DomainFile.sum(:file_size)
     self.cache_put_list('used_file_storage', used)
+    DataCache.put_local_cache('used_file_storage', used)
     used
   end
 

@@ -300,14 +300,16 @@ class FileController < CmsController # :nodoc: all
     
     files = DomainFile.find(file_id)
     dirs = []
-    files.each { |fl| dirs << fl.storage_directory }
+    files.each do |fl|
+      dirs += fl.storage_directories
+    end
 
     key = DomainFile::LocalProcessor.set_directories_to_delete dirs
     url = "/website/transmit_file/delete/#{DomainModel.active_domain_id}/#{key}"
     Server.send_to_all url
     DomainFile::LocalProcessor.clear_directories_to_delete key
 
-    files.each { |fl| fl.server_hash = nil; fl.destroy }
+    files.each { |fl| fl.disable_destroy_remote; fl.destroy }
 
     render :nothing => true
   end
