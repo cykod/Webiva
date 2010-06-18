@@ -317,7 +317,7 @@ class SiteTemplate < DomainModel
   
   def localized_options
     loc_opt = []
-
+    self.options[:options] ||= []
     self.options[:options].each do |opt|
       if(opt[5])
         loc_opt << opt

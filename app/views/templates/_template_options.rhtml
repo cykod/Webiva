@@ -1,6 +1,8 @@
-<% tabled_fields_for :site_template, @site_template do |f| -%>
+<% admin_fields_for :site_template, @site_template do |f| -%>
 	<%= f.text_field :name %>
 	<%= f.text_area :description, :cols => 40, :rows => 3 %>
+  <%= f.text_field :doctype, :size => 120, :label => 'Doctype',:description => 'Override the default doctype of XHTML 4.01 Transitional' %>
+  <%= f.yes_no :partial, :label => 'Partial Template', :description => 'Skip HTML header and footer (useful for AJAX template)' %>
 <% end -%>
 
 <% unless @site_template.parent_template %>
