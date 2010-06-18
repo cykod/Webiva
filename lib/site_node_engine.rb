@@ -885,7 +885,7 @@ EOF
       # Handle Pages / Frameworks
       unless @revision
         @revision = @container.page_revisions.find(:first,
-              :conditions => "revision_type = 'real' AND active=1",
+              :conditions => "revision_type = 'real'" + (@mode !='edit' ? "AND active=1" : ""),
               :order => "language=#{SiteNode.quote_value(@language)} DESC"
               )
       end
