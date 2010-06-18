@@ -1026,8 +1026,26 @@ class DomainFile < DomainModel
     end
 
     def revision_support; true; end
-    
+
+    def copy_version_local!(version)
+      return true unless version.server_id
+      return true if version.server_id == Server.server_id
+
+      url = "/website/transmit_file/file_version/#{DomainModel.active_domain_id}/#{@df.id}/#{@df.server_hash}/#{version.id}"
+      response = version.server.fetch(url)
+      return false unless Net::HTTPSuccess === response
+
+      FileUtils.mkpath(version.abs_storage_directory)
+      File.open(version.filename, "wb") { |f| f.write(response.body) }
+      true
+    end
+
     def update_private!(value)
+      @df.versions.each do |version|
+        version.copy_local!
+        version.update_attributes :server_id => Server.server_id
+      end
+
       old_directory = @df.abs_storage_directory
       @df.update_attribute(:private,value)
       FileUtils.mkpath(@df.abs_storage_directory)

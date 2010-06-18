@@ -52,11 +52,12 @@ class PublicController < ApplicationController  # :nodoc: all
       return
     end
     
+    return self.file_version(params) if params[:path][-3] == 'v'
+
     filename = params[:path][-1] # Filename is always the last argument
-    size = params[:path][-2] # We always have a size
-    prefix = params[:path][0..-3].join("/")
-    
-    
+    size = params[:path][-2]
+    prefix = params[:path][0..2].join("/")
+
     df = DomainFile.find_by_prefix(prefix)
 
     # Special case for thumbs
@@ -103,12 +104,20 @@ class PublicController < ApplicationController  # :nodoc: all
       mime_type = mime_types[0] ? mime_types[0].to_s : 'application/octet-stream'
 
        if USE_X_SEND_FILE
-         x_send_file(name,:type => mime_type,:filename => df.name)    
+         x_send_file(name,:type => mime_type,:disposition => 'inline',:filename => df.name)    
        else
-         send_file(name,:type => mime_type,:filename => df.name)    
+         send_file(name,:type => mime_type,:disposition => 'inline',:filename => df.name)    
        end
+    elsif df
+      name = df.filename
+      mime_types =  MIME::Types.type_for(name) 
+      mime_type = mime_types[0] ? mime_types[0].to_s : 'application/octet-stream'
 
-      
+       if USE_X_SEND_FILE
+         x_send_file(name,:type => mime_type,:disposition => 'inline',:filename => df.name)    
+       else
+         send_file(name,:type => mime_type,:disposition => 'inline',:filename => df.name)    
+       end
     else
       render :inline => 'File not found', :status => 404
     end    
@@ -164,5 +173,41 @@ class PublicController < ApplicationController  # :nodoc: all
     end      
     
   end
-  
+
+  protected
+
+  def file_version(params)
+    filename = params[:path][-1] # Filename is always the last argument
+    version_hash = params[:path][-2]
+    prefix = params[:path][0..-4].join("/")
+
+    df = DomainFile.find_by_prefix(prefix)
+    return  render(:inline => 'File not found', :status => 404) unless df
+
+    version = df.versions.find_by_version_hash_and_filename version_hash, filename
+
+    if version
+      return redirect_to version.url if df.processor != 'local'
+      return  render(:inline => 'File not found', :status => 404) unless version.copy_local!
+
+      render :nothing => true if RAILS_ENV == 'test'
+
+      name = version.filename
+      if df.mime_type.blank?
+        mime_types =  MIME::Types.type_for(name) 
+        mime_type = mime_types[0] ? mime_types[0].to_s : 'application/octet-stream'
+      else
+        mime_type = df.mime_type
+      end
+
+      if USE_X_SEND_FILE
+        x_send_file(name,:type => mime_type,:disposition => 'inline',:filename => version.name)
+      else
+        send_file(name,:type => mime_type,:disposition => 'inline',:filename => version.name)
+      end
+     
+    else
+      render :inline => 'File not found', :status => 404
+    end
+  end
 end

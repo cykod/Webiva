@@ -133,23 +133,10 @@ class DomainFileVersion < DomainModel
   end
 
   def copy_local!
-    return true unless self.server_id
-    return true if self.server_id == Server.server_id
-
-    url = "/website/transmit_file/file_version/#{DomainModel.active_domain_id}/#{self.domain_file.id}/#{self.domain_file.server_hash}/#{self.id}"
-    response = self.server.fetch(url)
-    return false unless Net::HTTPSuccess === response
-
-    FileUtils.mkpath(self.abs_storage_directory)
-    File.open(self.filename, "wb") { |f| f.write(response.body) }
-
-    self.server_id = Server.server_id
-    self.save
-
-    true
+    self.domain_file.processor_handler.respond_to?('copy_version_local!') ? self.domain_file.processor_handler.copy_version_local!(self) : false
   end
 
- protected 
+ protected
   def self.generate_version_hash
     now = Time.now
     digest  = Digest::SHA1.hexdigest("#{now}#{rand}#{now.usec}#{Process.pid}")[0..31]
