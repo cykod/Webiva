@@ -1041,13 +1041,15 @@ class DomainFile < DomainModel
     end
 
     def update_private!(value)
+      self.copy_local!
+
       @df.versions.each do |version|
         version.copy_local!
-        version.update_attributes :server_id => Server.server_id
+        version.update_attribute(:server_id,Server.server_id)
       end
 
       old_directory = @df.abs_storage_directory
-      @df.update_attribute(:private,value)
+      @df.update_attributes(:private => value, :server_id => Server.server_id)
       FileUtils.mkpath(@df.abs_storage_directory)
       
       # Strip off the final directory so we don't move to a subdirectory 
