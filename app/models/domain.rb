@@ -30,12 +30,18 @@ class Domain < SystemModel
   validates_format_of :name, :with => /^([a-zA-Z0-9\.\-]+?)\.([a-zA-Z]+)$/,
                       :message => ' is not a valid domain '
 
+  validates_presence_of :client_id
+  validates_presence_of :domain_type
+  validates_inclusion_of :domain_type, :in => %w(domain redirect)
+
   def before_create #:nodoc: 
     self.inactive_message = 'Site Currently Down for Maintenance' if self.blank?
   end
 
   def validate
-    self.errors.add(:max_file_storage, 'is too large') if self.max_file_storage && self.max_file_storage > self.client.available_file_storage
+    self.errors.add(:client_id, 'is missing') unless self.client
+    self.errors.add(:max_file_storage, 'is too large') if self.max_file_storage && self.client && self.max_file_storage > self.client.available_file_storage
+    self.errors.add(:domain_database_id, 'is invalid') if self.domain_database && self.domain_database.client_id != self.client_id
   end
 
   def after_save #:nodoc:

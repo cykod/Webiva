@@ -30,6 +30,8 @@ class ClientUser < SystemModel
   end
 
   def validate
+    self.errors.add(:client_id, 'is missing') unless self.client
+
     if self.id.nil? && self.client
       self.errors.add_to_base('Max users for client') if self.client.available_client_users == 0
     end
@@ -92,7 +94,7 @@ class ClientUser < SystemModel
   end
   
   def validate_password(pw) #:nodoc:
-    return ClientUser.hash_password(pw) == self.hashed_password
+    return ClientUser.hash_password(pw, self.salt) == self.hashed_password
   end
 
   def domain_database_select_options

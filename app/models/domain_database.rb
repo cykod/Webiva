@@ -9,6 +9,7 @@ class DomainDatabase < SystemModel
 
   validates_presence_of :name
   validates_uniqueness_of :name
+  validates_presence_of :client_id
 
   validates_numericality_of :max_file_storage
 
@@ -19,7 +20,7 @@ class DomainDatabase < SystemModel
   end
 
   def validate
-    self.errors.add(:max_file_storage, 'is too large') if self.max_file_storage > self.client.available_file_storage
+    self.errors.add(:max_file_storage, 'is too large') if self.client && self.max_file_storage > self.client.available_file_storage
   end
 
   def after_save #:nodoc:
@@ -35,5 +36,15 @@ class DomainDatabase < SystemModel
 
   def domain_name
     self.first_domain ? self.first_domain.name : self.name
+  end
+
+  def options
+    opt = self.read_attribute(:options)
+    return opt if opt
+    database_file = "#{RAILS_ROOT}/config/sites/#{self.name}.yml"
+    return nil unless File.exists?(database_file)
+    info = YAML.load_file(database_file)
+    self.update_attribute(:options, info) if self.id
+    info
   end
 end

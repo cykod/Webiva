@@ -21,6 +21,7 @@ class Client < SystemModel
   validates_numericality_of :max_file_storage
 
   def before_validation
+    self.domain_limit = Client::DEFAULT_DOMAIN_LIMIT unless self.domain_limit
     self.max_client_users = Client::DEFAULT_MAX_CLIENTS unless self.max_client_users
     self.max_file_storage = Client::DEFAULT_MAX_FILE_STORAGE unless self.max_file_storage
   end
