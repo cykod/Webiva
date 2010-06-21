@@ -18,8 +18,12 @@ class Blog::AddBlogWizard < HashModel
   validates_presence_of :detail_page_url
 
   def validate
-    if self.add_to_existing.blank? && self.add_to_subpage.blank?
-      self.errors.add(:add_to," must have a subpage selected or add\n to existing must be checked")
+    nd = SiteNode.find_by_id(self.add_to_id)
+    if (self.add_to_existing.blank? && self.add_to_subpage.blank?)
+      self.errors.add(:add_to," must have a subpage selected\nand add to existing must be checked")
+    end
+    if ( !self.add_to_existing.blank? && ( !nd || nd.node_type == 'R'))
+      self.errors.add(:add_to,"you cannot add the blog to the site root, please pick a page\nor uncheck 'Add to existing page'")
     end
   end
 

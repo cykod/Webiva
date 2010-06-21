@@ -15,6 +15,7 @@ var PostEditor = {
   <%= p.link "Post a new Entry",   :action => 'post', :path => @blog.id, :icon => 'add.gif' %>
   <%= p.link "Blog Categories",  :controller => 'categories', :path => @blog.id, :icon => 'edit.gif' %>
   <%= p.link "Configure Blog", :action => 'configure', :path => @blog.id, :icon => 'configure.gif' if myself.has_role?('blog_config') %>
+  <%= p.link "Import Entries", :action => "import", :path => @blog.id, :icon => "upload.gif" if myself.has_role?('blog_config') %>
   <%= p.link "Delete Blog",  :action => 'delete', :path => @blog.id, :icon =>'delete.gif',:right => true if myself.has_role?('blog_config') %>
 <% end -%>
 

@@ -447,6 +447,8 @@ EOF
     attr_accessor :css_site_template_id
     attr_accessor :head
     attr_accessor :body
+    attr_accessor :partial
+    attr_accessor :doctype
     attr_accessor :revision
     attr_accessor :includes
     attr_accessor :page_connections
@@ -778,6 +780,8 @@ EOF
     @output.head = @page_information.head
     @output.paction = @page_information.paction
     @output.content_nodes = @page_information.content_nodes
+    @output.partial = @page_information.partial
+    @output.doctype = @page_information.doctype
     @output
   end
 
@@ -885,7 +889,7 @@ EOF
       # Handle Pages / Frameworks
       unless @revision
         @revision = @container.page_revisions.find(:first,
-              :conditions => "revision_type = 'real' AND active=1",
+              :conditions => "revision_type = 'real'" + (@mode !='edit' ? "AND active=1" : ""),
               :order => "language=#{SiteNode.quote_value(@language)} DESC"
               )
       end
@@ -951,6 +955,9 @@ EOF
       @page_information[:css_site_template_id] = @active_template.parent_id ? @active_template.parent_id : @active_template.id
       
       @page_information[:head] = SiteTemplate.render_template_head(@page_information[:css_site_template_id],@language)
+      @page_information[:doctype] = @active_template.doctype.blank? ? nil : @active_template.doctype
+      @page_information[:partial] = @active_template.partial?
+
       
       if @mode == 'edit'
         @page_information[:revision] = @revision

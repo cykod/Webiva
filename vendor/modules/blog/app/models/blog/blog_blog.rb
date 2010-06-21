@@ -108,4 +108,26 @@ class Blog::BlogBlog < DomainModel
     return unless self.trackback? && post.published?
     post.run_pingbacks(post.active_revision.body_html)
   end
+
+  @@import_fields  = %w(title permalink author published_at preview body embedded_media).map(&:to_sym)
+
+  def import_file(domain_file,user)
+     filename = domain_file.filename
+     reader = CSV.open(filename,"r",',')
+     file_fields = reader.shift
+     reader.each do |row|
+       args = {}
+       @@import_fields.each_with_index { |fld,idx| args[fld] = row[idx] }
+
+       post = self.blog_posts.find_by_permalink(args[:permalink]) if !args[:permalink].blank?
+
+       args[:author] = user.name if args[:author].blank?
+       post ||= self.blog_posts.build
+
+       post.attributes = args
+       post.publish(args[:published_at])  if !args[:published_at].blank?
+       post.save
+     end
+  end
+
 end

@@ -1,7 +1,7 @@
-<% unless @partial_page -%>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-    <%= tag 'html', {:xmlns => "http://www.w3.org/1999/xhtml"}.merge(@output.includes[:html_tag] || {}), true %>
-    <head>
+<% unless @partial_page || @output.partial -%>
+<%= @output.doctype ||  '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' %>
+<%= tag 'html', {:xmlns => "http://www.w3.org/1999/xhtml"}.merge(@output.includes[:html_tag] || {}), true %>
+<head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
       <title><%= @cms_module_page_title || @output.title %></title>
       <meta http-equiv='Content-Language' content='<%= @output.language %>' />
@@ -45,7 +45,7 @@
     
     <%= @output.head %>    
     
-    </head>
+</head>
 <body>
 <div id="overDiv" style="position:absolute; left:0px; top:0px; visibility:hidden; z-index:1000;"></div>
 <% if page_editor? -%>
@@ -63,7 +63,7 @@
 
 <%= render_output(@page,@output) -%>
 
-<% unless @partial_page -%>
+<% unless @partial_page || @output.partial -%>
 
   <% if @google_analytics[:enabled] == 'enabled'  -%>
 <script type='text/javascript'>

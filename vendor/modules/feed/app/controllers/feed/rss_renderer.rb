@@ -33,7 +33,7 @@ class Feed::RssRenderer < ParagraphRenderer
     @options = handler_options_class.new(paragraph_data)
     @handler = @handler_info[:class].new(@options)
 
-    results = renderer_cache(nil, nil, :skip => @options.timeout <= 0, :expires => @options.timeout*60) do |cache|
+    results = renderer_cache(nil,site_node.id.to_s, :skip => @options.timeout <= 0, :expires => @options.timeout*60) do |cache|
       data = @handler.get_feed
       if @handler_info[:custom]
 	cache[:output] = render_to_string(:partial => @handler_info[:custom],:locals => { :data => data})
