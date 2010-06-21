@@ -560,7 +560,7 @@ class DomainFile < DomainModel
    # Convenience Methods
    ###########
 
-  # Returns the root folder of the filte system
+  # Returns the root folder of the file system
    def self.root_folder
       DomainFile.find(:first,:conditions => 'parent_id is NULL') || DomainFile.create(:name => '',:file_type => 'fld') 
    end
@@ -1016,7 +1016,7 @@ class DomainFile < DomainModel
     def copy_remote!; true; end
 
     def destroy_remote!;
-      if @df.server_hash && ! @df.folder?
+      if @df.server_hash && ! @df.folder? && Server.server_id
         key = self.class.set_directories_to_delete(@df.storage_directory)
         url = "/website/transmit_file/delete/#{DomainModel.active_domain_id}/#{key}"
         Server.send_to_all url, :except => [Server.server_id]
