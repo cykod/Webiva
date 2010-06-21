@@ -85,6 +85,33 @@ def reset_domain_tables(*tables)
   after(:each,&callback)
 end
 
+def reset_system_tables(*tables)
+  system_tables = {}
+
+  SystemModel.connection.reconnect! if !SystemModel.connection.active?
+  tables.each do |table|
+    next if %w(schema_migrations).include?(table.to_s)
+    system_tables[table] = []
+    result = SystemModel.connection.execute("SELECT id from #{table.is_a?(Symbol) ? table.to_s.tableize : table}")
+    result.each { |row| system_tables[table] << row[0] }
+  end
+
+  callback = lambda do 
+    SystemModel.connection.reconnect! if !SystemModel.connection.active?
+    tables.each do |table|
+      next if %w(schema_migrations).include?(table.to_s)
+      if system_tables[table].empty?
+        SystemModel.connection.execute("TRUNCATE #{table.is_a?(Symbol) ? table.to_s.tableize : table}")
+      else
+        SystemModel.connection.execute("DELETE FROM #{table.is_a?(Symbol) ? table.to_s.tableize : table} WHERE id NOT IN(#{system_tables[table].join(',')})")
+      end
+    end
+  end
+
+  before(:each,&callback)
+  after(:each,&callback)
+end
+
 def transaction_reset
   before(:each)  {  
     DomainFile.root_folder
