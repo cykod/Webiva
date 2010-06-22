@@ -50,6 +50,8 @@ class Domain < SystemModel
       self.domain_database.save
     elsif @max_file_storage
       self.create_domain_database :client_id => self.client_id, :name => self.database, :max_file_storage => @max_file_storage
+      @max_file_storage = nil
+      self.save
     else
       DataCache.set_domain_info(self.name,nil)
     end
@@ -179,5 +181,13 @@ class Domain < SystemModel
       DomainModel.activate_domain(dmn, env)
       yield dmn
     end
+  end
+
+  def execute(environment='production')
+    active_domain_id = DomainModel.active_domain_id
+    active_domain = DomainModel.active_domain
+    DomainModel.activate_domain(self.get_info, environment) unless active_domain_id == self.id
+    yield
+    DomainModel.activate_domain(active_domain, environment) unless active_domain_id == self.id || active_domain_id.nil?
   end
 end

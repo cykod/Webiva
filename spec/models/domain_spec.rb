@@ -53,6 +53,8 @@ describe Domain do
       @domain = @client.domains.create :name => 'test-webiva.dev', :database => 'test_webiva_dev_100', :max_file_storage => 1
     end
 
+    @domain.reload
+
     @db = DomainDatabase.find :last
     @db.id.should == @domain.domain_database_id
   end

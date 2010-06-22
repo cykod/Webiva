@@ -25,17 +25,16 @@ class Manage::DomainsController < CmsController # :nodoc: all
 
   layout "manage"
   
-    # need to include 
-   include ActiveTable::Controller   
-   active_table :domains_table,
+  # need to include 
+  include ActiveTable::Controller   
+  active_table :domains_table,
                 Domain,
-                [ ActiveTable::StringHeader.new('domains.name',:label => 'Domain Name'),
-                  ActiveTable::StaticHeader.new('Client'),
-                  ActiveTable::StaticHeader.new('Type'),
-                  ActiveTable::StaticHeader.new('Status'),
-                  ActiveTable::StaticHeader.new('Goto'),
-                  ActiveTable::StaticHeader.new('Delete')
-
+                [ hdr(:string, 'domains.name', :label => 'Domain Name'),
+                  hdr(:static, 'Client'),
+                  hdr(:static, 'Type'),
+                  hdr(:static, 'Status'),
+                  hdr(:static, 'Goto'),
+                  hdr(:static, 'Delete')
                 ]
 
   def domains_table(display=true)
@@ -62,6 +61,10 @@ class Manage::DomainsController < CmsController # :nodoc: all
       flash[:notice] = 'Domain is currently initializing and cannot be edited'
       redirect_to :action => 'index'
       return
+    when 'working':
+      flash[:notice] = 'Domain is currently initializing and cannot be edited'
+      redirect_to :action => 'index'
+      return
     when 'setup':
       redirect_to :action => 'setup', :path => @domain.id
       return
@@ -78,7 +81,7 @@ class Manage::DomainsController < CmsController # :nodoc: all
                                   :max_file_storage => params[:domain][:max_file_storage])
         
         if @domain.email_enabled
-          DomainEmail.setup_domain_emails
+          @domain.execute { DomainEmail.setup_domain_emails }
         end
         flash.now[:notice] = 'Updated Domain Options'
       end
@@ -91,7 +94,7 @@ class Manage::DomainsController < CmsController # :nodoc: all
   end
 
   def update_module
-    if self.system_admin? && request.post?
+    if self.system_admin? && request.post? && @domain.status == 'initialized'
       mod = params[:mod]
       entry = @domain.domain_modules.find_by_name(mod) || @domain.domain_modules.build(:name => mod)
       entry.access = params[:access] == 'available' ? 'available' : 'unavailable'
@@ -104,14 +107,6 @@ class Manage::DomainsController < CmsController # :nodoc: all
   def add
     cms_page_info [ ['System',url_for(:controller => '/manage/system')], ['Domains',url_for(:controller => '/manage/domains')], 'Add Domain'],'system'
 
-    if self.client.can_add_database?
-      @domain = Domain.new
-    else
-      flash[:notice] = 'Database Limit Reached'
-      redirect_to :action => 'index'
-      return
-    end
-    
     if request.post? && params[:domain]
       if params[:commit]
         @domain = Domain.new(params[:domain])
@@ -140,6 +135,10 @@ class Manage::DomainsController < CmsController # :nodoc: all
       flash[:notice] = 'Domain is currently initializing and cannot be edited'
       redirect_to :action => 'index'
       return
+    when 'working':
+      flash[:notice] = 'Domain is currently initializing and cannot be edited'
+      redirect_to :action => 'index'
+      return
     when 'initialized':
       redirect_to :action => 'edit', :path => @domain.id
       return
@@ -150,15 +149,19 @@ class Manage::DomainsController < CmsController # :nodoc: all
     if request.post? && params[:domain]
       if @domain.domain_type == 'domain'
 	if params[:domain][:database] == 'create'
-          @domain.attributes = params[:domain].slice(:www_prefix,:active)
-          @domain.max_file_storage = params[:domain][:max_file_storage].blank? ? DomainDatabase::DEFAULT_MAX_FILE_STORAGE : params[:domain][:max_file_storage].to_i
+          if self.client.can_add_database?
+            @domain.attributes = params[:domain].slice(:www_prefix,:active)
+            @domain.max_file_storage = params[:domain][:max_file_storage].blank? ? DomainDatabase::DEFAULT_MAX_FILE_STORAGE : params[:domain][:max_file_storage].to_i
 
-	  @domain.status = 'initializing'
-	  if @domain.save
-            DomainModel.run_worker('Domain',@domain.id,'initialize_database')
-            flash[:notice] = 'Initializing the %s Domain' / @domain.name
-            redirect_to :action => 'index'
-            return
+            @domain.status = 'initializing'
+            if @domain.save
+              DomainModel.run_worker('Domain',@domain.id,'initialize_database')
+              flash[:notice] = 'Initializing the %s Domain' / @domain.name
+              redirect_to :action => 'index'
+              return
+            end
+          else
+            flash[:notice] = 'Database Limit Reached'
           end
 	else
 	  @copy_domain = @domain.client.domains.find_by_id(params[:domain][:database])
@@ -201,7 +204,6 @@ class Manage::DomainsController < CmsController # :nodoc: all
         redirect_to :action => "index"
         return
       end
-
     end
 
     flash[:notice] = 'Could not delete domain'

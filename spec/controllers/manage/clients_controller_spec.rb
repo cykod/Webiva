@@ -26,6 +26,25 @@ describe Manage::ClientsController do
     response.should redirect_to(:controller => '/manage/access', :action => 'denied')
   end
 
+  it "should redirect if not a system admin" do
+    @user = @client.client_users.create :username => 'my_system_admin', :client_admin => 0, :system_admin => 0
+    @myself = @user.end_user
+    controller.should_receive('myself').at_least(:once).and_return(@myself)
+    get 'index'
+    response.should redirect_to(:controller => '/manage/access', :action => 'denied')
+  end
+
+  it "should redirect if not a system admin" do
+    mock_user
+    get 'index'
+    response.should redirect_to(:controller => '/manage/access', :action => 'denied')
+  end
+
+  it "should redirect if not a system admin" do
+    get 'index'
+    response.should redirect_to(:controller => '/manage/access', :action => 'denied')
+  end
+
   describe "System Administrators" do
     before(:each) do
       @user = @client.client_users.create :username => 'my_system_admin', :client_admin => 1, :system_admin => 1
