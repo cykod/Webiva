@@ -564,6 +564,11 @@ class DomainFile < DomainModel
    def self.root_folder
       DomainFile.find(:first,:conditions => 'parent_id is NULL') || DomainFile.create(:name => '',:file_type => 'fld') 
    end
+
+  # Returns the temporary folder of the file system
+   def self.temporary_folder
+      DomainFile.find(:first,:conditions => ['name = "Temporary" and parent_id = ?', self.root_folder.id]) || DomainFile.create(:name => 'Temporary', :parent_id => self.root_folder.id, :file_type => 'fld') 
+   end
    
    # Is this an image
    def image?; self.file_type == 'img'; end
@@ -854,6 +859,11 @@ class DomainFile < DomainModel
 
   def server
     @server ||= Server.find_by_id(self.server_id) if self.server_id
+  end
+
+  def self.save_temporary_file(file)
+    file = File.open(file) if file.is_a?(String)
+    DomainFile.create :filename => file, :parent_id => self.temporary_folder.id, :private => 1, :processor => 'local'
   end
 
   protected 

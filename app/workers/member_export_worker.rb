@@ -21,7 +21,7 @@ class MemberExportWorker <  Workling::Base #:nodoc:all
     tmp_path = "#{RAILS_ROOT}/tmp/export/"
     FileUtils.mkpath(tmp_path)
     
-    filename  = tmp_path + dmn.id.to_s + "_member_export"
+    filename  = tmp_path + dmn.id.to_s + "_member_export.csv"
     
     results[:filename] = filename
     
@@ -35,6 +35,10 @@ class MemberExportWorker <  Workling::Base #:nodoc:all
                                  :include => args[:export_options])
       end
     end
+
+    domain_file = DomainFile.save_temporary_file filename
+
+    results[:domain_file_id] = domain_file.id
     results[:entries] = @members.length
     results[:type] = 'csv'
     results[:completed] = 1
