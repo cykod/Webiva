@@ -1,3 +1,7 @@
+<script>
+  <%= active_table_javascript %>
+</script>
+
 <% action_panel do |p| %>
 <% if myself.has_role?('system_admin') -%>
   <%= p.link "New User".t,:action => 'edit_all', :icon =>'add.gif' %>
@@ -17,26 +21,8 @@
 <div class='admin_content'>
 <b><%= sprintf("%s Users", @client.name) %></b><br/><br/>
 
-
-
-<table class='active_table' cellpadding='0' cellspacing='0'>
-    <tr>
-        <th>Username</th>
-        <th>Administrator</th>
-        <th>Delete</th>
-    </tr>
-<% @users.each do |usr| -%>    
-    <tr>
-        <td><%= link_to theme_icon(:table,'icons/actions/edit.gif'), :action => myself.has_role?('system_admin') ? "edit_all" : "edit", :path => usr %>
-            <%= link_to usr.username, :action => myself.has_role?('system_admin') ? "edit_all" : "edit", :path => usr %></td>
-        <td align="center">
-          <%= usr.system_admin? ? 'System Admin'.t : (usr.client_admin? ? "Yes".t : "No".t) %>
-        </td>
-        <td><%= link_to(theme_icon(:table,'icons/actions/delete.gif'),{:action => "destroy", :path => usr}, :method => 'post', :confirm => 'Are you sure?') unless usr.id == myself.client_user.id %></td>
-    </tr>
-<% end -%>
-
-</table>
-
+<div id='client_users_table'>
+<%= render :partial => 'display_client_users_table' %>
+</div>
 
 </div>
