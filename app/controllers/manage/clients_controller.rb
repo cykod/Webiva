@@ -17,9 +17,10 @@ class Manage::ClientsController < CmsController # :nodoc: all
    include ActiveTable::Controller   
    active_table :client_table,
                 Client,
-                [ ActiveTable::IconHeader.new('', :width=>10),
-                  ActiveTable::StringHeader.new('clients.name',:label => 'Name'),
-                  ActiveTable::StaticHeader.new('Databases/Limit')
+                [ hdr(:icon, '', :width=>10),
+                  hdr(:static, 'Name'),
+                  hdr(:static, 'Databases/Limit'),
+                  hdr(:number, :max_file_storage, :label => 'Used/Max file storage')
                 ]
 
   def display_client_table(display=true)

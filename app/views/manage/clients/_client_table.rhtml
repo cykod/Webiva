@@ -8,6 +8,7 @@
   <td><%= entry_checkbox 'client',t.id %></td>
   <td><%= link_to t.name, :action => "edit", :path => t %></td>
   <td align="center"> <%= t.num_databases %> / <%= t.domain_limit %></td>
+  <td align="center"> <%= number_to_human_size(t.used_file_storage*1.megabyte) %> / <%= number_to_human_size(t.max_file_storage*1.megabyte) %></td>
 </tr>
 
 <% end -%>

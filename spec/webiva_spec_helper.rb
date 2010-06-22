@@ -49,6 +49,53 @@ class WebivaCleaner
 
 end
 
+class WebivaSystemCleaner
+  def connection
+    SystemModel.connection
+  end
+
+  def tables_to_truncate
+    connection.tables -  %w[schema_migrations, globalize_countries, globalize_languages, globalize_translations]
+  end
+
+  def truncate_table(table_name)
+    connection.execute("TRUNCATE TABLE #{connection.quote_table_name(table_name)};")
+  end
+
+  def save_test_domain
+    result = connection.execute("SELECT * FROM domains WHERE id = #{CMS_DEFAULTS['testing_domain']}")
+    @domain = {}
+    result.each_hash { |row| @domain = row }
+
+    @domain_database = {}
+    result = connection.execute("SELECT * FROM domain_databases WHERE id = #{@domain['domain_database_id']}")
+    result.each_hash { |row| @domain_database = row }
+  end
+
+  def create_test_domain
+    connection.execute("INSERT INTO clients (name, domain_limit, max_client_users, max_file_storage) VALUES('Webiva', 10, 10, #{100.gigabytes/1.megabyte})")
+    connection.execute("INSERT INTO client_users (client_id, username, hashed_password, client_admin, system_admin) VALUES(1, 'admin', 'invalid', 1, 1)")
+    database_name = @domain_database['name']
+    connection.execute("INSERT INTO domains (id, name, `database`, client_id, status, file_store, domain_database_id, created_at, updated_at) VALUES(#{CMS_DEFAULTS['testing_domain']}, '#{@domain['name']}', '#{database_name}', 1, 'initialized', 3, 1, NOW(), NOW())")
+    connection.execute("INSERT INTO domain_databases (client_id, name, `options`, max_file_storage) VALUES(1, '#{database_name}', '#{@domain_database['options']}', #{10.gigabytes/1.megabyte})")
+  end
+
+  def reset
+    save_test_domain
+
+    connection.disable_referential_integrity do
+      tables_to_truncate.each do |table_name|
+        truncate_table table_name
+      end
+    end
+
+    create_test_domain
+  end
+
+  def self.cleaner
+    @@cleaner ||= WebivaSystemCleaner.new
+  end
+end
 
 Spec::Runner.configure do |config|
   # If you're not using ActiveRecord you should remove these
@@ -60,6 +107,7 @@ Spec::Runner.configure do |config|
 
   config.before(:suite) do
     WebivaCleaner.cleaner.reset
+    WebivaSystemCleaner.cleaner.reset
   end
 
   config.before(:each) do
@@ -92,7 +140,7 @@ def reset_system_tables(*tables)
   tables.each do |table|
     next if %w(schema_migrations).include?(table.to_s)
     system_tables[table] = []
-    result = SystemModel.connection.execute("SELECT id from #{table.is_a?(Symbol) ? table.to_s.tableize : table}")
+    result = SystemModel.connection.execute("SELECT id FROM #{table.is_a?(Symbol) ? table.to_s.tableize : table}")
     result.each { |row| system_tables[table] << row[0] }
   end
 
