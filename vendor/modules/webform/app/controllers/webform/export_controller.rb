@@ -25,14 +25,7 @@ class Webform::ExportController < ModuleController # :nodoc: all
   def download_file
     if(session[:webform_download_worker_key]) 
       results = Workling.return.get(session[:webform_download_worker_key])
-      send_file(results[:filename],
-                :stream => true,
-                :type => "text/" + results[:type],
-                :disposition => 'attachment',
-                :filename => sprintf("%s_%d.%s",'Webform_Results'.t,Time.now.strftime("%Y_%m_%d"),results[:type])
-                )
-	  
-	  
+      send_domain_file(results[:domain_file_id], :type => "text/" + results[:type])
       session[:webform_download_worker_key] = nil
     else
       render :nothing => true

@@ -145,10 +145,11 @@ class WebformForm < DomainModel
     
     filename = tmp_path + DomainModel.active_domain_id.to_s + "_webform_export.csv"
 
-    results[:filename] = filename
-
     self.export_csv(filename)
 
+    domain_file = DomainFile.save_temporary_file filename, :name => sprintf("%s_%d.%s",'Webform_Results'.t,Time.now.strftime("%Y_%m_%d"),'csv')
+
+    results[:domain_file_id] = domain_file.id
     results[:entries] = self.webform_form_results.count
     results[:type] = 'csv'
     results[:completed] = 1
