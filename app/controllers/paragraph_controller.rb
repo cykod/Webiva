@@ -161,6 +161,9 @@ class ParagraphController < CmsController
       @container_cls = @container_type.camelcase.constantize
       @page = @container_cls.find(params[:path][1])
       @site_node = @container_type == 'site_node' ? @page : @page.site_node
+      @version = @site_node.site_version
+      SiteVersion.override_current(@version)
+      
       @revision = @page.page_revisions.find(params[:path][2])
       @paragraph = @revision.page_paragraphs.find(params[:path][3])
       @paragraph_index = params[:path][4].to_i

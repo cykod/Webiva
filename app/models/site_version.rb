@@ -11,11 +11,27 @@ have to be happy with one.
 class SiteVersion < DomainModel
 
 
-  has_many :site_nodes,:order => 'lft'
+  has_many :site_nodes,:order => 'lft', :dependent => :destroy
 
   # Returns the default site Version (or creates one automatically)
   def self.default
     self.find(:first,:order => 'id') || self.create(:name => 'Default')
+  end
+
+  def self.current(force=false)
+    version = DataCache.local_cache('site_version_current')
+    return version if version && !force
+
+    version = self.find_by_id(DomainModel.site_version_id) || self.default 
+    DataCache.put_local_cache('site_version_current',version)
+  end
+
+  def self.override_current(version)
+     DataCache.put_local_cache('site_version_current',version)
+  end
+
+  def can_delete?
+    ! Domain.current_site_domains.detect { |dmn| dmn.site_version_id == self.id }
   end
 
   # Returns the root node of this site version or creates one (and a associated home page)

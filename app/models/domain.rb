@@ -68,6 +68,10 @@ class Domain < SystemModel
     end
   end
 
+  def self.current_site_domains
+    self.find_site_domains(Configuration.domain_info.database) 
+  end
+
   # Return a list of all domains on a given database
   def self.find_site_domains(database_name)
     self.find(:all,:conditions => { :database => database_name }, :order => 'name')

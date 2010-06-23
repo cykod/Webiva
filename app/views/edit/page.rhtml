@@ -167,7 +167,7 @@ tinyMCE.init({
           
           }
       </script>
-      <a href='<%= url_for :controller => '/structure', :action => 'index' %>' id='cms_structure_icon' onclick="return cmsEdit.leavePage('<%= url_for :controller => '/structure', :action => 'index' %>'); " title='<%= "Return to Website".t %>' ><%= theme_image_tag '/images/icons/pageeditor/structure.gif',:align=>'absmiddle' %></a>
+      <a href='<%= url_for :controller => '/structure', :action => 'index', :version => @site_node.site_version_id %>' id='cms_structure_icon' onclick="return cmsEdit.leavePage('<%= url_for :controller => '/structure', :action => 'index' %>'); " title='<%= "Return to Website".t %>' ><%= theme_image_tag '/images/icons/pageeditor/structure.gif',:align=>'absmiddle' %></a>
       &nbsp;|&nbsp;
       <% if myself.has_role?('editor_files') %>
       <%= link_to image_tag(theme_src("/images/icons/pageeditor/files_and_images.gif"),:align=>'absmiddle', :title => "Show File Manager".t ) , { :controller => 'file', :action => 'popup' , :popup_type => 'select', :path => 0 }, :popup => ['file_manager', 'height=400,width=800,scrollbars,resizeable' ] %>

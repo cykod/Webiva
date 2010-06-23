@@ -290,9 +290,13 @@ class SiteNode < DomainModel
   
   # Returns a select-friendly list of pages with urls (group nodes not included)
   # optionally including the root node as well
+  #
+  #  Options
+  #     version - a passed in site version to use, otherwise defaults to SiteVersion.current
   def self.page_options(include_root = false, opts={})
     node_type = include_root ? 'node_type IN("P","R","M","J")' : 'node_type IN ("P","M","J")'
-    SiteNode.find(:all,:conditions => node_type,
+    site_version = opts[:version] || SiteVersion.current 
+    SiteNode.find(:all,:conditions => [node_type + " AND site_version_id=? ",site_version.id],
                   :order => 'lft').collect do |page|
       [ page.node_type != 'R' ? page.node_path : include_root , opts[:url] ? page.node_path : page.id ]
     end

@@ -209,8 +209,11 @@ images/icons/actions directory of the current theme.
       end
       
       # Adds a custom item to the action panel (accepts a block)
-      def custom(&block)
-        @ctrl.concat("<li>")
+      def custom(options = {},&block )
+        opts = options.clone
+        right = " class='right'" if opts.delete(:right)
+
+        @ctrl.concat("<li#{right}>")
         yield 
         @ctrl.concat("</li>")
       end
