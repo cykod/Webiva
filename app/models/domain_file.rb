@@ -567,7 +567,7 @@ class DomainFile < DomainModel
 
   # Returns the temporary folder of the file system
    def self.temporary_folder
-      DomainFile.find(:first,:conditions => ['name = "Temporary" and parent_id = ?', self.root_folder.id]) || DomainFile.create(:name => 'Temporary', :parent_id => self.root_folder.id, :file_type => 'fld') 
+      DomainFile.find(:first,:conditions => 'name = "Temporary" and parent_id IS NULL') || DomainFile.create(:name => 'Temporary', :parent_id => nil, :file_type => 'fld', :special => 'temp') 
    end
    
    # Is this an image
@@ -861,9 +861,9 @@ class DomainFile < DomainModel
     @server ||= Server.find_by_id(self.server_id) if self.server_id
   end
 
-  def self.save_temporary_file(file)
+  def self.save_temporary_file(file, opts={})
     file = File.open(file) if file.is_a?(String)
-    DomainFile.create :filename => file, :parent_id => self.temporary_folder.id, :private => 1, :processor => 'local'
+    DomainFile.create opts.merge(:filename => file, :parent_id => self.temporary_folder.id, :private => 1, :processor => 'local', :special => 'temp')
   end
 
   protected 
@@ -1303,7 +1303,7 @@ class DomainFile < DomainModel
     end
 
     # calculate used file storage
-    used = DomainFile.sum(:file_size)
+    used = DomainFile.sum(:file_size, :conditions => 'special != "temp"')
     self.cache_put_list('used_file_storage', used)
     DataCache.put_local_cache('used_file_storage', used)
     used

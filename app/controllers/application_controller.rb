@@ -495,7 +495,23 @@ class ApplicationController < ActionController::Base
     end  
     parameters.delete(key.to_s + "_clear")
   end 
-  
+
+  def send_domain_file(df, opts={})
+    df = DomainFile.find_by_id(df) if df.is_a?(Integer)
+    return false unless df
+
+    df.filename # copy locally
+    return false unless File.exists?(df.filename)
+
+    opts[:stream] = true unless opts.key?(:stream)
+    opts[:type] ||= df.mime_type
+    opts[:disposition] ||= 'attachment'
+    opts[:filename] ||= df.name
+
+    send_file(df.filename, opts)
+    true
+  end
+
   private
 
   def sanitize_backtrace(trace) # :nodoc:

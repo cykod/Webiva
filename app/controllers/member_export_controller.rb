@@ -51,15 +51,7 @@ class MemberExportController < CmsController # :nodoc: all
   def download_file
     if(session[:member_download_worker_key]) 
       results = Workling.return.get(session[:member_download_worker_key])
-      domain_file = DomainFile.find results[:domain_file_id]
-      send_file(domain_file.filename,
-          :stream => true,
-	  :type => "text/" + results[:type],
-	  :disposition => 'attachment',
-	  :filename => sprintf("%s_%d.%s",'Email_Targets'.t,Time.now.strftime("%Y_%m_%d"),results[:type])
-	  )
-	  
-	  
+      send_domain_file results[:domain_file_id], :type => "text/" + results[:type]
       session[:member_download_worker_key] = nil
     else
       render :nothing => true

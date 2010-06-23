@@ -68,8 +68,11 @@ class ContentExportWorker <  Workling::Base #:nodoc:all
       end
       results[:type] = 'yaml'
     end
-     results[:completed] = 1
-    Workling.return.set(args[:uid],results)
 
+    domain_file = DomainFile.save_temporary_file filename, :name => sprintf("%s_%d.%s",content_model.name.humanize,Time.now.strftime("%Y_%m_%d"),results[:type])
+
+    results[:domain_file_id] = domain_file.id
+    results[:completed] = 1
+    Workling.return.set(args[:uid],results)
   end
 end
