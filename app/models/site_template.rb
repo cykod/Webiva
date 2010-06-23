@@ -19,7 +19,7 @@ class SiteTemplate < DomainModel
   
   track_editor_changes
   
-  has_options :template_type, [ ['Site Template','site'], ['Mail Template','mail'] ] 
+  has_options :template_type, [ ['Site Theme','site'], ['Mail Theme','mail'] ] 
   serialize :options
   
   def self.site_template_options
@@ -72,7 +72,7 @@ class SiteTemplate < DomainModel
   
 
   def self.create_default_template
-    SiteTemplate.create(:name => 'Default Template'.t,:template_html => "<cms:zone name='Main'/>") unless SiteTemplate.find(:first)
+    SiteTemplate.create(:name => 'Default Theme'.t,:template_html => "<cms:zone name='Main'/>") unless SiteTemplate.find(:first)
   end
   
   # Override domain file setting so we can

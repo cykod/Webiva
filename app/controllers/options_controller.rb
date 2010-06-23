@@ -36,9 +36,9 @@ class OptionsController < CmsController  # :nodoc: all
        [ "Website Configuration", :editor_site_management, "website_configuration.gif",
          { :controller => '/options', :action => 'configuration' }, "Presents various site-wide configuration options that can be set up. Configure System Languages."
        ],
-       [ "Design Templates", :editor_design_templates, "design_templates.gif",
+       [ "Themes", :editor_design_templates, "design_templates.gif",
          { :controller => '/templates' },
-         "Create, Select and Edit site design templates. Design templates control the look of your site."
+         "Create, Select and Edit site themes. Themes control the look of your site."
        ],
        [ "Module Setup", :editor_site_management, 'module_setup.gif',
          {  :controller => '/modules'},

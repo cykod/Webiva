@@ -11,11 +11,14 @@ have to be happy with one.
 class SiteVersion < DomainModel
 
 
+  validates_presence_of :name
+
+
   has_many :site_nodes,:order => 'lft', :dependent => :destroy
 
   # Returns the default site Version (or creates one automatically)
   def self.default
-    self.find(:first,:order => 'id') || self.create(:name => 'Default')
+    self.find(:first,:order => 'id') || self.create(:name => 'Main Tree'.t)
   end
 
   def self.current(force=false)

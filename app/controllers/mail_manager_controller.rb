@@ -73,7 +73,7 @@ class MailManagerController < CmsController # :nodoc: all
     end
     
     
-    @design_templates = [['--Select a Design Template--','']] + SiteTemplate.find_select_options(:all, :order => 'name',:conditions => 'template_type="mail"')
+    @design_templates = [['--Select a Mail Theme--','']] + SiteTemplate.find_select_options(:all, :order => 'name',:conditions => 'template_type="mail"')
     @master_templates = [['--Select a Master Template--','']] + MailTemplate.find_select_options(:all,:order => 'name',:conditions => 'master = 1')
     
   end
