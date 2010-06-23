@@ -74,8 +74,8 @@ class MemberImportController < WizardController # :nodoc: all
 
     @deliminator = @@deliminators[session[:member_import_wizard][:index][:field_deliminator]]
 
-    
-    filename = session[:member_import_wizard][:index][:filename]
+    file = DomainFile.find_by_id(session[:member_import_wizard][:index][:csv_file])
+    filename = file.filename
     
     begin 
       @available_fields = csv_fields(filename,@deliminator)
@@ -161,7 +161,8 @@ class MemberImportController < WizardController # :nodoc: all
                     [ 'Email Targets', url_for(:controller =>'members' ) ],
                     'Member Import - Confirm' ], 'e_marketing' )
   
-    filename = session[:member_import_wizard][:index][:filename]
+    file = DomainFile.find_by_id(session[:member_import_wizard][:index][:csv_file])
+    filename = file.filename
 
     @deliminator = @@deliminators[session[:member_import_wizard][:index][:field_deliminator]]
     
@@ -170,12 +171,13 @@ class MemberImportController < WizardController # :nodoc: all
     if request.post?
       # Posting? Do it Do it
       
-      worker_args = { :domain_id => DomainModel.active_domain_id,
-                                                 :filename => filename,
-                                                 :data => session[:member_import_wizard][:fields],
-                                                 :options => session[:member_import_wizard][:options],
-                                                 :deliminator => @deliminator
-                                                }
+      worker_args = {
+        :domain_id => DomainModel.active_domain_id,
+        :csv_file => session[:member_import_wizard][:index][:csv_file],
+        :data => session[:member_import_wizard][:fields],
+        :options => session[:member_import_wizard][:options],
+        :deliminator => @deliminator
+      }
       worker_key = MemberImportWorker.async_do_work(worker_args)
       session[:member_import_worker_key] = worker_key
       # Start a worker that will create any necessary fields
