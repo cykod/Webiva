@@ -30,11 +30,24 @@ class Blog::BlogPost < DomainModel
   
   has_content_tags
 
+  def data_model
+    return @data_model if @data_model
+    return nil unless self.blog_blog.content_model
+    @data_model = self.blog_blog.content_model.content_model.find_by_id self.data_model_id if self.data_model_id
+    @data_model = self.blog_blog.content_model.content_model.new unless @data_model
+    @data_model
+  end
+
+  def data_model=(opts)
+    self.data_model.attributes = opts
+  end
 
   def validate
     if self.status == 'published'  && !self.published_at.is_a?(Time)
       self.errors.add(:published_at,'is invalid')
     end
+
+    self.errors.add_to_base('%s is invalid' / self.blog_blog.content_model.name) if self.data_model && ! self.data_model.valid?
   end
   
   content_node :container_type => :content_node_container_type,  :container_field => Proc.new { |post| post.content_node_container_id },
@@ -172,6 +185,11 @@ class Blog::BlogPost < DomainModel
 
 
   def before_save
+    if self.data_model
+      self.data_model.save
+      self.data_model_id = self.data_model.id
+    end
+
     self.active_revision.update_attribute(:status,'old') if self.active_revision
     @revision = @revision.clone
 

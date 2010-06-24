@@ -128,6 +128,9 @@ class Blog::PageFeature < ParagraphFeature
 	nil
       end
     end
+
+    c.expansion_tag('entry:content') { |tag| tag.locals.form = tag.locals.entry.data_model }
+    c.publication_field_tags('entry:content', data[:blog].content_publication)
   end
 
   feature :blog_categories, :default_feature => <<-FEATURE
