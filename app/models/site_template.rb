@@ -84,9 +84,8 @@ class SiteTemplate < DomainModel
 
   # Make sure the updating works with setting the file as well as the id
   def domain_file=(df); self.domain_file_id=(df.id); end  
-  
+
   protected
-  
   
   def initial_parser_context
   

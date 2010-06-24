@@ -3,6 +3,7 @@
 	<%= f.text_area :description, :cols => 40, :rows => 3 %>
   <%= f.text_field :doctype, :size => 120, :label => 'Doctype',:description => 'Override the default doctype of XHTML 4.01 Transitional' %>
   <%= f.yes_no :partial, :label => 'Partial Template', :description => 'Skip HTML header and footer (useful for AJAX template)' %>
+  <%= f.yes_no :lightweight, :description => "Lightweight templates don't include any additional wrapper HTML for paragraphs\n (cannot be used with ajax enabled paragraphs)" %>
 <% end -%>
 
 <% unless @site_template.parent_template %>
