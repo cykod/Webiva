@@ -141,7 +141,7 @@ class UserSegment::FieldType
 
       data = handler_data[mdl.id]
       if data.is_a?(Array)
-        value = data.collect { |d| d.send(display_field) }
+        value = data.collect { |d| d.send(display_field) }.delete_if { |v| v.nil? }
 
         case info[:display_method]
         when 'max'
