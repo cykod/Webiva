@@ -12,28 +12,25 @@
                                 ],
                     :more_actions => [['Delete Targets','delete','Delete the selected users?']],
                     :update => 'targets_table' do |t| %>
+<% user_url = url_for(:action => 'view',  :path => [ t.id, @segment ? @segment.id : nil].compact) %>
 <tr <%= highlight_row "user",t.id %>  >
   <td nowrap='1'>
     <%= entry_checkbox 'user',t.id %>
   </td>
   <td align='center' nowrap='1'>
-  <%= t.editor? ? '' : content_tag(:a, theme_image_tag('icons/actions/edit.gif'), {:href => url_for(:action => 'edit', :path => t.id)}) %>
+    <%= t.editor? ? '' : link_to(theme_image_tag('icons/actions/edit.gif'), :action => 'edit', :path => [ t.id, @segment ? @segment.id : nil ].compact) %>
   </td>
   <td align='center'>
-    <%= image = t.image ? t.image.image_tag(:thumb) : nil
-        if image
-          t.editor? ? image : content_tag(:a, image, {:href => url_for(:action => 'view', :path => t.id)})
-        else
-          '-'
-        end
+    <%= image = t.image ? t.image.image_tag(:icon) : ''
+        t.editor? ? image : link_to(image,user_url) 
     %>
   </td>
   <td>
-    <%= t.editor? ? h(t.name) : content_tag(:a, t.name, {:href => url_for(:action => 'view', :path => t.id)}) %>
+    <%= t.editor? ? h(t.name) : link_to(t.name, user_url) %>
   </td>
   <td>
     <%= email = t.email.blank? ? 'No Email'.t : t.email
-        t.editor? ? h(email) : content_tag(:a, email, {:href => url_for(:action => 'view', :path => t.id)})
+        t.editor? ? h(email) : link_to(email, user_url) 
     %>
   </td>
 
