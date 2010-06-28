@@ -13,7 +13,8 @@ describe FeedbackOutgoingPingback do
 
   describe "processing outgoing pingbacks" do
     before(:each) do
-      @post = Blog::BlogPost.create
+      @blog = Blog::BlogBlog.create(:name => 'Tester')
+      @post = Blog::BlogPost.create(:blog_blog_id => @blog.id)
       @link = '/test-post'
       @type = ContentType.create :component => 'blog', :container_type => 'Blog::BlogBlog', :container_id => 1, :content_type => 'Blog::BlogPost', :content_name => 'Mock Blog', :title_field => 'title'
       @node = @type.content_nodes.create :node => @post
