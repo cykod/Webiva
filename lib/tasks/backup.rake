@@ -64,14 +64,15 @@ namespace "cms" do
       domain_dir = File.join(dir,'domains',dmn.database)
       FileUtils.mkpath(domain_dir)
       
-      dmn_yaml = "#{RAILS_ROOT}/config/sites/#{dmn.database}.yml"
-      dmn_file = YAML.load_file(dmn_yaml)
+      dmn_file = dmn.get_info[:domain_database][:options]
       dmn_cfg = dmn_file['migrator']
       
       # backup database
       cms_backup_dump_db(dmn_cfg,File.join(domain_dir,'domain.sql'))
       # backup config file
-      FileUtils.cp(dmn_yaml,File.join(domain_dir,'domain.yml'))
+      File.open(File.join(domain_dir,'domain.yml'),"w") do |fd|
+        YAML.dump(dmn_file, fd)
+      end
 
       if ENV['COPY_LOCAL']
         # Copy all the files locally
