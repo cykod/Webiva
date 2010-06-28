@@ -17,7 +17,7 @@ class FileWorker <  Workling::Base #:nodoc:all
     return false unless domain
     
     # Don't Save connection
-    DomainModel.activate_domain(domain.attributes,'production',false)
+    DomainModel.activate_domain(domain.get_info,'production',false)
   
     @uploaded_ids = []
     
@@ -25,20 +25,12 @@ class FileWorker <  Workling::Base #:nodoc:all
     
     DomainFile.disable_post_processing
     
-    tmp_dir= args[:tmp_dir]
-    
-    
-    if args[:parent_id]
-      parent_folder = DomainFile.find_by_id(args[:parent_id])
-    end
-    parent_folder = DomainFile.root_folder unless parent_folder 
-    
-    
-    File.open(args[:filename]) do |file|
-      @upload_file = DomainFile.create(:filename => file, :parent_id => parent_folder.id, :creator_id => args[:creator_id])
-    end
-    FileUtils.rm_rf(tmp_dir)
-    
+    @upload_file = DomainFile.find_by_id args[:domain_file_id]
+    return unless @upload_file
+
+    @upload_file.generate_thumbnails
+
+    parent_folder = @upload_file.parent
  
     is_gallery = parent_folder.special == 'gallery' ? true : false
     
@@ -69,7 +61,9 @@ class FileWorker <  Workling::Base #:nodoc:all
     if(args[:replace_same])
       @uploaded_ids = DomainFile.find(:all,:conditions => { :id => @uploaded_ids }).map { |fl| fl.replace_same }.map(&:id)
     end 
-    
+
+    @upload_file.update_attributes(:server_id => Server.server_id) if @upload_file.server_id != Server.server_id
+
     Workling.return.set(args[:uid],{  :uploaded_ids => @uploaded_ids, :processed => true } )
   end
 

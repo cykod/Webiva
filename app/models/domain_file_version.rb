@@ -47,7 +47,8 @@ class DomainFileVersion < DomainModel
                                  :file_size => file.file_size,
                                  :creator_id => file.creator_id,
                                  :version_hash => version_hash,
-                                 :stored_at => file.stored_at)
+                                 :stored_at => file.stored_at,
+                                 :server_id => Server.server_id)
   end
   
   
@@ -126,8 +127,16 @@ class DomainFileVersion < DomainModel
     return nil unless self.meta_info[:image_size]
     self.meta_info[:image_size][:height]
   end
-  
- protected 
+
+  def server
+    @server ||= Server.find_by_id(self.server_id) if self.server_id
+  end
+
+  def copy_local!
+    self.domain_file.processor_handler.respond_to?('copy_version_local!') ? self.domain_file.processor_handler.copy_version_local!(self) : false
+  end
+
+ protected
   def self.generate_version_hash
     now = Time.now
     digest  = Digest::SHA1.hexdigest("#{now}#{rand}#{now.usec}#{Process.pid}")[0..31]

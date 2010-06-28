@@ -14,14 +14,14 @@ class MemberExportWorker <  Workling::Base #:nodoc:all
     # args = { :domain_id, :content_model_id, :export_download, :export_format, :range_start, :range_end }
     
     dmn = Domain.find(args[:domain_id])
-    DomainModel.activate_domain(dmn.attributes,'migrator',false)
+    DomainModel.activate_domain(dmn.get_info,'migrator',false)
     
     results[:completed] = false
     
     tmp_path = "#{RAILS_ROOT}/tmp/export/"
     FileUtils.mkpath(tmp_path)
     
-    filename  = tmp_path + dmn.id.to_s + "_member_export"
+    filename  = tmp_path + dmn.id.to_s + "_member_export.csv"
     
     results[:filename] = filename
 
@@ -68,7 +68,10 @@ class MemberExportWorker <  Workling::Base #:nodoc:all
       end
     end
 
-    results[:entries] = idx
+    domain_file = DomainFile.save_temporary_file filename
+
+    results[:domain_file_id] = domain_file.id
+    results[:entries] = @members.length
     results[:type] = 'csv'
     results[:completed] = 1
 

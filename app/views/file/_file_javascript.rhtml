@@ -23,7 +23,11 @@ FileEditor = {
 	nodeSelected: null,
 	loadRequest:0,
   iconLoadRequest:0,
-  
+
+  updateAvailableStorage: function() {
+    <%= remote_function :url => { :action => "update_storage" } %>;
+  },
+
   view: function(view_type) {
     if(view_type == 'list') {
         $('view_icon').className = 'image_icon';
@@ -706,6 +710,7 @@ FileEditor = {
 					            FileEditor.clearHighlight();  
 					            itms.each(function(item_id) { FileEditor.removeItem(item_id); });
 					            FileEditor.hideDetails();
+					            FileEditor.updateAvailableStorage();
 					         } });               
 			}
   	},

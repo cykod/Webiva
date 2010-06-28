@@ -16,9 +16,9 @@ namespace "cms" do
     end 
     
     if domain
-      domains = Domain.find(:all, :conditions => ['id=? AND domain_type="domain" AND `database` != "" AND `status`="initialized"',domain]).collect {|dmn| dmn.attributes }
+      domains = Domain.find(:all, :conditions => ['id=? AND domain_type="domain" AND `database` != "" AND `status`="initialized"',domain]).collect {|dmn| dmn.get_info }
     else
-      domains = Domain.find(:all,:conditions => 'domain_type = "domain" AND `database` != "" AND `status`="initialized"').collect { |dmn| dmn.attributes }
+      domains = Domain.find(:all,:conditions => 'domain_type = "domain" AND `database` != "" AND `status`="initialized"').collect { |dmn| dmn.get_info }
     end
     
     force = ENV['FORCE']
@@ -27,7 +27,7 @@ namespace "cms" do
     ActiveRecord::Base.logger = Logger.new(STDOUT)
     domains.each do |dmn|
       print('Migrating Components: ' + dmn['name'].to_s)
-      db_file = YAML.load_file("#{RAILS_ROOT}/config/sites/#{dmn['database']}.yml")
+      db_file = dmn[:domain_database][:options]
       ActiveRecord::Base.establish_connection(db_file['migrator'])
       DomainModel.activate_domain(dmn,'migrator')
       #DomainModel.establish_connection(db_file['migrator'])

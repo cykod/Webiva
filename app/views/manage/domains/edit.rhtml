@@ -1,38 +1,41 @@
 <div class='admin_content'>
 <h2>Update Domain Options:</h2>
 <% if @domain.domain_type == 'redirect' %>
-<% cms_form_for :domain, @domain do |f| %>
+  <% cms_form_for :domain, @domain do |f| %>
     <%= f.text_field :redirect, :label => 'Redirect To' %>
     <%= f.submit_tag 'Update' %>
-<% end -%>
+  <% end -%>
+</div>
 
 <% else %>
-<% cms_form_for :domain, @domain do |f| %>
+  <% cms_form_for :domain, @domain do |f| %>
     <%= f.radio_buttons :email_enabled, [ ['Yes', true ], ['No', false ] ], :label => 'Handle Emails on Domain' %>
     <%= f.radio_buttons :ssl_enabled, [ ['Yes', true ], ['No', false ] ], :label => 'Domain has SSL Certificate' %>
-    <%= f.submit_tag 'Update' %>
-<% end -%>
-</div>
-<hr/>
-<div class='admin_content'>
-
-<% table_for @domain_modules, ['Name','Status','Description','Action' ], :class=>'active_table' do |t| %>
-<tr <%= highlight_row "module",t[:module] %> >
-  <td><b><%= t[:name].t %></b></td>
-  <td><%= t[:status].humanize.t %></td>
-  <td><%= t[:description].t %></td>
-  <td>
-    <% if t[:status] == 'unavailable' %>
-      <%= link_to 'Make Available', { :action => 'update_module', :path => @domain, :mod => t[:module], :access => 'available' }, { :method => :post } %>
-    <% else %>
-      <%= link_to 'Make Unavailable', { :action => 'update_module', :path => @domain,  :mod => t[:module], :access => 'unavailable'  }, { :method => :post } %>
+    <% if @domain.domain_database -%>
+      <%= f.text_field :max_file_storage, :unit => 'MB', :description => "%s remaining" / number_to_human_size(@domain.client.available_file_storage.megabytes, :precision => 2) %>
     <% end -%>
-  </td>
-</tr>
-
-<% end -%>
-
-<% end -%>
-
-
+    <%= f.submit_tag 'Update' %>
+  <% end -%>
 </div>
+
+  <% if @domain_modules -%>
+    <hr/>
+    <div class='admin_content'>
+    <% table_for @domain_modules, ['Name','Status','Description','Action' ], :class=>'active_table' do |t| %>
+    <tr <%= highlight_row "module",t[:module] %> >
+      <td><b><%= t[:name].t %></b></td>
+      <td><%= t[:status].humanize.t %></td>
+      <td><%= t[:description].t %></td>
+      <td>
+      <% if t[:status] == 'unavailable' %>
+        <%= link_to 'Make Available', { :action => 'update_module', :path => @domain, :mod => t[:module], :access => 'available' }, { :method => :post } %>
+      <% else %>
+        <%= link_to 'Make Unavailable', { :action => 'update_module', :path => @domain,  :mod => t[:module], :access => 'unavailable'  }, { :method => :post } %>
+      <% end -%>
+      </td>
+    </tr>
+    <% end -%>
+    </div>
+  <% end -%>
+
+<% end -%>

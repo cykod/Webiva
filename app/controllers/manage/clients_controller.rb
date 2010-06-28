@@ -2,18 +2,7 @@
 
 class Manage::ClientsController < CmsController # :nodoc: all
 
-  # Only system administrators can access this controller
-  permit 'client_user'
-  
-  before_filter :validate_admin
-  def validate_admin
-    unless myself.client_user.system_admin?
-      redirect_to :controller => '/manage/system'
-      return false
-    end
-    
-  end
-
+  permit 'system_admin'
   layout 'manage'
 
   def index
@@ -28,9 +17,10 @@ class Manage::ClientsController < CmsController # :nodoc: all
    include ActiveTable::Controller   
    active_table :client_table,
                 Client,
-                [ ActiveTable::IconHeader.new('', :width=>10),
-                  ActiveTable::StringHeader.new('clients.name',:label => 'Name'),
-                  ActiveTable::StaticHeader.new('Domains/Limit')
+                [ hdr(:icon, '', :width=>10),
+                  hdr(:static, 'Name'),
+                  hdr(:static, 'Databases/Limit'),
+                  hdr(:number, :max_file_storage, :label => 'Used/Max file storage')
                 ]
 
   def display_client_table(display=true)
@@ -58,7 +48,7 @@ class Manage::ClientsController < CmsController # :nodoc: all
                     [ "Clients", url_for(:action => 'index') ],
                     "New Client"
                  ],"system"
-    @client = Client.new
+    @client = Client.new :domain_limit => Client::DEFAULT_DOMAIN_LIMIT, :max_client_users => Client::DEFAULT_MAX_CLIENTS, :max_file_storage => Client::DEFAULT_MAX_FILE_STORAGE
   end
 
   def create

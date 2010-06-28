@@ -158,9 +158,15 @@ class EndUser < DomainModel
   # return an associated ClientUser object if one exists
   # (ClientUser is a SystemModel class)
   def client_user
-    return nil unless client_user_id
     return @client_user if @client_user
+    return nil unless client_user_id
     @client_user = ClientUser.find_by_id(client_user_id)
+  end
+
+  # return an associated Client object if one exists
+  # (Client is a SystemModel class)
+  def client
+    self.client_user ? self.client_user.client : nil
   end
 
   # Return an Array of subscription ids
@@ -341,47 +347,33 @@ class EndUser < DomainModel
   # Checks if a user has any of the expanded roles passed in
   # as an array of Role objects
   def has_any_role?(expanded_roles)
-    # Client users have all roles
-    if(self.client_user_id && self.user_class_id == UserClass.client_user_class_id)
-      true
-    else
-       permitted = false
-      roles_list.each do |role|
-        if expanded_roles.include?(role)
-          permitted = true
-          break
-        end
-      end
-
-      permitted
-    end
+    r = expanded_roles.find { |role| return true if has_role?(role) }
+    false
   end
 
   # Checks if a user has end of the expanded roles passed in
   # as an array of Role objects
   def has_all_roles?(expanded_roles)
-    # Client users have all roles
-    if(self.client_user_id && self.user_class_id == UserClass.client_user_class_id)
-      true
-    else
-      permitted = true
-      expanded_roles.each do |role|
-        if !roles_list.include?(role)
-          permitted = false
-          break
-        end
-      end
-      permitted
-    end
+    expanded_roles.each { |role| return false unless has_role?(role) }
+    true
   end
-
-
 
   # Checks if this user has a certain role (not expanded) on an optional target
   def has_role?(role,target=nil)
     if(self.client_user_id && self.user_class_id == UserClass.client_user_class_id)
-      true
+      role = role.to_s
+      case role
+      when 'system_admin'
+        self.client_user.system_admin?
+      when 'client_admin'
+        self.client_user.system_admin? || self.client_user.client_admin?
+      else
+        return false unless self.client_user.system_admin? || self.client_user.client_admin? || self.client_user.domain_database_id.nil? || self.client_user.domain_database_id == DomainModel.active_domain[:domain_database_id]
+        true
+      end
     else
+      role = role.to_s unless role.is_a?(Integer)
+      return false if role == 'system_admin' || role == 'client_admin' || role == 'client_user'
       roles_list.include?(Role.expand_role(role,target))
     end
   end
@@ -787,6 +779,8 @@ Not doing so could allow a user to change their user profile (for example) and e
 
   def run_update_profile_photo(args)
     url = args[:url]
+
+    return unless DomainFile.available_file_storage > 0
 
     uri = nil
     begin

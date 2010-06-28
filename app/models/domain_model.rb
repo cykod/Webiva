@@ -191,12 +191,17 @@ class DomainModel < ActiveRecord::Base
   # This would activate the domain with id 1 from the Domain table
   def self.activate_domain(domain_info,environment='production',save_connection = true)
     DataCache.reset_local_cache
-  
+
+    if domain_info.is_a?(Hash) && domain_info[:domain_database].nil?
+      raise 'Missing domain_database, use get_info instead of attributes' unless Rails.env == 'production'
+      domain_info = domain_info[:id]
+    end
+
     unless domain_info.is_a?(Hash)
       if domain_info.is_a?(Integer)
-      	domain_info = Domain.find_by_id(domain_info).attributes
+      	domain_info = Domain.find_by_id(domain_info).get_info
       elsif domain_info.is_a?(String)
-        domain_info = Domain.find_by_name(domain_info).attributes
+        domain_info = Domain.find_by_name(domain_info).get_info
       end
     end
   
@@ -204,9 +209,7 @@ class DomainModel < ActiveRecord::Base
     
     @@active_domain[process_id] = domain_info
     
-    file = "#{RAILS_ROOT}/config/sites/#{domain_info[:database]}.yml"
-    
-    self.activate_database_file(file,environment,save_connection)
+    self.activate_database(domain_info,environment,save_connection)
     
     return true
   end
@@ -245,6 +248,35 @@ class DomainModel < ActiveRecord::Base
     if !Object.const_defined?(delegate_class_name)
       begin
         db_config_file = YAML.load_file(file)
+      rescue 
+        return false
+      end
+      db_config = db_config_file[ environment ]
+
+      cls = Object.const_set(delegate_class_name.to_s, Class.new(ActiveRecord::Base))
+      cls.abstract_class = true
+      cls.establish_connection(db_config)
+
+      @@database_connection_pools[self.process_id] = cls
+      return true
+    else
+      @@database_connection_pools[self.process_id] = delegate_class_name.constantize
+      @@mutex.synchronize do 
+
+        @@database_connection_pools[self.process_id].connection.verify!
+      end
+
+      return true
+    end
+  end
+  
+  def self.activate_database(domain_info,environment = 'production',save_connection = true)
+    
+    delegate_class_name = domain_info[:database].classify
+
+    if !Object.const_defined?(delegate_class_name)
+      begin
+        db_config_file = domain_info[:domain_database][:options]
       rescue 
         return false
       end

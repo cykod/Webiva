@@ -202,7 +202,7 @@ class MailTemplateMailer < ActionMailer::Base
       return
     end
 
-    DomainModel.activate_domain(domain.attributes, 'production', false)
+    DomainModel.activate_domain(domain.get_info, 'production', false)
 
     handler_info = self.get_handler_info(:mailing, :receiver, handler)
     unless handler_info

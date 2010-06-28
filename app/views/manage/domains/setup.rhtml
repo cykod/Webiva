@@ -7,6 +7,7 @@
     <%= f.text_field :redirect, :label => 'Redirect To' %>
     <%= f.submit_tag 'Setup' %>
   <% else %>
+    <%= f.text_field :max_file_storage, :unit => 'MB', :description => "%s remaining" / number_to_human_size(@domain.client.available_file_storage.megabytes, :precision => 2), :vertical => true %>
     <%= f.radio_buttons :www_prefix, [['Use www. prefix',true ],['No www. prefix',false]] ,  :label => 'WWW Prefix',:single => true, :vertical => true, :label => 'Site should use a www prefix' %>
     <%= f.radio_buttons :active, [['Site is active',true ],['Site is inactive',false]] , :single => true, :description => 'If the site is inactive only the /website admin interface will be accessible', :vertical => true, :label => 'Should the site be life at the start' %>
     <%= f.select :database, @database_options, :label => 'Configuration Options' %>

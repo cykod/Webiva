@@ -294,17 +294,21 @@ class Content::CoreField < Content::FieldHandler
         parameters[key] = nil
       elsif parameters[key].is_a?(String)
         parameters[key] = parameters[key].to_i
-      elsif !parameters[key].is_a?(Integer) &&  !parameters[key].blank? 
-        image_folder  = @model_field.field_options['folder_id'] || Configuration.options.default_image_location || 1
-        file = DomainFile.create(:filename => parameters[key],
+      elsif !parameters[key].is_a?(Integer) && !parameters[key].blank?
+        if DomainFile.available_file_storage > 0
+          image_folder  = @model_field.field_options['folder_id'] || Configuration.options.default_image_location || 1
+          file = DomainFile.create(:filename => parameters[key],
                                  :parent_id => image_folder)
-        if @model_field.field_type == 'document' 
-          parameters[key] = file.id
-        elsif @model_field.field_type == 'image' && file.file_type == 'img'
-         parameters[key] = file.id
+          if @model_field.field_type == 'document' 
+            parameters[key] = file.id
+          elsif @model_field.field_type == 'image' && file.file_type == 'img'
+            parameters[key] = file.id
+          else
+            parameters.delete(key)
+            file.destroy
+          end
         else
           parameters.delete(key)
-          file.destroy
         end
       elsif !parameters[key].is_a?(Integer)
          parameters.delete(key)

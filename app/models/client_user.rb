@@ -13,18 +13,28 @@ class ClientUser < SystemModel
   belongs_to :client
   
   validates_presence_of :username
+  validates_uniqueness_of :username
+
+  validates_presence_of :client_id
 
   attr_accessor :password
   attr_accessor :activated_client
   
   serialize :options
 
-  def before_create # :nodoc:
-    self.hashed_password = ClientUser.hash_password(self.password)
+  def before_save # :nodoc:
+    if self.password && self.password.length > 0
+      self.salt = self.class.generate_hash if self.salt.blank?
+      self.hashed_password = ClientUser.hash_password(self.password, self.salt)
+    end
   end
 
-  def before_save # :nodoc:
-    self.hashed_password = ClientUser.hash_password(self.password) if self.password && self.password.length > 0
+  def validate
+    self.errors.add(:client_id, 'is missing') unless self.client
+
+    if self.id.nil? && self.client
+      self.errors.add_to_base('Max users for client') if self.client.available_client_users == 0
+    end
   end
 
   # Returns the user's default language or returns
@@ -36,10 +46,15 @@ class ClientUser < SystemModel
   # Attempts a login with a username, password and client_id
   # Return the user object if the login is sucessful, otherwise return nil
   def self.login_by_name(username,password,client_id)
-    hashed_password = hash_password(password || "")
-    find(:first,
-         :conditions => ["username = ? and hashed_password =? AND (system_admin=1 OR client_id=?)",
-                        username,hashed_password,client_id])
+    usr = find(:first,
+               :conditions => ["username = ? and (system_admin=1 OR client_id=?)",username,client_id])
+    hashed_password = self.hash_password(password || "", usr.salt) if usr
+    if usr && usr.hashed_password == hashed_password
+      usr = nil unless usr.system_admin? || usr.client_admin? || usr.domain_database_id.nil? || usr.domain_database_id == DomainModel.active_domain[:domain_database_id]
+      usr
+    else
+      nil
+    end
   end
 
   # Returns an end user object in the current database for creates 
@@ -79,12 +94,24 @@ class ClientUser < SystemModel
   end
   
   def validate_password(pw) #:nodoc:
-    return ClientUser.hash_password(pw) == self.hashed_password
+    return ClientUser.hash_password(pw, self.salt) == self.hashed_password
+  end
+
+  def domain_database_select_options
+    if self.system_admin?
+      DomainDatabase.find(:all).collect { |db| [db.domain_name, db.id] }
+    else
+      self.client.domain_database_select_options
+    end
   end
 
   private
 
-  def self.hash_password(pw)  #:nodoc:
-    Digest::SHA1.hexdigest(pw)
+  def self.hash_password(pw,salt=nil) #:nodoc:
+    if !salt.blank?
+      Digest::SHA1.hexdigest(salt.to_s + pw)
+    else
+      Digest::SHA1.hexdigest(pw)
+    end
   end
 end

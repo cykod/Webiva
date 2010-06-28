@@ -8,7 +8,7 @@ class MigrationHandlerWorker < Workling::Base #:nodoc:all
     return false unless domain
     
     # Don't Save connection
-    DomainModel.activate_domain(domain.attributes,'migrator',false)
+    DomainModel.activate_domain(domain.get_info,'migrator',false)
     
     
     DomainModel.logger = logger

@@ -154,7 +154,7 @@ if Rails.env == 'test'
     if defaults_config_file['testing_domain']
       ActiveRecord::Base.establish_connection(YAML.load_file("#{RAILS_ROOT}/config/cms.yml")['test'])
       SystemModel.establish_connection(YAML.load_file("#{RAILS_ROOT}/config/cms.yml")['test'])
-      DomainModel.activate_domain(Domain.find(defaults_config_file['testing_domain']).attributes,'production',false)
+      DomainModel.activate_domain(Domain.find(defaults_config_file['testing_domain']).get_info,'production',false)
     else
       raise 'No Available Testing Database!'
     end
@@ -163,7 +163,7 @@ if Rails.env == 'cucumber' || Rails.env == 'selenium'
     if defaults_config_file['cucumber_domain']
       ActiveRecord::Base.establish_connection(YAML.load_file("#{RAILS_ROOT}/config/cms.yml")['cucumber'])
       SystemModel.establish_connection(YAML.load_file("#{RAILS_ROOT}/config/cms.yml")['cucumber'])
-      dmn = Domain.find(defaults_config_file['cucumber_domain']).attributes
+      dmn = Domain.find(defaults_config_file['cucumber_domain']).get_info
       DomainModel.activate_domain(dmn,'production',false)
     else
       raise 'No Available Cucumber Database!'
@@ -181,16 +181,13 @@ end
 
 Globalize::ModelTranslation.set_table_name('globalize_translations')
 
-  
- 
-  
-CACHE.servers =  [ 'localhost:11211' ]
+
+cache_servers = CMS_DEFAULTS['memcache_servers'] || ['localhost:11211']
+cache_servers = [cache_servers] unless cache_servers.is_a?(Array)
+CACHE.servers =  cache_servers
 
 ActionController::Base.session_options[:expires] = 10800 unless Rails.env == 'development'
 ActionController::Base.session_options[:cache] = CACHE
-
-
-
 
 
 # Globalize Setup

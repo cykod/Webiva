@@ -143,20 +143,16 @@ describe FileController do
     end
 
     it "should be able to upload a file" do
-      workerArgs = {
-	:filename => '/tmp/system_domains.gif',
-	:domain_id => DomainModel.active_domain_id,
-	:parent_id => @subfolder.id,
-	:creator_id => @myself.id,
-	:tmp_dir => '/tmp',
-	:extract_archive => false,
-	:replace_same => false
-      }
-
       fdata = fixture_file_upload("files/system_domains.gif",'image/gif')
-      DomainFile.should_receive(:generate_temporary_directory).once.and_return('/tmp')
-      FileWorker.should_receive(:async_do_work).once.with(workerArgs).and_return('my_upload_key')
-      post 'upload', :upload_file => {:filename => fdata, :parent_id => @subfolder.id}, :extract_archive => false, :replace_same => false
+      FileWorker.should_receive(:async_do_work).once.and_return('my_upload_key')
+
+      assert_difference 'DomainFile.count', 1 do
+        post 'upload', :upload_file => {:filename => fdata, :parent_id => @subfolder.id}, :extract_archive => false, :replace_same => false
+      end
+
+      @df = DomainFile.find :last
+      File.exists?(@df.filename).should be_true
+      (@df.filename =~ /system_domains.gif$/).should be_true
     end
 
     it "should responded to progress" do
