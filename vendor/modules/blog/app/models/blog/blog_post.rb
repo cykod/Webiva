@@ -32,7 +32,7 @@ class Blog::BlogPost < DomainModel
 
   def data_model
     return @data_model if @data_model
-    return nil unless self.blog_blog.content_model
+    return nil unless self.blog_blog && self.blog_blog.content_model
     @data_model = self.blog_blog.content_model.content_model.find_by_id self.data_model_id if self.data_model_id
     @data_model = self.blog_blog.content_model.content_model.new unless @data_model
     @data_model
