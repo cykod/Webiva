@@ -26,7 +26,8 @@ namespace "cms" do
     
     ActiveRecord::Base.logger = Logger.new(STDOUT)
     domains.each do |dmn|
-      print('Migrating Components: ' + dmn['name'].to_s)
+      puts("\n\n")
+      puts('***Migrating Components: ' + dmn[:name].to_s + "***")
       db_file = dmn[:domain_database][:options]
       ActiveRecord::Base.establish_connection(db_file['migrator'])
       DomainModel.activate_domain(dmn,'migrator')

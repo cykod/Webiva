@@ -3,10 +3,18 @@ Content Models - must re-add all connection to email targets
 
 Must do a SiteNode.rebuild! on all the elements of the structure
 
+
+
 Removed tell_friend and tell_friend_link paragraphs
 
 
+
+
 Feedback - must add migration 4 into the database manually and remove migration 2 (migration overlap issue) 
+
+
+DELETE FROM component_schemas WHERE component='feedback' AND version='2';
+INSERT INTO component_schemas (`version`,`component`) VALUES (4,'feedback');
 
 # 11 is the old DB name
 paras  = PageParagraph.find(:all,:conditions => 'display_type in ("code","html") AND display_body like "%/system/storage/11%"')

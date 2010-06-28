@@ -16,7 +16,7 @@ namespace "cms" do
     
     ActiveRecord::Base.logger = Logger.new(STDOUT)
     domains.each do |dmn|
-      print('Migrating Domain Db: ' + dmn['name'].to_s)
+      print('Migrating Domain Db: ' + dmn[:name].to_s)
     
       db_file = dmn[:domain_database][:options]
       ActiveRecord::Base.establish_connection(db_file['migrator'])
@@ -27,3 +27,4 @@ namespace "cms" do
   end
 
 end
+
