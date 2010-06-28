@@ -1318,6 +1318,10 @@ class DomainFile < DomainModel
     available > 0 ? available : 0
   end
 
+  def self.delete_temporary_files
+    DomainFile.find(:all, :conditions => ["special = 'temp' and created_at < ?", 1.day.ago]).each { |file| file.destroy }
+  end
+
   protected
 
   def self.generate_prefix
