@@ -9,9 +9,9 @@ class ContentController < ModuleController #:nodoc: all
 
   layout 'manage'
   
-  permit 'editor_content', :except => 'index'
-  permit 'editor_content_configure', :except => [ 'index','custom','view','add_tags_form','remove_tags_form','edit_entry','entry' ]
+  permit 'editor_content_configure', :except => [ 'index','custom','view','add_tags_form','remove_tags_form','edit_entry','entry', 'active_table' ]
 
+  permit 'editor_content', :except => 'index'
 
   before_filter :check_view_permission, :only => [ 'view', 'entry' ]
   before_filter :check_edit_permission, :only => [ 'add_tags_form','remove_tags_form','edit_entry' ]
