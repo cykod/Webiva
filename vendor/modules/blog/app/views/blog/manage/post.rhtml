@@ -80,6 +80,16 @@
     <%= f.text_field :permalink, :label => 'Permalink (Leave blank to have one created for you)', :vertical => true, :style => 'width:100%;', :noun => 'Permalink' %>
     <%= f.text_field :author, :vertical => true, :style=>'width:100%' %>
     <%= f.editor_area :body, :vertical => true, :required => true, :rows => 35, :style=>'width:100%', :content_filter => @blog.content_filter %>
+
+    <% if @blog.content_model -%>
+      <%= f.header "Custom Fields (%s)" / @blog.content_model.name %>
+      <% cms_subfields_for 'entry[data_model]', @entry.data_model do |cf| -%>
+        <% @blog.content_model.content_model_fields.each do |field| -%>
+          <%= field.form_field(cf, :vertical => true) %>
+        <% end -%>
+      <% end -%>
+    <% end -%>
+
     <%= f.header "Additional Fields" %>
     <%= f.text_field :preview_title, :vertical => true, :size => 80, :label => 'Preview Title (Optional)' %>
     <%= f.editor_area :preview, :vertical => true, :rows => 12, :label => 'Preview (Optional)', :style=>'width:100%', :content_filter => @blog.content_filter %>
@@ -125,22 +135,6 @@
     <% end -%>
       <%= f.datetime_field :published_at, :label => '',:unstyled => true, :blank => true, :disabled => !(@entry.status == 'published' && ( !@entry.published_at  || @entry.published_at > Time.now ) ) %>
     </div>
-
-    <% if @blog.content_model -%>
-    <div class='sidebar_header'>
-        <%= @blog.content_model.name %>
-    </div>
-    <div class='sidebar_group'>
-      <table>
-      <% cms_subfields_for 'entry[data_model]', @entry.data_model do |cf| -%>
-        <% @blog.content_model.content_model_fields.each do |field| -%>
-          <%= field.form_field(cf, :vertical => true) %>
-        <% end -%>
-      </table>
-      <% end -%>
-    </div>
-    <% end -%>
-
     <div align='center'>
       <table>
         <%= f.submit_tag @entry.id ? 'Update Entry' : 'Create Entry',:unstyled => true %>
