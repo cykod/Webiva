@@ -208,6 +208,7 @@ describe EndUser do
     @user1.tag_names_add('bunnies')
     @user1.reload
     @user1.tag_names=('rhinos,tigers')
+    @user1.save
     @user1.reload
     @user1.tag_names.should == "Rhinos, Tigers"
   end

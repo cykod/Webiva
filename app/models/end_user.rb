@@ -584,6 +584,11 @@ Not doing so could allow a user to change their user profile (for example) and e
     target
   end
 
+  def reload
+    @tag_name_cache = nil if self.id
+    super
+  end
+
   # Return a clone of the current address or work address object 
   def default_address
     adr = (self.address &&  !self.address.address.blank?) ? self.address : ( (self.work_address && !self.work_address.blank? ) ? self.work_address : EndUserAddress.new() )
