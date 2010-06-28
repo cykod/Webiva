@@ -36,6 +36,7 @@ namespace "cms" do
       ComponentMigrator.handle_migration_update
       
       if force && domain
+        components = Dir.glob("#{RAILS_ROOT}/vendor/modules/*/db").map { |md| md.split("/")[-2] } unless components
         components.each do |component|
           dir = "#{RAILS_ROOT}/vendor/modules/#{component}/db"
           ComponentMigrator.current_component = component
