@@ -122,6 +122,11 @@ INTRODUCTION
 
     print('Creating cms.yml...')
     @db_socket = File.exists?('/var/lib/mysql/mysql.sock') ? '/var/lib/mysql/mysql.sock' : '/var/run/mysqld/mysqld.sock'
+    @db_socket = File.exists?(@db_socket) ? @db_socket : '/tmp/mysql.sock'
+ 
+    if !File.exists?(@db_socket)
+      @db_socket = input_value("Mysql Socket","/var/lib/mysql/mysql.sock")
+    end
     write_db_yml_file('cms.yml', { 'username' => "#{@db_name_short}_u" ,'password' => @user_password, 'database'  => @db_name, 'socket' => @db_socket })
     print("Done!\n")
 
