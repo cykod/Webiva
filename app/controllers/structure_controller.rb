@@ -405,6 +405,13 @@ class StructureController < CmsController  # :nodoc: all
   # Group Element Information
   def g_element_info(node)
     @node = node
+
+    @node_options = @node.node_options
+    if request.post? && params[:group]
+      @node_options = @node.set_node_options(params[:group])
+      flash.now[:notice] = 'Updated Group Options'.t
+    end
+
     render :partial => 'group_element_info'
   end
   
@@ -525,6 +532,7 @@ class StructureController < CmsController  # :nodoc: all
     @mod = mod
     @domain_options = SiteNodeModifier::DomainModifierOptions.new(params[:domain] || @mod.modifier_data)
     if request.post?
+      flash.now[:notice] = 'Updated Domain Options'.t
     
       @mod.modifier_data = @domain_options.to_h
       @mod.save 

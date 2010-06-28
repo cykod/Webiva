@@ -402,6 +402,31 @@ class SiteNode < DomainModel
     
     nd
   end
+
+
+  def node_options(val=nil)
+    case self.node_type
+    when 'G': GroupNodeOptions.new(val || self.page_modifier.modifier_data ||{})
+    else NodeOptions.new(val || self.page_modifier.modifier_data || {})
+    end
+  end
+
+  def set_node_options(val)
+    opts = self.node_options(val)
+    self.page_modifier.update_attributes(:modifier_data => opts.to_hash)
+    opts
+  end
+
+  class NodeOptions < HashModel
+
+  end
+
+
+  class GroupNodeOptions < NodeOptions
+    attributes :closed => false
+
+    boolean_options :closed
+  end
   
   protected
   

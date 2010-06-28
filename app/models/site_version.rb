@@ -63,7 +63,7 @@ class SiteVersion < DomainModel
                                :order => 'lft',
                                :include => :site_node_modifiers)
     nds.each do |nd|
-      nd.closed = true if closed.include?(nd.id)
+      nd.closed = true if closed.include?(nd.id) || nd.node_options.closed
       page_hash[nd.parent_id].child_cache << nd  if page_hash[nd.parent_id]
       page_hash[nd.id] = nd
     end
