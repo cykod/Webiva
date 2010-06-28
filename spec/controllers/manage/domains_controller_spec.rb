@@ -191,7 +191,7 @@ describe Manage::DomainsController do
       end
 
       @domain_modules = DomainModule.all_modules(@another_domain)
-      @domain_modules[0][:name].should == 'Blog'
+      @domain_modules.detect { |md| md[:name] == "Blog" }.should_not be_nil
 
       response.should redirect_to(:action => 'edit', :path => [@another_domain.id])
     end
