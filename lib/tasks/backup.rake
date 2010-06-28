@@ -130,8 +130,30 @@ namespace "cms" do
 	  
 	  FileUtils.rm("#{RAILS_ROOT}/backup/#{backup_dir}.tar.gz")
 	rescue Exception => e
-	 raise "Error FTPing files:" + e.to_s
+	 raise "Error FTPing files: " + e.to_s
 	end
+      when 's3'
+        begin
+          AWS::S3::Base.establish_connection! :access_key_id => backup_cfg['access_key_id'], :secret_access_key => backup_cfg['secret_access_key']
+          puts("Transmitting Backup file data...\n")
+          AWS::S3::S3Object.store("#{backup_dir}.tar.gz", File.open("#{RAILS_ROOT}/backup/#{backup_dir}.tar.gz"), backup_cfg['bucket'], :access => :private)
+          puts("Done Transmitting Files\n")
+
+          # TODO: list keys in bucket and remove old ones
+          objects = AWS::S3::Bucket.objects(backup_cfg['bucket']).sort do |a, b|
+            Time.parse(a.about['last-modified']) <=> Time.parse(b.about['last-modified'])
+          end
+
+          backup_limit = (backup_cfg['limit'] || 10).to_i
+          objects[0..-backup_limit].each do |obj|
+            puts "Deleting #{obj.key}"
+            obj.delete
+          end
+
+          AWS::S3::Base.disconnect!
+        rescue Exception => e
+          raise "Error copying files to s3: " + e.to_s
+        end
       else
         raise 'Invalid Backup server type'
       end
