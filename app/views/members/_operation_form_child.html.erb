@@ -1,0 +1,20 @@
+
+<% cms_unstyled_fields_for form_id, builder do |f| -%>
+
+<% if condition == 'with' -%>
+  <li>
+  <%= f.check_boxes :operator, [['not', 'not']], :single => true, :separator => '' %>
+  </li>
+<% end -%>
+
+<li>
+  <%= f.grouped_select :field, builder.field_group_options, {}, :onchange => 'OperationBuilder.updateOperations();', :style => 'width:250px;' %>
+</li>
+
+  <% if builder.operation_options.length > 0 -%>
+    <div class="operation">
+    <%= render :partial => 'operation_form_operation', :locals => {:builder => builder, :form_id => form_id} %>
+    </div>
+  <% end -%>
+
+<% end -%>

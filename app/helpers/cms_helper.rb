@@ -520,6 +520,9 @@ See ActiveTable for usage examples
     table_actions = options.delete(:actions)
     more_actions = options.delete(:more_actions)
 
+    next_link_text = options.delete(:next) || '&gt;'
+    previous_link_text = options.delete(:previous) || '&lt;'
+
     options[:class] ||= "active_table"
 
     form_elements = options.delete(:form_elements)
@@ -694,7 +697,7 @@ EOF
         initial = true
         if(pagination[:page] > 1)
           initial = false
-          concat( "<li class='first highlight'><a href='javascript:void(0);' onclick='ActiveTable.page(#{pagination[:page]-1},\"#{name}\",\"#{refresh_url}\",\"#{update_element}\");')'>&lt;</a></li>")
+          concat( "<li class='first highlight'><a href='javascript:void(0);' onclick='ActiveTable.page(#{pagination[:page]-1},\"#{name}\",\"#{refresh_url}\",\"#{update_element}\");')'>#{previous_link_text}</a></li>")
         end
         concat(pagination[:pages].collect  {  |number| 
                  first = true if initial
@@ -709,7 +712,7 @@ EOF
                  
                }.to_s )
         if(pagination[:page] < pagination[:pages_count])
-          concat( "<li class='highlight'><a href='javascript:void(0);' onclick='ActiveTable.page(#{pagination[:page]+1},\"#{name}\",\"#{refresh_url}\",\"#{update_element}\");')'>&gt;</a></li>")
+          concat( "<li class='highlight'><a href='javascript:void(0);' onclick='ActiveTable.page(#{pagination[:page]+1},\"#{name}\",\"#{refresh_url}\",\"#{update_element}\");')'>#{next_link_text}</a></li>")
         end
         concat('</ul>')
       end
@@ -759,27 +762,30 @@ EOF
   end
 
   class WizardSteps
-    def initialize(wizard_step,wizard_max_step) 
+    def initialize(wizard_step,wizard_max_step,opts={}) 
       @wizard_step = wizard_step
       @wizard_max_step = wizard_max_step
+      @options = opts
     end
     
     def step(number,txt,url = {})
     
+      tag = @options[:tag] || 'span'
+      css_class = @options[:class] || 'large_ajax_link_selected'
       if number == @wizard_step
-        "<b class='large_ajax_link_selected'>#{number}. #{txt}</b>"
+        "<#{tag} class='#{css_class}'>#{txt}</#{tag}>"
       elsif number <= @wizard_max_step
         
-        "<a href='#{url}'>#{number}. #{txt}</a>"
+        "<#{tag}><a href='#{url}'>#{txt}</a></#{tag}>"
       else
-        "#{number}. #{txt}"
+        "<#{tag}>#{txt}</#{tag}>"
       end
     end
     
   end
   
-  def wizard_steps(wizard_step,wizard_max_step) 
-    yield WizardSteps.new(wizard_step,wizard_max_step)
+  def wizard_steps(wizard_step,wizard_max_step,opts={}) 
+    yield WizardSteps.new(wizard_step,wizard_max_step,opts)
   end
 
 end

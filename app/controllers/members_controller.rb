@@ -7,75 +7,62 @@ class MembersController < CmsController # :nodoc: all
   layout 'manage'
   
   cms_admin_paths "people",
-                  "People" => { :controller => '/members' }
-  
+                  "People" => { :controller => '/members' },
+                  "User Lists" => { :action => 'segments' }
   
   # need to include 
-   include ActiveTable::Controller   
-   active_table :email_targets_table,
-                EndUser,
-                [ hdr(:icon, 'check'),
-                  hdr(:static, 'edit', :width => '16'),
-                  hdr(:option, 'user_level',:options => EndUser.user_level_select_options,:label => 'Lvl', :width=> 40),
-                  hdr(:string, 'email'),
-                  hdr(:string, 'first_name',:label => 'First'),
-                  hdr(:string, 'last_name',:label => 'Last'),
-                  hdr(:date_range, 'created_at',:label => 'Created'),
-                  hdr(:date_range, 'registered_at',:label => 'Reg.'),
-                  hdr(:option, 'user_class_id',:label=> 'Profile',:options => :get_user_classes),
-                  hdr(:option, 'source',:options => EndUser.source_select_options,:label => 'Src. Type',:width=>90),
-                  hdr(:string, 'lead_source',:label => 'Src.' ), 
-                  'tags'
-                ],
-                :count_callback => 'count_end_users',
-                :find_callback => 'find_end_users'
-                
+  include ActiveTable::Controller   
   
   protected 
-  
 
   def segmentations
-      @segment= session[:et]
-      @segmentations = MarketSegment.find(:all,:conditions => 'segment_type = "members" AND market_campaign_id IS NULL',:order => :name).collect { |seg|
-                        [ seg.name, seg.id ]
-                    }
+    return @segmentations if @segmentations
+    @segmentations = UserSegment.find(:all, :conditions => {:main_page => true, :status => 'finished'}, :order => 'name')
+    @segmentations << self.segment if self.segment && ! @segmentations.find { |seg| seg.id == self.segment.id }
+    @segmentations
+  end
 
-      @loaded_segment_id = session[:et_segment]
-      @loaded_segment_name = session[:et_segment_name]
-
+  def segment
+    @segment ||= UserSegment.find_by_id(params[:path][0]) if params[:path]
   end
 
   def count_end_users(opts)
-      
-      @seg = MarketSegment.new(:segment_type => 'members',:options => { :tags => @segment[:tags], :tags_select => @segment[:tags_select],
-                                                                 :conditions => opts[:conditions], :order => opts[:order],
-                                                                 :search => session[:active_table][:email_targets_table] })
-      @seg.target_count
+    if self.search_results
+      self.search.total
+    elsif self.segment
+      self.segment.last_count
+    else
+      EndUser.count :conditions => 'client_user_id IS NULL'
+    end
   end
 
-  def find_end_users(opts)
+  def find_end_users(opts={})
+    if self.search_results
+      self.search.users
+    elsif self.segment
+      pages, users = self.segment.paginate self.search.page, :per_page => 25, :include => opts[:include]
+      users
+    else
+      EndUser.find(:all, :conditions => 'client_user_id IS NULL', :offset => opts[:offset], :limit => opts[:limit], :order => self.class.module_options.order(opts), :include => opts[:include])
+    end
+  end
 
-   # (set in handle_table_actions) - if we are saving this segment, find one with the same name,
-   # or create a new one
-   if @save_segment
-      @seg = MarketSegment.find_by_name(@save_segment,:conditions => 'segment_type="members"') || 
-        MarketSegment.new(:segment_type => 'members', :name => @save_segment)
-   else
-     @seg = MarketSegment.new(:segment_type => 'members')
-   end
+  def search
+    return @search if @search
 
-   @seg.options = { :tags => @segment[:tags], :tags_select => @segment[:tags_select],
-                                                                 :conditions => opts[:conditions], :order => opts[:order],
-                                                                 :search => session[:active_table][:email_targets_table] }
-                          
-   session[:members_table_segment] = @seg.options.clone                                       
-   if @save_segment
-      @seg.save 
-      session[:et_segment] = @seg.id
-      session[:et_segment_name] = @seg.name
-   end
-   
-   @seg.target_find(:offset => opts[:offset], :limit => opts[:limit], :order => opts[:order])
+    @search = EndUserSearch.new
+    @search.terms = params[:terms]
+    @search.per_page = 25
+    @search.offset = (params[:offset] || 0).to_i
+    @search.offsets = (params[:offsets] || [0]).collect { |n| n.to_i }
+    @search.user_segment = self.segment
+    @search.page = (params[:page] || 1).to_i
+    @search.offset = @search.offsets[@search.page-1] if @search.user_segment && @search.offsets.length >= @search.page
+    @search
+  end
+
+  def search_results
+    @search_results ||= self.search.search(:include => [:user_class, :domain_file]) if self.search.terms
   end
 
   def get_user_classes
@@ -100,37 +87,82 @@ class MembersController < CmsController # :nodoc: all
           end
         when 'clear_tags'
           update_users.each do |user|
-            user.tag_names = '' if user
+            user.clear_tags! if user
           end
+        when 'add_users'
+          custom_segment = UserSegment.find params[:user_segment_id]
+          custom_segment.add_ids params[:user].keys.collect { |uid| uid.to_i } if custom_segment && custom_segment.segment_type == 'custom'
+        when 'remove_users'
+          custom_segment = UserSegment.find params[:user_segment_id]
+          custom_segment.remove_ids(params[:user].keys.collect { |uid| uid.to_i }) if custom_segment && custom_segment.segment_type == 'custom'
         end
       end
-    elsif request.post? && params[:save_segment]
-      @save_segment = params[:save_segment]
-      @update_segments = true
-    elsif  request.post? && params[:load_segment]
-      load_segment = MarketSegment.find_by_id(params[:load_segment].to_i)
-
-      if load_segment
-        params.delete(:email_targets_table)
-        session[:active_table][:email_targets_table] = load_segment.options[:search]
-        session[:et] = { :tags => load_segment.options[:tags], :tags_select => load_segment.options[:tags_select] }
-        session[:et_segment] = load_segment.id
-        session[:et_segment_name] = load_segment.name
-      else 
-        session[:et_segment] = nil
-        session[:et_segment_name] = nil
-      end
-      @update_segments = true
-    elsif request.post? && params[:delete_segment]
-      load_segment = MarketSegment.find_by_id(params[:delete_segment].to_i)
-      load_segment.destroy
-      session[:et_segment] = nil
-      session[:et_segment_name] = nil
-      @update_segments = true
-
     end
   end
   
+  def email_targets_table_columns(opts={})
+    return @email_targets_table_columns if @email_targets_table_columns
+
+    @email_targets_table_columns = [
+      ActiveTable::IconHeader.new('check', :width => '16'),
+      ActiveTable::StaticHeader.new('', :width => '24'),
+      ActiveTable::StaticHeader.new('Image', :width => '70'),
+      ActiveTable::StaticHeader.new('Name'),
+      ActiveTable::OrderHeader.new('email')
+    ]
+
+    @fields = []
+    end_user_only = true
+    if self.segment && self.segment.fields
+      @fields = self.segment.fields
+      end_user_only = false
+    else self.class.module_options && self.class.module_options.fields
+      @fields = self.class.module_options.fields
+      end_user_only = true
+    end
+
+    @fields.each do |field|
+      info = UserSegment::FieldHandler.display_fields[field.to_sym]
+      if info
+        if UserSegment::FieldHandler.sortable_fields(:end_user_only => end_user_only)[field.to_sym]
+          @email_targets_table_columns << ActiveTable::OrderHeader.new(field, :label => info[:handler].field_heading(field.to_sym))
+        else
+          @email_targets_table_columns << ActiveTable::StaticHeader.new(field, :label => info[:handler].field_heading(field.to_sym))
+        end
+      end
+    end
+
+    @email_targets_table_columns
+  end
+
+  def email_targets_table_name
+    if self.segment
+      "end_users_segment_#{self.segment.id}"
+    else
+      'end_users'
+    end
+  end
+
+  def email_targets_table_generate(opts,*find_options)
+    active_table_generate(self.email_targets_table_name, EndUser, self.email_targets_table_columns, {:count_callback => 'count_end_users', :find_callback => 'find_end_users'}, opts, *find_options)
+  end
+
+  def email_targets_table_order(opts)
+    active_table_order(self.email_targets_table_name, self.email_targets_table_columns, opts)
+  end
+
+  def email_targets_table_set_order(order)
+    active_table_set_order(self.email_targets_table_name, self.email_targets_table_columns, order)
+  end
+
+  def user_segment_type_select_options
+    UserSegment.segment_type_select_options
+  end
+
+  def user_segment_status_select_options
+    UserSegment.status_select_options
+  end
+
   public 
   
   def lookup_autocomplete
@@ -156,33 +188,15 @@ class MembersController < CmsController # :nodoc: all
     render :partial => 'lookup_autocomplete'
   end
   
-
   def display_targets_table(display = true)
 
     if params[:table_action] || params[:segment_action]
       handle_table_actions
     end
-    
-    default_options =  { :tags => [],
-                         :tags_select => 'any'
-                        }
-  
-    session[:et] ||= default_options.clone
-    session[:et_segment] ||= nil
 
-    if(params[:tag]) 
-      session[:et][:tags] << params[:tag]
-      session[:et][:tags].uniq!
-    elsif params[:remove_tag]
-      session[:et][:tags].delete(params[:remove_tag])
-    elsif params[:tags_select]
-      session[:et][:tags_select] = params[:tags_select]
-    elsif params[:clear_tag]
-      session[:et][:tags] = []
-    end
-    @segment= session[:et]
+    @active_table_output = email_targets_table_generate params, :per_page => 25, :include => [:user_class, :domain_file]
 
-    @active_table_output = email_targets_table_generate params, :per_page => 25, :include => :tag_cache, :conditions => 'client_user_id IS NULL', :order => 'created_at DESC'
+    @handlers_data = UserSegment.get_handlers_data(@active_table_output.data(&:id), @fields)
 
     if display
       @update_tags = true
@@ -196,18 +210,242 @@ class MembersController < CmsController # :nodoc: all
   
   # Members editing
   def index
-    cms_page_path [], "People"
-    
-    #unless params[:refresh]
-      #session[:et] = nil
-      #session[:et_segment] = nil
-    #end
-    
+    return redirect_to(:action => 'segments') if self.segment && ! self.segment.ready?
+
+    cms_page_path ["People"], self.segment ? self.segment.name : 'Everyone'.t
+
     segmentations
 
     display_targets_table(false)
   end
+
+   active_table :user_segments_table,
+                UserSegment,
+                [ hdr(:icon, 'check', :width => '16'),
+                  hdr(:icon, '', :width => '32'),
+                  :name,
+                  :main_page,
+                  hdr(:options, :segment_type, :options => :user_segment_type_select_options),
+                  :description,
+                  hdr(:options, :status, :options => :user_segment_status_select_options),
+                  :last_count,
+                  :last_ran_at,
+                  :created_at,
+                  :updated_at
+                ]
+
+  def user_segments_table(display=true)
+    active_table_action 'user_segments' do |act,ids|
+      case act
+      when 'delete': UserSegment.destroy(ids)
+      when 'add'
+        UserSegment.update_all('main_page = 1', :id => ids)
+      when 'remove'
+        UserSegment.update_all('main_page = 0', :id => ids)
+      when 'duplicate'
+        ids.each { |id| UserSegment.create_copy id }
+      end
+    end
+
+    @active_table_output = user_segments_table_generate params, :order => 'updated_at DESC'
+    render :partial => 'user_segments_table' if display
+  end
+
+  def options
+    cms_page_path ['People'], "Everyone Options"
+    
+    @options = self.class.module_options(params[:options])
+
+    if request.post? && @options.valid?
+      if params[:commit]
+        Configuration.set_config_model(@options)
+        self.email_targets_table_set_order @options.order
+        flash[:notice] = "Updated Everyone options".t 
+      end
+      redirect_to :action => 'index'
+      return
+    end    
+  end
   
+  def self.module_options(vals=nil)
+    Configuration.get_config_model(Options,vals)
+  end
+
+  class Options < HashModel
+    attributes :fields => [], :order_by => 'created', :order_direction => 'DESC'
+
+    def validate
+      if self.fields
+        self.errors.add(:fields, 'is invalid') if self.fields.find { |f| self.fields_options.rassoc(f).nil? }
+      end
+
+      if self.order_by
+        self.errors.add(:order_by, 'is invalid') unless self.order_by_options.rassoc(self.order_by)
+      end
+
+      if self.order_direction
+        self.errors.add(:order_direction, 'is invalid') unless UserSegment.order_direction_options.include?(self.order_direction)
+      end
+    end
+
+    def order(opts={})
+      field = self.order_by
+      direction = self.order_direction
+      if opts[:order]
+        field, direction = opts[:order].split(' ')
+      end
+      direction = 'ASC' unless direction
+
+      info = UserSegment::FieldHandler.sortable_fields(:end_user_only => true)[field.to_sym]
+      return {:order => 'created_at DESC'} unless info
+      field = info[:field]
+      "#{field} #{direction}"
+    end
+
+    def fields_options
+      UserSegment.fields_options
+    end
+
+    def order_by_options
+      UserSegment.order_by_options(:end_user_only => true)
+    end
+  end
+
+  def segments
+    cms_page_path ['People'], 'User Lists'
+    user_segments_table(false)
+  end
+
+  def create_segment
+    cms_page_path ['People', 'User Lists'], 'Create a User List'
+
+    @builder = UserSegment::OperationBuilder.new nil
+
+    @segment = UserSegment.new :main_page => true, :segment_type => 'filtered', :order_by => 'created', :order_direction => 'DESC'
+
+    if request.post? && params[:segment]
+      return redirect_to :action => 'index' unless params[:commit]
+
+      if @segment.update_attributes params[:segment]
+        @segment.refresh
+        redirect_to :action => 'segments'
+      end
+    end
+  end
+
+  def edit_segment
+    @segment = UserSegment.find params[:path][0]
+
+    cms_page_path ['People', 'User Lists', [@segment.name, url_for(:action => 'index', :path => @segment.id)]], 'Edit List'
+
+    if request.post? && params[:segment]
+      return redirect_to :action => 'index', :path => @segment.id unless params[:commit]
+
+      if @segment.update_attributes params[:segment]
+        self.email_targets_table_set_order @segment.order
+
+        if @segment.should_refresh?
+          @segment.refresh
+          redirect_to :action => 'segments'
+        else
+          redirect_to :action => 'index', :path => @segment.id
+        end
+      end
+    end
+  end
+
+  def edit_segment_filter
+    @segment = UserSegment.find params[:path][0]
+
+    if request.post? && params[:segment]
+      return redirect_to :action => 'index', :path => @segment.id unless params[:commit]
+
+      if @segment.update_attributes params[:segment]
+        self.email_targets_table_set_order @segment.order
+
+        @segment.refresh if @segment.should_refresh?
+        render :partial => 'refresh_segment'
+      end
+    else
+      render :partial => 'edit_segment_filter'
+    end
+  end
+
+  def copy_segment
+    segment_to_copy = UserSegment.find params[:path][0]
+
+    cms_page_path ['People', 'User Lists', [segment_to_copy.name, url_for(:action => 'index', :path => segment_to_copy.id)]], 'Copy List'
+
+    @segment = UserSegment.new segment_to_copy.attributes.symbolize_keys.slice(:name, :description, :fields, :main_page, :segment_options_text, :order_by, :segment_type)
+    @segment.name += ' (Copy)' unless request.post?
+
+    if request.post? && params[:segment]
+      return redirect_to :action => 'index', :path => segment_to_copy.id unless params[:commit]
+
+      if @segment.update_attributes params[:segment]
+        @segment.refresh
+        redirect_to :action => 'segments'
+      end
+    end
+  end
+
+  def refresh_segment
+    @segment = UserSegment.find params[:path][0]
+    @segment.refresh
+    render :partial => 'refresh_segment'
+  end
+
+  def sort_segment
+    @segment = UserSegment.find params[:path][0]
+    @segment.resort email_targets_table_order(params)
+    render :partial => 'refresh_segment'
+  end
+
+  def refresh_segment_status
+    @segment = UserSegment.find params[:path][0]
+  end
+
+  def builder_help
+    @handlers = UserSegment::FieldHandler.handlers
+    render :action => 'builder_help', :layout => 'manage_window'
+  end
+
+  def builder
+    @segment = UserSegment.find_by_id params[:path][0] if params[:path]
+    @builder = @segment ? UserSegment::OperationBuilder.create_builder(@segment) : UserSegment::OperationBuilder.new(nil)
+    @filter = params[:filter]
+    @builder.build(UserSegment::OperationBuilder.get_prebuilt_filter(@filter)) if @filter
+
+    if request.post? && params[:builder]
+      @builder.build(params[:builder])
+    end
+
+    render :action => 'builder', :layout => 'manage_window'
+  end
+
+  def update_builder
+    @builder = UserSegment::OperationBuilder.new nil
+    @builder.build(params[:builder])
+    return render :partial => 'operation_form_operation', :locals => {:builder => @builder, :form_id => 'builder'} if params[:operation]
+    return render :partial => 'operation_form_expression' if params[:expression]
+    return render :nothing => true unless params[:commit]
+  end
+
+  def add_users_form
+    @segment = UserSegment.find params[:segment][:id] if params[:choice] == 'existing'
+
+    unless @segment
+      @segment = UserSegment.new :main_page => true, :segment_type => 'custom'
+
+      if request.post? && params[:segment]
+        @segment.update_attributes params[:segment]
+      end
+    end
+
+    @segments = UserSegment.find(:all, :conditions => {:segment_type => 'custom'}, :order => 'name')
+    render :partial => 'add_users_form'
+  end
+
   def create
     cms_page_path ['People'],'Create Contact'
 
@@ -243,15 +481,26 @@ class MembersController < CmsController # :nodoc: all
   end
 
   def edit
-    cms_page_path ['People'],'Edit Contact'
+    @segment = UserSegment.find_by_id(params[:path][1])  unless params[:path][1].blank?
+
+    display_user_actions_table(false)
+ 
+    if @segment
+      cms_page_path [ 'People',
+                      ["%s",url_for(:action => 'index',:path => [ @segment.id ]),@segment.name]
+                    ],['Edit %s',nil,@user.name.to_s.strip.blank? ? @user.email : @user.name ] 
+    else
+      cms_page_path ['People'],'Edit Contact'
+    end
     
+
     user_id = params[:path][0]
     
     @user = EndUser.find(user_id)
 
     
     if @user.client_user_id || (@user.user_class.editor? && !myself.has_role?('editor_editors'))
-      redirect_to :action => 'index'
+      redirect_to :action => 'index', :path => @segment ? [ @segment.id ] : nil
       return
     end
 
@@ -262,7 +511,8 @@ class MembersController < CmsController # :nodoc: all
 
         # Don't let user class be upgrade to editor if the user can edit those
         if @user.user_class.editor? && !myself.has_role?('editor_editors')
-          redirect_to :action => 'index'
+          redirect_to :action => 'index', :path => @segment ? [ @segment.id ] : nil
+
           return
         end
 
@@ -293,11 +543,13 @@ class MembersController < CmsController # :nodoc: all
           @user.action('/members/edit',:admin_user_id => myself.id, :level => 0)
           update_subscriptions(@user,params[:subscription])
           flash[:notice] = 'Saved User: "%s" ' / (@user.email.blank? ? @user.name : @user.email)
-          redirect_to :action =>'index'
+          redirect_to :action =>'index', :path => @segment ? [ @segment.id ] : nil
+
           return
         end
       else
-        redirect_to :action =>'index'
+        redirect_to :action =>'index', :path => @segment ? [ @segment.id ] : nil
+
         return
       end
     end
@@ -340,9 +592,17 @@ class MembersController < CmsController # :nodoc: all
   def view
     @user = EndUser.find(params[:path][0])
 
+    @segment = UserSegment.find_by_id(params[:path][1])  unless params[:path][1].blank?
+
     display_user_actions_table(false)
-  
-    cms_page_path [ 'People'],['%s',nil,@user.name.to_s.strip.blank? ? @user.email : @user.name ] 
+ 
+    if @segment
+      cms_page_path [ 'People',
+                      ["%s",url_for(:action => 'index',:path => [ @segment.id ]),@segment.name]
+                    ],['%s',nil,@user.name.to_s.strip.blank? ? @user.email : @user.name ] 
+    else
+      cms_page_path [ 'People'],['%s',nil,@user.name.to_s.strip.blank? ? @user.email : @user.name ] 
+    end
     
     handlers = get_handler_info(:members,:view)
 
@@ -390,18 +650,15 @@ class MembersController < CmsController # :nodoc: all
   end
 
   def add_tags_form
-    @tags = EndUser.tags_count(:order => 'name')
     render :partial => 'add_tags_form'
   end
   
   def remove_tags_form
-    @users = EndUser.find(:all,:conditions => [ 'end_users.id IN (' + params[:user_ids].to_a.collect { |uid| DomainModel.connection.quote(uid) }.join(",") + ")" ], :include => :tag_cache)
+    @users = EndUser.find(:all,:conditions => [ 'end_users.id IN (' + params[:user_ids].to_a.collect { |uid| DomainModel.connection.quote(uid) }.join(",") + ")" ])
   
     @existing_tags = []
     @users.each do |usr|
-      if !usr.tag_cache.tags.blank?
-	@existing_tags  += usr.tag_cache.tags.split(",")
-      end
+      @existing_tags  += usr.tags_array if usr.tags_array
     end
     @existing_tags.uniq!
     

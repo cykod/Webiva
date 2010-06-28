@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + "/../spec_helper"
 
 
 describe EndUser do
-  reset_domain_tables :end_users, :end_user_tags, :tags, 'tag_cache', :domain_files, :end_user_actions, :configurations, :roles, :user_roles
+  reset_domain_tables :end_users, :end_user_tags, :tags, :domain_files, :end_user_actions, :configurations, :roles, :user_roles
   before(:each) do
     
     @user = EndUser.new  
@@ -182,9 +182,11 @@ describe EndUser do
     EndUser.push_target("user2@webiva.com")
     @user2 = EndUser.find(:last)  
     @user2.tag_names_add('bunnies')
+    @user2.reload
     @user2.tag_names_add('piglets')
-    
-    @user2.tag_cache_tags.should == 'bunnies,piglets'
+    @user2.reload
+
+    @user2.tag_names.should == 'Bunnies, Piglets'
   end
   
   it 'should remove a user tag' do
@@ -192,85 +194,24 @@ describe EndUser do
     @user2 = EndUser.find(:last)
 
     @user2.tag_names_add('piglets')
+    @user2.reload
     @user2.tag_remove('bunnies')
-    @user2.tag_cache_tags.should_not include('bunnies')
+    @user2.reload
+    @user2.tag_names.should_not include('Bunnies')
 
   end
   
   it 'should update a users current tags' do
     @user1 = EndUser.push_target("USER2@webiva.com")
     @user1.tag_names_add('piglets')    
+    @user1.reload
     @user1.tag_names_add('bunnies')
+    @user1.reload
     @user1.tag_names=('rhinos,tigers')
-    @user1.tag_cache_tags.should == "rhinos,tigers"
+    @user1.reload
+    @user1.tag_names.should == "Rhinos, Tigers"
   end
   
-  it 'should return users with searched tags' do
-    @user1 = EndUser.push_target("USERa@webiva.com")
-    @user2 = EndUser.push_target("USERb@webiva.com")
-    @user3 = EndUser.push_target("USERc@webiva.com")
-    @user4 = EndUser.push_target("USERd@webiva.com")
-    @user5 = EndUser.push_target("USERe@webiva.com")
-
-    @user1.tag_names_add('piglets')
-    @user2.tag_names_add('bunnies')
-    @user3.tag_names_add('bunnies')
-    @user4.tag_names_add('bunnies')
-    @user5.tag_names_add('bunnies')
-
-    @userlist = EndUser.find_tagged_with({:any => 'bunnies'})
-    @userlist[0].id.should == @user2.id
-    @userlist[1].id.should == @user3.id
-    @userlist[2].id.should == @user4.id
-    @userlist[3].id.should == @user5.id
-
-  end
-  
-  it 'should return users without searched tags' do
-    @user1 = EndUser.push_target("USERa@webiva.com")
-    @user2 = EndUser.push_target("USERb@webiva.com")
-    @user3 = EndUser.push_target("USERc@webiva.com")
-    @user4 = EndUser.push_target("USERd@webiva.com")
-    @user5 = EndUser.push_target("USERe@webiva.com")
-
-    @user1.tag_names_add('piglets')
-    @user2.tag_names_add('bunnies')
-    @user3.tag_names_add('bunnies')
-    @user4.tag_names_add('bunnies')
-    @user5.tag_names_add('bunnies')
-
-    @userlist = EndUser.find_not_tagged_with({:any => 'bunnies'})
-    @userlist[0].id.should == @user1.id
-
-  end
-  it 'should count users with a searched tag' do
-    @user1 = EndUser.push_target("USER2@webiva.com")
-    @user2 = EndUser.push_target("USER3@webiva.com")
-    
-    
-    @user1.tag_names_add('piglets')    
-    @user1.tag_names_add('bunnies')
-    @user2.tag_names_add('piglets')    
-    @user2.tag_names_add('bunnies')
-    
-    @usercount = EndUser.count_tagged_with({:any => 'bunnies'})
-    @usercount.should == 2
-  end
-  it 'should not count users with a searched tag' do
-    @user1 = EndUser.push_target("USER2@webiva.com")
-    @user2 = EndUser.push_target("USER3@webiva.com")
-    @user3 = EndUser.push_target("USER4@webiva.com")
-    @user4 = EndUser.push_target("USER5@webiva.com")
-    
-    
-    @user1.tag_names_add('piglets')    
-    @user1.tag_names_add('bunnies')
-    @user2.tag_names_add('piglets')    
-    @user2.tag_names_add('bunnies')
-    
-    @usercount = EndUser.count_not_tagged_with({:any => 'bunnies'})
-    @usercount.should == 2
-  end
   it 'should create a hashed passwd for new users' do
     @user1 = EndUser.push_target("test1@webiva.com")
     @user1.update_attributes( :first_name=> 'User', :user_level => 1, :last_name => '2', :language => 'en' ,:registered => 1, :password => 'bunnies', :password_confirmation => 'bunnies')
@@ -288,8 +229,7 @@ describe EndUser do
     @user1.tag('piglets,bunnies,rhinos') 
     @user1.update_attributes(:first_name => 'User', :user_level => 1, :last_name => '2', :language => 'en' ,:registered => 1, :password => 'bunnies', :password_confirmation => 'bunnies')
    
-    @user1.tag_names.should == ["piglets,bunnies,rhinos"]
-
+    @user1.tag_names.should == "Piglets, Bunnies, Rhinos"
   end
   ### User Roles
    it 'should return a list of roles associated with a user' do

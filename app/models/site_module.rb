@@ -1,7 +1,7 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 class SiteModule < DomainModel
-  has_many :site_nodes, :dependent => :destroy
+#  has_many :site_nodes, :dependent => :destroy
   has_many :page_paragraphs, :dependent => :destroy
   
   serialize :options

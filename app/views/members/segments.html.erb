@@ -1,0 +1,13 @@
+<% action_panel :handler => 'members' do |p| -%>
+  <%= p.link "Create a User List",:icon => 'add.gif', :action => 'create_segment' %>
+<% end -%>
+
+<hr/>
+
+<script>
+  <%= active_table_javascript %>
+</script>
+
+<div id='user_segments_table'>
+  <%= render :partial => 'user_segments_table' %>
+</div>  

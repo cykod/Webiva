@@ -7,7 +7,7 @@
   </td>
   <td><a href='<%= url_for :action => 'view', :path => t.id %>'><%= h t.name %></a></td>
   <td align='center'><%= t.subscription_cnt %></td>
-  <td><%= h truncate(t.description,40) %></td>
+  <td><%= h truncate(t.description, :length => 40) %></td>
 </tr>
 
 
