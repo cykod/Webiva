@@ -1,12 +1,12 @@
 <% if @updated -%>
   <div class='flash_notice'>
-    <%= "Template Information Saved".t -%>
+    <%= "Theme Information Saved".t -%>
   </div>
 <% end -%>
 
-<b> <%= "Template Modifier".t %> </b> 
+<b> <%= "Theme Modifier".t %> </b> 
 <% if @frm.template_id %>
-(<a href='<%= url_for :controller => '/templates', :action => 'edit', :path => @frm.template_id %>'><%= "Edit Template".t %></a>)<br/>
+(<a href='<%= url_for :controller => '/templates', :action => 'edit', :path => @frm.template_id %>'><%= "Edit Theme".t %></a>)<br/>
 <% end -%>
 </div>
 <br/>
@@ -16,7 +16,7 @@
    :url =>  { :action => 'element_info', :node_type => 'mod', :node_id => @mod.id  },
    :html => { :class => 'admin_form' } do  |f| -%>
 
-<%= f.radio_buttons :template_id, @site_templates.collect { |tpl| [ tpl.name, tpl.id ] }, :label => 'Selected Template' ,:default => 'None', :vertical => 'true', :separator => '<br/>' %>
+<%= f.radio_buttons :template_id, @site_templates.collect { |tpl| [ tpl.name, tpl.id ] }, :label => 'Selected Theme' ,:default => 'None', :vertical => 'true', :separator => '<br/>' %>
 <%= f.radio_buttons :clear_frameworks, [ ['Yes'.t,'yes'], ['No'.t,'no' ] ], :label => 'Clear Framework Elements' ,:default => 'No', :vertical => 'true', :separator => '&nbsp;' %>  
 
 <%= f.submit_tag 'Submit' %>

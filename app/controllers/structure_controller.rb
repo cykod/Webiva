@@ -26,15 +26,17 @@ class StructureController < CmsController  # :nodoc: all
     session[:show_archived] = @show_archived = params[:archived] ||
       session[:show_archived] || 'hide'
 
+    @site_version_override = params[:version] 
+
+    @version = SiteVersion.find_by_id(@site_version_override) 
+    @version ||= SiteVersion.current
+
     
     if !myself.has_role?('editor_structure_advanced')
       @display_modifiers = session[:structure_view_modifiers] = 'hide'
       @display_modules = session[:structure_view_modules] = 'hide'
     end
     
-    
-  
-    @version = SiteVersion.default
     
     @closed = cookies[:structure].to_s.split("|").map(&:to_i)
 
@@ -58,7 +60,8 @@ class StructureController < CmsController  # :nodoc: all
 
 
   def wizards
-    cms_page_path ['Website'], "Wizards"
+    @version = SiteVersion.find(params[:version]) 
+    cms_page_path [[ "Website",url_for(:controller => '/structure', :action => 'index', :version => @version.id) ]],"Wizards"
 
     @wizard_list = get_handler_info(:structure,:wizard) if myself.has_role?('editor_structure_advanced')
     @wizard_list ||= []
@@ -66,6 +69,29 @@ class StructureController < CmsController  # :nodoc: all
  
   end
 
+  def site_version
+    @version = SiteVersion.find_by_id(params[:site_version]) || SiteVersion.new
+
+    if params[:version] 
+      @version.attributes = params[:version].slice(:name)
+      if @version.save
+        session[:site_version_override] = @version.id
+        render(:update) { |page| page.redirect_to :action => 'index', :version => @version.id }
+        return
+      end
+    end
+    render :partial => 'site_version'
+  end
+
+  def delete_tree
+    @version = SiteVersion.find(params[:version_id])
+
+    if @version && @version.can_delete?
+      @version.destroy
+    end
+
+    render :nothing => true
+  end
  
   def move_node
     node_id = params[:node_id]
@@ -379,6 +405,13 @@ class StructureController < CmsController  # :nodoc: all
   # Group Element Information
   def g_element_info(node)
     @node = node
+
+    @node_options = @node.node_options
+    if request.post? && params[:group]
+      @node_options = @node.set_node_options(params[:group])
+      flash.now[:notice] = 'Updated Group Options'.t
+    end
+
     render :partial => 'group_element_info'
   end
   
@@ -499,6 +532,7 @@ class StructureController < CmsController  # :nodoc: all
     @mod = mod
     @domain_options = SiteNodeModifier::DomainModifierOptions.new(params[:domain] || @mod.modifier_data)
     if request.post?
+      flash.now[:notice] = 'Updated Domain Options'.t
     
       @mod.modifier_data = @domain_options.to_h
       @mod.save 

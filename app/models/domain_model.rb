@@ -38,6 +38,9 @@ class DomainModel < ActiveRecord::Base
     (@@active_domain[process_id]  ||{})[:database].to_s
   end
   
+  def self.site_version_id
+    (@@active_domain[process_id]||{})[:site_version_id].to_s
+  end
   # Returns the name of the class
   #  (overridden in ContentModelType where self.to_s doesn't work)
   def self.class_name

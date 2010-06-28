@@ -98,6 +98,8 @@ class Blog::PageFeature < ParagraphFeature
       c.value_tag('entry:' + elem) { |tag| h(tag.locals.entry.send(elem)) }
     end
     
+    c.value_tag('entry:id') { |t| t.locals.entry.id }
+    c.value_tag('entry:permalink') { |t| t.locals.entry.permalink }
     c.value_tag('entry:body') { |tag| tag.locals.entry.body_content }
     c.value_tag('entry:preview') {  |tag| tag.locals.entry.preview_content }
 

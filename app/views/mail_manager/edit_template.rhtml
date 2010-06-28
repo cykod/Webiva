@@ -117,8 +117,9 @@
   addContent: function(content) {
     this.triggerContent();
     $('mail_template_body_html').value += "<br/>" + content;
-    $('template_html_iframe').contentWindow.tinyMCE.setContent($('mail_template_body_html').value);
-    $('template_html_iframe').contentWindow.tinyMCE.selectedInstance.resizeToContent();
+    	tinyMCE.get
+    $('template_html_iframe').contentWindow.tinyMCE.get('template_body_html').setContent($('mail_template_body_html').value);
+    //$('template_html_iframe').contentWindow.tinyMCE.get('template_body_html').resizeToContent();
   }
 
   

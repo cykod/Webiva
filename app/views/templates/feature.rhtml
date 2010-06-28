@@ -162,15 +162,15 @@ Event.observe(document.onresize ? document : window, "resize",FeatureEditor.kill
 </label>
 </div>
 </div>
-<% ajax_tabs ['Options','Feature',['CSS','FeatureEditor.activateCss();']],  'Feature' do |t| -%>
+<% ajax_tabs ['Options','Theme',['CSS','FeatureEditor.activateCss();']],  'Theme' do |t| -%>
   <% t.tab do  -%>
    <div class='admin_content' id='feature_options'>
       <% admin_fields_for :feature, @feature do |f| -%>
          <%= f.text_field :category, :size => 30 %>
          <%= f.text_field :description,:size => 80 %>
-         <%= f.custom_field :feature_type, :value => @feature.feature_type %>
-         <%= f.select :site_template_id, [['--Available in all Site Templates--',nil]] + SiteTemplate.select_options(:conditions => { :template_type => 'site', :parent_id => nil}) %>
-         <%= f.filemanager_folder :image_folder_id,:description => 'Overrides site template folder (if a site template is selected)' %>
+         <%= f.custom_field :feature_type, :value => @feature.feature_type, :label => 'Paragraph Theme Type' %>
+         <%= f.select :site_template_id, [['--Available in all Site Templates--',nil]] + SiteTemplate.select_options(:conditions => { :template_type => 'site', :parent_id => nil}), :label => 'Site Theme' %>
+         <%= f.filemanager_folder :image_folder_id,:description => 'Overrides site theme folder (if a site theme is selected)' %>
       <% end -%>
    </div>
   <% end -%>

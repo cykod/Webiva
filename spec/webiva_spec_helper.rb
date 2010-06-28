@@ -296,7 +296,7 @@ def handle_active_table(table_name,&block)
 end
 
 def activate_module(name,options={})
-  mod = SiteModule.activate_module(Domain.find(DomainModel.active_domain_id),'mailing', :force => true)
+  mod = SiteModule.activate_module(Domain.find(DomainModel.active_domain_id),name, :force => true)
   mod.update_attributes(:status => 'active', :options => options.to_hash)
 end
 
