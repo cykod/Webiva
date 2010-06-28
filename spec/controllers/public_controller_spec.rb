@@ -2,6 +2,7 @@ require File.dirname(__FILE__) + "/../spec_helper"
 
 describe PublicController, "handling sending files" do
  
+  reset_domain_tables :domain_file_sizes, :domain_files
 
   it "should return a valid file if the file exists" do
     fdata = fixture_file_upload("files/rails.png",'image/png')
@@ -52,13 +53,15 @@ describe PublicController, "handle custom file sizes" do
                                           :operations => [ DomainFileSize::CroppedThumbnailOperation.new(:width => 64, :height => 64) ])
     
     @df.reload
+
      if USE_X_SEND_FILE
        controller.should_receive(:x_send_file).with(@df.filename('test-dfs'),:type => @df.mime_type,:disposition => 'inline', :filename => @df.name)
      else
        controller.should_receive(:send_file).with(@df.filename('test-dfs'),:type => @df.mime_type,:disposition => 'inline', :filename => @df.name)
      end      
     
-    get :image,:domain_id => Configuration.domain_id.to_s,  :path =>  @df.prefix.split("/") + [ 'test-dfs', @df.name ]
+    get :image,:domain_id => DomainModel.active_domain[:file_store].to_i,  :path =>  @df.prefix.split("/") + [ 'test-dfs', @df.name ]
+    @df.destroy
   end
 
 end
