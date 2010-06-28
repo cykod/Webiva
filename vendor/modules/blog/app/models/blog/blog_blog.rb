@@ -10,6 +10,9 @@ class Blog::BlogBlog < DomainModel
 
   belongs_to :blog_target
 
+  belongs_to :content_model
+  belongs_to :content_publication
+
   has_many :blog_posts, :dependent => :destroy, :include => :active_revision
   has_many :blog_categories, :class_name => 'Blog::BlogCategory', :dependent => :destroy, :order => 'blog_categories.name'
 
@@ -95,6 +98,10 @@ class Blog::BlogBlog < DomainModel
 
   def self.filter_options
     ContentFilter.filter_options
+  end
+
+  def before_save
+    self.content_publication_id = nil if self.content_model.nil? || self.content_publication.nil? || self.content_model.id != self.content_publication.content_model_id
   end
 
   def before_validation_on_create
