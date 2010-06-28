@@ -72,8 +72,16 @@ namespace "cms" do
       cms_backup_dump_db(dmn_cfg,File.join(domain_dir,'domain.sql'))
       # backup config file
       FileUtils.cp(dmn_yaml,File.join(domain_dir,'domain.yml'))
-      
-      cms_backup_file_store(dmn.file_store,domain_dir)
+
+      if ENV['COPY_LOCAL']
+        # Copy all the files locally
+        dmn.execute do
+          DomainFile.find_in_batches(:conditions => 'file_type != "fld"') { |files| files.each { |file| file.filename } }
+        end
+
+        cms_backup_file_store(dmn.file_store,domain_dir)
+      end
+
       puts("...Done")
     end
   

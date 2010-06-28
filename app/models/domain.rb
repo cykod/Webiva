@@ -188,6 +188,6 @@ class Domain < SystemModel
     active_domain = DomainModel.active_domain
     DomainModel.activate_domain(self.get_info, environment) unless active_domain_id == self.id
     yield
-    DomainModel.activate_domain(active_domain, environment) unless active_domain_id == self.id || active_domain_id.nil?
+    DomainModel.activate_domain(active_domain, environment) unless active_domain_id == self.id || active_domain_id.blank?
   end
 end
