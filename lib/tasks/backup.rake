@@ -139,7 +139,6 @@ namespace "cms" do
           AWS::S3::S3Object.store("#{backup_dir}.tar.gz", File.open("#{RAILS_ROOT}/backup/#{backup_dir}.tar.gz"), backup_cfg['bucket'], :access => :private)
           puts("Done Transmitting Files\n")
 
-          # TODO: list keys in bucket and remove old ones
           objects = AWS::S3::Bucket.objects(backup_cfg['bucket']).sort do |a, b|
             Time.parse(a.about['last-modified']) <=> Time.parse(b.about['last-modified'])
           end
