@@ -90,6 +90,8 @@ class ContentNodeSearch < HashModel
   def backend_search
     return [@results, @more] if @results
 
+    conditions = {}
+
     conditions[:content_type_id] = self.content_type_id if self.content_type_id
 
     offset = (self.page - 1) * self.per_page
