@@ -175,7 +175,7 @@ class FileController < CmsController # :nodoc: all
   def upload
   
     if DomainFile.available_file_storage > 0
-      @upload_file = DomainFile.create(:filename => params[:upload_file][:filename], :parent_id => params[:upload_file][:parent_id], :creator_id => myself.id, :skip_transform => true)
+      @upload_file = DomainFile.create(:filename => params[:upload_file][:filename], :parent_id => params[:upload_file][:parent_id], :creator_id => myself.id, :skip_transform => true, :skip_post_processing => true)
     
       worker_key = FileWorker.async_do_work(:domain_file_id => @upload_file.id,
                                             :domain_id => DomainModel.active_domain_id,

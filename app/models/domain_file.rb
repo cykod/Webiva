@@ -42,7 +42,10 @@ class DomainFile < DomainModel
   
   attr_accessor :skip_transform
   attr_accessor :process_immediately
-    
+
+  # disable file processing for the instance
+  attr_accessor :skip_post_processing
+
   # Returns the list of built in image sizes
   def self.image_sizes
     @@image_size_array
@@ -380,7 +383,7 @@ class DomainFile < DomainModel
       unless update  # Resave to update the file information if we are during the creation process
         self.save 
       end
-      post_process!(!self.process_immediately,update) unless @@disable_file_processing
+      post_process!(!self.process_immediately,update) unless @@disable_file_processing || self.skip_post_processing
       
     end
     
@@ -432,18 +435,20 @@ class DomainFile < DomainModel
    end
    
    
-   def prefixed_filename(size=nil)
+   def prefixed_filename(size=nil, opts={})
      atr = self.read_attribute(:filename)
      return nil unless self.prefix && atr
 
      # Only allow valid file sizes
       size = nil unless !size || @@image_sizes[size.to_sym] || DomainFileSize.custom_sizes[size.to_sym]
      
+     opt_prefix = opts[:prefix].to_s
+
      # Special case handling for thumbnails
      if size && self.file_type == 'thm'
-       self.prefixed_directory  + "#{size}/" + (File.basename(atr,".#{extension}") + ".jpg")
+       self.prefixed_directory + opt_prefix + "#{size}/" + (File.basename(atr,".#{extension}") + ".jpg")
      else
-       self.prefixed_directory + (size ? "#{size}/" : '') +  atr
+       self.prefixed_directory + opt_prefix + (size ? "#{size}/" : '') +  atr
      end
    end
    
@@ -955,9 +960,9 @@ class DomainFile < DomainModel
     end
     
     def self.enable_post_processing #:nodoc:
-      @@disable_file_processing = true
+      @@disable_file_processing = false
     end
-    
+
   def update_private!(value) #:nodoc:
     return false if value != true && value != false
     if value != self.private?
