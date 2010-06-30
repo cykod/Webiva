@@ -288,8 +288,9 @@ class FileController < CmsController # :nodoc: all
   end
   
   def delete_file
-    file_id = params[:file_id].to_i
-    
+    file_id = params[:file_id]
+    render :nothing => true unless file_id
+
     file = DomainFile.find(file_id)
     file.destroy
     render :nothing => true
@@ -297,7 +298,8 @@ class FileController < CmsController # :nodoc: all
   
   def delete_files
     file_id = params[:file_id]
-    
+    render :nothing => true unless file_id
+
     files = DomainFile.find(file_id)
     dirs = []
     files.each do |fl|
