@@ -460,7 +460,10 @@ class ApplicationController < ActionController::Base
     
     if !parameters[key].to_s.empty? && DomainFile.available_file_storage > 0
       image_folder  = options[:folder] || Configuration.options.default_image_location
-      file = DomainFile.create(:skip_transform => true,:filename => parameters[key],:parent_id => image_folder,:creator_id => myself.id )
+      file = DomainFile.create(:filename => parameters[key],
+                               :parent_id => image_folder,
+                               :creator_id => myself.id,
+                               :process_immediately => true)
       if file.id
         parameters[key] = file.id 
       else
@@ -483,7 +486,8 @@ class ApplicationController < ActionController::Base
       image_folder  = options[:folder] || Configuration.options.default_image_location
       file = DomainFile.create(:filename => parameters[key],
                                :parent_id => image_folder,
-                               :creator_id => myself.id)
+                               :creator_id => myself.id,
+                               :process_immediately => true)
       if file.file_type == 'img'
         parameters[key] = file.id
       else

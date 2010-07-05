@@ -829,6 +829,14 @@ FileEditor = {
       new Ajax.Request( '<%= url_for :controller => "file", :action => "file_manager_update" %>',
                         { parameters: params.toQueryString()  + FileEditor.sizeParameters() }   );
     },
+
+    processingFile: function(processingKey) {
+
+    var params = $H({ processing_key: processingKey
+            });    
+      new Ajax.Request( '<%= url_for :controller => "file", :action => "processing_file" %>',
+                        { evalScripts:true, parameters: params.toQueryString() }   );
+    },
     // Utility Functions
     
     isDecendant:function(target_node_id,parent_node_id) {
@@ -1072,7 +1080,7 @@ FileEditor = {
       FileEditor.showDetails();
     },
     hideDetails: function() { $('file_manager_details').style.visibility='hidden'; },
-    
+
     selecting: null,
     
     fileClick:function(event) {

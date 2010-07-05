@@ -1,0 +1,18 @@
+
+if @processed
+  if @file
+    page.insert_html :bottom, "file_manager", :partial => 'file_item', :locals => {:file => @file}
+    page.call "FileEditor.recreateDragAndDroppables"
+    page.replace_html :file_manager_body, :partial => '/file/details/file_details', :locals => {:file => @file }
+
+    page.delay(0.05) do
+      page.call "FileEditor.refreshUploadedFolder", @file.id, @file.parent_id
+    end
+  else
+    page.reload
+  end
+else
+  page.delay do
+    page.call "FileEditor.processingFile", @processing_key
+  end
+end

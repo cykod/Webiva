@@ -233,17 +233,28 @@ class FileController < CmsController # :nodoc: all
       
     render :nothing => true
   end
-  
+
+  def processing_file
+    @processing_key = params[:processing_key]
+    return render :nothing => true unless @processing_key
+
+    processor =  @processing_key ? Workling.return.get(@processing_key) : nil
+    @processed = processor && processor[:processed]
+    if @processed
+      @file = DomainFile.find_by_id processor[:domain_file_id]
+      session[:replace_file_worker] = nil
+    end
+
+    render :action => 'processing_file.rjs'
+  end
+
   def replace_file
     @file = DomainFile.find_by_id(params[:file_id].to_i)
     @replace = DomainFile.find_by_id(params[:replace_id].to_i)
 
     if @file && @replace
       worker_key = @file.run_worker(:replace_file, :replace_id => @replace.id)
-      @processing_key  = session[:upload_file_worker] = worker_key
-      respond_to_parent do
-        render :action => 'upload.rjs'
-      end
+      @processing_key  = session[:replace_file_worker] = worker_key
     end
   end
   

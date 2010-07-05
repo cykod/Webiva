@@ -200,7 +200,7 @@ class DomainFile < DomainModel
      @replace = DomainFile.find_by_id(options[:replace_id])
      return unless @replace
      self.replace @replace
-     Workling.return.set(options[:uid], {:uploaded_ids => self.id, :processed => true}) if options[:uid]
+     {:domain_file_id => self.id}
    end
 
    before_update :process_file_update

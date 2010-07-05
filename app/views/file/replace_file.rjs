@@ -1,13 +1,7 @@
 
-if @replaced
-  page << "FileEditor.removeItem(#{@file.id});"
-  page << "FileEditor.removeItem(#{@replace.id});"
-  page.insert_html :bottom, "file_manager", :partial => 'file_item', :locals => { :file => @file}
+page.call "FileEditor.removeItem", @file.id
+page.call "FileEditor.removeItem", @replace.id
 
-  page << "setTimeout('FileEditor.refreshUploadedFile(#{@file.id},#{@file.parent_id})',50);"
-  page << "FileEditor.recreateDragAndDroppables();"
+page.replace_html :file_manager_body, :partial => '/file/details/processing_file', :locals => {:heading => 'Replacing file...'.t}
 
-  page.replace_html :file_manager_body, :partial => '/file/details/file_details', :locals => {:file => @file }
-
-end
-
+page.call "FileEditor.processingFile", @processing_key
