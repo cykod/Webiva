@@ -236,11 +236,14 @@ class FileController < CmsController # :nodoc: all
   
   def replace_file
     @file = DomainFile.find_by_id(params[:file_id].to_i)
-    
     @replace = DomainFile.find_by_id(params[:replace_id].to_i)
-    
+
     if @file && @replace
-      @replaced = @file.replace(@replace)
+      worker_key = @file.run_worker(:replace_file, :replace_id => @replace.id)
+      @processing_key  = session[:upload_file_worker] = worker_key
+      respond_to_parent do
+        render :action => 'upload.rjs'
+      end
     end
   end
   

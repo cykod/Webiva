@@ -89,17 +89,20 @@ class DomainFile < DomainModel
    
    # Replace this DomainFile with a different DomainFile
    def replace(file)
-    return false if self.folder? || file.folder?
-    return false if self.id == file.id
-    File.open(file.filename,"rb") do |f|
-      self.filename = f
-      self.name = file.name
-      if(self.save)
-        file.destroy
-        return true
-      end
-    end
-    return false
+     return false if self.folder? || file.folder?
+     return false if self.id == file.id
+
+     self.process_immediately = true
+     self.name = file.name
+
+     File.open(file.filename,"rb") do |f|
+       self.filename = f
+       return false unless self.save
+     end
+
+     file.destroy
+
+     return true
    end
    
    # Copy this DomainFile to a new DomainFile in the same directory
@@ -192,7 +195,14 @@ class DomainFile < DomainModel
      FileUtils.rm_rf(tmp_dir)
      return false
    end
-   
+
+   def replace_file(options={})
+     @replace = DomainFile.find_by_id(options[:replace_id])
+     return unless @replace
+     self.replace @replace
+     Workling.return.set(options[:uid], {:uploaded_ids => self.id, :processed => true}) if options[:uid]
+   end
+
    before_update :process_file_update
    after_update :update_image_instances
    validate_on_create :preprocess_file
