@@ -28,4 +28,8 @@ class WebivaRendererGenerator < Rails::Generator::NamedBase
     end
   
   end
+
+  def banner
+    "Usage: #{$0} #{spec.name} <module path>/<renderer path> [<paragraphs>]"
+  end
 end

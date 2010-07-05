@@ -9,9 +9,9 @@ class ContentController < ModuleController #:nodoc: all
 
   layout 'manage'
   
-  permit 'editor_content', :except => 'index'
-  permit 'editor_content_configure', :except => [ 'index','custom','view','add_tags_form','remove_tags_form','edit_entry','entry' ]
+  permit 'editor_content_configure', :except => [ 'index','custom','view','add_tags_form','remove_tags_form','edit_entry','entry', 'active_table' ]
 
+  permit 'editor_content', :except => 'index'
 
   before_filter :check_view_permission, :only => [ 'view', 'entry' ]
   before_filter :check_edit_permission, :only => [ 'add_tags_form','remove_tags_form','edit_entry' ]
@@ -25,7 +25,13 @@ class ContentController < ModuleController #:nodoc: all
   register_handler :content, :feature, "Content::CoreFeature::KeywordGenerator"
   
   register_handler :trigger, :actions, "Trigger::CoreTrigger"
-  
+
+  register_handler :user_segment, :fields, 'EndUserSegmentField'
+  register_handler :user_segment, :fields, 'EndUserActionSegmentField'
+  register_handler :user_segment, :fields, 'EndUserCacheSegmentField'
+  register_handler :user_segment, :fields, 'EndUserTagSegmentField'
+  register_handler :user_segment, :fields, 'UserSubscriptionEntrySegmentField'
+
   def index
     @content_models,@content_actions = CmsController.get_content_models_and_actions
 

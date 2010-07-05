@@ -276,7 +276,7 @@ class EditController < ModuleController # :nodoc: all
 
 
 
-    @version = SiteVersion.default
+    @version = @site_node.site_version
     
     @site_root = @version.nested_pages()
     

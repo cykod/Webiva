@@ -98,6 +98,8 @@ class Blog::PageFeature < ParagraphFeature
       c.value_tag('entry:' + elem) { |tag| h(tag.locals.entry.send(elem)) }
     end
     
+    c.value_tag('entry:id') { |t| t.locals.entry.id }
+    c.value_tag('entry:permalink') { |t| t.locals.entry.permalink }
     c.value_tag('entry:body') { |tag| tag.locals.entry.body_content }
     c.value_tag('entry:preview') {  |tag| tag.locals.entry.preview_content }
 
@@ -127,6 +129,11 @@ class Blog::PageFeature < ParagraphFeature
       else
 	nil
       end
+    end
+
+    if data[:blog] && data[:blog].content_publication
+      c.expansion_tag('entry:content') { |tag| tag.locals.form = tag.locals.entry.data_model }
+      c.publication_field_tags('entry:content', data[:blog].content_publication)
     end
   end
 

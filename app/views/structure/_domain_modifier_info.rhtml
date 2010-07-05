@@ -1,19 +1,9 @@
-<b> <%= "Domain Details Details".t %></b>
+
+<% if flash[:notice] %><div class="flash_notice"><%= flash[:notice] %></div><% end %>
+<b> <%= "Domain Details".t %></b>
 <script>
 DomainEditor = {};
 DomainEditor = {
-  showEdit: function() {
-    Element.hide('domain_view');
-    Element.show('domain_edit');
-  
-  },
-  
-  hideEdit: function() {
-    Element.show('domain_view');
-    Element.hide('domain_edit');
-  
-  },
-  
   submitForm: function() {
     
     params = Form.serialize('domain_form');
@@ -31,25 +21,11 @@ DomainEditor = {
 
 
 </script>
-<div id='domain_view' >
 
-<table>
-  <tr>
-    <td><%= 'Limited to Domain:'.t %></td>
-    <td>
-    <a class='ajax_link' href='javascript:void(0);' onclick='DomainEditor.showEdit();'> 
-        <%= @domain_options.limit_to_domain.blank? ? 'None Entered'.t : @domain_options.limit_to_domain %>
-   </a>
-  </td>
- </tr>
- </table>
+<div id='domain_edit' >
 
-</div>
-
-<div id='domain_edit' style='display:none;'>
-
-<% tabled_form_for :domain, @domain_options, :html => {:id => 'domain_form', :onsubmit => 'DomainEditor.submitForm(); return false;' }  do  |f| -%>
-<%= f.text_field :limit_to_domain %>
+<% admin_form_for :domain, @domain_options, :html => {:id => 'domain_form', :onsubmit => 'DomainEditor.submitForm(); return false;' }  do  |f| -%>
+  <%= f.text_field :limit_to_domain, :description => "Any pages affected by this modifier will be served under the listed domain. \n Enter only a domain (e.g. webiva.com) not a full url" %>
 
 <% end -%>
 <div align='right'>

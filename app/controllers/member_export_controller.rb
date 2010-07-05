@@ -3,12 +3,12 @@
 class MemberExportController < CmsController # :nodoc: all
   layout 'manage'
   permit 'editor_members'
-  
-  def index
-    cms_page_info([ [ 'E-marketing', url_for(:controller => 'emarketing') ], 
-                    [ 'Email Targets', url_for(:controller =>'members', :refresh => 1 ) ],
-                    'Member Download' ], 'e_marketing' )
-    
+
+  cms_admin_paths "people",
+                  "People" => { :controller => '/members' },
+                  "User Lists" => { :controller => '/members', :action => 'segments' }
+
+  def index    
     @export = DefaultsHashObject.new(:download => 'all')
     
     @include_options = [ [ 'Home Address','home' ], 
@@ -18,23 +18,21 @@ class MemberExportController < CmsController # :nodoc: all
                          ['Tags','tags']
                        ]
 
-    @segment= session[:et]
-    session[:members_table_segment] ||= {} 
+    @segment = UserSegment.find_by_id params[:path][0]
 
-    current_segment = MarketSegment.new(:segment_type => 'members',:options => session[:members_table_segment])
+    cms_page_path ["People", [@segment ? @segment.name : 'Everyone'.t, url_for(:controller => 'members', :action => 'index', :path => @segment ? @segment.id : nil)]], 'Export Users'
 
-     @member_count = current_segment.target_count
-    
+    @member_count = @segment ? @segment.last_count : EndUser.count(:conditions => {:client_user_id => nil})
   end
   
   def generate_file
-     session[:members_table_segment] ||= {} 
-  
-    
-     worker_key = MemberExportWorker.async_do_work( :domain_id => DomainModel.active_domain_id,
+    @segment = UserSegment.find_by_id params[:path][0]
+
+    worker_key = MemberExportWorker.async_do_work( :domain_id => DomainModel.active_domain_id,
                                       :export_options => (params[:export] || {})[:include],
-                                      :export_segmentation => session[:members_table_segment]
-                                      )        
+                                      :user_segment_id => @segment ? @segment.id : nil
+                                      )
+
     session[:member_download_worker_key] = worker_key
     
     render :nothing => true

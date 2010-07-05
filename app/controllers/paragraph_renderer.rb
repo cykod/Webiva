@@ -666,7 +666,8 @@ an integer representing the number of seconds to keep the element in the cache.
 
     unless editor? || options[:skip]
       if obj.nil?
-        result = DataCache.get_content("Paragraph",paragraph.id.to_s,display_string)
+        paragraph_cache_id = paragraph.id == -1 ? "Mod#{site_node.id}" : paragraph.id.to_s
+        result = DataCache.get_content("Paragraph",paragraph_cache_id,display_string)
       elsif obj.is_a?(Array)
         cls = obj[0].is_a?(String) ? obj[0].constantize : obj[0]
         result = cls.cache_fetch(display_string,obj[1])
@@ -689,7 +690,7 @@ an integer representing the number of seconds to keep the element in the cache.
 
       unless editor? || options[:skip]
         if obj.nil?
-          DataCache.put_content("Paragraph",paragraph.id.to_s,display_string,output,expiration)
+          DataCache.put_content("Paragraph",paragraph_cache_id,display_string,output,expiration)
         elsif obj.is_a?(Array)
           cls.cache_put(display_string,output,obj[1],expiration)
         elsif obj.is_a?(ActiveRecord::Base)

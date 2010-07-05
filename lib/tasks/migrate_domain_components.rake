@@ -26,7 +26,8 @@ namespace "cms" do
     
     ActiveRecord::Base.logger = Logger.new(STDOUT)
     domains.each do |dmn|
-      print('Migrating Components: ' + dmn['name'].to_s)
+      puts("\n\n")
+      puts('***Migrating Components: ' + dmn[:name].to_s + "***")
       db_file = dmn[:domain_database][:options]
       ActiveRecord::Base.establish_connection(db_file['migrator'])
       DomainModel.activate_domain(dmn,'migrator')
@@ -35,6 +36,7 @@ namespace "cms" do
       ComponentMigrator.handle_migration_update
       
       if force && domain
+        components = Dir.glob("#{RAILS_ROOT}/vendor/modules/*/db").map { |md| md.split("/")[-2] } unless components
         components.each do |component|
           dir = "#{RAILS_ROOT}/vendor/modules/#{component}/db"
           ComponentMigrator.current_component = component

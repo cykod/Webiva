@@ -393,10 +393,14 @@ EOF
         elsif blk.is_a?(Hash) 
           blk[:paragraphs].each do |para| 
             if para.is_a?(String) 
-             output += webiva_post_process_paragraph(para)
+             output << webiva_post_process_paragraph(para)
             else 
-              para_id = para.is_a?(ParagraphRenderer::ParagraphOutput) ? "id='cmspara_#{para.rnd.paragraph.id}'" : ""
-              output+= "<div class='paragraph' #{para_id}>#{webiva_post_process_paragraph(render_paragraph page, output_obj.revision, para)}</div>"
+              if output_obj.lightweight
+                output << webiva_post_process_paragraph(render_paragraph page, output_obj.revision,para)
+              else
+                para_id = para.is_a?(ParagraphRenderer::ParagraphOutput) ? "id='cmspara_#{para.rnd.paragraph.id}'" : ""
+                output << "<div class='paragraph' #{para_id}>#{webiva_post_process_paragraph(render_paragraph page, output_obj.revision, para)}</div>"
+              end
             end 
           end 
         end 
@@ -448,6 +452,7 @@ EOF
     attr_accessor :head
     attr_accessor :body
     attr_accessor :partial
+    attr_accessor :lightweight
     attr_accessor :doctype
     attr_accessor :revision
     attr_accessor :includes
@@ -782,6 +787,7 @@ EOF
     @output.content_nodes = @page_information.content_nodes
     @output.partial = @page_information.partial
     @output.doctype = @page_information.doctype
+    @output.lightweight = @page_information.lightweight
     @output
   end
 
@@ -957,6 +963,7 @@ EOF
       @page_information[:head] = SiteTemplate.render_template_head(@page_information[:css_site_template_id],@language)
       @page_information[:doctype] = @active_template.doctype.blank? ? nil : @active_template.doctype
       @page_information[:partial] = @active_template.partial?
+      @page_information[:lightweight] = @active_template.lightweight?
 
       
       if @mode == 'edit'
@@ -968,6 +975,7 @@ EOF
     
       self.render_page_elements()
     end  
+    self.cleanup_page_information
   end
   
   
@@ -1021,6 +1029,10 @@ EOF
     # Save the includes from the cached paragraphs
     @page_information[:includes] = includes
 
+
+  end
+
+  def cleanup_page_information
     # Kill the zone_paragraphs hash as we don't need to store it in
     # page information
     @page_information[:zone_paragraphs] = nil
@@ -1067,7 +1079,11 @@ EOF
     skip = false
     if !para.display_module
       if !para.display_body.blank? && para.display_body != ''
-        body = "<div class='#{para.display_type}_paragraph'>" +  para.display + "</div>"
+        if @page_information.lightweight
+          body = para.display
+        else
+          body = "<div class='#{para.display_type}_paragraph'>" +  para.display + "</div>"
+        end
       else
         skip=true
       end

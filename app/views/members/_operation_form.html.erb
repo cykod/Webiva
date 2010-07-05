@@ -1,0 +1,56 @@
+
+<script>
+OperationBuilder = {
+  updateOperations: function() {
+    <%= remote_function :url => url_for(:action => 'update_builder', :operation => 1), :submit => 'builder', :update => 'operation' %>;
+    OperationBuilder.updateExpression();
+  },
+
+  updateExpression: function() {
+    <%= remote_function :url => url_for(:action => 'update_builder', :expression => 1), :submit => 'builder', :update => 'expression' %>;
+  },
+
+  appendExpression: function() {
+    <%= remote_function :url => url_for(:action => 'update_builder', :commit => 1), :submit => 'builder' %>;
+  },
+
+  appendOptionsText: function(expr) {
+    with(window.opener) { setTimeout(function(){UserSegment.<%= @segment ? 'replaceOptionsText' : 'appendOptionsText' %>(expr);}, 1); }
+    setTimeout(function(){window.close();}, 1);
+  }
+}
+</script>
+
+<fieldset id="operation_builder" style="padding:10px 10px 20px 10px; margin:5px;">
+<legend style="font-size:14px; font-weight:bold;">Rule Builder</legend>
+<% cms_unstyled_form_for :builder, @builder, :html => {:id => 'builder', :onsubmit => 'OperationBuilder.appendExpression(); return false;', :class => "admin_form"} do |f| -%>
+<ul style="list-style:none; color:#3B648C; font-weight: bold;">
+<li style="display:inline;">
+<%= 'I am'.t %>
+(<%= f.check_boxes :operator, [['not', 'not']], :single => true, :separator => '' %>)
+</li>
+
+<li style="display:inline;">
+<%= 'looking for'.t %>
+  <%= f.grouped_select :field, @builder.field_group_options, {}, :onchange => 'OperationBuilder.updateOperations();', :style => 'width:250px;' %>
+</li>
+
+<div id="operation" class="operation">
+  <% if @builder.operation_options.length > 0 -%>
+    <%= render :partial => 'operation_form_operation', :locals => {:builder => @builder, :form_id => 'builder'} %>
+  <% end -%>
+</div>
+
+<li id="expression">
+<%= render :partial => 'operation_form_expression' %>
+</li>
+
+<li style="padding-top:5px; width:400px; text-align:right;">
+<%= f.cancel_submit_buttons 'Close', (@segment ? 'Update Filter' : 'Add to Filter'), {:onclick => 'window.close();'} %>
+</li>
+
+<% end -%>
+
+</fieldset>
+
+<%= observe_form 'builder', :frequency => 1, :function => 'OperationBuilder.updateExpression();' %>

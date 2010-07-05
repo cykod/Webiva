@@ -16,7 +16,7 @@
   
   <%= f.check_boxes :restricted, [['Restrict site access to logged in users only',true ]] ,  :label => 'Restrict Access',:single => true, :description => "Users will need to log in via the /website url to access the front end of the site\nOther users will see the inactive message" %>
 
-  <%= f.select :site_version_id, SiteVersion.select_options, :label => 'Active Version', :description => 'This is the version of the site that will display on this domain name' %>
+  <%= f.select :site_version_id, SiteVersion.select_options, :label => 'Active Site Tree', :description => 'This is the site tree that will display on this domain name' %>
 
   <%= f.text_area :inactive_message, :rows => 6, :description => 'This message will be displayed to users when the site is inactive (HTML is permitted)' %>
 

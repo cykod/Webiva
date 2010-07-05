@@ -17,7 +17,7 @@ MemberViewer = {
 
 <% unless @user.client_user_id || (@user.user_class.editor? && !myself.has_role?('editor_editors')) %>
 <% action_panel do |p| -%>
-  <%= p.link 'Edit User',:icon => 'edit.gif',:action => 'edit', :path => @user %>
+  <%= p.link 'Edit User',:icon => 'edit.gif',:action => 'edit', :path => [ @user, @segment ? @segment.id : nil ].compact %>
   <%= p.link 'Login as User', { :icon => 'download.gif',:action => 'login', :path => @user }, :method => 'post' %>
 <% end -%>
 <hr/>

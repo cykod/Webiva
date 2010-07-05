@@ -18,7 +18,7 @@ module ModelExtension::EndUserImportExtension
       fields << [ 'vip_number', 'VIP Number'.t ]
     end
     if opts.include?('tags')
-      fields << ['tag_cache_tags', 'Tags'.t ]
+      fields << ['tag_names', 'Tags'.t ]
     end
     
     
@@ -37,17 +37,34 @@ module ModelExtension::EndUserImportExtension
     end    
     
     if options[:header]
-      writer << fields.collect do |fld|
+      headings = fields.collect do |fld|
         fld[1]
       end
+
+      if options[:fields] && options[:handlers_data]
+        headings = headings + options[:fields].collect do |fld|
+          info = UserSegment::FieldHandler.display_fields[fld.to_sym]
+          info[:handler].field_heading(fld.to_sym)
+        end
+      end
+      writer << headings
     end
-    writer << fields.collect do |fld|
+    data = fields.collect do |fld|
       if fld[0]
         self.send(fld[0])
       else
         fld[2]
       end
     end
+
+    if options[:fields] && options[:handlers_data]
+      data = data + options[:fields].collect do |fld|
+        info = UserSegment::FieldHandler.display_fields[fld.to_sym]
+        info[:handler].field_output(self, options[:handlers_data][info[:handler].to_s], fld.to_sym)
+      end
+    end
+
+    writer << data
   end
 
 

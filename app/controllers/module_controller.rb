@@ -78,6 +78,7 @@ class ModuleController < CmsController  # :nodoc: all
 
   def self.register_handler(component,handler,class_name,options={})
     component = component.to_sym; handler = handler.to_sym
+    options[:handler] = handler
     handlers = self.get_module_handlers
     handlers[component] ||= {}
     handlers[component][handler] ||= []

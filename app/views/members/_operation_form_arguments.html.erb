@@ -1,0 +1,28 @@
+
+<% cms_unstyled_fields_for form_id, builder do |f| %>
+<table style="padding:5px;">
+  <% builder.operation_arguments.each_with_index do |arg, idx| -%>
+    <tr>
+    <td class="label" valign="baseline"><%= builder.operation_argument_names[idx] %></td>
+    <td class="data" valign="baseline">
+
+    <% 
+       arg_options = builder.operation_argument_options[idx]
+       description = arg_options[:description]
+    %>
+
+    <% if builder.operation_arguments[idx] == :model -%>
+      <%= f.select("argument#{idx}", [["--Select %s--" / builder.operation_argument_names[idx], nil]] + UserSegment::FieldType.model_options(arg_options)) %>
+    <% elsif arg_options[:options] -%>
+      <%= arg_options[:form_field] == 'radio_buttons' ? f.radio_buttons("argument#{idx}", arg_options[:options]) : f.select("argument#{idx}", arg_options[:options]) %>
+    <% elsif builder.operation_arguments[idx] == :boolean -%>
+      <%= f.yes_no "argument#{idx}" %>
+    <% else -%>
+      <%= f.text_field "argument#{idx}" %>
+    <% end -%>
+    </td>
+    </tr>
+    <%= "<tr><td>&nbsp;</td><td class='description'>#{description}</td></tr>" if description %>
+  <% end -%>
+</table>
+<% end %>

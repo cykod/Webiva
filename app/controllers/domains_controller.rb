@@ -9,7 +9,7 @@ class DomainsController < CmsController # :nodoc: all
   include ActiveTable::Controller
 
   active_table :domains_table, Domain,
-  [ :check, 'Domain','Active','Options','WWW','Primary','Version' ]
+  [ :check, 'Domain','Active','Options','WWW','Primary','Tree' ]
 
   def index
     cms_page_path ['Options'],'Domains'

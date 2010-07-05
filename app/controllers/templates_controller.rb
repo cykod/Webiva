@@ -11,8 +11,8 @@ class TemplatesController < CmsController # :nodoc: all
   
   cms_admin_paths 'options', 
       'Options' => { :controller => 'options' },
-      "Design Templates" => { :controller => 'templates' },
-      "Site Features" => { :action => 'features' }
+      "Themes" => { :controller => 'templates' },
+      "Paragraph Themes" => { :action => 'features' }
 
    include SiteNodeEngine::Controller
   
@@ -44,7 +44,7 @@ class TemplatesController < CmsController # :nodoc: all
   def index
     templates_table(false)
     
-    cms_page_path [ "Options" ], "Design Templates" 
+    cms_page_path [ "Options" ], "Themes" 
     
     render :action => 'index'
   end
@@ -66,18 +66,21 @@ class TemplatesController < CmsController # :nodoc: all
   def new
     @site_template = SiteTemplate.new(params[:site_template])
     
-    cms_page_path ['Options','Design Templates'], 'Create Site Template'
+    cms_page_path ['Options','Themes'], 'Create a Theme'
     
     if(request.post?)
-      if params[:path][0]
-        parent = SiteTemplate.find(params[:path][0])
-        @site_template.parent_id = parent.id
-        @site_template.domain_file_id = parent.domain_file_id
-        @site_template.template_html = parent.template_html
-      end
-      if @site_template.save
-        redirect_to :action => 'edit', :path => @site_template.id
-        return
+      if params[:commit]
+        if params[:path][0]
+          parent = SiteTemplate.find(params[:path][0])
+          @site_template.parent_id = parent.id
+          @site_template.domain_file_id = parent.domain_file_id
+          @site_template.template_html = parent.template_html
+        end
+        if @site_template.save
+          return redirect_to :action => 'edit', :path => @site_template.id
+        end
+      else
+        return redirect_to :action => 'index'
       end
     end
     render :action => 'new'
@@ -96,7 +99,7 @@ class TemplatesController < CmsController # :nodoc: all
     if flash[:template_version_load]
        @site_template.load_version(flash[:template_version_load])
     end
-    cms_page_path ['Options','Design Templates'], [ 'Edit %s',nil,@site_template.name]
+    cms_page_path ['Options','Themes'], [ 'Edit %s',nil,@site_template.name]
     
     if @display_view == 'advanced'
       if @site_template.parent_id
@@ -232,7 +235,7 @@ class TemplatesController < CmsController # :nodoc: all
               [ :check, 
                 hdr(:string,'site_features.name'),
                 hdr(:string,'site_features.category'),
-                :feature_type,
+                hdr(:string,:feature_type,:label => 'Paragraph Theme Type'),
                 hdr(:options,'site_template_id',:options => :site_template_names),
                 hdr(:date_range,'site_features.updated_at')                
               ]
@@ -260,12 +263,12 @@ class TemplatesController < CmsController # :nodoc: all
   end  
   
   def features
-    cms_page_path [ "Options", "Design Templates" ], "Site Features"
+    cms_page_path [ "Options", "Themes" ], "Paragraph Themes"
     display_features_table @tbl
   end
   
   def new_feature
-    cms_page_path [ "Options", "Design Templates", "Site Features"], "Create a feature"
+    cms_page_path [ "Options", "Themes", "Paragraph Themes"], "Create a feature"
     @feature = SiteFeature.new
     @features = ParagraphRenderer.get_editor_features + ParagraphRenderer.get_component_features + ContentPublication.get_publication_features
     
@@ -300,7 +303,7 @@ class TemplatesController < CmsController # :nodoc: all
     end
     
     
-    cms_page_path [ "Options", "Design Templates", "Site Features"], [ '"%s" Feature', nil, @feature.name ] 
+    cms_page_path [ "Options", "Themes", "Paragraph Themes"], [ '"%s" Paragraph Theme', nil, @feature.name ] 
     
     details = @feature.feature_details
     # [ Human Name, feature_name, Renderer, Publication ]

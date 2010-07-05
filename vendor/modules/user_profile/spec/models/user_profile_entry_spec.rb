@@ -10,6 +10,10 @@ describe UserProfileEntry do
                                           :user_classes => [ { 'id' =>  UserClass.default_user_class_id } ])
   end
 
+  after do
+    SiteModule.destroy_all
+  end
+
   it 'should create entries' do
     assert_difference "UserProfileEntry.count", 2 do 
       EndUser.push_target('test@webiva.org')

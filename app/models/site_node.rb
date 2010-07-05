@@ -290,9 +290,13 @@ class SiteNode < DomainModel
   
   # Returns a select-friendly list of pages with urls (group nodes not included)
   # optionally including the root node as well
+  #
+  #  Options
+  #     version - a passed in site version to use, otherwise defaults to SiteVersion.current
   def self.page_options(include_root = false, opts={})
     node_type = include_root ? 'node_type IN("P","R","M","J")' : 'node_type IN ("P","M","J")'
-    SiteNode.find(:all,:conditions => node_type,
+    site_version = opts[:version] || SiteVersion.current 
+    SiteNode.find(:all,:conditions => [node_type + " AND site_version_id=? ",site_version.id],
                   :order => 'lft').collect do |page|
       [ page.node_type != 'R' ? page.node_path : include_root , opts[:url] ? page.node_path : page.id ]
     end
@@ -397,6 +401,31 @@ class SiteNode < DomainModel
     nd.move_to_child_of(parent)
     
     nd
+  end
+
+
+  def node_options(val=nil)
+    case self.node_type
+    when 'G': GroupNodeOptions.new(val || self.page_modifier.modifier_data ||{})
+    else NodeOptions.new(val || self.page_modifier.modifier_data || {})
+    end
+  end
+
+  def set_node_options(val)
+    opts = self.node_options(val)
+    self.page_modifier.update_attributes(:modifier_data => opts.to_hash)
+    opts
+  end
+
+  class NodeOptions < HashModel
+
+  end
+
+
+  class GroupNodeOptions < NodeOptions
+    attributes :closed => false
+
+    boolean_options :closed
   end
   
   protected

@@ -17,16 +17,19 @@ class Blog::WizardController < ModuleController
   end
 
   def index
-    cms_page_path ["Website"],"Add a Blog to your site structure"
+    @version = SiteVersion.find_by_id(params[:version])
+    SiteVersion.override_current(@version)
+
+    cms_page_path [[ "Website",url_for(:controller => '/structure', :action => 'index', :version => @version.id) ]],"Add a Blog to your site structure"
 
     @blog_wizard = Blog::AddBlogWizard.new(params[:wizard] || {  :blog_id => params[:blog_id].to_i})
     if request.post? 
       if !params[:commit] 
-        redirect_to :controller => '/structure', :action => 'wizards'
+        redirect_to :controller => '/structure', :action => 'wizards', :version => @version.id
       elsif  @blog_wizard.valid?
         @blog_wizard.add_to_site!
         flash[:notice] = "Added blog to site"
-        redirect_to :controller => '/structure'
+        redirect_to :controller => '/structure', :version => @version.id
       end
     end
   end

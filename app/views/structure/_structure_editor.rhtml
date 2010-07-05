@@ -1022,7 +1022,35 @@ var StructureEditor = {
 		$('file_link').innerHTML = name;
 		$('file_id').value = id;
 		
-	}
+  },
+
+
+  editVersion: function(version_id,args) {
+    SCMS.remoteOverlay('<%= url_for :action=>'site_version' %>?site_version=' + version_id,args);
+  },
+
+  changeVersion: function(version_id) {
+    if(version_id == 'new') {
+       StructureEditor.editVersion('');
+    } else {
+       document.location = '?version=' + version_id;
+    }
+  },
+
+
+  deleteVersion: function(version_id) {
+    if(confirm("<%= jh 'Are you sure you want to permanently delete an entire friggin site tree? (Hint: no)'.t %>") &&
+       confirm("<%= jh 'Come on, really? You want to delete a whole site tree'.t %>")) {
+      var params = { version_id: version_id };
+      new Ajax.Request("<%= url_for :action => 'delete_tree' %>",
+      { parameters: params,
+        onComplete: function(req) { document.location = '?'; }
+      });
+      return false;
+    }
+
+  }
+
 
 }
 

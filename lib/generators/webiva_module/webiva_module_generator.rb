@@ -21,4 +21,8 @@ class WebivaModuleGenerator < Rails::Generator::NamedBase
     end
   
   end
+
+  def banner
+    "Usage: #{$0} #{spec.name} <module name>"
+  end
 end

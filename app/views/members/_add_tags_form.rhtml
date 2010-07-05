@@ -2,9 +2,9 @@
 <h3>Add Tags to Targets</h3>
 Existing Tags:
 <div style='width:300px;'>
-<%     EndUser.cloud(@tags, %w(10 12 14 16 20)) do |tg, font_size| -%>
-        <a href='javascript:void(0);' onclick='MemberEditor.addTagInPopup("<%= jvh tg -%>");'><%= tg -%></a> 
-<%  end -%>
+<% EndUser.tag_cloud.each do |tag| -%>
+  <a href='javascript:void(0);' onclick='MemberEditor.addTagInPopup("<%= jvh tag[:name] -%>");'><%= h tag[:name] -%></a> 
+<% end -%>
 </div>
 <br/>
 Tags to Add (Comma Separated List):<br/>
