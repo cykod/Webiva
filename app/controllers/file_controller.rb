@@ -270,7 +270,12 @@ class FileController < CmsController # :nodoc: all
   
   def extract_revision
     @revision = DomainFileVersion.find_by_id(params[:revision_id].to_i)
-    @file = @revision.extract
+    if @revision
+      worker_key = @revision.run_worker(:extract_file)
+      @processing_key  = session[:extract_file_worker] = worker_key
+    else
+      render :nothing => true
+    end
   end
   
   def copy_file
