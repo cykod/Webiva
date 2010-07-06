@@ -6,17 +6,17 @@ describe DomainFile::LocalProcessor do
   reset_domain_tables :domain_file, :domain_file_version
   reset_system_tables :server
 
-  def fakeweb_s3_transmit_domain_file(file)
+  def fakeweb_df_transmit_domain_file(file)
     fixture = fixture_file_upload("files/#{file.name}", file.mime_type)
     FakeWeb.register_uri(:get, "http://#{file.server.hostname}/website/transmit_file/file/#{DomainModel.active_domain_id}/#{file.id}/#{file.server_hash}", :body => fixture.read)
   end
 
-  def fakeweb_s3_transmit_domain_file_version(version)
+  def fakeweb_df_transmit_domain_file_version(version)
     fixture = fixture_file_upload("files/#{version.domain_file.name}", version.domain_file.mime_type)
     FakeWeb.register_uri(:get, "http://#{version.server.hostname}/website/transmit_file/file_version/#{DomainModel.active_domain_id}/#{version.domain_file.id}/#{version.domain_file.server_hash}/#{version.id}", :body => fixture.read)
   end
 
-  def fakeweb_s3_delete_domain_file(server, file)
+  def fakeweb_df_delete_domain_file(server, file)
     key = DomainFile::LocalProcessor.set_directories_to_delete(file.storage_directory)
     FakeWeb.register_uri(:get, "http://#{server.hostname}/website/transmit_file/delete/#{DomainModel.active_domain_id}/#{key}", :body => '')
   end
@@ -80,7 +80,7 @@ describe DomainFile::LocalProcessor do
   it "should be able to copy a file locally" do
     Server.should_receive(:server_id).any_number_of_times.and_return(@server1.id)
 
-    fakeweb_s3_transmit_domain_file @file2
+    fakeweb_df_transmit_domain_file @file2
 
     File.unlink @file2.local_filename
     File.exists?(@file2.local_filename).should be_false
@@ -94,7 +94,7 @@ describe DomainFile::LocalProcessor do
   it "should be able to copy a file locally" do
     Server.should_receive(:server_id).any_number_of_times.and_return(@server1.id)
 
-    fakeweb_s3_transmit_domain_file @file2
+    fakeweb_df_transmit_domain_file @file2
 
     File.unlink @file2.local_filename
     File.exists?(@file2.local_filename).should be_false
@@ -108,8 +108,8 @@ describe DomainFile::LocalProcessor do
     Server.should_receive(:server_id).any_number_of_times.and_return(@server1.id)
     DomainModel.should_receive(:generate_hash).any_number_of_times.and_return('XXXXXXXXX')
 
-    fakeweb_s3_delete_domain_file @server2, @file2
-    fakeweb_s3_delete_domain_file @server3, @file2
+    fakeweb_df_delete_domain_file @server2, @file2
+    fakeweb_df_delete_domain_file @server3, @file2
 
     @processor = @file2.processor_handler
     @processor.destroy_remote!.should be_true
@@ -119,8 +119,8 @@ describe DomainFile::LocalProcessor do
     Server.should_receive(:server_id).any_number_of_times.and_return(@server1.id)
     DomainModel.should_receive(:generate_hash).any_number_of_times.and_return('XXXXXXXXX')
 
-    fakeweb_s3_delete_domain_file @server2, @file2
-    fakeweb_s3_delete_domain_file @server3, @file2
+    fakeweb_df_delete_domain_file @server2, @file2
+    fakeweb_df_delete_domain_file @server3, @file2
 
     @file2.destroy
 
@@ -133,10 +133,10 @@ describe DomainFile::LocalProcessor do
     Server.should_receive(:server_id).any_number_of_times.and_return(@server1.id)
     DomainModel.should_receive(:generate_hash).any_number_of_times.and_return('XXXXXXXXX')
 
-    fakeweb_s3_transmit_domain_file @file2
+    fakeweb_df_transmit_domain_file @file2
 
-    fakeweb_s3_delete_domain_file @server2, @file2
-    fakeweb_s3_delete_domain_file @server3, @file2
+    fakeweb_df_delete_domain_file @server2, @file2
+    fakeweb_df_delete_domain_file @server3, @file2
 
     File.unlink @file2.local_filename
     File.exists?(@file2.local_filename).should be_false
@@ -154,10 +154,10 @@ describe DomainFile::LocalProcessor do
     Server.should_receive(:server_id).any_number_of_times.and_return(@server1.id)
     DomainModel.should_receive(:generate_hash).any_number_of_times.and_return('XXXXXXXXX')
 
-    fakeweb_s3_transmit_domain_file @file3
+    fakeweb_df_transmit_domain_file @file3
 
-    fakeweb_s3_delete_domain_file @server2, @file3
-    fakeweb_s3_delete_domain_file @server3, @file3
+    fakeweb_df_delete_domain_file @server2, @file3
+    fakeweb_df_delete_domain_file @server3, @file3
 
     File.unlink @file3.local_filename
     File.exists?(@file3.local_filename).should be_false
@@ -175,10 +175,10 @@ describe DomainFile::LocalProcessor do
     Server.should_receive(:server_id).any_number_of_times.and_return(@server1.id)
     DomainModel.should_receive(:generate_hash).any_number_of_times.and_return('XXXXXXXXX')
 
-    fakeweb_s3_transmit_domain_file @file3
+    fakeweb_df_transmit_domain_file @file3
 
-    fakeweb_s3_delete_domain_file @server2, @file3
-    fakeweb_s3_delete_domain_file @server3, @file3
+    fakeweb_df_delete_domain_file @server2, @file3
+    fakeweb_df_delete_domain_file @server3, @file3
 
     File.unlink @file3.local_filename
     File.exists?(@file3.local_filename).should be_false
@@ -197,7 +197,7 @@ describe DomainFile::LocalProcessor do
     File.exists?(@version.filename).should be_false
 
     @version.update_attribute :server_id, @server3.id
-    fakeweb_s3_transmit_domain_file_version @version
+    fakeweb_df_transmit_domain_file_version @version
     @processor = @file2.processor_handler
     @processor.copy_version_local!(@version).should be_true
 
@@ -208,10 +208,10 @@ describe DomainFile::LocalProcessor do
     Server.should_receive(:server_id).any_number_of_times.and_return(@server1.id)
     DomainModel.should_receive(:generate_hash).any_number_of_times.and_return('XXXXXXXXX')
 
-    fakeweb_s3_transmit_domain_file @file3
+    fakeweb_df_transmit_domain_file @file3
 
-    fakeweb_s3_delete_domain_file @server2, @file3
-    fakeweb_s3_delete_domain_file @server3, @file3
+    fakeweb_df_delete_domain_file @server2, @file3
+    fakeweb_df_delete_domain_file @server3, @file3
 
     File.unlink @file3.local_filename
     File.exists?(@file3.local_filename).should be_false
@@ -230,18 +230,59 @@ describe DomainFile::LocalProcessor do
     File.exists?(@version.filename).should be_false
 
     @version.update_attribute :server_id, @server3.id
-    fakeweb_s3_transmit_domain_file_version @version
+    fakeweb_df_transmit_domain_file_version @version
     @processor = @file2.processor_handler
     @processor.copy_version_local!(@version).should be_true
 
     File.exists?(@version.filename).should be_true
 
     FakeWeb.clean_registry
-    fakeweb_s3_delete_domain_file @server2, @version
-    fakeweb_s3_delete_domain_file @server3, @version
+    fakeweb_df_delete_domain_file @server2, @version
+    fakeweb_df_delete_domain_file @server3, @version
 
     @version.destroy
 
     File.exists?(@version.filename).should be_false
+  end
+
+  it "should be able to extract a remote version" do
+    Server.should_receive(:server_id).any_number_of_times.and_return(@server1.id)
+    DomainModel.should_receive(:generate_hash).any_number_of_times.and_return('XXXXXXXXX')
+
+    fakeweb_df_transmit_domain_file @file3
+
+    fakeweb_df_delete_domain_file @server2, @file3
+    fakeweb_df_delete_domain_file @server3, @file3
+
+    File.unlink @file3.local_filename
+    File.exists?(@file3.local_filename).should be_false
+
+    assert_difference 'DomainFileVersion.count', 1 do
+      @file2.replace @file3
+      @file3 = nil
+    end
+
+    @file2.version_count.should == 1
+
+    @version = DomainFileVersion.find :last
+    @version.domain_file_id.should == @file2.id
+
+    File.unlink @version.filename
+    File.exists?(@version.filename).should be_false
+
+    @version.update_attribute :server_id, @server3.id
+    fakeweb_df_transmit_domain_file_version @version
+
+    assert_difference 'DomainFile.count', 1 do
+      @file4 = DomainFile.find @version.extract_file[:domain_file_id]
+    end
+
+    File.exists?(@version.filename).should be_true
+    File.exists?(@file4.local_filename).should be_true
+
+    @file4.name.should == 'test.txt'
+
+    @file4.server_hash = nil
+    @file4.destroy
   end
 end
