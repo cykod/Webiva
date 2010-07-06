@@ -198,7 +198,7 @@ class DomainFile < DomainModel
 
    def replace_file(options={})
      @replace = DomainFile.find_by_id(options[:replace_id])
-     return unless @replace
+     return unless @replace && ! @replace.folder? && ! self.folder?
      self.replace @replace
      {:domain_file_id => self.id}
    end

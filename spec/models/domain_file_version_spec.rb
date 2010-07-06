@@ -125,9 +125,9 @@ describe DomainFileVersion do
   
     File.exists?(@df.filename).should be_true # new version file name should exist
     
-    @file = version.extract
-    
-    @file.id.should_not be_blank
+    @hash = version.extract_file
+    @file = DomainFile.find @hash[:domain_file_id]
+
     @file.name.should == @old_name # should match the old name
     
     @df.destroy
