@@ -57,7 +57,10 @@ class DomainFile < DomainModel
   end
   
   has_and_belongs_to_many :mail_templates,  :join_table => 'domain_files_mail_templates'
-  
+
+  # Very important that before_destroy_get_image_instances is called before the instances are deleted
+  before_destroy :before_destroy_get_image_instances
+
   has_many :instances, :class_name => 'DomainFileInstance', :dependent => :delete_all
   has_many :versions, :class_name => 'DomainFileVersion', :dependent => :destroy, :order => 'domain_file_versions.id DESC'
   
@@ -211,7 +214,8 @@ class DomainFile < DomainModel
    before_save :update_server_hash
 
    before_destroy :cleanup_file
-   
+   after_destroy :update_image_instances
+
    def process_file_update #:nodoc:
     if @file_data && self.id
       # if we already have a file,
@@ -243,20 +247,26 @@ class DomainFile < DomainModel
      self.server_hash = DomainModel.generate_hash unless self.server_hash || self.folder?
    end
 
+   def before_destroy_get_image_instances #:nodoc:
+     @file_change = true
+     @image_instances = self.instances
+   end
+
    def update_image_instances #:nodoc:
-    if @file_change
-      if self.instances.length > 0
-        grouped_targets = self.instances.group_by(&:target_type)
-        
-        # Resave all the targets
-        grouped_targets.each do |target_type,target_list|
-          target_type.constantize.find(:all,:conditions => { :id => target_list.map(&:target_id) }).map(&:save)
-        end
-        DataCache.expire_container('SiteNode')
-        DataCache.expire_container('SiteNodeModifier')
-        DataCache.expire_content
-      end
-    end  
+     if @file_change
+       @image_instances ||= self.instances
+       if @image_instances.length > 0
+         grouped_targets = @image_instances.group_by(&:target_type)
+
+         # Resave all the targets
+         grouped_targets.each do |target_type,target_list|
+           target_type.constantize.find(:all,:conditions => { :id => target_list.map(&:target_id) }).map(&:save)
+         end
+         DataCache.expire_container('SiteNode')
+         DataCache.expire_container('SiteNodeModifier')
+         DataCache.expire_content
+       end
+     end
    end
    
    def validate

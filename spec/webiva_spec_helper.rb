@@ -126,7 +126,8 @@ def reset_domain_tables(*tables)
   callback = lambda do 
     DomainModel.connection.reconnect! if !DomainModel.connection.active?
     tables.each do |table|
-      DomainModel.connection.execute("TRUNCATE #{table.is_a?(Symbol) ? table.to_s.tableize : table}") unless %w(component_schemas).include?(table)
+      table = table.is_a?(Symbol) ? table.to_s.tableize : table
+      DomainModel.connection.execute("TRUNCATE #{table}") unless %w(component_schemas).include?(table)
     end
   end
   before(:each,&callback)
@@ -144,11 +145,12 @@ def reset_system_tables(*tables)
   callback = lambda do 
     SystemModel.connection.reconnect! if !SystemModel.connection.active?
     tables.each do |table|
+      table = table.is_a?(Symbol) ? table.to_s.tableize : table
       next if %w(schema_migrations).include?(table.to_s)
       if system_tables[table]
-        SystemModel.connection.execute("DELETE FROM #{table.is_a?(Symbol) ? table.to_s.tableize : table} WHERE id NOT IN(#{system_tables[table].join(',')})")
+        SystemModel.connection.execute("DELETE FROM #{table} WHERE id NOT IN(#{system_tables[table].join(',')})")
       else
-        SystemModel.connection.execute("TRUNCATE #{table.is_a?(Symbol) ? table.to_s.tableize : table}")
+        SystemModel.connection.execute("TRUNCATE #{table}")
       end
     end
   end
