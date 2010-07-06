@@ -1,7 +1,9 @@
 
-page.call "FileEditor.removeItem", @file.id
-page.call "FileEditor.removeItem", @replace.id
+if @processing_key
+  page.call "FileEditor.removeItem", @file.id
+  page.call "FileEditor.removeItem", @replace.id
 
-page.replace_html :file_manager_body, :partial => '/file/details/processing_file', :locals => {:heading => 'Replacing file...'.t}
+  page.replace_html :file_manager_body, :partial => '/file/details/processing_file', :locals => {:heading => 'Replacing file...'.t}
 
-page.call "FileEditor.processingFile", @processing_key
+  page.call "FileEditor.processingFile", @processing_key
+end

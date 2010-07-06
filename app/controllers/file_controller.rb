@@ -243,18 +243,19 @@ class FileController < CmsController # :nodoc: all
     if @processed
       @file = DomainFile.find_by_id processor[:domain_file_id]
       session[:replace_file_worker] = nil
+      session[:extract_file_worker] = nil
     end
-
-    render :action => 'processing_file.rjs'
   end
 
   def replace_file
     @file = DomainFile.find_by_id(params[:file_id].to_i)
     @replace = DomainFile.find_by_id(params[:replace_id].to_i)
 
-    if @file && @replace
+    if @file && @replace && @file.id != @replace.id && ! @file.folder? && ! @replace.folder?
       worker_key = @file.run_worker(:replace_file, :replace_id => @replace.id)
       @processing_key  = session[:replace_file_worker] = worker_key
+    else
+      render :nothing => true
     end
   end
   
