@@ -113,7 +113,7 @@ class DomainFileVersion < DomainModel
    ###########
    
    def erase_version_file
-    self.domain_file.processor_handler.destroy_remote_version!(self) if self.domain_file.processor != 'local'
+    self.domain_file.processor_handler.destroy_remote_version!(self)
     if !prefix.blank? && (File.directory?(abs_storage_directory))
       FileUtils.rm_rf(abs_storage_directory)
     end

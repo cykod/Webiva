@@ -1023,7 +1023,6 @@ class DomainFile < DomainModel
   class LocalProcessor 
     def initialize(conn,df); @connection=conn, @df = df; end 
     
-    # Don't need to do anything 
     def copy_local!(dest_size=nil)
       return true unless @df.server
       return true if Server.server_id == @df.server.id
@@ -1043,6 +1042,16 @@ class DomainFile < DomainModel
     def destroy_remote!;
       if @df.server_hash && ! @df.folder? && Server.server_id
         key = self.class.set_directories_to_delete(@df.storage_directory)
+        url = "/website/transmit_file/delete/#{DomainModel.active_domain_id}/#{key}"
+        Server.send_to_all url, :except => [Server.server_id]
+        self.class.clear_directories_to_delete(key)
+      end
+      true
+    end
+
+    def destroy_remote_version!(version)
+      if @df.server_hash && Server.server_id
+        key = self.class.set_directories_to_delete(version.storage_directory)
         url = "/website/transmit_file/delete/#{DomainModel.active_domain_id}/#{key}"
         Server.send_to_all url, :except => [Server.server_id]
         self.class.clear_directories_to_delete(key)
@@ -1073,12 +1082,24 @@ class DomainFile < DomainModel
         version.update_attribute(:server_id,Server.server_id)
       end
 
+      key = nil
+      url = nil
+      if @df.server_hash && ! @df.folder? && Server.server_id
+        key = self.class.set_directories_to_delete(@df.storage_directory)
+        url = "/website/transmit_file/delete/#{DomainModel.active_domain_id}/#{key}"
+      end
+
       old_directory = @df.abs_storage_directory
       @df.update_attributes(:private => value, :server_id => Server.server_id)
       FileUtils.mkpath(@df.abs_storage_directory)
       
       # Strip off the final directory so we don't move to a subdirectory 
       File.move(old_directory,@df.abs_storage_directory.split("/")[0..-2].join("/"))
+
+      if key && url
+        Server.send_to_all url, :except => [Server.server_id]
+        self.class.clear_directories_to_delete(key)
+      end
     end
 
     def self.set_directories_to_delete(dirs)
