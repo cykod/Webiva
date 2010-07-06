@@ -134,24 +134,21 @@ def reset_domain_tables(*tables)
 end
 
 def reset_system_tables(*tables)
-  system_tables = {}
-
-  SystemModel.connection.reconnect! if !SystemModel.connection.active?
-  tables.each do |table|
-    next if %w(schema_migrations).include?(table.to_s)
-    system_tables[table] = []
-    result = SystemModel.connection.execute("SELECT id FROM #{table.is_a?(Symbol) ? table.to_s.tableize : table}")
-    result.each { |row| system_tables[table] << row[0] }
-  end
+  system_tables = {
+    'clients' => [1],
+    'client_users' => [1],
+    'domain_databases' => [1],
+    'domains' => [CMS_DEFAULTS['testing_domain']]
+  }
 
   callback = lambda do 
     SystemModel.connection.reconnect! if !SystemModel.connection.active?
     tables.each do |table|
       next if %w(schema_migrations).include?(table.to_s)
-      if system_tables[table].empty?
-        SystemModel.connection.execute("TRUNCATE #{table.is_a?(Symbol) ? table.to_s.tableize : table}")
-      else
+      if system_tables[table]
         SystemModel.connection.execute("DELETE FROM #{table.is_a?(Symbol) ? table.to_s.tableize : table} WHERE id NOT IN(#{system_tables[table].join(',')})")
+      else
+        SystemModel.connection.execute("TRUNCATE #{table.is_a?(Symbol) ? table.to_s.tableize : table}")
       end
     end
   end
