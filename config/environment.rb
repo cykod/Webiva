@@ -72,7 +72,7 @@ end
 Rails::Initializer.run do |config|
 
   # not actually used
-  config.action_controller.session = { :key => "_myapp_session", :secret => "some secret phrase" }
+  config.action_controller.session = { :key => "_myapp_session", :secret => "fa44267fab13ecd952a7576b6b7f93c9" }
 
   config.database_configuration_file = "#{RAILS_ROOT}/config/cms.yml"
   config.plugin_paths = ["#{RAILS_ROOT}/vendor/plugins", "#{RAILS_ROOT}/vendor/modules" ]
