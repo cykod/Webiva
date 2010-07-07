@@ -191,9 +191,9 @@ INTRODUCTION
   def validate_memcache_servers()
     defaults_config_file = YAML.load_file("#{RAILS_ROOT}/config/defaults.yml")
 
-    memcache_servers = defaults_config_file['memcache_servers'] || ['localhost::11211']
+    memcache_servers = defaults_config_file['memcache_servers'] || ['localhost:11211']
     memcache_servers.each do |server|
-      report_error(server != 'localhost::11211', "Invalid memcache server #{server} for Webiva master/slave setup") unless @server_type == 'standalone'
+      report_error(server != 'localhost:11211', "Invalid memcache server #{server} for Webiva master/slave setup") unless @server_type == 'standalone'
       client = MemCache.new server
       begin
         client.set 'validate_memcache_servers', 1
