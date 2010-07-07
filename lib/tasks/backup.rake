@@ -1,6 +1,5 @@
 require 'fileutils'
 require 'net/ftp'
-require 'right_aws'
 
 def cms_backup_dump_db(config,output_file)
   `mysqldump -u #{config['username']} --password="#{config['password']}" --host=#{config['host']} --default-character-set=utf8 --quote-names --complete-insert #{config['database']} > #{output_file}`
@@ -135,6 +134,8 @@ namespace "cms" do
 	end
       when 's3'
         begin
+          require 'right_aws'
+
           @s3 = RightAws::S3.new backup_cfg['access_key_id'], backup_cfg['secret_access_key'], :connections => :dedicated
           @bucket = @s3.bucket(backup_cfg['bucket'])
           @bucket = @s3.bucket(backup_cfg['bucket'], true) unless @bucket # create the bucket

@@ -134,7 +134,7 @@ INTRODUCTION
     @db_host = 'localhost'
     @db_port = 3306
     if @server_type == 'master'
-      @db_host = input_value("Mysql host (#{@server_name}):",@db_host)
+      @db_host = input_value("Mysql host (#{@server_name}):",@server_name)
       report_error @db_host != 'localhost', "Mysql host can not be localhost for the master server"
       @db_port = input_value("Mysql port (#{@db_port}):",@db_port)
     end
@@ -279,7 +279,7 @@ INTRODUCTION
     workling_yml_file = YAML.load_file("#{RAILS_ROOT}/config/workling.yml")
     workling_yml_file['production']['listens_on'] = "#{@server_name}:15151"
     workling_yml_file['development']['listens_on'] = "#{@server_name}:22122"
-    File.open("#{RAILS_ROOT}/config/workling.yml","w") { |fd| fd.write(YAML.dump(cms_yml_output_file)) }
+    File.open("#{RAILS_ROOT}/config/workling.yml","w") { |fd| fd.write(YAML.dump(workling_yml_file)) }
     print("Done!\n")
   end
 
