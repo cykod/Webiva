@@ -259,6 +259,12 @@ INTRODUCTION
       puts("defaults.yml already exists, not overwriting")
     else
        FileUtils.cp("#{RAILS_ROOT}/config/defaults.yml.example","#{RAILS_ROOT}/config/defaults.yml")
+
+      if @server_type == 'master'
+        defaults_yml_file = YAML.load_file "#{RAILS_ROOT}/config/defaults.yml"
+        defaults_yml_file['memcache_servers'] = ["@server_name:11211"]
+        File.open("#{RAILS_ROOT}/config/defaults.yml","w") { |fd| fd.write(YAML.dump(defaults_yml_file)) }
+      end
     end
 
     print('Creating cms.yml...')
