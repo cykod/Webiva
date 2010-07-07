@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'net/ftp'
+require 'right_aws'
 
 def cms_backup_dump_db(config,output_file)
   `mysqldump -u #{config['username']} --password="#{config['password']}" --host=#{config['host']} --default-character-set=utf8 --quote-names --complete-insert #{config['database']} > #{output_file}`
@@ -134,22 +135,25 @@ namespace "cms" do
 	end
       when 's3'
         begin
-          AWS::S3::Base.establish_connection! :access_key_id => backup_cfg['access_key_id'], :secret_access_key => backup_cfg['secret_access_key']
+          @s3 = RightAws::S3.new backup_cfg['access_key_id'], backup_cfg['secret_access_key'], :connections => :dedicated
+          @bucket = @s3.bucket(backup_cfg['bucket'])
+          @bucket = @s3.bucket(backup_cfg['bucket'], true) unless @bucket # create the bucket
+
           puts("Transmitting Backup file data...\n")
-          AWS::S3::S3Object.store("#{backup_dir}.tar.gz", File.open("#{RAILS_ROOT}/backup/#{backup_dir}.tar.gz"), backup_cfg['bucket'], :access => :private)
+          File.open("#{RAILS_ROOT}/backup/#{backup_dir}.tar.gz") do |file|
+            @bucket.put("#{backup_dir}.tar.gz", file, {}, 'private')
+          end
           puts("Done Transmitting Files\n")
 
-          objects = AWS::S3::Bucket.objects(backup_cfg['bucket']).sort do |a, b|
-            Time.parse(a.about['last-modified']) <=> Time.parse(b.about['last-modified'])
+          objects = @bucket.keys.sort do |a, b|
+            a.last_modified <=> b.last_modified
           end
 
-          backup_limit = (backup_cfg['limit'] || 10).to_i
+          backup_limit = (backup_cfg['limit'] || 10).to_i + 1
           objects[0..-backup_limit].each do |obj|
-            puts "Deleting #{obj.key}"
+            puts "Deleting #{obj.name}"
             obj.delete
           end
-
-          AWS::S3::Base.disconnect!
         rescue Exception => e
           raise "Error copying files to s3: " + e.to_s
         end
