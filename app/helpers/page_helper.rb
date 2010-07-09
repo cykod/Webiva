@@ -2,7 +2,6 @@
 
 module PageHelper
 
-  
 
   def ajax_url_for(rnd,options={})
     opts = options.merge(:site_node => rnd.paragraph.page_revision ? rnd.paragraph.page_revision.revision_container_id : 0, 

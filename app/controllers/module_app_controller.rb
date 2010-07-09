@@ -23,6 +23,8 @@ class ModuleAppController < ApplicationController
   skip_before_filter :validate_is_editor
  
   helper :paragraph
+  helper :page
+  helper :module_app
 
   before_filter :handle_page
   

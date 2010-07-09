@@ -50,7 +50,9 @@
 <%= @output.includes[:body_start] -%>
 
 <% end -%>
-<%= render_output(@page,@output) -%>
+<% render_output(@page,@output) do-%>
+   <%= yield %>
+<% end -%>
 <% unless @partial_page || @output.partial -%>
 
   <% if @google_analytics[:enabled] == 'enabled'  -%>

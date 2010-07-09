@@ -372,42 +372,18 @@ EOF
     def self.append_features(base) #:nodoc:
       super
       base.helper_method :compile_paragraph, :render_paragraph, :strip_script_tags
-      base.helper_method :webiva_post_process_paragraph, :render_output
+      base.helper_method :webiva_post_process_paragraph
+#      base.helper_method :render_output
       base.hide_action :find_page_from_path
       base.hide_action :handle_document_node
       base.hide_action :render_paragraph
       base.hide_action :compile_paragraph
-      base.hide_action :render_output
+#      base.hide_action :render_output
       base.hide_action :webiva_post_process_paragraph
     end
     
     
-    # Renders the output object of SiteNodeEngine given the page SiteNode
-    # and the SiteNodeEngine::PageOutput object
-    def render_output(page,output_obj)
-      raise "Not a PageOutput" unless output_obj.is_a?(PageOutput)
-      output = ''
-      output_obj.html  do |blk| 
-        if blk.is_a?(String) 
-          output += webiva_post_process_paragraph(blk)
-        elsif blk.is_a?(Hash) 
-          blk[:paragraphs].each do |para| 
-            if para.is_a?(String) 
-             output << webiva_post_process_paragraph(para)
-            else 
-              if output_obj.lightweight
-                output << webiva_post_process_paragraph(render_paragraph page, output_obj.revision,para)
-              else
-                para_id = para.is_a?(ParagraphRenderer::ParagraphOutput) ? "id='cmspara_#{para.rnd.paragraph.id}'" : ""
-                output << "<div class='paragraph' #{para_id}>#{webiva_post_process_paragraph(render_paragraph page, output_obj.revision, para)}</div>"
-              end
-            end 
-          end 
-        end 
-      end
-      output       
-    end 
-  end
+   end
   
   
   # Base class for all different SiteNodeEngine outputs
@@ -665,7 +641,7 @@ EOF
       max_path_level = calculate_max_path_level
 
 
-      if max_path_level < @path_args.length  && @container.node_type != 'M'
+      if max_path_level < @path_args.length  && @container.node_type != 'M' && @controller.is_a?(PageController)
         raise MissingPageException.new(@container,@language), "Page Not Found" 
       end
       page_connections = {}
