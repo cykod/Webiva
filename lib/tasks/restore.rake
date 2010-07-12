@@ -108,6 +108,7 @@ namespace "cms" do
         
       FileUtils.mkdir_p(storage_dir) 
       `tar -xzf #{directory + "/storage.tar.gz"} -C #{storage_dir}`
+      DomainFile.update_all("server_id = #{Server.server_id}", 'file_type != "fld" and private = 0') unless Server.server_id.blank?
     end
     
     if(File.exists?(directory + "/private.tar.gz"))
@@ -116,6 +117,7 @@ namespace "cms" do
       FileUtils.rm_rf(private_dir) if(File.directory?(private_dir))
       FileUtils.mkdir_p(private_dir) 
       `tar -xzf #{directory + "/private.tar.gz"} -C #{private_dir}`
+      DomainFile.update_all("server_id = #{Server.server_id}", 'file_type != "fld" and private = 1') unless Server.server_id.blank?
     end
 
     # Clear out the cache for the domain
