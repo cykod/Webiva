@@ -26,6 +26,7 @@ class ModuleAppController < ApplicationController
   helper :page
   helper :module_app
 
+
   before_filter :handle_page
   
   after_filter :process_logging

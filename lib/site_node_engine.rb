@@ -371,14 +371,15 @@ EOF
     # can render paragraphs from templates
     def self.append_features(base) #:nodoc:
       super
+
+      base.send(:include,ModuleAppHelper)
+      base.hide_action :render_output
       base.helper_method :compile_paragraph, :render_paragraph, :strip_script_tags
       base.helper_method :webiva_post_process_paragraph
-#      base.helper_method :render_output
       base.hide_action :find_page_from_path
       base.hide_action :handle_document_node
       base.hide_action :render_paragraph
       base.hide_action :compile_paragraph
-#      base.hide_action :render_output
       base.hide_action :webiva_post_process_paragraph
     end
     

@@ -12,7 +12,7 @@
 
 
 <% 
-  menu =  @revision_info.map { |elm| elm[0].upcase } +( permit?('editor_structure or editor_structure_advanced') ?  [ 'Options'] : [] )
+  menu =  @revision_info.map { |elm| elm[0].upcase } +(( permit?('editor_structure') || permit?('editor_structure_advanced')) ?  [ 'Options'] : [] )
   ajax_tabs menu, menu[0] do |t| %>
 
 <% @revision_info.each do |info| -%>
@@ -23,7 +23,7 @@
  <% end -%>
 <% end -%>
 
-<% if permit?('editor_structure or editor_structure_advanced') %>
+<% if permit?('editor_structure') || permit?('editor_structure_advanced') %>
   <% t.tab do %>
    <div id='site_node_page_options' >
        <%= render :partial => 'site_node_options' %>
