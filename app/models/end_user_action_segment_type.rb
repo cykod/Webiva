@@ -12,7 +12,7 @@ class EndUserActionSegmentType
 
     def self.is(cls, group_field, field, path)
       path = path.split('/')
-      cls.scoped(:conditions => ["#{field[0]} = ? and #{field[1]} = ?", path[0..-2].join('/'), path[-1]])
+      cls.scoped(:conditions => ["#{field[0]} = ? and #{field[1]} = ?", path[0..-2].join('/').sub(/^\//, ''), path[-1]])
     end
   end
 
