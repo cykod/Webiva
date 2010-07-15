@@ -183,38 +183,31 @@ describe FileController do
 
     describe "replace file tests" do
       it "should be able replace a file with a different file" do
+        DomainFile.should_receive(:find_by_id).once.with(@testFile.id).and_return(@testFile)
+        DomainFile.should_receive(:find_by_id).once.with(@image.id).and_return(@image)
+        @testFile.should_receive(:run_worker).once.with(:replace_file, :replace_id => @image.id)
 	post :replace_file, :file_id => @testFile.id, :replace_id => @image.id
 	response.should render_template('file/replace_file.rjs')
-	@testFile.reload
-	@testFile.file_type.should == 'img'
-	@testFile.name.should == @image.name
-	@missingImage = DomainFile.find_by_id(@image.id)
-	@missingImage.should be_nil
       end
 
       it "should not be able replace a file with a folder" do
+        DomainFile.should_receive(:find_by_id).once.with(@testFile.id).and_return(@testFile)
+        DomainFile.should_receive(:find_by_id).once.with(@subfolder.id).and_return(@subfolder)
+        @testFile.should_receive(:run_worker).exactly(0)
 	post :replace_file, :file_id => @testFile.id, :replace_id => @subfolder.id
-	response.should render_template('file/replace_file.rjs')
-	@testFile.reload
-	@testFile.file_type.should_not == 'img'
-	@folderStillExists = DomainFile.find_by_id(@subfolder.id)
-	@folderStillExists.should_not be_nil
       end
 
       it "should not be able replace a folder with a file" do
+        DomainFile.should_receive(:find_by_id).once.with(@subfolder.id).and_return(@subfolder)
+        DomainFile.should_receive(:find_by_id).once.with(@testFile.id).and_return(@testFile)
+        @subfolder.should_receive(:run_worker).exactly(0)
 	post :replace_file, :file_id => @subfolder.id, :replace_id => @testFile.id
-	response.should render_template('file/replace_file.rjs')
-	@testFile.reload
-	@testFile.file_type.should_not == 'img'
-	@folderStillExists = DomainFile.find_by_id(@subfolder.id)
-	@folderStillExists.should_not be_nil
       end
 
       it "should not replace the same file" do
 	DomainFile.should_receive(:find_by_id).twice.with(@image.id).and_return(@image)
-	@image.should_receive(:reload).exactly(0)
+        @image.should_receive(:run_worker).exactly(0)
 	post :replace_file, :file_id => @image.id, :replace_id => @image.id
-	response.should render_template('file/replace_file.rjs')
       end
 
       it "should be able to delete a file version" do
@@ -232,15 +225,11 @@ describe FileController do
 	@version = DomainFileVersion.archive( @image )
 	@version.id.should_not be_nil
 
-	assert_difference 'DomainFile.count', 1 do
-	  post :extract_revision, :revision_id => @version.id
-	  response.should render_template('file/extract_revision.rjs')
-	end
+        DomainFileVersion.should_receive(:find_by_id).once.with(@version.id).and_return(@version)
+        @version.should_receive(:run_worker).with(:extract_file)
 
-	@file = DomainFile.find(:last)
-	@file.id.should_not == @image.id
-	@file.name.should == @image.name
-	@file.destroy
+        post :extract_revision, :revision_id => @version.id
+        response.should render_template('file/extract_revision.rjs')
       end
 
       it "should be able to copy a file" do

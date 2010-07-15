@@ -28,7 +28,7 @@ require 'yaml'
 
   CMS_DEFAULT_LANGUAGE = defaults_config_file['default_language'] || 'en'
   CMS_DEFAULT_CONTRY = defaults_config_file['default_country'] || 'US'
-  CMS_CACHE_ACTIVE = defaults_config_file['active_cache'] || true
+  CMS_CACHE_ACTIVE = true
   CMS_DEFAULT_DOMAIN = defaults_config_file['domain']
   
   CMS_SYSTEM_ADMIN_EMAIL = defaults_config_file['system_admin']
@@ -71,9 +71,10 @@ end
 
 Rails::Initializer.run do |config|
 
+  # not actually used
+  config.action_controller.session = { :key => "_session_id", :secret => "fa44267fab13ecd952a7576b6b7f93c9" }
 
   config.database_configuration_file = "#{RAILS_ROOT}/config/cms.yml"
-  config.action_controller.session_store = :mem_cache_store
   config.plugin_paths = ["#{RAILS_ROOT}/vendor/plugins", "#{RAILS_ROOT}/vendor/modules" ]
   
   config.time_zone = CMS_DEFAULT_TIME_ZONE
@@ -100,27 +101,38 @@ Rails::Initializer.run do |config|
 
   if RAILS_ENV == 'test'
     config.gem 'factory_girl',:source => 'http://gemcutter.org'
+    config.gem 'fakeweb'
   end  
 
   if CMS_CACHE_ACTIVE
     config.gem 'memcache-client', :lib => 'memcache'
   end
-  
+
 end
+
+memcache_options = {
+  :c_threshold => 10_000,
+  :compression => true,
+  :debug => false,
+  :namespace => 'Webiva',
+  :readonly => false,
+  :urlencode => false
+}
+
+
+CACHE = MemCache.new memcache_options
+
+cache_servers = CMS_DEFAULTS['memcache_servers'] || ['localhost:11211']
+cache_servers = [cache_servers] unless cache_servers.is_a?(Array)
+CACHE.servers =  cache_servers
+
+ActionController::Base.session_options[:expires] = 10800 unless Rails.env == 'development'
+ActionController::Base.session_options[:cache] = CACHE
+
+ActionController::Base.session_store = :mem_cache_store
 
 # Only use X_SEND_FILE if it's enabled and we're not in test mode
 USE_X_SEND_FILE =  (Rails.env == 'test' || Rails.env == 'cucumber' || Rails.env == 'selenium') ? false : (defaults_config_file['use_x_send_file'] || false)
-
- memcache_options = {
-    :c_threshold => 10_000,
-    :compression => true,
-    :debug => false,
-    :namespace => 'Webiva',
-    :readonly => false,
-    :urlencode => false
-  }
-
-CACHE = MemCache.new memcache_options
 
 # Workling::Remote.dispatcher = Workling::Remote::Runners::StarlingRunner.new
 Workling::Remote.dispatcher = Workling::Remote::Runners::StarlingRunner.new
@@ -180,14 +192,6 @@ module Globalize
 end
 
 Globalize::ModelTranslation.set_table_name('globalize_translations')
-
-
-cache_servers = CMS_DEFAULTS['memcache_servers'] || ['localhost:11211']
-cache_servers = [cache_servers] unless cache_servers.is_a?(Array)
-CACHE.servers =  cache_servers
-
-ActionController::Base.session_options[:expires] = 10800 unless Rails.env == 'development'
-ActionController::Base.session_options[:cache] = CACHE
 
 
 # Globalize Setup

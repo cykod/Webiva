@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + "/../spec_helper"
 
 describe DomainFile do
 
-  reset_domain_tables :domain_file
+  reset_domain_tables :domain_file, :domain_file_version
   
   before(:each) do
     fdata = fixture_file_upload("files/rails.png",'image/png')
@@ -145,6 +145,43 @@ describe DomainFile do
    @df.destroy
   end
   
-  
+  it "should be able to replace a file" do
+    @df.save
+
+    fdata = fixture_file_upload("files/test.txt", 'text/plain')
+    @textFile = DomainFile.create(:filename => fdata)
+
+    assert_difference 'DomainFileVersion.count', 1 do
+      @hash = @df.replace_file(:replace_id => @textFile.id)
+    end
+
+    @hash.should == {:domain_file_id => @df.id}
+
+    @df.reload
+    @df.name.should == 'test.txt'
+    @df.document?.should be_true
+
+    @version = DomainFileVersion.find :last
+    @version.domain_file_id.should == @df.id
+
+    @df.destroy
+    @textFile.destroy
+  end
+
+  it "should not replace folders" do
+    @df.save
+    @folder = DomainFile.create_folder('Folder 1')
+    assert_difference 'DomainFileVersion.count', 0 do
+      @hash = @folder.replace_file(:replace_id => @df.id)
+    end
+    @hash.should be_nil
+
+    assert_difference 'DomainFileVersion.count', 0 do
+      @hash = @df.replace_file(:replace_id => @folder.id)
+    end
+    @hash.should be_nil
+
+    @df.destroy
+  end
   
 end

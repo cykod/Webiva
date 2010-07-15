@@ -4,7 +4,15 @@ class Server < SystemModel
 
   @@server_name = nil
   def self.server_name
-    @@server_name ||= YAML.load_file("#{RAILS_ROOT}/config/cms.yml")[Rails.env]['server_name'] || 'localhost'
+    return @@server_name if @@server_name
+
+    if File.exists?("#{RAILS_ROOT}/config/server.yml")
+      @@server_name = YAML.load_file("#{RAILS_ROOT}/config/server.yml")['server']['name']
+    else
+      @@server_name = 'localhost'
+    end
+
+    @@server_name
   end
 
   @@server_info = nil

@@ -54,7 +54,10 @@ class DomainFileVersion < DomainModel
   
   # Create a domain file from this file
   def extract(user_id=nil)
-    df = DomainFile.new(:parent_id => self.domain_file.parent_id, :creator_id => user_id || self.creator_id, :private => self.domain_file.private)
+    self.copy_local!
+    return nil unless File.exists?(self.abs_filename)
+
+    df = DomainFile.new(:parent_id => self.domain_file.parent_id, :creator_id => user_id || self.creator_id, :private => self.domain_file.private, :process_immediately => true)
     File.open(self.abs_filename,"rb") do |f|
       df.filename = f
       if(df.save)
@@ -62,7 +65,12 @@ class DomainFileVersion < DomainModel
       end
     end
   end
-  
+
+  def extract_file(options={})
+    file = self.extract
+    {:domain_file_id => file.id} if file
+  end
+
   def prefixed_filename
     # unless we have a filename, return false
     atr = self.read_attribute(:filename)
@@ -105,7 +113,7 @@ class DomainFileVersion < DomainModel
    ###########
    
    def erase_version_file
-    self.domain_file.processor_handler.destroy_remote_version!(self) if self.domain_file.processor != 'local'
+    self.domain_file.processor_handler.destroy_remote_version!(self)
     if !prefix.blank? && (File.directory?(abs_storage_directory))
       FileUtils.rm_rf(abs_storage_directory)
     end

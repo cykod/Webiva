@@ -42,7 +42,10 @@ class DomainFile < DomainModel
   
   attr_accessor :skip_transform
   attr_accessor :process_immediately
-    
+
+  # disable file processing for the instance
+  attr_accessor :skip_post_processing
+
   # Returns the list of built in image sizes
   def self.image_sizes
     @@image_size_array
@@ -54,7 +57,10 @@ class DomainFile < DomainModel
   end
   
   has_and_belongs_to_many :mail_templates,  :join_table => 'domain_files_mail_templates'
-  
+
+  # Very important that before_destroy_get_image_instances is called before the instances are deleted
+  before_destroy :before_destroy_get_image_instances
+
   has_many :instances, :class_name => 'DomainFileInstance', :dependent => :delete_all
   has_many :versions, :class_name => 'DomainFileVersion', :dependent => :destroy, :order => 'domain_file_versions.id DESC'
   
@@ -86,17 +92,20 @@ class DomainFile < DomainModel
    
    # Replace this DomainFile with a different DomainFile
    def replace(file)
-    return false if self.folder? || file.folder?
-    return false if self.id == file.id
-    File.open(file.filename,"rb") do |f|
-      self.filename = f
-      self.name = file.name
-      if(self.save)
-        file.destroy
-        return true
-      end
-    end
-    return false
+     return false if self.folder? || file.folder?
+     return false if self.id == file.id
+
+     self.process_immediately = true
+     self.name = file.name
+
+     File.open(file.filename,"rb") do |f|
+       self.filename = f
+       return false unless self.save
+     end
+
+     file.destroy
+
+     return true
    end
    
    # Copy this DomainFile to a new DomainFile in the same directory
@@ -189,7 +198,14 @@ class DomainFile < DomainModel
      FileUtils.rm_rf(tmp_dir)
      return false
    end
-   
+
+   def replace_file(options={})
+     @replace = DomainFile.find_by_id(options[:replace_id])
+     return unless @replace && ! @replace.folder? && ! self.folder?
+     self.replace @replace
+     {:domain_file_id => self.id}
+   end
+
    before_update :process_file_update
    after_update :update_image_instances
    validate_on_create :preprocess_file
@@ -198,7 +214,8 @@ class DomainFile < DomainModel
    before_save :update_server_hash
 
    before_destroy :cleanup_file
-   
+   after_destroy :update_image_instances
+
    def process_file_update #:nodoc:
     if @file_data && self.id
       # if we already have a file,
@@ -230,20 +247,26 @@ class DomainFile < DomainModel
      self.server_hash = DomainModel.generate_hash unless self.server_hash || self.folder?
    end
 
+   def before_destroy_get_image_instances #:nodoc:
+     @file_change = true
+     @image_instances = self.instances
+   end
+
    def update_image_instances #:nodoc:
-    if @file_change
-      if self.instances.length > 0
-        grouped_targets = self.instances.group_by(&:target_type)
-        
-        # Resave all the targets
-        grouped_targets.each do |target_type,target_list|
-          target_type.constantize.find(:all,:conditions => { :id => target_list.map(&:target_id) }).map(&:save)
-        end
-        DataCache.expire_container('SiteNode')
-        DataCache.expire_container('SiteNodeModifier')
-        DataCache.expire_content
-      end
-    end  
+     if @file_change
+       @image_instances ||= self.instances
+       if @image_instances.length > 0
+         grouped_targets = @image_instances.group_by(&:target_type)
+
+         # Resave all the targets
+         grouped_targets.each do |target_type,target_list|
+           target_type.constantize.find(:all,:conditions => { :id => target_list.map(&:target_id) }).map(&:save)
+         end
+         DataCache.expire_container('SiteNode')
+         DataCache.expire_container('SiteNodeModifier')
+         DataCache.expire_content
+       end
+     end
    end
    
    def validate
@@ -380,7 +403,7 @@ class DomainFile < DomainModel
       unless update  # Resave to update the file information if we are during the creation process
         self.save 
       end
-      post_process!(!self.process_immediately,update) unless @@disable_file_processing
+      post_process!(!self.process_immediately,update) unless @@disable_file_processing || self.skip_post_processing
       
     end
     
@@ -432,18 +455,20 @@ class DomainFile < DomainModel
    end
    
    
-   def prefixed_filename(size=nil)
+   def prefixed_filename(size=nil, opts={})
      atr = self.read_attribute(:filename)
      return nil unless self.prefix && atr
 
      # Only allow valid file sizes
       size = nil unless !size || @@image_sizes[size.to_sym] || DomainFileSize.custom_sizes[size.to_sym]
      
+     opt_prefix = opts[:prefix].to_s
+
      # Special case handling for thumbnails
      if size && self.file_type == 'thm'
-       self.prefixed_directory  + "#{size}/" + (File.basename(atr,".#{extension}") + ".jpg")
+       self.prefixed_directory + opt_prefix + "#{size}/" + (File.basename(atr,".#{extension}") + ".jpg")
      else
-       self.prefixed_directory + (size ? "#{size}/" : '') +  atr
+       self.prefixed_directory + opt_prefix + (size ? "#{size}/" : '') +  atr
      end
    end
    
@@ -567,7 +592,7 @@ class DomainFile < DomainModel
 
   # Returns the temporary folder of the file system
    def self.temporary_folder
-      DomainFile.find(:first,:conditions => ['name = "Temporary" and parent_id = ?', self.root_folder.id]) || DomainFile.create(:name => 'Temporary', :parent_id => self.root_folder.id, :file_type => 'fld') 
+      DomainFile.find(:first,:conditions => 'name = "Temporary" and parent_id IS NULL') || DomainFile.create(:name => 'Temporary', :parent_id => nil, :file_type => 'fld', :special => 'temp') 
    end
    
    # Is this an image
@@ -861,9 +886,9 @@ class DomainFile < DomainModel
     @server ||= Server.find_by_id(self.server_id) if self.server_id
   end
 
-  def self.save_temporary_file(file)
+  def self.save_temporary_file(file, opts={})
     file = File.open(file) if file.is_a?(String)
-    DomainFile.create :filename => file, :parent_id => self.temporary_folder.id, :private => 1, :processor => 'local'
+    DomainFile.create opts.merge(:filename => file, :parent_id => self.temporary_folder.id, :private => 1, :processor => 'local', :special => 'temp')
   end
 
   protected 
@@ -955,9 +980,9 @@ class DomainFile < DomainModel
     end
     
     def self.enable_post_processing #:nodoc:
-      @@disable_file_processing = true
+      @@disable_file_processing = false
     end
-    
+
   def update_private!(value) #:nodoc:
     return false if value != true && value != false
     if value != self.private?
@@ -1008,7 +1033,6 @@ class DomainFile < DomainModel
   class LocalProcessor 
     def initialize(conn,df); @connection=conn, @df = df; end 
     
-    # Don't need to do anything 
     def copy_local!(dest_size=nil)
       return true unless @df.server
       return true if Server.server_id == @df.server.id
@@ -1028,6 +1052,16 @@ class DomainFile < DomainModel
     def destroy_remote!;
       if @df.server_hash && ! @df.folder? && Server.server_id
         key = self.class.set_directories_to_delete(@df.storage_directory)
+        url = "/website/transmit_file/delete/#{DomainModel.active_domain_id}/#{key}"
+        Server.send_to_all url, :except => [Server.server_id]
+        self.class.clear_directories_to_delete(key)
+      end
+      true
+    end
+
+    def destroy_remote_version!(version)
+      if @df.server_hash && Server.server_id
+        key = self.class.set_directories_to_delete(version.storage_directory)
         url = "/website/transmit_file/delete/#{DomainModel.active_domain_id}/#{key}"
         Server.send_to_all url, :except => [Server.server_id]
         self.class.clear_directories_to_delete(key)
@@ -1058,12 +1092,24 @@ class DomainFile < DomainModel
         version.update_attribute(:server_id,Server.server_id)
       end
 
+      key = nil
+      url = nil
+      if @df.server_hash && ! @df.folder? && Server.server_id
+        key = self.class.set_directories_to_delete(@df.storage_directory)
+        url = "/website/transmit_file/delete/#{DomainModel.active_domain_id}/#{key}"
+      end
+
       old_directory = @df.abs_storage_directory
       @df.update_attributes(:private => value, :server_id => Server.server_id)
       FileUtils.mkpath(@df.abs_storage_directory)
       
       # Strip off the final directory so we don't move to a subdirectory 
       File.move(old_directory,@df.abs_storage_directory.split("/")[0..-2].join("/"))
+
+      if key && url
+        Server.send_to_all url, :except => [Server.server_id]
+        self.class.clear_directories_to_delete(key)
+      end
     end
 
     def self.set_directories_to_delete(dirs)
@@ -1303,7 +1349,7 @@ class DomainFile < DomainModel
     end
 
     # calculate used file storage
-    used = DomainFile.sum(:file_size)
+    used = DomainFile.sum(:file_size, :conditions => 'special != "temp"')
     self.cache_put_list('used_file_storage', used)
     DataCache.put_local_cache('used_file_storage', used)
     used
@@ -1316,6 +1362,10 @@ class DomainFile < DomainModel
   def self.available_file_storage
     available = self.max_file_storage - self.used_file_storage
     available > 0 ? available : 0
+  end
+
+  def self.delete_temporary_files
+    DomainFile.find(:all, :conditions => ["special = 'temp' and created_at < ?", 1.day.ago]).each { |file| file.destroy }
   end
 
   protected

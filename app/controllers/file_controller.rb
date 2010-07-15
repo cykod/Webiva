@@ -175,7 +175,7 @@ class FileController < CmsController # :nodoc: all
   def upload
   
     if DomainFile.available_file_storage > 0
-      @upload_file = DomainFile.create(:filename => params[:upload_file][:filename], :parent_id => params[:upload_file][:parent_id], :creator_id => myself.id, :skip_transform => true)
+      @upload_file = DomainFile.create(:filename => params[:upload_file][:filename], :parent_id => params[:upload_file][:parent_id], :creator_id => myself.id, :skip_transform => true, :skip_post_processing => true)
     
       worker_key = FileWorker.async_do_work(:domain_file_id => @upload_file.id,
                                             :domain_id => DomainModel.active_domain_id,
@@ -233,14 +233,29 @@ class FileController < CmsController # :nodoc: all
       
     render :nothing => true
   end
-  
+
+  def processing_file
+    @processing_key = params[:processing_key]
+    return render :nothing => true unless @processing_key
+
+    processor =  @processing_key ? Workling.return.get(@processing_key) : nil
+    @processed = processor && processor[:processed]
+    if @processed
+      @file = DomainFile.find_by_id processor[:domain_file_id]
+      session[:replace_file_worker] = nil
+      session[:extract_file_worker] = nil
+    end
+  end
+
   def replace_file
     @file = DomainFile.find_by_id(params[:file_id].to_i)
-    
     @replace = DomainFile.find_by_id(params[:replace_id].to_i)
-    
-    if @file && @replace
-      @replaced = @file.replace(@replace)
+
+    if @file && @replace && @file.id != @replace.id && ! @file.folder? && ! @replace.folder?
+      worker_key = @file.run_worker(:replace_file, :replace_id => @replace.id)
+      @processing_key  = session[:replace_file_worker] = worker_key
+    else
+      render :nothing => true
     end
   end
   
@@ -256,7 +271,12 @@ class FileController < CmsController # :nodoc: all
   
   def extract_revision
     @revision = DomainFileVersion.find_by_id(params[:revision_id].to_i)
-    @file = @revision.extract
+    if @revision
+      worker_key = @revision.run_worker(:extract_file)
+      @processing_key  = session[:extract_file_worker] = worker_key
+    else
+      render :nothing => true
+    end
   end
   
   def copy_file
@@ -288,8 +308,9 @@ class FileController < CmsController # :nodoc: all
   end
   
   def delete_file
-    file_id = params[:file_id].to_i
-    
+    file_id = params[:file_id]
+    render :nothing => true unless file_id
+
     file = DomainFile.find(file_id)
     file.destroy
     render :nothing => true
@@ -297,7 +318,8 @@ class FileController < CmsController # :nodoc: all
   
   def delete_files
     file_id = params[:file_id]
-    
+    render :nothing => true unless file_id
+
     files = DomainFile.find(file_id)
     dirs = []
     files.each do |fl|

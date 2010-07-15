@@ -21,7 +21,7 @@
   <% end -%>
   </td>
   <% @file_fields.each_index do |idx| %>
-  <td nowrap='1'><%= truncate(row[idx+1],20) %></td>
+  <td nowrap='1'><%= truncate(row[idx+1],:length => 20) %></td>
   <% end -%>
 </tr>
 

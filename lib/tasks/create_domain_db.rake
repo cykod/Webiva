@@ -33,10 +33,10 @@ namespace "cms" do
       ActiveRecord::Base.connection.execute("CREATE DATABASE " + dmn.database)
 
       # Create the basic user
-      ActiveRecord::Base.connection.execute("GRANT SELECT,INSERT,UPDATE,DELETE ON #{dmn.database}.* TO '#{user_name}' IDENTIFIED BY '#{user_password}'")
+      ActiveRecord::Base.connection.execute("GRANT SELECT,INSERT,UPDATE,DELETE ON #{dmn.database}.* TO '#{user_name}'@'%' IDENTIFIED BY '#{user_password}'")
       ActiveRecord::Base.connection.execute("GRANT SELECT,INSERT,UPDATE,DELETE ON #{dmn.database}.* TO '#{user_name}'@localhost IDENTIFIED BY '#{user_password}'")
       # Create the migrator user
-      ActiveRecord::Base.connection.execute("GRANT ALL ON #{dmn.database}.* TO '#{migrator_name}' IDENTIFIED BY '#{migrator_password}'")
+      ActiveRecord::Base.connection.execute("GRANT ALL ON #{dmn.database}.* TO '#{migrator_name}'@'%' IDENTIFIED BY '#{migrator_password}'")
       ActiveRecord::Base.connection.execute("GRANT ALL ON #{dmn.database}.* TO '#{migrator_name}'@localhost IDENTIFIED BY '#{migrator_password}'")
 
       options = { 'production' => {

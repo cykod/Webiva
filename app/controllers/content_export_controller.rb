@@ -55,14 +55,7 @@ class ContentExportController < CmsController # :nodoc: all
     @content_model = ContentModel.find(content_id) 
     if(session[:content_download_worker_key]) 
       results = Workling.return.get(session[:content_download_worker_key])
-
-      send_file(results[:filename],
-          :stream => true,
-	  :type => "text/" + results[:type],
-	  :disposition => 'attachment',
-	  :filename => sprintf("%s_%d.%s",@content_model.name.humanize,Time.now.strftime("%Y_%m_%d"),results[:type])
-	  )
-	  
+      send_domain_file results[:domain_file_id], :type => "text/" + results[:type]
       session[:content_download_worker_key] = nil
     else
       render :nothing => true
