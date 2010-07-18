@@ -16,7 +16,7 @@ class Blog::BlogPost < DomainModel
   validates_presence_of :title
 
   validates_length_of :permalink, :allow_nil => true, :maximum =>  64
-  
+
   validates_datetime :published_at, :allow_nil => true
    
   has_options :status, [ [ 'Draft','draft'], ['Published','published']] 
@@ -86,6 +86,14 @@ class Blog::BlogPost < DomainModel
     return @comments_count if @comments_count
     @comments_count = self.comments.size
     return @comments_count 
+  end
+
+  def self.paginate_published(page,items_per_page)
+    Blog::BlogPost.paginate(page,
+                            :include => [ :active_revision, :blog_categories ],
+                            :order => 'published_at DESC',
+                            :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ?",Time.now],
+                            :per_page => items_per_page)
   end
 
   def generate_permalink!

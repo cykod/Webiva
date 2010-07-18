@@ -53,11 +53,12 @@ class Blog::PageRenderer < ParagraphRenderer
       set_page_connection(:category, list_type_identifier)
     end
 
-    display_string = "#{page}_#{list_type}_#{list_type_identifier}"
+    type_hash = DomainModel.hexdigest("#{list_type}_#{list_type_identifier}")
+    display_string = "#{page}_#{type_hash}"
 
     result = renderer_cache(Blog::BlogPost, display_string) do |cache|
       blog = get_blog
-      return render_paragraph :text => (@options.blog_id.to_i > 0 ? '[Configure paragraph]' : '') unless blog
+      return render_paragraph :text => (@options.blog_id.to_i > 0 ? '[Configure paragraph]' : '') unless blog || @options.blog_id == -1
 
       detail_page =  get_detail_page
       items_per_page = (@options.items_per_page || 1).to_i
@@ -65,15 +66,19 @@ class Blog::PageRenderer < ParagraphRenderer
       entries = []
       pages = {}
   
-      case list_type.to_s
-      when 'category':
-	  pages,entries =  blog.paginate_posts_by_category(page,list_type_identifier,items_per_page)
-      when 'tag':
-	  pages,entries = blog.paginate_posts_by_tag(page,list_type_identifier,items_per_page)
-      when 'archive':
-	  pages,entries = blog.paginate_posts_by_month(page,list_type_identifier,items_per_page)
+      if blog
+        case list_type.to_s
+        when 'category':
+          pages,entries =  blog.paginate_posts_by_category(page,list_type_identifier,items_per_page)
+        when 'tag':
+          pages,entries = blog.paginate_posts_by_tag(page,list_type_identifier,items_per_page)
+        when 'archive':
+          pages,entries = blog.paginate_posts_by_month(page,list_type_identifier,items_per_page)
+        else
+          pages,entries = blog.paginate_posts(page,items_per_page)
+        end
       else
-	pages,entries = blog.paginate_posts(page,items_per_page)
+        pages,entries = Blog::BlogPost.paginate_published(page,items_per_page)
       end
 
       cache[:output] = blog_entry_list_feature(:blog => blog,
@@ -120,7 +125,7 @@ class Blog::PageRenderer < ParagraphRenderer
       set_title(result.title)
       set_content_node(['Blog::BlogPost', result.entry_id])
     else
-      return render_paragraph :text => '' if (['', 'category','tag','archive'].include?(conn_id.to_s)) && site_node.id == @options.list_page_id
+      return render_paragraph :text => '' if (['', 'category','tag','archive'].include?(conn_id.to_s.downcase)) && site_node.id == @options.list_page_id
       raise SiteNodeEngine::MissingPageException.new( site_node, language ) unless editor?
     end
 
@@ -200,7 +205,9 @@ class Blog::PageRenderer < ParagraphRenderer
   protected
 
   def get_blog
-    if @options.blog_id.to_i > 0
+    if @options.blog_id.to_i < 0
+      nil
+    elsif @options.blog_id.to_i > 0
       Blog::BlogBlog.find_by_id(@options.blog_id.to_i)
     elsif editor?
       blog = Blog::BlogBlog.find(:first)

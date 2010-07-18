@@ -101,7 +101,6 @@ Rails::Initializer.run do |config|
 
   if RAILS_ENV == 'test'
     config.gem 'factory_girl',:source => 'http://gemcutter.org'
-    config.gem 'fakeweb'
   end  
 
   if CMS_CACHE_ACTIVE

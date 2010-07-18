@@ -35,7 +35,7 @@ class Blog::PageController < ParagraphController
                         :inputs => [[:category, 'Selected Category', :blog_category_id]]
  
   class EntryListOptions < HashModel
-    attributes :blog_id => nil, :items_per_page => 10, :detail_page => nil, :include_in_path => nil,:blog_target_id => nil, :category => nil
+    attributes :blog_id => 0, :items_per_page => 10, :detail_page => nil, :include_in_path => nil,:blog_target_id => nil, :category => nil
 
 
     def detail_page_id
@@ -46,7 +46,7 @@ class Blog::PageController < ParagraphController
     page_options :detail_page_id
 
     options_form(fld(:blog_id, :select, :options => :blog_options),
-		 fld(:detail_page, :page_selector),
+		 fld(:detail_page, :page_selector,:description => 'Leave blank to use canonical content url'),
 		 fld(:include_in_path, :select, :options => :include_in_path_options),
    	 fld(:items_per_page, :select, :options => (1..50).to_a),
      fld(:blog_target_id, :select, :options => :blog_target_options),
@@ -56,7 +56,7 @@ class Blog::PageController < ParagraphController
     def blog_target_options; Blog::BlogTarget.select_options_with_nil; end
 
     def blog_options
-      [['---Use Page Connection---'.t,'']] + Blog::BlogBlog.find_select_options(:all,:order=>'name')
+      [['---Use Page Connection---'.t,'']] + [['All Blogs'.t,-1]] + Blog::BlogBlog.find_select_options(:all,:order=>'name')
     end
 
     def include_in_path_options
@@ -67,7 +67,7 @@ class Blog::PageController < ParagraphController
   end
     
   class EntryDetailOptions < HashModel
-    attributes :blog_id => nil, :list_page_id => nil, :include_in_path => nil
+    attributes :blog_id => 0, :list_page_id => nil, :include_in_path => nil
       
     integer_options :blog_id
     page_options :list_page_id

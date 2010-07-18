@@ -108,7 +108,13 @@ class Blog::PageFeature < ParagraphFeature
     end
 
     c.expansion_tag('entry:more') { |tag| !tag.locals.entry.preview.blank? }
-    c.link_tag('entry:detail') { |tag|  "#{data[:detail_page]}/#{tag.locals.entry.permalink}" }
+    c.link_tag('entry:detail') do |tag| 
+      if !data[:detail_page].blank?
+        "#{data[:detail_page]}/#{tag.locals.entry.permalink}" 
+      else
+        tag.locals.entry.content_node.link if tag.locals.entry.content_node
+      end
+    end
     c.link_tag('entry:full_detail') { |tag| "#{Configuration.domain_link(data[:detail_page].to_s + '/' + tag.locals.entry.permalink.to_s)}" }
 
     c.value_tag('entry:categories') do |tag|

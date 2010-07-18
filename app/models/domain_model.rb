@@ -337,6 +337,10 @@ class DomainModel < ActiveRecord::Base
      Digest::SHA1.hexdigest(Time.now.to_i.to_s + rand(1e100).to_s)
   end
 
+  def self.hexdigest(val)
+    Digest::SHA1.hexdigest(val)[0..63]
+  end
+
   # Generates a hexdigest hash on a hash
   # by turning the hash into an array, sorting the keys
   # and hashing the resultant array - allows Hash's with the same
