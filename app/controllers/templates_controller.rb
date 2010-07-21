@@ -159,13 +159,14 @@ class TemplatesController < CmsController # :nodoc: all
     @selected_language = params[:selected_language].to_s
     @site_template = SiteTemplate.find(params[:path][0])
     
-    @site_template.set_localization(params[:localize_values],params[:translate],params[:translation])
 
     @site_template.attributes = params[:site_template]
     @site_template.modified_at= Time.now
     @site_template.modified_by=myself.id
 
     @parsing_errors = @site_template.update_zones_and_options
+    @site_template.update_option_values(params[:options])
+    @site_template.set_localization(params[:localize_values],params[:translate],params[:translation])
     
     if(@site_template.parent_template)
       @site_template.save
@@ -174,7 +175,6 @@ class TemplatesController < CmsController # :nodoc: all
       parent.update_zones_and_options
       parent.save
     else
-      @site_template.update_option_values(params[:options])
       @site_template.save
       
       @site_template.update_feature_options
