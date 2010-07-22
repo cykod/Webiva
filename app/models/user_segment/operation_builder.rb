@@ -1,6 +1,6 @@
 
 class UserSegment::OperationBuilder < HashModel
-  attributes :operator => nil, :field => nil, :operation => nil, :arguments => nil, :condition => nil, :parent => nil
+  attributes :operator => nil, :field => nil, :operation => nil, :arguments => nil, :condition => nil, :parent => nil, :index => 1, :previous_operator => nil
 
   def strict?; true; end
   def arguments; @arguments ||= []; end
@@ -10,7 +10,7 @@ class UserSegment::OperationBuilder < HashModel
   end
 
   def condition_options
-    [['', nil], ['Combined', 'and'], ['Or', 'or'], ['And', 'with']]
+    [['Select function', nil], ['Combined', 'and'], ['Or', 'or'], ['And', 'with']]
   end
 
   def validate
@@ -21,6 +21,7 @@ class UserSegment::OperationBuilder < HashModel
 
   def build(opts={})
     self.operator = opts[:operator]
+    self.previous_operator = opts[:previous_operator]
     self.operator = nil if self.operator.blank?
     self.field = opts[:field]
     self.operation = opts[:operation]
@@ -41,7 +42,7 @@ class UserSegment::OperationBuilder < HashModel
 
     if ! self.condition.blank?
       parent = self.condition == 'and' ? self : nil
-      child = (opts[:child] || {}).merge(:parent => parent)
+      child = (opts[:child] || {}).merge(:parent => parent, :previous_operator => self.operator || self.previous_operator)
       self.child_field.build(child)
       self.user_segment_field.child = self.child_field.user_segment_field.to_h if self.condition == 'and'
     end
@@ -68,7 +69,7 @@ class UserSegment::OperationBuilder < HashModel
       if self.parent.nil? || self.parent.user_segment_field.handler == handler
         options = []
         handler[:class].user_segment_fields.each do |field, values|
-          options << [values[:name], field.to_s] unless seen_options[field.to_s]
+          options << ['-  ' + values[:name], field.to_s] unless seen_options[field.to_s]
           seen_options[field.to_s] = 1
         end
         options.sort! { |a, b| a[0] <=> b[0] }
@@ -89,6 +90,10 @@ class UserSegment::OperationBuilder < HashModel
     else
       false
     end
+  end
+
+  def field_builder_name
+    self.user_segment_field.builder_name if self.user_segment_field
   end
 
   def operation_options
@@ -151,7 +156,7 @@ class UserSegment::OperationBuilder < HashModel
   end
 
   def child_field
-    @child_field ||= UserSegment::OperationBuilder.new nil
+    @child_field ||= UserSegment::OperationBuilder.new :index => self.index+1
   end
 
   def self.create_builder(user_segment)
@@ -168,7 +173,7 @@ class UserSegment::OperationBuilder < HashModel
   end
 
   def self.prebuilt_filters_options
-    [['Custom', 'custom']] + self.prebuilt_filters.collect { |filter| [filter[0], filter[0].gsub(/[^a-zA-Z0-9]/, '').downcase] }
+    self.prebuilt_filters.collect { |filter| [filter[0], filter[0].gsub(/[^a-zA-Z0-9]/, '').downcase] }
   end
 
   def self.get_prebuilt_filter(filter)

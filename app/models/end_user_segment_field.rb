@@ -11,7 +11,7 @@ class EndUserSegmentField < UserSegment::FieldHandler
 
   register_field :email, UserSegment::CoreType::StringType, :name => 'Email', :sortable => true, :search_only => true
   register_field :gender, EndUserSegmentType::GenderType, :name => 'Gender', :sortable => true
-  register_field :created, UserSegment::CoreType::DateTimeType, :field => :created_at, :name => 'Created', :sortable => true
+  register_field :created, UserSegment::CoreType::DateTimeType, :field => :created_at, :name => 'Created', :sortable => true, :builder_name => 'Created when?'
   register_field :registered, UserSegment::CoreType::BooleanType, :name => 'Registered', :sortable => true
   register_field :activated, UserSegment::CoreType::BooleanType, :name => 'Activated', :sortable => true
   register_field :user_level, UserSegment::CoreType::NumberType, :name => 'User Level', :sortable => true

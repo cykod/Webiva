@@ -1,20 +1,99 @@
+<style>
+body {
+  color: #3B648C;
+  font-weight: bold;
+  font-size: 11px;
+}
+
+a {
+  color: #3B648C;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a span.inverse_blue {
+  color: #fff;
+  background-color: #3B648C;
+  padding: 0 2px 0 2px;
+  text-decoration: none;
+}
+
+select {
+  width: 265px;
+}
+
+select.condition {
+  width: 140px;
+}
+
+th {
+  text-align: left;
+  padding: 2px 0 2px 5px;
+  background-color: #eee;
+  font-size: 12px;
+}
+
+td {
+  padding-left: 10px;
+}
+
+td.spacer {
+  height: 15px;
+  padding: 0;
+  margin: 0;
+  font-size: 0;
+}
+
+td.heading {
+  color: #fff;
+  background-color: #7098B3;
+  font-size: 15px;
+  padding: 3px 10px 3px 10px;
+}
+
+td.heading a {
+  color: #fff;
+  font-size: 11px;
+  font-weight: normal;
+  text-decoration: none;
+}
+
+ul.arguments {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+ul.arguments li {
+  padding: 6px 0 6px 0;
+}
+
+</style>
 
 <% if @filter.nil? && @segment.nil? && @builder.field.nil? -%>
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr>
+<td class="heading"><%= 'Select or create a filter'.t %></td>
+</tr>
+<tr><th><div style="padding:5px 0 5px 0;"><%= 'Custom filter'.t %></div></th></tr>
+<tr><td class="spacer"></td></tr>
+<tr><td><a href="<%= url_for :controller => 'members', :action => 'builder', :filter => 'custom' %>"><%= 'Create a custom filter &gt;&gt;'.t %></a></td></tr>
+<tr><td class="spacer"></td></tr>
 
-<fieldset id="operation_builder" style="padding:10px 10px 20px 10px; margin:5px;">
-<legend style="font-size:14px; font-weight:bold;">Rule Builder</legend>
+<tr><th><div style="padding:5px 0 5px 0;"><%= 'Pre-built filters'.t %></th></tr>
+<tr><td class="spacer"></td></tr>
+<tr><td>
 <% form_tag do -%>
-<ul style="list-style:none; color:#3B648C; font-weight: bold;">
-<li>Pre-built filters
-  <%= select_tag :filter, options_for_select(UserSegment::OperationBuilder.prebuilt_filters_options), :style => 'width:200px;' %>
-</li>
-<li style="padding-top:5px; width:400px; text-align:left;">
-<%= submit_tag 'Select' %>
-</li>
-</ul>
+  <%= select_tag :filter, options_for_select(UserSegment::OperationBuilder.prebuilt_filters_options), :style => 'width:300px;' %>
+  <%= submit_tag 'Select' %>
 <% end -%>
-
-</fieldset>
+</td>
+</tr>
+</table>
 <% else -%>
   <%= render :partial => 'operation_form' %>
 <% end -%>
