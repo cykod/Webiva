@@ -79,6 +79,15 @@ ul.arguments li {
 <tr>
 <td class="heading"><%= 'Select or create a filter'.t %></td>
 </tr>
+<tr><th><div style="padding:5px 0 5px 0;"><%= 'Popular filters'.t %></div></th></tr>
+<tr><td class="spacer"></td></tr>
+<tr><td>
+<% UserSegment.find(:all, :order => 'updated_at DESC', :limit => 10).each do |segment| -%>
+<div style="padding-bottom:6px;"><a href="<%= url_for :controller => 'members', :action => 'builder', :path => segment.id, :copy => '1' %>"><%= segment.name %></a></div>
+<% end -%>
+</td></tr>
+<tr><td class="spacer"></td></tr>
+
 <tr><th><div style="padding:5px 0 5px 0;"><%= 'Custom filter'.t %></div></th></tr>
 <tr><td class="spacer"></td></tr>
 <tr><td><a href="<%= url_for :controller => 'members', :action => 'builder', :filter => 'custom' %>"><%= 'Create a custom filter &gt;&gt;'.t %></a></td></tr>
