@@ -72,10 +72,26 @@ class UserSegment::FieldHandler
 
   # An array of all the :user_segment :fields handlers info.
   def self.handlers
-    ([ self.get_handler_info(:user_segment, :fields, 'end_user_segment_field'),
-       self.get_handler_info(:user_segment, :fields, 'end_user_action_segment_field'),
-       self.get_handler_info(:user_segment, :fields, 'end_user_tag_segment_field')] +
-       self.get_handler_info(:user_segment, :fields)).uniq
+    key = 'user_segment_field_handlers'
+    return DataCache.local_cache(key) if DataCache.local_cache(key)
+
+    handlers = ([ self.get_handler_info(:user_segment, :fields, 'end_user_segment_field'),
+                  self.get_handler_info(:user_segment, :fields, 'end_user_action_segment_field'),
+                  self.get_handler_info(:user_segment, :fields, 'end_user_tag_segment_field')] +
+                self.get_handler_info(:user_segment, :fields) +
+                self.custom_content_model_handlers).uniq
+
+    DataCache.put_local_cache(key, handlers)
+  end
+
+  def self.custom_content_model_handlers
+    ContentModelField.find(:all, :conditions => {:field_type => 'belongs_to'}).delete_if { |f| f.relation_class != EndUser }.collect do |field|
+      cls = ContentModelSegmentField.create_custom_field_handler_class(field)
+      info = cls.user_segment_fields_handler_info
+      info[:class] = cls
+      info[:identifier] = field.content_model.table_name
+      info
+    end
   end
 
   # A hash of all the fields that can be sorted on
