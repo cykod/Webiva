@@ -63,7 +63,7 @@ class UserSegment::FieldHandler
 
     fields[field.to_sym] = options.merge(:type => type, :handler => self)
     fields[field.to_sym][:name] ||= field.to_s.humanize
-    fields[field.to_sym][:builder_name] ||= field.to_s.humanize
+    fields[field.to_sym][:builder_name] ||= fields[field.to_sym][:name]
     fields[field.to_sym][:field] ||= field.to_sym
     fields[field.to_sym][:display_field] ||= fields[field.to_sym][:field]
 

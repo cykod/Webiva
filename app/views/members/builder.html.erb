@@ -96,9 +96,8 @@ ul.arguments li {
 <tr><th><div style="padding:5px 0 5px 0;"><%= 'Pre-built filters'.t %></th></tr>
 <tr><td class="spacer"></td></tr>
 <tr><td>
-<% form_tag do -%>
-  <%= select_tag :filter, options_for_select(UserSegment::OperationBuilder.prebuilt_filters_options), :style => 'width:300px;' %>
-  <%= submit_tag 'Select' %>
+<% UserSegment::OperationBuilder.prebuilt_filters_options.each do |filter| -%>
+  <div style="padding-bottom:6px;"><a href="<%= url_for :controller => 'members', :action => 'builder', :filter => filter[1] %>"><%= filter[0] %></a></div>
 <% end -%>
 </td>
 </tr>

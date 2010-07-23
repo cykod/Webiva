@@ -167,7 +167,7 @@ class UserSegment::OperationBuilder < HashModel
 
   def self.prebuilt_filters
     [
-      ['New registered users in the last week', {:field => 'registered', :operation => 'is', :argument0 => true, :condition => 'and', :child => {:field => 'created', :operation => 'since', :argument0 => 1, :argument1 => 'week'}}],
+      ['New registered users in the last week', {:field => 'registered', :operation => 'is', :argument0 => true, :condition => 'and', :child => {:field => 'created', :operation => 'since', :argument0 => 1, :argument1 => 'weeks'}}],
       ['Users that have not logged in the last 7 days', {:operator => 'not', :field => 'user_action', :operation => 'is', :argument0 => '/editor/auth/login', :condition => 'and', :child => {:field => 'occurred', :operation => 'since', :argument0 => 7, :argument1 => 'days'}}]
     ]
   end

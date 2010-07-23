@@ -14,13 +14,13 @@ describe UserSegment::CoreType do
     end
 
     it "should return users using before" do
-      @type.before(EndUser, :id, :created_at, 1, 'day').count.should == 2
+      @type.before(EndUser, :id, :created_at, 1, 'days').count.should == 2
       @type.before(EndUser, :id, :created_at, 3, 'days').count.should == 1
       @type.before(EndUser, :id, :created_at, 6, 'days').count.should == 0
     end
 
     it "should return users using since" do
-      @type.since(EndUser, :id, :created_at, 1, 'day').count.should == 1
+      @type.since(EndUser, :id, :created_at, 1, 'days').count.should == 1
       @type.since(EndUser, :id, :created_at, 3, 'days').count.should == 2
       @type.since(EndUser, :id, :created_at, 6, 'days').count.should == 3
     end

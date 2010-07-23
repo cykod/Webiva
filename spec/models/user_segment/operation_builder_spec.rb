@@ -32,7 +32,7 @@ describe UserSegment::OperationBuilder do
 
     # if the operation is invalid for the field it will set it to the first operation
     build(:field => 'email', :operation => 'invalid_operation', :argument0 => 'test@test.dev').valid?.should be_true
-    @builder.operation.should == 'is'
+    @builder.operation.should_not == 'invalid_operation'
     segment.valid?.should be_true
 
     # if the operation is missing an argument then the builder is invalid
@@ -97,6 +97,7 @@ describe UserSegment::OperationBuilder do
 
   it "should have valid prebuilt filters" do
     UserSegment::OperationBuilder.prebuilt_filters.each do |name, options|
+      raise "#{name} #{options.inspect}" unless build(options).valid?
       build(options).valid?.should be_true
       segment.valid?.should be_true
     end
