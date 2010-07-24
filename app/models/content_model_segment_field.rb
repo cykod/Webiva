@@ -40,14 +40,23 @@ class ContentModelSegmentField < UserSegment::FieldHandler
       case field.field_type
       when 'string'
         cls.register_field "#{content_model.table_name}_#{field.field}", UserSegment::CoreType::StringType, :field => field.field, :name => field.name
+      when 'email'
+        cls.register_field "#{content_model.table_name}_#{field.field}", UserSegment::CoreType::StringType, :field => field.field, :name => field.name
+      when 'boolean'
+        cls.register_field "#{content_model.table_name}_#{field.field}", UserSegment::CoreType::BooleanType, :field => field.field, :name => field.name
       when 'date'
         cls.register_field "#{content_model.table_name}_#{field.field}", UserSegment::CoreType::DateTimeType, :field => field.field, :name => field.name
       when 'datetime'
         cls.register_field "#{content_model.table_name}_#{field.field}", UserSegment::CoreType::DateTimeType, :field => field.field, :name => field.name
       when 'integer'
         cls.register_field "#{content_model.table_name}_#{field.field}", UserSegment::CoreType::NumberType, :field => field.field, :name => field.name
+      when 'currency'
+        cls.register_field "#{content_model.table_name}_#{field.field}", UserSegment::CoreType::NumberType, :field => field.field, :name => field.name
       when 'options'
         type = ContentModelSegmentField::OptionsType.create_type field.module_class.available_options.clone
+        cls.register_field "#{content_model.table_name}_#{field.field}", type, :field => field.field, :name => field.name
+      when 'us_state'
+        type = ContentModelSegmentField::OptionsType.create_type Content::CoreField::UsStateField.states_select_options
         cls.register_field "#{content_model.table_name}_#{field.field}", type, :field => field.field, :name => field.name
       end
     end
