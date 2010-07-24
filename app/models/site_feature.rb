@@ -115,4 +115,8 @@ class SiteFeature < DomainModel
     css = override ?  replace_images(self.css) :  self.rendered_css
     Util::CssParser.parse_full(css)
   end  
+
+  def export
+    self.attributes.slice('name', 'description', 'feature_type', 'body', 'options', 'css', 'category', 'archived', 'image_folder_id', 'preprocessor')
+  end
 end

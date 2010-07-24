@@ -595,6 +595,11 @@ class DomainFile < DomainModel
       DomainFile.find(:first,:conditions => 'name = "Temporary" and parent_id IS NULL') || DomainFile.create(:name => 'Temporary', :parent_id => nil, :file_type => 'fld', :special => 'temp') 
    end
    
+  # Returns the themes folder of the file system
+   def self.themes_folder
+     DomainFile.find(:first,:conditions => "name = 'Themes' and parent_id = #{self.root_folder.id}") || DomainFile.create(:name => 'Themes', :parent_id => self.root_folder.id, :file_type => 'fld')
+   end
+   
    # Is this an image
    def image?; self.file_type == 'img'; end
 
