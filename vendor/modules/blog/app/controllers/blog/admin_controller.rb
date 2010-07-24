@@ -45,7 +45,8 @@ class Blog::AdminController < ModuleController
     if(request.post? && params[:blog])
       if(@blog.save)
         if !@blog.add_to_site.blank?
-          redirect_to :controller => '/blog/wizard', :blog_id => @blog.id
+          @version = SiteVersion.current
+          redirect_to :controller => '/blog/wizard', :blog_id => @blog.id, :version => @version.id
           return
         else
           redirect_to :controller => '/blog/manage', :path => @blog.id
