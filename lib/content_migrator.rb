@@ -9,21 +9,18 @@
     end
   end
 
+ def self.connection
+   DomainModel.connection
+ end
+
 
   def self.migrate_domain(dmn)
-    # Do a little connection tomfoolery to
-    # get it to migrate on the right db
-    
-    db_file = YAML.load_file("#{RAILS_ROOT}/config/sites/#{dmn['database']}.yml")
-    ActiveRecord::Base.establish_connection(db_file['migrator'])
-    DomainModel.establish_connection(db_file['migrator'])
-    
-    migrate(:up)
+    domain = Domain.find(dmn['id'])
+    dmn = domain.get_info
 
-    DomainModel.connection.reconnect!
-    db_file = YAML.load_file("#{RAILS_ROOT}/config/cms.yml")
-    ActiveRecord::Base.establish_connection(db_file[RAILS_ENV])
-    ActiveRecord::Base.connection.reconnect!
+    # Get us the migrator DB
+    DomainModel.establish_connection(dmn[:domain_database][:options]['migrator'])
+    migrate(:up)
   end
 
 end
