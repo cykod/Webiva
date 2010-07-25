@@ -40,6 +40,11 @@ class PageRevision < DomainModel
 
   end
 
+  def display_variables
+    return @display_variables if @display_variables
+    @display_variables = (self.variables || {}).clone
+  end
+
   def self.deactivate_page_revision(page,revision_id)
 
     active_rev = page.page_revisions.find_by_id(revision_id)

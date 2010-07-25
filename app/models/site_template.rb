@@ -139,13 +139,13 @@ class SiteTemplate < DomainModel
         parsing_errors << ('Error Parsing Design Styles of %s:' / self.name)  + err.to_s.t
       end
       
-#  	  self.site_features.each do |feature|
-#        begin
-#    	  	template_parser.parse(feature.body)
-#        rescue Exception =>  err
-#          parsing_errors << ('Error Parsing Feature %s:' / feature.name)  + err.to_s.t
-#        end
-#  	  end
+  	  self.site_features.each do |feature|
+        begin
+   	  	template_parser.parse(feature.body)
+        rescue Exception =>  err
+          parsing_errors << ('Error Parsing Feature %s:' / feature.name)  + err.to_s.t
+        end
+  	  end
   	  
       begin
   	   template_parser.parse(self.template_html)
@@ -252,10 +252,16 @@ class SiteTemplate < DomainModel
   	saved_values = {}
     self.options[:options].each do |opt|
       var_name = opt[0]
-      if values && values[var_name] 
+      if values && !values[var_name].blank? 
         saved_values[var_name] = values[var_name] 
       elsif opt[6]
-        saved_values[var_name] = opt[6]
+        if opt[2] == 'image'
+          parent = self.domain_file
+          img = DomainFile.find_by_file_path(parent.file_path + "/" + opt[6]) if parent
+          saved_values[var_name] = img.id if img
+        else
+          saved_values[var_name] = opt[6]
+        end
       end
     end
     self.options[:values] = saved_values
@@ -423,13 +429,12 @@ class SiteTemplate < DomainModel
         value
       when 'image':
         img = DomainFile.find_by_id(value)
-        img ? img.url : '/images/spacer.gif'
+        img ? img.image_tag : '/images/spacer.gif'
       when 'src':
         img = DomainFile.find_by_id(value)
         img ? img.url : ''
-      when 'node':
-        nd = SiteNode.find_by_id(value)
-        nd ? nd.node_path : ''
+      when 'url':
+        value
       else
         value
       end

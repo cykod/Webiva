@@ -961,7 +961,8 @@ EOF
   # content and paragraph attribute hashes
   def render_page_elements()
     @active_template = SiteTemplate.find(@page_information.site_template_id) unless @active_template
-    variables = @revision.variables || {}
+
+    variables = (@revision.display_variables || {}).clone
 
     # Generate an array of strings (for static content),
     # and hashs (for zones with paragraphs)
