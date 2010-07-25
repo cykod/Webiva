@@ -5,7 +5,7 @@
 <%= f.radio_buttons :order_direction, UserSegment.order_direction_select_options %>
   <% if @segment.segment_type == 'filtered' -%>
     <% f.custom_field 'Filter' do %>
-      <div><a href="javascript:void(0)" onclick='openWindow("<%= url_for(:action => "builder", :path => @segment.id) %>" ,"operationBuilder",460,500,"yes","yes");'><%= @segment.id ? 'Edit filter'.t : 'Create a filter'.t %></a></div>
+      <div><a href="javascript:void(0)" onclick='openWindow("<%= url_for(:action => "builder", :path => @segment.id) %>" ,"operationBuilder",550,500,"yes","yes");'><%= @segment.id ? 'Edit filter'.t : 'Create a filter'.t %></a></div>
 
       <div>
         <%= "<div style='padding: 2px 0 2px 0' class='error'>#{f.output_error_message('Filter', :segment_options_text)}</div>" if @segment.errors[:segment_options_text] %>

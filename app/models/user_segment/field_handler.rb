@@ -38,6 +38,8 @@ class UserSegment::FieldHandler
   #
   # [:name]
   #   the display name of the field, by default humanizes the field
+  # [:builder_name]
+  #   the name to use inside the filter builder
   # [:field]
   #   the actual field in the model, by default uses field
   # [:display_field]
@@ -61,6 +63,7 @@ class UserSegment::FieldHandler
 
     fields[field.to_sym] = options.merge(:type => type, :handler => self)
     fields[field.to_sym][:name] ||= field.to_s.humanize
+    fields[field.to_sym][:builder_name] ||= fields[field.to_sym][:name]
     fields[field.to_sym][:field] ||= field.to_sym
     fields[field.to_sym][:display_field] ||= fields[field.to_sym][:field]
 

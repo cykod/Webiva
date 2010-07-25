@@ -1,11 +1,7 @@
 
 <% cms_unstyled_fields_for form_id, builder do |f| %>
-<table style="padding:5px;">
   <% builder.operation_arguments.each_with_index do |arg, idx| -%>
-    <tr>
-    <td class="label" valign="baseline"><%= builder.operation_argument_names[idx] %></td>
-    <td class="data" valign="baseline">
-
+    <li>
     <% 
        arg_options = builder.operation_argument_options[idx]
        description = arg_options[:description]
@@ -20,9 +16,7 @@
     <% else -%>
       <%= f.text_field "argument#{idx}" %>
     <% end -%>
-    </td>
-    </tr>
-    <%= "<tr><td>&nbsp;</td><td class='description'>#{description}</td></tr>" if description %>
+    <%= "<br/><span class='description'>#{description}</span>" if description %>
+    </li>
   <% end -%>
-</table>
 <% end %>

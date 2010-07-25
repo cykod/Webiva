@@ -122,6 +122,10 @@ class UserSegment::Field < HashModel
     self.operation_info[:complex] if self.operation_info
   end
 
+  def builder_name
+    self.handler_class.user_segment_fields[self.field.to_sym][:builder_name] if self.handler_class && self.handler_class.user_segment_fields && self.handler_class.user_segment_fields[self.field.to_sym]
+  end
+
   def type_class
     @type_class ||= self.handler_class.user_segment_fields[self.field.to_sym][:type] if self.handler_class && self.handler_class.user_segment_fields && self.handler_class.user_segment_fields[self.field.to_sym]
   end
