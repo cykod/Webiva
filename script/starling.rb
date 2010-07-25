@@ -4,7 +4,7 @@ require 'yaml'
 
 path = File.dirname(__FILE__)
 
-config = YAML.load_file(path + "/../config/defaults.yml")
+config = YAML.load_file(path + "/../config/defaults.yml") || {}
 
 env = ENV['RAILS_ENV'] || 'production'
 
