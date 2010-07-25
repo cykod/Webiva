@@ -80,8 +80,9 @@ namespace "cms" do
           DomainFile.find_in_batches(:conditions => 'file_type != "fld"') { |files| files.each { |file| file.filename } }
         end
 
-        cms_backup_file_store(dmn.file_store,domain_dir)
       end
+
+      cms_backup_file_store(dmn.file_store,domain_dir) unless ENV['SKIP_FILES']
 
       puts("...Done")
     end
