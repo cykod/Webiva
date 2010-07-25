@@ -126,7 +126,7 @@ class EditController < ModuleController # :nodoc: all
       if mod.modifier_type == 'template'
         if mod.modifier_data && mod.modifier_data[:template_id]
           current_template = SiteTemplate.find_by_id(mod.modifier_data[:template_id],:select => 'id,parent_id')
-          current_template_id = current_template.parent_id || mod.modifier_data[:template_id]
+          current_template_id = current_template.parent_id || mod.modifier_data[:template_id] if current_template
         end 
       elsif mod.modifier_type == 'page' && page.node_type == 'P'
         page_list << [ page, current_template_id ]
