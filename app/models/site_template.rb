@@ -731,34 +731,22 @@ class SiteTemplate < DomainModel
   
   public
 
-  def export
+  def export_to_bundle(bundler)
+    bundler.add_folder(self.domain_file) if self.domain_file
+
     data = self.attributes.slice('name', 'description', 'template_html', 'options', 'style_struct', 'style_design', 'template_type', 'head', 'doctype', 'partial', 'lightweight', 'preprocessor', 'domain_file_id')
-    data['features'] = self.site_features.collect { |feature| feature.export }
-    data['children'] = self.child_templates.collect { |child| child.export }
+    data['features'] = self.site_features.collect { |feature| feature.export_to_bundle(bundler) }.compact
+    data['children'] = self.child_templates.collect { |child| child.export_to_bundle(bundler) }
     data['zones'] = self.site_template_zones.collect { |zone| zone.name }
     data
   end
 
-  def all_folders
-    folders = [self.domain_file]
-    self.site_features.each do |feature|
-      folders << feature.domain_file
-    end
-
-    self.child_templates.each do |child|
-      folders = folders + child.all_folders
-    end
-
-    folders.delete_if { |f| f.nil? }.uniq
-  end
-
-  # folders is {<original domain_file_id> => <new DomainFile>, ...}
-  def self.import(data, folders)
+  def self.import_bundle(bundler, data)
     # Get the new images folder
-    folder = data['domain_file_id'] ? folders[data['domain_file_id']] : nil
+    domain_file_id = data['domain_file_id'] ? bundler.get_new_input_id(DomainFile, data['domain_file_id']) : nil
 
     # Create the site template
-    site_template = SiteTemplate.create data.slice('name', 'description', 'template_html', 'options', 'style_struct', 'style_design', 'template_type', 'head', 'doctype', 'partial', 'lightweight', 'preprocessor', 'parent_id').merge('domain_file_id' => folder ? folder.id : nil)
+    site_template = SiteTemplate.create data.slice('name', 'description', 'template_html', 'options', 'style_struct', 'style_design', 'template_type', 'head', 'doctype', 'partial', 'lightweight', 'preprocessor', 'parent_id').merge('domain_file_id' => domain_file_id)
 
     # Create the zones
     data['zones'].each_with_index do |name, idx|
@@ -767,14 +755,14 @@ class SiteTemplate < DomainModel
 
     # Create the features
     data['features'].each do |feature|
-      folder = feature['image_folder_id'] ? folders[feature['image_folder_id']] : nil
-      site_template.site_features.create feature.merge('image_folder_id' => folder ? folder.id : nil)
+      image_folder_id = feature['image_folder_id'] ? bundler.get_new_input_id(DomainFile, feature['image_folder_id']) : nil
+      site_template.site_features.create feature.merge('image_folder_id' => image_folder_id)
     end
 
     # Create the templates children
     data['children'].each do |child|
       child['parent_id'] = site_template.id
-      SiteTemplate.import child, folders
+      SiteTemplate.import_bundle bundler, child
     end
   end
 end

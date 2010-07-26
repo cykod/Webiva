@@ -236,7 +236,7 @@ class TemplatesController < CmsController # :nodoc: all
                 hdr(:string,'site_features.name'),
                 hdr(:string,'site_features.category'),
                 hdr(:string,:feature_type,:label => 'Paragraph Theme Type'),
-                hdr(:options,'site_template_id',:options => :site_template_names),
+                hdr(:options,'site_template_id',:options => :site_template_names, :label => 'Theme'),
                 hdr(:date_range,'site_features.updated_at')                
               ]
               

@@ -1,17 +1,47 @@
+require 'yaml'
 
 class WebivaBundler
+  VERSION = '1.0'
 
-  # Bundle file looks like
-  # MANIFEST is a YAML file
-  # theme is a SiteTemplate
-  # returns a DomainFile that is the bundle file.
-  def export(name, site_template, meta={})
-    meta = meta.stringify_keys.merge('name' => name)
-    theme = site_template.export
+  attr_accessor :name, :data, :thumb, :domain_files, :meta, :modules, :inputs, :creator_id
 
+  def initialize
+    @data = []
+    @inputs = {}
+    @meta = {}
+    @domain_files = []
+    @modules = []
+  end
+
+  def add_folder(folder)
+    self.domain_files << folder
+  end
+
+  def add_input(cls, id, hsh={})
+    self.inputs["#{cls.to_s}_#{id}"] = (self.inputs["#{cls.to_s}_#{id}"] || {}).merge(hsh.stringify_keys)
+  end
+
+  def get_new_input_id(cls, id)
+    self.inputs["#{cls.to_s}_#{id}"]['id']
+  end
+
+  def get_new_input(cls, id)
+    self.inputs["#{cls.to_s}_#{id}"]['obj']
+  end
+
+  def export_object(obj)
+    self.data << {'data' => obj.export_to_bundle(self), 'name' => obj.name, 'handler' => obj.class.to_s.underscore}
+  end
+
+  def import_object(info)
+    handler = info['handler'].camelcase.constantize
+    handler.import_bundle(self, info['data'])
+  end
+
+  def export
     dir = DomainFile.generate_temporary_directory
 
-    folders = site_template.all_folders.collect do |folder|
+    folders = self.domain_files.uniq.collect do |folder|
       { 'id' => folder.id,
         'filename' => File.basename(self.export_folder(dir, folder)),
         'name' => folder.name
@@ -19,20 +49,27 @@ class WebivaBundler
     end
 
     manifest = {
-      'meta' => meta,
-      'theme' => 'theme.yml',
-      'folders' => folders
+      'version' => VERSION,
+      'name' => self.name,
+      'meta' => self.meta,
+      'data' => 'data.yml',
+      'folders' => folders,
+      'modules' => self.modules.uniq,
+      'thumb' => self.thumb ? self.thumb.name : nil,
+      'inputs' => self.inputs
     }
 
-    File.open("#{dir}/theme.yml", "w") { |fd| fd.write(YAML.dump({'theme' => theme})) }
+    File.open("#{dir}/data.yml", "w") { |fd| fd.write(YAML.dump({'data' => self.data})) }
 
-    File.open("#{dir}/MANIFEST", "w") { |fd| fd.write(YAML.dump(manifest)) }
+    File.open("#{dir}/MANIFEST.yml", "w") { |fd| fd.write(YAML.dump(manifest)) }
+
+    File.copy(self.thumb.filename, "#{dir}/#{self.thumb.name}") if self.thumb
 
     bundle_filename = name.downcase.gsub(/[ _]+/,"_").gsub(/[^a-z+0-9_]/,"") + ".bundle"
     `cd #{dir}; tar zcf ../#{bundle_filename} *`
 
     file = File.open("#{dir}/../#{bundle_filename}")
-    bundle = DomainFile.create :filename => file, :parent_id => DomainFile.themes_folder.id, :process_immediately => true, :private => true, :special => 'bundle'
+    bundle = DomainFile.create :filename => file, :parent_id => DomainFile.themes_folder.id, :process_immediately => true, :private => true, :creator_id => self.creator_id
   
     FileUtils.rm_rf(dir)
     FileUtils.rm_rf("#{dir}/../#{bundle_filename}")
@@ -42,30 +79,33 @@ class WebivaBundler
 
   # bundle_file is a DomainFile
   def import(bundle_file)
+    self.creator_id ||= bundle_file.creator_id
+
     dir = DomainFile.generate_temporary_directory
     File.copy(bundle_file.filename, "#{dir}/#{bundle_file.name}")
     `cd #{dir}; tar zxf #{bundle_file.name}`
 
-    manifest = YAML.load_file("#{dir}/MANIFEST")
+    manifest = YAML.load_file("#{dir}/MANIFEST.yml")
+    self.name = manifest['name']
+    self.meta = manifest['meta']
+    self.inputs = manifest['inputs']
+    self.modules = manifest['modules']
 
-    meta = manifest['meta']
-
-    folders = {}
     unless manifest['folders'].empty?
-      theme_folder = DomainFile.create(:name => meta['name'], :parent_id => DomainFile.themes_folder.id, :file_type => 'fld')
-      primary_folder = manifest['folders'].shift
-      DomainFile.new(:filename => "#{dir}/#{primary_folder['filename']}", :parent_id => theme_folder.id).extract
-      folders[primary_folder['id']] = theme_folder
+      theme_folder = DomainFile.create(:name => self.name, :parent_id => DomainFile.themes_folder.id, :file_type => 'fld', :creator_id => self.creator_id)
+      self.import_folder(dir, manifest['folders'].shift, theme_folder)
 
-      manifest['folders'].each do |folder_id, info|
-        folder = DomainFile.create(:name => info['name'], :parent_id => theme_folder.id, :file_type => 'fld')
-        DomainFile.new(:filename => "#{dir}/#{info['filename']}", :parent_id => folder.id).extract
-        folders[info['id']] = folder
+      manifest['folders'].each do |info|
+        folder = DomainFile.create(:name => info['name'], :parent_id => theme_folder.id, :file_type => 'fld', :creator_id => self.creator_id)
+        self.import_folder(dir, info, folder)
       end
     end
 
-    theme = YAML.load_file("#{dir}/#{manifest['theme']}")
-    SiteTemplate.import theme['theme'], folders
+    self.data = YAML.load_file("#{dir}/#{manifest['data']}")['data']
+
+    self.data.each { |info| self.import_object(info) }
+
+    FileUtils.rm_rf(dir)
   end
 
   def export_folder(dir, folder)
@@ -79,5 +119,15 @@ class WebivaBundler
     `cd #{dir}; zip -r ../#{dest_filename} *`
     FileUtils.rm_rf(dir)
     dest_filename
+  end
+
+  def import_folder(dir, info, theme_folder)
+    self.add_input(DomainFile, info['id'], {'id' => theme_folder.id, 'obj' => theme_folder})
+    dir = "#{dir}/#{info['id']}"
+    FileUtils.mkpath(dir)
+    `cd #{dir}; unzip ../#{info['filename']}`
+    file_ids = DomainFile.new(:creator_id => self.creator_id).extract_directory(dir, theme_folder.id)
+    DomainFile.find(file_ids).each { |file| file.post_process!(false) }
+    FileUtils.rm_rf(dir)
   end
 end
