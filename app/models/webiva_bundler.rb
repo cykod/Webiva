@@ -65,7 +65,7 @@ class WebivaBundler
 
     File.copy(self.thumb.filename, "#{dir}/#{self.thumb.name}") if self.thumb
 
-    bundle_filename = name.downcase.gsub(/[ _]+/,"_").gsub(/[^a-z+0-9_]/,"") + ".bundle"
+    bundle_filename = name.downcase.gsub(/[ _]+/,"_").gsub(/[^a-z+0-9_]/,"") + ".webiva"
     `cd #{dir}; tar zcf ../#{bundle_filename} *`
 
     file = File.open("#{dir}/../#{bundle_filename}")

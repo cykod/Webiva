@@ -31,38 +31,38 @@ class TemplatesController < CmsController # :nodoc: all
    include ActiveTable::Controller   
    active_table :site_templates_table,
                 SiteTemplate,
-                [ ActiveTable::StringHeader.new('name'),
-                  ActiveTable::OptionHeader.new('template_type', :label => 'Type',:options => :type_options),
-                  ActiveTable::OrderHeader.new('IF(parent_id,parent_id,id), parent_id, name',:label => 'Parent'),
-                  ActiveTable::StringHeader.new('description'),
-                  ActiveTable::IconHeader.new('',:width => '15')
+                [ hdr(:icon, ''),
+                  hdr(:string, 'name'),
+                  hdr(:options, 'template_type', :label => 'Type',:options => :type_options),
+                  hdr(:order, 'IF(parent_id,parent_id,id), parent_id, name',:label => 'Parent'),
+                  hdr(:string, 'description'),
+                  hdr(:static, '')
                 ]
   def type_options; SiteTemplate.template_type_select_options; end
 
   public
   # List of current templates in the site
   def index
-    templates_table(false)
-    
     cms_page_path [ "Options" ], "Themes" 
-    
+
+    display_site_templates_table(false)
+
     render :action => 'index'
   end
   
-  def templates_table(render_partial = true)
+  def display_site_templates_table(display=true)
+    active_table_action 'template' do |act,ids|
+      case act
+      when 'delete'
+        SiteTemplate.destroy ids
+      end
+    end
+
     @active_table_output = site_templates_table_generate params, :order => 'IF(parent_id,parent_id,id), parent_id, name ', :per_page => 20
   
-    render :partial => 'templates_table' if render_partial
+    render :partial => 'templates_table' if display
   end
   
-  # Delete the template given by templates_id
-  def delete_template
-    @site_template = SiteTemplate.find(params[:path][0])
-    @site_template.destroy
-    #flash[:notice] = 'Deleted Template: "%s"' / @site_template.name
-    templates_table
-  end
-
   def new
     @site_template = SiteTemplate.new(params[:site_template])
     

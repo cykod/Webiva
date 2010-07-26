@@ -382,7 +382,7 @@ class FileController < CmsController # :nodoc: all
     domain_file = DomainFile.find(file_id)
     filename = domain_file.filename(size)
     mime_types =  MIME::Types.type_for(filename) 
-    mime_types = ['application/x-gzip'] if domain_file.name =~ /\.bundle$/
+    mime_types = ['application/x-gzip'] if domain_file.name =~ /\.webiva$/
 
     send_file(filename,
               :type => mime_types[0] ? mime_types[0].to_s : 'text/plain',
