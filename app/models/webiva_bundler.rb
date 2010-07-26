@@ -161,7 +161,10 @@ class WebivaBundler < HashModel
     File.copy(self.bundle_file.filename, "#{dir}/#{self.bundle_file.name}")
     `cd #{dir}; tar zxf #{self.bundle_file.name} MANIFEST.yml`
 
-    return nil unless File.exists?("#{dir}/MANIFEST.yml")
+    unless File.exists?("#{dir}/MANIFEST.yml")
+      FileUtils.rm_rf(dir)
+      return nil
+    end
 
     manifest = YAML.load_file("#{dir}/MANIFEST.yml")
     self.version = manifest['version']
