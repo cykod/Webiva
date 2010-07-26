@@ -55,6 +55,18 @@ class TemplatesController < CmsController # :nodoc: all
       case act
       when 'delete'
         SiteTemplate.destroy ids
+      when 'export'
+        bundler = WebivaBundler.new params[:bundler]
+        if bundler.valid?
+          SiteTemplate.find(ids).each do |template|
+            bundler.export_object template
+          end
+          bundle = bundler.export
+          render :update do |page|
+            page.redirect_to bundle.url
+          end
+          return
+        end
       end
     end
 
@@ -62,7 +74,37 @@ class TemplatesController < CmsController # :nodoc: all
   
     render :partial => 'templates_table' if display
   end
-  
+
+  def create_bundle
+    @bundler = WebivaBundler.new params[:bundler]
+    @templates = params[:template]
+
+    if @templates.nil? || @templates.empty?
+      render :update do |page|
+        page << 'RedBox.close();'
+      end
+      return
+    end
+
+    if request.post?
+      if params[:commit]
+        if @bundler.valid?
+          SiteTemplate.find(@templates.values).each do |template|
+            @bundler.export_object template
+          end
+          bundle = @bundler.export
+          render :update do |page|
+            page << 'RedBox.close();'
+            page.redirect_to bundle.url
+          end
+          return
+        end
+      end
+    end
+
+    render :partial => 'create_bundle'
+  end
+
   def new
     @site_template = SiteTemplate.new(params[:site_template])
     

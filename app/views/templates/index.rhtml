@@ -1,5 +1,11 @@
 <script>
 <%= active_table_javascript %>
+
+SiteTemplateList = {
+  setupBundle: function() {
+    SCMS.remoteOverlay("<%= url_for :action => 'create_bundle' %>", Form.serialize('site_templates_table_update_form'), 'post');
+  }
+}
 </script>
 
 <% action_panel do |p| -%>
