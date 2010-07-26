@@ -79,18 +79,16 @@ class TemplatesController < CmsController # :nodoc: all
     @bundler = WebivaBundler.new params[:bundler]
     @templates = params[:template]
 
-    @site_template = SiteTemplate.find @templates.values[0]
-    @bundler.name ||= @site_template.name
-    @bundler.author ||= myself.name unless myself.name == 'Administrative User'
+    @templates.delete_if { |k,v| t = SiteTemplate.find(v); t.nil? || t.parent_id } if @templates
+    @templates = nil if @templates && @templates.empty?
 
-    if @templates.nil? || @templates.empty?
-      render :update do |page|
-        page << 'RedBox.close();'
-      end
-      return
+    if @templates
+      @site_template = SiteTemplate.find @templates.values[0]
+      @bundler.name ||= @site_template.name
+      @bundler.author ||= myself.name unless myself.name == 'Administrative User'
     end
 
-    if request.post?
+    if request.post? && @templates
       if params[:commit]
         if @bundler.valid?
           SiteTemplate.find(@templates.values).each do |template|
