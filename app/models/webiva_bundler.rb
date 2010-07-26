@@ -3,13 +3,22 @@ require 'yaml'
 class WebivaBundler < HashModel
   VERSION = '1.0'
 
-  attributes :name => nil, :thumb_id => nil, :domain_files => nil, :modules => nil, :inputs => nil, :creator_id => nil
+  attr_accessor :importing
 
-  domain_file_options :thumb_id
+  attributes :version => nil, :name => nil, :thumb_id => nil, :domain_files => nil, :modules => nil, :inputs => nil, :creator_id => nil, :bundle_file_id => nil
 
-  validates_presence_of :name
+  domain_file_options :thumb_id, :bundle_file_id
 
   def strict?; true; end
+
+  def validate
+    if self.importing
+      self.errors.add(:bundle_file_id, 'is missing') unless self.bundle_file
+      self.errors.add(:bundle_file_id, 'is invalid') if self.bundle_file && (self.bundle_file.extension != 'webiva' || self.get_bundle_info.nil?)
+    else
+      self.errors.add(:name, 'is missing') unless self.name
+    end
+  end
 
   def data; @data ||= []; end
   def domain_files; @domain_files ||= []; end
@@ -60,8 +69,10 @@ class WebivaBundler < HashModel
       }
     end
 
+    self.version = VERSION
+
     manifest = {
-      'version' => VERSION,
+      'version' => self.version,
       'name' => self.name,
       'meta' => self.meta,
       'data' => 'data.yml',
@@ -82,24 +93,26 @@ class WebivaBundler < HashModel
 
     file = File.open("#{dir}/../#{bundle_filename}")
     bundle = DomainFile.create :filename => file, :parent_id => DomainFile.themes_folder.id, :process_immediately => true, :private => true, :creator_id => self.creator_id
-  
+    self.bundle_file_id = bundle.id
+
     FileUtils.rm_rf(dir)
     FileUtils.rm_rf("#{dir}/../#{bundle_filename}")
 
     bundle
   end
 
-  # bundle_file is a DomainFile
-  def import(bundle_file)
+  def import
+    raise "No bundle specified" unless self.bundle_file
+
     self.creator_id ||= bundle_file.creator_id
 
     dir = DomainFile.generate_temporary_directory
-    File.copy(bundle_file.filename, "#{dir}/#{bundle_file.name}")
-    `cd #{dir}; tar zxf #{bundle_file.name}`
+    File.copy(self.bundle_file.filename, "#{dir}/#{self.bundle_file.name}")
+    `cd #{dir}; tar zxf #{self.bundle_file.name}`
 
     manifest = YAML.load_file("#{dir}/MANIFEST.yml")
     self.name = manifest['name']
-    self.meta = manifest['meta']
+    @meta = manifest['meta']
     self.inputs = manifest['inputs']
     self.modules = manifest['modules']
 
@@ -113,7 +126,7 @@ class WebivaBundler < HashModel
       end
     end
 
-    self.data = YAML.load_file("#{dir}/#{manifest['data']}")['data']
+    @data = YAML.load_file("#{dir}/#{manifest['data']}")['data']
 
     self.data.each { |info| self.import_object(info) }
 
@@ -141,5 +154,41 @@ class WebivaBundler < HashModel
     file_ids = DomainFile.new(:creator_id => self.creator_id).extract_directory(dir, theme_folder.id)
     DomainFile.find(file_ids).each { |file| file.post_process!(false) }
     FileUtils.rm_rf(dir)
+  end
+
+  def get_bundle_info
+    dir = DomainFile.generate_temporary_directory
+    File.copy(self.bundle_file.filename, "#{dir}/#{self.bundle_file.name}")
+    `cd #{dir}; tar zxf #{self.bundle_file.name} MANIFEST.yml`
+
+    return nil unless File.exists?("#{dir}/MANIFEST.yml")
+
+    manifest = YAML.load_file("#{dir}/MANIFEST.yml")
+    self.version = manifest['version']
+    self.name = manifest['name']
+    @meta = manifest['meta']
+    self.inputs = manifest['inputs']
+    self.modules = manifest['modules']
+
+    unless manifest['thumb'].blank? || self.thumb
+      thumbnail_folder = DomainFile.find(:first,:conditions => "name = 'Thumbnails' and parent_id = #{DomainFile.themes_folder.id}") || DomainFile.create(:name => 'Thumbnails', :parent_id => DomainFile.themes_folder.id, :file_type => 'fld')
+      `cd #{dir}; tar zxf #{self.bundle_file.name} #{manifest['thumb']}`
+      File.open("#{dir}/#{manifest['thumb']}", "r") do |fd|
+        self.thumb_id = DomainFile.create :filename => fd, :parent_id => thumbnail_folder.id, :process_immediately => true
+      end
+    end
+
+    FileUtils.rm_rf(dir)
+
+    manifest
+  end
+
+  def run_worker
+    DomainModel.run_worker(self.class.to_s, nil, :import_bundle, :bundle_file_id => self.bundle_file_id, :inputs => self.inputs)
+  end
+
+  def self.import_bundle(opts={})
+    bundler = WebivaBundler.new :bundle_file_id => opts[:bundle_file_id], :inputs => opts[:inputs]
+    bundler.import
   end
 end

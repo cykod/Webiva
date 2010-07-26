@@ -109,6 +109,39 @@ class TemplatesController < CmsController # :nodoc: all
     render :partial => 'create_bundle'
   end
 
+  def import_bundle
+    cms_page_path [ "Options", "Themes" ], "Import Webiva Bundle"
+
+    if params[:key]
+      @processing = true
+      processor = Workling.return.get(params[:key])
+      if processor && processor[:processed]
+        session[:webiva_bundler_worker_key] = nil
+        flash[:notice] = 'Webiva bundle import finished'.t
+        redirect_to :action => 'index'
+      else
+        headers['Refresh'] = '5; URL=' + url_for(:key => params[:key])
+      end
+      return
+    end
+
+    @bundler = WebivaBundler.new params[:bundler]
+    @bundler.importing = true
+
+    if request.post?
+      if @bundler.valid?
+        if params[:commit]
+          session[:webiva_bundler_worker_key] = @bundler.run_worker
+          redirect_to :action => 'import_bundle', :key => session[:webiva_bundler_worker_key]
+        elsif params[:select]
+          # nothing to do
+        else
+          redirect_to :action => 'index'
+        end
+      end
+    end
+  end
+
   def new
     @site_template = SiteTemplate.new(params[:site_template])
     
