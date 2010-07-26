@@ -89,20 +89,22 @@ class WebivaBundler < HashModel
     File.copy(self.thumb.filename, "#{dir}/#{self.thumb.name}") if self.thumb
 
     bundle_filename = name.downcase.gsub(/[ _]+/,"_").gsub(/[^a-z+0-9_]/,"") + ".webiva"
+    File.unlink("#{dir}/../#{bundle_filename}") if File.exists?("#{dir}/../#{bundle_filename}")
     `cd #{dir}; tar zcf ../#{bundle_filename} *`
 
-    file = File.open("#{dir}/../#{bundle_filename}")
-    bundle = DomainFile.create :filename => file, :parent_id => DomainFile.themes_folder.id, :process_immediately => true, :private => true, :creator_id => self.creator_id
-    self.bundle_file_id = bundle.id
+    File.open("#{dir}/../#{bundle_filename}") do |fd|
+      bundle = DomainFile.create :filename => fd, :parent_id => DomainFile.themes_folder.id, :process_immediately => true, :private => true, :creator_id => self.creator_id
+      self.bundle_file_id = bundle.id
+    end
 
+    File.unlink("#{dir}/../#{bundle_filename}") if File.exists?("#{dir}/../#{bundle_filename}")
     FileUtils.rm_rf(dir)
-    FileUtils.rm_rf("#{dir}/../#{bundle_filename}")
 
-    bundle
+    self.bundle_file
   end
 
   def import
-    raise "No bundle specified" unless self.bundle_file
+    return nil unless self.bundle_file
 
     self.creator_id ||= bundle_file.creator_id
 
