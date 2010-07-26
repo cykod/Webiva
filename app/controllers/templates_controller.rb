@@ -79,6 +79,10 @@ class TemplatesController < CmsController # :nodoc: all
     @bundler = WebivaBundler.new params[:bundler]
     @templates = params[:template]
 
+    @site_template = SiteTemplate.find @templates.values[0]
+    @bundler.name ||= @site_template.name
+    @bundler.author ||= myself.name unless myself.name == 'Administrative User'
+
     if @templates.nil? || @templates.empty?
       render :update do |page|
         page << 'RedBox.close();'

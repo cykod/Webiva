@@ -3,7 +3,9 @@ require 'yaml'
 class WebivaBundler < HashModel
   VERSION = '1.0'
 
-  attributes :name => nil, :data => nil, :thumb => nil, :domain_files => nil, :meta => nil, :modules => nil, :inputs => nil, :creator_id => nil
+  attributes :name => nil, :thumb_id => nil, :domain_files => nil, :modules => nil, :inputs => nil, :creator_id => nil
+
+  domain_file_options :thumb_id
 
   validates_presence_of :name
 
@@ -13,7 +15,15 @@ class WebivaBundler < HashModel
   def domain_files; @domain_files ||= []; end
   def modules; @modules ||= []; end
   def inputs; @inputs ||= {}; end
+
+  # Meta attributes
   def meta; @meta ||= {}; end
+  def author; self.meta['author']; end
+  def author=(value); self.meta['author'] = value; end
+  def description; self.meta['description']; end
+  def description=(value); self.meta['description'] = value; end
+  def license; self.meta['license']; end
+  def license=(value); self.meta['license'] = value; end
 
   def add_folder(folder)
     self.domain_files << folder
