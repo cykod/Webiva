@@ -15,11 +15,15 @@
 
 
   def self.migrate_domain(dmn)
-    domain = Domain.find(dmn['id'])
-    dmn = domain.get_info
+    if dmn.is_a?(Domain)
+      dmn = dmn.get_info
+    else
+      domain = Domain.find(dmn['id'])
+      dmn = domain.get_info
+    end
 
     # Get us the migrator DB
-    DomainModel.establish_connection(dmn[:domain_database][:options]['migrator'])
+    DomainModel.activate_database(dmn,'migrator',false)
     migrate(:up)
   end
 

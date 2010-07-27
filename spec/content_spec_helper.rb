@@ -5,9 +5,10 @@ module ContentSpecHelper
   def connect_to_migrator_database
      # Switch to migrator
     @defaults_config_file = YAML.load_file("#{RAILS_ROOT}/config/defaults.yml")
-    DomainModel.activate_domain(Domain.find(@defaults_config_file['testing_domain']).get_info,'migrator',false)    
-    
-    DomainModel.connection.reconnect!
+
+    dmn = Domain.find(@defaults_config_file['testing_domain']).get_info
+    DomainModel.activate_database(dmn,'migrator',false)
+
     # Kill the spec test table if no-go
   end
 
@@ -50,16 +51,12 @@ module ContentSpecHelper
   
   
   def create_content_model_with_all_fields(opts={})
+#    connect_to_migrator_database
  
     %w(content_models content_model_fields content_publications content_types).each do |table|
        DomainModel.connection.execute("TRUNCATE #{table.to_s.tableize}") 
     end
 
-    # Switch to migrator
-    @defaults_config_file = YAML.load_file("#{RAILS_ROOT}/config/defaults.yml")
-    DomainModel.activate_domain(Domain.find(@defaults_config_file['testing_domain']).get_info,'migrator',false)    
-    
-    DomainModel.connection.reconnect!
     # Kill the spec test table if no-go
     ContentModel.connection.execute('DROP TABLE IF EXISTS cms_controller_spec_tests')
 

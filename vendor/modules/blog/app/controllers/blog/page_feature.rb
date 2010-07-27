@@ -26,6 +26,7 @@ class Blog::PageFeature < ParagraphFeature
 
   def blog_entry_list_feature(data)
     webiva_feature('blog_entry_list') do |c|
+
       
       c.value_tag 'title' do |tag|
         exists = !data[:type].blank? && !data[:identifier].blank?
@@ -84,6 +85,7 @@ class Blog::PageFeature < ParagraphFeature
     c.value_tag('blog_target_id') { |t| data[:blog].target_id } 
     
     
+    c.value_tag('entry:blog') { |t| t.locals.entry.blog.name  }
     c.value_tag('entry:embedded_media') { |tag| tag.locals.entry.embedded_media }
     
     c.media_tag('entry:media_file') { |tag| tag.locals.entry.media_file }

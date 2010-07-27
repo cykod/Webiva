@@ -10,7 +10,7 @@ describe Content::CoreFeature::EmailTargetConnect do
   before(:each) do
     # Create a content model an run a table migration
     # Create the table
-    
+    DataCache.reset_local_cache    
     connect_to_migrator_database
     @cm = create_spec_test_content_model
     create_dummy_fields(@cm,[ :email, :string ] )
