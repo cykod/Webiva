@@ -311,7 +311,7 @@ block is non-nil
         inc = val.is_a?(Array) && val.include?(t.attr['include'])
         inc ? t.expand : nil
       elsif t.attr['not_equals']
-        eql = val.is_a?(Integer) ? t.attr['not_equals'].to_i : tar.attr['not_equals']
+        eql = val.is_a?(Integer) ? t.attr['not_equals'].to_i : t.attr['not_equals']
         val != eql ? t.expand : nil
       elsif t.attr['min']
         min = val.is_a?(Integer) ? t.attr['min'].to_i : tar.attr['min']
