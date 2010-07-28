@@ -957,27 +957,30 @@ class DomainFile < DomainModel
    #########
   
     def post_process!(background=true,update=false) #:nodoc:
-      return if self.file_type == 'fld'
-      opts = Configuration.file_types
-      ext = self.extension
-      if !update
-        current_processor = opts.default
-        opts.options_arr.each do |processor,file_types|
-          current_processor = processor if file_types.include?(ext)
-        end
+      if self.file_type == 'fld'
+        self.children.each { |child| child.post_process!(background, update) }
       else
-        current_processor = self.processor
-      end 
-     if current_processor != 'local'
-        if background
-          self.update_attributes(:processor => 'local',:processor_status => 'processing')
-          DomainModel.run_worker('DomainFile',self.id,:update_processor,{ :processor => current_processor, :new_file => true })  
+        opts = Configuration.file_types
+        ext = self.extension
+        if !update
+          current_processor = opts.default
+          opts.options_arr.each do |processor,file_types|
+            current_processor = processor if file_types.include?(ext)
+          end
         else
-          self.update_processor(:processor => current_processor, :new_file => true)
+          current_processor = self.processor
+        end 
+        if current_processor != 'local'
+          if background
+            self.update_attributes(:processor => 'local',:processor_status => 'processing')
+            DomainModel.run_worker('DomainFile',self.id,:update_processor,{ :processor => current_processor, :new_file => true })  
+          else
+            self.update_processor(:processor => current_processor, :new_file => true)
+          end
         end
       end
     end
-    
+
     # Disable file processing in the back end so that 
     # 
     def self.disable_post_processing #:nodoc:
