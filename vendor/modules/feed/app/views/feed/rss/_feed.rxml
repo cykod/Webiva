@@ -14,6 +14,9 @@ xml.channel do
       xml.title item[:title]
       xml.link item[:link]
       xml.guid item[:guid]
+      if item[:author]
+        xml.author item[:author]
+      end
       if item[:categories]
         item[:categories].each do |cat|
           xml.category cat
