@@ -40,7 +40,7 @@ class Domain < SystemModel
 
   def validate
     self.errors.add(:client_id, 'is missing') unless self.client
-    self.errors.add(:max_file_storage, 'is too large') if self.max_file_storage && self.client && self.max_file_storage > self.client.available_file_storage
+    self.errors.add(:max_file_storage, 'is too large') if self.max_file_storage && self.client && self.max_file_storage > self.client.available_file_storage(self.domain_database)
     self.errors.add(:domain_database_id, 'is invalid') if self.domain_database && self.domain_database.client_id != self.client_id
   end
 
@@ -173,7 +173,7 @@ class Domain < SystemModel
     if self.domain_database
       self.domain_database.update_attributes :options => YAML.load_file(self.database_file)
     else
-      self.create_domain_database :client_id => self.client_id, :name => self.database, :options => YAML.load_file(self.database_file)
+      self.create_domain_database :client_id => self.client_id, :name => self.database, :options => YAML.load_file(self.database_file), :max_file_storage => (self.max_file_storage || DomainDatabase::DEFAULT_MAX_FILE_STORAGE)
       self.save
     end
   end

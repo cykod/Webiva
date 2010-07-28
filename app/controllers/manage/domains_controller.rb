@@ -148,35 +148,39 @@ class Manage::DomainsController < CmsController # :nodoc: all
     
     if request.post? && params[:domain]
       if @domain.domain_type == 'domain'
-	if params[:domain][:database] == 'create'
+        if params[:domain][:database] == 'create'
           if self.client.can_add_database?
             @domain.attributes = params[:domain].slice(:www_prefix,:active)
             @domain.max_file_storage = params[:domain][:max_file_storage].blank? ? DomainDatabase::DEFAULT_MAX_FILE_STORAGE : params[:domain][:max_file_storage].to_i
 
             @domain.status = 'initializing'
             if @domain.save
-              DomainModel.run_worker('Domain',@domain.id,'initialize_database')
+              DomainModel.run_worker('Domain',@domain.id,'initialize_database', { :max_file_storage => @domain.max_file_storage })
               flash[:notice] = 'Initializing the %s Domain' / @domain.name
               redirect_to :action => 'index'
               return
             end
           else
-            flash[:notice] = 'Database Limit Reached'
+            flash.now[:notice] = 'Database Limit Reached'
           end
-	else
-	  @copy_domain = @domain.client.domains.find_by_id(params[:domain][:database])
-	  if @copy_domain
-	    @domain.database = @copy_domain.database
-	    @domain.file_store = @copy_domain.file_store
-	    @domain.domain_database_id = @copy_domain.domain_database_id
-	    @domain.status = 'initialized'
-	    if @domain.save
-              flash[:notice] = 'Initialized the %s Domain' / @domain.name
-              redirect_to :action =>'index'
-              return
+        else
+          if self.client.can_add_domain?
+            @copy_domain = @domain.client.domains.find_by_id(params[:domain][:database])
+            if @copy_domain
+              @domain.database = @copy_domain.database
+              @domain.file_store = @copy_domain.file_store
+              @domain.domain_database_id = @copy_domain.domain_database_id
+              @domain.status = 'initialized'
+              if @domain.save
+                flash[:notice] = 'Initialized the %s Domain' / @domain.name
+                redirect_to :action =>'index'
+                return
+              end
             end
-	  end
-	end
+          else
+            flash.now[:notice] = 'Domain Limit Reached'
+          end
+        end
       elsif @domain.domain_type == 'redirect'
         flash[:notice] = "%s has been setup" / @domain.name
         @domain.redirect = params[:domain][:redirect]

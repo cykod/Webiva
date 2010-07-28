@@ -2,7 +2,7 @@
 <div id='cms_container'> 
 
 <div id='cms_header'>
-  <% if myself.id %>
+  <% if myself.id && myself.editor? %>
 
   <div id='cms_header_return'>
     <a href='/'>&laquo; View Site</a> 
@@ -19,6 +19,13 @@
       <%= webiva_search_widget -%>
      </div>
   </div>
+<% elsif myself.id -%>
+   <div id='cms_header_tools'>
+    <div id='cms_header_tools_content'>
+    <a href='<%= url_for :controller => '/manage/access', :action => 'logout' %>'><%= "logout".t %></a>
+  </div>
+  </div>
+
   <% end -%>
   <div id='cms_logo'><a href='/website/dashboard#cms_page_title'><img src='<%= WEBIVA_LOGO_FILE || theme_src("framework/logo.gif") %>'></a></div>
   <div id='cms_menu'>

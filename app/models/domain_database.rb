@@ -7,7 +7,6 @@ class DomainDatabase < SystemModel
   belongs_to :client
   has_many :domains
 
-  validates_presence_of :name
   validates_uniqueness_of :name
   validates_presence_of :client_id
 
@@ -20,7 +19,7 @@ class DomainDatabase < SystemModel
   end
 
   def validate
-    self.errors.add(:max_file_storage, 'is too large') if self.client && self.max_file_storage > self.client.available_file_storage
+    self.errors.add(:max_file_storage, 'is too large') if self.client && self.max_file_storage > self.client.available_file_storage(self)
   end
 
   def after_save #:nodoc:

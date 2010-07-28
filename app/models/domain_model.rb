@@ -275,7 +275,7 @@ class DomainModel < ActiveRecord::Base
   
   def self.activate_database(domain_info,environment = 'production',save_connection = true)
     
-    delegate_class_name = domain_info[:database].classify
+    delegate_class_name = (domain_info[:database] + "_" + environment).classify
 
     if !Object.const_defined?(delegate_class_name)
       begin
@@ -287,6 +287,7 @@ class DomainModel < ActiveRecord::Base
 
       cls = Object.const_set(delegate_class_name.to_s, Class.new(ActiveRecord::Base))
       cls.abstract_class = true
+      db_config['persistent'] = false
       cls.establish_connection(db_config)
 
       @@database_connection_pools[self.process_id] = cls

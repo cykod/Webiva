@@ -103,8 +103,15 @@ class Configuration < DomainModel
     # Otherwise cache the database to avoid a req on the domain
     # table
     cfg = dmn.get_info
-    DataCache.set_domain_info(domain_name,[cfg])
-    cfg
+
+    # return nothing if the domain is inactive   
+    if cfg[:domain_database][:inactive]
+      DataCache.set_domain_info(domain_name,[nil])
+      nil
+    else
+      DataCache.set_domain_info(domain_name,[cfg])
+      cfg
+    end
   end
   
   # Return the google analytics code 

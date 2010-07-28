@@ -19,15 +19,18 @@ class Manage::ClientsController < CmsController # :nodoc: all
                 Client,
                 [ hdr(:icon, '', :width=>10),
                   hdr(:static, 'Name'),
+                  hdr(:boolean, :inactive ),
                   hdr(:static, 'Databases/Limit'),
-                  hdr(:number, :max_file_storage, :label => 'Used/Max file storage')
+                  hdr(:static, 'Domains/Limit'),
+                  hdr(:static, :max_file_storage, :label => 'Used/Max file storage')
                 ]
 
   def display_client_table(display=true)
      active_table_action('client') do |act,client_ids|
       case act
-        when 'delete':
-          Client.destroy(client_ids)
+        when 'delete': Client.destroy(client_ids)
+        when 'deactivate': Client.find(client_ids).map { |c| c.deactivate }
+        when 'activate': Client.find(client_ids).map { |c| c.activate } 
         end
      end
 
@@ -48,7 +51,7 @@ class Manage::ClientsController < CmsController # :nodoc: all
                     [ "Clients", url_for(:action => 'index') ],
                     "New Client"
                  ],"system"
-    @client = Client.new :domain_limit => Client::DEFAULT_DOMAIN_LIMIT, :max_client_users => Client::DEFAULT_MAX_CLIENTS, :max_file_storage => Client::DEFAULT_MAX_FILE_STORAGE
+    @client = Client.new :database_limit => Client::DEFAULT_DATABASE_LIMIT, :domain_limit => Client::DEFAULT_DOMAIN_LIMIT, :max_client_users => Client::DEFAULT_MAX_CLIENTS, :max_file_storage => Client::DEFAULT_MAX_FILE_STORAGE
   end
 
   def create
