@@ -8,7 +8,7 @@ SiteTemplateList = {
 }
 </script>
 
-<% action_panel do |p| -%>
+<% action_panel :handler => 'templates' do |p| -%>
   <%= p.link 'Add a Blank Theme', :action => 'new', :icon => 'add.gif' %>
   <%= p.link 'View Paragraph Themes',:action => 'features', :icon => 'view.gif' %>
   <%= p.link 'Import Theme',:action => 'import_bundle', :icon => 'view.gif' %>

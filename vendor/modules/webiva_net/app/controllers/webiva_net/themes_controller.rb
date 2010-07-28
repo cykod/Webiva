@@ -8,9 +8,16 @@ class WebivaNet::ThemesController < ModuleController
   layout 'manage'
 
  cms_admin_paths "options",
-    "Themes" => { :controller => 'templates' }
+    "Themes" => { :controller => '/templates' }
 
   public
+
+  def self.action_panel_templates_handler_info
+    {
+      :name => 'Webiva.new Themes',
+      :links => [{:link => 'Import Webiva.net Themes', :controller => '/webiva_net/themes', :action => 'index', :role => 'editor_design_templates', :icon => 'view.gif'}]
+    }
+  end
 
   def index
     cms_page_path ['Options','Themes'],"Webiva.net Themes"

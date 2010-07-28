@@ -11,6 +11,7 @@ class WebivaNet::AdminController < ModuleController
  permit 'editor_site_management'
 
  register_handler :webiva, :titlebar, "WebivaNet::TitlebarHandler"
+ register_handler :action_panel, :templates, "WebivaNet::ThemesController"
 
  public 
  
