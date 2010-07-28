@@ -161,7 +161,7 @@ class Domain < SystemModel
     if self.domain_database
       info[:domain_database] = self.domain_database.attributes.symbolize_keys
     else
-      info[:domain_database] = {:client_id => self.client_id, :name => self.database, :options => YAML.load_file(self.database_file), :max_client_users => nil, :max_file_storage => nil}
+      info[:domain_database] = {:client_id => self.client_id, :name => self.database, :options => YAML.load_file(self.database_file), :max_client_users => nil, :max_file_storage => nil, :config => nil}
     end
 
     info

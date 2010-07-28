@@ -113,7 +113,16 @@ class Configuration < DomainModel
       cfg
     end
   end
-  
+
+  def self.system_module_configuration(mod)
+    config = DomainModel.active_domain[:domain_database][:config]
+    if config && config['modules'] && config['modules'][mod]
+      config['modules'][mod]
+    else
+      nil
+    end
+  end
+
   # Return the google analytics code 
   # TODO: move safely into configuration
   def self.google_analytics

@@ -13,6 +13,7 @@ class DomainDatabase < SystemModel
   validates_numericality_of :max_file_storage
 
   serialize :options
+  serialize :config
 
   def  before_validation_on_create
     self.max_file_storage = DomainDatabase::DEFAULT_MAX_FILE_STORAGE unless self.max_file_storage
