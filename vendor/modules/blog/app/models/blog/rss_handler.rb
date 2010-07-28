@@ -36,6 +36,7 @@ class Blog::RssHandler
                  :published_at => post.published_at.to_s(:rfc822),
                  :description => replace_relative_urls(@options.full ? post.body_content : post.preview)
                 }
+        item[:author] = post.author unless post.author.blank?
         post.blog_categories.each do |cat|
           item[:categories] ||= []
           item[:categories] << cat.name
@@ -47,6 +48,10 @@ class Blog::RssHandler
         
         if post.media_file
           item[:enclosure] = post.media_file
+        end
+
+        if post.domain_file
+          item[:thumbnail] = post.domain_file
         end
 
         data[:items] << item
