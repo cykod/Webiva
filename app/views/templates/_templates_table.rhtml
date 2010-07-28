@@ -1,8 +1,9 @@
 <% active_table_for :site_templates_table, @active_table_output,
-                    :refresh_url => url_for(:action => 'templates_table'),
-                    :class => 'active_table',
-                    :update => 'templates_table' do |t| %>
-<tr <%= highlight_row 'template',t.id %>>
+                    :actions => [['Export Themes', 'js', 'SiteTemplateList.setupBundle();']],
+                    :more_actions => [['Delete Themes', 'delete', 'Are you sure you want to permanently delete these themes?']],
+                    :update => 'site_templates_table' do |t| %>
+<tr <%= highlight_row 'template',t.id %> >
+  <td align='left' nowrap='1'><%= entry_checkbox "template", t.id %></td>
   <td>
   <% if t.parent_template -%>
       &nbsp;&nbsp;&nbsp;
@@ -13,7 +14,7 @@
     <%= t.parent_template ? t.parent_template.name : 'None'.t %>
   </td>
   <td><%= t.description %></td> 
-  <td> <a href='javascript:void(0);' onclick='TemplateList.popup("<%= t.id %>",<%= t.parent_id || 0 %>);' ><%= theme_icon 'ball', '/images/icons/wheel.gif' %></a></td>
+  <td><a href="<%= url_for :action => 'new', :path => t.id %>">Create child theme</a></td>
 </tr>
 
 

@@ -115,4 +115,14 @@ class SiteFeature < DomainModel
     css = override ?  replace_images(self.css) :  self.rendered_css
     Util::CssParser.parse_full(css)
   end  
+
+  def export_to_bundle(bundler)
+    details = self.feature_details
+    return nil if details.size == 4 # ContentPublication feature
+
+    module_name = details[2].to_s.underscore.split('/')[0]
+    (bundler.modules << module_name) if module_name != 'editor'
+    bundler.add_folder(self.image_folder) if self.image_folder
+    self.attributes.slice('name', 'description', 'feature_type', 'body', 'options', 'css', 'category', 'archived', 'image_folder_id', 'preprocessor')
+  end
 end

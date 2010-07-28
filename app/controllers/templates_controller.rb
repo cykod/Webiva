@@ -31,36 +31,113 @@ class TemplatesController < CmsController # :nodoc: all
    include ActiveTable::Controller   
    active_table :site_templates_table,
                 SiteTemplate,
-                [ ActiveTable::StringHeader.new('name'),
-                  ActiveTable::OptionHeader.new('template_type', :label => 'Type',:options => :type_options),
-                  ActiveTable::OrderHeader.new('IF(parent_id,parent_id,id), parent_id, name',:label => 'Parent'),
-                  ActiveTable::StringHeader.new('description'),
-                  ActiveTable::IconHeader.new('',:width => '15')
+                [ hdr(:icon, ''),
+                  hdr(:string, 'name'),
+                  hdr(:options, 'template_type', :label => 'Type',:options => :type_options),
+                  hdr(:order, 'IF(parent_id,parent_id,id), parent_id, name',:label => 'Parent'),
+                  hdr(:string, 'description'),
+                  hdr(:static, '')
                 ]
   def type_options; SiteTemplate.template_type_select_options; end
 
   public
   # List of current templates in the site
   def index
-    templates_table(false)
-    
     cms_page_path [ "Options" ], "Themes" 
-    
+
+    display_site_templates_table(false)
+
     render :action => 'index'
   end
   
-  def templates_table(render_partial = true)
+  def display_site_templates_table(display=true)
+    active_table_action 'template' do |act,ids|
+      case act
+      when 'delete'
+        SiteTemplate.destroy ids
+      when 'export'
+        bundler = WebivaBundler.new params[:bundler]
+        if bundler.valid?
+          SiteTemplate.find(ids).each do |template|
+            bundler.export_object template
+          end
+          bundle = bundler.export
+          render :update do |page|
+            page.redirect_to bundle.url
+          end
+          return
+        end
+      end
+    end
+
     @active_table_output = site_templates_table_generate params, :order => 'IF(parent_id,parent_id,id), parent_id, name ', :per_page => 20
   
-    render :partial => 'templates_table' if render_partial
+    render :partial => 'templates_table' if display
   end
-  
-  # Delete the template given by templates_id
-  def delete_template
-    @site_template = SiteTemplate.find(params[:path][0])
-    @site_template.destroy
-    #flash[:notice] = 'Deleted Template: "%s"' / @site_template.name
-    templates_table
+
+  def create_bundle
+    @bundler = WebivaBundler.new params[:bundler]
+    @templates = params[:template]
+
+    @templates.delete_if { |k,v| t = SiteTemplate.find(v); t.nil? || t.parent_id } if @templates
+    @templates = nil if @templates && @templates.empty?
+
+    if @templates
+      @site_template = SiteTemplate.find @templates.values[0]
+      @bundler.name ||= @site_template.name
+      @bundler.author ||= myself.name unless myself.name == 'Administrative User'
+    end
+
+    if request.post? && @templates
+      if params[:commit]
+        if @bundler.valid?
+          SiteTemplate.find(@templates.values).each do |template|
+            @bundler.export_object template
+          end
+          bundle = @bundler.export
+          render :update do |page|
+            page << 'RedBox.close();'
+            page.redirect_to bundle.url
+          end
+          return
+        end
+      end
+    end
+
+    render :partial => 'create_bundle'
+  end
+
+  def import_bundle
+    cms_page_path [ "Options", "Themes" ], "Import Webiva Bundle"
+
+    if params[:key]
+      @processing = true
+      processor = Workling.return.get(params[:key])
+      if processor && processor[:processed]
+        session[:webiva_bundler_worker_key] = nil
+        flash[:notice] = 'Webiva bundle import finished'.t
+        redirect_to :action => 'index'
+      else
+        headers['Refresh'] = '5; URL=' + url_for(:key => params[:key])
+      end
+      return
+    end
+
+    @bundler = WebivaBundler.new params[:bundler]
+    @bundler.importing = true
+
+    if request.post?
+      if @bundler.valid?
+        if params[:commit]
+          session[:webiva_bundler_worker_key] = @bundler.run_worker
+          redirect_to :action => 'import_bundle', :key => session[:webiva_bundler_worker_key]
+        elsif params[:select]
+          # nothing to do
+        else
+          redirect_to :action => 'index'
+        end
+      end
+    end
   end
 
   def new
@@ -236,7 +313,7 @@ class TemplatesController < CmsController # :nodoc: all
                 hdr(:string,'site_features.name'),
                 hdr(:string,'site_features.category'),
                 hdr(:string,:feature_type,:label => 'Paragraph Theme Type'),
-                hdr(:options,'site_template_id',:options => :site_template_names),
+                hdr(:options,'site_template_id',:options => :site_template_names, :label => 'Theme'),
                 hdr(:date_range,'site_features.updated_at')                
               ]
               

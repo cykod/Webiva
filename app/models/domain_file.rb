@@ -21,7 +21,7 @@ class DomainFile < DomainModel
   @@image_sizes = {}
   @@image_size_array.each { |size|  @@image_sizes[size[0]] = [ size[1], size[1] ]  }
  
-  @@archive_extensions = ['zip','gz','tar' ]
+  @@archive_extensions = ['zip','gz','tar']
   
   @@disable_file_processing = false
 
@@ -593,6 +593,11 @@ class DomainFile < DomainModel
   # Returns the temporary folder of the file system
    def self.temporary_folder
       DomainFile.find(:first,:conditions => 'name = "Temporary" and parent_id IS NULL') || DomainFile.create(:name => 'Temporary', :parent_id => nil, :file_type => 'fld', :special => 'temp') 
+   end
+   
+  # Returns the themes folder of the file system
+   def self.themes_folder
+     DomainFile.find(:first,:conditions => "name = 'Themes' and parent_id = #{self.root_folder.id}") || DomainFile.create(:name => 'Themes', :parent_id => self.root_folder.id, :file_type => 'fld')
    end
    
    # Is this an image
@@ -1265,7 +1270,7 @@ class DomainFile < DomainModel
               df = DomainFile.new(:filename => filename,:parent_id => parent_id)
               df.save
               
-              if df.file_type == 'doc'  && !@@public_file_extensions.include?(@upload_file.extension.to_s.downcase)
+              if df.file_type == 'doc' && self.extraction && !@@public_file_extensions.include?(self.extension.downcase)
                 df.update_private!(true)
               end
               

@@ -1,0 +1,25 @@
+<div class='cms_form'>
+
+<h3>Create a Webiva Bundle</h3>
+
+<% if @templates -%>
+  
+  <% admin_form_for :bundler, @bundler, :html => {:id => 'bundle_form', :onsubmit => "SCMS.updateOverlay('#{url_for}', Form.serialize(this)); return false;"}  do |f| -%>
+  <% @templates.values.each do |template_id| -%>
+    <%= hidden_field_tag "template[#{template_id}]", template_id %>
+  <% end -%>
+    <%= f.text_field :name %>
+    <%= f.text_field :author %>
+    <%= f.text_area :description, :style => 'height:80px;' %>
+    <%= f.text_field :license, :description => 'We recommend: Creative Commons with Attribution' %>
+    <%= f.filemanager_image :thumb_id %>
+    <%= f.spacer %>
+    <%= f.cancel_submit_buttons 'Cancel','Submit', :onclick => 'RedBox.close();' %>
+  <% end -%>
+
+<% else -%>
+  <p class="error"><%= 'Child themes cannot be exported separately.'.t %></p>
+  <p><a href="javascript:void(0);" onclick="RedBox.close();">Close</a></p>
+<% end -%>
+
+</div>
