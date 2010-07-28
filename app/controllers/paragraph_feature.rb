@@ -311,7 +311,7 @@ block is non-nil
         inc = val.is_a?(Array) && val.include?(t.attr['include'])
         inc ? t.expand : nil
       elsif t.attr['not_equals']
-        eql = val.is_a?(Integer) ? t.attr['not_equals'].to_i : tar.attr['not_equals']
+        eql = val.is_a?(Integer) ? t.attr['not_equals'].to_i : t.attr['not_equals']
         val != eql ? t.expand : nil
       elsif t.attr['min']
         min = val.is_a?(Integer) ? t.attr['min'].to_i : tar.attr['min']
@@ -1850,6 +1850,10 @@ block is non-nil
   else
     documenter = FeatureDocumenter.new(self) do |c|
       yield c
+
+      get_handler_info(:site_feature,feature_name).each do |handler|
+          handler[:class].send("#{feature_name}_feature".to_sym,c,data)
+      end
     end
     documenter.method_list.sort { |a,b| a[1] <=> b[1] }
   end

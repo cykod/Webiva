@@ -233,9 +233,8 @@ class SiteNodeModifier < DomainModel
       
       # Use this as the revision, unless we have a one already
       engine.revision = rev unless engine.revision
-      engine.revision.variables ||= {}
       (rev.variables||{}).each do |var,value|
-        engine.revision.variables[var] = value if engine.revision.variables[var].blank?
+        engine.revision.display_variables[var] = value if engine.revision.display_variables[var].blank?
       end
       
       # Go through the paragraphs in reverse order (as each is added to the beginning of the list)

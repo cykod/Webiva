@@ -8,6 +8,7 @@ describe Content::Field do
   include ContentSpecHelper
   
   before(:each) do
+    DataCache.reset_local_cache
     connect_to_migrator_database
     @cm = create_spec_test_content_model
   end

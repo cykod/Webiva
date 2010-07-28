@@ -38,6 +38,8 @@ class UserSegment::FieldHandler
   #
   # [:name]
   #   the display name of the field, by default humanizes the field
+  # [:builder_name]
+  #   the name to use inside the filter builder
   # [:field]
   #   the actual field in the model, by default uses field
   # [:display_field]
@@ -61,6 +63,7 @@ class UserSegment::FieldHandler
 
     fields[field.to_sym] = options.merge(:type => type, :handler => self)
     fields[field.to_sym][:name] ||= field.to_s.humanize
+    fields[field.to_sym][:builder_name] ||= fields[field.to_sym][:name]
     fields[field.to_sym][:field] ||= field.to_sym
     fields[field.to_sym][:display_field] ||= fields[field.to_sym][:field]
 
@@ -72,10 +75,26 @@ class UserSegment::FieldHandler
 
   # An array of all the :user_segment :fields handlers info.
   def self.handlers
-    ([ self.get_handler_info(:user_segment, :fields, 'end_user_segment_field'),
-       self.get_handler_info(:user_segment, :fields, 'end_user_action_segment_field'),
-       self.get_handler_info(:user_segment, :fields, 'end_user_tag_segment_field')] +
-       self.get_handler_info(:user_segment, :fields)).uniq
+    key = 'user_segment_field_handlers'
+    return DataCache.local_cache(key) if DataCache.local_cache(key)
+
+    handlers = ([ self.get_handler_info(:user_segment, :fields, 'end_user_segment_field'),
+                  self.get_handler_info(:user_segment, :fields, 'end_user_action_segment_field'),
+                  self.get_handler_info(:user_segment, :fields, 'end_user_tag_segment_field')] +
+                self.get_handler_info(:user_segment, :fields) +
+                self.custom_content_model_handlers).uniq
+
+    DataCache.put_local_cache(key, handlers)
+  end
+
+  def self.custom_content_model_handlers
+    ContentModelField.find(:all, :conditions => {:field_type => 'belongs_to'}).delete_if { |f| f.relation_class != EndUser }.collect do |field|
+      cls = ContentModelSegmentField.create_custom_field_handler_class(field)
+      info = cls.user_segment_fields_handler_info
+      info[:class] = cls
+      info[:identifier] = field.content_model.table_name
+      info
+    end
   end
 
   # A hash of all the fields that can be sorted on

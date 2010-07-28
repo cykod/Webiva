@@ -28,6 +28,8 @@ class UserSegment::FieldType
   #  [:class]
   #    When the argument is type :model.  It uses this class to determine the select options.
   # Additional options
+  # [:name]
+  #   The name of the operation used in the operation builder list of operation options for a field.
   # [:description]
   #   A brief description used when creating the help
   # [:complex]

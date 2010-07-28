@@ -126,7 +126,7 @@ class EditController < ModuleController # :nodoc: all
       if mod.modifier_type == 'template'
         if mod.modifier_data && mod.modifier_data[:template_id]
           current_template = SiteTemplate.find_by_id(mod.modifier_data[:template_id],:select => 'id,parent_id')
-          current_template_id = current_template.parent_id || mod.modifier_data[:template_id]
+          current_template_id = current_template.parent_id || mod.modifier_data[:template_id] if current_template
         end 
       elsif mod.modifier_type == 'page' && page.node_type == 'P'
         page_list << [ page, current_template_id ]
@@ -553,6 +553,7 @@ class EditController < ModuleController # :nodoc: all
     get_container
     # output the page, go through each block, and get the variables
     edit_page_info(@container_type,@container_id,params[:path][2],false)
+    logger.error @revision.variables.inspect
     
     variable_names = []
     @output.html  do |blk| 
@@ -560,8 +561,11 @@ class EditController < ModuleController # :nodoc: all
       variable_names << blk[:variable]
      end
     end
+
     
     @options = DefaultsHashObject.new(@revision.variables || {})
+
+    logger.error @revision.variables.inspect
     @variables = (@site_template.options[:options] || []).find_all do |opt|
       variable_names.include?(opt[0]) ? true : false
     end

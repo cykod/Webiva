@@ -19,7 +19,8 @@ var mceDefaultOptions = {
       	  remove_script_host : true,
       	  body_class : 'monthly_tip',
           width: "100%",
-          image_insert_url: "/website/file/manage"
+          gecko_spellcheck : true,
+         image_insert_url: "/website/file/manage"
 
        };
        

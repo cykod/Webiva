@@ -1,7 +1,7 @@
 
 class UserSegment::CoreType
 
-  @@datetime_format_options = ['second', 'seconds', 'minute', 'minutes', 'hour', 'hours', 'day', 'days', 'week', 'weeks', 'month', 'months', 'year', 'years']
+  @@datetime_format_options = [['Second/s', 'seconds'], ['Minute/s', 'minutes'], ['Hour/s', 'hours'], ['Day/s', 'days'], ['Week/s', 'weeks'], ['Month/s', 'months'], ['Year/s', 'years']]
   def self.datetime_format_options
     @@datetime_format_options
   end
@@ -29,9 +29,17 @@ class UserSegment::CoreType
     end
   end
 
-  @@number_type_operators = ['>', '>=', '=', '<=', '<']
+  @@number_type_operators = [['Greater than', '>'], ['Greater than or equal to', '>='], ['Equal to', '='], ['Less than or equal to', '<='], ['Lest than', '<']]
   def self.number_type_operators
     @@number_type_operators
+  end
+
+  class SimpleNumberType < UserSegment::FieldType
+    register_operation :is, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]]
+
+    def self.is(cls, group_field, field, operator, value)
+      cls.scoped(:conditions => ["#{field} #{operator} ?", value])
+    end
   end
 
   class NumberType < UserSegment::FieldType
@@ -75,13 +83,13 @@ class UserSegment::CoreType
   end
 
   class StringType < UserSegment::FieldType
-    register_operation :like, [['String', :string]], :description => 'use % for wild card matches'
+    register_operation :like, [['String', :string]], :name => 'Contains', :description => 'use % for wild card matches'
 
     def self.like(cls, group_field, field, string)
       cls.scoped(:conditions => ["#{field} like ?", string])
     end
 
-    register_operation :is, [['String', :string]], :description => 'exact match'
+    register_operation :is, [['String', :string]], :name => 'Matches', :description => 'exact match'
 
     def self.is(cls, group_field, field, string)
       cls.scoped(:conditions => ["#{field} = ?", string])

@@ -113,6 +113,7 @@ Spec::Runner.configure do |config|
   config.before(:each) do
     UserClass.create_built_in_classes
     SiteVersion.default
+    DataCache.reset_local_cache
   end
 
 end

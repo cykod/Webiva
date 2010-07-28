@@ -11,6 +11,7 @@ describe ContentModel do
   describe "Table Migration" do 
   
     before(:each) do
+      DataCache.reset_local_cache
       connect_to_migrator_database
       ContentModel.connection.execute('DROP TABLE IF EXISTS cms_spec_tests')
     end
@@ -69,7 +70,9 @@ describe ContentModel do
   describe "Content Node Creation" do
     
     before(:each) do
-      connect_to_migrator_database
+     DataCache.reset_local_cache
+     connect_to_migrator_database
+     ContentModel.connection.execute('DROP TABLE IF EXISTS cms_spec_tests')
     end
     
     it "should create a content type and content nodes after save" do
@@ -119,6 +122,7 @@ describe ContentModel do
       @cm = create_spec_test_content_model(:create_nodes => false)
       ContentType.count.should == 1
 
+      ContentNode.count.should == 0
       @cm.content_model.create 
       @cm.content_model.create
       @cm.content_model.create
