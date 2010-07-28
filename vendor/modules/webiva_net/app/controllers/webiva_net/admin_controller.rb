@@ -33,7 +33,7 @@ class WebivaNet::AdminController < ModuleController
   end
   
   class Options < HashModel
-    attributes :documentation_url => "http://www.webiva.net/doc/user"
+    attributes :documentation_url => "http://www.webiva.net/doc/user", :themes_rss_url => "http://www.webiva.net/themes/rss"
   
   end
   

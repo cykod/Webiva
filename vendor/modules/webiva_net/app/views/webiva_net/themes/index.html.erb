@@ -1,0 +1,38 @@
+<script>
+WebivaNetThemes = {
+  install: function(guid) {
+    SCMS.remoteOverlay("<%= url_for :action => 'view' %>", "guid=" + guid);
+  }
+}
+
+</script>
+
+<style>
+.theme {
+  width: 150px;
+  height: 150px;
+  padding: 10px;
+  border: 1px solid #000;
+  margin: 10px;
+  text-align: center;
+  float: left;
+  overflow: hidden;
+}
+
+.theme .preview {
+  height: 133px;
+}
+</style>
+
+<div class="admin_content">
+
+<% @themes.each do |thm| -%>
+
+<div class="theme">
+  <div class="preview"><a href="javascript:void(0);" onclick="WebivaNetThemes.install('<%= thm.guid %>');"><%= thm.thumbnail_tag  %></a></div>
+  <span class="title"><a href="javascript:void(0);" onclick="WebivaNetThemes.install('<%= thm.guid %>');"><%= h thm.name %></a></span>
+</div>
+
+<% end -%>
+
+</div>

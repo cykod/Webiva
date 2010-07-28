@@ -126,7 +126,7 @@ class TemplatesController < CmsController # :nodoc: all
     @bundler = WebivaBundler.new params[:bundler]
     @bundler.importing = true
 
-    if request.post?
+    if params[:bundler]
       if @bundler.valid?
         if params[:commit]
           session[:webiva_bundler_worker_key] = @bundler.run_worker
