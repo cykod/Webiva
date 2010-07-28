@@ -49,6 +49,10 @@ class Blog::RssHandler
           item[:enclosure] = post.media_file
         end
 
+        if post.domain_file
+          item[:thumbnail] = post.domain_file
+        end
+
         data[:items] << item
       end
       

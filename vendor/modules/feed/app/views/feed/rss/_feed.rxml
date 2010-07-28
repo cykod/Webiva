@@ -24,6 +24,9 @@ xml.channel do
       if item[:enclosure]
         xml.enclosure( :url => item[:enclosure].full_url, :size => item[:enclosure].file_size, :type => item[:enclosure].mime_type  )
       end
+      if item[:thumbnail]
+        xml.media( :thumbnail, :url => item[:thumbnail].full_url(:preview), :type => item[:thumbnail].mime_type, :width => item[:thumbnail].width(:preview), :height => item[:thumbnail].height(:preview) )
+      end
     end
   end
 end
