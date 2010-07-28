@@ -1,0 +1,24 @@
+<div class="cms_form">
+
+<div align="right"><a href="javascript:void(0);" onclick="RedBox.close();">[x] close</a></div>
+<br/>
+
+<h2>Install Webiva Theme</h2>
+<br/>
+
+<div>
+<% stat_view do |f| -%>
+  <%= f.header "Webiva Theme" %>
+  <%= f.row 'Name', @theme.name %>
+  <%= f.row 'Author', @theme.author %>
+  <%= f.row 'Description', Util::TextFormatter.text_plain_generator(@theme.description) %>
+  <%= f.raw 'Preview', @theme.thumbnail_tag %>
+<% end -%>
+</div>
+
+<div class="admin_form" align="center">
+<%= button_to 'Install', :action => 'install', :guid => @theme.guid %>
+</div>
+
+</div>
+
