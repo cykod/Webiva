@@ -35,7 +35,7 @@ class Domain < SystemModel
   validates_inclusion_of :domain_type, :in => %w(domain redirect)
 
   def before_create #:nodoc: 
-    self.inactive_message = 'Site Currently Down for Maintenance' if self.blank?
+    self.inactive_message = 'Site Currently Down for Maintenance' if self.inactive_message.blank?
   end
 
   def validate
