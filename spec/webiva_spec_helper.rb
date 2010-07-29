@@ -28,7 +28,7 @@ class WebivaCleaner
     end
 
     def tables_to_truncate
-       connection.tables -  %w[component_schemas, schema_migrations]
+       connection.tables -  %w(component_schemas schema_migrations)
     end
 
     def truncate_table(table_name)
@@ -55,7 +55,7 @@ class WebivaSystemCleaner
   end
 
   def tables_to_truncate
-    connection.tables -  %w[schema_migrations, globalize_countries, globalize_languages, globalize_translations]
+    connection.tables -  %w(schema_migrations globalize_countries globalize_languages globalize_translations)
   end
 
   def truncate_table(table_name)
