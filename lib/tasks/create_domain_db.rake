@@ -81,6 +81,11 @@ namespace "cms" do
       # And create any initial data as necessary
       Domain.initial_domain_data
 
+      if ENV['INITIALIZER']
+        cls = ENV['INITIALIZER'].constantize 
+        cls.run_domain_initializer(dmn)
+      end
+
       dmn.status = 'initialized'
       dmn.save
     end

@@ -95,10 +95,7 @@ class Manage::DomainsController < CmsController # :nodoc: all
 
   def update_module
     if self.system_admin? && request.post? && @domain.status == 'initialized'
-      mod = params[:mod]
-      entry = @domain.domain_modules.find_by_name(mod) || @domain.domain_modules.build(:name => mod)
-      entry.access = params[:access] == 'available' ? 'available' : 'unavailable'
-      entry.save
+      @domain.update_module_availability(params[:mod],params[:access] == 'available' )
     end
     
     redirect_to :action => 'edit', :path => @domain.id

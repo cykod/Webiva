@@ -95,9 +95,16 @@ class Domain < SystemModel
     if (self.status == 'setup' || self.status == 'initializing') && self.domain_type == 'domain' && self.database.to_s.empty?
        self.status = 'initializing'
        self.save
+       initializer = " INITIALIZER=#{params[:initializer]}" if params[:initializer]
        # Create the database, yml files and run the initial migration
-       ok  = `cd #{RAILS_ROOT};rake cms:create_domain_db DOMAIN_ID=#{self.id}`
+       ok  = `cd #{RAILS_ROOT};rake cms:create_domain_db DOMAIN_ID=#{self.id}#{initializer}`
     end
+  end
+
+  def update_module_availability(mod,available)
+    entry = self.domain_modules.find_by_name(mod) || self.domain_modules.build(:name => mod)
+    entry.access = available ? 'available' : 'unavailable'
+    entry.save
   end
 
   def self.current_site_domains

@@ -16,7 +16,7 @@ namespace "cms" do
     end 
     
     if domain
-      domains = Domain.find(:all, :conditions => ['id=? AND domain_type="domain" AND `database` != "" AND `status`="initialized"',domain]).collect {|dmn| dmn.get_info }
+      domains = Domain.find(:all, :conditions => ['id=? AND domain_type="domain" AND `database` != "" AND (`status`="initialized" or `status` = "working")',domain]).collect {|dmn| dmn.get_info }
     else
       domains = Domain.find(:all,:conditions => 'domain_type = "domain" AND `database` != "" AND `status`="initialized"').collect { |dmn| dmn.get_info }
     end
