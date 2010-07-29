@@ -118,7 +118,7 @@ class SiteFeature < DomainModel
 
   def export_to_bundle(bundler)
     details = self.feature_details
-    return nil if details.size == 4 # ContentPublication feature
+    return nil if !details || details.size == 4 # ContentPublication feature
 
     module_name = details[2].to_s.underscore.split('/')[0]
     (bundler.modules << module_name) if module_name != 'editor'
