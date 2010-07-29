@@ -49,6 +49,9 @@ class TransmitFileController < ApplicationController
 
   protected
 
+  def rescue_action_in_public(exception,display = true) # :nodoc:
+  end
+
   def activate_domain(domain=nil)
     raise "Unknown server #{request.host}" unless Server.server_name == request.host
 
