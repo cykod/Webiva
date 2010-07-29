@@ -20,7 +20,7 @@ class DomainsController < CmsController # :nodoc: all
   def display_domains_table(display=true)
 
     active_table_action(:domain) do |act,dids|
-      @domains = Domain.find(dids,:conditions => { :database =>  Configuration.domain_info.database })
+      @domains = Domain.find(dids,:conditions => { :database =>  Configuration.domain_info.database }, :order => 'id')
       case act
       when 'activate':
           @domains.each { |dmn| dmn.update_attribute(:active,true) }
@@ -28,6 +28,11 @@ class DomainsController < CmsController # :nodoc: all
           @domains.each { |dmn| dmn.update_attribute(:active,false) }
       when 'delete':
           @domains.each { |dmn| dmn.destroy_domain }
+      when 'primary':
+          new_primary_domain = @domains[0]
+          Domain.update_all "`primary` = 0", "`database` = \"#{Configuration.domain_info.database}\""
+          new_primary_domain.reload
+          new_primary_domain.update_attribute :primary, true
       end
     end
 
@@ -77,15 +82,4 @@ class DomainsController < CmsController # :nodoc: all
       end
     end
   end
-
-  def primary
-    @dmn = Domain.find_site_domain(params[:path][0],Configuration.domain_info.database)
-
-    if @dmn
-      @dmn.set_primary
-    end
-
-    redirect_to :action => 'index'
-  end
-
 end

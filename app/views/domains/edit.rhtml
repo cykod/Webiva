@@ -4,11 +4,9 @@
 
   <%= f.radio_buttons :active, [['Site is active',true ],['Site is inactive',false]] ,  :label => '',:single => true, :description => 'If the site is inactive only the /website admin interface will be accessible' %>
 
-  <%= f.text_field :name, :label => 'Domain Name', :description => 'WARNING: changing the domain name could disable access to this site' %>
-  
-
-  <%= f.check_boxes :primary, [['Primary site domain',true ]] ,  :label => 'Primary domain',:single => true, :description => 'The primary domain will be the one from which emails will be sent' %>
-
+  <% unless @dmn.primary -%>
+    <%= f.text_field :name, :label => 'Domain Name', :description => 'WARNING: changing the domain name could disable access to this site' %>
+  <% end -%>
 
   <%= f.radio_buttons :www_prefix, [['Use www. prefix',true ],['No www. prefix',false]] ,  :label => 'WWW Prefix',:single => true %>
 

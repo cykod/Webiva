@@ -147,6 +147,7 @@ class Manage::DomainsController < CmsController # :nodoc: all
       if @domain.domain_type == 'domain'
         if params[:domain][:database] == 'create'
           if self.client.can_add_database?
+            @domain.primary = true
             @domain.attributes = params[:domain].slice(:www_prefix,:active)
             @domain.max_file_storage = params[:domain][:max_file_storage].blank? ? DomainDatabase::DEFAULT_MAX_FILE_STORAGE : params[:domain][:max_file_storage].to_i
 
