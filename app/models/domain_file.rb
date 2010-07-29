@@ -156,10 +156,9 @@ class DomainFile < DomainModel
         match.replace(self)
         return match
       end
-      return self
     end
-    return false
-    
+
+     self
    end
    
    # Copy copy this file to a new file
