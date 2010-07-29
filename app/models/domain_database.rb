@@ -7,7 +7,7 @@ class DomainDatabase < SystemModel
   belongs_to :client
   has_many :domains
 
-  validates_uniqueness_of :name
+  validates_uniqueness_of :name, :allow_nil => true
   validates_presence_of :client_id
 
   validates_numericality_of :max_file_storage

@@ -7,7 +7,6 @@ describe DomainDatabase do
   it "should be a valid domain database" do
     @db = DomainDatabase.new
     @db.valid?
-    @db.should have(1).errors_on(:name)
     @db.should have(1).errors_on(:client_id)
   end
 

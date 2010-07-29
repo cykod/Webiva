@@ -294,7 +294,7 @@ describe Manage::DomainsController do
 
     it "should be able to setup a domain with a new database" do
       @another_domain = @another_client.domains.create :name => 'another-test-domain.dev', :status => 'setup'
-      DomainModel.should_receive(:run_worker).with('Domain', @another_domain.id, 'initialize_database')
+      DomainModel.should_receive(:run_worker).with('Domain', @another_domain.id, 'initialize_database', {:max_file_storage=>10240})
       post 'setup', :path => [@another_domain.id], :domain => {:database => 'create'}
       @another_domain.reload
       @another_domain.status.should == 'initializing'
