@@ -632,7 +632,7 @@ block is non-nil
         icon_size = attr.delete('size') || tag_opts[:size] || nil
         size = icon_size #%w(icon thumb preview small original).include?(icon_size) ?  icon_size : nil
         size = nil if size == 'original'
-        img_size = img.image_size(size)
+        img_size = img.image_size(size) || []
         shadow = attr.delete('shadow')
         align = attr.delete('align') 
         field = attr.delete('field')
