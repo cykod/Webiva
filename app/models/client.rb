@@ -50,7 +50,7 @@ class Client < SystemModel
   end
 
   def can_add_database?
-    self.num_databases < self.database_limit
+    self.can_add_domain? && self.num_databases < self.database_limit
   end
 
   def can_add_domain?

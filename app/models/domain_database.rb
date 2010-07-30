@@ -5,9 +5,9 @@ class DomainDatabase < SystemModel
   DEFAULT_MAX_FILE_STORAGE = 10.gigabytes / 1.megabyte
 
   belongs_to :client
-  has_many :domains
+  has_many :domains, :order => :id
 
-  validates_uniqueness_of :name, :allow_nil => true
+  validates_uniqueness_of :name, :allow_blank => true
   validates_presence_of :client_id
 
   validates_numericality_of :max_file_storage
