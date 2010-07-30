@@ -56,7 +56,9 @@ class PublicController < ApplicationController  # :nodoc: all
 
     filename = params[:path][-1] # Filename is always the last argument
     size = params[:path][-2]
-    prefix = params[:path][0..2].join("/")
+    prefix = params[:path][0..-2]
+    prefix.pop if DomainFileSize.valid_size?(size)
+    prefix = prefix.join('/')
 
     df = DomainFile.find_by_prefix(prefix)
 
