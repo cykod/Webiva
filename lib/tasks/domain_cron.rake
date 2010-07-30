@@ -4,10 +4,10 @@ desc "Run a domains crons"
 task :domain_cron => :environment do |t|
 
   if ENV['DOMAIN_ID']
-    domains = Domain.find(:all, :conditions => ['id=? AND domain_type="domain" AND `database` != "" AND `status`="initialized"',ENV['DOMAIN_ID']]).collect {|dmn| dmn.attributes }
+    domains = Domain.find(:all, :conditions => ['id=? AND domain_type="domain" AND `database` != "" AND `status`="initialized"',ENV['DOMAIN_ID']]).collect {|dmn| dmn.get_info }
   else
     domains = Domain.find(:all,:conditions => 'domain_type = "domain" AND `database` != "" AND `status`="initialized"',
-                          :group => '`database`').collect { |dmn| dmn.attributes }
+                          :group => '`database`').collect { |dmn| dmn.get_info }
   end
   
   now = Time.now
