@@ -30,8 +30,12 @@ class FileWorker <  Workling::Base #:nodoc:all
 
     @upload_file.generate_thumbnails
 
+    @upload_file.update_attributes(:server_id => Server.server_id) if @upload_file.server_id != Server.server_id
+
     parent_folder = @upload_file.parent
  
+    return unless parent_folder
+
     is_gallery = parent_folder.special == 'gallery' ? true : false
     
     if(args[:extract_archive] && @upload_file.is_archive?)
@@ -61,8 +65,6 @@ class FileWorker <  Workling::Base #:nodoc:all
     if(args[:replace_same])
       @uploaded_ids = DomainFile.find(:all,:conditions => { :id => @uploaded_ids }).map { |fl| fl.replace_same }.map(&:id)
     end 
-
-    @upload_file.update_attributes(:server_id => Server.server_id) if @upload_file.server_id != Server.server_id
 
     Workling.return.set(args[:uid],{  :uploaded_ids => @uploaded_ids, :processed => true } )
   end
