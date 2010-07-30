@@ -41,9 +41,11 @@ namespace "cms" do
       local_db_config['migrator']['database'] = dmn.database
       local_db_config['migrator']['file_store'] = dmn.file_store
       local_db_config['migrator']['username'] = "cms_#{dmn.id}_m"
+      local_db_config['migrator']['host'] = db_cfg['host']
       local_db_config['production']['database'] = dmn.database
       local_db_config['production']['file_store'] = dmn.file_store
       local_db_config['production']['username'] = "cms_#{dmn.id}_user"
+      local_db_config['production']['host'] = db_cfg['host']
       
       dmn.create_domain_database :client_id => dmn.client_id, :name => dmn.database, :options => local_db_config
 
