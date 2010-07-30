@@ -1049,9 +1049,10 @@ class DomainFile < DomainModel
       response = @df.server.fetch(url)
       return false unless Net::HTTPSuccess === response
 
-      FileUtils.mkpath(@df.abs_storage_directory)
-      File.open(@df.local_filename, "wb") { |f| f.write(response.body) }
-      File.utime(File.atime(@df.local_filename).to_i, @df.mtime.to_i, @df.local_filename) if @df.mtime
+      dir = @df.abs_storage_directory + (dest_size ? "#{dest_size}/" : '')
+      FileUtils.mkpath(dir)
+      File.open(@df.local_filename(dest_size), "wb") { |f| f.write(response.body) }
+      File.utime(File.atime(@df.local_filename(dest_size)).to_i, @df.mtime.to_i, @df.local_filename(dest_size)) if @df.mtime
       true
     end
 
