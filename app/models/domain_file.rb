@@ -1045,6 +1045,7 @@ class DomainFile < DomainModel
       return true if Server.server_id == @df.server.id
 
       url = "/website/transmit_file/file/#{DomainModel.active_domain_id}/#{@df.id}/#{@df.server_hash}"
+      url += "?size=#{dest_size}" if dest_size
       response = @df.server.fetch(url)
       return false unless Net::HTTPSuccess === response
 

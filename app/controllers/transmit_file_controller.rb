@@ -13,7 +13,7 @@ class TransmitFileController < ApplicationController
       end
     end
 
-    filename = @domain_file.filename
+    filename = @domain_file.filename params[:size]
     mime_types =  MIME::Types.type_for(filename) 
     send_file(filename,
               :type => mime_types[0] ? mime_types[0].to_s : 'text/plain',
