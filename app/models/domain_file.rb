@@ -724,7 +724,8 @@ class DomainFile < DomainModel
    
   # Return a relative url for a file at a specific size
   def url(size=nil,append_stored_at = false)
-    return self.processor_handler.url(size) unless self.processor == 'local' || !get_size(size)
+    return self.processor_handler.url(size) unless self.processor == 'local' || ( (self.file_type == 'img' &&  !get_size(size))  || (self.file_type == 'thm' && size && !get_size(size)))
+
 
     if self.private?
       fl = "/website/file/priv/#{self.id.to_s}/#{size.to_s}"
