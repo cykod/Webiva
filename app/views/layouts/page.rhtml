@@ -8,8 +8,8 @@
 <% if @output.meta_description || @output.includes[:meta_description] -%>
  <meta name='DESCRIPTION' content='<%= vh (@output.includes[:meta_description] || @output.meta_description).to_s %>'/>
 <% end -%>
-<% if @output.meta_keywords%>
- <meta name='KEYWORDS' content='<%= vh @output.meta_keywords%>'/>
+<% if @output.meta_keywords || @output.includes[:meta_keywords] %>
+ <meta name='KEYWORDS' content='<%= vh (@output.includes[:meta_keywords] || @output.meta_keywords).to_s %>'/>
 <% end -%>
 <% if @robots.length > 0 %>
  <meta name='ROBOTS' content='<%= @robots.join(',') %>'/>

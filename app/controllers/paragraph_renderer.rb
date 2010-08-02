@@ -423,7 +423,7 @@ class ParagraphRenderer < ParagraphFeature
     @includes[part.to_sym] += value
   end
 
-  # Includes the specified javascript file when the page is rendered
+   # Includes the specified javascript file when the page is rendered
   # uses the standard rails javascript_include_tag syntax
   def require_js(js)
     @includes[:js] ||= []

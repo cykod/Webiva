@@ -75,7 +75,7 @@ class DomainFileVersion < DomainModel
     # unless we have a filename, return false
     atr = self.read_attribute(:filename)
     return nil unless self.prefix && atr
-     "#{DomainFile.storage_subdir}/{self.prefix}/#{atr}"
+     "#{DomainFile.storage_subdir}/#{self.prefix}/#{atr}"
   end
   
    def relative_filename

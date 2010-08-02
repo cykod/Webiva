@@ -19,7 +19,7 @@ class Blog::BlogPost < DomainModel
 
   validates_datetime :published_at, :allow_nil => true
    
-  has_options :status, [ [ 'Draft','draft'], ['Published','published']] 
+  has_options :status, [ [ 'Draft','draft'],['Preview','preview'], ['Published','published']] 
 
   has_many :comments, :as => :target
 
@@ -88,12 +88,22 @@ class Blog::BlogPost < DomainModel
     return @comments_count 
   end
 
-  def self.paginate_published(page,items_per_page)
-    Blog::BlogPost.paginate(page,
-                            :include => [ :active_revision, :blog_categories ],
-                            :order => 'published_at DESC',
-                            :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ?",Time.now],
-                            :per_page => items_per_page)
+  def self.paginate_published(page,items_per_page,blog_ids = [])
+    if blog_ids.length > 0
+      Blog::BlogPost.paginate(page,
+                              :include => [ :active_revision, :blog_categories ],
+                              :order => 'published_at DESC',
+                              :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ? AND blog_posts.blog_blog_id IN (?)",Time.now,blog_ids],
+                              :per_page => items_per_page)
+
+    else
+      Blog::BlogPost.paginate(page,
+                              :include => [ :active_revision, :blog_categories ],
+                              :order => 'published_at DESC',
+                              :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ?",Time.now],
+                              :per_page => items_per_page)
+    end
+    
   end
 
   def generate_permalink!
@@ -227,13 +237,51 @@ class Blog::BlogPost < DomainModel
     end
   end
   
+  def publish!
+    if self.publish_now
+      self.save
+    end
+  end
+
+  def unpublish!
+    self.status ='draft'
+    self.save
+  end
+  
   def publish(tm)
     self.status = 'published'
     self.published_at = tm
   end
   
+  def preview!
+    self.status = 'preview'
+    self.save
+  end
+
+  def duplicate!
+    new_post = self.clone
+
+      [:media_file_id, :domain_file_id, :body, :end_user_id, :keywords,
+    :author, :embedded_media, :preview_title, :preview ].each do |fld|
+        new_post.send("#{fld}=",self.send(fld))
+    end
+    new_post.created_at = nil
+    new_post.updated_at = nil
+    new_post.title = "(COPY) " + self.title.to_s
+    new_post.permalink = nil
+    new_post.published_at = nil
+    new_post.status = 'draft'
+    new_post.save
+    new_post
+  end
+
+
   def make_draft
     self.status = 'draft'  
+  end
+
+  def make_preview
+    self.status = 'preview'
   end
   
   def published?

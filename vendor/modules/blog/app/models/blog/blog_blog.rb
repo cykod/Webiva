@@ -89,7 +89,7 @@ class Blog::BlogBlog < DomainModel
     Blog::BlogPost.find(:first,
                         :include => [ :active_revision ],
                         :order => 'published_at DESC',
-                        :conditions => ["blog_posts.status = \"published\" AND blog_blog_id=? AND blog_posts.permalink=?",self.id,permalink])
+                        :conditions => ["blog_posts.status in('published','preview') AND blog_blog_id=? AND blog_posts.permalink=?",self.id,permalink])
   end
 
   def content_type_name

@@ -44,9 +44,7 @@ class Blog::ManageController < ModuleController
                 ]
 
   def display_generate_post_table(display=true)
-    
       @tbl = generate_post_table_generate params, :order => 'blog_posts.published_at DESC',:joins => [ :active_revision, :blog_blog ]
-      
       render :partial =>'generate_post_table' if display
   end
   
@@ -81,29 +79,21 @@ class Blog::ManageController < ModuleController
   end
 
   def post_table(display=true)
-      if(request.post? && params[:table_action] && params[:post].is_a?(Hash)) 
-      
-      case params[:table_action]
-      when 'delete':
-        params[:post].each do |entry_id,val|
-          Blog::BlogPost.destroy(entry_id.to_i)
-        end
-      when 'publish':
-        params[:post].each do |entry_id,val|
-          entry = Blog::BlogPost.find(entry_id)
-          unless (entry.status == 'published' && entry.published_at && entry.published_at < Time.now) 
-              entry.status = 'published'
-              entry.published_at = Time.now
-              entry.save
-          end
-        end
+
+    active_table_action(:post) do |act,eids| 
+      entries = Blog::BlogPost.find(eids)
+      case act
+      when 'delete': entries.map(&:destroy)
+      when 'publish': entries.map(&:publish!)
+      when 'unpublish': entries.map(&:unpublish!)
+      when 'duplicate': entries.map(&:duplicate!)
       end
     end
-    
-    @active_table_output = post_table_generate params, :joins => [ :active_revision ], :include => [ :blog_categories ], 
-                            :order => 'blog_posts.updated_at DESC', :conditions => ['blog_posts.blog_blog_id = ?',@blog.id ]
 
-    
+    @active_table_output = post_table_generate params, :joins => [ :active_revision ], :include => [ :blog_categories ], 
+      :order => 'blog_posts.updated_at DESC', :conditions => ['blog_posts.blog_blog_id = ?',@blog.id ]
+
+
     render :partial => 'post_table' if display
   end
 
@@ -154,10 +144,9 @@ class Blog::ManageController < ModuleController
         @entry.attributes = params[:entry]
 
         case params[:update_entry][:status]
-        when 'draft':
-          @entry.make_draft
-        when 'publish_now' # if we want to publish the article now
-          @entry.publish_now
+        when 'draft':       @entry.make_draft
+        when 'publish_now': @entry.publish_now
+        when 'preview':     @entry.make_preview
         when 'post_date'
           @entry.publish(params[:entry][:published_at].blank? ? Time.now : (params[:entry][:published_at]))
         end
