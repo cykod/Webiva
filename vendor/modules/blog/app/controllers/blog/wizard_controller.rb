@@ -20,6 +20,8 @@ class Blog::WizardController < ModuleController
     @version = SiteVersion.find_by_id(params[:version])
     SiteVersion.override_current(@version)
 
+    return redirect_to(:controller => '/blog/admin', :action => 'create', :version => @version.id) if Blog::BlogBlog.count == 0
+
     cms_page_path [[ "Website",url_for(:controller => '/structure', :action => 'index', :version => @version.id) ]],"Add a Blog to your site structure"
 
     @blog_wizard = Blog::AddBlogWizard.new(params[:wizard] || {  :blog_id => params[:blog_id].to_i})
