@@ -78,6 +78,10 @@ module ModelExtension::ContentNodeExtension
   
   module InstanceMethods
 
+    def content_node_link
+      self.content_node.link if self.content_node
+    end
+
     def content_node_save #:nodoc:
       # Only save if we aren't already inside of save_content
       save_content(nil,{},true) if(!content_node_skip)

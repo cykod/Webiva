@@ -78,7 +78,7 @@ class Blog::PageRenderer < ParagraphRenderer
           pages,entries = blog.paginate_posts(page,items_per_page)
         end
       else
-        pages,entries = Blog::BlogPost.paginate_published(page,items_per_page)
+        pages,entries = Blog::BlogPost.paginate_published(page,items_per_page,@options.blog_ids)
       end
 
       cache[:output] = blog_entry_list_feature(:blog => blog,
@@ -106,9 +106,9 @@ class Blog::PageRenderer < ParagraphRenderer
     result = renderer_cache(blog, display_string) do |cache|
       entry = nil
       if editor?
-        entry = blog.blog_posts.find(:first,:conditions => ['blog_posts.status = "published" AND blog_blog_id=? ',blog.id])
+        entry = blog.blog_posts.find(:first,:conditions => ['blog_posts.status  "published" AND blog_blog_id=? ',blog.id])
       elsif conn_type == :post_permalink
-        entry = blog.find_post_by_permalink(conn_id) if conn_id
+        entry = blog.find_post_by_permalink(conn_id)
       end
 
       cache[:output] = blog_entry_detail_feature(:entry => entry,
@@ -116,6 +116,7 @@ class Blog::PageRenderer < ParagraphRenderer
                                                  :detail_page => site_node.node_path,
                                                  :blog => blog)
       cache[:title] = entry ? entry.title : ''
+      cache[:keywords] = (entry && !entry.keywords.blank?) ? entry.keywords : nil
       cache[:entry_id] = entry ? entry.id : nil
     end
 
@@ -124,6 +125,7 @@ class Blog::PageRenderer < ParagraphRenderer
       set_page_connection(:post, result.entry_id )
       set_title(result.title)
       set_content_node(['Blog::BlogPost', result.entry_id])
+      html_include('meta_keywords',result.keywords) if result.keywords 
     else
       return render_paragraph :text => '' if (['', 'category','tag','archive'].include?(conn_id.to_s.downcase)) && site_node.id == @options.list_page_id
       raise SiteNodeEngine::MissingPageException.new( site_node, language ) unless editor?
