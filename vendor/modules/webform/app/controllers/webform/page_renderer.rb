@@ -35,7 +35,7 @@ class Webform::PageRenderer < ParagraphRenderer
       cache[:output] = webform_page_form_feature
     end
 
-    set_title result.title, 'webform' unless result.title.blank?
+    #set_title result.title, 'webform' unless result.title.blank?
     render_paragraph :text => result.output
   end
 
