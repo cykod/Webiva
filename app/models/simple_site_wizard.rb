@@ -55,7 +55,7 @@ class SimpleSiteWizard < HashModel
       rv.make_real
 
       basic_para = rv.page_paragraphs[0]
-      basic_para.display_body = "<h1>#{page}</h1>\n" + DummyText.paragraphs(1+rand(3)).map { |p| "<p>#{p}</p>" }.join("\n")
+      basic_para.display_body = "<h1>#{page}</h1>\n" + DummyText.paragraphs(1+rand(3), :max => 1).map { |p| "<p>#{p}</p>" }.join("\n")
       basic_para.save
     end
   end
