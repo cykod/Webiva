@@ -34,7 +34,11 @@ class SiteNodeModifier < DomainModel
       nil
     end
   end
-  
+
+  def options
+    @options ||= self.modifier_options
+  end
+
   def self.find_page(page_id)
     self.find_by_id(page_id)
   end 
@@ -86,6 +90,10 @@ class SiteNodeModifier < DomainModel
     else
       type
     end
+  end
+
+  def before_save
+    self.modifier_data = @options.to_hash if @options
   end
 
   private
