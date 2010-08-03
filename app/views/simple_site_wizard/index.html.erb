@@ -1,7 +1,0 @@
-<div class='admin_content'>
-<% admin_form_for :wizard, @basic_wizard do |f|  -%>
-  <%= hidden_field_tag "version", @version.id %>
-  <%= render :partial => @basic_wizard.options_partial, :locals => @basic_wizard.options_locals(f) -%>
-  <%= f.spacer %>
-  <%= f.cancel_submit_buttons %>
-<% end -%>
