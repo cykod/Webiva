@@ -11,7 +11,7 @@ class Blog::AdminController < ModuleController
                               
   content_model :blogs
 
-  register_handler :structure, :wizard, "Blog::WizardController"
+  register_handler :structure, :wizard, "Blog::AddBlogWizard"
   register_handler :feed, :rss, "Blog::RssHandler"
   register_handler :mail_manager, :generator, "Blog::ManageController"
   
@@ -46,7 +46,7 @@ class Blog::AdminController < ModuleController
       if(@blog.save)
         if !@blog.add_to_site.blank?
           @version = SiteVersion.current
-          redirect_to :controller => '/blog/wizard', :blog_id => @blog.id, :version => @version.id
+          redirect_to Blog::AddBlogWizard.wizard_url.merge(:blog_id => @blog.id, :version => @version.id)
           return
         else
           redirect_to :controller => '/blog/manage', :path => @blog.id
