@@ -38,6 +38,8 @@ class SiteNode < DomainModel
   
   attr_accessor :page_info, :closed
 
+  named_scope :with_type, lambda { |type| {:conditions => {:node_type => type}} }
+
   # Expires the entire site when save or deleted
   expires_site
 
@@ -114,6 +116,10 @@ class SiteNode < DomainModel
   def add_modifier(type)
     returning md = self.site_node_modifiers.create(:modifier_type => type) do
       md.move_to_top
+      if block_given?
+        yield md
+        md.save
+      end
     end
   end
 
@@ -124,7 +130,33 @@ class SiteNode < DomainModel
     nd
   end
   
-  
+  def self.generate_node_path(title)
+    title.underscore.strip.gsub(/[ _]+/, '-').gsub(/[^a-z0-9.\-]/, '')
+  end
+
+  def push_subpage(title, type='P')
+    nd = self.site_version.site_nodes.with_type(type).find_by_title(title) || self.add_subpage(title, type)
+    if block_given?
+      # only pages have revisions
+      if type == 'P'
+        rv = nd.live_revisions.first.create_temporary
+        yield nd, rv
+        rv.make_real
+      else
+        yield nd
+      end
+    end
+    nd
+  end
+
+  def push_modifier(type)
+    framework = self.site_node_modifiers.find_by_modifier_type(type) || self.add_modifier(type)
+    if block_given?
+      yield framework
+    end
+    framework
+  end
+
   def create_temporary_revision(revision_id) #:nodoc:
     rev = self.page_revisions.find_by_id(revision_id)
     return nil unless rev

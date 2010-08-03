@@ -1,5 +1,14 @@
 
-class SimpleSiteWizard < HashModel
+class Wizards::SimpleSite < WizardModel
+
+  def self.structure_wizard_handler_info
+    { :name => "Setup a Basic Site",
+      :description => 'This wizard will setup a basic site.',
+      :permit => "editor_structure_advanced",
+      :url => self.wizard_url
+    }
+  end
+
   attributes :pages => [], :name => nil
 
 
@@ -21,42 +30,38 @@ class SimpleSiteWizard < HashModel
     @pages.is_a?(Array) ? @pages.join("\n") : @pages
   end
 
-  def add_to_site!
-    root = SiteVersion.current.root_node
-    root.site_node_modifiers.each do |modifier|
+  def set_defaults
+    @pages = ['Home', 'About', 'News', 'Contact']
+    @name = DomainModel.active_domain_name.sub(/\.com$/, '').humanize
+  end
+
+  def run_wizard
+    self.root_node.site_node_modifiers.each do |modifier|
       modifier.destroy if modifier.modifier_type == 'template'
     end
 
-    root.reload
+    self.root_node.reload
 
-    framework_modifier = root.site_node_modifiers.to_a.find { |modifier| modifier.modifier_type == 'framework' }
-    framework_modifier ||= root.add_modifier 'framework'
+    self.root_node.push_modifier('framework') do |framework|
+      framework.new_revision do |rv|
+        rv.push_paragraph '/editor/menu', 'automenu', {:root_page => self.root_node.id, :levels => 1}, :zone => 2
+      end
+    end
 
-    rv = framework_modifier.page_revisions[0].create_temporary
-    rv.make_real
-    automenu_para = rv.add_paragraph '/editor/menu', 'automenu', {:root_page => root.id, :levels => 1}, :zone => 2
-    automenu_para.save
+    self.root_node.add_modifier('template') do |mod|
+      mod.options.template_id = self.create_simple_theme.id
+    end
 
-    theme = self.create_simple_theme
-    theme_modifier = root.add_modifier 'template'
-    theme_modifier.options.template_id = theme.id
-    theme_modifier.save
-
-    @pages.each do |page|
-      url = page.underscore.strip.gsub(/[ _]+/, '-').gsub(/[^a-z0-9.\-]/, '')
-      url = '' if url == 'home'
-      nd = SiteVersion.current.site_nodes.find(:first, :conditions => {:node_type => 'P', :node_path => "/#{url}"})
-      nd ||= root.add_subpage(url)
-      nd.save
-
-      rv = nd.live_revisions[0].create_temporary
-
-      rv.title = page
-      rv.make_real
-
-      basic_para = rv.page_paragraphs[0]
-      basic_para.display_body = "<h1>#{page}</h1>\n" + DummyText.paragraphs(1+rand(3), :max => 1).map { |p| "<p>#{p}</p>" }.join("\n")
-      basic_para.save
+    @pages.each do |name|
+      node_path = SiteNode.generate_node_path(name)
+      node_path = '' if node_path == 'home'
+      self.root_node.push_subpage(node_path) do |nd, rv|
+        rv.title = name
+        # Basic Paragraph
+        rv.push_paragraph(nil, 'html') do |para|
+          para.display_body = "<h1>#{name}</h1>\n" + DummyText.paragraphs(1+rand(3), :max => 1).map { |p| "<p>#{p}</p>" }.join("\n")
+        end
+      end
     end
   end
 

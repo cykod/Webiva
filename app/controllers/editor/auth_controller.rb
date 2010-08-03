@@ -195,7 +195,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
     include HandlerActions
 
     
-    attributes :required_fields => [ 'email', 'password', 'password_confirmation'],
+    attributes :required_fields => [ 'email' ],
     :user_class_id => nil,  :modify_profile => 'keep', :mail_template_id => nil,
     :optional_fields => [ 'first_name','last_name'],
     :success_page_id => nil,
