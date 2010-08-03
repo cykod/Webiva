@@ -50,6 +50,7 @@ class Blog::PageRenderer < ParagraphRenderer
     end
 
     if list_type == 'category'
+      list_type_identifier = list_type_identifier.to_s.gsub("+"," ")
       set_page_connection(:category, list_type_identifier)
     end
 
