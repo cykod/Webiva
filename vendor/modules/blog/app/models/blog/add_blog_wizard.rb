@@ -1,13 +1,22 @@
 
 
-class Blog::AddBlogWizard < HashModel
+class Blog::AddBlogWizard < WizardModel
+
+  def self.structure_wizard_handler_info
+    { :name => "Add a Blog to your Site",
+      :description => 'This wizard will add an existing blog to a url on your site.',
+      :permit => "blog_config",
+      :url => self.wizard_url
+    }
+  end
 
   attributes :blog_id => nil, 
   :add_to_id=>nil,
-  :add_to_subpage => nil,
+  :add_to_subpage => 'blog',
   :add_to_existing => nil,
   :detail_page_url => 'view',
-  :opts => []
+  :opts => [],
+  :number_of_dummy_posts => 3
 
   
   validates_format_of :add_to_subpage, :with => /^[a-zA-Z0-9\-_]+$/, :message => 'is an invalid url', :allow_blank => true
@@ -16,6 +25,24 @@ class Blog::AddBlogWizard < HashModel
 
   validates_presence_of :blog_id
   validates_presence_of :detail_page_url
+
+  integer_options :number_of_dummy_posts
+
+  options_form(
+               fld(:blog_id, :select, :options => :blog_select_options, :label => 'Blog to Add'),
+               fld(:add_to, :add_page_selector),
+               fld(:detail_page_url, :text_field, :label => "Detail Page", :size => 10),
+               fld(:opts, :check_boxes,
+                   :options => [['Add a comments paragraph','comments'],
+                                ['Add Categories to list page','categories']],
+                   :label => 'Options', :separator => '<br/>'
+                   ),
+               fld(:number_of_dummy_posts, :text_field, :description => 'Number of dummy posts to create if blog has no posts', :label => 'Dummy posts')
+               )
+
+  def blog_select_options
+    Blog::BlogBlog.select_options_with_nil('Blog')
+  end
 
   def validate
     nd = SiteNode.find_by_id(self.add_to_id)
@@ -27,7 +54,19 @@ class Blog::AddBlogWizard < HashModel
     end
   end
 
-  def add_to_site!
+  def can_run_wizard?
+    Blog::BlogBlog.count > 0
+  end
+
+  def setup_url
+    {:controller => '/blog/admin', :action => 'create', :version => self.site_version_id}
+  end
+
+  def set_defaults(params)
+    self.blog_id = params[:blog_id].to_i if params[:blog_id]
+  end
+
+  def run_wizard
     nd = SiteNode.find(self.add_to_id)
 
     if self.add_to_existing.blank?
@@ -91,7 +130,26 @@ class Blog::AddBlogWizard < HashModel
 
     detail_revision.make_real
     list_revision.make_real
-    
 
+    if self.blog.blog_posts.count == 0 && self.number_of_dummy_posts > 0
+      categories = [self.create_dummy_category, self.create_dummy_category]
+      (1..self.number_of_dummy_posts).each do |idx|
+        self.create_dummy_post(categories[rand(categories.size)])
+      end
+    end
+  end
+
+  def blog
+    @blog ||= Blog::BlogBlog.find self.blog_id
+  end
+
+  def create_dummy_category
+    self.blog.blog_categories.create :name => DummyText.words(1).split(' ')[0..1].join(' ')
+  end
+
+  def create_dummy_post(cat)
+    post = self.blog.blog_posts.create :body => DummyText.paragraphs(1+rand(3), :max => 1), :author => DummyText.words(1).split(' ')[0..1].join(' '), :title => DummyText.words(1), :status => 'published', :published_at => Time.now
+    Blog::BlogPostsCategory.create :blog_post_id => post.id, :blog_category_id => cat.id
+    post
   end
 end

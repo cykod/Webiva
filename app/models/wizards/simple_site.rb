@@ -30,7 +30,7 @@ class Wizards::SimpleSite < WizardModel
     @pages.is_a?(Array) ? @pages.join("\n") : @pages
   end
 
-  def set_defaults
+  def set_defaults(params)
     @pages = ['Home', 'About', 'News', 'Contact']
     @name = DomainModel.active_domain_name.sub(/\.com$/, '').humanize
   end

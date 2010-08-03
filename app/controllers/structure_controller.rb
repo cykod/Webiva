@@ -75,11 +75,13 @@ class StructureController < CmsController  # :nodoc: all
 
     @wizard_info = get_handler_info(:structure, :wizard, params[:path].join('/'))
 
-    cms_page_path [["Website", url_for(:controller => '/structure', :action => 'index', :version => @version.id)]], '%s Wizard' / @wizard_info[:name]
-
     @the_wizard = @wizard_info[:class].new params[:wizard]
 
-    @the_wizard.set_defaults unless params[:wizard]
+    @the_wizard.set_defaults(params) unless params[:wizard]
+
+    return redirect_to(@the_wizard.setup_url) unless @the_wizard.can_run_wizard?
+
+    cms_page_path [["Website", url_for(:controller => '/structure', :action => 'index', :version => @version.id)], ["Wizards", url_for(:controller => '/structure', :action => 'wizards', :version => @version.id)]], '%s Wizard' / @wizard_info[:name]
 
     if request.post?
       if ! params[:commit] 
