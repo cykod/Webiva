@@ -31,7 +31,7 @@ class SimpleSiteWizardController < CmsController
         redirect_to :controller => '/structure', :action => 'wizards', :version => @version.id
       elsif @basic_wizard.valid?
         @basic_wizard.add_to_site!
-        flash[:notice] = "Setup a Site"
+        flash[:notice] = "Setup a Basic Site"
         redirect_to :controller => '/structure', :version => @version.id
       end
     end

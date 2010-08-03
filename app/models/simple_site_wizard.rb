@@ -29,34 +29,24 @@ class SimpleSiteWizard < HashModel
 
     root.reload
 
-    framework_modifier = root.site_node_modifiers.to_a.find { |modifier| modifier.modifier_type == 'framework' }
-    framework_modifier ||= root.add_modifier 'framework'
+    root.push_framework do |framework|
+      framework.new_revision do |rv|
+        rv.add_paragraph '/editor/menu', 'automenu', {:root_page => root.id, :levels => 1}, :zone => 2
+      end
+    end
 
-    rv = framework_modifier.page_revisions[0].create_temporary
-    rv.make_real
-    automenu_para = rv.add_paragraph '/editor/menu', 'automenu', {:root_page => root.id, :levels => 1}, :zone => 2
-    automenu_para.save
+    root.add_modifier('template') do |mod|
+      mod.options.template_id = self.create_simple_theme.id
+    end
 
-    theme = self.create_simple_theme
-    theme_modifier = root.add_modifier 'template'
-    theme_modifier.options.template_id = theme.id
-    theme_modifier.save
-
-    @pages.each do |page|
-      url = page.underscore.strip.gsub(/[ _]+/, '-').gsub(/[^a-z0-9.\-]/, '')
-      url = '' if url == 'home'
-      nd = SiteVersion.current.site_nodes.find(:first, :conditions => {:node_type => 'P', :node_path => "/#{url}"})
-      nd ||= root.add_subpage(url)
-      nd.save
-
-      rv = nd.live_revisions[0].create_temporary
-
-      rv.title = page
-      rv.make_real
-
-      basic_para = rv.page_paragraphs[0]
-      basic_para.display_body = "<h1>#{page}</h1>\n" + DummyText.paragraphs(1+rand(3), :max => 1).map { |p| "<p>#{p}</p>" }.join("\n")
-      basic_para.save
+    @pages.each do |name|
+      node_path = SiteNode.generate_node_path(name)
+      node_path = '' if node_path == 'home'
+      root.push_subpage(node_path) do |nd, rv|
+        rv.title = name
+        # Basic Paragraph
+        rv.page_paragraphs[0].update_attribute :display_body, "<h1>#{name}</h1>\n" + DummyText.paragraphs(1+rand(3), :max => 1).map { |p| "<p>#{p}</p>" }.join("\n")
+      end
     end
   end
 

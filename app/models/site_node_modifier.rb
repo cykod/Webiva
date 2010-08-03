@@ -22,6 +22,13 @@ class SiteNodeModifier < DomainModel
     end
   end
 
+  def new_revision
+    rv = self.page_revisions[0].create_temporary
+    yield rv
+    rv.make_real
+    rv
+  end
+
   # Returns the name of the modifier class
   def modifier_options_class_name(full=true)
     (full ? "SiteNodeModifier::" : "") + self.modifier_type.camelcase + "ModifierOptions" 
