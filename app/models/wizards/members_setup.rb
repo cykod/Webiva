@@ -75,6 +75,7 @@ class Wizards::MembersSetup < WizardModel
         # Add members only lock
         members_node.push_modifier('lock') do |lock|
           lock.options.redirect = login_page_id
+          lock.options.options = []
           lock.save
           UserClass.default_user_class.has_role('access', lock)
         end
@@ -87,7 +88,7 @@ class Wizards::MembersSetup < WizardModel
         members_node.push_subpage('edit-account') do |nd, rv|
           # remove basic paragraph
           rv.page_paragraphs[0].destroy
-          rv.add_paragraph '/editor/auth', 'user_edit_account'
+          rv.add_paragraph '/editor/auth', 'user_edit_account', {:success_page_id => members_node.id}
         end
       end
     end
