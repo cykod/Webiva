@@ -769,5 +769,7 @@ class SiteTemplate < DomainModel
       child['parent_id'] = site_template.id
       SiteTemplate.import_bundle bundler, child
     end
+
+    site_template
   end
 end
