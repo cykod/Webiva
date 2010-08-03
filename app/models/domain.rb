@@ -175,12 +175,18 @@ class Domain < SystemModel
   end
 
   def save_database_file
-    return unless File.exists?(self.database_file)
-
-    if self.domain_database
-      self.domain_database.update_attributes :options => YAML.load_file(self.database_file)
-    else
-      self.create_domain_database :client_id => self.client_id, :name => self.database, :options => YAML.load_file(self.database_file), :max_file_storage => (self.max_file_storage || DomainDatabase::DEFAULT_MAX_FILE_STORAGE)
+    if File.exists?(self.database_file)
+      if self.domain_database
+        self.domain_database.update_attributes :options => YAML.load_file(self.database_file)
+      else
+        self.domain_database = DomainDatabase.find_by_name(self.database)
+        unless self.domain_database
+          self.create_domain_database :client_id => self.client_id, :name => self.database, :options => YAML.load_file(self.database_file), :max_file_storage => (self.max_file_storage || DomainDatabase::DEFAULT_MAX_FILE_STORAGE)
+        end
+        self.save
+      end
+    elsif self.domain_database.nil?
+      self.domain_database = DomainDatabase.find_by_name(self.database)
       self.save
     end
   end
