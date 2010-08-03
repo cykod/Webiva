@@ -50,6 +50,7 @@ class Blog::PageRenderer < ParagraphRenderer
     end
 
     if list_type == 'category'
+      list_type_identifier = list_type_identifier.to_s.gsub("+"," ")
       set_page_connection(:category, list_type_identifier)
     end
 
@@ -106,7 +107,7 @@ class Blog::PageRenderer < ParagraphRenderer
     result = renderer_cache(blog, display_string) do |cache|
       entry = nil
       if editor?
-        entry = blog.blog_posts.find(:first,:conditions => ['blog_posts.status  "published" AND blog_blog_id=? ',blog.id])
+        entry = blog.blog_posts.find(:first,:conditions => ['blog_posts.status = "published" AND blog_blog_id=? ',blog.id])
       elsif conn_type == :post_permalink
         entry = blog.find_post_by_permalink(conn_id)
       end

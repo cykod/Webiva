@@ -36,7 +36,12 @@ class PublicController < ApplicationController  # :nodoc: all
         return
       end
     end
-     
+
+    get_handlers(:stylesheet,:post_process).each do |req|
+      cls = req[0].constantize.new(self)
+      @css = cls.post_process_stylesheet @css
+    end
+ 
     render :layout=> false, :text => @css
   end
   
