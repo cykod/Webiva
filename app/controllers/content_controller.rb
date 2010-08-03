@@ -32,7 +32,7 @@ class ContentController < ModuleController #:nodoc: all
   register_handler :user_segment, :fields, 'EndUserTagSegmentField'
   register_handler :user_segment, :fields, 'UserSubscriptionEntrySegmentField'
 
-  register_handler :structure, :wizard, 'SimpleSiteWizardController'
+  register_handler :structure, :wizard, 'SimpleSiteWizard'
 
   def index
     @content_models,@content_actions = CmsController.get_content_models_and_actions

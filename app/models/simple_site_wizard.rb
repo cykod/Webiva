@@ -1,5 +1,14 @@
 
-class SimpleSiteWizard < HashModel
+class SimpleSiteWizard < WizardModel
+
+  def self.structure_wizard_handler_info
+    { :name => "Setup a Basic Site",
+      :description => 'This wizard will setup a basic site.',
+      :permit => "editor_structure_advanced",
+      :url => self.wizard_url
+    }
+  end
+
   attributes :pages => [], :name => nil
 
 
@@ -21,7 +30,12 @@ class SimpleSiteWizard < HashModel
     @pages.is_a?(Array) ? @pages.join("\n") : @pages
   end
 
-  def add_to_site!
+  def set_defaults
+    @pages = ['Home', 'About', 'News', 'Contact']
+    @name = DomainModel.active_domain_name.sub(/\.com$/, '').humanize
+  end
+
+  def run_wizard
     root = SiteVersion.current.root_node
     root.site_node_modifiers.each do |modifier|
       modifier.destroy if modifier.modifier_type == 'template'
