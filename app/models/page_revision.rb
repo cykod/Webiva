@@ -281,5 +281,13 @@ class PageRevision < DomainModel
   end
   
 
-
+  def push_paragraph(renderer_class,name,paragraph_options={ },options={ })
+    para = self.page_paragraphs.find(:first, :conditions => {:zone_idx => options[:zone] || 1,:display_type => name,:display_module => renderer_class}) || self.add_paragraph(renderer_class,name,paragraph_options,options)
+    para.data = paragraph_options
+    if block_given?
+      yield para
+    end
+    para.save
+    para
+  end
 end

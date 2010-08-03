@@ -134,19 +134,12 @@ class SiteNode < DomainModel
     title.underscore.strip.gsub(/[ _]+/, '-').gsub(/[^a-z0-9.\-]/, '')
   end
 
-  def new_revision
-    rv = self.live_revisions[0].create_temporary
-    yield rv
-    rv.make_real
-    rv
-  end
-
   def push_subpage(title, type='P')
     nd = self.site_version.site_nodes.with_type(type).find_by_title(title) || self.add_subpage(title, type)
     if block_given?
       # only pages have revisions
       if type == 'P'
-        rv = nd.live_revisions[0].create_temporary
+        rv = nd.live_revisions.first.create_temporary
         yield nd, rv
         rv.make_real
       else

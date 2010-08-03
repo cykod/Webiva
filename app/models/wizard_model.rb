@@ -16,6 +16,11 @@ class WizardModel < HashModel
     @root_node ||= SiteVersion.current.root_node
   end
 
+  def destroy_basic_paragraph(rv)
+    para = rv.page_paragraphs.first
+    para.destroy if para.display_module == nil && para.display_type == 'html' && para.display_body.blank?
+  end
+
   def find_page(title)
     SiteVersion.current.site_nodes.with_type('P').find_by_title title
   end

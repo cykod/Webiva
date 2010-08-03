@@ -44,7 +44,7 @@ class Wizards::SimpleSite < WizardModel
 
     self.root_node.push_modifier('framework') do |framework|
       framework.new_revision do |rv|
-        rv.add_paragraph '/editor/menu', 'automenu', {:root_page => self.root_node.id, :levels => 1}, :zone => 2
+        rv.push_paragraph '/editor/menu', 'automenu', {:root_page => self.root_node.id, :levels => 1}, :zone => 2
       end
     end
 
@@ -58,7 +58,9 @@ class Wizards::SimpleSite < WizardModel
       self.root_node.push_subpage(node_path) do |nd, rv|
         rv.title = name
         # Basic Paragraph
-        rv.page_paragraphs[0].update_attribute :display_body, "<h1>#{name}</h1>\n" + DummyText.paragraphs(1+rand(3), :max => 1).map { |p| "<p>#{p}</p>" }.join("\n")
+        rv.push_paragraph(nil, 'html') do |para|
+          para.display_body = "<h1>#{name}</h1>\n" + DummyText.paragraphs(1+rand(3), :max => 1).map { |p| "<p>#{p}</p>" }.join("\n")
+        end
       end
     end
   end

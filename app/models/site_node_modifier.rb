@@ -12,6 +12,9 @@ class SiteNodeModifier < DomainModel
   has_many :page_revisions, :dependent => :destroy, :order => "revision DESC, language", 
   				:as => :revision_container
 
+  has_many :ordered_revisions, :dependent => :destroy, :order => "revision DESC, page_revisions.id DESC", 
+  				:as => :revision_container, :class_name => 'PageRevision'
+
   include SiteAuthorizationEngine::Target
   access_control :access
  
@@ -23,7 +26,7 @@ class SiteNodeModifier < DomainModel
   end
 
   def new_revision
-    rv = self.page_revisions[0].create_temporary
+    rv = self.ordered_revisions.first.create_temporary
     yield rv
     rv.make_real
     rv
