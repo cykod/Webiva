@@ -144,15 +144,20 @@ class SiteNode < DomainModel
   def push_subpage(title, type='P')
     nd = self.site_version.site_nodes.with_type(type).find_by_title(title) || self.add_subpage(title, type)
     if block_given?
-      rv = nd.live_revisions[0].create_temporary
-      yield nd, rv
-      rv.make_real
+      # only pages have revisions
+      if type == 'P'
+        rv = nd.live_revisions[0].create_temporary
+        yield nd, rv
+        rv.make_real
+      else
+        yield nd
+      end
     end
     nd
   end
 
-  def push_framework
-    framework = self.site_node_modifiers.find_by_modifier_type('framework') || self.add_modifier('framework')
+  def push_modifier(type)
+    framework = self.site_node_modifiers.find_by_modifier_type(type) || self.add_modifier(type)
     if block_given?
       yield framework
     end

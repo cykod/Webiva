@@ -1,5 +1,5 @@
 
-class SimpleSiteWizard < WizardModel
+class Wizards::SimpleSite < WizardModel
 
   def self.structure_wizard_handler_info
     { :name => "Setup a Basic Site",
@@ -36,27 +36,26 @@ class SimpleSiteWizard < WizardModel
   end
 
   def run_wizard
-    root = SiteVersion.current.root_node
-    root.site_node_modifiers.each do |modifier|
+    self.root_node.site_node_modifiers.each do |modifier|
       modifier.destroy if modifier.modifier_type == 'template'
     end
 
-    root.reload
+    self.root_node.reload
 
-    root.push_framework do |framework|
+    self.root_node.push_modifier('framework') do |framework|
       framework.new_revision do |rv|
-        rv.add_paragraph '/editor/menu', 'automenu', {:root_page => root.id, :levels => 1}, :zone => 2
+        rv.add_paragraph '/editor/menu', 'automenu', {:root_page => self.root_node.id, :levels => 1}, :zone => 2
       end
     end
 
-    root.add_modifier('template') do |mod|
+    self.root_node.add_modifier('template') do |mod|
       mod.options.template_id = self.create_simple_theme.id
     end
 
     @pages.each do |name|
       node_path = SiteNode.generate_node_path(name)
       node_path = '' if node_path == 'home'
-      root.push_subpage(node_path) do |nd, rv|
+      self.root_node.push_subpage(node_path) do |nd, rv|
         rv.title = name
         # Basic Paragraph
         rv.page_paragraphs[0].update_attribute :display_body, "<h1>#{name}</h1>\n" + DummyText.paragraphs(1+rand(3), :max => 1).map { |p| "<p>#{p}</p>" }.join("\n")
