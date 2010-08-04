@@ -809,5 +809,7 @@ class SiteTemplate < DomainModel
         rv.make_real
       end
     end
+
+    DomainModel.expire_site
   end
 end
