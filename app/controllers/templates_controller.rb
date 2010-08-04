@@ -36,7 +36,8 @@ class TemplatesController < CmsController # :nodoc: all
                   hdr(:options, 'template_type', :label => 'Type',:options => :type_options),
                   hdr(:order, 'IF(parent_id,parent_id,id), parent_id, name',:label => 'Parent'),
                   hdr(:string, 'description'),
-                  hdr(:static, '')
+                  hdr(:static, ''), # Create child theme
+                  hdr(:static, '')  # Apply theme
                 ]
   def type_options; SiteTemplate.template_type_select_options; end
 
@@ -137,6 +138,20 @@ class TemplatesController < CmsController # :nodoc: all
           redirect_to :action => 'index'
         end
       end
+    end
+  end
+
+  def apply_theme
+    cms_page_path [ "Options", "Themes" ], "Apply Theme"
+
+    @site_template = SiteTemplate.find(params[:path][0])
+
+    if request.post?
+      if params[:commit]
+        @site_template.apply_to_site SiteVersion.current, :features => params[:features]
+        flash[:notice] = 'Applied %s theme' / @site_template.name
+      end
+      redirect_to :action => 'index'
     end
   end
 

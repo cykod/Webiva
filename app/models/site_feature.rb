@@ -125,4 +125,19 @@ class SiteFeature < DomainModel
     bundler.add_folder(self.image_folder) if self.image_folder
     self.attributes.slice('name', 'description', 'feature_type', 'body', 'options', 'css', 'category', 'archived', 'image_folder_id', 'preprocessor')
   end
+
+  def self.feature_hash
+    paragraph_list = ParagraphController.get_editor_paragraphs + SiteModule.get_module_paragraphs.values
+    output = {}
+
+    paragraph_list.each do |para_list|
+      para_list[2].each do |paragraph|
+        next unless paragraph[4][0]
+        output[paragraph[4][0]] ||= []
+        output[paragraph[4][0]] << [ paragraph[3], paragraph[1] ]
+      end
+    end
+
+    output
+  end
 end

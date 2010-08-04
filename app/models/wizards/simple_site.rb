@@ -36,20 +36,16 @@ class Wizards::SimpleSite < WizardModel
   end
 
   def run_wizard
-    self.root_node.site_node_modifiers.each do |modifier|
-      modifier.destroy if modifier.modifier_type == 'template'
-    end
-
-    self.root_node.reload
-
     self.root_node.push_modifier('framework') do |framework|
       framework.new_revision do |rv|
         rv.push_paragraph '/editor/menu', 'automenu', {:root_page => self.root_node.id, :levels => 1}, :zone => 2
       end
     end
 
-    self.root_node.add_modifier('template') do |mod|
+    self.root_node.push_modifier('template') do |mod|
       mod.options.template_id = self.create_simple_theme.id
+      mod.move_to_top
+      mod.save
     end
 
     @pages.each do |name|
@@ -66,6 +62,9 @@ class Wizards::SimpleSite < WizardModel
   end
 
   def create_simple_theme
+    site_template = SiteTemplate.find_by_template_type_and_name('site', 'Simple Site Theme')
+    return site_template if site_template
+
     site_template = SiteTemplate.create :template_type => 'site', :name => 'Simple Site Theme', :description => '', :template_html => self.simple_template_html, :style_design => self.simple_style_design, :style_struct => self.simple_style_struct
 
     ['Content', 'Main Menu', 'Sidebar'].each_with_index do |name, idx|
