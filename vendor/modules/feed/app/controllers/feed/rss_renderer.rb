@@ -35,6 +35,7 @@ class Feed::RssRenderer < ParagraphRenderer
 
     results = renderer_cache(nil,site_node.id.to_s, :skip => @options.timeout <= 0, :expires => @options.timeout*60) do |cache|
       data = @handler.get_feed
+      data[:self_link] = Configuration.domain_link site_node.node_path
       if @handler_info[:custom]
 	cache[:output] = render_to_string(:partial => @handler_info[:custom],:locals => { :data => data})
       else

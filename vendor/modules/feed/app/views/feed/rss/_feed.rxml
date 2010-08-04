@@ -1,6 +1,6 @@
 xml.instruct!
 
-xml.rss "version" => "2.0", "xmlns:atom" => "http://www.w3.org/2005/Atom", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xmlns:media" => "http://search.yahoo.com/mrss" do
+xml.rss "version" => "2.0", "xmlns:atom" => "http://www.w3.org/2005/Atom", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xmlns:media" => "http://search.yahoo.com/mrss/" do
 
 xml.channel do 
   xml.title(data[:title])
@@ -28,10 +28,10 @@ xml.channel do
       xml.pubDate item[:published_at]
       xml.description item[:description]
       if item[:enclosure]
-        xml.enclosure( :url => item[:enclosure].full_url, :size => item[:enclosure].file_size, :type => item[:enclosure].mime_type  )
+        xml.enclosure( :url => item[:enclosure].full_url, :length => item[:enclosure].file_size, :type => item[:enclosure].mime_type  )
       end
       if item[:thumbnail]
-        xml.media( :thumbnail, :url => item[:thumbnail].full_url(:preview), :type => item[:thumbnail].mime_type, :width => item[:thumbnail].width(:preview), :height => item[:thumbnail].height(:preview) )
+        xml.media( :thumbnail, :url => item[:thumbnail].full_url(:preview), :width => item[:thumbnail].width(:preview), :height => item[:thumbnail].height(:preview) )
       end
     end
   end
