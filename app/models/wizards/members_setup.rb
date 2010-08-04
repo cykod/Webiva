@@ -73,13 +73,7 @@ class Wizards::MembersSetup < WizardModel
         rv.push_paragraph '/editor/auth', 'user_register', {:success_page_id => success_page_id}
       end
 
-      # Missing Password
-      group_node.push_subpage('missing-password') do |nd, rv|
-        # remove basic paragraph
-        self.destroy_basic_paragraph(rv)
-        rv.push_paragraph '/editor/auth', 'missing_password'
-      end
-
+      edit_account_page_id = nil
       # Members View Account
       group_node.push_subpage('members') do |members_node, rv|
         # Add members only lock
@@ -97,6 +91,7 @@ class Wizards::MembersSetup < WizardModel
 
         # Members Edit Account
         members_node.push_subpage('edit-account') do |nd, rv|
+          edit_account_page_id = nd.id
           # remove basic paragraph
           self.destroy_basic_paragraph(rv)
           rv.push_paragraph '/editor/auth', 'user_edit_account', {:success_page_id => members_node.id}
@@ -105,6 +100,40 @@ class Wizards::MembersSetup < WizardModel
         login_para.data[:success_page] = members_node.id
         login_para.save
       end
+
+      # Missing Password
+      group_node.push_subpage('missing-password') do |nd, rv|
+        # remove basic paragraph
+        self.destroy_basic_paragraph(rv)
+        rv.push_paragraph '/editor/auth', 'missing_password', {:reset_password_page => edit_account_page_id, :email_template => self.get_missing_password_mail_template.id}
+      end
     end
+  end
+
+  def get_missing_password_mail_template
+    mail_template = MailTemplate.find_by_name 'Reset Password'
+    return mail_template if mail_template
+
+    MailTemplate.create :name => 'Reset Password', :subject => 'Reset Password', :language => 'en', :body_text => self.reset_password_mail_body_text, :body_html => self.reset_password_mail_body_html, :category => self.members_group_node_name, :template_type => 'site'
+  end
+
+  def reset_password_mail_body_html
+    <<-BODY
+<p>
+<strong>Reset your Password</strong><br/>
+<br/>
+You can reset your password by following:<br/>
+<a href="%%verification%%" target="_blank">%%verification%%</a>
+</p>
+    BODY
+  end
+
+  def reset_password_mail_body_text
+    <<-BODY
+Reset your Password
+
+You can reset your password by following:
+%%verification%%
+    BODY
   end
 end
