@@ -1,6 +1,7 @@
 <% active_table_for :features_table, @tbl,
   :actions => [ ['Duplicate','duplicate' ],
-                ['Delete','delete','Delete the selected paragraph themes?' ]] do |t| -%>
+                ['Set Theme', 'js', 'SiteFeatures.selectTheme();']],
+  :more_actions =>[ ['Delete','delete','Delete the selected paragraph themes?' ]] do |t| -%>
 <tr <%= highlight_row 'feature', t.id %>>
   <td><%= entry_checkbox 'feature',t.id %></td>
   <td><%= link_to v(t.name), :action => 'feature', :path => [ t.id ] %></td>
