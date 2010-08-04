@@ -150,11 +150,11 @@ class SiteNode < DomainModel
   end
 
   def push_modifier(type)
-    framework = self.site_node_modifiers.find_by_modifier_type(type) || self.add_modifier(type)
+    md = self.site_node_modifiers.find_by_modifier_type(type) || self.add_modifier(type)
     if block_given?
-      yield framework
+      yield md
     end
-    framework
+    md
   end
 
   def create_temporary_revision(revision_id) #:nodoc:

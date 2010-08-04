@@ -54,9 +54,9 @@ class WebivaBundler < HashModel
     self.data << {'data' => obj.export_to_bundle(self), 'name' => obj.name, 'handler' => obj.class.to_s.underscore}
   end
 
-  def import_object(info)
+  def import_object(info, opts={})
     handler = info['handler'].camelcase.constantize
-    handler.import_bundle(self, info['data'])
+    handler.import_bundle(self, info['data'], opts[info['handler']] || {})
   end
 
   def export
@@ -103,7 +103,7 @@ class WebivaBundler < HashModel
     self.bundle_file
   end
 
-  def import
+  def import(opts={})
     return nil unless self.bundle_file
 
     self.creator_id ||= bundle_file.creator_id
@@ -130,7 +130,7 @@ class WebivaBundler < HashModel
 
     @data = YAML.load_file("#{dir}/#{manifest['data']}")['data']
 
-    self.data.each { |info| self.import_object(info) }
+    self.data.each { |info| self.import_object(info, opts) }
 
     FileUtils.rm_rf(dir)
   end

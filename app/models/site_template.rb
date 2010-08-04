@@ -746,12 +746,13 @@ class SiteTemplate < DomainModel
     data
   end
 
-  def self.import_bundle(bundler, data)
+  def self.import_bundle(bundler, data, opts={})
     # Get the new images folder
     domain_file_id = data['domain_file_id'] ? bundler.get_new_input_id(DomainFile, data['domain_file_id']) : nil
 
     # Create the site template
-    site_template = SiteTemplate.create data.slice('name', 'description', 'template_html', 'options', 'style_struct', 'style_design', 'template_type', 'head', 'doctype', 'partial', 'lightweight', 'preprocessor', 'parent_id').merge('domain_file_id' => domain_file_id)
+    site_template = SiteTemplate.find_by_parent_id_and_name(data['parent_id'], data['name']) || SiteTemplate.new(:parent_id => data['parent_id'], :name => data['name'])
+    site_template.update_attribute data.slice('description', 'template_html', 'options', 'style_struct', 'style_design', 'template_type', 'head', 'doctype', 'partial', 'lightweight', 'preprocessor').merge('domain_file_id' => domain_file_id)
 
     # Create the zones
     data['zones'].each_with_index do |name, idx|
@@ -767,9 +768,25 @@ class SiteTemplate < DomainModel
     # Create the templates children
     data['children'].each do |child|
       child['parent_id'] = site_template.id
-      SiteTemplate.import_bundle bundler, child
+      SiteTemplate.import_bundle bundler, child, opts
     end
 
     site_template
+  end
+
+  def apply_to_site(version, opts={})
+    version.root_node.push_modifier('template') do |mod|
+      mod.options.template_id = self.id
+      mod.move_to_top
+      mod.save
+    end
+
+    # reset all paragraphs to use default feature
+    if opts[:reset]
+    end
+
+    # Apply theme features to existing paragraphs
+    if opts[:features]
+    end
   end
 end
