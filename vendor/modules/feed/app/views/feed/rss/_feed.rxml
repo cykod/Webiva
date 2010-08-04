@@ -1,6 +1,6 @@
 xml.instruct!
 
-xml.rss "version" => "2.0", "xmlns:atom" => "http://www.w3.org/2005/Atom" do
+xml.rss "version" => "2.0", "xmlns:atom" => "http://www.w3.org/2005/Atom", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xmlns:media" => "http://search.yahoo.com/mrss" do
 
 xml.channel do 
   xml.title(data[:title])
@@ -16,6 +16,9 @@ xml.channel do
       xml.guid item[:guid]
       if item[:author]
         xml.author item[:author]
+      end
+      if item[:creator]
+        xml.dc(:creator, item[:creator])
       end
       if item[:categories]
         item[:categories].each do |cat|
