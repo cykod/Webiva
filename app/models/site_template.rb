@@ -751,15 +751,19 @@ class SiteTemplate < DomainModel
     domain_file_id = data['domain_file_id'] ? bundler.get_new_input_id(DomainFile, data['domain_file_id']) : nil
 
     # Create the site template
-    site_template = SiteTemplate.find_by_parent_id_and_name(data['parent_id'], data['name']) || SiteTemplate.new(:parent_id => data['parent_id'], :name => data['name'])
-    site_template.update_attribute data.slice('description', 'template_html', 'options', 'style_struct', 'style_design', 'template_type', 'head', 'doctype', 'partial', 'lightweight', 'preprocessor').merge('domain_file_id' => domain_file_id)
+    site_template = nil
+    site_template = SiteTemplate.find_by_parent_id_and_name(data['parent_id'], data['name']) if opts[:replace_same]
+    site_template ||= SiteTemplate.new(:parent_id => data['parent_id'], :name => data['name'])
+    site_template.update_attributes data.slice('description', 'template_html', 'options', 'style_struct', 'style_design', 'template_type', 'head', 'doctype', 'partial', 'lightweight', 'preprocessor').merge('domain_file_id' => domain_file_id)
 
     # Create the zones
+    site_template.site_template_zones.clear
     data['zones'].each_with_index do |name, idx|
       site_template.site_template_zones.create :name => name, :position => (idx+1)
     end
 
     # Create the features
+    site_template.site_features.clear
     data['features'].each do |feature|
       image_folder_id = feature['image_folder_id'] ? bundler.get_new_input_id(DomainFile, feature['image_folder_id']) : nil
       site_template.site_features.create feature.merge('image_folder_id' => image_folder_id)
@@ -781,12 +785,29 @@ class SiteTemplate < DomainModel
       mod.save
     end
 
-    # reset all paragraphs to use default feature
-    if opts[:reset]
-    end
-
     # Apply theme features to existing paragraphs
     if opts[:features]
+      feature_hash = SiteFeature.feature_hash
+
+      revisions = {}
+      self.site_features.each do |feature|
+        next unless feature_hash[feature.feature_type]
+        feature_hash[feature.feature_type].each do |info|
+          PageParagraph.live_paragraphs.with_feature(*info).group_by(&:page_revision_id).each do |page_revision_id, paragraphs|
+            revisions[page_revision_id] ||= []
+            revisions[page_revision_id] += paragraphs.map { |para| [para.identity_hash, feature.id] }
+          end
+        end
+      end
+
+      revisions.each do |page_revision_id, paragraphs|
+        rv = PageRevision.find(page_revision_id).create_temporary
+        paragraphs.each do |info|
+          para = rv.page_paragraphs.detect { |p| p.identity_hash == info[0] }
+          para.update_attribute :site_feature_id, info[1]
+        end
+        rv.make_real
+      end
     end
   end
 end
