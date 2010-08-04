@@ -78,4 +78,16 @@ class ContentModelSegmentField < UserSegment::FieldHandler
 
     cls
   end
+
+  def self.field_heading(field)
+    self.content_model.name + ' - ' + self.user_segment_fields[field][:name]
+  end
+
+  def self.get_handler_data(ids, fields)
+    self.content_model.content_model.find(:all, :conditions => {self.end_user_field => ids}).group_by(&self.end_user_field)
+  end
+
+  def self.field_output(user, handler_data, field)
+    UserSegment::FieldType.field_output(user, handler_data, field)
+  end
 end
