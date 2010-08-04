@@ -25,6 +25,18 @@ class ContentModelSegmentField < UserSegment::FieldHandler
     end
   end
 
+  class MultiOptionsType < UserSegment::FieldType
+    def self.is(cls, group_field, field, string)
+      cls.scoped(:conditions => ["#{field} like ?", "%#{string}%"])
+    end
+
+    def self.create_type(options)
+      cls = Class.new MultiOptionsType
+      cls.register_operation :is, [['Option', :option, {:options => options}]]
+      cls
+    end
+  end
+
   def self.create_custom_field_handler_class(content_model_field)
     content_model = content_model_field.content_model
     cls = Class.new ContentModelSegmentField
@@ -54,6 +66,9 @@ class ContentModelSegmentField < UserSegment::FieldHandler
         cls.register_field "#{content_model.table_name}_#{field.field}", UserSegment::CoreType::NumberType, :field => field.field, :name => field.name
       when 'options'
         type = ContentModelSegmentField::OptionsType.create_type field.module_class.available_options.clone
+        cls.register_field "#{content_model.table_name}_#{field.field}", type, :field => field.field, :name => field.name
+      when 'multi_select'
+        type = ContentModelSegmentField::MultiOptionsType.create_type field.module_class.available_options.clone
         cls.register_field "#{content_model.table_name}_#{field.field}", type, :field => field.field, :name => field.name
       when 'us_state'
         type = ContentModelSegmentField::OptionsType.create_type Content::CoreField::UsStateField.states_select_options
