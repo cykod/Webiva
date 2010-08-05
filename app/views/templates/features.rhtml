@@ -4,10 +4,26 @@
 
 <hr/>
 
-    <div class='admin_content'>
+<script>
+<%=  active_table_javascript %>
 
-      <div id='features_table'>
-        <%= render :partial => 'features_table' %>
-      </div>
-    </div>
+SiteFeatures = {
+  selectTheme: function() {
+    SCMS.remoteOverlay("<%= url_for :action => 'select_theme' %>");
+  },
 
+  selectThemeSubmit: function(theme_id) {
+    this.tableAction('theme', "site_template_id=" + theme_id);
+  },
+
+  tableAction: function(action,params) {
+    ActiveTable.action(action,null,"features_table","<%= url_for :action => 'display_features_table' %>",'features_table',params);
+  }
+}
+</script>
+
+<div class='admin_content'>
+  <div id='features_table'>
+    <%= render :partial => 'features_table' %>
+  </div>
+</div>

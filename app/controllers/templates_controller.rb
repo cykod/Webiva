@@ -348,6 +348,10 @@ class TemplatesController < CmsController # :nodoc: all
 
     active_table_action('feature') do |act,fids|
       SiteFeature.find(fids).map(&:destroy) if act == 'delete'
+      if act == 'theme'
+        site_template_id = params[:site_template_id].to_i
+        SiteFeature.update_all "site_template_id = #{site_template_id}", {:id => fids}
+      end
     end
     @tbl = features_table_generate params, :order => 'site_features.category,site_features.name', :include => :site_template
     
@@ -358,7 +362,11 @@ class TemplatesController < CmsController # :nodoc: all
     cms_page_path [ "Options", "Themes" ], "Paragraph Themes"
     display_features_table @tbl
   end
-  
+
+  def select_theme
+    render :partial => 'select_theme'
+  end
+
   def new_feature
     cms_page_path [ "Options", "Themes", "Paragraph Themes"], "Create a feature"
     @feature = SiteFeature.new
