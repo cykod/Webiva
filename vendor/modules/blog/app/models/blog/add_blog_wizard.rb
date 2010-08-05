@@ -14,24 +14,20 @@ class Blog::AddBlogWizard < WizardModel
   :add_to_id=>nil,
   :add_to_subpage => 'blog',
   :add_to_existing => nil,
-  :detail_page_url => 'view',
   :opts => [],
   :number_of_dummy_posts => 3
 
   
   validates_format_of :add_to_subpage, :with => /^[a-zA-Z0-9\-_]+$/, :message => 'is an invalid url', :allow_blank => true
-  validates_format_of :detail_page_url, :with => /^[a-zA-Z0-9\-_]+$/, :message => 'is an invalid url'
   validates_presence_of :add_to_id
 
   validates_presence_of :blog_id
-  validates_presence_of :detail_page_url
 
   integer_options :number_of_dummy_posts
 
   options_form(
                fld(:blog_id, :select, :options => :blog_select_options, :label => 'Blog to Add'),
                fld(:add_to, :add_page_selector),
-               fld(:detail_page_url, :text_field, :label => "Detail Page", :size => 10),
                fld(:opts, :check_boxes,
                    :options => [['Add a comments paragraph','comments'],
                                 ['Add Categories to list page','categories']],
@@ -67,70 +63,51 @@ class Blog::AddBlogWizard < WizardModel
   end
 
   def run_wizard
-    nd = SiteNode.find(self.add_to_id)
+    base_node = SiteNode.find(self.add_to_id)
 
     if self.add_to_existing.blank?
-      nd = nd.add_subpage(self.add_to_subpage)
+      base_node = base_node.add_subpage(self.add_to_subpage)
     end
 
-    sub = nd.add_subpage(self.detail_page_url)
-    sub.save
-    
-    list_revision = nd.page_revisions[0]
-    detail_revision = sub.page_revisions[0]
+    base_node.new_revision do |rv|
+      self.destroy_basic_paragraph(rv)
 
-    list_para = list_revision.add_paragraph('/blog/page','entry_list',
-                                { 
-                                  :detail_page => sub.id,
-                                  :blog_id => self.blog_id
-                                }
-                                )
-    list_para.add_page_input(:type,:page_arg_0,:list_type)
-    list_para.add_page_input(:identifier,:page_arg_1,:list_type_identifier)
-    list_para.save
+      list_para = rv.push_paragraph('/blog/page', 'entry_list', {:detail_page => base_node.id, :blog_id => self.blog_id}) do |para|
+        para.add_page_input(:type, :page_arg_0, :list_type)
+        para.add_page_input(:identifier, :page_arg_1, :list_type_identifier)
+      end
 
-    detail_para = detail_revision.add_paragraph('/blog/page','entry_detail',
-                              { 
-                                  :list_page_id => nd.id,
-                                  :blog_id => self.blog_id
-                              }
-                              )
+      detail_para = rv.push_paragraph '/blog/page', 'entry_detail', {:list_page_id => base_node.id, :blog_id => self.blog_id} do |para|
+        para.add_page_input(:input, :page_arg_0, :post_permalink)
+      end
 
-    detail_para.add_page_input(:input,:page_arg_0,:post_permalink)
-    detail_para.save
+      if self.opts.include?('comments')
+        rv.push_paragraph('/feedback/comments', 'comments',
+                          { :show => -1,
+                            :allowed_to_post => 'all',
+                            :linked_to_type => 'connection',
+                            :captcha => false,
+                            :order => 'newest'
+                          }) do | para|
+          para.add_paragraph_input!(:input,detail_para,:content_id,:content_identifier)
+        end
+      end
 
-    if self.opts.include?('comments')
-      
-      comments_paragraph = detail_revision.add_paragraph('/feedback/comments','comments',
-                              { 
-                                      :show => -1,
-                                      :allowed_to_post => 'all',
-                                      :linked_to_type => 'connection',
-                                      :captcha => false,
-                                      :order => 'newest'
-                              }
-                              )
-
-      comments_paragraph.save
-      comments_paragraph.add_paragraph_input!(:input,detail_para,:content_id,:content_identifier)
+      if self.opts.include?('categories')
+        rv.push_paragraph('/blog/page','categories',
+                          { 
+                            :detail_page_id => base_node.id,
+                            :blog_id => self.blog_id,
+                            :list_page_id => base_node.id
+                          },
+                          :zone => 3
+                          ) do |para|
+          para.add_paragraph_input!(:input,list_para,:category,:category)
+        end
+      end
     end
 
-    if self.opts.include?('categories')
-        cat_para = list_revision.add_paragraph('/blog/page','categories',
-                                { 
-                                  :detail_page => sub.id,
-                                  :blog_id => self.blog_id,
-                                  :list_page_id => nd.id
-                                },
-                                :zone => 3
-                                )
-      cat_para.save
-      cat_para.add_paragraph_input!(:input,list_para,:category,:category)
-    end
-
-    detail_revision.make_real
-    list_revision.make_real
-
+    # Create Dummy Content
     if self.blog.blog_posts.count == 0 && self.number_of_dummy_posts > 0
       categories = [self.create_dummy_category, self.create_dummy_category]
       (1..self.number_of_dummy_posts).each do |idx|
