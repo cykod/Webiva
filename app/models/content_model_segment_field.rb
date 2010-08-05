@@ -84,10 +84,15 @@ class ContentModelSegmentField < UserSegment::FieldHandler
   end
 
   def self.get_handler_data(ids, fields)
-    self.content_model.content_model.find(:all, :conditions => {self.end_user_field => ids}).index_by(&self.end_user_field)
+    self.content_model.content_model.find(:all, :conditions => {self.end_user_field => ids}).group_by(&self.end_user_field)
   end
 
   def self.field_output(user, handler_data, field)
-    UserSegment::FieldType.field_output(user, handler_data, field)
+    info = UserSegment::FieldHandler.display_fields[field]
+    return unless info
+    display_field = info[:display_field]
+    handler_data[user.id].collect do |data|
+      self.content_model.field(display_field).content_display(data, :excerpt)
+    end.join(', ')
   end
 end
