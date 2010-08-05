@@ -135,14 +135,14 @@ class UserSegment::FieldType
     display_field = info[:display_field]
 
     value = nil
-    if handler_data.nil?
+    if handler_data.nil? # from end_user
       return nil unless mdl.respond_to?(display_field)
       value = mdl.send(display_field)
     else
       return nil unless handler_data[mdl.id]
 
       data = handler_data[mdl.id]
-      if data.is_a?(Array)
+      if data.is_a?(Array) # group_by
         value = data.collect { |d| d.send(display_field) }.delete_if { |v| v.nil? }
 
         case info[:display_method]
@@ -157,18 +157,19 @@ class UserSegment::FieldType
         when 'count'
           value = value.size
         end
-
-        if value.is_a?(Array)
-          value = value.collect do |v|
-            v = v.strftime(DEFAULT_DATETIME_FORMAT.t) if v.is_a?(Time)
-            v = v.name if v.is_a?(DomainModel)
-            v
-          end
-          value = value.join(', ')
-        end
-      else
+      else # index_by
         value = data.send(display_field)
       end
+    end
+
+    if value.is_a?(Array)
+      value = value.collect do |v|
+        v = v.strftime(DEFAULT_DATETIME_FORMAT.t) if v.is_a?(Time)
+        v = v.name if v.is_a?(DomainModel)
+        v
+      end
+
+      value = value.map(&:to_s).reject(&:blank?).join(', ')
     end
 
     value = value.strftime(DEFAULT_DATETIME_FORMAT.t) if value.is_a?(Time)
