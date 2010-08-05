@@ -18,9 +18,10 @@ describe Blog::AddBlogWizard do
                                      :blog_id => @blog.id,
                                      :add_to_id => root_node.id,
                                      :add_to_subpage => 'blog',
-                                     :detail_page_url => 'myview'
+                                     :detail_page_url => 'myview',
+                                     :number_of_dummy_posts => 0
                                      )
-    wizard.add_to_site!
+    wizard.run_wizard
 
     SiteNode.find_by_node_path('/tester/blog').should_not be_nil
     SiteNode.find_by_node_path('/tester/blog/myview').should_not be_nil
