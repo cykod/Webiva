@@ -131,7 +131,7 @@ class SiteNode < DomainModel
   end
   
   def self.generate_node_path(title)
-    title.underscore.strip.gsub(/[ _]+/, '-').gsub(/[^a-z0-9.\-]/, '')
+    title.underscore.gsub(/[^a-z0-9 _\-]/, '').strip.gsub(/[ _]+/, '-')
   end
 
   def new_revision
