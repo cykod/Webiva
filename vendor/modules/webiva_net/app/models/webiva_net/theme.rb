@@ -5,10 +5,11 @@ class WebivaNet::Theme
   def name; self.title; end
 
   def initialize(item={})
-    %w(title description author link guid thumbnail).each do |fld|
+    %w(title description link guid thumbnail).each do |fld|
       self.send("#{fld}=", item[fld])
     end
 
+    self.author = item['creator']
     self.created_at = item['pubDate']
     self.bundle_url = item['enclosure']['url'] if item['enclosure']
   end
