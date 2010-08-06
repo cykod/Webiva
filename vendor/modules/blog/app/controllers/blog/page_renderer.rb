@@ -40,6 +40,7 @@ class Blog::PageRenderer < ParagraphRenderer
       list_type = list_type.downcase unless list_type.blank?
       unless (['category','tag','archive'].include?(list_type.to_s))
 	raise SiteNodeEngine::MissingPageException.new(site_node, language) if list_type_identifier && site_node.id == @options.detail_page_id
+        set_page_connection(:category, nil)
 	return render_paragraph :text => ''
       end
     end
@@ -52,6 +53,8 @@ class Blog::PageRenderer < ParagraphRenderer
     if list_type == 'category'
       list_type_identifier = list_type_identifier.to_s.gsub("+"," ")
       set_page_connection(:category, list_type_identifier)
+    else
+      set_page_connection(:category, nil)
     end
 
     type_hash = DomainModel.hexdigest("#{list_type}_#{list_type_identifier}")
