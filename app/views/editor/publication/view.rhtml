@@ -6,7 +6,7 @@
                      :onsubmit => "cmsEdit.submitParagraphData(this,'#{url_for :action => 'view'}',#{@paragraph.id},#{@paragraph_index}); return false;"
                    }  do |f| -%>
 <%= f.select :entry_id, @entries,:label => 'Entry to display' %>                   
-<%= f.select :return_page, @pages, :label => 'Return Page' %>
+<%= f.select :return_page_id, @pages, :label => 'Return Page' %>
 <%= f.header "Filter Options" %>
 <%= @publication.filter_form_elements(f) %>
 

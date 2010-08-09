@@ -64,6 +64,16 @@ class Editor::PublicationController < ParagraphController #:nodoc:all
       
       boolean_options :allow_entry_creation
   end
+
+  class ViewOptions < HashModel
+    attributes :return_page_id => nil, :options => [], :entry_id => nil, :allow_entry_creation => false
+
+    page_options :return_page_id
+      
+    boolean_options :allow_entry_creation
+
+    canonical_paragraph "ContentModel", :content_model_id, :list_page_id => :return_page_id 
+  end
   
   def view
   

@@ -248,7 +248,12 @@ class PageParagraph < DomainModel
 
   def link_canonical_content_type!(opts,opt,override)
     container_type = opt[1]
-    container_id = opts.send(opt[2])
+
+    if opt[2] == :content_model_id
+      container_id = self.content_publication.content_model_id
+    else
+      container_id = opts.send(opt[2])
+    end
 
     content_type  = ContentType.fetch(container_type,container_id)
     if content_type
