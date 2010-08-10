@@ -137,7 +137,6 @@ class SiteTemplate < DomainModel
     begin
       struct_css = template_parser.parse(self.style_struct)
       struct_css = self.class.render_with_less(struct_css)
-      raise @less_error if @less_error
     rescue Exception => err
       parsing_errors << ('Error Parsing Structural Styles of %s:' / self.name)  + err.to_s.t
     end
@@ -145,7 +144,6 @@ class SiteTemplate < DomainModel
     begin
       design_css = template_parser.parse(self.style_design)
       design_css = self.class.render_with_less(design_css)
-      raise @less_error if @less_error
     rescue Exception =>  err
       parsing_errors << ('Error Parsing Design Styles of %s:' / self.name)  + err.to_s.t
     end

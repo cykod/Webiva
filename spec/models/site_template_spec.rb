@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + "/../spec_helper"
 
 describe SiteTemplate do
 
-  reset_domain_tables :editor_changes,  :site_feature, :site_template, :domain_file, :site_template_zone
+  reset_domain_tables :editor_changes,  :site_feature, :site_template, :domain_file, :site_template_zone, :site_template_rendered_part
 
   
   before(:each) do
@@ -55,5 +55,50 @@ describe SiteTemplate do
     SiteTemplate.create :name => 'mail template 1', :template_type => 'mail'
     SiteTemplate.create :name => 'mail template 2', :template_type => 'mail'
     SiteTemplate.mail_template_options.size.should == 2
+  end
+
+  it "should be able to work with variables in the css" do
+    @site_template.style_struct = '#space { size: 13px; }'
+    @site_template.style_design = 'body { color: <cms:var name="font_color" type="color" default="#FFF"/>; }'
+    @site_template.template_html = '<cms:zone name="Main"/>'
+    @site_template.save
+    @site_template.update_zones_and_options
+    @site_template.options[:options][0][0].should == 'font_color'
+
+    @site_template.options[:values]['font_color'] = '#F00'
+    @site_template.save
+
+    @site_template.reload
+
+    @site_template.rendered_parts 'en'
+
+    design_part = @site_template.site_template_rendered_parts.find_by_part_and_idx 'css', 2
+    design_part.body.should == "body { color: #ff0000; }\n"
+  end
+
+  if LESS_AVAILABLE
+    describe 'Less' do
+      it "should support Less in the the design and structual css" do
+        @site_template.style_struct = '@font_size: 13px;' + "\n" + '#space { size: @font_size; }'
+        @site_template.style_design = '@font_color: <cms:var name="font_color" type="color" default="#FFF"/>;' + "\n" 'body { color: @font_color; }'
+        @site_template.template_html = '<cms:zone name="Main"/>'
+        @site_template.save
+        @site_template.update_zones_and_options
+        @site_template.options[:options][0][0].should == 'font_color'
+
+        @site_template.options[:values]['font_color'] = '#F00'
+        @site_template.save
+
+        @site_template.reload
+
+        @site_template.rendered_parts 'en'
+
+        struct_part = @site_template.site_template_rendered_parts.find_by_part_and_idx 'css', 1
+        struct_part.body.should == "#space { size: 13px; }\n"
+
+        design_part = @site_template.site_template_rendered_parts.find_by_part_and_idx 'css', 2
+        design_part.body.should == "body { color: #ff0000; }\n"
+      end
+    end
   end
 end
