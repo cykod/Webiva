@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + "/../spec_helper"
 
 describe SiteTemplate do
 
-  reset_domain_tables :editor_changes,  :site_feature, :site_template, :domain_file
+  reset_domain_tables :editor_changes,  :site_feature, :site_template, :domain_file, :site_template_zone
 
   
   before(:each) do
@@ -45,5 +45,15 @@ describe SiteTemplate do
     assert_difference 'SiteTemplateZone.count', 2 do
       @site_template.update_zones_and_options
     end
+  end
+
+  it "should have site and mail template options" do
+    SiteTemplate.create :name => 'site template 1'
+    SiteTemplate.create :name => 'site template 2'
+    SiteTemplate.site_template_options.size.should == 2
+
+    SiteTemplate.create :name => 'mail template 1', :template_type => 'mail'
+    SiteTemplate.create :name => 'mail template 2', :template_type => 'mail'
+    SiteTemplate.mail_template_options.size.should == 2
   end
 end

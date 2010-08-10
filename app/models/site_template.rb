@@ -3,6 +3,13 @@
 require 'radius'
 require 'pp'
 
+begin
+  require 'less'
+  LESS_AVAILABLE = true
+rescue MissingSourceFile => e
+  LESS_AVAILABLE = false
+end
+
 class SiteTemplate < DomainModel
 
   validates_presence_of :name
@@ -90,27 +97,27 @@ class SiteTemplate < DomainModel
   def initial_parser_context
   
      parser_context = SiteTemplate::InitialParserContext.new do |c|
-  	  	c.define_tag 'var' do |tag|
-  	  		c.variables << 
-             [ tag.attr['name'], 
-               tag.attr['label'] || tag.attr['name'].humanize, 
-               tag.attr['type'] || 'string', 
-               (tag.attr['desc'] || tag.attr['description']).to_s, 
-               (tag.attr['pri'] || 100).to_i, 
-               tag.attr['trans'] || false,
-               tag.attr['default'] || ''
-              ]
-  	  		''
-  	  	end
-  	  	c.define_tag 'trans' do |tag|
-  	  		c.translations << tag.expand
-  	  	end
+      c.define_tag 'var' do |tag|
+        c.variables << 
+          [ tag.attr['name'], 
+            tag.attr['label'] || tag.attr['name'].humanize, 
+            tag.attr['type'] || 'string', 
+            (tag.attr['desc'] || tag.attr['description']).to_s, 
+            (tag.attr['pri'] || 100).to_i, 
+            tag.attr['trans'] || false,
+            tag.attr['default'] || ''
+          ]
+        tag.attr['default'] || ''
+      end
+
+      c.define_tag 'trans' do |tag|
+        c.translations << tag.expand
+      end
   	  	
-  	  	c.define_tag 'zone' do |tag|
-          c.zones << tag.attr['name']	
-  	  	end
-  	  end  
-  
+      c.define_tag 'zone' do |tag|
+        c.zones << tag.attr['name']	
+      end
+    end  
   end
   
   public
@@ -118,82 +125,85 @@ class SiteTemplate < DomainModel
   
   # Update the associated zones and options
   def update_zones_and_options
-  	  zones = []
+    zones = []
+
+    tpl = self
   	  
-  	  tpl = self
-  	  
-      parser_context =  initial_parser_context
-  	  template_parser = Radius::Parser.new(parser_context, :tag_prefix => 'cms')
+    parser_context =  initial_parser_context
+    template_parser = Radius::Parser.new(parser_context, :tag_prefix => 'cms')
       
-      parsing_errors = [] 
+    parsing_errors = [] 
       
-      begin
-    	  template_parser.parse(self.style_struct)
-      rescue Exception => err
-        parsing_errors << ('Error Parsing Structural Styles of %s:' / self.name)  + err.to_s.t
-      end
+    begin
+      struct_css = template_parser.parse(self.style_struct)
+      struct_css = self.class.render_with_less(struct_css)
+      raise @less_error if @less_error
+    rescue Exception => err
+      parsing_errors << ('Error Parsing Structural Styles of %s:' / self.name)  + err.to_s.t
+    end
   	  
+    begin
+      design_css = template_parser.parse(self.style_design)
+      design_css = self.class.render_with_less(design_css)
+      raise @less_error if @less_error
+    rescue Exception =>  err
+      parsing_errors << ('Error Parsing Design Styles of %s:' / self.name)  + err.to_s.t
+    end
+      
+    self.site_features.each do |feature|
       begin
-        template_parser.parse(self.style_design)
+        template_parser.parse(feature.body)
       rescue Exception =>  err
-        parsing_errors << ('Error Parsing Design Styles of %s:' / self.name)  + err.to_s.t
+        parsing_errors << ('Error Parsing Feature %s:' / feature.name)  + err.to_s.t
       end
-      
-  	  self.site_features.each do |feature|
-        begin
-   	  	template_parser.parse(feature.body)
-        rescue Exception =>  err
-          parsing_errors << ('Error Parsing Feature %s:' / feature.name)  + err.to_s.t
-        end
-  	  end
+    end
   	  
+    begin
+      template_parser.parse(self.template_html)
+    rescue Exception => err
+      parsing_errors << ('Error Parsing Template HTML of %s:' / self.name)  + err.to_s.t
+    end
+      
+    parent_zones = parser_context.zones.clone
+      
+    self.child_templates.each do |child|
       begin
-  	   template_parser.parse(self.template_html)
+        template_parser.parse(child.template_html)
       rescue Exception => err
-       parsing_errors << ('Error Parsing Template HTML of %s:' / self.name)  + err.to_s.t
+        parsing_errors << ('Error Parsing Template HTML of %s:' / child.name)  + err.to_s.t
       end
-      
-      parent_zones = parser_context.zones.clone
-      
-      self.child_templates.each do |child|
-        begin
-          template_parser.parse(child.template_html)
-        rescue Exception => err
-          parsing_errors << ('Error Parsing Template HTML of %s:' / child.name)  + err.to_s.t
+    end
+  	  
+    output_variables = []
+    existing_variables = {}
+    parser_context.variables.each do |var|
+      if(existing_variables[var[0]])
+        existing_idx = existing_variables[var[0]];
+        merged_var = (0..var.length-1).collect do |idx|
+          if(!output_variables[existing_idx][idx].to_s.empty?)
+            output_variables[existing_idx][idx]
+          else
+            var[idx]
+          end
         end
+        output_variables[existing_idx] = merged_var
+      else
+        output_variables << var
+        existing_variables[var[0]] = output_variables.length-1
       end
+    end
   	  
-  	  output_variables = []
-  	  existing_variables = {}
-  	  parser_context.variables.each do |var|
-  	  	if(existing_variables[var[0]])
-  	  		existing_idx = existing_variables[var[0]];
-  	  		merged_var = (0..var.length-1).collect do |idx|
-  	  			if(!output_variables[existing_idx][idx].to_s.empty?)
-  	  				output_variables[existing_idx][idx]
-  	  			else
-  	  				var[idx]
-  	  			end
-  	  		end
-  	  		output_variables[existing_idx] = merged_var
-  	  	else
-  	  		output_variables << var
-  	  		existing_variables[var[0]] = output_variables.length-1
-  	  	end
-  	  end
-  	  
-  	  sorted_variables  = output_variables.sort_by do |var|
-  	 	[ var[4].to_i,var[1].to_s ]
-  	  end  	  
-  	  
-  	  update_zones(parent_zones)
-  	  
-  	  update_options(sorted_variables)
-  	  
-  	  update_localize(parser_context.translations);
+    sorted_variables  = output_variables.sort_by do |var|
+      [ var[4].to_i,var[1].to_s ]
+    end
+
+    update_zones(parent_zones)
+
+    update_options(sorted_variables)
+
+    update_localize(parser_context.translations);
       
-      parsing_errors
-  	  
+    parsing_errors
   end
   
   # Get each feature it's own set of options,
@@ -556,11 +566,19 @@ class SiteTemplate < DomainModel
   
   include SiteTemplate::ParsingMethods
 
-  
+  def self.render_with_less(css, opts={})
+    return css unless LESS_AVAILABLE
+
+    begin
+      Less.parse(css)
+    rescue Less::SyntaxError => e
+      raise e unless opts[:ignore]
+      css
+    end
+  end
+
   def create_rendered_parts(lang)
-  
-  	return false unless Configuration.languages.include?(lang)
-  	
+    return false unless Configuration.languages.include?(lang)
   	
     # find each images/, replace with actual image if it exists
     # Else replace with no_image image
@@ -592,18 +610,11 @@ class SiteTemplate < DomainModel
                                                      :localize => translations)
     
     
-    parser_context.define_tag 'zone' do |tag|
-        "<cms:zone:#{tag.attr['name']}>"
-    end
-    
-    parser_context.define_tag 'var' do |tag|
-        "<cms:var:#{tag.attr['name']}:#{tag.attr['type']}>"
-    end
-    
     parser = Radius::Parser.new(parser_context, :tag_prefix => 'cms')
     
     # parse css
     struct_css = parser.parse(struct_css)
+    struct_css = self.class.render_with_less(struct_css, :ignore => true)
     self.site_template_rendered_parts.create(
                   :zone_position => -1,
                   :part => 'css',
@@ -612,6 +623,7 @@ class SiteTemplate < DomainModel
                   :idx => 1)
     # insert RenderedPart
     design_css = parser.parse(design_css)
+    design_css = self.class.render_with_less(design_css, :ignore => true)
     self.site_template_rendered_parts.create(
                   :zone_position => -1,
                   :part => 'css',
@@ -626,8 +638,18 @@ class SiteTemplate < DomainModel
                   :language => lang,
                   :idx => 1
               )
-                  
+       
     # parse html
+    parser_context.define_tag 'zone' do |tag|
+        "<cms:zone:#{tag.attr['name']}>"
+    end
+    
+    parser_context.define_tag 'var' do |tag|
+        "<cms:var:#{tag.attr['name']}:#{tag.attr['type']}>"
+    end
+    
+    parser = Radius::Parser.new(parser_context, :tag_prefix => 'cms')
+                   
     body = parser.parse(output_body)
     
     re = Regexp.new("\<cms\:(zone|var)\:([^>]+)\>",Regexp::IGNORECASE | Regexp::MULTILINE)
