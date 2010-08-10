@@ -101,4 +101,67 @@ describe SiteTemplate do
       end
     end
   end
+
+  describe 'Bundler' do
+    before(:each) do
+      @site_template.style_struct = '#space { size: 13px; }'
+      @site_template.style_design = 'body { color: <cms:var name="font_color" type="color" default="#FFF"/>; }'
+      @site_template.template_html = '<cms:zone name="Main"/> <cms:zone name="Sidebar"/>'
+      @site_template.domain_file_id = DomainFile.create_folder('Test Theme').id
+      @site_template.save
+      @site_template.update_zones_and_options
+
+      # Images
+      @df = DomainFile.create(:filename => fixture_file_upload("files/rails.png",'image/png'), :parent_id => @site_template.domain_file_id)
+      @thumb = DomainFile.create(:filename => fixture_file_upload("files/rails.png",'image/png'))
+
+      # Features
+      @site_template.site_features.create :name => 'Login', :feature_type => 'login', :body => '<cms:logged_in>yes i am</cms:logged_in>'
+
+      SiteTemplate.create :name => 'Child Theme', :parent_id => @site_template.id, :template_html => '<cms:zone name="Main"/>'
+
+      @site_template.reload
+
+      @bundler = WebivaBundler.new :name => 'Test Bundle', :thumb_id => @thumb.id
+      @bundler.export_object @site_template
+      @bundle_file = @bundler.export
+    end
+
+    after(:each) do
+      @df.destroy
+      @thumb.destroy
+      @bundle_file.destroy
+    end
+
+    it "should be setup" do
+      SiteTemplate.count.should == 2
+      SiteFeature.count.should == 1
+      DomainFile.count.should == 6
+      SiteTemplateZone.count.should == 2
+
+      @site_template.child_templates.count.should == 1
+      @site_template.site_features.count.should == 1
+      @site_template.domain_file.name.should == 'Test Theme'
+    end
+
+    it "should have a bundle file" do
+      @bundle_file.id.should_not be_nil
+    end
+
+    it "should be able to import the bundle" do
+      assert_difference 'SiteTemplate.count', 2 do
+        assert_difference 'SiteFeature.count', 1 do
+          assert_difference 'DomainFile.count', 4 do
+            import_bundler = WebivaBundler.new(:bundle_file_id => @bundle_file.id, :importing => true, :replace_same => false)
+            import_bundler.valid?.should be_true
+            import_bundler.import
+          end
+        end
+      end
+
+      @new_template = SiteTemplate.last :conditions => {:parent_id => nil}
+      @new_template.name.should == 'Test Template'
+      @new_template.child_templates.count.should == 1
+    end
+  end
 end
