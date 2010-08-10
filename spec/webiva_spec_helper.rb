@@ -105,10 +105,10 @@ Spec::Runner.configure do |config|
   config.use_instantiated_fixtures  = false
   config.fixture_path = RAILS_ROOT + '/spec/fixtures/'
 
-  config.before(:suite) do
-    WebivaCleaner.cleaner.reset
-    WebivaSystemCleaner.cleaner.reset
-  end
+#  config.before(:suite) do
+#    WebivaCleaner.cleaner.reset
+#    WebivaSystemCleaner.cleaner.reset
+#  end
 
   config.before(:each) do
     UserClass.create_built_in_classes

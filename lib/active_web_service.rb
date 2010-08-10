@@ -124,10 +124,10 @@ class ActiveWebService
         case $1
         when 'create'
           method = 'post'
-          expected_status ||= 201
+          expected_status ||= [200, 201]
         when 'add'
           method = 'post'
-          expected_status ||= 201
+          expected_status ||= [200, 201]
         when 'edit'
           method = 'put'
           expected_status ||= 200

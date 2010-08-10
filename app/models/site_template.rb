@@ -308,11 +308,16 @@ class SiteTemplate < DomainModel
  end
  
  def update_zone_order!(zone_order)
-  zone_order.each_with_index do |zone_id,idx|
-    unless zone_id.empty?
-      self.site_template_zones.find_by_id(zone_id).update_attribute(:position,idx+1)
-    end
-  end
+   pos = 1
+   zone_order.each do |zone_id|
+     next if zone_id.empty?
+
+     zone = self.site_template_zones.find_by_id(zone_id)
+     if zone
+       zone.update_attribute(:position, pos)
+       pos += 1
+     end
+   end
  end
   
  def localized_values(lang)
