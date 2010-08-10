@@ -435,7 +435,7 @@ class TemplatesController < CmsController # :nodoc: all
     
     if params[:version] && !params[:version].blank?
       flash[:feature_version_load] = params[:version]
-      redirect_to :action => 'popup_feature',:path => [ params[:path][0] ], :para_index => @paragraph_index, :paragraph_id => @paragraph_id
+      redirect_to :action => 'popup_feature',:path => [ params[:path][0] ].compact, :para_index => @paragraph_index, :paragraph_id => @paragraph_id
       return
     end  
     
@@ -476,7 +476,7 @@ class TemplatesController < CmsController # :nodoc: all
       end
 
       expire_site
-    elsif @feature.errors.on(:invalid_html)
+    elsif @feature.errors.on(:body)
       @invalid_html = true
     end
   end

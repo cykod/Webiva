@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + "/../spec_helper"
 
 describe SiteTemplate do
 
-  reset_domain_tables :editor_changes,  :site_feature, :site_template
+  reset_domain_tables :editor_changes,  :site_feature, :site_template, :domain_file
 
   
   before(:each) do
@@ -26,5 +26,24 @@ describe SiteTemplate do
     
     folder1.special.should be_blank
     folder2.special.should == 'template'
+  end
+
+  it "should be able to create the default template" do
+    assert_difference 'SiteTemplate.count', 1 do
+      SiteTemplate.create_default_template
+    end
+  end
+
+  it "should be able to update zones and options" do
+    @site_template.template_html = '<cms:zone name="Main"/><cms:zone name="Sidebar"/>'
+    assert_difference 'SiteTemplate.count', 1 do
+      assert_difference 'SiteTemplateZone.count', 0 do
+        @site_template.save
+      end
+    end
+
+    assert_difference 'SiteTemplateZone.count', 2 do
+      @site_template.update_zones_and_options
+    end
   end
 end

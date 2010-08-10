@@ -206,6 +206,15 @@ describe TemplatesController do
     @template2.site_template_zones[0].id.should == zone1
   end
 
+  it "should be able to update a child template" do
+    @child = SiteTemplate.create :name => 'Child Template', :parent_id => @template2.id
+    post 'update', :path => [@child.id], :site_template => {:template_html => '<cms:zone name="Child"/>'}
+
+    @child.reload
+    @child.site_template_zones.count.should == 1
+    @child.template_html.should == '<cms:zone name="Child"/>'
+  end
+
   it "should be able to load_translation" do
     post 'load_translation', :show_languages => 'en', :template_id => @template1.id
   end
@@ -343,6 +352,11 @@ describe TemplatesController do
 
       it "should be able to render popup feature for a paragraph" do
         get 'popup_feature', :paragraph_id => @paragraph1.id, :para_index => 1, :path => []
+      end
+
+      it "should redirect to the popup feature for a paragraph with a version" do
+        get 'popup_feature', :paragraph_id => @paragraph1.id, :para_index => 1, :path => [], :version => 1
+        response.should redirect_to(:action => 'popup_feature', :paragraph_id => @paragraph1.id, :para_index => 1, :path => [])
       end
     end
   end
