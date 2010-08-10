@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + "/../spec_helper"
 
 describe SiteTemplate do
 
-  reset_domain_tables :editor_changes,  :site_feature, :site_template, :domain_file, :site_template_zone, :site_template_rendered_part
+  reset_domain_tables :editor_changes, :site_feature, :site_template, :domain_file, :site_template_zone, :site_template_rendered_part, :site_node, :page_paragraph, :page_revision, :site_node_modifiers
 
   
   before(:each) do
@@ -162,6 +162,48 @@ describe SiteTemplate do
       @new_template = SiteTemplate.last :conditions => {:parent_id => nil}
       @new_template.name.should == 'Test Template'
       @new_template.child_templates.count.should == 1
+    end
+  end
+
+  describe 'Apply Theme' do
+    before(:each) do
+      SiteTemplate.create_default_template
+
+      @site_template.style_struct = '#space { size: 13px; }'
+      @site_template.style_design = 'body { color: <cms:var name="font_color" type="color" default="#FFF"/>; }'
+      @site_template.template_html = '<cms:zone name="Main"/> <cms:zone name="Sidebar"/>'
+      @site_template.domain_file_id = DomainFile.create_folder('Test Theme').id
+      @site_template.save
+      @site_template.update_zones_and_options
+
+      # Images
+      @df = DomainFile.create(:filename => fixture_file_upload("files/rails.png",'image/png'), :parent_id => @site_template.domain_file_id)
+
+      # Features
+      @login_feature = @site_template.site_features.create :name => 'Login', :feature_type => 'login', :body => '<cms:logged_in>yes i am</cms:logged_in>'
+
+      @site_template.reload
+
+      @members_wizard = Wizards::MembersSetup.new :add_to_id => SiteVersion.current.root.id
+      @simple_wizard = Wizards::SimpleSite.new :name => 'Test Site', :pages => ['Home', 'About']
+    end
+
+    after(:each) do
+      @df.destroy
+    end
+
+    it "should be able to setup a site and apply the new theme" do
+      @simple_wizard.run_wizard
+      @members_wizard.run_wizard
+
+      @site_template.apply_to_site SiteVersion.current, :features => true
+
+      SiteVersion.current.root_node.reload
+      SiteVersion.current.root_node.site_node_modifiers.find_by_modifier_type('template').options.template_id.should == @site_template.id
+
+      @login_node = SiteNode.find_by_title('login')
+      @login_node.should_not be_nil
+      @login_node.live_revisions[0].page_paragraphs[0].site_feature_id.should == @login_feature.id
     end
   end
 end
