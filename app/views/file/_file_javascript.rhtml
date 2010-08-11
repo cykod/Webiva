@@ -526,7 +526,10 @@ FileEditor = {
 	
 	selectTreeNode: function(folder_id) {
 		FileEditor.gotoFolder(folder_id);
-	
+	  if(folder_id && folder_id != 1)
+      FileEditor.selectedItems = [ folder_id ];
+    else
+      FileEditor.selectedItems = [];
 	},
 	
 	highlightTreeFolder:function(folder_id) {

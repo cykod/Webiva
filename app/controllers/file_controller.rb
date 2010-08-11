@@ -299,7 +299,7 @@ class FileController < CmsController # :nodoc: all
       
       gallery_folder = Configuration.options.gallery_folder.to_i == parent_folder.id
       
-      @folder = parent_folder.children.create(:name => name,:file_type => 'fld',:special => gallery_folder ? 'gallery' : '')
+      @folder = parent_folder.children.create(:creator_id => myself.id, :name => name,:file_type => 'fld',:special => gallery_folder ? 'gallery' : '')
       @parent_id = parent_folder.id
       if gallery_folder
         @folder.create_gallery(:name => name, :occurred_at => Time.now)
