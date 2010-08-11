@@ -6,10 +6,8 @@
   <% if file.file_type_match(@select) -%>
     <button onclick='FileEditor.callbackFile(<%= file.id %>);'>Select</button>
   <% end -%>
-  <% if !defined?(folder_just_loaded) || folder_just_loaded != true -%>
     <button onclick='FileEditor.folderArchive(<%= file.id %>);'>Create Archive</button> 
     <button class='last' onclick='FileEditor.deleteSelected([<%= file.id  %>]);'>Delete</button>  
-  <% end -%>
   <div style='clear:both;'></div>
 </div>
 

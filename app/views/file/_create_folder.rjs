@@ -6,5 +6,5 @@ page << 'FileEditor.showDetails();'
 
 page << "setTimeout('FileEditor.refreshUploadedFolder(#{@folder.id},#{@parent_id})',10);"
 page << "FileEditor.recreateDragAndDroppables();"
-
+page << "FileEditor.highlightTreeFolder(#{@folder.id});"
 page << "setTimeout('FileEditor.nameChange(#{@folder.id});',20); "

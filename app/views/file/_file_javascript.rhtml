@@ -703,9 +703,9 @@ FileEditor = {
   	
   	
   	
-  	deleteSelected: function() {
+  	deleteSelected: function(file_ids) {
   	  if(confirm('<%= jh "Are you sure you want to delete the selected item(s)?" %>')) {
-  	      var itms = FileEditor.selectedItems;
+  	      var itms = file_ids ? file_ids : FileEditor.selectedItems;
   	      var req = $H({ 'file_id[]' : itms });
 		      new Ajax.Request('<%= url_for :controller => "file", :action => "delete_files" %>',
 					      {  parameters : req.toQueryString()  + FileEditor.sizeParameters(),
