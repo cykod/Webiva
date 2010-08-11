@@ -57,7 +57,7 @@ class EditorsController < CmsController  # :nodoc: all
       user_class_id = params[:user_options].delete(:user_class_id) if params[:user_options]
       @user = EndUser.new(params[:user_options])
       
-      if request.post?
+      if request.post? && params[:commit]
 	@user.user_class_id = user_class_id
         @user.registered = true
         @user.user_level = 3
@@ -67,6 +67,8 @@ class EditorsController < CmsController  # :nodoc: all
           redirect_to :action => 'index'
           return
         end
+      elsif request.post?
+        return redirect_to :action => 'index'
       end
       
      render :action => 'edit'
@@ -82,7 +84,7 @@ class EditorsController < CmsController  # :nodoc: all
     user_class_id = params[:user_options].delete(:user_class_id) if params[:user_options]
     @user = EndUser.find(user_id)
     
-    if request.post?
+    if request.post? && params[:commit]
       @user.user_class_id = user_class_id
       if @user.update_attributes(params[:user_options])
         @user.update_domain_emails
@@ -91,6 +93,8 @@ class EditorsController < CmsController  # :nodoc: all
         redirect_to :action =>'index'
         return
       end
+    elsif request.post?
+      return redirect_to :action => 'index'
     end
     
     @editing=true

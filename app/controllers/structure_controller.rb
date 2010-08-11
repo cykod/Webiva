@@ -154,7 +154,7 @@ class StructureController < CmsController  # :nodoc: all
     modifier_type = params[:modifier_type]
     
     node = SiteNode.find(parent_id)
-    md = node.add_modifier(modifier_type)
+    md = node.add_modifier(modifier_type, :created_by_id => myself.id)
     
     render :partial => 'site_node_modifier', :locals => { :mod => md }
   end
@@ -185,6 +185,7 @@ class StructureController < CmsController  # :nodoc: all
       
         node = SiteNode.new({ :node_type => node_type,
                               :title => title,
+                              :created_by_id => myself.id,
                               :site_version_id => parent_node.site_version_id,
                               :module_name => module_name })
       else
@@ -193,16 +194,13 @@ class StructureController < CmsController  # :nodoc: all
       end
     else
       node = SiteNode.new({ :node_type => node_type,
+                            :created_by_id => myself.id,
                             :site_version_id => parent_node.site_version_id,
                             :title => title })
     end
     
     node.save
     node.move_to_child_of(parent_node)
-    
-    if node_type == 'P'
-      node.page_revisions[0].update_attributes(:created_by => myself)
-    end
     
     render :partial => 'path', :locals => { :paths => [node] }
     

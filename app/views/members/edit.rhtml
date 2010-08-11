@@ -63,7 +63,7 @@ MemberEditor = {
 <table>
 <tr>
 <td>
-<% cms_form_for :user_options, @user, :html => { :class => 'admin_form' }  do |f| %>
+  <% cms_form_for :user_options, @user, :html => { :class => 'admin_form', :autocomplete => 'off' }  do |f| %>
 
 <%= f.text_field :email, :required => true %>
 <%= f.text_field :first_name %>

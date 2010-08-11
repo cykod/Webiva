@@ -40,6 +40,8 @@ class SiteNode < DomainModel
 
   named_scope :with_type, lambda { |type| {:conditions => {:node_type => type}} }
 
+  attr_accessor :created_by_id
+
   # Expires the entire site when save or deleted
   expires_site
 
@@ -113,8 +115,8 @@ class SiteNode < DomainModel
 
 
   # Adds a modifier to this nodes list of modifiers
-  def add_modifier(type)
-    returning md = self.site_node_modifiers.create(:modifier_type => type) do
+  def add_modifier(type,options={})
+    returning md = self.site_node_modifiers.create(options.merge(:modifier_type => type)) do
       md.move_to_top
       if block_given?
         yield md
@@ -471,7 +473,7 @@ class SiteNode < DomainModel
   
   def after_create #:nodoc:
     if self.node_type == 'P'
-      self.page_revisions.create( :language => Configuration.languages[0], :revision => '0.01', :active => 1 )
+      self.page_revisions.create( :language => Configuration.languages[0], :revision => '0.01', :active => 1, :created_by_id => self.created_by_id )
       self.page_revisions[0].page_paragraphs.create(:display_type => 'html', :zone_idx => 1 )
     elsif self.node_type == 'J'
       redirect_detail = self.create_redirect_detail(:redirect_type => 'site_node')

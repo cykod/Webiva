@@ -5,8 +5,8 @@ class PageRevision < DomainModel
   belongs_to :revision_container,  :polymorphic => true
   has_many :page_paragraphs, :dependent => :destroy, :order => 'zone_idx,position'
   
-  belongs_to :created_by, :polymorphic => true
-  belongs_to :updated_by, :polymorphic => true
+  belongs_to :created_by, :class_name => 'EndUser'
+  belongs_to :updated_by, :class_name => 'EndUser'
   
   belongs_to :parent_revision, :class_name => "PageRevision", :foreign_key => 'parent_revision_id'
   

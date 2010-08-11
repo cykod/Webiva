@@ -17,6 +17,8 @@ class SiteNodeModifier < DomainModel
 
   include SiteAuthorizationEngine::Target
   access_control :access
+
+  attr_accessor :created_by_id
  
   def before_create #:nodoc:
     if opts = self.modifier_options
@@ -62,7 +64,7 @@ class SiteNodeModifier < DomainModel
 
   def after_create
     if self.modifier_type == 'F' || self.modifier_type == 'framework'
-      self.page_revisions.create( :language => Configuration.languages[0], :revision => '0.01' , :active => true)
+      self.page_revisions.create( :language => Configuration.languages[0], :revision => '0.01' , :active => true, :created_by_id => self.created_by_id )
     end
   end
   
