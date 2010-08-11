@@ -24,7 +24,6 @@ describe Blog::AddBlogWizard do
     wizard.run_wizard
 
     SiteNode.find_by_node_path('/tester/blog').should_not be_nil
-    SiteNode.find_by_node_path('/tester/blog/myview').should_not be_nil
     
   end
 
