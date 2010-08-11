@@ -553,22 +553,10 @@ class EditController < ModuleController # :nodoc: all
     get_container
     # output the page, go through each block, and get the variables
     edit_page_info(@container_type,@container_id,params[:path][2],false)
-    logger.error @revision.variables.inspect
-    
-    variable_names = []
-    @output.html  do |blk| 
-     if blk.is_a?(Hash) && blk[:variable]
-      variable_names << blk[:variable]
-     end
-    end
-
     
     @options = DefaultsHashObject.new(@revision.variables || {})
 
-    logger.error @revision.variables.inspect
-    @variables = (@site_template.options[:options] || []).find_all do |opt|
-      variable_names.include?(opt[0]) ? true : false
-    end
+    @variables = @site_template.options[:options]
     
     render :partial => 'page_variables'
   end

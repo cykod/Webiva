@@ -156,7 +156,14 @@ class TemplatesController < CmsController # :nodoc: all
           @site_template.domain_file_id = parent.domain_file_id
           @site_template.template_html = parent.template_html
         end
+
         if @site_template.save
+          if @site_template.parent_template
+            @site_template.parent_template.site_template_zones.each do |zone|
+              @site_template.site_template_zones.create :name => zone.name, :position => zone.position
+            end
+          end
+
           return redirect_to :action => 'edit', :path => @site_template.id
         end
       else
@@ -237,24 +244,25 @@ class TemplatesController < CmsController # :nodoc: all
     @selected_language = params[:selected_language].to_s
     @site_template = SiteTemplate.find(params[:path][0])
     
-
     @site_template.attributes = params[:site_template]
     @site_template.modified_at = Time.now
     @site_template.modified_by = myself.id
 
     @parsing_errors = @site_template.update_zones_and_options
-    @site_template.update_option_values(params[:options])
-    @site_template.set_localization(params[:localize_values],params[:translate],params[:translation])
-    
+
+    # if child template
     if @site_template.parent_template
       @site_template.save
     
       parent = @site_template.parent_template
       parent.update_zones_and_options
+      parent.update_option_values nil
       parent.save
+      parent.update_feature_options
     else
+      @site_template.update_option_values(params[:options])
+      @site_template.set_localization(params[:localize_values], params[:translate], params[:translation])
       @site_template.save
-      
       @site_template.update_feature_options
     end
 
@@ -469,6 +477,13 @@ class TemplatesController < CmsController # :nodoc: all
     @feature.admin_user = myself
     @feature.validate_xml = true unless params[:ignore_xml_errors] # Require valid XML or a an override
     if @feature.save
+      if @feature.site_template
+        @feature.site_template.reload
+        @feature.site_template.update_zones_and_options
+        @feature.site_template.update_option_values nil
+        @feature.site_template.save
+        @feature.site_template.update_feature_options @feature.id
+      end
       @saved = true
       @return = params[:return]
       if @paragraph_index
