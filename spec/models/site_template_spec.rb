@@ -206,4 +206,65 @@ describe SiteTemplate do
       @login_node.live_revisions[0].page_paragraphs[0].site_feature_id.should == @login_feature.id
     end
   end
+
+  it "should handle adding variables to the parent template" do
+    @site_template.style_struct = '#space { size: 13px; }'
+    @site_template.style_design = 'body { color: <cms:var name="font_color" type="color" default="#FFF"/>; } .test { font-size: 12px; }'
+    @site_template.template_html = '<cms:trans>Hi</cms:trans> <br/> <cms:zone name="Main"/> <cms:zone name="Sidebar"/>'
+    @site_template.domain_file_id = DomainFile.create_folder('Test Theme').id
+    @site_template.save
+    @site_template.update_zones_and_options
+    @site_template.update_option_values nil
+    @site_template.save
+
+    @site_template.options[:options][0][0].should == 'font_color'
+    @site_template.options[:values]['font_color'].should == '#FFF'
+
+    # add a child template
+    @child = SiteTemplate.create :name => 'Child Template Test', :parent_id => @site_template.id, :template_html => '<cms:var name="child var" default="child default value"/> <cms:zone name="Main"/> <cms:zone name="Sidebar"/>'
+
+    @child.update_zones_and_options
+    @child.save
+
+    @child.reload
+    @child.options[:options].empty?.should be_true
+    @child.options[:values].empty?.should be_true
+
+    @site_template.reload
+    @site_template.update_zones_and_options
+    @site_template.update_option_values nil
+    @site_template.save
+
+    @site_template.options[:options][0][0].should == 'child var'
+    @site_template.options[:options][1][0].should == 'font_color'
+
+    @site_template.options[:values]['font_color'].should == '#FFF'
+    @site_template.options[:values]['child var'].should == 'child default value'
+
+    # add a feature
+    @site_template.site_features.create :name => 'Login', :feature_type => 'login', :body => '<cms:var name="site feature var" default="default site feature var"/> <cms:logged_in>yes i am</cms:logged_in>'
+
+    @site_template.reload
+    @site_template.update_zones_and_options
+    @site_template.update_option_values nil
+    @site_template.save
+
+    @site_template.options[:options][0][0].should == 'child var'
+    @site_template.options[:options][1][0].should == 'font_color'
+    @site_template.options[:options][2][0].should == 'site feature var'
+
+    @site_template.options[:values]['font_color'].should == '#FFF'
+    @site_template.options[:values]['child var'].should == 'child default value'
+    @site_template.options[:values]['site feature var'].should == 'default site feature var'
+
+    SiteTemplate.render_template_css(@site_template.id, 'en', true).should == "#space { size: 13px; }\nbody { color: #ffffff; }\n.test { font-size: 12px; }\n"
+    SiteTemplate.render_template_css(@site_template.id, 'en', 'struct').should == "#space { size: 13px; }\n"
+    SiteTemplate.render_template_css(@site_template.id, 'en', false).should == "body { color: #ffffff; }\n.test { font-size: 12px; }\n"
+
+    @site_template.design_style_details('en', true).should == [["body", 1, [["color", "#ffffff"]]], [".test", 2, [["font-size", "12px"]]]]
+    @site_template.structural_style_details('en', true).should == [["#space", 1, [["size", "13px"]]]]
+
+    @site_template.design_style_details('en', false).should == [["body", 1, [["color", "#ffffff"]]], [".test", 2, [["font-size", "12px"]]]]
+    @site_template.structural_style_details('en', false).should == [["#space", 1, [["size", "13px"]]]]
+  end
 end
