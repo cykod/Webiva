@@ -19,14 +19,19 @@ class FeedbackCaptcha
   end
 
   def validate(options={})
+    return true if self.controller.send(:myself).id
     @valid = false
     return @valid if self.params[:captcha_text].blank? || self.phrase.blank?
     @valid = self.params[:captcha_text].downcase == self.phrase.downcase
   end
 
   def generate(options={})
-    self.generate_phrase((options[:length] || 6).to_i)
-    self.controller.send(:render_to_string, :partial => self.partial, :locals => {:captcha => self, :options => options})
+    if self.controller.send(:myself).id
+      nil
+    else
+      self.generate_phrase((options[:length] || 6).to_i)
+      self.controller.send(:render_to_string, :partial => self.partial, :locals => {:captcha => self, :options => options})
+    end
   end
 
   def render(options={})
