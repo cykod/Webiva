@@ -595,7 +595,7 @@ describe ParagraphFeature, :type => :view do
     end
 
     it "should render captcha tag" do
-      controller = mock :session => {}, :params => {}
+      controller = mock :session => {}, :params => {}, :myself => EndUser.default_user
       controller.should_receive(:render_to_string)
       @captcha = WebivaCaptcha.new controller
 
