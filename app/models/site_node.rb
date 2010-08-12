@@ -95,7 +95,7 @@ class SiteNode < DomainModel
 
   # Find a page by id (only returns pages)
   def self.find_page(page_id)
-    self.find_by_id(page_id,:conditions => 'node_type="P"')
+    self.with_type('P').find_by_id(page_id)
   end 
   
   
@@ -201,20 +201,6 @@ class SiteNode < DomainModel
     self.page_revisions.find(:first,:conditions => 'active=1 AND revision_type="real"', :order => "language='#{language}' DESC,revision DESC")
   end
   
-  # Finds a page by ID and verifies the user has access to the page
-  def self.get_page(page_id,usr,action = 'view')
-  
-    nd = SiteNode.find(:first,:conditions => ['id=? AND node_type IN("P","F")',page_id])
-    
-    if(nd && nd.verify_node_access(usr,action))
-      nd
-    else
-      nil
-    end
-  end
-
-  
-  
   # Returns a list of revision of the passed languages, 
   # with each entry in the form:
   #   [ language, active revision or nil, latest revision or nil ]
@@ -232,29 +218,13 @@ class SiteNode < DomainModel
     self.page_revisions.find(:all,:conditions => ['active=?',true], :order => 'language')
   end
   
-  def domain_module_info #:nodoc:
-    if(self.node_type == 'M')
-      return DomainModule.get_module_info(self.module_name,self.domain)
-    else
-      raise 'Not a Domain Module'
-    end
-  end
-  
-  
-  # Verifies a use has access to this node
-  def verify_node_access(usr, action = 'view')
-    case self.node_type
-    when 'L'
-      return true
-    end
-    
-    unless self.parent.nil?
-      return self.parent.verify_node_access(usr,action)
-    else
-      return true
-    end          
-  
-  end
+#  def domain_module_info #:nodoc:
+#    if(self.node_type == 'M')
+#      return DomainModule.get_module_info(self.module_name,self.domain)
+#    else
+#      raise 'Not a Domain Module'
+#    end
+#  end
   
   # Returns the path for this node (or returns "Domain" if this is the root node)
   def node_path
