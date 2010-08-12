@@ -208,17 +208,34 @@ describe SiteTemplate do
   end
 
   it "should handle adding variables to the parent template" do
-    @site_template.style_struct = '#space { size: 13px; }'
+    @df = DomainFile.create(:filename => fixture_file_upload("files/rails.png",'image/png'), :parent_id => DomainFile.create_folder('Test Theme').id)
+
+    @site_template.style_struct = '#space { size: <cms:var name="font_size" type="color" default="13px"/>; }'
     @site_template.style_design = 'body { color: <cms:var name="font_color" type="color" default="#FFF"/>; } .test { font-size: 12px; }'
-    @site_template.template_html = '<cms:trans>Hi</cms:trans> <br/> <cms:zone name="Main"/> <cms:zone name="Sidebar"/>'
-    @site_template.domain_file_id = DomainFile.create_folder('Test Theme').id
+    @site_template.template_html = '<cms:var name="title" trans="1" default="My Site"/> <cms:trans>Hi</cms:trans> <br/> <cms:zone name="Main"/> <cms:zone name="Sidebar"/> <cms:var name="title" type="string"/> <img src="images/rails.png"/> <cms:var name="zimage" type="image"/> <cms:var name="zimage2" type="image" default="rails.png"/>'
+    @site_template.domain_file_id = @df.parent_id
+
     @site_template.save
     @site_template.update_zones_and_options
-    @site_template.update_option_values nil
+    @site_template.update_option_values 'zimage' => @df.id
+    localize_values = {'en' => {'title' => 'my title'}}
+    translate = {'en' => {0 => 'Hi'}}
+    translations = {'en' => {0 => 'Hello'}}
+    @site_template.set_localization localize_values, translate, translations
     @site_template.save
 
+
     @site_template.options[:options][0][0].should == 'font_color'
+    @site_template.options[:options][1][0].should == 'font_size'
+    @site_template.options[:options][2][0].should == 'title'
+    @site_template.options[:options][3][0].should == 'zimage'
+    @site_template.options[:options][4][0].should == 'zimage2'
+
     @site_template.options[:values]['font_color'].should == '#FFF'
+    @site_template.options[:values]['font_size'].should == '13px'
+    @site_template.options[:values]['title'].should == 'My Site'
+    @site_template.options[:values]['zimage'].should == @df.id
+    @site_template.options[:values]['zimage2'].should == @df.id
 
     # add a child template
     @child = SiteTemplate.create :name => 'Child Template Test', :parent_id => @site_template.id, :template_html => '<cms:var name="child var" default="child default value"/> <cms:zone name="Main"/> <cms:zone name="Sidebar"/>'
@@ -237,9 +254,15 @@ describe SiteTemplate do
 
     @site_template.options[:options][0][0].should == 'child var'
     @site_template.options[:options][1][0].should == 'font_color'
+    @site_template.options[:options][2][0].should == 'font_size'
+    @site_template.options[:options][3][0].should == 'title'
 
     @site_template.options[:values]['font_color'].should == '#FFF'
+    @site_template.options[:values]['font_size'].should == '13px'
+    @site_template.options[:values]['title'].should == 'My Site'
     @site_template.options[:values]['child var'].should == 'child default value'
+    @site_template.options[:values]['zimage'].should == @df.id
+    @site_template.options[:values]['zimage2'].should == @df.id
 
     # add a feature
     @site_template.site_features.create :name => 'Login', :feature_type => 'login', :body => '<cms:var name="site feature var" default="default site feature var"/> <cms:logged_in>yes i am</cms:logged_in>'
@@ -251,11 +274,17 @@ describe SiteTemplate do
 
     @site_template.options[:options][0][0].should == 'child var'
     @site_template.options[:options][1][0].should == 'font_color'
-    @site_template.options[:options][2][0].should == 'site feature var'
+    @site_template.options[:options][2][0].should == 'font_size'
+    @site_template.options[:options][3][0].should == 'site feature var'
+    @site_template.options[:options][4][0].should == 'title'
 
     @site_template.options[:values]['font_color'].should == '#FFF'
+    @site_template.options[:values]['font_size'].should == '13px'
+    @site_template.options[:values]['title'].should == 'My Site'
     @site_template.options[:values]['child var'].should == 'child default value'
     @site_template.options[:values]['site feature var'].should == 'default site feature var'
+    @site_template.options[:values]['zimage'].should == @df.id
+    @site_template.options[:values]['zimage2'].should == @df.id
 
     SiteTemplate.render_template_css(@site_template.id, 'en', true).should == "#space { size: 13px; }\nbody { color: #ffffff; }\n.test { font-size: 12px; }\n"
     SiteTemplate.render_template_css(@site_template.id, 'en', 'struct').should == "#space { size: 13px; }\n"
@@ -266,5 +295,31 @@ describe SiteTemplate do
 
     @site_template.design_style_details('en', false).should == [["body", 1, [["color", "#ffffff"]]], [".test", 2, [["font-size", "12px"]]]]
     @site_template.structural_style_details('en', false).should == [["#space", 1, [["size", "13px"]]]]
+
+    SiteTemplate.css_styles(@site_template.id, 'en').should == ["#space", ".test", "body"]
+
+    @child.css_id.should == @site_template.id
+    @site_template.css_id.should == @site_template.id
+
+    @parts = @site_template.render_html('en') {}
+    @parts[0].variable.should == 'title'
+    @parts[1].body.should == " Hello <br/> "
+    @parts[1].zone_position.should == 1
+    @parts[2].body.should == " "
+    @parts[2].zone_position.should == 2
+    @parts[3].body.should == " "
+    @parts[3].variable.should == "title"
+    @parts[4].body.should include("/rails.png")
+    @parts[4].variable.should == "zimage"
+    @parts[5].body.should == " "
+    @parts[5].variable.should == "zimage2"
+    @parts[6].body.should == ""
+
+    @site_template.render_variable('title', nil, 'en').should == 'my title'
+    @site_template.render_variable('font_color', nil, 'en').should == '#FFF'
+    @site_template.render_variable('font_size', nil, 'en').should == '13px'
+    @site_template.render_variable('zimage', nil, 'en').should == @df.image_tag
+
+    @df.destroy
   end
 end

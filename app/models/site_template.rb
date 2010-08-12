@@ -217,7 +217,9 @@ class SiteTemplate < DomainModel
     self.options[:options].each do |opt|
       var_name = opt[0]
       if values && !values[var_name].blank? 
-        saved_values[var_name] = values[var_name] 
+        saved_values[var_name] = values[var_name]
+      elsif self.options[:values][var_name]
+        saved_values[var_name] = self.options[:values][var_name]
       elsif opt[6]
         if opt[2] == 'image'
           parent = self.domain_file
@@ -388,7 +390,7 @@ class SiteTemplate < DomainModel
     info = self.real_options[:options].find { |vr| vr[0] == variable }
     if info
       if info[5]
-        value = self.real_options[:localize_values][variable] || self.options[:values][variable]
+        value = self.real_options[:localize_values][language][variable] || self.options[:values][variable]
       elsif !value
         value = self.real_options[:values][variable]
       end
