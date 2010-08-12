@@ -59,7 +59,6 @@ describe Editor::AuthFeature, :type => :view do
              :state => 'missing_password'
            }
   
-    @feature.should_receive(:url_for).and_return('')
     @output = @feature.missing_password_feature(data)
     @output.should include('missing_password[email]')
   end
