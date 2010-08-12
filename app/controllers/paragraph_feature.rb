@@ -180,7 +180,7 @@ class ParagraphFeature
   end
   
   def self.dummy_renderer(controller=nil) #:nodoc:
-    ParagraphRenderer.new(UserClass.get_class('domain_user'),controller || ApplicationController.new,PageParagraph.new,SiteNode.new,PageRevision.new)
+    ParagraphRenderer.new(UserClass.domain_user_class,controller || ApplicationController.new,PageParagraph.new,SiteNode.new,PageRevision.new)
   end
 
   # Returns a list of tags that are defined in this feature
@@ -996,7 +996,7 @@ block is non-nil
   end
   
   def define_captcha_tag(name,options={})  #:nodoc:
-    define_tag(name) do |t| 
+    define_value_tag(name) do |t| 
       captcha = yield t
       if captcha
         captcha.generate(t.attr.merge(options))
