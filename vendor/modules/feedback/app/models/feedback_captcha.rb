@@ -52,7 +52,7 @@ class FeedbackCaptcha
   end
 
   def url
-    "/website/feedback/captcha/image/#{self.captcha_code}"
+    "/website/feedback/captcha/image/#{self.captcha_code}?Z=#{Time.now.to_i}"
   end
 
   def partial

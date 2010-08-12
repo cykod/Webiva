@@ -159,6 +159,13 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  # Helper method to tell the browser not to cache a page
+  def set_cache_buster
+    response.headers["Cache-Control"] = "no-cache, no-store, max-age=0, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "Fri, 01 Jan 1990 00:00:00 GMT"
+  end
+
   # helper method to redirect a user to the access denied page
   # call from a controller method with :
   #
