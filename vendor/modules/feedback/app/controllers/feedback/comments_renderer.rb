@@ -55,9 +55,11 @@ class Feedback::CommentsRenderer < ParagraphRenderer
               paragraph.run_triggered_actions(atr,'action',myself)
             end
 
+
             # Make sure we know if we posted after redirect
             if ajax?
               flash.now[:posted_comment] = true if @comment.id
+              @captcha = WebivaCaptcha.new(self)
               @comment = Comment.new
             else
               redirect_paragraph :page
