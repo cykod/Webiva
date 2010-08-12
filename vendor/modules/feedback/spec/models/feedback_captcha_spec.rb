@@ -9,7 +9,7 @@ describe FeedbackCaptcha do
   before(:each) do
     @session = {}
     @params = {}
-    @controller = mock :session => @session, :params => @params
+    @controller = mock :session => @session, :params => @params, :myself => EndUser.default_user
     @captcha_session = WebivaCaptcha::Session.new @session, 'feedback_captcha'
     WebivaCaptcha::Session.should_receive(:new).and_return(@captcha_session)
     @captcha = FeedbackCaptcha.new @controller
@@ -32,7 +32,8 @@ describe FeedbackCaptcha do
 
   it "should append the captcha_code to the url" do
     code = @captcha.captcha_code
-    @captcha.url.should == "/website/feedback/captcha/image/#{code}"
+    # Use regexp to match cache buster timestamp
+    @captcha.url.should =~ /^\/website\/feedback\/captcha\/image\/#{code}/
   end
 
   it "should be invalid if no captcha text is specified" do
