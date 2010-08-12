@@ -390,7 +390,11 @@ class SiteTemplate < DomainModel
     info = self.real_options[:options].find { |vr| vr[0] == variable }
     if info
       if info[5]
-        value = self.real_options[:localize_values][language][variable] || self.options[:values][variable]
+        if self.real_options[:localize_values][language] && self.real_options[:localize_values][language][variable]
+          value = self.real_options[:localize_values][language][variable]
+        else
+          value = self.options[:values][variable]
+        end
       elsif !value
         value = self.real_options[:values][variable]
       end
