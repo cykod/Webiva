@@ -15,7 +15,8 @@ FieldEditor = {
   },
   
   updateSortables: function() {
-  
+    idx = 1;
+    $$('.sortable_field').each( function(ele) { ele.value = idx; idx++; } );  
   },
   
   // Option Functions
