@@ -56,13 +56,13 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
     
     def perform(action_data={},user = nil)
     
-      data_vars = action_data.is_a?(DomainModel) ? action_data.triggered_attributes.symbolize_keys :  (action_data.is_a?(Hash) ? action_data : {})
-      data_vars = data_vars.symbolize_keys
+      data_vars = action_data.is_a?(DomainModel) ? action_data.triggered_attributes :  (action_data.is_a?(Hash) ? action_data : {})
+      data_vars.symbolize_keys!
     
       # Find out who we are emailing
       if options.email_to == 'autorespond'
         begin
-          emails = [ action_data.is_a?(DomainModel) ? (action_data.triggered_attributes['email'] || action_data.triggered_attributes['email_address']) : (action_data['email']  || action_data['email_address']) ]
+          emails = user && ! user.email.blank? ? [user.email] : [(data_vars[:email]  || data_vars[:email_address])]
         rescue
           return false
         end
@@ -94,7 +94,9 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
           body += "</table>"
         end
       end
-      
+
+      emails.reject! { |e| e.blank? }
+
       if options.send_type == 'message'
         msg_options = { :html => body }
         msg_options[:from] = options.message_from unless options.message_from.blank?
