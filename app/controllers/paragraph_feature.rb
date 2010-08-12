@@ -552,12 +552,13 @@ block is non-nil
       define_expansion_tag(tag_name) { |t| yield t }
       define_expansion_tag(tag_name + ":logged_in") { |t| usr = yield t; !usr.id.blank? }
       define_h_tag(tag_name + ":name") { |t| usr = yield t; usr.name if usr }
+      define_h_tag(tag_name + ":username") { |t| usr = yield t; usr.username if usr }
       define_h_tag(tag_name + ":first_name") { |t| usr = yield t; usr.first_name if usr }
       define_h_tag(tag_name + ":last_name") { |t| usr = yield t; usr.last_name if usr }
       define_value_tag(tag_name + ":profile") { |t| usr = yield t; usr.user_profile_id if usr }
       define_value_tag(tag_name + ":profile_name") { |t| usr = yield t; usr.user_profile.name if usr }
       define_expansion_tag(tag_name + ":myself") { |t| usr = yield t; usr == myself if usr }
-    
+      define_image_tag(tag_name + ":img") { |t| usr = yield t; usr.image if usr }
     end
 
     # Similar to define_user_tags but it defines a whole bunch of tags
@@ -751,7 +752,7 @@ block is non-nil
         end
       end
     end
-    
+
     def define_ajax_form_for_tag(name,arg,options = {},&block)
       options[:html] ||= {}
       options[:html][:onsubmit] ||= ''
@@ -1683,6 +1684,19 @@ block is non-nil
       define_value_tag(name_base + "href")
     end
 
+    def define_user_tags(tag_name)
+      expansion_tag(tag_name)
+      expansion_tag(tag_name + ":logged_in")
+      define_value_tag(tag_name + ":name")
+      define_value_tag(tag_name + ":username")
+      define_value_tag(tag_name + ":first_name")
+      define_value_tag(tag_name + ":last_name")
+      define_value_tag(tag_name + ":profile")
+      define_value_tag(tag_name + ":profile_name")
+      expansion_tag(tag_name + ":myself")
+      define_image_tag(tag_name + ":img")
+    end
+
     def define_user_details_tags(name_base,options={}) #:nodoc:
       expansion_tag("#{name_base}:myself")
       expansion_tag("#{name_base}:male")
@@ -1812,6 +1826,10 @@ block is non-nil
     []
   end
   
+  def form_tag(url="", opts={})
+    tag(:form, {:action => url, :method => 'post'}.merge(opts), true) + "<CMS:AUTHENTICITY_TOKEN/>"
+  end
+
   # Is this feature currently displaying documentation or actually rendering the feature
   def documentation
     @display_documentation ? true : false
