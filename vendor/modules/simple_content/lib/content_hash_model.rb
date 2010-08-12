@@ -38,7 +38,7 @@ class ContentHashModel
     @content_model_fields = []
     return unless fields
 
-    fields = fields.sort.collect { |data| data[1] } if fields.is_a?(Hash)
+    fields = fields.sort{ |a, b| a[1]['position'] <=> b[1]['position'] }.collect { |data| data[1] } if fields.is_a?(Hash)
 
     @content_model_fields = fields.collect do |data|
       ContentHashModelField.new self, field_data(data[:field]).merge(data.to_hash.symbolize_keys)
