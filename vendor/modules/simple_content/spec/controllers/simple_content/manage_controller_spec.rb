@@ -36,9 +36,9 @@ describe SimpleContent::ManageController do
     @model = SimpleContentModel.create :name => 'Test'
 
     fields = []
-    @field_types.each do |type|
+    @field_types.each_with_index do |type, idx|
       content_field = ContentModel.content_field('content/core_field', type[1].to_s)
-      fields << {:name => type[0].to_s, :field_type => type[1].to_s, :field_module => 'content/core_field'}
+      fields[idx] = {:name => type[0].to_s, :field_type => type[1].to_s, :field_module => 'content/core_field', :position => idx}
     end
 
     post 'edit', :path => [@model.id], :content_model => {:content_model_fields => fields}
