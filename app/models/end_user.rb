@@ -461,6 +461,12 @@ class EndUser < DomainModel
     @triggered_attributes ||= self.attributes.merge(:name => self.name)
   end
 
+  def before_update #:nodoc:
+    self.get_handler_info(:end_user, :before_update).each do |handler|
+      handler[:class].end_user_updated self
+    end
+  end
+
   def before_save #:nodoc:
     if self.password && !self.password.empty?
       self.salt = EndUser.generate_hash if self.salt.blank?
