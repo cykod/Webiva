@@ -83,7 +83,7 @@ class SimpleContent::ManageController < ModuleController
     if !@content_field.valid?
       render :inline => "<script>alert('#{jvh("Invalid Field: " + @content_field.errors.full_messages.join(",")) }');</script>"
     else
-      render :partial => 'edit_field', :locals => { :fld => @content_field , :field_index => params[:field_index]}
+      render :partial => 'edit_field', :locals => { :fld => @content_field , :field_index => params[:field_index].to_i}
     end
   end
 
