@@ -22,7 +22,7 @@ class WizardModel < HashModel
 
   def destroy_basic_paragraph(rv)
     para = rv.page_paragraphs.first
-    para.destroy if para.display_module == nil && para.display_type == 'html' && para.display_body.blank?
+    para.destroy if para && para.display_module == nil && para.display_type == 'html' && para.display_body.blank?
   end
 
   def find_page(title)
