@@ -215,5 +215,59 @@ describe StructureController do
   end
 
 
+  describe "Index Page" do
+    it "should render the index page" do
+      get 'index'
+    end
 
+    it "should render the index page" do
+      get 'index', :archived => 'show'
+    end
+
+    it "should render the index page" do
+      get 'index', :modules => 'show'
+    end
+
+    it "should render the index page" do
+      get 'index', :modifiers => 'show'
+    end
+  end
+
+  describe "Wizards" do
+    it "should render the wizards page" do
+      get 'wizards', :version => 1
+    end
+
+    it "should render the simple site wizard" do
+      get 'wizard', :path => ['wizards', 'simple_site'], :version => 1
+      response.should render_template('structure/wizard')
+    end
+
+    it "should not run the wizard" do
+      post 'wizard', :path => ['wizards', 'simple_site'], :version => 1, :wizard => {}
+      response.should redirect_to(:controller => '/structure', :action => 'wizards', :version => 1)
+    end
+
+    it "should not run the wizard" do
+      post 'wizard', :path => ['wizards', 'simple_site'], :version => 1, :wizard => {}, :commit => 1
+      response.should render_template('structure/wizard')
+    end
+
+    it "should run the wizard" do
+      post 'wizard', :path => ['wizards', 'simple_site'], :version => 1, :wizard => {:name => 'Test.dev', :pages => ['Home', 'About', 'News']}, :commit => 1
+      response.should redirect_to(:controller => '/structure', :version => 1)
+    end
+  end
+
+  describe 'Versions' do
+    it "should be able to render site_version" do
+      get 'site_version', :site_version => 1
+    end
+
+    it "should be able to create site_version" do
+      assert_difference 'SiteVersion.count', 1 do
+        post 'site_version', :version => {:name => 'New Version'}
+      end
+    end
+  end
 end

@@ -14,7 +14,11 @@
     <%= t.parent_template ? t.parent_template.name : 'None'.t %>
   </td>
   <td><%= t.description %></td> 
-  <td><a href="<%= url_for :action => 'new', :path => t.id %>">Create child theme</a></td>
+  <td>
+    <% unless t.parent_id -%>
+      <a href="<%= url_for :action => 'new', :path => t.id %>">Create child theme</a>
+    <% end -%>
+  </td>
   <td><a href="<%= url_for :action => 'apply_theme', :path => t.id %>">Apply theme</a></td>
 </tr>
 

@@ -3,7 +3,7 @@ page << "cmsEdit.setPageInfo('#{@container_arg}','#{@page.id}','#{@revision.id}'
 page.replace_html :cms_info_url, :inline => "&nbsp;<img align='absmiddle' src='#{theme_src(@container_arg == 'page' ? '/images/icons/page.gif' : '/images/icons/framework.gif')}'/>#{@site_node.node_path}&nbsp;"
 page << "Element.#{@container_arg == 'page' ? 'hide' : 'show'}('cms_add_framework_elements_icons');"
 
-page.replace_html :cms_info_page_title, :inline => "&nbsp;#{@revision.title.to_s.empty? ?  "[No Title]".t : truncate(@revision.title,30)}&nbsp;"
+page.replace_html :cms_info_page_title, :inline => "&nbsp;#{@revision.title.to_s.empty? ?  "[No Title]".t : truncate(@revision.title,:length => 30)}&nbsp;"
 page << '$("cms_info_page_title").className = "cms_ajax_link";'
 page.replace_html :cms_info_version, :inline => "&nbsp;#{dec(@revision.revision)}&nbsp;"
 page.replace_html :cms_info_language, :inline => "&nbsp;#{@revision.language.upcase}&nbsp;"
