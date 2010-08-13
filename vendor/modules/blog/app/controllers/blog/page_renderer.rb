@@ -116,7 +116,7 @@ class Blog::PageRenderer < ParagraphRenderer
       end
 
       cache[:output] = blog_entry_detail_feature(:entry => entry,
-                                                 :list_page => get_list_page,
+                                                 :list_page => get_list_page(blog),
                                                  :detail_page => site_node.node_path,
                                                  :blog => blog)
       cache[:title] = entry ? entry.title : ''
@@ -160,7 +160,7 @@ class Blog::PageRenderer < ParagraphRenderer
       end
 
       cache[:output] = blog_entry_detail_feature(:entry => entry,
-                                                 :list_page => get_list_page,
+                                                 :list_page => get_list_page(blog),
                                                  :detail_page => site_node.node_path,
                                                  :blog => blog)
       cache[:title] = entry ? entry.title : ''
@@ -237,12 +237,14 @@ class Blog::PageRenderer < ParagraphRenderer
     detail_page
   end
 
-  def get_list_page
+  def get_list_page(blog)
     list_page =  @options.list_page_url
-    if @options.include_in_path == 'blog_id'
-      list_page += "/#{blog.id}"
-    elsif  @options.include_in_path == 'target_id'
-      list_page += "/#{blog.target_id}"
+    if blog
+      if @options.include_in_path == 'blog_id'
+        list_page += "/#{blog.id}"
+      elsif  @options.include_in_path == 'target_id'
+        list_page += "/#{blog.target_id}"
+      end
     end
     list_page
   end
