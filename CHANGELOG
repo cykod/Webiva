@@ -1,3 +1,21 @@
+0.99.0 - 2010-08-13
+-------------------
+- Support for import / export templates
+- Multiple site tree (Site Version) support
+- Multi-server local file support
+- New User list functionality with custom filtering
+- Blog content model support
+- Blog multi-blog support
+- Less support in Design & Structural styles
+- Quotas and Limits on Clients and Databases
+- Fix Client User / Client support
+- Lightweight template support
+- Theme Library Support
+- Added spellchecker in WYSIWYG Paragraphs
+- Simple site builder site wizard
+- Members setup wizard
+- More bug fixes then you can shake a stick at
+
 
 0.9.20 - 2010-05-08
 -------------------
