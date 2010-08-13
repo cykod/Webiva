@@ -321,7 +321,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
       data ={ :entries => entries[1], :pages => entries[0] }
       
       content_type = pub_opts.content_type || 'text'
-      feature_output = data_feature(publication.feature_name,publication,data)
+      feature_output = data_feature(publication,data)
       DataCache.put_content("ContentModel",target_string,display_string,[feature_output,content_type])
     end
     data_paragraph :data => feature_output,

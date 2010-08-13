@@ -477,7 +477,7 @@ class ContentPublication < DomainModel
   
   def self.get_publication_paragraphs
     [ 'Publications' ] + 
-    self.find(:all, :order => 'name').collect do |pub|
+    self.find(:all, :order => 'name', :conditions => 'publication_type != "data"').collect do |pub|
       ["editor", pub.publication_type, pub.content_model.name + " - " + pub.name, "/editor/publication", [pub.feature_name],pub.id ]
     end
   end
