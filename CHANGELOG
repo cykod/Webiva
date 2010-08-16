@@ -1,3 +1,8 @@
+0.99.1 - 2010-08-16
+-------------------
+- Fix to quick_install.rb script
+
+
 0.99.0 - 2010-08-13
 -------------------
 - Support for import / export templates
