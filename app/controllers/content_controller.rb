@@ -339,7 +339,7 @@ class ContentController < ModuleController #:nodoc: all
   
     @content_model = ContentModel.find(content_id)
     
-    @fields, fields_valid = @content_model.process_fields(params[:model_fields].map { |idx| params[:field][idx] })
+    @fields, fields_valid = @content_model.process_fields((params[:model_fields]||[]).map { |idx| params[:field][idx] })
     
     if request.post? && fields_valid
        worker_key = MigrationHandlerWorker.async_do_work( :content_model_id =>  @content_model.id,
