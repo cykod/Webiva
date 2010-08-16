@@ -1665,7 +1665,7 @@ block is non-nil
       yield self
     end
     
-    def define_loop_tag(name,plural=nil) #:nodoc:
+    def define_loop_tag(name,plural=nil,options={}) #:nodoc:
       name_parts = name.split(":")
       name_base = name_parts[-1]
       plural = name_base.pluralize unless plural
