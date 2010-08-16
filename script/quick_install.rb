@@ -271,7 +271,7 @@ INTRODUCTION
 
     @db_socket = `mysql_config --socket`.to_s.strip
 
-    if @db_socket.blank?
+    if @db_socket.to_s == ''
       @db_socket = File.exists?('/var/lib/mysql/mysql.sock') ? '/var/lib/mysql/mysql.sock' : '/var/run/mysqld/mysqld.sock'
       @db_socket = File.exists?(@db_socket) ? @db_socket : '/tmp/mysql.sock'
     end
