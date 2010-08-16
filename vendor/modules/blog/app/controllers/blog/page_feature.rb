@@ -27,8 +27,6 @@ class Blog::PageFeature < ParagraphFeature
 
   def blog_entry_list_feature(data)
     webiva_feature('blog_entry_list') do |c|
-
-      
       c.value_tag 'title' do |tag|
         exists = !data[:type].blank? && !data[:identifier].blank?
         tag.locals.value = "Showing #{data[:type]} &gt; #{data[:identifier]}"
@@ -37,7 +35,26 @@ class Blog::PageFeature < ParagraphFeature
 
       c.link_tag('list_page') { |tag| data[:list_page] }
 
-      c.loop_tag('entry') { |tag| data[:entries] }
+      c.loop_tag('grouping') do |t|
+        by = t.attr['by'] || "%B %Y"
+        # Get a list of entries of the form [ [ "May 2009", <Entry> ], ... ]
+        entries = data[:entries].select(&:published_at).map { |entry| [ entry.published_at.localize(by), entry ] }
+
+        # Now group the entries, keeping the same order
+        # [ [ "May 2009", [ <Entry1>, <Entry2> ], ... ]
+        entries.inject([]) do |acc,entry|
+          if acc[-1] && acc[-1][0] == entry[0]
+            acc[-1][1] << entry[1]
+          else
+            acc << [ entry[0], [ entry[1] ] ]
+          end
+          acc
+        end
+      end
+      c.value_tag('grouping:header') { |t| t.locals.grouping[0] }
+
+
+      c.loop_tag('entry') { |t| t.locals.grouping ? t.locals.grouping[1] : data[:entries] }
         blog_entry_tags(c,data)
 
       c.pagelist_tag('pages') { |t| data[:pages] }
