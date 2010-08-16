@@ -21,6 +21,7 @@ class Blog::PageFeature < ParagraphFeature
         <div style='clear:both;'></div>
         <cms:not_last><hr/></cms:not_last>
       </cms:entry>
+      <cms:pages/>
     </cms:entries>
   FEATURE
 
