@@ -515,8 +515,9 @@ class SiteTemplate < DomainModel
     return css unless LESS_AVAILABLE
 
     begin
+      raise Less::SyntaxError.new("@import not supported") if css =~ /\@import/
       Less.parse(css)
-    rescue Less::SyntaxError => e
+    rescue Less::SyntaxError, Less::ImportError => e
       raise e unless opts[:ignore]
       css
     end
