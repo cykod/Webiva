@@ -86,9 +86,13 @@ class SiteModule < DomainModel
       end
     end
   end
+
+  def after_save
+    DataCache.put_local_cache(:site_modules_active,nil)
+  end
   
   def self.enabled_modules_info
-    self.find(:all,:conditions => 'status = "active"')
+    DataCache.local_cache(:site_modules_active) || DataCache.put_local_cache(:site_modules_active, self.find(:all,:conditions => 'status = "active"'))
   end
 
   def self.initialized_modules_info
@@ -258,7 +262,7 @@ class SiteModule < DomainModel
 
   def self.activate_module(domain,name,opts={})
     mod = SiteModule.find_by_name(name) || SiteModule.new(:name => name)
-    available = DomainModule.all_modules(domain).detect { |md| md[:module] == name }
+    available = DomainModule.module_info(domain,name) 
     if available && (available[:status] == 'available' || opts[:force])
       available[:dependencies].each do |depend|
         return nil if !SiteModule.module_enabled?(depend)
