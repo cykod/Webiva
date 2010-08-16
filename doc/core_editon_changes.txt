@@ -1,3 +1,14 @@
+mysql> TRUNCATE domain_log_entries
+
+$ rake cms:migrate_domain_dbs DOMAIN_ID=DOMAIN
+$ rake cms:migrate_domain_components DOMAIN_ID=DOMAIN
+
+
+DELETE FROM component_schemas WHERE component='feedback' AND version='2';
+INSERT INTO component_schemas (`version`,`component`) VALUES (4,'feedback');
+
+
+
 Content Models - must re-add all connection to email targets
 
 
@@ -12,21 +23,13 @@ Removed tell_friend and tell_friend_link paragraphs
 
 Feedback - must add migration 4 into the database manually and remove migration 2 (migration overlap issue) 
 
-
-DELETE FROM component_schemas WHERE component='feedback' AND version='2';
-INSERT INTO component_schemas (`version`,`component`) VALUES (4,'feedback');
-
 # 11 is the old DB name
-paras  = PageParagraph.find(:all,:conditions => 'display_type in ("code","html") AND display_body like "%/system/storage/11%"')
+old_db = 11
+paras  = PageParagraph.find(:all,:conditions => "display_type in ('code','html') AND display_body like '%/system/storage/#{old_db}%'")
 paras.each do |para|
- para.display_body = para.display_body.gsub(/\/system\/storage\/11\/([0-9]+)\/[a-zA-Z0-9\.\-_ ]+/,"/__fs__/\\1")
+ para.display_body = para.display_body.gsub(/\/system\/storage\/#{old_db}\/([0-9]+)\/[a-zA-Z0-9\.\-_ ]+/,"/__fs__/\\1")
  para.save
 end
-
-update component_schemas SET version='1' WHERE component='feedback';
-
-vi db/004_additional_comment_fields.rb 
-comment out both up migrations
 
 rake cms:migrate_domain_components COMPONENT=feedback 
 
