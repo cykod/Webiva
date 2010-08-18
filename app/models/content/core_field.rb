@@ -108,7 +108,8 @@ class Content::CoreField < Content::FieldHandler
                          :description => 'Belongs to Relationship',
                          :representation => :integer,
                          :relation => true,
-                         :dynamic_fields => [:user_id ]
+                         :dynamic_fields => [:user_id ],
+                         :index => true,
                        },
                        { :name => :has_many, 
                          :description => 'Has Many Relationship',
@@ -583,7 +584,7 @@ class Content::CoreField < Content::FieldHandler
 
     
     def available_options(atr={ })
-      opts = @available_opts ||=  @model_field.relation_class.select_options
+      opts = @available_opts ||=  @model_field.relation_class.select_options(:limit => 500)
     end
 
     def form_field(f,field_name,field_opts,options={})

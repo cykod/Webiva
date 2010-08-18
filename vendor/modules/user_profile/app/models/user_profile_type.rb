@@ -61,6 +61,17 @@ class UserProfileType < DomainModel
   end
 
 
+  def self.import_fields
+    available_fields = UserProfileType.all.inject([]) do |acc,upt| 
+       acc.concat(upt.display_content_model_fields.map { |fld| [ upt.id, fld ] })
+    end
+     
+    fields =  available_fields.map do |fld|
+      [ "user_profile_field_#{fld[0]}_#{fld[1].id}", "User Profile - #{fld[1].name}", [ fld[1].name.downcase,fld[1].field.to_s.downcase ], :profile ]
+    end
+  end
+
+
   protected
 
   def update_user_classes

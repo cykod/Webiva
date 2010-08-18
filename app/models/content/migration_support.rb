@@ -136,6 +136,7 @@ module Content::MigrationSupport  #:nodoc:
         elsif content_field[:representation] && content_field[:representation] != :none
           migration_options = content_field[:migration_options] ? ", " + content_field[:migration_options] : ''
           migration_code += "add_column  :#{self.table_name}, :#{field_row.field}, :#{content_field[:representation]}#{migration_options}\n"
+          migration_code += "add_index   :#{self.table_name}, :#{field_row.field}, :name => '#{field_row.field}_index'\n" if content_field[:index]
         end
         
         

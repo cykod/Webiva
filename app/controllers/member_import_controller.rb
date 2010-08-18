@@ -117,6 +117,9 @@ class MemberImportController < WizardController # :nodoc: all
     end
     
     @member_fields = EndUser.import_fields
+    if SiteModule.module_enabled?('user_profile')
+      @member_fields += UserProfileType.import_fields
+    end
         
     @member_field_options = @member_fields.collect { |fld| [ fld[1], fld[0] ] }
     
