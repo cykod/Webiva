@@ -18,7 +18,7 @@ class Editor::PublicationFeature < ParagraphFeature #:nodoc:all
     size = pub_options[:field_size] || nil;
 
     webiva_custom_feature(publication.feature_name,data) do |c|
-      c.form_for_tag("form","entry_#{publication.id}",:enctype => data[:multipart] ? 'multipart/form-data' : nil)  do |tag|
+      c.form_for_tag("form","entry_#{publication.id}",:html => { :enctype => data[:multipart] ? 'multipart/form-data' : nil } )  do |tag|
         data[:submitted] ? nil : data[:entry]
       end
 
