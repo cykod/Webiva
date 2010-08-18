@@ -18,7 +18,7 @@ class UserProfileType < DomainModel
 
 
   def content_admin_url(pe)
-    { :controller => '/user_profile/manage', :action => 'view',:path => [ pe ] }
+    { :controller => '/user_profile/manage', :action => 'user',:path => [ pe ] }
   end
 
   def content_model_field_options

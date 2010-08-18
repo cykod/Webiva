@@ -7,6 +7,13 @@ class UserProfile::ManageController < ModuleController
   def self.members_view_handler_info 
     { :name => 'Profile', :controller => '/user_profile/manage', :action => 'view' } 
   end
+ 
+  def user
+    entry = UserProfileEntry.find(params[:path][0])
+    redirect_to :controller => '/members', :action => 'view', :path => [ entry.end_user_id ] 
+  end
+
+
   def view 
     @tab = params[:tab].to_i
     @user = EndUser.find(params[:path][0])

@@ -21,7 +21,7 @@ class UserProfileEntry < DomainModel
   }
 
 
-  content_node :container_type => 'UserProfileType', :container_field => 'user_profile_type_id', :push_value => true
+  content_node(:container_type => 'UserProfileType', :container_field => 'user_profile_type_id', :push_value => true, :except => Proc.new() { |e| e.url.blank? })
 
   def self.find_published_profile(url,profile_type_id)
     self.find_by_url_and_user_profile_type_id(url,profile_type_id,:conditions => { :published => true })
@@ -97,6 +97,7 @@ class UserProfileEntry < DomainModel
 
   def create_url
     return nil unless self.end_user
+    return nil if self.end_user.first_name.blank? && self.end_user.last_name.blank? && self.end_user.username.blank? 
     if !self.end_user.username.blank?
       url_try =  "#{self.end_user.username.downcase}" 
     else
@@ -104,9 +105,11 @@ class UserProfileEntry < DomainModel
     end
     url_try = url_try.to_s.downcase.gsub(/[ _]+/,"-").gsub(/[^a-z+0-9\-]/,"")
     url_base = url_try
+    cnt = 1
     idx = 0
     while UserProfileEntry.find_by_url(url_try,:conditions => [ "user_profile_type_id=? AND end_user_id!=?",self.user_profile_type_id,self.end_user_id ])
-      idx += 1
+      idx += 1 + (idx > 2 ? rand(50 * cnt) : 0)
+      cnt += 1
       url_try = url_base + '-' + idx.to_s
     end
     url_try
