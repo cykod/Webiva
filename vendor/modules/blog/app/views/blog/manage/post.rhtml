@@ -81,21 +81,22 @@
     <%= f.text_field :author, :vertical => true, :style=>'width:100%' %>
     <%= f.editor_area :body, :vertical => true, :required => true, :rows => 35, :style=>'width:100%', :content_filter => @blog.content_filter %>
 
-    <% if @blog.content_model -%>
-      <%= f.header "Custom Fields (%s)" / @blog.content_model.name %>
-      <% cms_subfields_for 'entry[data_model]', @entry.data_model do |cf| -%>
-        <% @blog.content_model.content_model_fields.each do |field| -%>
-          <%= field.form_field(cf, :vertical => true) %>
-        <% end -%>
-      <% end -%>
-    <% end -%>
-
     <%= f.header "Additional Fields" %>
     <%= f.text_field :preview_title, :vertical => true, :size => 80, :label => 'Preview Title (Optional)' %>
     <%= f.editor_area :preview, :vertical => true, :rows => 12, :label => 'Preview (Optional)', :style=>'width:100%', :content_filter => @blog.content_filter %>
     <%= f.text_field :keywords, :vertical => true, :style=>'width:100%' %>
     <%= f.filemanager_file :media_file_id, :vertical => true, :label => 'Local Media (.mp3 or .flv file)' %>
     <%= f.text_field :embedded_media, :vertical => true, :label => 'Embedded Media (Paste entire <object ...> block)', :style => 'width:100%' %>
+
+    <% if @blog.content_model -%>
+      <%= f.header "Custom Fields (%s)" / @blog.content_model.name %>
+      <% cms_subfields_for 'entry[data_model]', @entry.data_model do |cf| -%>
+        <% @blog.content_model.content_model_fields.each do |field| -%>
+          <%= field.form_field(cf, :vertical => true, :editor => true) %>
+        <% end -%>
+      <% end -%>
+    <% end -%>
+
     <%= f.submit_tag @entry.id ? 'Update Entry' : 'Create Entry' %>
   </table>
   </td>
