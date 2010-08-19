@@ -110,8 +110,9 @@ class Blog::BlogPost < DomainModel
       if permalink.blank? && self.active_revision
         date = self.published_at || Time.now
         permalink_try_partial = date.strftime("%Y-%m-") + self.active_revision.title.downcase.gsub(/[ _]+/,"-").gsub(/[^a-z+0-9\-]/,"")
+        permalink_try_partial = permalink_try_partial[0..59].gsub(/\-$/,"")
         idx = 2
-        permalink_try = permalink_try_partial[0..60]
+        permalink_try = permalink_try_partial
         
         while(Blog::BlogPost.find_by_permalink(permalink_try,:conditions => ['id != ?',self.id || 0] ))
           permalink_try = permalink_try_partial + '-' + idx.to_s
@@ -120,7 +121,7 @@ class Blog::BlogPost < DomainModel
         
         self.permalink = permalink_try
       elsif 
-        self.permalink = self.permalink.to_s.gsub(/[^a-z+0-9\-]/,"")
+        self.permalink = self.permalink.to_s.gsub(/[^a-z+0-9\-]/,"")[0..63]
       end
   end
 

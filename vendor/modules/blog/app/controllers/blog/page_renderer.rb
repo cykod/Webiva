@@ -102,7 +102,7 @@ class Blog::PageRenderer < ParagraphRenderer
     @options = paragraph_options(:entry_detail)
 
     blog = get_blog
-    return render_paragraph :text => (@options.blog_id > 0 ? '[Configure paragraph]' : '') unless blog
+    return render_paragraph :text => (@options.blog_id.to_i > 0 ? '[Configure paragraph]' : '') unless blog
 
     conn_type, conn_id = page_connection()
     display_string = "#{conn_type}_#{conn_id}_#{myself.user_class_id}"
