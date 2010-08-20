@@ -19,6 +19,12 @@
     <%= javascript_include_tag "menu.js" %>
     <%= javascript_include_tag "shortcut" %>
 
+    <% if @output.includes[:css] -%>
+        <% @output.includes[:css].uniq.each do |css| -%>
+          <%= stylesheet_link_tag css %>
+        <% end -%>
+    <% end -%>
+    <%= strip_script_tags(@output.head) unless @output.head.blank? -%>
 <script type="text/javascript">
 
 cmsEdit.setText({ deleteText: "<%= jh('Are you sure you want to delete this paragraph?'.t) %>",
