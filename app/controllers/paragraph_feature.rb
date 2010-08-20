@@ -1640,7 +1640,7 @@ block is non-nil
 	    height = (tag.attr['height'] || 260).to_i
 	    "<embed src='#{file.url}' width='#{width}' height='#{height}' autoplay='false' />"
 	  else
-	    message = tag.single? ? 'Download Media'.t : tag.expand
+	    message = t.attr['link'] || file.name
 	    "<a href='#{file.url}'>#{message}</a>"
 	  end
 	end
