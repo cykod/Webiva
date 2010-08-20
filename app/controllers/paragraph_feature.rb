@@ -1613,7 +1613,7 @@ block is non-nil
     end 
     
     def define_media_tag(name, options={}, &block)
-      define_tag(name) do |tag|
+      define_value_tag(name) do |tag|
         file = yield(tag)
 
 	if SiteModule.module_enabled?('media') && file
