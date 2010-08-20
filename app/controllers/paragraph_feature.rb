@@ -1641,7 +1641,7 @@ block is non-nil
 	    "<embed src='#{file.url}' width='#{width}' height='#{height}' autoplay='false' />"
 	  else
 	    message = tag.single? ? 'Download Media'.t : tag.expand
-	    "<a href='#{med.url}'>#{message}</a>"
+	    "<a href='#{file.url}'>#{message}</a>"
 	  end
 	end
       end
