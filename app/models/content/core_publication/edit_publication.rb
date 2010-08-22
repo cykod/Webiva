@@ -3,6 +3,9 @@
 
 class Content::CorePublication::EditPublication < Content::CorePublication::CreatePublication #:nodoc:all
   # All the same options as the edit publication 
+  #
+  field_types :input_field, :preset_value, :dynamic_value, :entry_value
+  
   
   register_triggers :view, :edit, :create
   field_options :filter
