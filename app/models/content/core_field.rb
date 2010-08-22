@@ -584,7 +584,7 @@ class Content::CoreField < Content::FieldHandler
 
     
     def available_options(atr={ })
-      opts = @available_opts ||=  @model_field.relation_class.select_options(:limit => 500)
+      opts = @available_opts ||=  @model_field.relation_class.select_options(:limit => 100)
     end
 
     def form_field(f,field_name,field_opts,options={})
@@ -662,7 +662,7 @@ class Content::CoreField < Content::FieldHandler
             nil
           end
         end
-        c.user_details_tags("#{name_base}:#{tag_name}",:local => :user)
+        c.user_tags("#{name_base}:#{tag_name}",:local => :user)
       else
         sub_local = "sub_#{local}"
 

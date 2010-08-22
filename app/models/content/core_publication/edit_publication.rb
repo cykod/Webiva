@@ -5,11 +5,14 @@ class Content::CorePublication::EditPublication < Content::CorePublication::Crea
   # All the same options as the edit publication 
   
   register_triggers :view, :edit, :create
-  
+  field_options :filter
   def preview_data
     cls = @publication.content_model.content_model
     cls.find(:first) || cls.new
   end
+
+  
+  def filter?; true; end
   
 end
 

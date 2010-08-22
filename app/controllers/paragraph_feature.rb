@@ -547,18 +547,23 @@ block is non-nil
     #   value tag the returns the user's profile id
     # [<cms:user:myself>]
     #   expansion tag that expands only if the user is the currently logged in user
-    def define_user_tags(tag_name)
-    
-      define_expansion_tag(tag_name) { |t| yield t }
-      define_expansion_tag(tag_name + ":logged_in") { |t| usr = yield t; !usr.id.blank? }
-      define_h_tag(tag_name + ":name") { |t| usr = yield t; usr.name if usr }
-      define_h_tag(tag_name + ":username") { |t| usr = yield t; usr.username if usr }
-      define_h_tag(tag_name + ":first_name") { |t| usr = yield t; usr.first_name if usr }
-      define_h_tag(tag_name + ":last_name") { |t| usr = yield t; usr.last_name if usr }
-      define_value_tag(tag_name + ":profile") { |t| usr = yield t; usr.user_profile_id if usr }
-      define_value_tag(tag_name + ":profile_name") { |t| usr = yield t; usr.user_profile.name if usr }
-      define_expansion_tag(tag_name + ":myself") { |t| usr = yield t; usr == myself if usr }
-      define_image_tag(tag_name + ":img") { |t| usr = yield t; usr.image if usr }
+    def define_user_tags(tag_name,options={},&block)
+      local=options[:local]
+      if !local
+        name_parts = tag_name.split(":")
+        local = name_parts[-1]
+      end
+
+      define_expansion_tag(tag_name) { |t| block ? t.locals.send("#{local}=",block.call) : t.locals.send(local) }
+      define_expansion_tag(tag_name + ":logged_in") { |t| usr = t.locals.send(local); !usr.id.blank? }
+      define_h_tag(tag_name + ":name") { |t| usr = t.locals.send(local); usr.name if usr }
+      define_h_tag(tag_name + ":username") { |t| usr = t.locals.send(local); usr.username if usr }
+      define_h_tag(tag_name + ":first_name") { |t| usr = t.locals.send(local); usr.first_name if usr }
+      define_h_tag(tag_name + ":last_name") { |t| usr = t.locals.send(local); usr.last_name if usr }
+      define_value_tag(tag_name + ":profile") { |t| usr = t.locals.send(local); usr.user_profile_id if usr }
+      define_value_tag(tag_name + ":profile_name") { |t| usr = t.locals.send(local); usr.user_profile.name if usr }
+      define_expansion_tag(tag_name + ":myself") { |t| usr = t.locals.send(local); usr == myself if usr }
+      define_image_tag(tag_name + ":img") { |t| usr = t.locals.send(local); usr.image if usr }
     end
 
     # Similar to define_user_tags but it defines a whole bunch of tags
@@ -1684,7 +1689,7 @@ block is non-nil
       define_value_tag(name_base + "href")
     end
 
-    def define_user_tags(tag_name)
+    def define_user_tags(tag_name,options = {})
       expansion_tag(tag_name)
       expansion_tag(tag_name + ":logged_in")
       define_value_tag(tag_name + ":name")
