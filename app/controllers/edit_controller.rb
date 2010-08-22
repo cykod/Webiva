@@ -603,6 +603,7 @@ class EditController < ModuleController # :nodoc: all
       :title_str => [ [  0, 'Page Title String', :title_str, 'Page Title', :title_str ]],
       :user => [ [ 0, 'User ID', :user_id, 'User ID', :user ] ],
       :target => [ [ 0, 'Active User', :user_target, 'User', :target ] ],                   
+      :user_target => [ [ 0, 'Active User Target', :user_target, 'User', :user_target ] ],                   
       :user_class => [ [0, 'User Profile', :user_class_id, 'User Profile', :user_class ] ]
                  }
 #    else
@@ -618,7 +619,7 @@ class EditController < ModuleController # :nodoc: all
 
         # Map all the available outputs
         if info[:outputs]
-          info[:output].each do |pout|
+          info[:outputs].each do |pout|
             @outputs[pout[2]] ||= []
             @outputs[pout[2]] << [ para.identity_hash || para.id.to_s, para_info[:name]] + pout
           end

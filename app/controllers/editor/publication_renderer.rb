@@ -176,9 +176,14 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
    content_connection,entry_id = page_connection()
    pub_options = paragraph_options(:edit)
    
+     options = {}
    
     if entry_id && entry_id.to_i != 0
-      entry = publication.content_model.content_model.find_by_id(entry_id)
+      publication.each_page_connection_input do |filter_name,fld|
+        conn_type,conn_id = page_connection(filter_name)
+        options[conn_type] = conn_id unless conn_id.blank?
+      end
+      entry = publication.get_filtered_entry(entry_id,options)              
     elsif editor?
       entry = publication.content_model.content_model.find(:first)
     elsif pub_options.allow_entry_creation
