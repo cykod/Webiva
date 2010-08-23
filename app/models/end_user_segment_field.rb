@@ -18,13 +18,14 @@ class EndUserSegmentField < UserSegment::FieldHandler
   register_field :dob, UserSegment::CoreType::DateTimeType, :name => 'DOB', :sortable => true
   register_field :last_name, UserSegment::CoreType::StringType, :name => 'Last Name', :sortable => true
   register_field :first_name, UserSegment::CoreType::StringType, :name => 'First Name', :sortable => true
-  register_field :source, EndUserSegmentType::SourceType, :name => 'Source', :sortable => true
+  register_field :source, EndUserSegmentType::SourceType, :name => 'Origin', :sortable => true
   register_field :lead_source, EndUserSegmentType::LeadSourceType, :name => 'Lead Source', :sortable => true
   register_field :registered_at, UserSegment::CoreType::DateTimeType, :name => 'Registered At', :sortable => true
   register_field :referrer, UserSegment::CoreType::StringType, :name => 'Referrer', :sortable => true
   register_field :username, UserSegment::CoreType::StringType, :name => 'Username', :sortable => true
   register_field :introduction, UserSegment::CoreType::StringType, :name => 'Introduction', :sortable => true
   register_field :suffix, UserSegment::CoreType::StringType, :name => 'Suffix', :sortable => true
+  register_field :profile, EndUserSegmentType::UserClassType, :field => :user_class_id, :name => 'User Profile', :sortable => true
 
   def self.sort_scope(order_by, direction)
     field = self.user_segment_fields[order_by.to_sym][:field]
@@ -35,6 +36,10 @@ class EndUserSegmentField < UserSegment::FieldHandler
   end
 
   def self.field_output(user, handler_data, field)
-    UserSegment::FieldType.field_output(user, handler_data, field)
+    if field == :profile
+      user.user_class.name
+    else
+      UserSegment::FieldType.field_output(user, handler_data, field)
+    end
   end
 end
