@@ -122,11 +122,13 @@ class Blog::PageRenderer < ParagraphRenderer
       cache[:title] = entry ? entry.title : ''
       cache[:keywords] = (entry && !entry.keywords.blank?) ? entry.keywords : nil
       cache[:entry_id] = entry ? entry.id : nil
+      cache[:comments_ok] = entry ? ! entry.disallow_comments : true
     end
 
     if result.entry_id
       set_page_connection(:content_id, ['Blog::BlogPost',result.entry_id] )
       set_page_connection(:post, result.entry_id )
+      set_page_connection(:comments_ok, result.comments_ok)
       set_title(result.title)
       set_content_node(['Blog::BlogPost', result.entry_id])
       html_include('meta_keywords',result.keywords) if result.keywords 

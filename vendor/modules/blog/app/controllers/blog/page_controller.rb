@@ -18,6 +18,7 @@ class Blog::PageController < ParagraphController
                                     :blog => [[:blog_id,'Blog ID',:path ]]
                                   },
                        :outputs => [[:content_id, 'Content Identifier', :content],
+                                    [:comments_ok, 'Allow Commenting', :boolean ],
                                     [:post, 'Blog Post', :post_id ]]
                                   
   editor_for :targeted_entry_detail, :name => "Targeted Blog Entry Detail",  :features => ['blog_entry_detail'],

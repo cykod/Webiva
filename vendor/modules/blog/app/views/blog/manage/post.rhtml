@@ -87,6 +87,7 @@
     <%= f.text_field :keywords, :vertical => true, :style=>'width:100%' %>
     <%= f.filemanager_file :media_file_id, :vertical => true, :label => 'Local Media (.mp3 or .flv file)' %>
     <%= f.text_field :embedded_media, :vertical => true, :label => 'Embedded Media (Paste entire <object ...> block)', :style => 'width:100%' %>
+    <%= f.yes_no :disallow_comments, :vertical => true, :description => 'requires page connection to be set' %>
 
     <% if @blog.content_model -%>
       <%= f.header "Custom Fields (%s)" / @blog.content_model.name %>
