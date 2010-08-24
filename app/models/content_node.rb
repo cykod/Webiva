@@ -78,6 +78,14 @@ class ContentNode < DomainModel
   belongs_to :content_type
   has_many :content_node_values
 
+  named_scope :from_content do |node_type,node_id|
+    { :conditions => { :node_type => node_type, :node_id => node_id } }
+  end
+
+  def self.fetch(node_type,node_id)
+    self.from_content(node_type,node_id).first
+  end
+
   def update_node_content(user,item,opts={}) #:nodoc:
     opts = opts.symbolize_keys
     if self.content_type_id.blank?
@@ -202,6 +210,10 @@ class ContentNode < DomainModel
     else
       nil
     end
+  end
+
+  def self.batch_find(node_ids)
+    self.find(:all,:conditions => { :id => node_ids },:include => :node)
   end
 
 

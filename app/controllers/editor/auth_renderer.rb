@@ -46,7 +46,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       @usr = EndUser.find_target(params[:user][:email],:no_create => true)
       
       if @usr.registered?
-        # If not, we need to create a new user
+        # If user is registered we need to create a new user
         @usr = EndUser.new(:source => 'website')
       end
       
@@ -91,7 +91,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       # save the user,
 
       @failed = true unless all_valid
-      
+
       if all_valid 
       
         # Set a source if we have one        
@@ -116,7 +116,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
           @usr.generate_activation_string
         end
 
-        # Make sure save is sucessful - will recheck validation and
+        # Make sure save is successful - will recheck validation and
         # rescan for uniques
         if(@usr.save)
 

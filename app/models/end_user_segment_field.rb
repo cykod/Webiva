@@ -18,7 +18,8 @@ class EndUserSegmentField < UserSegment::FieldHandler
   register_field :dob, UserSegment::CoreType::DateTimeType, :name => 'DOB', :sortable => true
   register_field :last_name, UserSegment::CoreType::StringType, :name => 'Last Name', :sortable => true
   register_field :first_name, UserSegment::CoreType::StringType, :name => 'First Name', :sortable => true
-  register_field :source, EndUserSegmentType::SourceType, :name => 'Source', :sortable => true
+  register_field :source, EndUserSegmentType::SourceType, :name => 'Origin', :sortable => true, :display_field => 'source_display'
+  register_field :user_class_id, EndUserSegmentType::UserClassType, :name => 'User Profile', :sortable => true, :display_field => :user_class
   register_field :lead_source, EndUserSegmentType::LeadSourceType, :name => 'Lead Source', :sortable => true
   register_field :registered_at, UserSegment::CoreType::DateTimeType, :name => 'Registered At', :sortable => true
   register_field :referrer, UserSegment::CoreType::StringType, :name => 'Referrer', :sortable => true

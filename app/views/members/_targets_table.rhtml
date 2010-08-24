@@ -6,7 +6,8 @@
                     :class => 'active_table',
                     :width => '100%',
                     :next => @search.user_segment && @search.terms ? 'more' : '&gt;',
-                    :actions => [['Add Tags','js','MemberEditor.addTags();'],
+                    :actions => [['Quick Edit','js','MemberEditor.quickEdit();'],
+                                 ['Add Tags','js','MemberEditor.addTags();'],
                                  ['Remove Tags','js','MemberEditor.removeTags();'],
                                  segment_action
                                 ],
@@ -17,6 +18,9 @@
   <td nowrap='1'>
     <%= entry_checkbox 'user',t.id %>
   </td>
+  <td align='center'>
+    <%= t.user_level %>
+  </td>
   <td align='center' nowrap='1'>
     <%= t.editor? ? '' : link_to(theme_image_tag('icons/actions/edit.gif'), :action => 'edit', :path => [ t.id, @segment ? @segment.id : nil ].compact) %>
   </td>
@@ -26,11 +30,11 @@
     %>
   </td>
   <td>
-    <%= t.editor? ? h(t.name) : link_to(t.name, user_url) %>
+    <%= link_to(t.name, user_url) %>
   </td>
   <td>
     <%= email = t.email.blank? ? 'No Email'.t : t.email
-        t.editor? ? h(email) : link_to(email, user_url) 
+        link_to(email, user_url) 
     %>
   </td>
 

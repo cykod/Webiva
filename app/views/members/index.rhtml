@@ -20,6 +20,16 @@
       SCMS.remoteOverlay("<%= url_for :action => 'add_tags_form' %>");
     },
 
+    quickEdit: function() {
+      SCMS.remoteOverlay("<%= url_for :action => 'quick_edit_form' %>");
+    },
+
+    quickEditSubmit: function(args) {
+      this.tableAction('quick_edit',args);
+      RedBox.close();
+    },
+
+
     removeTags: function() {
       var user_ids = [];
       var elements = $('email_targets_table_update_form').getInputs();
@@ -147,8 +157,8 @@
 
 <% action_panel :handler => 'members' do |p| -%>
   <%= p.link "Add a user",:icon => 'add.gif', :action => 'create' %>
-  <%= p.link "Import Email Targets",:icon => 'upload.gif', :controller => :member_import %>
-  <%= p.link "Download Visible Targets",:icon => 'download.gif', :controller => :member_export, :action => 'index', :path => @segment ? @segment.id : nil %>
+  <%= p.link "Import People",:icon => 'upload.gif', :controller => :member_import %>
+  <%= p.link "Download Current List",:icon => 'download.gif', :controller => :member_export, :action => 'index', :path => @segment ? @segment.id : nil %>
   <%= p.link "Tag List", :icon => 'show.gif', :action => 'tags' %>
   <%= p.link "Access Tokens", :icon => 'access.gif', :controller => '/access_token' if myself.has_role?('editor_access_tokens') %>
   <%= p.link "User Lists", :icon => 'access.gif', :action => 'segments' %>
@@ -180,18 +190,15 @@
 </div>
 
 <div class="member_search" style="padding:5px; width:320px;">
-<%= form_tag %>
-<%= text_field_tag :terms, @search.terms, :id => 'members_search_terms' %>
+<%= form_tag '', :class => 'admin_form' %>
+<%= text_field_tag :terms, @search.terms, :id => 'members_search_terms', :class => 'text_field' %>
 <%= submit_tag 'Search'.t %>
 </form>
 <%= "<a href='#{url_for}'>Clear search</a>" if @search.terms %>
 </div>
 
-<hr style="clear:both;"/>
+<hr/>
 
-<script>
-  <%= active_table_javascript %>
-</script>
 <div id='targets_table'>
   <%= render :partial => 'targets_table' %>
 </div>  

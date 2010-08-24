@@ -198,15 +198,11 @@ selected_icon : unselected_icon}' id='#{elem_id}#{star}' align='absmiddle' title
   def content_node_links(objects)
     return nil unless objects
     objects.map do |obj| 
-      if obj.is_a?(Array)
-        cls = obj[0].is_a?(String) ? obj[0].constantize : obj[0]
-        obj = cls.find_by_id(obj[1])
-      end
-
-      if obj && obj.content_node
-        admin_url = obj.content_node.admin_url.symbolize_keys
+      nd = ContentNode.find_by_id(obj)
+      if nd
+        admin_url = nd.admin_url.symbolize_keys
         if myself.has_content_permission?(admin_url.delete(:permission))
-          name = admin_url.delete(:title) || obj.class.to_s.humanize
+          name = admin_url.delete(:title) || nd.node_type.underscore.titleize
           url = url_for(admin_url) + "?return_to_site=true"
           (link_to h(name), url)
         else

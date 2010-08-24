@@ -115,6 +115,7 @@ class Blog::PageRenderer < ParagraphRenderer
         entry = blog.find_post_by_permalink(conn_id)
       end
 
+      cache[:content_node_id] = entry.content_node.id if entry.content_node
       cache[:output] = blog_entry_detail_feature(:entry => entry,
                                                  :list_page => get_list_page(blog),
                                                  :detail_page => site_node.node_path,
@@ -128,7 +129,7 @@ class Blog::PageRenderer < ParagraphRenderer
       set_page_connection(:content_id, ['Blog::BlogPost',result.entry_id] )
       set_page_connection(:post, result.entry_id )
       set_title(result.title)
-      set_content_node(['Blog::BlogPost', result.entry_id])
+      set_content_node(result.content_node_id)
       html_include('meta_keywords',result.keywords) if result.keywords 
     else
       return render_paragraph :text => '' if (['', 'category','tag','archive'].include?(conn_id.to_s.downcase)) && site_node.id == @options.list_page_id

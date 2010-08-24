@@ -12,10 +12,16 @@ class DomainLogEntry < DomainModel
     return nil unless request.session_options
 
     action = output.paction if output && output.paction
-    self.create_entry(user, site_node, path, session[:domain_log_session][:id], output ? output.status.to_i : nil, action)
+    self.create_entry(user, 
+                      site_node, 
+                      path, 
+                      session[:domain_log_session][:id], 
+                      output ? output.status.to_i : nil, 
+                      action,
+                      (output && output.page? && output.content_nodes) ? output.content_nodes[0] : nil)
   end
 
-  def self.create_entry(user,site_node,path,domain_log_session_id,http_status,action=nil)
+  def self.create_entry(user,site_node,path,domain_log_session_id,http_status,action=nil,content_node_id=nil)
   
     # Don't track ClientUser access
     unless user.is_a?(ClientUser)
@@ -27,6 +33,7 @@ class DomainLogEntry < DomainModel
           :page_path => path,
           :occurred_at => Time.now(),
           :domain_log_session_id => domain_log_session_id,
+          :content_node_id => content_node_id,
           :http_status => http_status,
           :end_user_action_id => action.is_a?(EndUserAction) ? action.id : nil)
     end

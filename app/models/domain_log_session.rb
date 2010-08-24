@@ -1,36 +1,50 @@
 # Copyright (C) 2009 Pascal Rettig.
+#
+require 'uri'
 
 
 
 class DomainLogSession < DomainModel
   belongs_to :end_user
-  has_many :domain_log_entries
+  has_many :domain_log_entries, :dependent => :delete_all
+  belongs_to :domain_log_referrer
 
   def self.start_session(user, session, request)
     return unless request.session_options
 
     if !session[:domain_log_session] || session[:domain_log_session][:end_user_id] != user.id
-      ses = self.session(request.session_options[:id], user, request.remote_ip, true, Tracking.new(request))
+      tracking = Tracking.new(request)
+      session[:user_referrer] = tracking.referrer_domain if tracking.referrer_domain
+      ses = self.session(session[:domain_log_visitor],request.session_options[:id], user, request.remote_ip, true, tracking)
       session[:domain_log_session] = { :id => ses.id, :end_user_id => user.id }
     end
   end
   
 #  validates_uniqueness_of :session_id
-  def self.session(session_id,user,ip_address,save_entry=true,tracking=nil)
+  def self.session(visitor_id,session_id,user,ip_address,save_entry=true,tracking=nil)
     user = user.id if user.is_a?(EndUser)
     returning (self.find_by_session_id(session_id) || self.new(:session_id => session_id, :ip_address => ip_address)) do |ses|
 
-      ses.attributes = {:referrer_domain => tracking.referrer_domain,
-	                :referrer_path => tracking.referrer_path,
-	                :affiliate => tracking.affiliate,
-	                :campaign => tracking.campaign,
-	                :origin => tracking.origin,
-	                :affiliate_data => tracking.affiliate_data} if tracking && ses.id.nil?
+      if(tracking && tracking.referrer_domain)
+        referrer_id =  DomainLogReferrer.fetch_referrer(tracking.referrer_domain,tracking.referrer_path).id
+      else
+        referrer_id = nil
+      end
+
+
+      ses.attributes = {
+        :domain_log_visitor_id => visitor_id,
+        :affiliate => tracking.affiliate,
+        :campaign => tracking.campaign,
+        :origin => tracking.origin,
+        :domain_log_referrer_id => referrer_id,
+        :query => tracking.search,
+        :affiliate_data => tracking.affiliate_data} if tracking && ses.id.nil?
 
       ses.attributes = {:end_user_id => user}
       ses.save if save_entry
     end 
-    
+
   end
 
   def username
@@ -76,11 +90,16 @@ class DomainLogSession < DomainModel
 
     def initialize(request)
       @request = request
+      begin
+        @referrer = URI::parse(request.referrer) unless request.referrer.blank?
+      rescue URI::InvalidURIError
+        @referrer = nil
+      end
     end
     
     def referrer_domain
-      return nil unless request.referrer
-      @referrer_domain ||= request.referrer.sub(/https?:\/\//, '').sub(/\/.*/, '')
+      return nil unless @referrer 
+      @referrer_domain ||= @referrer.host.to_s.gsub(/^www\./,'')
       domain_exp = Regexp.new('(^|\.)' + Regexp.escape(DomainModel.active_domain_name) + '$')
       return @referrer_domain unless domain_exp.match(@referrer_domain)
       nil
@@ -88,7 +107,21 @@ class DomainLogSession < DomainModel
 
     def referrer_path
       return nil unless self.referrer_domain
-      @referrer_path ||= request.referrer.sub(/https?:\/\/.*?\//, '/').sub(/\?.*/, '').sub(/#.*/, '')
+      @referrer_path ||= @referrer.path
+    end
+
+    def query
+      return nil unless self.referrer_domain
+      @query ||= CGI::parse(@referrer.query ? @referrer.query : @referrer.fragment.to_s)
+    end
+
+    def search
+      return nil unless query
+      case self.referrer_domain
+      when 'www.google.com','www.bing.com': query['q']
+      when 'www.yahoo.com': query['p']
+      else nil
+      end
     end
 
     def affiliate(arg='affid')

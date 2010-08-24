@@ -70,13 +70,14 @@ class MembersController < CmsController # :nodoc: all
   end
 
   def handle_table_actions
-    if request.post? && params[:table_action] && params[:user].is_a?(Hash)
-      if params[:table_action] == 'delete'
-        EndUser.destroy(params[:user].keys)
+    active_table_action('user') do |act,uids| 
+      uids = uids.map(&:to_i)
+      if act == 'delete'
+        EndUser.destroy(uids)
       else
-        update_users = EndUser.find(:all,:conditions => [ 'end_users.id IN (' + params[:user].keys.collect { |uid| DomainModel.connection.quote(uid) }.join(",") + ")" ])
+        update_users = EndUser.find(:all,:conditions => { :id => uids })
         
-        case params[:table_action]
+        case act
         when 'add_tags'
           update_users.each do |user|
             user.tag_names_add(params[:added_tags]) if user
@@ -91,10 +92,15 @@ class MembersController < CmsController # :nodoc: all
           end
         when 'add_users'
           custom_segment = UserSegment.find params[:user_segment_id]
-          custom_segment.add_ids params[:user].keys.collect { |uid| uid.to_i } if custom_segment && custom_segment.segment_type == 'custom'
+          custom_segment.add_ids uids if custom_segment && custom_segment.segment_type == 'custom'
         when 'remove_users'
-          custom_segment = UserSegment.find params[:user_segment_id]
-          custom_segment.remove_ids(params[:user].keys.collect { |uid| uid.to_i }) if custom_segment && custom_segment.segment_type == 'custom'
+          custom_segment = UserSegment.find params[:path][0]
+          custom_segment.remove_ids(uids) if custom_segment && custom_segment.segment_type == 'custom'
+        when 'quick_edit'
+          quick_edit_fields = [ :referrer,:user_class_id,:user_level,:source,:lead_source ]
+          fields = params[:edit].slice(*quick_edit_fields)
+          quick_edit_fields.each { |fld| fields.delete(fld) if fields[fld].blank? }
+          update_users.each { |usr| usr.update_attributes(fields) }
         end
       end
     end
@@ -105,7 +111,8 @@ class MembersController < CmsController # :nodoc: all
 
     @email_targets_table_columns = [
       ActiveTable::IconHeader.new('check', :width => '16'),
-      ActiveTable::StaticHeader.new('', :width => '24'),
+      ActiveTable::StaticHeader.new('Lvl', :width => '24'),
+      ActiveTable::StaticHeader.new('Edit', :width => '24'),
       ActiveTable::StaticHeader.new('Image', :width => '70'),
       ActiveTable::StaticHeader.new('Name'),
       ActiveTable::OrderHeader.new('email')
@@ -114,7 +121,7 @@ class MembersController < CmsController # :nodoc: all
     @fields = []
     end_user_only = true
     if self.segment && self.segment.fields
-      @fields = self.segment.fields
+      @fields = self.segment.fields.length > 0 ? self.segment.fields : self.class.module_options.fields
       end_user_only = false
     else self.class.module_options && self.class.module_options.fields
       @fields = self.class.module_options.fields
@@ -652,6 +659,10 @@ class MembersController < CmsController # :nodoc: all
 
   def add_tags_form
     render :partial => 'add_tags_form'
+  end
+
+  def quick_edit_form
+    render :partial => 'quick_edit_form'
   end
   
   def remove_tags_form

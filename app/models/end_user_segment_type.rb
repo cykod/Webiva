@@ -13,12 +13,25 @@ class EndUserSegmentType
     end
   end
 
-  class SourceType < UserSegment::FieldType
+  class UserClassType < UserSegment::FieldType
     def self.select_options
-      EndUser.find(:all, :select => 'DISTINCT source').collect(&:source).reject { |source| source.blank? }.sort.collect { |source| [source, source] }
+      UserClass.all_options
     end
 
-    register_operation :is, [['Source', :model, {:class => EndUserSegmentType::SourceType}]]
+    register_operation :is, [['User Profile', :model, {:class => EndUserSegmentType::UserClassType}]]
+
+    def self.is(cls, group_field, field, user_class_id)
+      cls.scoped(:conditions => ["#{user_class_id} = ?", user_class_id])
+    end
+  end
+
+
+  class SourceType < UserSegment::FieldType
+    def self.select_options
+      EndUser.source_select_options
+    end
+
+    register_operation :is, [['Origin', :model, {:class => EndUserSegmentType::SourceType}]]
 
     def self.is(cls, group_field, field, source)
       cls.scoped(:conditions => ["#{field} = ?", source])

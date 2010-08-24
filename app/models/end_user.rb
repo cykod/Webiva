@@ -6,9 +6,10 @@ require 'digest/sha1'
 # 0 - Opt-Out
 # 1 - Manually Added
 # 2 - Visited
-# 3 - Registered
-# 4 - Subscribed
+# 3 - Subscribed 
+# 4 - Lead
 # 5 - Conversion
+# 6 - Superstar
 
 
 # Sources:
@@ -110,10 +111,12 @@ class EndUser < DomainModel
   has_options :user_level, [ [ '0 - Opt-Out', 0 ], 
                         [ '1 - Added Manually', 1],
                         [ '2 - Visited', 2],
-                        [ '3 - Registered', 3],
-                        [ '4 - Subscribed', 4],
-                        [ '5 - Converison', 5] ]
-                      
+                        [ '3 - Subscribed', 3],
+                        [ '4 - Lead', 4],
+                        [ '5 - Converison', 5],
+                        [ '6 - High-value', 6]]
+                        
+  # Referred to as  Origin
   has_options :source, [ [ 'Website', 'website' ],
                          [ 'Import', 'import' ],
                          [ 'Referrel', 'referrel' ] ]
@@ -494,6 +497,13 @@ class EndUser < DomainModel
         self.gender = 'f'
       end
     end
+
+    # Mark as not acknowledged
+    if self.user_level > 1 && self.user_level_changed?
+      self.acknowledged = false
+    end
+
+    true
   end
   
   def update_editor_login #:nodoc:

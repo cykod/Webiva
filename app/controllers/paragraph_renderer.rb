@@ -284,9 +284,16 @@ class ParagraphRenderer < ParagraphFeature
   # Sets a content node associated with this paragraph, 
   # used by the editor to display edit links
   def set_content_node(obj)
-    if myself.editor?
-      @content_node_list ||= []
+    @content_node_list ||= []
+    if obj.is_a?(Fixnum)
       @content_node_list << obj
+    elsif obj.is_a?(ContentNode)
+      @content_node_list << obj.id
+    elsif obj.is_a?(DomainModel)
+      @content_node_list << obj.content_node.id
+    elsif obj.is_a?(Array)
+      cn = ContentNode.fetch(obj[0],obj[1])
+      @content_node_list << cn.id if cn
     end
   end
   

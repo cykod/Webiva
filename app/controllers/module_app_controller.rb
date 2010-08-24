@@ -125,7 +125,10 @@ class ModuleAppController < ApplicationController
       return
     end
 
-    
+    # Add a new visitor in
+    if Configuration.logging
+      @capture_location =  DomainLogVisitor.log_visitor(cookies,myself,session,request)
+    end
 
     # If it's a redirect, just redirect
     if @output.redirect?
@@ -157,10 +160,10 @@ class ModuleAppController < ApplicationController
   
   def process_logging #:nodoc:
    if Configuration.logging
-      unless request.bot?
-	DomainLogSession.start_session(myself, session, request)
-	DomainLogEntry.create_entry_from_request(myself, @page, (params[:path]||[]).join('/'), request, session, @output)
-      end
+     unless request.bot?
+       DomainLogSession.start_session(myself, session, request)
+       DomainLogEntry.create_entry_from_request(myself, @page, (params[:path]||[]).join('/'), request, session, @output)
+     end
     end
   end
 
