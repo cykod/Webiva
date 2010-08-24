@@ -3,6 +3,32 @@
 module PageHelper
 
 
+  def webiva_javascript_tags(js_includes,js_header)
+    if js_includes || js_header
+      if js_header; js_includes ||= []; js_includes += js_header; end 
+
+      js_includes.uniq.each do |js|
+        if js.to_s[0] != '/'
+          concat(" <script src=\"#{vh js}\" type='text/javascript'></script>\n")
+        else 
+          concat(" " + javascript_include_tag(js) + "\n")
+        end
+      end
+    end
+    nil
+  end
+
+  def webiva_css_tags(css_includes,css_header)
+    if css_includes || css_header
+      if css_header; css_includes ||= []; css_includes += css_header; end 
+      css_includes.uniq.each do |css|
+        concat(" " + stylesheet_link_tag(css) + "\n")
+      end
+    end
+    nil
+  end
+
+
   def ajax_url_for(rnd,options={})
     opts = options.merge(:site_node => rnd.paragraph.page_revision ? rnd.paragraph.page_revision.revision_container_id : 0, 
                          :page_revision => rnd.paragraph.page_revision_id,

@@ -150,12 +150,20 @@ class ModuleAppController < ApplicationController
     	  cls = req[0].constantize.new(self)
     	  cls.post_process @output
         end
+        include_stat_capture if @capture_location
 
         @cms_site_node_engine = engine
         set_robots!
         return true
     end 
 
+  end
+
+
+  def include_stat_capture
+    @output.includes[:js] ||= []
+    @output.includes[:js] << "http#{'s' if request.ssl?}://www.google.com/jsapi"
+    @output.includes[:js] << "/javascripts/webalytics.js"
   end
   
   def process_logging #:nodoc:

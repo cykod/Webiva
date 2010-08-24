@@ -20,6 +20,9 @@ ActionController::Routing::Routes.draw do |map|
     :controller => 'manage/access',
     :action => 'login'
 
+  map.connect '/webalytics',
+    :controller => 'page', :action => 'webalytics'
+
   map.connect '/mailing/view/:campaign_hash/:queue_hash',
     :controller => 'campaigns', :action => 'view'
   map.connect '/mailing/image/:campaign_hash/:queue_hash',

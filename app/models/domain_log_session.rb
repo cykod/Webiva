@@ -15,7 +15,8 @@ class DomainLogSession < DomainModel
     if !session[:domain_log_session] || session[:domain_log_session][:end_user_id] != user.id
       tracking = Tracking.new(request)
       session[:user_referrer] = tracking.referrer_domain if tracking.referrer_domain
-      ses = self.session(session[:domain_log_visitor],request.session_options[:id], user, request.remote_ip, true, tracking)
+      session[:domain_log_visitor] ||= {}
+      ses = self.session(session[:domain_log_visitor][:id],request.session_options[:id], user, request.remote_ip, true, tracking)
       session[:domain_log_session] = { :id => ses.id, :end_user_id => user.id }
     end
   end
