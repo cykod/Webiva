@@ -4,6 +4,7 @@ class Feedback::CommentsFeature < ParagraphFeature
 
   feature :comments_page_comments, :default_feature => <<-FEATURE
       <br/><br/>
+      <cms:comments_closed><div class='closed'>Comments are closed</div></cms:comments_closed>
       <cms:add_comment>
         <cms:errors><div class='errors'><cms:value/></div></cms:errors>
         <cms:no_name>Name:<br/><cms:name/><br/></cms:no_name>
@@ -39,12 +40,14 @@ class Feedback::CommentsFeature < ParagraphFeature
 
       c.expansion_tag('logged_in') { |t| myself.id }
       c.expansion_tag('no_name') { |t| myself.missing_name? }
+      c.expansion_tag('comments_closed') { |t| data[:comments_closed] }
       
       paragraph_id = data[:paragraph_id] ? data[:paragraph_id] : paragraph.id
 
       c.ajax_form_for_tag('add_comment',"comment_#{paragraph_id}") do |t|  
+        data[:comment] ? 
         { :object => data[:comment] ,
-          :page_connection_hash => data[:cached_connection_hash] }
+          :page_connection_hash => data[:cached_connection_hash] } : nil
       end
         c.form_error_tag('add_comment:errors')
         c.field_tag('add_comment:email')

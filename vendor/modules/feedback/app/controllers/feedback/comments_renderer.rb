@@ -26,7 +26,7 @@ class Feedback::CommentsRenderer < ParagraphRenderer
     return(render_paragraph :inline => '') unless content_link
 
     allow_type, allow_link = page_connection(:comments_ok)
-    return(render_paragraph :inline => '') if allow_type && allow_link == false
+    @comments_closed = true  if allow_type && allow_link == false
 
     logged_in = myself.id ? 'logged_in' : 'anonymous'
     display_string = "_#{content_link[0]}_#{content_link[1]}_#{logged_in}"
@@ -34,9 +34,9 @@ class Feedback::CommentsRenderer < ParagraphRenderer
 
     result = renderer_cache(Comment, display_string, :skip => true ||  request.post? || @options.captcha) do |cache|
       @cached_connection_hash = cache[:cached_connection_hash] = DomainModel.generate_hash
-      @comment = Comment.new
+      @comment = Comment.new unless @comments_closed
       param_str = 'comment_' + paragraph.id.to_s
-      if request.post? && params[param_str]
+      if !@comments_closed && request.post? && params[param_str]
         if myself.id || @options.allowed_to_post == 'all'
           @comment = Comment.new(:target_type => content_link[0],
                                  :target_id => content_link[1],
