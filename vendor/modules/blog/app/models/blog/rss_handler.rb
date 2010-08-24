@@ -34,7 +34,7 @@ class Blog::RssHandler
         item = { :title => post.title,
                  :guid => post.id,
                  :published_at => post.published_at.to_s(:rfc822),
-                 :description => replace_relative_urls(@options.full ? post.body_content : post.preview)
+                 :description => Util::HtmlReplacer.replace_relative_urls(@options.full ? post.body_content : post.preview)
                 }
         item[:creator] = post.author unless post.author.blank?
         post.blog_categories.each do |cat|
@@ -63,37 +63,6 @@ class Blog::RssHandler
     end
   end
   
-  def replace_relative_urls(txt)
-    replace_image_sources(replace_link_hrefs(txt))
-  end
-
- @@src_href = /\<img([^\>]+?)src\=(\'|\")([^\'\"]+)(\'|\")([^\>]*?)\>/mi 
- def replace_image_sources(txt)
-  txt.to_s.gsub(@@src_href) do |mtch|
-    src=$3
-    # Only replace absolute urls
-    if src[0..0] == '/'
-      src = "http://" + Configuration.full_domain + src
-    end
-   "<img#{$1} src='#{src}'#{$5}>"
-  end
- end
- 
- 
-  @@href_regexp = /\<a([^\>]+?)href\=(\'|\")([^\'\"]+)(\'|\")([^\>]*?)\>/mi
- # Replace all site links with full http:// links
- # Only necessary if not tracking links
- def replace_link_hrefs(txt)
-   txt.gsub(@@href_regexp) do |mtch|
-      href=$3
-      # Only replace absolute urls
-      if href[0..0] == '/'
-	href = "http://" + Configuration.full_domain + href
-      end
-    "<a#{$1}href='#{href}'#{$5} target='_blank'>"
-    end
- end 
-
   class Options < Feed::AdminController::RssModuleOptions
     attributes :feed_identifier => nil, :limit => 10, :full => false
 

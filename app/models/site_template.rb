@@ -701,7 +701,8 @@ class SiteTemplate < DomainModel
   def export_to_bundle(bundler)
     bundler.add_folder(self.domain_file) if self.domain_file
 
-    data = self.attributes.slice('name', 'description', 'template_html', 'options', 'style_struct', 'style_design', 'template_type', 'head', 'doctype', 'partial', 'lightweight', 'preprocessor', 'domain_file_id')
+    data = self.attributes.slice('name', 'description', 'template_html', 'style_struct', 'style_design', 'template_type', 'head', 'doctype', 'partial', 'lightweight', 'preprocessor', 'domain_file_id')
+    data['options'] = self.options.merge(:values => {}, :localize_values => {})
     data['features'] = self.site_features.collect { |feature| feature.export_to_bundle(bundler) }.compact
     data['children'] = self.child_templates.collect { |child| child.export_to_bundle(bundler) }
     data['zones'] = self.site_template_zones.collect { |zone| zone.name }

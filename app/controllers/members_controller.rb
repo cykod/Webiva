@@ -279,7 +279,7 @@ class MembersController < CmsController # :nodoc: all
   end
 
   class Options < HashModel
-    attributes :fields => [], :order_by => 'created', :order_direction => 'DESC'
+    attributes :fields => ['created', 'profile', 'source', 'lead_source', 'tag'], :order_by => 'created', :order_direction => 'DESC'
 
     def validate
       if self.fields

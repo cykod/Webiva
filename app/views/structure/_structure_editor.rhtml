@@ -117,20 +117,22 @@ var StructureEditor = {
       modifier_id =modifier_id[1];
       StructureEditor.dragging = null;
       if(!$(elem_id).droppedOnNode) {
-      	if(confirm('<%= jh "Remove this modifier?".t %>')) {
-			StructureEditor.modifierRemove(modifier_id);
-			
-      		
-      	}
-      	else {
       	 StructureEditor.selectNode('mod',modifier_id);
-      	}
       }
       else {
           StructureEditor.selectNode('mod',modifier_id);
 	  $(elem_id).droppedOnNode = false;
       }
-      
+  },
+
+  deleteModifier: function(elem_id) {
+      var modifier_id = elem_id.split("_");
+      modifier_id = modifier_id[1];
+      StructureEditor.dragging = null;
+      if(confirm('<%= jh "Remove this modifier?".t %>')) {
+			StructureEditor.modifierRemove(modifier_id);
+                        $('element_info').innerHTML = '';
+      }
   },
 
   addNodeCreateDraggable: function (elem) {

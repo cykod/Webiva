@@ -49,4 +49,17 @@ class EndUserSegmentType
       cls.scoped(:conditions => ["#{field} = ?", source])
     end
   end
+
+  class UserClassType < UserSegment::FieldType
+
+    def self.select_options
+      UserClass.all_options
+    end
+
+    register_operation :is, [['Profile', :model, {:class => EndUserSegmentType::UserClassType}]]
+
+    def self.is(cls, group_field, field, action)
+      cls.scoped(:conditions => ["#{field} = ?", action])
+    end
+  end
 end
