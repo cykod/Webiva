@@ -1,5 +1,10 @@
 
 <% if flash[:notice] %><div class="flash_notice"><%= flash[:notice] %></div><% end %>
+
+<div align='right'>
+  <a href='javascript:void(0);' onclick='StructureEditor.deleteModifier("mod_<%= @mod.id %>");'><%= "Delete Domain Control".t %></a>
+</div>  
+
 <b> <%= "Domain Details".t %></b>
 <script>
 DomainEditor = {};

@@ -4,11 +4,11 @@ class StructureController < CmsController  # :nodoc: all
 
   public
   
-  permit ['editor_structure','editor_structure_advanced'], :except => [ :index, :element_info, :wizards ]
+  permit ['editor_structure','editor_structure_advanced'], :except => [ :index, :element_info, :wizards, :wizard ]
   permit ['editor_website','editor_structure','editor_structure_advanced'], :only => [:index, :element_info]
 
 
-  permit ['editor_structure_advanced'], :only => [:wizards]
+  permit ['editor_structure_advanced'], :only => [:wizards, :wizard]
 
   helper :application
   
