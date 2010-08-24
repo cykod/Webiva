@@ -42,9 +42,6 @@ class UserSubscription < DomainModel
               :subscribed_at => Time.now,
               :subscribed_ip => options[:ip_address],
               :verified => self.double_opt_in? ? false : true)
-              
-  
-  
   end
   
   

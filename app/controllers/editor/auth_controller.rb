@@ -41,7 +41,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
     :address_required_fields => [],
     :content_publication_id => nil, :source => nil, :lockout_redirect => false,
     :require_activation => false, :activation_page_id => nil,
-    :features => [], :require_captcha => false
+    :features => [], :require_captcha => false, :user_level => 4
 
     boolean_options :lockout_redirect, :require_activation, :require_captcha
 
@@ -49,6 +49,8 @@ class Editor::AuthController < ParagraphController #:nodoc:all
    
     validates_presence_of :success_page_id, :user_class_id
 
+    integer_options :user_level
+    integer_array_options :include_subscriptions
 
     def validate
       self.required_fields = [] if @passed_hash[:required_fields].blank?
@@ -104,6 +106,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
       end
       fields.map { |elm| flds[elm.to_sym] ? [ elm.to_sym, flds[elm.to_sym] ] : nil }.compact
     end
+
     def always_required_fields
       flds = [ 'email']
       flds += [ 'password','password_confirmation'] if self.registration_type == 'account'
@@ -179,6 +182,15 @@ class Editor::AuthController < ParagraphController #:nodoc:all
       end
     end
 
+    def subscriptions
+      @subscriptions ||= self.include_subscriptions.collect do |subscription_id|
+        UserSubscription.find_by_id subscription_id
+      end.compact
+    end
+
+    def self.user_level_options
+      EndUser.user_level_select_options.select { |lvl| lvl[1] >= 4 && lvl[1] <= 5 }
+    end
   end
 
   class UserActivationOptions < HashModel
@@ -203,9 +215,13 @@ class Editor::AuthController < ParagraphController #:nodoc:all
     :work_address_required_fields => [],
     :address_required_fields => [],
     :content_publication_id => nil, :content_publication_user_field => nil,
-    :access_token_id => nil
+    :access_token_id => nil, :user_level => 4
 
     page_options :success_page_id
+
+    integer_options :user_level
+
+    integer_array_options :include_subscriptions
 
     validates_presence_of :user_class_id
 
@@ -336,6 +352,16 @@ class Editor::AuthController < ParagraphController #:nodoc:all
 
     def publication_field_options
       self.publication.content_model.content_model_fields.find(:all, :conditions => "field_type = 'belongs_to' AND field_module = 'content/core_field'").collect { |elm| [elm.name, elm.field] } if self.publication
+    end
+
+    def subscriptions
+      @subscriptions ||= self.include_subscriptions.collect do |subscription_id|
+        UserSubscription.find_by_id subscription_id
+      end.compact
+    end
+
+    def self.user_level_options
+      UserRegisterOptions.user_level_options
     end
   end
 

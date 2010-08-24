@@ -11,6 +11,7 @@
    <%= f.text_field :add_tags, :description => 'Tag Names to add on edit account' %>
    <%= f.country_select :country, :label => 'Default Country' %>
    <%= f.select :access_token_id, [['--Select Access Token--', nil]] + AccessToken.user_token_options %>
+   <%= f.select :user_level, @options.class.user_level_options %>
 <% end -%>
 <% t.tabled_tab do %>
    <%= f.ordered_array :required_fields, @options.available_field_options %>
@@ -21,6 +22,7 @@
  <%= f.ordered_array :work_address_required_fields, @options.available_address_field_options(true), :description => "All address fields are available but the above must be filled out" %> 
  <%= f.select :content_publication_id, @options.publication_options %>
  <%= f.select :content_publication_user_field, @options.publication_field_options() if @options.publication %>
+ <%= f.ordered_array :include_subscriptions, UserSubscription.select_options %>
 <% end -%>
 <% t.tab do %>
   <div id='cms_triggered_actions'>

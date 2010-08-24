@@ -119,7 +119,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
         # Make sure save is successful - will recheck validation and
         # rescan for uniques
         if(@usr.save)
-
+          @usr.elevate_user_level @options.user_level
 
           @usr.tag_names_add(@options.add_tags) unless @options.add_tags.blank?
           @usr.tag_names_add(session[:user_tags]) if session[:user_tags]
@@ -131,7 +131,9 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
           @business.update_attribute(:end_user_id,@usr.id) if @business.id
 
           if @options.include_subscriptions.is_a?(Array) && @options.include_subscriptions.length > 0
-            update_subscriptions(@usr,@options.include_subscriptions,params[:subscription])
+            @options.subscriptions.each do |sub|
+              sub.subscribe_user @usr, :ip_address => request.remote_ip
+            end
           end
 
           @options.register_features.each do |feature|
@@ -262,6 +264,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
         # Make sure save is sucessful - will recheck validation and
         # rescan for uniques
         if(@usr.save)
+          @usr.elevate_user_level @options.user_level
 
           @usr.tag_names_add(@options.add_tags) unless @options.add_tags.blank?
 
@@ -269,7 +272,9 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
           @business.update_attribute(:end_user_id,@usr.id) if @business.id
 
           if @options.include_subscriptions.is_a?(Array) && @options.include_subscriptions.length > 0
-            update_subscriptions(@usr,@options.include_subscriptions,params[:subscription])
+            @options.subscriptions.each do |sub|
+              sub.subscribe_user @usr, :ip_address => request.remote_ip
+            end
           end
 
           @model.save if @model
@@ -592,7 +597,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
         :reset_password => flash['reset_password'] }
   end
 
-# update users subscriptions
+  # update users subscriptions
   def update_subscriptions(user,available_subscriptions,subscriptions)
 
     subscription_conditions = "user_subscription_id IN (#{available_subscriptions.collect {|sub| DomainModel.connection.quote(sub) }.join(",")})"

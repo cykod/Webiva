@@ -477,10 +477,6 @@ class EndUser < DomainModel
     end
     self.options ||= {}
     
-    if self.user_level < 3 && self.registered?
-      self.user_level = 3
-    end
-    
     self.source = 'import' if self.source.blank?
     self.registered_at = Time.now if self.registered? && self.registered_at.blank?
 
@@ -505,7 +501,23 @@ class EndUser < DomainModel
 
     true
   end
-  
+
+  def elevate_user_level(level)
+    self.class.elevate_user_level self.id, level
+  end
+
+  def self.elevate_user_level(end_user_id, user_level)
+    self.connection.execute "UPDATE end_users SET acknowledged = 0, user_level = #{user_level} WHERE id = #{end_user_id} AND user_level < #{user_level}"
+  end
+
+  def unsubscribe
+    self.class.unsubscribe self.id
+  end
+
+  def self.unsubscribe(end_user_id)
+    self.connection.execute "UPDATE end_users SET acknowledged = 0, user_level = 0 WHERE id = #{end_user_id} AND user_level > 0"
+  end
+
   def update_editor_login #:nodoc:
     if self.registered? && self.activated? && self.editor?
       editor_login= EditorLogin.find_by_domain_id_and_email(Configuration.domain_id,self.email) || EditorLogin.new
@@ -532,6 +544,7 @@ class EndUser < DomainModel
     if !target
       target = EndUser.new(:email => email)
       target.user_class_id = options[:user_class_id] || UserClass.default_user_class_id
+      target.source = options[:source] if options[:source]
       target.save unless options[:no_create]
     end
     target
@@ -565,7 +578,7 @@ Not doing so could allow a user to change their user profile (for example) and e
     opts.symbolize_keys!
 
     user_class_id = opts.delete(:user_class_id) || UserClass.default_user_class_id
-    target = self.find_target(email, :user_class_id => user_class_id, :no_create => true)
+    target = self.find_target(email, :user_class_id => user_class_id, :no_create => true, :source => opts.delete(:source))
 
     # Don't mess with registered users if no_register is set    
     no_register = opts.delete(:no_register)

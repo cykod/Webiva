@@ -49,4 +49,12 @@ class EndUserSegmentType
       cls.scoped(:conditions => ["#{field} = ?", source])
     end
   end
+
+  class UserLevelType < UserSegment::FieldType
+    register_operation :is, [['User Level', :option, {:options => EndUser.user_level_select_options}]]
+
+    def self.is(cls, group_field, field, user_level)
+      cls.scoped(:conditions => ["#{field} = ?", user_level])
+    end
+  end
 end
