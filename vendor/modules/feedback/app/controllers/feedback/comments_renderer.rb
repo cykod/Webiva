@@ -25,6 +25,9 @@ class Feedback::CommentsRenderer < ParagraphRenderer
 
     return(render_paragraph :inline => '') unless content_link
 
+    allow_type, allow_link = page_connection(:comments_ok)
+    return(render_paragraph :inline => '') if allow_type && allow_link == false
+
     logged_in = myself.id ? 'logged_in' : 'anonymous'
     display_string = "_#{content_link[0]}_#{content_link[1]}_#{logged_in}"
     display_string << (myself.missing_name? ? '_missing_name' : '_have_name')
