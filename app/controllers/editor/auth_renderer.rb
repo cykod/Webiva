@@ -679,13 +679,11 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       end
       
       if @user.errors.empty?
-        @target = EndUser.find_target(@user.email)
+        @target = EndUser.find_target(@user.email, :source => 'website')
         if !@target.registered?
           @target.first_name = @user.first_name if !@user.first_name.blank? && @options.first_name != 'off'
           @target.last_name = @user.last_name if !@user.last_name.blank? && @options.last_name != 'off'
           @target.lead_source = @options.user_source unless @options.user_source.blank?
-          @target.source = 'website'
-          @target.user_level = 4
           @target.save
           if @options.zip != 'off' 
             adr = @target.address || EndUserAddress.new
@@ -697,6 +695,8 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
             end
           end
         end
+
+        @target.elevate_user_level(3)
         
         # Handle Subscription
         if @options.user_subscription_id

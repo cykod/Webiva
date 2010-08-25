@@ -554,7 +554,7 @@ block is non-nil
         local = name_parts[-1]
       end
 
-      define_expansion_tag(tag_name) { |t| block ? t.locals.send("#{local}=",block.call) : t.locals.send(local) }
+      define_expansion_tag(tag_name) { |t| block ? t.locals.send("#{local}=",block.call(t)) : t.locals.send(local) }
       define_expansion_tag(tag_name + ":logged_in") { |t| usr = t.locals.send(local); !usr.id.blank? }
       define_h_tag(tag_name + ":name") { |t| usr = t.locals.send(local); usr.name if usr }
       define_h_tag(tag_name + ":username") { |t| usr = t.locals.send(local); usr.username if usr }
