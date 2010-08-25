@@ -137,13 +137,13 @@ RealTimeStatsViewer = {
   renderChart: function() {
     $('real_time_charts').update('');
 
-    var chartX = 30;
-    var chartY = 15;
-    var width = RealTimeStatsViewer.chart.intervals * 67;
+    var width = 405;
     var height = 320;
-    var max_hits = Math.max.apply(Math, RealTimeStatsViewer.chart.hits);
-    if(max_hits % 10) {
-      max_hits += 10 - (max_hits % 10);
+    var maxValue = Math.max.apply(Math, RealTimeStatsViewer.chart.hits);
+    if(maxValue % 10) {
+      maxValue += 10 - (maxValue % 10);
+    } else if(maxValue == 0) {
+      maxValue = 10;
     }
 
     var data = new google.visualization.DataTable();
@@ -161,7 +161,7 @@ RealTimeStatsViewer = {
                       height: height,
                       title: RealTimeStatsViewer.chart.from + ' - ' + RealTimeStatsViewer.chart.to,
                       legend: 'right',
-                      vAxis: {title: 'Uniques / Page Views', maxValue: max_hits},
+                      vAxis: {title: 'Uniques / Page Views', minValue: 0, maxValue: maxValue},
                       hAxis: {title: 'Every ' + RealTimeStatsViewer.chart.range + ' minutes'}
                      });
   },
