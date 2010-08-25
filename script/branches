@@ -1,22 +1,31 @@
 #!/usr/bin/env ruby
 
-def dislay_branch(dir)
+ASTERISK = "\033[31m*\033[0m"
+
+def dislay_branch(dir, server='origin')
   mod = dir.split('/')[-1]
   status = `cd #{dir}; git status`
   status =~ /On branch (.*)/
   branch = $1
-  mod = "* #{mod}" unless status =~ /nothing to commit \(working directory clean\)/
+  clean = status =~ /nothing to commit \(working directory clean\)/
+  size = 15
+  mod = "#{ASTERISK} \033[1m#{mod}\033[0m" unless clean
+  size += 17 unless clean
 
   if status =~ /(Your branch .*)/
     branch = "#{branch} --- #{$1.sub('Your branch ', '')}"
+  elsif clean
+    diff = `cd #{dir}; git diff #{server}/#{branch}`
+    branch = "#{branch} --- need to push or fetch" unless diff.strip.empty?
   end
 
-  printf "%-15s - %s\n", mod, branch
+  printf "%-#{size}s - %s\n", mod, branch
 end
 
 webiva_dir = File.expand_path(File.dirname(__FILE__) + '/..')
-dislay_branch webiva_dir
+dislay_branch webiva_dir, 'core'
 
 Dir.glob("#{webiva_dir}/vendor/modules/*").select { |dir| File.exists?("#{dir}/.git") }.each do |dir|
   dislay_branch dir
 end
+
