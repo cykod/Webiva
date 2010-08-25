@@ -137,7 +137,7 @@ RealTimeStatsViewer = {
   renderChart: function() {
     $('real_time_charts').update('');
 
-    var width = 405;
+    var width = RealTimeStatsViewer.chart.intervals * 67;
     var height = 320;
     var maxValue = Math.max.apply(Math, RealTimeStatsViewer.chart.hits);
     if(maxValue % 10) {
