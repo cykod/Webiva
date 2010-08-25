@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+
+def dislay_branch(dir)
+  mod = dir.split('/')[-1]
+  status = `cd #{dir}; git status`
+  status =~ /On branch (.*)/
+  branch = $1
+  mod = "* #{mod}" unless status =~ /nothing to commit \(working directory clean\)/
+
+  if status =~ /(Your branch .*)/
+    branch = "#{branch} --- #{$1.sub('Your branch ', '')}"
+  end
+
+  printf "%-15s - %s\n", mod, branch
+end
+
+webiva_dir = File.expand_path(File.dirname(__FILE__) + '/..')
+dislay_branch webiva_dir
+
+Dir.glob("#{webiva_dir}/vendor/modules/*").select { |dir| File.exists?("#{dir}/.git") }.each do |dir|
+  dislay_branch dir
+end
