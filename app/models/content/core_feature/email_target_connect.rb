@@ -27,7 +27,9 @@ module Content::CoreFeature
     end
     
     class EmailTargetConnectOptions < HashModel
-      attributes :add_target_tags => '', :update_target_tags => '',:add_target_source => '', :matched_fields => {}, :override_content_node_user => 'never'
+      attributes :add_target_tags => '', :update_target_tags => '',:add_target_source => '', :matched_fields => {}, :override_content_node_user => 'never', :user_level => 4
+
+      integer_options :user_level
 
       def validate
         self.errors.add(:matched_fields,'must match email address') unless self.matched_fields.values.include?('end_user.email')
@@ -54,7 +56,7 @@ module Content::CoreFeature
       opts = self.options # Need to bind this locally
       
       cls.send(:define_method,:email_target_connect) do
-        { :fields => arr, :add_tags => opts.add_target_tags, :update_tags => opts.update_target_tags, :add_source => opts.add_target_source }
+        { :fields => arr, :add_tags => opts.add_target_tags, :update_tags => opts.update_target_tags, :add_source => opts.add_target_source, :user_level => opts.user_level }
       end
       
       cls.send(:before_save,:email_target_connect_update)
@@ -69,7 +71,7 @@ module Content::CoreFeature
       
       opts = self.options # Need to bind this locally
       
-      update_data = { :fields => arr, :add_tags => opts.add_target_tags, :update_tags => opts.update_target_tags, :add_source => opts.add_target_source }
+      update_data = { :fields => arr, :add_tags => opts.add_target_tags, :update_tags => opts.update_target_tags, :add_source => opts.add_target_source, :user_level => opts.user_level }
 
       target = ContentTypeMethods.email_target_connect_update(update_data, result.data_model)
       result.end_user_id = target.id if target && result.end_user_id.nil?
@@ -167,6 +169,8 @@ module Content::CoreFeature
         if ok && update_address && address.end_user_id.blank?
           address.update_attribute(:end_user_id,target.id)
         end
+
+        target.elevate_user_level(update_data[:user_level]) if ok
 
         target
       end  

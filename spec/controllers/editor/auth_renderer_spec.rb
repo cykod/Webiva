@@ -1048,6 +1048,10 @@ describe Editor::AuthRenderer, :type => :controller do
       assert_difference 'UserSubscriptionEntry.count', 1 do
 	renderer_post @rnd, :email_list_signup => email_list_signup_info
       end
+
+      user = EndUser.find_by_email('test@test.dev')
+      user.should_not be_nil
+      user.user_level.should == 3
     end
 
     it "should not signup for a email list if a missing field is required" do
@@ -1061,6 +1065,9 @@ describe Editor::AuthRenderer, :type => :controller do
       assert_difference 'UserSubscriptionEntry.count', 0 do
 	renderer_post @rnd, :email_list_signup => email_list_signup_info
       end
+
+      user = EndUser.find_by_email('test@test.dev')
+      user.should be_nil
 
       email_list_signup_info = { :email => 'test@test.dev',
 	                         :first_name => ''
@@ -1109,6 +1116,10 @@ describe Editor::AuthRenderer, :type => :controller do
       assert_difference 'UserSubscriptionEntry.count', 1 do
 	renderer_post @rnd, :partial_post => true, :email_list_signup => email_list_signup_info
       end
+
+      user = EndUser.find_by_email('test@test.dev')
+      user.should_not be_nil
+      user.user_level.should == 3
     end
 
     it "should not add an entry for user subscription when not allowing for partial_post and missing data" do
