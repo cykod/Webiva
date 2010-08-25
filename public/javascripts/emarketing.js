@@ -136,36 +136,34 @@ RealTimeStatsViewer = {
 
   renderChart: function() {
     $('real_time_charts').update('');
-    var r = Raphael("real_time_charts");
-    var data = [RealTimeStatsViewer.chart.uniques, RealTimeStatsViewer.chart.hits];
+
     var chartX = 30;
     var chartY = 15;
-    var width = RealTimeStatsViewer.chart.intervals * 60;
-    var height = 280;
-
+    var width = RealTimeStatsViewer.chart.intervals * 67;
+    var height = 320;
     var max_hits = Math.max.apply(Math, RealTimeStatsViewer.chart.hits);
-    max_hits += 10 - (max_hits % 10);
-    var labelDim = r.g.textBox(max_hits.toString());
-    chartX += labelDim.width;
-    r.g.txtattr.font = "12px Arial, sans-serif";
-    r.g.text(chartX+(width/2), chartY/2, RealTimeStatsViewer.chart.from + ' - ' + RealTimeStatsViewer.chart.to );
-    r.g.text(chartX+(width/2), chartY + height + chartY/2, 'Every ' + RealTimeStatsViewer.chart.range + ' minutes' );
-    r.g.text(12, chartY + height/2, 'Uniques / Page Views').rotate(270);
-    var chart = r.g.barchart(chartX, chartY, width, height, data, {to: max_hits});
-    r.g.txtattr.font = "10px 'Arial, sans-serif";
-    chart.xlabels( RealTimeStatsViewer.chart.labels, true );
-    chart.ylabels();
+    if(max_hits % 10) {
+      max_hits += 10 - (max_hits % 10);
+    }
 
-    var fin = function () {
-      this.flag = this.flag || r.g.popup(this.bar.x, this.bar.y, this.bar.value || "0").insertBefore(this);
-      this.flag.show();
-    };
-    var fout = function () {
-      if( this.flag )
-        this.flag.hide();
-    };
-
-    chart.hover(fin, fout);
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Time');
+    data.addColumn('number', 'Uniques');
+    data.addColumn('number', 'Page Views');
+    data.addRows(RealTimeStatsViewer.chart.intervals);
+    for( var i=0; i<RealTimeStatsViewer.chart.intervals; i++ ) {
+        data.setValue(i, 0, RealTimeStatsViewer.chart.labels[i]);
+        data.setValue(i, 1, RealTimeStatsViewer.chart.uniques[i]);
+        data.setValue(i, 2, RealTimeStatsViewer.chart.hits[i]);
+    }
+    var chart = new google.visualization.ColumnChart(document.getElementById('real_time_charts'));
+    chart.draw(data, {width: width,
+                      height: height,
+                      title: RealTimeStatsViewer.chart.from + ' - ' + RealTimeStatsViewer.chart.to,
+                      legend: 'right',
+                      vAxis: {title: 'Uniques / Page Views', maxValue: max_hits},
+                      hAxis: {title: 'Every ' + RealTimeStatsViewer.chart.range + ' minutes'}
+                     });
   },
 
   realTimeChartsOnComplete: function(transport) {

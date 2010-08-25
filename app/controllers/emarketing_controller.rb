@@ -113,16 +113,7 @@ class EmarketingController < CmsController # :nodoc: all
 
   def stats
     cms_page_info([ ['E-marketing',url_for(:action => 'index') ], 'Real Time Statistics' ],'e_marketing')
-
-    require_js 'raphael/raphael-min.js'
-    require_js 'raphael/g.raphael.js'
-    require_js 'raphael/g.line.js'
-    require_js 'raphael/g.bar.js'
-    require_js 'raphael/g.dot.js'
-    require_js 'raphael/g.pie.js'
     require_js 'emarketing.js'
-
-    @onload = 'RealTimeStatsViewer.onLoad();'
   end
 
   def real_time_stats_request

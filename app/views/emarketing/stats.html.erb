@@ -28,3 +28,10 @@
 </div>
 
 </div>
+
+<script>
+function requestRealTimeCharts() {
+  RealTimeStatsViewer.onLoad();
+}
+google.load("visualization", "1", {packages:["corechart"], callback: requestRealTimeCharts});
+</script>
