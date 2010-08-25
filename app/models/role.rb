@@ -16,6 +16,8 @@ class Role < DomainModel
 
   validates_presence_of :name
 
+  cached_content
+
   @@system_roles = %w(system_admin client_admin client_user)
 
   def self.user_classes(role_name)
@@ -53,7 +55,6 @@ class Role < DomainModel
     lst
   end
 
-
   def self.role_item(what,obj=nil)
      if !obj
        role = Role.find(:first,:conditions => ['name = ?  AND authorizable_type IS NULL AND authorizable_id IS NULL',what.to_s]) ||  Role.create(:name => what.to_s)
@@ -66,17 +67,37 @@ class Role < DomainModel
   ## TODO: cache all the standard roles 
 
   def self.expand_roles(what)
-    what = what.map { |elm| elm.to_s }
+
+    cache = self.role_cache
 
     # If a role doesn't exist, doesn't mean we have it
-    roles = Role.find(:all,:select => 'name,id',:conditions => ['name IN (?) AND authorizable_type IS NULL AND authorizable_id IS NULL',what]).index_by(&:name)
     what.map do |elm|
       if @@system_roles.include?(elm)
         elm
       else
-        roles[elm] ? roles[elm].id : nil
+        cache[elm]
       end
     end
+  end
+
+  def self.role_cache
+    role_lookup = DataCache.local_cache('role_cache')
+    if !role_lookup
+      role_lookup = self.cache_fetch_list('role_cache') 
+      DataCache.put_local_cache('role_cache',role_lookup) if role_lookup
+    end
+
+    if !role_lookup
+      roles = Role.find(:all,:select => 'id,name',:conditions => 'authorizable_type IS NULL AND authorizable_id IS NULL')
+
+      role_lookup = {}
+      roles.each { |role| role_lookup[role.name] = role.id }
+
+      DataCache.put_local_cache('role_cache',role_lookup)
+      self.cache_put_list('role_cache',role_lookup)
+    end
+
+    role_lookup
   end
 
   def self.expand_role(what,obj=nil)
@@ -84,8 +105,7 @@ class Role < DomainModel
     return what if what.is_a?(Integer)
 
     if !obj
-      role = Role.find(:first,:select => 'id',:conditions => ['name = ?  AND authorizable_type IS NULL AND authorizable_id IS NULL',what.to_s])
-      role ? role.id : 0
+      role_cache[what.to_s] || 0
     else
       role = Role.find(:first,:select => 'id',:conditions => ['name = ?  AND authorizable_type=? AND authorizable_id = ?',what.to_s,obj.class.to_s,obj.id])
       role ? role.id : 0

@@ -791,4 +791,10 @@ EOF
     yield WizardSteps.new(wizard_step,wizard_max_step,opts)
   end
 
+  # Load a remote script over http or https as necessary
+  def remote_script(script)
+    prefix =  request.ssl? ? 'http://' : 'https://'
+    "<script src='#{prefix}#{vh script}'></script>"
+  end
+
 end

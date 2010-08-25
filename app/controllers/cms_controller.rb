@@ -13,6 +13,8 @@ class CmsController < ApplicationController
 
   before_filter :validate_is_editor
 
+  before_filter :generate_menu
+
   hide_action :active_table_action, :active_table_generate, :auto_link, :concat, :current_cycle, :cycle
   hide_action :excerpt, :highlight, :markdown, :permit, :permit?, :pluralize, :reset_cycle, :simple_format, :textilize
   hide_action :textilize_without_paragraph, :truncate, :word_wrap
@@ -50,6 +52,28 @@ class CmsController < ApplicationController
     end
 
     @cms_titlebar_handlers = get_handler_instances(:webiva,:titlebar,self)
+  end
+
+  def generate_menu
+    if !request.xhr?
+      @menu = WebivaMenu.new do |menu|
+        menu.item(0,'website', ['editor_website','editor_structure'], :controller => '/structure')
+        menu.item(10,'content',nil,:controller => '/content')
+        menu.item(20,'files',['editor_files'],:controller => '/file')
+        menu.item(30,'people',['editor_members'],:controller => '/members')
+        menu.item(40,'marketing',['editor_visitors','editor_content','editor_mailing'],:controller => '/emarketing')
+        menu.item(50,'mail',['editor_mailing'],:controller => '/mail_manager')
+        menu.item(60,'options',['editor_design_templates','editor_permissions','editor_site_management','editor_editors','editor_emails'],:controller => '/options')
+        menu.item(100,'system',['system_admin','client_admin'],:controller => '/manage/system') 
+      end
+
+      get_handler_instances(:webiva,:titlebar,self)
+
+
+      @menu.authorize(myself)
+    end
+
+    true
   end
 
 

@@ -6,13 +6,26 @@ class MailManagerController < CmsController # :nodoc: all
   
   permit 'editor_mailing'
   
-   cms_admin_paths "e_marketing",
-                   "E-marketing" =>   { :controller => '/emarketing' },
+   cms_admin_paths "mail",
+                   "Mail" =>   { :action => 'index' },
                    "Mail Templates" =>  { :controller => '/mail_manager', :action => 'templates' }
                 
+
+
+  def index
+    cms_page_path [], "Mail"
+
+    @subpages =  [ 
+      [ "Subscriptions", :editor_mailing,"emarketing_subscriptions.gif", { :controller => '/subscription' },
+          "Edit Newsletters and Mailing Lists Subscriptions" ],
+      [ "Email Templates", :editor_mailing,"emarketing_templates.gif", { :controller => '/mail_manager', :action => 'templates' },
+        "Edit Mail Templates" ]
+          
+      ]
+
+
+  end
   
-  
-  include ActiveTable::Controller
   
   active_table :mail_templates_table, MailTemplate,
   [ :check,:check,:name,:subject,
@@ -53,14 +66,14 @@ class MailManagerController < CmsController # :nodoc: all
   
   
   def templates
-    cms_page_path [ "E-marketing" ], "Mail Templates"
+    cms_page_path [ "Mail" ], "Mail Templates"
     
     display_mail_templates_table(false)
   end
   
   
   def add_template
-    cms_page_path [ "E-marketing", "Mail Templates" ], 'Add Template'
+    cms_page_path [ "Mail", "Mail Templates" ], 'Add Template'
     
     @mail_template = MailTemplate.new(:language => Configuration.languages[0])
     @mail_template.create_type = 'blank' unless @mail_template.create_type
@@ -96,7 +109,7 @@ class MailManagerController < CmsController # :nodoc: all
     if @handler_info && @handler_info[:class].respond_to?(:mail_template_cms_path)
       cms_page_path *@handler_info[:class].mail_template_cms_path(self)
     else
-      cms_page_path [ "E-marketing" ,"Mail Templates" ], "Edit Mail Template"
+      cms_page_path [ "Mail" ,"Mail Templates" ], "Edit Mail Template"
     end
     
     @mail_template = MailTemplate.find_by_id(template_id) || MailTemplate.new(:body_type => 'text,html', :template_type => @handler_info && @handler_info[:template_type] ? @handler_info[:template_type] : 'site')

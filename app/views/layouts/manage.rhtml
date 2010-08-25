@@ -11,6 +11,14 @@
 <%= theme_stylesheet_link_tag  "admin_framework", :media => 'all' %>
 <%= theme_stylesheet_link_tag 'admin_framework_full', :media => 'all' %>
 <script> var AUTH_TOKEN = "<%= form_authenticity_token.to_s %>";</script>
+
+<%= remote_script 'ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js' %>
+<%= remote_script 'ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js' %>
+<script>
+   $j = jQuery.noConflict();
+</script>
+
+<% unless @no_legacy_cs %>
 <%= javascript_include_tag "overlib/overlib" %>
 <%= javascript_include_tag :defaults %>
   
@@ -20,11 +28,10 @@
 <%= javascript_include_tag "tiny_mce/tiny_mce" %>
 <%= stylesheet_link_tag 'redbox' %>
 <%= javascript_include_tag 'redbox' %>
+<% end -%>
 <%= javascript_include_tag 'active_table' %>
 <%= javascript_include_tag 'shortcut' %>
 
-      
-      
 <%= @header if @header %>
 <%= @extra_header if @extra_header %>
 <% if @js_header -%>
@@ -41,28 +48,8 @@
     <%= stylesheet_link_tag css %>
   <% end -%>
 <% end -%>
-
-    
 </head>
-
 <body onload='<%= @onload %>'> 
-
-<%  @menu = [ ]
-    @menu << [ 'website', 'website', 'website', url_for(:controller => '/structure') ] if permit?(['editor_website','editor_structure'])
-    @menu <<  [ 'files_and_images', 'files_and_images', 'files', url_for(:controller => "/file") ]  if permit?('editor_files')
-    @menu << [ 'content', 'content', 'content', url_for(:controller => '/content') ] if myself.editor?
-    @menu << [ 'people', 'people', 'people', url_for(:controller => '/members') ]  if permit?('editor_members')
-
-    @menu <<  [ 'e_marketing', 'e_marketing', 'e-marketing', url_for(:controller => '/emarketing') ] if permit?('editor_visitors') || permit?('editor_content') || permit?('editor_mailing') 
-
-    @menu <<  [ 'options', 'options', 'options', url_for(:controller => '/options')] if permit?(['editor_design_templates','editor_permissions','editor_site_management','editor_editors','editor_emails']) 
-    @menu << [ 'system', 'system', 'system', url_for(:controller => '/manage/system') ] if permit?('system_admin') || permit?('client_admin')
--%>
-
-
 <%= render :partial => '/layouts/themes/' + theme + '/manage' %>
-
-
-
 </body>
 </html>

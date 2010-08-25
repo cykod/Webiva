@@ -31,9 +31,10 @@
   <div id='cms_menu'>
 <%  # Foreground, Background
     @menu_colors = { 'website' => [ '#29974e', '#add4b8' ],
-                    'files_and_images' => [ '#df5323', "#d4a451" ],
+                    'files' => [ '#df5323', "#d4a451" ],
                     'content' => [ '#539424', "#c1d0a1" ],
-                    'e_marketing' => [ '#5299c4', "#d3e8ec" ],
+                    'marketing' => [ '#5299c4', "#d3e8ec" ],
+                    'mail' => ['#5299c4', "#d3e8ec" ],
                     'options' => [ '#be8806', "#f3e380" ],
                     'system' => [ '#5a514f', "#c9ccce" ],
                     'people' => [ '#8d796a', "#d0c5a3"  ]
@@ -41,10 +42,10 @@
     %>
 
       <ul class='cms_menu_list'>
-          <% @menu.each do |mnu| -%>
-              <li><a href='<%= mnu[3] %>' style='background-image:url(<%= theme_src("framework/menu_icon/#{mnu[1]}#{@cms_page_info[:section] == mnu[0] ? '_selected' : ''}.gif")  %>); color:<%= @menu_colors[mnu[0]][0] %>'><%= mnu[2].t %></a></li>
+          <% @menu.each do |item| -%>
+            <li><%= link_to item.name.t, item.url, 
+              :style => "background-image:url(#{theme_src("framework/menu_icon/#{item.identifier}.png")}); color:#{@menu_colors[item.identifier][0]}" %></li>
           <% end -%>
-
       </ul>
   </div>
 </div>

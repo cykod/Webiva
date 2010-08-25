@@ -20,6 +20,12 @@ class DomainLogSession < DomainModel
       session[:domain_log_session] = { :id => ses.id, :end_user_id => user.id }
     end
   end
+
+
+  def session_content
+    content_node_ids = self.domain_log_entries.map(&:content_node_id).reject(&:blank?)
+    content_nodes = ContentNode.batch_find(content_node_ids)
+  end
   
 #  validates_uniqueness_of :session_id
   def self.session(visitor_id,session_id,user,ip_address,save_entry=true,tracking=nil)

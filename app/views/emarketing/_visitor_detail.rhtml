@@ -5,10 +5,20 @@
   <%= 'User #%s:' / @user.id.to_s -%>
   <%= link_to @user.name, url_for(:controller => "/members", :action => 'view', :path => @user.id) -%>
 <% else -%>
-  <%= 'Anonymous user from %s' / @entry.domain_log_session.ip_address.to_s -%>
+  <%= 'Anonymous user from %s' / @entry.ip_address.to_s -%>
 <% end -%>
-</b>
+</b><br/>
+<b>IP Address: <%= @entry.ip_address %>, <%= @entry.ip_address_name %>
+<% if @entry.has_location? %>
+  ( <%= @entry.location_display %>
+  <%= link_to 'Location Estimate', "http://maps.google.com/maps?ll=#{@entry.latitude},#{@entry.longitude}", :target => '_blank' if @entry.latitude %> )
+<% end -%>
+</b><br/>
 
+<b>Content Viewed last Visit: <b><br/>
+<% @entry.last_session.session_content.each do |content_node| %>
+ <%= link_to h(content_node.title), content_node.link %><br/>
+<% end -%>
 <br/>
 <br/>
 
@@ -18,8 +28,10 @@
     <div class="page2">Where / <em>Action</em></div>
   </div>
 </div>
-<div id="real_time_stats" class="real-time-stats real-time-stats-block two-tone-list">
-<% @entries.each_with_index do |entry, index| -%>
+<div id="vistor_stats" class="real-time-stats real-time-stats-block two-tone-list">
+<% @sessions.each_with_index do |ses,idx| %>
+  <div class='header'>Session started <%= ses.created_at.to_s(:long) %> from <%= ses.ip_address %></div>
+<% ses.domain_log_entries.each_with_index do |entry, index| -%>
   <% next unless entry.is_a?(DomainLogEntry) -%>
   <div class="row <%= index % 2 == 0 ? 'even' : 'odd'%>">
     <div class="stats clearfix">
@@ -30,6 +42,7 @@
     <div class="action2">[<%= entry.action %>]</div>
   <% end -%>
   </div>
+<% end -%>
 <% end -%>
 </div>
 
