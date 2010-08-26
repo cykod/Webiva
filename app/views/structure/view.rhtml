@@ -46,6 +46,7 @@ if @show_archived == 'hide'
       | <a href='javascript:void(0);' onclick='StructureEditor.editVersion(<%= @version.id %>);'  >edit</a>
     <% end -%>
   <% end -%>
+  <%= p.link 'Quick Edit', :icon => 'edit.gif', :url => {:action => 'pages', :path => @version.id} %>
 <% end -%>
 <div class='admin_content'> 
   
