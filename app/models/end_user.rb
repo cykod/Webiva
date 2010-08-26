@@ -83,7 +83,9 @@ class EndUser < DomainModel
   has_many :end_user_tokens, :dependent => :delete_all, :include => [ :access_token ]
 
   has_many :access_tokens, :through => :end_user_tokens
-  
+
+  has_many :end_user_notes, :order => 'created_at DESC'
+
   has_many :end_user_tags
   has_many :tags, :through => :end_user_tags
   after_save :tag_cache_after_save

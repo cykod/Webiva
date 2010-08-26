@@ -30,6 +30,7 @@
     %>
   </td>
   <td>
+    <a href="javascript:void(0);" onclick="SCMS.remoteOverlay('<%= url_for :action => 'note', :path => t.id %>');"><%= theme_image_tag('icons/table_actions/comment.gif') %></a>
     <%= link_to(t.name, user_url) %>
   </td>
   <td>
