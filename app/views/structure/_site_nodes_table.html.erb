@@ -1,0 +1,10 @@
+<% active_table_for :site_nodes_table, @active_table_output,
+                    :refresh_url => url_for(:action => 'display_site_nodes_table', :path => @version.id, :language => @language),
+                    :update => 'site_nodes_table' do |t| %>
+<tr <%= highlight_row 'template',t.id %> >
+  <td><a href="javascript:void(0);" onclick="SCMS.remoteOverlay('<%= url_for :action => 'edit_page_revision', :path => [t.id, t.active_revision(@language).id] %>');"><%= t.node_path %></a></td>
+  <td><%= t.active_revision(@language).title %></td> 
+  <td><%= t.active_revision(@language).meta_description %></td> 
+  <td><%= t.active_revision(@language).meta_keywords %></td> 
+</tr>
+<% end -%>
