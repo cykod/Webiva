@@ -821,4 +821,12 @@ Not doing so could allow a user to change their user profile (for example) and e
       self.save
     end
   end
+
+  def last_log_entry
+    @last_log_entry ||= (DomainLogEntry.find(:first, :conditions => {:user_id => self.id}, :order => 'occurred_at DESC') || DomainLogEntry.new)
+  end
+
+  def last_session
+    self.last_log_entry.domain_log_session
+  end
 end
