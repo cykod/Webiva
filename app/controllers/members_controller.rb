@@ -726,10 +726,7 @@ class MembersController < CmsController # :nodoc: all
 
     if request.post? && params[:note]
       if @note.update_attributes params[:note]
-        render :update do |page|
-          page << 'RedBox.close();'
-        end
-        return        
+        @note = @user.end_user_notes.build(:admin_user_id => myself.id)
       end
     end
 
