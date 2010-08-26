@@ -1,7 +1,7 @@
 <script>
 PageEditor = {
   refreshList: function() {
-    <%= remote_function :update => 'site_nodes_table', :url => url_for(:action => 'display_site_nodes_table', :path => @version.id, :language => @language) %>;
+    ActiveTable.refresh("site_nodes_table","<%= url_for(:action => 'display_site_nodes_table', :path => @version.id, :language => @language) %>",'site_nodes_table',null);
   }
 }
 </script>
