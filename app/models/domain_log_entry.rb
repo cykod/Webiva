@@ -7,7 +7,7 @@ class DomainLogEntry < DomainModel
   belongs_to :domain_log_session
 
   named_scope :recent, lambda { |from| from ||= 1.minute.ago; {:conditions => ['occurred_at > ?', from]} }
-  named_scope :between, lambda { |from, to| {:conditions => ['occurred_at >= ? AND occurred_at < ?', from, to]} }
+  named_scope :between, lambda { |from, to| {:conditions => ['`domain_log_entries`.occurred_at >= ? AND `domain_log_entries`.occurred_at < ?', from, to]} }
   named_scope :content_only, :conditions => 'content_node_id IS NOT NULL'
   named_scope :hits_n_visits, lambda { |group_by| {:select => "#{group_by} as target_id, count(*) as hits, count( DISTINCT domain_log_session_id ) as visits", :group => 'target_id'} }
 

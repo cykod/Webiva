@@ -9,6 +9,10 @@ class DomainLogSession < DomainModel
   has_many :domain_log_entries, :dependent => :delete_all
   belongs_to :domain_log_referrer
 
+  named_scope :between, lambda { |from, to| {:conditions => ['created_at >= ? AND created_at < ?', from, to]} }
+  named_scope :visits, lambda { |group_by| {:select => "#{group_by} as target_id, count(*) as visits", :group => 'target_id'} }
+  named_scope :referrer_only, :conditions => 'domain_log_referrer_id IS NOT NULL'
+
   def self.start_session(user, session, request)
     return unless request.session_options
 
