@@ -240,9 +240,23 @@ class ContentNode < DomainModel
     ContentNodeValue.search language, query, options
   end
 
-  def self.stats(from, duration, intervals, opts={})
-    DomainLogGroup.stats(self.name, from, duration, intervals, opts) do |from, duration|
-      DomainLogEntry.between(from, from+duration).content_only.hits_n_visits('content_node_id')
+  def self.traffic_scope(from, duration, content_node_id=nil)
+    scope = DomainLogEntry.between(from, from+duration).hits_n_visits('content_node_id')
+    if content_node_id
+      scope = scope.scoped(:conditions => {:content_node_id => content_node_id})
+    else
+      scope = scope.content_only
     end
+    scope
+  end
+
+  def self.traffic(from, duration, intervals, target=nil)
+    DomainLogGroup.stats(target ? target : self.name, from, duration, intervals, :type => 'traffic') do |from, duration|
+      self.traffic_scope from, duration, target ? target.id : nil
+    end
+  end
+
+  def traffic(from, duration, intervals)
+    self.class.traffic from, duration, intervals, self
   end
 end

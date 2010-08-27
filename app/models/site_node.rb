@@ -498,9 +498,21 @@ class SiteNode < DomainModel
       :path => [ 'page', node_id ] }
   end
 
-  def self.stats(from, duration, intervals, opts={})
-    DomainLogGroup.stats(self.name, from, duration, intervals, opts) do |from, duration|
-      DomainLogEntry.between(from, from+duration).hits_n_visits('site_node_id')
+  public
+
+  def self.traffic_scope(from, duration, site_node_id=nil)
+    scope = DomainLogEntry.between(from, from+duration).hits_n_visits('site_node_id')
+    scope = scope.scoped(:conditions => {:site_node_id => site_node_id}) if site_node_id
+    scope
+  end
+
+  def self.traffic(from, duration, intervals, target=nil)
+    DomainLogGroup.stats(target ? target : self.name, from, duration, intervals, :type => 'traffic') do |from, duration|
+      self.traffic_scope from, duration, target ? target.id : nil
     end
+  end
+
+  def traffic(from, duration, intervals)
+    self.class.traffic from, duration, intervals, self.id
   end
 end
