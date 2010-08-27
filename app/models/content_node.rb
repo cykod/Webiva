@@ -240,5 +240,9 @@ class ContentNode < DomainModel
     ContentNodeValue.search language, query, options
   end
 
-
+  def self.stats(from, duration, intervals, opts={})
+    DomainLogGroup.stats(self.name, from, duration, intervals, opts) do |from, duration|
+      DomainLogEntry.between(from, from+duration).content_only.hits_n_visits('content_node_id')
+    end
+  end
 end

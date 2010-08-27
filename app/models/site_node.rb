@@ -498,4 +498,9 @@ class SiteNode < DomainModel
       :path => [ 'page', node_id ] }
   end
 
+  def self.stats(from, duration, intervals, opts={})
+    DomainLogGroup.stats(self.name, from, duration, intervals, opts) do |from, duration|
+      DomainLogEntry.between(from, from+duration).hits_n_visits('site_node_id')
+    end
+  end
 end
