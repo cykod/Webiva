@@ -45,12 +45,6 @@ class Dashboard::CoreWidget < Dashboard::WidgetBase #:nodoc:all
 
   def emarketing_charts
     set_icon 'poll_icon.png'
-    require_js 'raphael/raphael-min.js'
-    require_js 'raphael/g.raphael.js'
-    require_js 'raphael/g.line.js'
-    require_js 'raphael/g.bar.js'
-    require_js 'raphael/g.dot.js'
-    require_js 'raphael/g.pie.js'
     require_js 'emarketing.js'
 
     return render_widget :text => 'Must reload widget to activate.'.t if first?
