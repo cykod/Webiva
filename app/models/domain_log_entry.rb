@@ -32,6 +32,8 @@ class DomainLogEntry < DomainModel
           :user_id => user.id,
           :user_class_id => user.user_profile_id,
           :site_node_id => site_node ? site_node.id : nil,
+          :site_version_id => site_node ? site_node.site_version_id : nil,
+          :domain_id => DomainModel.active_domain_id,
           :node_path => site_node ? site_node.node_path : nil,
           :page_path => path,
           :occurred_at => Time.now(),
@@ -130,4 +132,10 @@ class DomainLogEntry < DomainModel
 #    
 #    
 #  end
+
+  def self.traffic(from, duration, intervals, target=nil)
+    DomainLogGroup.stats(self.name, from, duration, intervals, :type => 'traffic') do |from, duration|
+      DomainLogEntry.between(from, from+duration).scoped(:select => "count(*) as hits, count( DISTINCT domain_log_session_id ) as visits")
+    end
+  end
 end

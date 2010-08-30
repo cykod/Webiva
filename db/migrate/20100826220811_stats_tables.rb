@@ -23,11 +23,28 @@ class StatsTables < ActiveRecord::Migration
     end
 
     add_index :domain_log_stats, [:domain_log_group_id, :target_id], :name => 'domain_log_stats_idx'
+
+    create_table :domain_log_group_entries do |t|
+      t.string :target_value
+    end
+
+    add_column :domain_log_entries, :domain_id, :integer
+    add_column :domain_log_entries, :site_version_id, :integer
+
+    add_column :domain_log_sessions, :domain_id, :integer
+    add_column :domain_log_sessions, :site_version_id, :integer
+    add_column :domain_log_sessions, :updated_at, :datetime
   end
 
   def self.down
     drop_table :domain_log_groups
     drop_table :domain_log_stats
+    drop_table :domain_log_group_entries
+    remove_column :domain_log_entries, :domain_id
+    remove_column :domain_log_entries, :site_version_id
+    remove_column :domain_log_sessions, :domain_id
+    remove_column :domain_log_sessions, :site_version_id
+    remove_column :domain_log_sessions, :updated_at
   end
 end
 

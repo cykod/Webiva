@@ -125,6 +125,23 @@ class EmarketingController < CmsController # :nodoc: all
     @onload = 'RealTimeStatsViewer.onLoad();'
   end
 
+  def content
+    cms_page_info([ ['E-marketing',url_for(:action => 'index') ], 'Content Statistics' ],'e_marketing')
+
+    @from = Time.now.at_midnight
+
+    groups = ContentNode.traffic Time.at(@from), 1.day, 1
+    @traffic = groups[0]
+
+    @max_hits = 0
+    @max_visits = 0
+
+    unless @traffic.domain_log_stats.empty?
+      @max_hits = @traffic.domain_log_stats.collect(&:hits).max
+      @max_visits = @traffic.domain_log_stats.collect(&:visits).max
+    end
+  end
+
   def real_time_stats_request
     now = Time.now
     from = params[:from] ? Time.at(params[:from].to_i) : nil
@@ -165,18 +182,18 @@ class EmarketingController < CmsController # :nodoc: all
     now = Time.now
     now = now.to_i - (now.to_i % range.minutes)
     to = now
-    from = now - range.minutes
+    from = now - (range*intervals).minutes
 
     uniques = []
     hits = []
     labels = []
-    (1..intervals).each do |interval|
-      conditions = ['occurred_at between ? and ?', Time.at(from), Time.at(now)]
-      uniques << DomainLogEntry.count('ip_address', :distinct => true, :joins => :domain_log_session, :conditions => conditions)
-      hits << DomainLogEntry.count(:all, :conditions => conditions)
-      labels << Time.at(now).strftime('%I:%M')
-      now = from
-      from -= range.minutes
+    groups = DomainLogEntry.traffic Time.at(from), range.minutes, intervals
+
+    groups.sort { |a,b| b.started_at <=> a.started_at }.each do |group|
+      stat = group.domain_log_stats[0]
+      uniques << stat.visits
+      hits << stat.hits
+      labels << group.ended_at.strftime('%I:%M')
       break if update_only
     end
 

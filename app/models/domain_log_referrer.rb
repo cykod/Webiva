@@ -2,12 +2,9 @@
 class DomainLogReferrer  < DomainModel
   validates_presence_of :referrer_domain
   
-  has_many :domain_log_referrer_entries, :dependent => :delete_all
+  has_many :domain_log_sessions
 
-  named_scope :matching do |domain,path|
-    { :conditions => { :referrer_domain => domain,
-                       :referrer_path => path } }
-  end
+  named_scope :matching, lambda { |domain, path| {:conditions => {:referrer_domain => domain, :referrer_path => path}} }
 
   def self.fetch_referrer(domain,path)
     self.matching(domain,path).first || self.create(:referrer_domain => domain,:referrer_path =>path)
@@ -24,8 +21,12 @@ class DomainLogReferrer  < DomainModel
   end
 
   def self.traffic(from, duration, intervals, target=nil)
-    DomainLogGroup.stats(target ? target : self.name, from, duration, intervals, :type => 'traffic') do |from, duration|
+    DomainLogGroup.stats(target ? target : self.name, from, duration, intervals, :type => 'traffic', :process_stats => :process_stats) do |from, duration|
       self.traffic_scope from, duration, target ? target.id : nil
     end
+  end
+
+  def self.process_stats(group, opts={})
+    DomainLogGroup.update_hits group, :group => :domain_log_referrer_id
   end
 end

@@ -1,0 +1,15 @@
+<br/>
+<br/>
+
+<table>
+<tr><th>Content</th><th>Stats</th></tr>
+<% @traffic.domain_log_stats.each do |stat| -%>
+  <tr>
+    <td><%= stat.target.title %></td>
+    <td>
+      <div style="width:<%= (stat.hits.to_f / @max_hits.to_f) * 300 %>px; height:6px; background-color:red;"></div>
+      <div style="width:<%= (stat.visits.to_f / @max_hits.to_f) * 300 %>px; height:6px; background-color:green;"></div>
+    </td>
+  </tr>
+<% end -%>
+</table>
