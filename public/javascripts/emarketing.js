@@ -148,8 +148,8 @@ RealTimeStatsViewer = {
 
     var data = new google.visualization.DataTable();
     data.addColumn('string', 'Time');
-    data.addColumn('number', 'Uniques');
-    data.addColumn('number', 'Page Views');
+    data.addColumn('number', 'Visitors');
+    data.addColumn('number', 'Hits');
     data.addRows(RealTimeStatsViewer.chart.intervals);
     for( var i=0; i<RealTimeStatsViewer.chart.intervals; i++ ) {
         data.setValue(i, 0, RealTimeStatsViewer.chart.labels[i]);
@@ -161,7 +161,7 @@ RealTimeStatsViewer = {
                       height: height,
                       title: RealTimeStatsViewer.chart.from + ' - ' + RealTimeStatsViewer.chart.to,
                       legend: 'right',
-                      vAxis: {title: 'Uniques / Page Views', minValue: 0, maxValue: maxValue},
+                      vAxis: {title: 'Visitors / Hits', minValue: 0, maxValue: maxValue},
                       hAxis: {title: 'Every ' + RealTimeStatsViewer.chart.range + ' minutes'}
                      });
   },

@@ -115,7 +115,7 @@ class Blog::PageRenderer < ParagraphRenderer
         entry = blog.find_post_by_permalink(conn_id)
       end
 
-      cache[:content_node_id] = entry.content_node.id if entry.content_node
+      cache[:content_node_id] = entry.content_node.id if entry && entry.content_node
       cache[:output] = blog_entry_detail_feature(:entry => entry,
                                                  :list_page => get_list_page(blog),
                                                  :detail_page => site_node.node_path,

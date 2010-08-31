@@ -507,4 +507,33 @@ class SiteNode < DomainModel
       :path => [ 'page', node_id ] }
   end
 
+  public
+
+  def admin_url
+    self.class.content_admin_url self.id
+  end
+
+  def self.chart_traffic_handler_info
+    {
+      :name => 'Page Traffic',
+      :title => :node_path,
+      :url => { :controller => '/emarketing', :action => 'charts', :path => ['traffic'] + self.name.underscore.split('/') }
+    }
+  end
+
+  def self.traffic_scope(from, duration, site_node_id=nil)
+    scope = DomainLogEntry.between(from, from+duration).hits_n_visits('site_node_id')
+    scope = scope.scoped(:conditions => {:site_node_id => site_node_id}) if site_node_id
+    scope
+  end
+
+  def self.traffic(from, duration, intervals, target=nil)
+    DomainLogGroup.stats(target ? target : self.name, from, duration, intervals, :type => 'traffic') do |from, duration|
+      self.traffic_scope from, duration, target ? target.id : nil
+    end
+  end
+
+  def traffic(from, duration, intervals)
+    self.class.traffic from, duration, intervals, self.id
+  end
 end

@@ -107,6 +107,62 @@ class EmarketingController < CmsController # :nodoc: all
   def stats
     cms_page_info([ ['E-marketing',url_for(:action => 'index') ], 'Real Time Statistics' ],'e_marketing')
     require_js 'emarketing.js'
+    chart_links
+  end
+
+  def charts
+    @stat_type = params[:path][0]
+    @handler = params[:path][1..-1].join('/')
+    @chart_info = get_handler_info(:chart, @stat_type, @handler)
+
+    raise 'No chart found' unless @chart_info
+
+    cms_page_info([ ['E-marketing',url_for(:action => 'index') ], @chart_info[:name] ],'e_marketing')
+
+    @when = params[:when] || 'today'
+    
+    @from = Time.now.at_midnight
+    @duration = 1.day
+    @interval = 1
+
+    @when_options = [['Today', 'today'], ['Yesterday', 'yesterday'], ['This Week', 'week'], ['Last Week', 'last_week'], ['This Month', 'month'], ['Last Month', 'last_month']]
+
+    case @when
+    when 'today'
+      @from = Time.now.at_midnight
+      @duration = 1.day
+    when 'yesterday'
+      @from = Time.now.at_midnight.yesterday
+      @duration = 1.day
+    when 'week'
+      @from = Time.now.at_beginning_of_week
+      @duration = 1.week
+    when 'last_week'
+      @from = Time.now.at_beginning_of_week - 1.week
+      @duration = 1.week
+    when 'month'
+      @from = Time.now.at_beginning_of_month
+      @duration = 1.month
+    when 'last_month'
+      @from = Time.now.at_beginning_of_month - 1.month
+      @duration = 1.month
+    end
+
+    groups = @chart_info[:class].send(@stat_type, @from, @duration, @interval)
+    @group = groups[0]
+    @stats = @group.domain_log_stats
+
+    @max_hits = 0
+    @max_visits = 0
+
+    @title = @chart_info[:title] || :title
+
+    unless @stats.empty?
+      @max_hits = @stats.collect(&:hits).max
+      @max_visits = @stats.collect(&:visits).max
+    end
+
+    chart_links
   end
 
   def real_time_stats_request
@@ -149,18 +205,18 @@ class EmarketingController < CmsController # :nodoc: all
     now = Time.now
     now = now.to_i - (now.to_i % range.minutes)
     to = now
-    from = now - range.minutes
+    from = now - (range*intervals).minutes
 
     uniques = []
     hits = []
     labels = []
-    (1..intervals).each do |interval|
-      conditions = ['occurred_at between ? and ?', Time.at(from), Time.at(now)]
-      uniques << DomainLogEntry.count('ip_address', :distinct => true, :joins => :domain_log_session, :conditions => conditions)
-      hits << DomainLogEntry.count(:all, :conditions => conditions)
-      labels << Time.at(now).strftime('%I:%M')
-      now = from
-      from -= range.minutes
+    groups = DomainLogEntry.traffic Time.at(from), range.minutes, intervals
+
+    groups.sort { |a,b| b.started_at <=> a.started_at }.each do |group|
+      stat = group.domain_log_stats[0]
+      uniques << stat.visits
+      hits << stat.hits
+      labels << group.ended_at.strftime('%I:%M')
       break if update_only
     end
 
@@ -169,5 +225,15 @@ class EmarketingController < CmsController # :nodoc: all
     format = '%b %e, %Y %I:%M%P'
     data = { :range => range, :from => Time.at(from).strftime(format), :to => Time.at(to).strftime(format), :uniques => uniques, :hits => hits, :labels => labels }
     return render :json => data
+  end
+
+  protected
+
+  def chart_links
+    @chart_links = [['Real Time Statistics', {:action => 'stats'}]]
+    get_handler_info(:chart, :traffic).each do |handler|
+      Rails.logger.error handler.inspect
+      @chart_links << [handler[:name], handler[:url]]
+    end
   end
 end

@@ -30,22 +30,6 @@ class PimpInitial < ActiveRecord::Migration
     add_index :domain_log_entries, [ :content_node_id, :user_id ], :name => 'content_node_index'
     
 
-    create_table :domain_log_stats do |t|
-       t.string :target_type, :limit => 32
-       t.integer :target_id
-       t.integer :stat_type, :default => 0
-       t.integer :duration
-       t.date :stat_on
-       t.integer :start_time
-       t.integer :visits,:default => 0
-       t.integer :leads, :default => 0
-       t.integer :conversions, :default => 0
-       t.integer :stat1, :default => 0
-       t.integer :stat2, :default => 0
-    end
-
-    add_index :domain_log_stats, [ :target_type, :target_id, :stat_type, :stat_on ], :name => 'TargetIndex'
-
     add_column :end_users, :acknowledged, :boolean, :default => 1
 
     create_table :domain_log_referrers do |t|
@@ -79,8 +63,6 @@ class PimpInitial < ActiveRecord::Migration
     drop_table :domain_log_referrers
     
     remove_column :end_users, :acknowledged
-
-    drop_table :domain_log_stats
 
     remove_index  :domain_log_entries, :name => "content_node_index"
     remove_index :domain_log_entries, :name => "site_node_index"

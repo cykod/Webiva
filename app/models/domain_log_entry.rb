@@ -7,6 +7,9 @@ class DomainLogEntry < DomainModel
   belongs_to :domain_log_session
 
   named_scope :recent, lambda { |from| from ||= 1.minute.ago; {:conditions => ['occurred_at > ?', from]} }
+  named_scope :between, lambda { |from, to| {:conditions => ['`domain_log_entries`.occurred_at >= ? AND `domain_log_entries`.occurred_at < ?', from, to]} }
+  named_scope :content_only, :conditions => 'content_node_id IS NOT NULL'
+  named_scope :hits_n_visits, lambda { |group_by| {:select => "#{group_by} as target_id, count(*) as hits, count( DISTINCT domain_log_session_id ) as visits", :group => 'target_id'} }
 
   def self.create_entry_from_request(user, site_node, path, request, session, output)
     return nil unless request.session_options
@@ -29,6 +32,8 @@ class DomainLogEntry < DomainModel
           :user_id => user.id,
           :user_class_id => user.user_profile_id,
           :site_node_id => site_node ? site_node.id : nil,
+          :site_version_id => site_node ? site_node.site_version_id : nil,
+          :domain_id => DomainModel.active_domain_id,
           :node_path => site_node ? site_node.node_path : nil,
           :page_path => path,
           :occurred_at => Time.now(),
@@ -127,4 +132,10 @@ class DomainLogEntry < DomainModel
 #    
 #    
 #  end
+
+  def self.traffic(from, duration, intervals, target=nil)
+    DomainLogGroup.stats(self.name, from, duration, intervals, :type => 'traffic') do |from, duration|
+      DomainLogEntry.between(from, from+duration).scoped(:select => "count(*) as hits, count( DISTINCT domain_log_session_id ) as visits")
+    end
+  end
 end
