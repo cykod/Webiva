@@ -18,7 +18,7 @@ class DashboardController < CmsController #:nodoc:all
         widget.render_widget(self) unless widget.hide? 
         if widget.includes
           widget.includes[:js].each { |js| require_js(js) } if widget.includes[:js]
-          widget.includes[:css].each { |css| require_js(css) } if widget.includes[:css]
+          widget.includes[:css].each { |css| require_css(css) } if widget.includes[:css]
         end
       end
     end
