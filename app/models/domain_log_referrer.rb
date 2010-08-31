@@ -10,19 +10,19 @@ class DomainLogReferrer  < DomainModel
     self.matching(domain,path).first || self.create(:referrer_domain => domain,:referrer_path =>path)
   end
 
-  def self.traffic_scope(from, duration, domain_log_referrer_id=nil)
+  def self.traffic_scope(from, duration, opts={})
     scope = DomainLogSession.between(from, from+duration).visits('domain_log_referrer_id')
-    if domain_log_referrer_id
-      scope = scope.scoped(:conditions => {:domain_log_referrer_id => domain_log_referrer_id})
+    if opts[:target_id]
+      scope = scope.scoped(:conditions => {:domain_log_referrer_id => opts[:target_id]})
     else
       scope = scope.referrer_only
     end
     scope
   end
 
-  def self.traffic(from, duration, intervals, target=nil)
-    DomainLogGroup.stats(target ? target : self.name, from, duration, intervals, :type => 'traffic', :process_stats => :process_stats) do |from, duration|
-      self.traffic_scope from, duration, target ? target.id : nil
+  def self.traffic(from, duration, intervals, opts={})
+    DomainLogGroup.stats(self.name, from, duration, intervals, :type => 'traffic', :process_stats => :process_stats, :class => self) do |from, duration|
+      self.traffic_scope from, duration, opts
     end
   end
 

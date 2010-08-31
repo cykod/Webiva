@@ -5,6 +5,10 @@ class DomainLogEntry < DomainModel
   belongs_to :user,:class_name => "EndUser",:foreign_key => 'user_id'
   belongs_to :end_user_action
   belongs_to :domain_log_session
+  belongs_to :content_node
+  belongs_to :site_version
+  belongs_to :user_class
+  belongs_to :site_node
 
   named_scope :recent, lambda { |from| from ||= 1.minute.ago; {:conditions => ['occurred_at > ?', from]} }
   named_scope :between, lambda { |from, to| {:conditions => ['`domain_log_entries`.occurred_at >= ? AND `domain_log_entries`.occurred_at < ?', from, to]} }
@@ -133,7 +137,7 @@ class DomainLogEntry < DomainModel
 #    
 #  end
 
-  def self.traffic(from, duration, intervals, target=nil)
+  def self.traffic(from, duration, intervals, opts={})
     DomainLogGroup.stats(self.name, from, duration, intervals, :type => 'traffic') do |from, duration|
       DomainLogEntry.between(from, from+duration).scoped(:select => "count(*) as hits, count( DISTINCT domain_log_session_id ) as visits")
     end

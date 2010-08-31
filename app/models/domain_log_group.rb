@@ -15,24 +15,23 @@ class DomainLogGroup < DomainModel
     @ended_at ||= self.started_at + duration
   end
 
-  def self.stats(target, from, duration, intervals, opts={})
+  def self.stats(target_type, from, duration, intervals, opts={})
     groups = []
     (1..intervals).each do |i|
-      group = self.find_group(target, from, duration, opts)
+      group = self.find_group(target_type, from, duration, opts)
       if group
         groups << group
       else
         scope = yield from, duration
-        groups << self.create_group(target, from, duration, scope, opts)
+        groups << self.create_group(target_type, from, duration, scope, opts)
       end
       from += duration
     end
     groups
   end
 
-  def self.find_group(target, started_at, duration, opts={})
-    target_type = target.is_a?(String) ? target : target.class.to_s
-    target_id = target.is_a?(String) ? nil : target.id
+  def self.find_group(target_type, started_at, duration, opts={})
+    target_id = opts[:target_id]
 
     group = DomainLogGroup.started_at(started_at).with_duration(duration).for_target(target_type, nil).with_type(opts[:type]).first
 
@@ -55,10 +54,8 @@ class DomainLogGroup < DomainModel
     group
   end
 
-  def self.create_group(target, started_at, duration, scope, opts={})
-    target_class = target.is_a?(String) ? target.constantize : target.class
-    target_type = target.is_a?(String) ? target : target.class.to_s
-    target_id = target.is_a?(String) ? nil : target.id
+  def self.create_group(target_type, started_at, duration, scope, opts={})
+    target_id = opts[:target_id]
 
     results = scope.find :all
 
@@ -77,7 +74,7 @@ class DomainLogGroup < DomainModel
       stat = group.domain_log_stats.create result.attributes.slice('target_id', 'target_value', 'visits', 'hits', 'leads', 'conversions', 'stat1', 'stat2')
     end
 
-    target_class.send(opts[:process_stats], group, opts) if opts[:process_stats]
+    opts[:class].send(opts[:process_stats], group, opts) if opts[:process_stats]
 
     group
   end

@@ -512,19 +512,19 @@ class SiteNode < DomainModel
     }
   end
 
-  def self.traffic_scope(from, duration, site_node_id=nil)
+  def self.traffic_scope(from, duration, opts={})
     scope = DomainLogEntry.between(from, from+duration).hits_n_visits('site_node_id')
-    scope = scope.scoped(:conditions => {:site_node_id => site_node_id}) if site_node_id
+    scope = scope.scoped(:conditions => {:site_node_id => opts[:target_id]}) if opts[:target_id]
     scope
   end
 
-  def self.traffic(from, duration, intervals, target=nil)
-    DomainLogGroup.stats(target ? target : self.name, from, duration, intervals, :type => 'traffic') do |from, duration|
-      self.traffic_scope from, duration, target ? target.id : nil
+  def self.traffic(from, duration, intervals, opts={})
+    DomainLogGroup.stats(self.name, from, duration, intervals, :type => 'traffic', :target_id => opts[:target_id]) do |from, duration|
+      self.traffic_scope from, duration, opts
     end
   end
 
   def traffic(from, duration, intervals)
-    self.class.traffic from, duration, intervals, self.id
+    self.class.traffic from, duration, intervals, :target_id => self.id
   end
 end
