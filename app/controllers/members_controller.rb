@@ -720,6 +720,21 @@ class MembersController < CmsController # :nodoc: all
     @vip_number = EndUser.generate_vip
   end
 
+  def note
+    @user = EndUser.find params[:path][0]
+    @note = params[:path][1] ? @user.end_user_notes.find(params[:path][1]) : @user.end_user_notes.build(:admin_user_id => myself.id)
+
+    if request.post? && params[:note]
+      if @note.update_attributes params[:note]
+        @note = @user.end_user_notes.build(:admin_user_id => myself.id)
+      end
+    end
+
+    @notes = @user.end_user_notes.find :all
+
+    render :partial => 'note'
+  end
+
   private
   
   # update users subscriptions

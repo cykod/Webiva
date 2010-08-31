@@ -83,7 +83,9 @@ class EndUser < DomainModel
   has_many :end_user_tokens, :dependent => :delete_all, :include => [ :access_token ]
 
   has_many :access_tokens, :through => :end_user_tokens
-  
+
+  has_many :end_user_notes, :order => 'created_at DESC'
+
   has_many :end_user_tags
   has_many :tags, :through => :end_user_tags
   after_save :tag_cache_after_save
@@ -831,5 +833,13 @@ Not doing so could allow a user to change their user profile (for example) and e
       self.admin_edit = true if self.email.blank?
       self.save
     end
+  end
+
+  def last_log_entry
+    @last_log_entry ||= (DomainLogEntry.find(:first, :conditions => {:user_id => self.id}, :order => 'occurred_at DESC') || DomainLogEntry.new)
+  end
+
+  def last_session
+    self.last_log_entry.domain_log_session
   end
 end
