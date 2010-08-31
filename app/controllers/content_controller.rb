@@ -15,6 +15,9 @@ class ContentController < ModuleController #:nodoc: all
 
   before_filter :check_view_permission, :only => [ 'view', 'entry' ]
   before_filter :check_edit_permission, :only => [ 'add_tags_form','remove_tags_form','edit_entry' ]
+
+  cms_admin_paths 'content',
+    'Content' => { :action =>'index'}
   
   register_handler :content, :fields, "Content::CoreField"
   register_handler :content, :publication, "Content::CorePublication"
@@ -56,7 +59,7 @@ class ContentController < ModuleController #:nodoc: all
       end
     end
     
-    cms_page_info('Content','content') 
+    cms_page_path [],'Content'
   end
 
   def custom

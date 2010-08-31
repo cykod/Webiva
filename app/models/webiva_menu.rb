@@ -23,7 +23,7 @@ class WebivaMenu
       if item[3]
         user.has_any_role?(item.permissions)
       else
-        true
+        user.editor? 
       end
     end
   end

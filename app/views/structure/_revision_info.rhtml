@@ -1,100 +1,52 @@
+<% revision = @active_revision_info[1] 
+language = @active_revision_info[0]
+latest = @active_revision_info[2] -%>
 
-<br/>
-<% if info[1] -%>
+<div class='tree_detail_primary_section'>
+  <ul class='description_list'>
+    <li>
+   <h2>
+     <%= "Title:".t %> 
+     <span class='header_value'><%= h revision.title.blank? ? '[No Title]'.t : revision.title %></span> 
+     <a class='small' href='javascript:void(0);' onclick='SCMS.select_tab_num(2);'>(edit)</a>
+   </h2>
+ </li>
 
-<b>Version <%= dec info[1].revision %>, <%= info[1].active? ? 'Active'.t : 'Inactive'.t %>, <%= render :partial => '/edit/saved_by', :locals => { :revision => info[1] } %></b>
-<div style='float:right; width:150px;'>
-  <% info[1].used_images.each do |img| %>
-     <div align='center'>
-         <img src='<%= img.thumbnail_url(theme,'thumb') %>'/><br/>
-         <%= h(img.name) %>
-     </div><br/>
-  <% end -%>
-</div>
-<br/>
-<br/>
-<% if permit?('editor_editor') %>
-  <% if info[2] && info[1] != info[2] -%>
-    <%= link_to 'Edit Active Revision (%d)' / info[1].revision, { :controller => 'edit', :action => 'page', :path => ['page',@node.id,info[0] ] }, :class => 'link_button' %>
-    <%= link_to 'Edit Latest Revision (%d)' / info[2].revision, { :controller => 'edit', :action => 'page', :path => ['page',@node.id,info[2].id ] }, :class => 'link_button' %>
+   <% unless revision.menu_title.blank? %>
+     <li><strong><%= "Menu Title:".t %></strong> <%= h revision.menu_title %></li>
+   <% end -%>
 
-  <% else -%>
-    <%= link_to 'Edit Page', { :controller => 'edit', :action => 'page', :path => ['page',@node.id,info[0] ] }, :class => 'link_button' %>
-  <% end -%>
-<% end -%>
+   <% unless revision.meta_description.blank? %>
+     <li><strong><%= "Description:".t %></strong> <%= h revision.meta_description %></li>
+   <% end -%>
 
-  <% if info[1].active? %>
-    <%= link_to 'Goto Page', @revision_info.length > 1 ? "/view/#{info[0]}#{@node.node_path}"  : @node.node_path, :class => 'link_button' -%> 
-  <% end -%>
-<% else -%>
-<% if permit?('editor_structure') %>
+   <% unless revision.meta_keywords.blank? %>
+     <li><strong><%= "Keywords:".t %></strong> <%= h revision.meta_keywords %></li>
+   <% end -%>
+ </ul>
 
-  <% remote_form_for :revision_create, info[1],
-      :update => "node_#{@node.id}_#{info[0]}", 
-      :method => 'post', 
-      :url =>  { :action => 'create_revision', :language  => info[0],:node_id => @node.id  } do  |f| -%>
-    <input type='submit' value='<%= "Create Page".t %>' /> 
-    <% if (available_revisions =  @revision_info.find_all { |inf| inf[1] }.collect { |inf| [ inf[0].upcase, inf[1].id ] }).length > 0  -%>
-       From 
-       <%= f.select :from_revision_id, available_revisions %>
-    <% end -%>
-  <% end -%>
-<% else %>
-  <%= "No Existing Revision".t %>
-<% end -%>
+ <% if permit?('editor_editor') %>
+   <h2><%= "Edit Page" %></h2>
+   <% if latest && latest != revision -%>
+     <div class='third'>
+         <%= button_link("pen.png","edit active", :controller => 'edit', :action => 'page', :path => ['page',@node.id,revision.id ] ) %><br/>
+       <%= revision_saved_details(revision) %>
+     </div>
+      <div class='third'>
+        <%= button_link("pen.png","edit newest",  { :controller => 'edit', :action => 'page', :path => ['page',@node.id,latest.id ] }, :alternative => true ) %><br/>
+       <%= revision_saved_details(latest) %>
+     </div>
+     
+   <% else -%>
+     <div class='third'>
+       <%= button_link("pen.png","edit page", :controller => 'edit', :action => 'page', :path => ['page',@node.id,revision.id ] ) %><br/>
+       <%= revision_saved_details(revision) %>
+     </div>
+   <% end -%>
+   <div class='third'>
+         <br/>
+        <a class='large' href='#'>Run an Experiment</a>
+   </div>
 
-
-<% end -%>
-
-
-<% if info[1] -%>
-
-<br/>
-<br/>
-<% if permit?('editor_structure') %>
-  <div id='<%= "node_#{@node.id}_#{info[0]}_view" %>' >
-  <% link_edit_form_for  :revision_view, info[1], 
-      :styled_form => { 
-	  :onclick => "Element.hide(\"node_#{@node.id}_#{info[0]}_view\"); Element.show(\"node_#{@node.id}_#{info[0]}_edit\");", 
-	  :classname => "ajax_link page_information_link" 
-      } do |f| -%>
-      <%= render :partial => 'revision_info_table', :locals => { :f => f } %>
-  <% end -%>
-  </div>
-  
-  <div id='node_<%= @node.id %>_<%= info[0] %>_edit' style='display:none;'>
-  <% remote_cms_form_for :revision_edit, info[1],
-      :update => "node_#{@node.id}_#{info[0]}", 
-      :method => 'post', 
-      :html => { :class => 'admin_form' },
-      :url =>  { :action => 'update_revision', :revision  => info[1].id  } do  |f| -%>
-      <%= render :partial => 'revision_info_table', :locals => { :f => f  } %>
-      
-    <%= f.header 'Additional Page Options' %>
-    <%= f.filemanager_image :icon_id, :label => 'Page Icon' %>
-    <%= f.filemanager_image :icon_hot_id, :label => 'Page Icon Hot' %>
-    <%= f.filemanager_image :icon_disabled_id, :label => 'Page Icon Disabled' %>
-    <%= f.filemanager_image :icon_selected_id, :label => 'Page Icon Selected'  %>
-    <%= f.color_field :color, :label => 'Color' %>
-    <%= f.color_field :color_selected, :label => 'Selected Color' %>
-    <%= f.color_field :color_hover, :label => 'Hover Color' %>
-    <%= f.text_field :field1, :description => 'Additional Field available in Menu Features' %>
-    <%= f.text_field :field2, :description => '2nd Additional Field available in Menu Features' %>
-    
-    <%= f.cancel_submit_buttons 'Cancel','Submit',
-	{
-	  :onclick => "Element.show(\"node_#{@node.id}_#{info[0]}_view\"); Element.hide(\"node_#{@node.id}_#{info[0]}_edit\"); return false;"
-        },
-	{}
-	%>
-  <% end -%>
-<% else -%>
-  <% tabled_display_form_for :revision_view, info[1] do |f| -%>
-      <%= render :partial => 'revision_info_table', :locals => { :f => f } %>
-  <% end -%>
-<% end -%>
-
-
-</div>
-<% end -%>
-<br/>
+ <% end -%>
+ </div>

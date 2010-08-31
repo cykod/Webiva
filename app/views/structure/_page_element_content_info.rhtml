@@ -1,0 +1,10 @@
+<% if @node.page_content.length > 0 -%>
+<div class='tree_detail_secondary_section'>
+  <h2>Newest Content</h2>
+  <% @node.page_content.each do |content_node| -%>
+    <%= link_to h(content_node.title), content_node.link %><br/>
+    created <%= distance_of_time_in_words_to_now(content_node.created_at) %> ago <a href='<%= url_for content_node.admin_url %>' >(edit)</a><br/>
+  <% end -%>
+</div>
+<% end -%>
+

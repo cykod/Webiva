@@ -4,12 +4,15 @@ class EmarketingController < CmsController # :nodoc: all
   include ActionView::Helpers::DateHelper
 
   layout 'manage'
+
+  cms_admin_paths 'marketing',
+    'Marketing' => { :action => 'index' }
   
   permit ['editor_visitors','editor_members','editor_mailing'], :only => :index
   permit 'editor_visitors', :except => :index
 
   def index
-    cms_page_info('E-marketing','e_marketing')
+    cms_page_path [],'Marketing'
     
     
     @subpages = [

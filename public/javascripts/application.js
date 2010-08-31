@@ -118,13 +118,13 @@ SCMS = {
 		for(i=1;i<contents.length;i++) {
 			Element.hide(contents[i]);
 		}
-		for(i=1;i<tabs.length-1;i++) {
-			if(tabs[i] != selected_td) {
-				tabs[i].className = 'normal';
+		for(i=1;i<tabs.length;i++) {
+			if(tabs[i-1] != selected_td) {
+				tabs[i-1].className = 'normal';
 
 			}
 			else {
-				tabs[i].className = 'selected';
+				tabs[i-1].className = 'selected';
 				Element.show(contents[i]);
 			}
 

@@ -10,6 +10,10 @@ class FileController < CmsController # :nodoc: all
   
   before_filter :calculate_image_size
 
+
+  cms_admin_paths 'files', 
+    'Files' => { :action => 'index' }
+
   protected  
 
   def calculate_image_size
@@ -47,7 +51,7 @@ class FileController < CmsController # :nodoc: all
 
   def index
   
-    cms_page_info "Files &amp; Images", "files_and_images"
+    cms_page_path [], "Files"
     
     folder_id = params[:path][0] if params[:path]
     

@@ -76,7 +76,7 @@ class ContentNode < DomainModel
   belongs_to :author,:class_name => 'EndUser',:foreign_key => 'author_id'
   belongs_to :last_editor,:class_name => 'EndUser',:foreign_key => 'last_editor_id'
   belongs_to :content_type
-  has_many :content_node_values
+  has_many :content_node_values, :dependent => :delete_all
 
   named_scope :from_content do |node_type,node_id|
     { :conditions => { :node_type => node_type, :node_id => node_id } }
