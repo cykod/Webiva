@@ -20,6 +20,7 @@ if @show_archived == 'hide'
  end
   %>
   <%= p.link('Wizards',:icon => 'configure.gif',:action => 'wizards', :version => @version.id ) if @wizard_list.length > 0 -%>
+ <%= p.link 'Quick Edit', :icon => 'edit.gif', :url => {:action => 'pages', :path => @version.id} %>
 
 <% end -%>
 
@@ -44,6 +45,7 @@ if @show_archived == 'hide'
        <%= render(:partial => "path", :locals => { :paths => [@site_root]}) %>
     </div>
   </div>
+
 </div>
 
 <div class='tree_detail' id='element_info' style='display:none;' >

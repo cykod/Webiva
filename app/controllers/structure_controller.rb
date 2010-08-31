@@ -389,8 +389,55 @@ class StructureController < CmsController  # :nodoc: all
     expire_site
   
   end
+
+  # need to include 
+  include ActiveTable::Controller
+  active_table :site_nodes_table,
+               SiteNode,
+               [ hdr(:string, 'node_path', :label => 'Url'),
+                 hdr(:static, 'Title'),
+                 hdr(:static, 'Meta Description'),
+                 hdr(:static, 'Meta Keywords')
+               ]
+
+  def pages
+    display_site_nodes_table(false)
+    cms_page_path [[ "Website",url_for(:controller => '/structure', :action => 'index', :version => @version.id) ]], "Edit Pages"
+  end
+
+  def display_site_nodes_table(display=true)
+    @version ||= SiteVersion.find_by_id(params[:path][0]) || SiteVersion.current
+    @languages ||= Configuration.languages
+    @language ||= params[:language] || 'en'
+
+    active_table_action 'site_node' do |act,ids|
+    end
+
+    @active_table_output = site_nodes_table_generate params, :conditions => ['site_version_id = ? AND node_type = ?', @version.id, 'P'], :order => 'node_path', :per_page => 20
   
-  
+    render :partial => 'site_nodes_table' if display
+  end
+
+  def edit_page_revision
+    @node = SiteNode.find params[:path][0]
+    @version = @node.site_version
+    @revision = @node.page_revisions.find params[:path][1]
+    @language = @revision.language
+
+    if request.post? && params[:revision]
+      @revision.updated_by = myself
+      if @revision.update_attributes params[:revision]
+        render :update do |page|
+          page << 'RedBox.close();'
+          page << 'PageEditor.refreshList();'
+        end
+        return
+      end
+    end
+
+    render :partial => 'edit_page_revision'
+  end
+
   protected
   def element_info_display(node_type,node_id)
     @view_language = params[:language] || cookies[:site_node_language] || Configuration.languages[0]
