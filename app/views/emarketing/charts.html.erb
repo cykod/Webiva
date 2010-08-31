@@ -16,30 +16,48 @@ end
 <script type="text/javascript">
 google.load("visualization", "1", {packages:["corechart"]});
 google.setOnLoadCallback(drawChart);
+function fetchData() {
+  new Ajax.Request('<%= url_for :path => params[:path] %>.json', {method: 'get', onSuccess: function(res) {
+                       var data = new google.visualization.DataTable(res.responseJSON.table, res.responseJSON.version);
+                       for(var i=0; i<res.responseJSON.urls.length; i++ ) { data.setRowProperty(i, 'url', res.responseJSON.urls[i]); }
+                       drawBarChart('chart_div', res.responseJSON.title, data);
+                     }});
+}
+
 function drawChart() {
-  var width = 1000;
-  var height = <%= @stats.size * 36 %> + 80;
   var data = new google.visualization.DataTable();
-  data.addColumn('string', 'Content');
+  data.addColumn('string', 'Title');
   data.addColumn('number', 'Visitors');
   data.addColumn('number', 'Hits');
   data.addRows(<%= @stats.size %>);
   <% @stats.each_with_index do |stat,idx| -%>
-    data.setCell(<%= idx %>, 0, '<%= jh stat.target.send(@title) %>', '<%= jh stat.target.send(@title) %>', {url: '<%= url_for stat.target.admin_url %>'});
+    data.setValue(<%= idx %>, 0, '<%= jh stat.target.send(@title) %>');
     data.setValue(<%= idx %>, 1, <%= stat.visits %>);
     data.setValue(<%= idx %>, 2, <%= stat.hits %>);
+    data.setRowProperty(<%= idx %>, 'url', '<%= url_for stat.target.admin_url %>');
   <% end -%>
+
+  drawBarChart('chart_div', '<%= jh chart_title %>', data);
+}
+
+function drawBarChart(ele_id, title, data) {
+  var width = 1000;
+  var height = data.getNumberOfRows() * 36 + 80;
+  var maxValue = 0;
+  for(var i=1; i<data.getNumberOfColumns(); i++) {
+    maxValue = Math.max(maxValue, data.getColumnRange(i).max);
+  }
 
   var sortColumn = 1;
   var sortDesc = true;
   data.sort([{column: sortColumn, desc: sortDesc}]);
 
-  var chart = new google.visualization.BarChart(document.getElementById('chart_div'));
+  var chart = new google.visualization.BarChart(document.getElementById(ele_id));
   var chartOptions = {
     width: width,
     height: height,
-    title: '<%= jh chart_title %>',
-    hAxis: {minValue: 0, maxValue: <%= @max_hits %>, textStyle: {fontSize: 12}},
+    title: title,
+    hAxis: {minValue: 0, maxValue: maxValue, textStyle: {fontSize: 12}},
     vAxis: {textStyle: {fontSize: 13}},
     legendTextStyle: {fontSize: 11},
     titleTextStyle: {fontSize: 15},
@@ -62,9 +80,11 @@ function drawChart() {
       chart.draw(data, chartOptions);
 
     } else {
-      var url = data.getProperty(row, 0, 'url');
-      document.location = url;
-    }
+      var url = data.getRowProperty(row, 'url');
+      if(url) {
+        document.location = url;
+      }
+   }
   });
 }
 

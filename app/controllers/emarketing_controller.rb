@@ -1,4 +1,5 @@
 # Copyright (C) 2009 Pascal Rettig.
+require 'fastercsv'
 
 class EmarketingController < CmsController # :nodoc: all
   include ActionView::Helpers::DateHelper
@@ -119,14 +120,12 @@ class EmarketingController < CmsController # :nodoc: all
 
   def charts
     @stat_type = params[:path][0]
-    @handler = params[:path][1..-1].join('/')
+    @handler, @format = params[:path][1..-1].join('/').split('.')
     @chart_info = get_handler_info(:chart, @stat_type, @handler)
 
     raise 'No chart found' unless @chart_info
 
-    cms_page_info([ ['E-marketing',url_for(:action => 'index') ], @chart_info[:name] ],'e_marketing')
-
-    @when = params[:when] || 'today'
+    @when = params[:when] || params[:q] || 'today'
     
     @from = Time.now.at_midnight
     @duration = 1.day
@@ -169,6 +168,25 @@ class EmarketingController < CmsController # :nodoc: all
       @max_visits = @stats.collect(&:visits).max
     end
 
+    if @format == 'json'
+      data = {
+        :cols => [{:id => 'title', :label => 'Title', :type => 'string'}, {:id => 'visitors', :label => 'Visitors', :type => 'number'}, {:id => 'hits', :label => 'Hits', :type => 'number'}],
+        :rows => @stats.collect { |stat| {:c => [{:v => stat.target.send(@title)}, {:v => stat.visits}, {:v => stat.hits}]} }
+      }
+      return render :json => {:table => data, :version => '0.6', :title => 'Chart', :urls => @stats.collect{|stat| url_for(stat.target.admin_url)}}
+    elsif @format == 'csv'
+      report = StringIO.new
+      csv_data = FasterCSV.generate do |writter|
+        writter << ['Title', 'Visitors', 'Hits']
+        @stats.each do |stat|
+          writter << [stat.target.send(@title), stat.visits, stat.hits]
+        end
+      end
+      return send_data csv_data, :type => 'text/csv; charset=iso-8859-1; header=present', :disposition => "attachment; filename=stats.csv"
+
+    end
+
+    cms_page_info([ ['E-marketing',url_for(:action => 'index') ], @chart_info[:name] ],'e_marketing')
     chart_links
   end
 
@@ -239,7 +257,6 @@ class EmarketingController < CmsController # :nodoc: all
   def chart_links
     @chart_links = [['Real Time Statistics', {:action => 'stats'}]]
     get_handler_info(:chart, :traffic).each do |handler|
-      Rails.logger.error handler.inspect
       @chart_links << [handler[:name], handler[:url]]
     end
   end
