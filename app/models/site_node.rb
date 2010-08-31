@@ -500,6 +500,18 @@ class SiteNode < DomainModel
 
   public
 
+  def admin_url
+    self.class.content_admin_url self.id
+  end
+
+  def self.chart_traffic_handler_info
+    {
+      :name => 'Page Traffic',
+      :title => :node_path,
+      :url => { :controller => '/emarketing', :action => 'charts', :path => ['traffic'] + self.name.underscore.split('/') }
+    }
+  end
+
   def self.traffic_scope(from, duration, site_node_id=nil)
     scope = DomainLogEntry.between(from, from+duration).hits_n_visits('site_node_id')
     scope = scope.scoped(:conditions => {:site_node_id => site_node_id}) if site_node_id

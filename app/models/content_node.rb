@@ -240,6 +240,13 @@ class ContentNode < DomainModel
     ContentNodeValue.search language, query, options
   end
 
+  def self.chart_traffic_handler_info
+    {
+      :name => 'Content Traffic',
+      :url => { :controller => '/emarketing', :action => 'charts', :path => ['traffic'] + self.name.underscore.split('/') }
+    }
+  end
+
   def self.traffic_scope(from, duration, content_node_id=nil)
     scope = DomainLogEntry.between(from, from+duration).hits_n_visits('content_node_id')
     if content_node_id
