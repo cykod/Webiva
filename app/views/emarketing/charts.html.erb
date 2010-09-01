@@ -29,11 +29,21 @@ function drawChart() {
   data.addColumn('string', 'Title');
   data.addColumn('number', 'Visitors');
   data.addColumn('number', 'Hits');
+  <% if @all_fields %>
+    data.addColumn('number', 'Subscribers');
+    data.addColumn('number', 'Leads');
+    data.addColumn('number', 'Conversions');
+  <% end %>
   data.addRows(<%= @stats.size %>);
   <% @stats.each_with_index do |stat,idx| -%>
     data.setValue(<%= idx %>, 0, '<%= jh stat.target.send(@title) %>');
     data.setValue(<%= idx %>, 1, <%= stat.visits %>);
     data.setValue(<%= idx %>, 2, <%= stat.hits %>);
+    <% if @all_fields %>
+      data.setValue(<%= idx %>, 3, <%= stat.subscribers %>);
+      data.setValue(<%= idx %>, 4, <%= stat.leads %>);
+      data.setValue(<%= idx %>, 5, <%= stat.conversions %>);
+    <% end %>
     data.setRowProperty(<%= idx %>, 'url', '<%= url_for stat.target.admin_url %>');
   <% end -%>
 
@@ -41,7 +51,7 @@ function drawChart() {
 }
 
 function drawBarChart(ele_id, title, data) {
-  var height = data.getNumberOfRows() * 36 + 72;
+  var height = data.getNumberOfRows() * <%= @all_fields ? 50 : 36 %> + 72;
   var maxValue = 0;
   for(var i=1; i<data.getNumberOfColumns(); i++) {
     maxValue = Math.max(maxValue, data.getColumnRange(i).max);

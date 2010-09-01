@@ -119,7 +119,8 @@ class EmarketingController < CmsController # :nodoc: all
     raise 'No chart found' unless @chart_info
 
     @when = params[:when] || params[:q] || 'today'
-    
+    @all_fields = params[:all]
+
     @from = Time.now.at_midnight
     @duration = 1.day
     @interval = 1
@@ -162,17 +163,25 @@ class EmarketingController < CmsController # :nodoc: all
     end
 
     if @format == 'json'
-      data = {
-        :cols => [{:id => 'title', :label => 'Title', :type => 'string'}, {:id => 'visitors', :label => 'Visitors', :type => 'number'}, {:id => 'hits', :label => 'Hits', :type => 'number'}],
-        :rows => @stats.collect { |stat| {:c => [{:v => stat.target.send(@title)}, {:v => stat.visits}, {:v => stat.hits}]} }
-      }
+      data = nil
+      if @all_fields
+        data = {
+          :cols => [{:id => 'title', :label => 'Title', :type => 'string'}, {:id => 'visitors', :label => 'Visitors', :type => 'number'}, {:id => 'hits', :label => 'Hits', :type => 'number'}, {:id => 'subscribers', :label => 'Subscribers', :type => 'number'}, {:id => 'leads', :label => 'Leads', :type => 'number'}, {:id => 'conversions', :label => 'Conversions', :type => 'number'}],
+          :rows => @stats.collect { |stat| {:c => [{:v => stat.target.send(@title)}, {:v => stat.visits}, {:v => stat.hits}, {:v => stat.subscribers}, {:v => stat.leads}, {:v => stat.conversions}]} }
+        }
+      else
+        data = {
+          :cols => [{:id => 'title', :label => 'Title', :type => 'string'}, {:id => 'visitors', :label => 'Visitors', :type => 'number'}, {:id => 'hits', :label => 'Hits', :type => 'number'}],
+          :rows => @stats.collect { |stat| {:c => [{:v => stat.target.send(@title)}, {:v => stat.visits}, {:v => stat.hits}]} }
+        }
+      end
       return render :json => {:table => data, :version => '0.6', :title => 'Chart', :urls => @stats.collect{|stat| url_for(stat.target.admin_url)}}
     elsif @format == 'csv'
       report = StringIO.new
       csv_data = FasterCSV.generate do |writter|
-        writter << ['Title', 'Visitors', 'Hits']
+        writter << ['Title', 'Visitors', 'Hits', 'Subscribers', 'Leads', 'Conversions']
         @stats.each do |stat|
-          writter << [stat.target.send(@title), stat.visits, stat.hits]
+          writter << [stat.target.send(@title), stat.visits, stat.hits, stat.subscribers, stat.leads, stat.conversions]
         end
       end
       return send_data csv_data, :type => 'text/csv; charset=iso-8859-1; header=present', :disposition => "attachment; filename=stats.csv"

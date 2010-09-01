@@ -16,6 +16,7 @@ class StatsTables < ActiveRecord::Migration
       t.integer :target_id
       t.integer :visits
       t.integer :hits
+      t.integer :subscribers
       t.integer :leads
       t.integer :conversions
       t.integer :stat1
