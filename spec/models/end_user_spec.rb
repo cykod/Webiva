@@ -283,4 +283,28 @@ describe EndUser do
 
     
   end
+
+  it "should be able to elevate user levels" do
+    @user1 = EndUser.push_target("test1@webiva.com")
+    @user1.user_level.should == 1
+
+    @user1.elevate_user_level(3)
+    @user1.user_level.should == 1
+
+    @user1 = EndUser.find_by_email("test1@webiva.com")
+    @user1.user_level.should == 3
+    @user1.acknowledged.should be_false
+
+    @user1.elevate_user_level(2)
+    @user1.user_level.should == 3
+
+    @user1 = EndUser.find_by_email("test1@webiva.com")
+    @user1.user_level.should == 3
+
+    @user1.unsubscribe
+    @user1.user_level.should == 3
+
+    @user1 = EndUser.find_by_email("test1@webiva.com")
+    @user1.user_level.should == 0
+  end
 end

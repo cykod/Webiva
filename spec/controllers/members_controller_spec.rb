@@ -399,7 +399,7 @@ describe MembersController do
 
     it "should be able to remove users from a custom segment" do
       @segment3.last_count.should == 2
-      post 'display_targets_table', :table_action => 'remove_users', :user_segment_id => @segment3.id, :user => {@user4.id => @user4.id}
+      post 'display_targets_table', :table_action => 'remove_users', :path => [@segment3.id], :user => {@user4.id => @user4.id}
       @segment3.reload
       @segment3.last_count.should == 1
     end

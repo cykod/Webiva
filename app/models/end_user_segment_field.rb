@@ -14,7 +14,7 @@ class EndUserSegmentField < UserSegment::FieldHandler
   register_field :created, UserSegment::CoreType::DateTimeType, :field => :created_at, :name => 'Created', :sortable => true, :builder_name => 'Created when?'
   register_field :registered, UserSegment::CoreType::BooleanType, :name => 'Registered', :sortable => true, :builder_name => 'Show registered accounts?'
   register_field :activated, UserSegment::CoreType::BooleanType, :name => 'Activated', :sortable => true, :builder_name => 'Show activated accounts?'
-  register_field :user_level, UserSegment::CoreType::SimpleNumberType, :name => 'User Level', :sortable => true
+  register_field :user_level, EndUserSegmentType::UserLevelType, :name => 'User Level', :sortable => true
   register_field :dob, UserSegment::CoreType::DateTimeType, :name => 'DOB', :sortable => true
   register_field :last_name, UserSegment::CoreType::StringType, :name => 'Last Name', :sortable => true
   register_field :first_name, UserSegment::CoreType::StringType, :name => 'First Name', :sortable => true
@@ -36,6 +36,10 @@ class EndUserSegmentField < UserSegment::FieldHandler
   end
 
   def self.field_output(user, handler_data, field)
-    UserSegment::FieldType.field_output(user, handler_data, field)
+    if field == :user_level
+      user.user_level_display
+    else
+      UserSegment::FieldType.field_output(user, handler_data, field)
+    end
   end
 end

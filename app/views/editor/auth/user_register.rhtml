@@ -60,6 +60,7 @@ UserRegisterEditor = {
    <%= f.radio_buttons :modify_profile, [['Yes'.t,'modify'],['No'.t,'keep']], :label => 'Modify Profile', :description => 'Modify profile of existing user?' %>
    <%= f.text_field :add_tags, :description => 'Tag Names to add on registrations' %>
    <%= f.country_select :country, :label => 'Default Country' %>
+   <%= f.select :user_level, @options.class.user_level_options %>
 <% end -%>
 <% t.tabled_tab do %>
    <%= f.ordered_array :required_fields, @options.available_field_options, :description => "Email will always be required, password and password confirmation\n are required for account registration type" %>
@@ -69,6 +70,7 @@ UserRegisterEditor = {
 
  <%= f.ordered_array :work_address_required_fields, @options.available_address_field_options(true), :description => "All address fields are available but the above must be filled out" %> 
  <%= f.select :content_publication_id, ContentPublication.select_options_with_nil('Publication',:conditions => { :publication_type => 'create', :publication_module => 'content/core_publication' }) %>
+  <%= f.ordered_array :include_subscriptions, UserSubscription.select_options %>
 <% end -%>
 <% t.tab do %>
 
