@@ -6,7 +6,7 @@ module CmsHelper
 
 
   def webiva_search_widget # :nodoc:
-    form_tag({ :controller => '/search'},:style => 'display:inline;') +
+    form_tag({ :controller => '/search'},:id => 'search_widget_form', :style => 'display:inline;') +
 <<-SEARCH_WIDGET
   <input type='text' name='search' size='20' id='search_widget' value='Search Webiva' />
   
@@ -86,6 +86,41 @@ module CmsHelper
 SEARCH_WIDGET
   end
 
+
+  def render_webiva_menu(menu,selected) 
+    menu.items.map do |item|
+      <<-EOF
+      <li #{"class='selected'" if selected == item.identifier }>
+          <a href='#{url_for(item.url)}'>
+             <div class='menu_image menu_image_#{item.identifier}'><div></div></div>
+             <div class='menu_item_text'>#{h(item.name)}</div>
+          </a>
+      </li>
+      EOF
+    end.join("\n")
+  end
+
+  def render_webiva_breadcrumbs(page_info)
+    if page_info[:title].is_a?(Array) && page_info[:title].length > 0 
+      breadcrumbs = page_info[:title][0..-2]
+      breadcrumbs.map do |itm|
+        render_webiva_title(itm) + " &gt; "
+      end.join
+    else
+      nil
+    end
+  end
+
+  def render_webiva_title(item)
+    if item.is_a?(Array) && item[1]
+      link_to h( item.length > 2 ? sprintf(item[0].t,*item[2..-1]) : item[0].t), item[1]
+    elsif item.is_a?(Array)
+      h(sprintf(item[0].t,*item[2..-1])) 
+    else
+      h item.t
+    end
+  end
+
   def member_url(user_id)
     url_for(:controller => '/members',:action => 'view', :path => [user_id])
   end
@@ -151,7 +186,7 @@ images/icons/actions directory of the current theme.
 
 =end 
    def action_panel(options = {},&block)  # :yields: ActionPanelBuilder.new
-      concat("<div class='admin_content'><ul class='action_panel'>")
+      concat("<ul class='action_panel' id='action_panel'>")
       
       apb = ActionPanelBuilder.new(self)
       yield apb
@@ -173,12 +208,26 @@ images/icons/actions directory of the current theme.
           end
         end
       end
-      
-      
-      
-      
-      concat("</ul></div>")
+      if options[:more]
+        concat(apb.link('more actions', { :url => 'javascript:void(0);',:icon => 'add.png', :right=> true, :id => 'more_actions_link' },
+                        :"j-action" => 'slidetoggle,swap', :swap => '#less_actions_link,#more_actions_link', :slidetoggle => '#more_actions_panel'))
+
+        concat(apb.link('hide actions', { :url => 'javascript:void(0);',:icon => 'remove.png', :right=> true, :id => 'less_actions_link', :hidden => true },
+                        :"j-action" => 'slidetoggle,swap', :swap => '#more_actions_link,#less_actions_link', :slidetoggle => '#more_actions_panel'))
+      end
+      concat("</ul>")
    end   
+
+   def more_action_panel(options = {},&block)
+     concat("<div style='display:none;' id='more_actions_panel'>")
+     concat("<h2>More Actions <a class='title_link' href=\"javascript:void(0);\" j-action='slideup,swap' swap='#more_actions_link,#less_actions_link' slideup=\"#more_actions_panel\">(close actions)</a></h2>")
+     concat("<ul>")
+      
+      apb = ActionPanelBuilder.new(self)
+      yield apb
+
+      concat('</ul></div>')
+   end
 
    # This class usually isn't instantiated directly, see CmsHelper#action_panel for usage
    class ActionPanelBuilder 
@@ -200,12 +249,16 @@ images/icons/actions directory of the current theme.
         icon = opts.delete(:icon)
         txt = txt.t unless opts.delete(:no_translate)
         right = "class='right'" if opts.delete(:right)
-        
+        if link_id= opts.delete(:id)
+          id = " id='#{link_id}'" 
+        end
+        hide = ' style="display:none;"' if opts.delete(:hidden)
         if options[:url]
           opts = options[:url]
         end
+
         icon =  @ctrl.theme_icon("action","icons/actions/" + icon) if icon
-        return "<li #{right}>" + @ctrl.send(:link_to,icon.to_s + @ctrl.send(:h,txt),opts,html_options) + "</li>"
+        return "<li #{right}#{id}#{hide}>" + @ctrl.send(:link_to,icon.to_s + @ctrl.send(:h,txt),opts,html_options) + "</li>"
       end
       
       # Adds a custom item to the action panel (accepts a block)
@@ -232,7 +285,7 @@ images/icons/actions directory of the current theme.
       
       # Creates a tab inside of the ajax_tabs
       def tab(&block)
-        @view.concat("<tr #{'style="display:none;"' unless @tab_num  == @selected}><td class='content' colspan='#{@tab_cnt+2}' >")
+        @view.concat("<tr #{'style="display:none;"' unless @tab_num  == @selected}><td class='content' colspan='#{@tab_cnt+1}' >")
         @tab_num +=1;
         yield block
         @view.concat("</td></tr>")
@@ -241,7 +294,7 @@ images/icons/actions directory of the current theme.
       # Creates a tab inside of ajax_tabs and wraps the content of that tab in a table
       # Useful for cms_form_for and tabled_form_for
       def tabled_tab(&block)
-        @view.concat("<tr #{'style="display:none;"' unless @tab_num  == @selected}><td class='content' colspan='#{@tab_cnt+2}' ><table>")
+        @view.concat("<tr #{'style="display:none;"' unless @tab_num  == @selected}><td class='content' colspan='#{@tab_cnt+1}' ><table>")
         @tab_num +=1;
         yield block
         @view.concat("</table></td></tr>")
@@ -301,7 +354,7 @@ is clicked, so any sort of preload code will need to do it's own checking to ver
 content isn't already loaded.
 =end   
    def ajax_tabs(options,selected,&block)   # :yields: ActionTabBuilder.new
-     concat("<table class='ajax_tabs' cellpadding='0' cellspacing='0'><tr><td class='normal'>&nbsp;</td>")
+     concat("<table class='ajax_tabs' cellpadding='0' cellspacing='0'><tr>")
      selected_id = nil
      options.each_with_index do |opt,idx|
        js= '' 
@@ -791,4 +844,19 @@ EOF
     yield WizardSteps.new(wizard_step,wizard_max_step,opts)
   end
 
+  # Load a remote script over http or https as necessary
+  def remote_script(script)
+    prefix =  request.ssl? ? 'http://' : 'https://'
+    "<script src='#{prefix}#{vh script}'></script>"
+  end
+
+  def button_link(icon,text,url,options = {})
+    opt = options.clone
+    alternative = " button_link_alternative" if opt.delete(:alternative)
+    content_tag(:a,image_tag(theme_src('icons/actions/' + icon),:align => 'absmiddle') + text.t,
+                options.merge(:class => "button_link#{alternative}", :href => url_for(url)))
+  end
+
+
+ 
 end

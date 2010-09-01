@@ -21,7 +21,7 @@ describe DomainLogVisitor do
 
     dlv = DomainLogVisitor.first
     @cookies[:v][:value].should ==  dlv.visitor_hash
-    @session[:domain_log_visitor].should == dlv.id
+    @session[:domain_log_visitor][:id].should == dlv.id
     dlv.ip_address.should == @ip_address
   end
 
@@ -35,7 +35,7 @@ describe DomainLogVisitor do
      DomainLogVisitor.log_visitor(@cookies,@user,@session,@request)
     }.should change { DomainLogVisitor.count }.by(0)
     
-    @session[:domain_log_visitor].should == dlv.id
+    @session[:domain_log_visitor][:id].should == dlv.id
   end
 
   it "should be able to update the user id for new user" do

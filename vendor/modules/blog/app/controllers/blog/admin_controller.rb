@@ -13,6 +13,7 @@ class Blog::AdminController < ModuleController
 
   register_handler :structure, :wizard, "Blog::AddBlogWizard"
   register_handler :feed, :rss, "Blog::RssHandler"
+  register_handler :feed, :rss, "Blog::MultipleRssHandler"
   register_handler :mail_manager, :generator, "Blog::ManageController"
   
   content_action  'Create a new Blog', { :controller => '/blog/admin', :action => 'create' }, :permit => 'blog_config'

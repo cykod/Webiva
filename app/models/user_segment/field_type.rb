@@ -169,7 +169,7 @@ class UserSegment::FieldType
         v
       end
 
-      value = value.map(&:to_s).reject(&:blank?).join(', ')
+      value = value.map(&:to_s).reject(&:blank?).sort.uniq.join(', ')
     end
 
     value = value.strftime(DEFAULT_DATETIME_FORMAT.t) if value.is_a?(Time)

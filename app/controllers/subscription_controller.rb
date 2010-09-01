@@ -39,8 +39,12 @@ class SubscriptionController < CmsController # :nodoc: all
         
     new_sub = @subscription.id ? false : true;
     if request.post? && params[:subscription]
-      if @subscription.update_attributes(params[:subscription])
-        flash[:notice] = (( new_sub ? 'Created' : 'Edited' ) + ' subscription "%s"') / @subscription.name
+      if params[:commit]
+        if @subscription.update_attributes(params[:subscription])
+          flash[:notice] = (( new_sub ? 'Created' : 'Edited' ) + ' subscription "%s"') / @subscription.name
+          redirect_to :action => 'index'
+        end
+      else
         redirect_to :action => 'index'
       end
     end 

@@ -450,9 +450,9 @@ module Spec
       def build_feature(feature_class,code=nil)
         if code
           site_feature = mock_model(SiteFeature,:body => code,:body_html => code,:feature_type => :any,:options => {} )
-          paragraph = mock_model(PageParagraph,:site_feature => site_feature, :content_publication => nil,:page_revision => PageRevision.new)
+          paragraph = mock_model(PageParagraph,:site_feature => site_feature, :content_publication => nil,:page_revision => PageRevision.new, :language => 'en')
         else
-          paragraph = mock_model(PageParagraph,:site_feature => nil, :content_publication => nil,:page_revision => PageRevision.new)
+          paragraph = mock_model(PageParagraph,:site_feature => nil, :content_publication => nil,:page_revision => PageRevision.new, :language => 'en')
         end
         renderer = mock_model(ParagraphRenderer,
                               :get_handler_info => [],

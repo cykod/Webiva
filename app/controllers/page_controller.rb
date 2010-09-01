@@ -9,8 +9,8 @@ class PageController < ModuleAppController
   
   skip_before_filter :validate_module
   
-  skip_before_filter :handle_page,:only => :paragraph
-  skip_after_filter :process_logging, :only => :paragraph
+  skip_before_filter :handle_page,:only => [ :paragraph, :webalytics ] 
+  skip_after_filter :process_logging, :only =>  [ :paragraph, :webalytics ]
 
   before_filter :cache_force
   
@@ -49,6 +49,11 @@ class PageController < ModuleAppController
   end
 
 
+  def webalytics
+    DomainLogVisitor.log_location(cookies,session,params[:loc])
+    render :nothing => true
+  end
+  
   protected
 
   # Necessary to prevent repeated authenticity token errors
@@ -80,6 +85,5 @@ class PageController < ModuleAppController
     skip_before_filter :handle_page,:only => :renderer_test
     
   end
-  
 
 end

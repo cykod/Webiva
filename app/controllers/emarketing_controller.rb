@@ -5,31 +5,29 @@ class EmarketingController < CmsController # :nodoc: all
   include ActionView::Helpers::DateHelper
 
   layout 'manage'
+
+  cms_admin_paths 'marketing',
+    'Marketing' => { :action => 'index' }
   
   permit ['editor_visitors','editor_members','editor_mailing'], :only => :index
   permit 'editor_visitors', :except => :index
 
   def index
-    cms_page_info('E-marketing','e_marketing')
+    cms_page_path [],'Marketing'
     
     
     @subpages = [
        [ "Visitor Statistics", :editor_visitors, "emarketing_statistics.gif", { :action => 'visitors' }, 
           "View and Track Visitors to your site" ],
        [ "Real Time Statistics", :editor_visitors, "emarketing_statistics.gif", { :action => 'stats' }, 
-          "View Real Time Visits to your site" ],
-       [ "Subscriptions", :editor_mailing,"emarketing_subscriptions.gif", { :controller => '/subscription' },
-          "Edit Newsletters and Mailing Lists Subscriptions" ],
-       [ "Email Templates", :editor_mailing,"emarketing_templates.gif", { :controller => '/mail_manager', :action => 'templates' },
-          "Edit Mail Templates" ]
+          "View Real Time Visits to your site" ]
+    ]
           
-        ]
-    
   end
   
  include ActiveTable::Controller   
   active_table :visitor_table,
-                DomainLogSession,
+                DomainLogVisitor,
                 [ ActiveTable::StaticHeader.new('user', :label => 'Who'),
                   ActiveTable::DateRangeHeader.new('created_at', :label => 'When'),
                   ActiveTable::StaticHeader.new('page_count', :label => 'Pages'),
@@ -38,13 +36,8 @@ class EmarketingController < CmsController # :nodoc: all
   
   def visitor_table_output(opts)
      option_hash = 
-        { :order => 'created_at DESC'
+        { :order => 'updated_at DESC'
         }
-     if(session[:visitor_exclude_anon].to_i == 1) 
-      option_hash[:conditions] =  'end_user_id is not null'
-     end
-
-
      @active_table_output = visitor_table_generate opts, option_hash
   end  
   
@@ -77,14 +70,14 @@ class EmarketingController < CmsController # :nodoc: all
   end
   
   def visitor_detail
-    session_id = params[:path][0]
+    visitor_id = params[:path][0]
     
-    @entry = DomainLogEntry.find_by_domain_log_session_id(session_id,:order => 'occurred_at DESC')
-    if @entry && @entry.user
-      @user = @entry.user
+    @entry = DomainLogVisitor.find_by_id(visitor_id)
+    if @entry && @entry.end_user
+      @user = @entry.end_user
     end
     
-    @entry_info,@entries = DomainLogEntry.find_anonymous_session(session_id)
+    @sessions = @entry.session_details
     
     render :partial => 'visitor_detail'
   end
@@ -205,7 +198,7 @@ class EmarketingController < CmsController # :nodoc: all
     @entries.map! do |entry|
       last_occurred_at = entry.occurred_at.to_i
 
-      { :id => entry.domain_log_session.id,
+      { :id => entry.domain_log_session.domain_log_visitor_id || '#',
 	:occurred => entry.occurred_at.to_i,
 	:occurred_at => entry.occurred_at.strftime('%I:%M:%S %p'),
 	:url => entry.url,

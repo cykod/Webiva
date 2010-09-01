@@ -4,5 +4,5 @@ ENV["RAILS_ENV"] = "test"
 require File.expand_path(File.dirname(__FILE__) + "/../config/environment")
 require 'spec/autorun'
 require 'spec/rails'
-require  File.expand_path(File.dirname(__FILE__) + '/webiva_spec_helper')
+require File.expand_path(File.dirname(__FILE__) + '/webiva_spec_helper')
 

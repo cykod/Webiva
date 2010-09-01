@@ -1913,7 +1913,7 @@ block is non-nil
       options = feature.options || {}
         
       SiteTemplate.add_standard_parsing!(context,:values => options[:values],
-                                                 :language => @language, 
+                                                 :language => paragraph.language, 
                                                  :localize_values => options[:localize_values],
                                                  :localize => options[:localize],
                                                  :default_feature => options[:default] )

@@ -155,14 +155,19 @@
   }
 </script>
 
-<% action_panel :handler => 'members' do |p| -%>
+<% action_panel :handler => 'members', :more => true do |p| -%>
   <%= p.link "Add a user",:icon => 'add.gif', :action => 'create' %>
+<% end -%>
+
+<% more_action_panel :handler => 'members' do |p| -%>
   <%= p.link "Import People",:icon => 'upload.gif', :controller => :member_import %>
   <%= p.link "Download Current List",:icon => 'download.gif', :controller => :member_export, :action => 'index', :path => @segment ? @segment.id : nil %>
   <%= p.link "Tag List", :icon => 'show.gif', :action => 'tags' %>
   <%= p.link "Access Tokens", :icon => 'access.gif', :controller => '/access_token' if myself.has_role?('editor_access_tokens') %>
   <%= p.link "User Lists", :icon => 'access.gif', :action => 'segments' %>
 <% end -%>
+
+
 
 <hr/>
 

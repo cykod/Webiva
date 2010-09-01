@@ -279,7 +279,7 @@ class MembersController < CmsController # :nodoc: all
   end
 
   class Options < HashModel
-    attributes :fields => [], :order_by => 'created', :order_direction => 'DESC'
+    attributes :fields => ['created', 'profile', 'source', 'lead_source', 'tag'], :order_by => 'created', :order_direction => 'DESC'
 
     def validate
       if self.fields
@@ -718,6 +718,21 @@ class MembersController < CmsController # :nodoc: all
 
   def generate_vip
     @vip_number = EndUser.generate_vip
+  end
+
+  def note
+    @user = EndUser.find params[:path][0]
+    @note = params[:path][1] ? @user.end_user_notes.find(params[:path][1]) : @user.end_user_notes.build(:admin_user_id => myself.id)
+
+    if request.post? && params[:note]
+      if @note.update_attributes params[:note]
+        @note = @user.end_user_notes.build(:admin_user_id => myself.id)
+      end
+    end
+
+    @notes = @user.end_user_notes.find :all
+
+    render :partial => 'note'
   end
 
   private

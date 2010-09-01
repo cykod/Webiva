@@ -1,0 +1,23 @@
+<script>
+PageEditor = {
+  refreshList: function() {
+    ActiveTable.refresh("site_nodes_table","<%= url_for(:action => 'display_site_nodes_table', :path => @version.id, :language => @language) %>",'site_nodes_table',null);
+  }
+}
+</script>
+
+<% action_panel do |p| -%>
+  <% p.custom :right => true do -%>
+    <form method="GET">
+    Language: <%= select_tag :language, options_for_select(@languages, :selected => @language), :onchange => 'this.form.submit();' %>
+    </form>
+  <% end -%>
+<% end -%>
+
+<hr/>
+
+<div class='admin_content'>
+<div id='site_nodes_table'>
+<%= render :partial => 'site_nodes_table' %>
+</div>
+</div>

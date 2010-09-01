@@ -112,6 +112,7 @@ class Blog::PageFeature < ParagraphFeature
     c.image_tag('entry:image') { |t| t.locals.entry.image }
     c.expansion_tag('entry:comments') { |t| t.locals.entry.comments_count > 0 }
     c.value_tag('entry:comment_count') { |t| t.locals.entry.comments_count }
+    c.value_tag('entry:approved_comment_count') { |t| t.locals.entry.approved_comments_count }
     
     
     %w(title author).each do |elem|

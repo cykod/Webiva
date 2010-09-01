@@ -99,6 +99,23 @@ class PageRevision < DomainModel
   
   end
   
+  # create a deep-copy of this revision in a new language
+  def create_translation(language)
+    new_revision = self.clone
+    new_revision.language = language
+    new_revision.revision_type = 'real'
+    new_revision.active= false
+    new_revision.save
+
+    self.page_paragraphs.each do |para|
+      new_para = para.clone
+      new_para.page_revision_id=new_revision.id
+      new_para.save
+    end
+
+    new_revision
+  end
+
 
   # Create a new temporary revision
   # deep-cloning the paragraphs, and updating the paragraph connections

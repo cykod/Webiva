@@ -117,20 +117,22 @@ var StructureEditor = {
       modifier_id =modifier_id[1];
       StructureEditor.dragging = null;
       if(!$(elem_id).droppedOnNode) {
-      	if(confirm('<%= jh "Remove this modifier?".t %>')) {
-			StructureEditor.modifierRemove(modifier_id);
-			
-      		
-      	}
-      	else {
       	 StructureEditor.selectNode('mod',modifier_id);
-      	}
       }
       else {
           StructureEditor.selectNode('mod',modifier_id);
 	  $(elem_id).droppedOnNode = false;
       }
-      
+  },
+
+  deleteModifier: function(elem_id) {
+      var modifier_id = elem_id.split("_");
+      modifier_id = modifier_id[1];
+      StructureEditor.dragging = null;
+      if(confirm('<%= jh "Remove this modifier?".t %>')) {
+			StructureEditor.modifierRemove(modifier_id);
+                        $('element_info').innerHTML = '';
+      }
   },
 
   addNodeCreateDraggable: function (elem) {
@@ -188,7 +190,7 @@ var StructureEditor = {
 	      }
       }
       else {
-      	$('element_info').innerHTML = '';
+        StructureEditor.hideInfo();
       }
     
       StructureEditor.updateNodeHighlight(node_type,id);
@@ -196,50 +198,6 @@ var StructureEditor = {
     }
   },
  
-  pagePopup:function(page_id) {
-  	var del_text = "<%= jh 'Are you sure you want to delete this page and all elements below it permanently?'.t %>";
-  	SCMS.popup(
-  		new Array(['Edit URL','js','StructureEditor.editPageTitle(' + page_id + ')'],
-  				  ['Edit Page',"<%= url_for(:controller => 'edit', :action =>'page') %>/page/" + page_id],
-  				  [],
-  				  ['Delete Page','js','StructureEditor.nodeDelete(' + page_id + ',"' + del_text + '")']
-  				  )
-  			);
-  },
-  
-  modulePopup:function(mod_id) {
- 	this.nodePopup(mod_id,'Module','<%= jh "Are you sure you want to delete this module?".t %>');
-  },
-  
-  filePopup:function(doc_id) {
- 	this.nodePopup(doc_id,'File','<%= jh "Are you sure you want to delete this file url?".t %>');
-  },
-  
-  
- redirectPopup:function(redirect_id) {	
- 	this.nodePopup(redirect_id,'Redirect','<%= jh "Are you sure you want to delete this redirect?".t %>')
-  },
-  
-  lockPopup:function(lock_id) {
-  	var del_text = "<%= jh 'Are you sure you want to delete this lock and all elements below it permanently?'.t %>";
-  	SCMS.popup(
-  		new Array(['Edit Lock Name','js','StructureEditor.editPageTitle(' + lock_id + ')'],
-  				  [],
-  				  ['Delete Lock','js','StructureEditor.nodeDelete(' + lock_id + ',"' + del_text + '")']
-  				  )
-  			);
-  },
-  
-  nodePopup:function(node_id,elem_name,delete_text) {
-  	SCMS.popup(
-  		new Array(['Edit URL','js','StructureEditor.editPageTitle(' + node_id + ')'],
-  				  [],
-  				  ['Delete ' + elem_name,'js','StructureEditor.nodeDelete(' + node_id + ',"' + delete_text + '")']
-  				  )
-  			);
-  
-  
-  },
   
   loadElementInfo:function(node_type,node_id) {
       var url =   StructureEditor.elementInfoURL
@@ -255,7 +213,8 @@ var StructureEditor = {
       var params = $H({ node_type: node_type,
   						  node_id: node_id 
   						});
-  		$('element_info').innerHTML = '<div class="ajax_loader"></div>';
+
+          StructureEditor.hideInfo();
   		new Ajax.Updater('element_info',
   						url,
   						{ 
@@ -264,18 +223,46 @@ var StructureEditor = {
   							parameters: params.toQueryString(),
   							onComplete: function(req) {
     							if (StructureEditor.nodeSelectedType == node_type || StructureEditor.nodeSelected == node_id)
-      							window.location.hash = 'element_info_anchor';
+                    StructureEditor.showElementInfo(true);
+      							StructureEditor.scrollElementInfo();
     							}
   						});
   						
   	
   
   },
+
+  hideInfo: function() {
+       $j('#add_elements').hide();
+       $j('#element_info').hide(); 
+  },
+
+  showElementInfo: function(show) {
+     if(show) {
+       $j('#add_elements').hide();
+       $j('#show_add_elements_button').show();
+       $j('#element_info').show(); 
+     } else {
+       StructureEditor.selectNode(null);
+       $j('#show_add_elements_button').hide();
+       $j('#element_info').hide(); 
+       $j('#add_elements').show();
+     }
+   },
+
+   scrollElementInfo: function() {
+     var top = $j(document).scrollTop();
+     var offset = $j("#site_structure").offset();
+     var diff = top - offset.top + 15;
+     if(diff < 0) { diff = 0; }
+     $j('#element_info').css({'margin-top': diff });
+   }, 
   
   nodeDelete:function(node_id,delete_text) {
   	if(confirm(delete_text)) {
       StructureEditor.selectNode(null);
   		StructureEditor.nodeRemove(node_id);
+
   	}
   },
     
@@ -466,7 +453,7 @@ var StructureEditor = {
 							onComplete : function(resp) {
 								new Insertion.Bottom(children,resp.responseText);
 								StructureEditor.refreshNodeView(parent);
-								setTimeout('StructureEditor.editPageTitle(StructureEditor.last_node_added,true);',10);
+								setTimeout('StructureEditor.editPageTitle(StructureEditor.last_node_added,false);',10);
 							}
 						}
 						);               
@@ -610,10 +597,10 @@ var StructureEditor = {
         },
 	
 	editPageTitle: function(node_id,select_node) {
-	
-                <% if !permit?('editor_structure') || !permit?('editor_structure_advanced') %>
-                return;
-                <% end -%>
+
+    <% if !permit?('editor_structure') || !permit?('editor_structure_advanced') %>
+      return;
+    <% end -%>
 			
 		if(select_node) {
 			StructureEditor.selectNodeAfterEdit = true;
@@ -630,18 +617,24 @@ var StructureEditor = {
 		
 		StructureEditor.selectNode(null);
 		
-		if(elem && !elem.editing_title) {
-			elem.editing_title = 1;
-			var txt = elem.innerHTML;
-                        if(node.node_type != 'G') {
-		          txt = elem.innerHTML.substr(1);
-		          edit_elem.innerHTML = '/';
-                        } 
-                        else {
-		          txt = elem.innerHTML;
-		          edit_elem.innerHTML = '';
-                        }                          
-			
+    if(elem && !elem.editing_title) {
+      elem.editing_title = 1;
+      var txt = elem.innerHTML;
+      if(node.node_type != 'G') {
+        if(elem.innerHTML[0] != '/') {
+          txt = ''
+          edit_elem.innerHTML = '';
+
+        } else {
+          txt = elem.innerHTML.substr(1);
+          edit_elem.innerHTML = '/';
+        }
+      } 
+      else {
+        txt = elem.innerHTML;
+        edit_elem.innerHTML = '';
+      }                          
+
 			Element.hide(elem);
 			Element.show(edit_elem);
 			var ctrl = Builder.node('input',{ type: "text", width: 20, value: txt });
@@ -690,7 +683,6 @@ var StructureEditor = {
 		
 		var selectNode = StructureEditor.selectNodeAfterEdit;
 		
-		
 		if(submitData) {
 			var node_id=node.node_id;
 			
@@ -699,7 +691,11 @@ var StructureEditor = {
 						select_node: (selectNode?1:0) });
 						
 			if(node.node_type == 'P' || node.node_type == 'M' || node.node_type == 'D' || node.node_type == 'J') {
-			elem.innerHTML = '/' + txt;
+        if(node.node_type == 'P' && txt == '') {
+          elem.innerHTML = '<%= jh "Home Page".t %>';
+        } else {
+          elem.innerHTML = '/' + txt;
+        }
 			}
 			else {
 			elem.innerHTML = txt;
@@ -715,6 +711,7 @@ var StructureEditor = {
 								evalScripts:true,
 								onComplete : function(resp) {
 										StructureEditor.updateNodeHighlight('node',node_id);
+                    StructureEditor.showElementInfo(true);
 									}
 								}
 								);
@@ -724,7 +721,7 @@ var StructureEditor = {
               { parameters: req.toQueryString(),
                 onComplete: function() {
                     StructureEditor.selectNode('node',node_id);
-                 
+                    StructureEditor.showElementInfo(true);
                  }
               } )
       

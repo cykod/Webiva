@@ -677,7 +677,7 @@ an integer representing the number of seconds to keep the element in the cache.
 =end
   def renderer_cache(obj=nil,display_string=nil,options={ },&block)
     expiration = options[:expires] || 0
-    display_string = "#{paragraph.id}_#{display_string}"
+    display_string = "#{paragraph.id}_#{paragraph.language}_#{display_string}"
     result = nil
 
     unless editor? || options[:skip]
