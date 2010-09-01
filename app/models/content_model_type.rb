@@ -5,6 +5,8 @@ class ContentModelType < DomainModel
 
   attr_accessor :content_score_a,:content_score_b,:content_score_c
 
+  attr_accessor :connected_end_user
+
   def content_score
     self.content_score_a.to_f +
       self.content_score_b.to_f +

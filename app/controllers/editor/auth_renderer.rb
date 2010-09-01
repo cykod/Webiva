@@ -119,7 +119,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
         # Make sure save is successful - will recheck validation and
         # rescan for uniques
         if(@usr.save)
-          @usr.elevate_user_level @options.user_level
+          self.elevate_user_level @usr, @options.user_level
 
           @usr.tag_names_add(@options.add_tags) unless @options.add_tags.blank?
           @usr.tag_names_add(session[:user_tags]) if session[:user_tags]
@@ -264,7 +264,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
         # Make sure save is sucessful - will recheck validation and
         # rescan for uniques
         if(@usr.save)
-          @usr.elevate_user_level @options.user_level
+          self.elevate_user_level @usr, @options.user_level
 
           @usr.tag_names_add(@options.add_tags) unless @options.add_tags.blank?
 
@@ -696,7 +696,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
           end
         end
 
-        @target.elevate_user_level(3)
+        self.elevate_user_level @target, EndUser::UserLevel::SUBSCRIBED
         
         # Handle Subscription
         if @options.user_subscription_id

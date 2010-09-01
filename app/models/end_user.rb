@@ -108,14 +108,26 @@ class EndUser < DomainModel
 
   has_options :introduction, ['Mr.','Mrs.','Ms.']
   
-  has_options :user_level, [ [ '0 - Opt-Out', 0 ], 
-                        [ '1 - Added Manually', 1],
-                        [ '2 - Visited', 2],
-                        [ '3 - Subscribed', 3],
-                        [ '4 - Lead', 4],
-                        [ '5 - Converison', 5],
-                        [ '6 - High-value', 6]]
-                        
+  module UserLevel
+    OPT_OUT = 0
+    IMPORTED = 1
+    VISITED = 2
+    SUBSCRIBED = 3
+    LEAD = 4
+    CONVERSION = 5
+    HIGH_VALUE = 6
+  end
+
+  has_options :user_level,
+    [['0 - Opt-Out',        UserLevel::OPT_OUT], 
+     ['1 - Added Manually', UserLevel::IMPORTED],
+     ['2 - Visited',        UserLevel::VISITED],
+     ['3 - Subscribed',     UserLevel::SUBSCRIBED],
+     ['4 - Lead',           UserLevel::LEAD],
+     ['5 - Converison',     UserLevel::CONVERSION],
+     ['6 - High-value',     UserLevel::HIGH_VALUE]
+    ]
+
   # Referred to as  Origin
   has_options :source, [ [ 'Website', 'website' ],
                          [ 'Import', 'import' ],
@@ -494,12 +506,13 @@ class EndUser < DomainModel
       end
     end
 
-    # Mark as not acknowledged
-    if self.user_level > 1 && self.user_level_changed?
-      self.acknowledged = false
-    end
-
     true
+  end
+
+  def self.fetch_user_level(end_user_id)
+    results = self.connection.execute "SELECT user_level FROM end_users WHERE id = #{end_user_id.to_i}"
+    results.each_hash { |row| return row['user_level'].to_i }
+    nil
   end
 
   def elevate_user_level(level)
@@ -507,7 +520,12 @@ class EndUser < DomainModel
   end
 
   def self.elevate_user_level(end_user_id, user_level)
-    self.connection.execute "UPDATE end_users SET acknowledged = 0, user_level = #{user_level} WHERE id = #{end_user_id} AND user_level < #{user_level}"
+    if self.fetch_user_level(end_user_id) < user_level
+      self.connection.execute "UPDATE end_users SET acknowledged = 0, user_level = #{user_level} WHERE id = #{end_user_id} AND user_level < #{user_level}"
+      true
+    else
+      false
+    end
   end
 
   def unsubscribe
@@ -515,7 +533,12 @@ class EndUser < DomainModel
   end
 
   def self.unsubscribe(end_user_id)
-    self.connection.execute "UPDATE end_users SET acknowledged = 0, user_level = 0 WHERE id = #{end_user_id} AND user_level > 0"
+    if self.fetch_user_level(end_user_id) > 0
+      self.connection.execute "UPDATE end_users SET acknowledged = 0, user_level = 0 WHERE id = #{end_user_id} AND user_level > 0"
+      true
+    else
+      false
+    end
   end
 
   def update_editor_login #:nodoc:

@@ -30,6 +30,7 @@ class StatsTables < ActiveRecord::Migration
 
     add_column :domain_log_entries, :domain_id, :integer
     add_column :domain_log_entries, :site_version_id, :integer
+    add_column :domain_log_entries, :user_level, :integer
 
     add_column :domain_log_sessions, :domain_id, :integer
     add_column :domain_log_sessions, :site_version_id, :integer
@@ -42,6 +43,7 @@ class StatsTables < ActiveRecord::Migration
     drop_table :domain_log_group_entries
     remove_column :domain_log_entries, :domain_id
     remove_column :domain_log_entries, :site_version_id
+    remove_column :domain_log_entries, :user_level
     remove_column :domain_log_sessions, :domain_id
     remove_column :domain_log_sessions, :site_version_id
     remove_column :domain_log_sessions, :updated_at

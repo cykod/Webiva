@@ -15,13 +15,13 @@ end
 %>
 <script type="text/javascript">
 google.load("visualization", "1", {packages:["corechart"]});
-google.setOnLoadCallback(drawChart);
+google.setOnLoadCallback(fetchData);
 function fetchData() {
-  new Ajax.Request('<%= url_for :path => params[:path] %>.json', {method: 'get', onSuccess: function(res) {
-                       var data = new google.visualization.DataTable(res.responseJSON.table, res.responseJSON.version);
-                       for(var i=0; i<res.responseJSON.urls.length; i++ ) { data.setRowProperty(i, 'url', res.responseJSON.urls[i]); }
-                       drawBarChart('chart_div', res.responseJSON.title, data);
-                     }});
+  $j.getJSON('<%= url_for :path => params[:path] %>.json', {when: '<%= @when %>'}, function(res) {
+                       var data = new google.visualization.DataTable(res.table, res.version);
+                       for(var i=0; i<res.urls.length; i++ ) { data.setRowProperty(i, 'url', res.urls[i]); }
+                       drawBarChart('chart_div', res.title, data);
+                     });
 }
 
 function drawChart() {

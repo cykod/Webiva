@@ -437,6 +437,7 @@ EOF
     attr_accessor :meta_description
     attr_accessor :meta_keywords
     attr_accessor :content_nodes
+    attr_accessor :user_level
 
     def initialize
       super
@@ -702,6 +703,8 @@ EOF
 
 
                   if result.is_a?(ParagraphRenderer::ParagraphOutput)
+                    @page_information[:user_level] = result.user_level if result.user_level && result.user_level > @page_information[:user_level].to_i
+                    
                     page_connections.merge!(result.page_connections  || {}) 
                     # Get any remaining includes 
                     result.includes.each do |inc_type,inc_value|
@@ -741,7 +744,8 @@ EOF
 
     # Finally, it we made it here, lets output a page
     @output = PageOutput.new
-    
+
+    @output.user_level = @page_information.user_level
     @output.revision = @page_information.revision
     @output.status = '200'
     @output.language = @language

@@ -25,27 +25,25 @@ class DomainLogEntry < DomainModel
                       session[:domain_log_session][:id], 
                       output ? output.status.to_i : nil, 
                       action,
-                      (output && output.page? && output.content_nodes) ? output.content_nodes[0] : nil)
+                      (output && output.page? && output.content_nodes) ? output.content_nodes[0] : nil,
+                      (output && output.page?) ? output.user_level : nil)
   end
 
-  def self.create_entry(user,site_node,path,domain_log_session_id,http_status,action=nil,content_node_id=nil)
-  
-    # Don't track ClientUser access
-    unless user.is_a?(ClientUser)
-      DomainLogEntry.create(
-          :user_id => user.id,
-          :user_class_id => user.user_profile_id,
-          :site_node_id => site_node ? site_node.id : nil,
-          :site_version_id => site_node ? site_node.site_version_id : nil,
-          :domain_id => DomainModel.active_domain_id,
-          :node_path => site_node ? site_node.node_path : nil,
-          :page_path => path,
-          :occurred_at => Time.now(),
-          :domain_log_session_id => domain_log_session_id,
-          :content_node_id => content_node_id,
-          :http_status => http_status,
-          :end_user_action_id => action.is_a?(EndUserAction) ? action.id : nil)
-    end
+  def self.create_entry(user,site_node,path,domain_log_session_id,http_status,action=nil,content_node_id=nil,user_level=nil)
+    DomainLogEntry.create(
+      :user_id => user.id,
+      :user_class_id => user.user_profile_id,
+      :site_node_id => site_node ? site_node.id : nil,
+      :site_version_id => site_node ? site_node.site_version_id : nil,
+      :domain_id => DomainModel.active_domain_id,
+      :node_path => site_node ? site_node.node_path : nil,
+      :page_path => path,
+      :occurred_at => Time.now(),
+      :domain_log_session_id => domain_log_session_id,
+      :content_node_id => content_node_id,
+      :http_status => http_status,
+      :end_user_action_id => action.is_a?(EndUserAction) ? action.id : nil,
+      :user_level => user_level)
   end
   
   def action
