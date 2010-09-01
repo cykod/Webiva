@@ -44,17 +44,4 @@ class DummyText
 
     'Lorem ipsum'
   end
-
-  class LoremIpsumWebService < ActiveWebService
-
-    route :create_lipsum, '/feed/json', :expected_status => 200, :return => :handle_response
-
-    def initialize
-      self.base_uri = "http://www.lipsum.com"
-    end
-
-    def handle_response(response)
-      response['feed']['lipsum'] if response && response['feed']
-    end
-  end
 end

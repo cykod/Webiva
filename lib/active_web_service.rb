@@ -80,6 +80,21 @@ end
 
 # Find a customer by reference
 @service.find_customer_by_reference '581'
+
+
+class LoremIpsumWebService < ActiveWebService
+
+  route :create_lipsum, '/feed/json', :expected_status => 200, :return => :handle_response
+
+  def initialize
+    self.base_uri = "http://www.lipsum.com"
+  end
+
+  def handle_response(response)
+    response['feed']['lipsum'] if response && response['feed']
+  end
+end
+
 =end
 
 class ActiveWebService
