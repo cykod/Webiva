@@ -15,9 +15,9 @@ end
 %>
 <script type="text/javascript">
 google.load("visualization", "1", {packages:["corechart"]});
-google.setOnLoadCallback(fetchData);
+google.setOnLoadCallback(drawChart);
 function fetchData() {
-  $j.getJSON('<%= url_for :path => params[:path] %>.json', {when: '<%= @when %>'}, function(res) {
+  $j.getJSON('<%= url_for :path => params[:path] %>.json', {when: '<%= jh @when %>'}, function(res) {
                        var data = new google.visualization.DataTable(res.table, res.version);
                        for(var i=0; i<res.urls.length; i++ ) { data.setRowProperty(i, 'url', res.urls[i]); }
                        drawBarChart('chart_div', res.title, data);
@@ -41,8 +41,7 @@ function drawChart() {
 }
 
 function drawBarChart(ele_id, title, data) {
-  var width = 1000;
-  var height = data.getNumberOfRows() * 36 + 80;
+  var height = data.getNumberOfRows() * 36 + 72;
   var maxValue = 0;
   for(var i=1; i<data.getNumberOfColumns(); i++) {
     maxValue = Math.max(maxValue, data.getColumnRange(i).max);
@@ -54,7 +53,7 @@ function drawBarChart(ele_id, title, data) {
 
   var chart = new google.visualization.BarChart(document.getElementById(ele_id));
   var chartOptions = {
-    width: width,
+    width: $j('#' + ele_id).width(),
     height: height,
     title: title,
     hAxis: {minValue: 0, maxValue: maxValue, textStyle: {fontSize: 12}},
@@ -85,6 +84,11 @@ function drawBarChart(ele_id, title, data) {
         document.location = url;
       }
    }
+  });
+
+  $j(window).resize(function() {
+    chartOptions.width = $j('#' + ele_id).width();
+    chart.draw(data, chartOptions);
   });
 }
 
