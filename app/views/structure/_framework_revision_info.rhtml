@@ -1,20 +1,31 @@
-<br/>
 <% if info[1] -%>
-<script>
-  $('title_<%= @node.id %>_<%= info[0] %>').style.fontWeight = 'bold';
-</script>
-<b><%= sprintf("Version %s ".t,dec(info[1].revision).to_s) %>, <%= info[1].active? ? 'Active'.t : 'Inactive'.t %>, <%= render :partial => '/edit/saved_by', :locals => { :revision => info[1] } %></b>
-<br/>
-<br/>
-  <% if info[1] != info[2] -%>
-    <%= link_to 'Edit Active Revision (%d)' / info[1].revision, { :controller => 'edit', :action => 'page', :path => ['framework',@mod.id,info[0] ] }, :class => 'link_button' %>
-    <%= link_to 'Edit Latest Revision (%d)' / info[2].revision, { :controller => 'edit', :action => 'page', :path => ['framework',@mod.id,info[2].id ] }, :class => 'link_button' %>
-  <% else -%>
-    <%= link_to 'Edit Framework', { :controller => 'edit', :action => 'page', :path => ['framework',@mod.id,info[1].language ] }, :class => 'link_button'  %>
-  <% end -%>
+<% revision = @active_revision_info[1] 
+language = @active_revision_info[0]
+latest = @active_revision_info[2] -%>
+
+
+ <% if permit?('editor_editor') %>
+   <% if latest && latest != revision -%>
+     <div class='third'>
+         <%= button_link("pen.png","edit active", :controller => 'edit', :action => 'page', :path => ['framework',@mod.id,revision.id ] ) %><br/>
+       <%= revision_saved_details(revision) %>
+     </div>
+      <div class='third'>
+        <%= button_link("pen.png","edit newest",  { :controller => 'edit', :action => 'page', :path => ['framework',@mod.id,latest.id ] }, :alternative => true ) %><br/>
+       <%= revision_saved_details(latest) %>
+     </div>
+     
+   <% else -%>
+     <div class='third'>
+       <%= button_link("pen.png","edit framework", :controller => 'edit', :action => 'page', :path => ['framework',@mod.id,revision.id ] ) %><br/>
+       <%= revision_saved_details(revision) %>
+     </div>
+   <% end -%>
+ <% end -%>
+
 <% else -%>
 <% remote_form_for :revision_create, info[1],
-    :update => "node_#{@node.id}_#{info[0]}", 
+    :update => "element_info", 
     :method => 'post', 
     :url =>  { :action => 'create_revision', :language  => info[0],:node_id => @node.id, :framework_id => @mod.id  } do  |f| -%>
   <input type='submit' value='<%= "Create Framework".t %>' />
