@@ -35,6 +35,7 @@ class StatsTables < ActiveRecord::Migration
     add_column :domain_log_sessions, :domain_id, :integer
     add_column :domain_log_sessions, :site_version_id, :integer
     add_column :domain_log_sessions, :updated_at, :datetime
+    add_column :domain_log_sessions, :user_level, :integer
   end
 
   def self.down
@@ -47,6 +48,7 @@ class StatsTables < ActiveRecord::Migration
     remove_column :domain_log_sessions, :domain_id
     remove_column :domain_log_sessions, :site_version_id
     remove_column :domain_log_sessions, :updated_at
+    remove_column :domain_log_sessions, :user_level
   end
 end
 

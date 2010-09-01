@@ -10,6 +10,8 @@ class ParagraphRenderer < ParagraphFeature
   class ParagraphRedirect #:nodoc:all
       attr_accessor :paction
       attr_accessor :args
+      attr_accessor :user_level
+
       def initialize(args)
         @args = args
       end
@@ -585,6 +587,7 @@ class ParagraphRenderer < ParagraphFeature
       @paragraph_output.user_level = @paragraph_user_level if @paragraph_output.is_a?(ParagraphOutput)
     elsif @paragraph_output.is_a?(ParagraphRedirect)
       @paragraph_output.paction = @paction
+      @paragraph_output.user_level = @paragraph_user_level
     end
     @paragraph_output 
   end

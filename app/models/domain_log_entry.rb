@@ -26,11 +26,11 @@ class DomainLogEntry < DomainModel
                       output ? output.status.to_i : nil, 
                       action,
                       (output && output.page? && output.content_nodes) ? output.content_nodes[0] : nil,
-                      (output && output.page?) ? output.user_level : nil)
+                      (output && (output.page? || output.redirect?)) ? output.user_level : nil)
   end
 
   def self.create_entry(user,site_node,path,domain_log_session_id,http_status,action=nil,content_node_id=nil,user_level=nil)
-    DomainLogEntry.create(
+    entry = DomainLogEntry.create(
       :user_id => user.id,
       :user_class_id => user.user_profile_id,
       :site_node_id => site_node ? site_node.id : nil,
@@ -44,6 +44,8 @@ class DomainLogEntry < DomainModel
       :http_status => http_status,
       :end_user_action_id => action.is_a?(EndUserAction) ? action.id : nil,
       :user_level => user_level)
+    entry.domain_log_session.update_attribute(:user_level, user_level) if user_level
+    entry
   end
   
   def action

@@ -413,6 +413,7 @@ EOF
   # running the SiteNode results in a redirect
   class RedirectOutput < Output #:nodoc:all
     attr_accessor :redirect
+    attr_accessor :user_level
     def redirect?
       true
     end
@@ -692,6 +693,7 @@ EOF
                   if result.is_a?(ParagraphRenderer::ParagraphRedirect) && !options[:error_page]
                     @output = RedirectOutput.new
                     @output.status = result.args.delete(:status)  if result.args.is_a?(Hash)
+                    @output.user_level = result.user_level
 
                     @output.paction = result.paction if result.paction
                     @output.redirect = result.args
