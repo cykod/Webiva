@@ -163,4 +163,250 @@ a.button_link_alternative {
   background-color: #00bcdc !important;
 }
 
+/* Form */
+
+
+form {
+}
+
+form b {
+  color:#3b648c;
+  font-weight:bold;
+  text-decoration:none;
+}
+
+form td {
+}
+
+form td.label {
+ padding-top:10px;
+ text-align:right;
+ font-weight:bold;
+ color:#3b648c;
+ padding-right:15px;
+
+}
+
+form td.data {
+ padding-top:10px;
+
+}
+
+form td.description, form td.description_vertical {
+  padding-bottom:2px;
+  color:#999999;
+  font-size:10px;
+
+}
+
+
+form td.header {
+ color:#999999;
+ font-size:14px;
+ font-weight:bold;
+ padding-right:15px;
+ border-bottom:1px solid #CCCCCC;
+ padding-bottom:3px;
+ padding-top:10px;
+
+}
+
+
+
+form td.header_description {
+ color:#999999;
+ font-size:14px;
+ font-weight:bold;
+ padding-right:15px;
+ border-bottom:1px solid #CCCCCC;
+ padding-top:10px;
+
+}
+
+
+form td.label_vertical {
+ color:#3b648c;
+ font-weight:bold;
+ padding-right:15px;
+}
+
+
+form input[type=text], form input[type=password], textarea {
+ border:1px solid #a6cdda;
+ padding:2px 2px;
+ background-color: white; 
+}
+
+form .fieldWithErrors input[type=text], 
+form .fieldWithErrors input[type=password],
+form .fieldWithErrors textarea { border:1px solid red; }
+
+
+form input:focus, form textarea:focus  {
+ background-color: #e6f3ff;
+}
+
+form input[type=submit], form input[type=button] {
+ border:1px solid #7098b3;
+ color:#3b648c;
+ background-color:#a6cdda;
+ font-weight:bold;
+ padding:2px 5px;
+}
+
+/* Admin Active Table */
+.active_table {
+	border-left:1px solid #a6cdda;
+	border-right:1px solid #a6cdda;
+	border-bottom:1px solid #a6cdda;
+}
+
+
+ .table_highlight {
+  background-color:#DDDDDD;
+
+}
+.active_table th {
+
+    color:#3b648c;
+    background-color:#a6cdda;
+    border-left:1px solid #FFFFFF;
+    padding:10px 10px;
+
+}
+    
+    .active_table th.first {
+        border-left:0px;
+    }
+
+
+.active_table th a {
+
+    color:#3b648c;
+    text-decoration:underline;
+}
+
+
+.active_table td {
+  padding:6px 5px;
+  color:#183f66;
+}
+
+
+.active_table a {
+  text-decoration:underline;
+  color:#183f66;
+}
+
+.active_table tbody td {
+ border-top:1px solid #DDDDDD;
+
+}
+
+.active_table .search_form {
+ display:block;
+ padding: 4px 15px;
+ text-align:center;
+ background-color: #edc472;
+}
+
+.pagination_spacer {
+  vertical-align:middle;
+  height:10px;
+  margin:5px 0px;
+  background-color: #a6cdda;
+}
+
+
+ .pagination_row {
+  vertical-align:middle;
+}
+
+
+ ul.pagination {
+  display:block;
+  margin:0px;
+  padding:0px;
+  float:right;
+}
+
+ ul.pagination li {
+    display:block;
+    float:left;
+    background-color:#a6cdda;
+    margin:0px 2px;
+    border:1px solid #557e9f;
+  }
+  
+   ul.pagination li.first {
+    }
+
+   ul.pagination li.highlight {
+
+    }
+
+   ul.pagination li.current {
+        display:block;
+        padding:4px;
+        background-color:#FFFFFF;
+        font-weight:bold;
+    }
+
+
+   ul.pagination li.spacer {
+        display:block;
+        padding:4px;
+    }
+
+    ul.pagination li a {
+      display:block;
+      padding:4px;
+      text-decoration:none;
+    }
+
+
+
+.admin_tabbed_content {
+ padding:10px 0px;
+
+}
+
+
+
+
+/* Ordered Selection List Stuff */
+
+.ordered_selection_list {
+ padding:5px;
+ border:1px solid #CCCCCC;
+ margin:4px 0px;
+ width:400px;
+ overflow:auto;
+ 
+
+}
+
+.ordered_selection_list_item {
+ clear:both;
+ cursor:pointer;
+ padding:2px;
+ margin:2px;
+ background-color:#DDDDDD;
+ position:relative;
+ font-weight:bold;
+ color:#666666;
+}
+
+.ordered_selection_list_value {
+}
+
+.ordered_selection_list_remove {
+ position:absolute;
+ right:5px;
+
+}
+
+.ordered_selection_list_remove a { text-decoration: none; font-weight:bold; color:black; }
+
+
 

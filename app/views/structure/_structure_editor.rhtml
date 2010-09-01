@@ -27,6 +27,8 @@ var StructureEditor = {
 	},
 
         closedElements: [ <%= @closed.join(",") %> ],
+
+  language: "<%= Configuration.languages[0] %>",
 	
 	addModifierTypes: {
 		add_framework: 'F',
@@ -130,8 +132,8 @@ var StructureEditor = {
       modifier_id = modifier_id[1];
       StructureEditor.dragging = null;
       if(confirm('<%= jh "Remove this modifier?".t %>')) {
-			StructureEditor.modifierRemove(modifier_id);
-                        $('element_info').innerHTML = '';
+        StructureEditor.modifierRemove(modifier_id);
+        StructureEditor.hideInfo();
       }
   },
 
@@ -197,6 +199,16 @@ var StructureEditor = {
       
     }
   },
+
+  showPageLanguage: function(node_id,language) {
+      StructureEditor.language = language;
+     StructureEditor.loadElementInfo('node',node_id);
+  },
+
+  showFrameworkLanguage: function(mod_id,language) {
+      StructureEditor.language = language;
+     StructureEditor.loadElementInfo('mod',mod_id);
+  },
  
   
   loadElementInfo:function(node_type,node_id) {
@@ -211,7 +223,8 @@ var StructureEditor = {
       }
   		
       var params = $H({ node_type: node_type,
-  						  node_id: node_id 
+        node_id: node_id,
+        language: StructureEditor.language 
   						});
 
           StructureEditor.hideInfo();
@@ -233,7 +246,7 @@ var StructureEditor = {
   },
 
   hideInfo: function() {
-       $j('#add_elements').hide();
+      // $j('#add_elements').hide();
        $j('#element_info').hide(); 
   },
 
@@ -279,7 +292,7 @@ var StructureEditor = {
   
   
   refreshNodeView: function(nodeDiv) {
-      var updateDiv = getChild(nodeDiv,'node_children');
+      var updateDiv = $(nodeDiv).select('.node_children')[0];
   
       var elems = getChildElementsByClass(updateDiv,'node');
       
@@ -359,7 +372,7 @@ var StructureEditor = {
     else {
       
       // Move node to the correct location
-      var dropChildrenDiv = getChild(drop.parentNode,'node_children');
+      var dropChildrenDiv = $(drop.parentNode).select('.node_children')[0]
       
       if(drag.parentNode.id == dropChildrenDiv.id)
       return;
@@ -412,7 +425,7 @@ var StructureEditor = {
     }
     
 		var parent = $('node_' + parent_id);
-		var children = getChild(parent,'node_children');
+		var children = $(parent).select('.node_children')[0];
     
     
     new Ajax.Request(StructureEditor.copyNodeURL,
@@ -444,7 +457,7 @@ var StructureEditor = {
 			
 			var parent = $('node_' + parent_id);
 			
-			var children = getChild(parent,'node_children');
+			var children = $(parent).select('.node_children')[0];
 			
 			// update the database
 			new Ajax.Request(StructureEditor.createNodeURL,
