@@ -189,6 +189,11 @@ class EmarketingController < CmsController # :nodoc: all
     end
 
     cms_page_info([ ['E-marketing',url_for(:action => 'index') ], @chart_info[:name] ],'e_marketing')
+    require_js 'protovis/protovis-r3.2.js'
+    require_js 'tipsy/jquery.tipsy.js'
+    require_js 'protovis/tipsy.js'
+    require_css 'tipsy/tipsy.css'
+
     chart_links
   end
 

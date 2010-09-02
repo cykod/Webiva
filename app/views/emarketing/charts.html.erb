@@ -13,96 +13,6 @@ when 'last_month'
   chart_title = @from.strftime('%B')
 end
 %>
-<script type="text/javascript">
-google.load("visualization", "1", {packages:["corechart"]});
-google.setOnLoadCallback(drawChart);
-function fetchData() {
-  $j.getJSON('<%= url_for :path => params[:path] %>.json', {when: '<%= jh @when %>'}, function(res) {
-                       var data = new google.visualization.DataTable(res.table, res.version);
-                       for(var i=0; i<res.urls.length; i++ ) { data.setRowProperty(i, 'url', res.urls[i]); }
-                       drawBarChart('chart_div', res.title, data);
-                     });
-}
-
-function drawChart() {
-  var data = new google.visualization.DataTable();
-  data.addColumn('string', 'Title');
-  data.addColumn('number', 'Visitors');
-  data.addColumn('number', 'Hits');
-  <% if @all_fields %>
-    data.addColumn('number', 'Subscribers');
-    data.addColumn('number', 'Leads');
-    data.addColumn('number', 'Conversions');
-  <% end %>
-  data.addRows(<%= @stats.size %>);
-  <% @stats.each_with_index do |stat,idx| -%>
-    data.setValue(<%= idx %>, 0, '<%= jh stat.target.send(@title) %>');
-    data.setValue(<%= idx %>, 1, <%= stat.visits %>);
-    data.setValue(<%= idx %>, 2, <%= stat.hits %>);
-    <% if @all_fields %>
-      data.setValue(<%= idx %>, 3, <%= stat.subscribers %>);
-      data.setValue(<%= idx %>, 4, <%= stat.leads %>);
-      data.setValue(<%= idx %>, 5, <%= stat.conversions %>);
-    <% end %>
-    data.setRowProperty(<%= idx %>, 'url', '<%= url_for stat.target.admin_url %>');
-  <% end -%>
-
-  drawBarChart('chart_div', '<%= jh chart_title %>', data);
-}
-
-function drawBarChart(ele_id, title, data) {
-  var height = data.getNumberOfRows() * <%= @all_fields ? 50 : 36 %> + 72;
-  var maxValue = 0;
-  for(var i=1; i<data.getNumberOfColumns(); i++) {
-    maxValue = Math.max(maxValue, data.getColumnRange(i).max);
-  }
-
-  var sortColumn = 1;
-  var sortDesc = true;
-  data.sort([{column: sortColumn, desc: sortDesc}]);
-
-  var chart = new google.visualization.BarChart(document.getElementById(ele_id));
-  var chartOptions = {
-    width: $j('#' + ele_id).width(),
-    height: height,
-    title: title,
-    hAxis: {minValue: 0, maxValue: maxValue, textStyle: {fontSize: 12}},
-    vAxis: {textStyle: {fontSize: 13}},
-    legendTextStyle: {fontSize: 11},
-    titleTextStyle: {fontSize: 15},
-    tooltipTextStyle: {fontSize: 12}
-  };
-
-  chart.draw(data, chartOptions);
-
-  google.visualization.events.addListener(chart, 'select', function(event) {
-    var row = chart.getSelection()[0].row;
-    var col = chart.getSelection()[0].column;
-    if( row == undefined ) {
-      if(col == sortColumn) {
-        sortDesc = ! sortDesc;
-      } else {
-        sortDesc = true;
-      }
-      sortColumn = col;
-      data.sort([{column: sortColumn, desc: sortDesc}]);
-      chart.draw(data, chartOptions);
-
-    } else {
-      var url = data.getRowProperty(row, 'url');
-      if(url) {
-        document.location = url;
-      }
-   }
-  });
-
-  $j(window).resize(function() {
-    chartOptions.width = $j('#' + ele_id).width();
-    chart.draw(data, chartOptions);
-  });
-}
-
-</script>
 
 <% action_panel do |p| -%>
   <% @chart_links.each do |link| -%>
@@ -111,9 +21,146 @@ function drawBarChart(ele_id, title, data) {
 <% end -%>
 <hr/>
 
+<%
+chart_top = @stats.size > 3 ? ((@stats.size - 3) * 3) : 0
+%>
 <div class='admin_content'>
   <div style="padding-bottom:10px;">
     <%= @when_options.collect { |opt| link_to opt[0], {:when => opt[1]}, :class => @when == opt[1] ? 'selected' : nil }.join(' | ') %>
   </div>
-  <div id="chart_div"></div>
+
+<div id="chart_div">
+<div id="chart_canvas"></div>
+</div>
+
+<script type="text/javascript+protovis">
+
+<% if @all_fields -%>
+var data = [<%= @stats.collect { |stat| "[#{stat.visits}, #{stat.hits}, #{stat.subscribers}, #{stat.leads}, #{stat.conversions}]" }.join(', ') %>];
+<% else -%>
+var data = [<%= @stats.collect { |stat| "[#{stat.visits}, #{stat.hits}]" }.join(', ') %>];
+<% end -%>
+var labels = [<%= @stats.collect { |stat| "'#{jh stat.target.send(@title)}'" }.join(', ') %>];
+
+WebivaChart = function(d, l, opts) {
+  var $ = jQuery;
+  var data = d;
+  var labels = l;
+  var sortCol = 0;
+  var sortDesc = true;
+  var canvas = 'chart_canvas';
+  var maxValue = 0;
+  for(var i=0; i<data.length; i++) {
+    maxValue = Math.max(maxValue, data[i].max());
+  }
+
+  var columnNames = ['Visitors', 'Hits'];
+
+  function sort(col) {
+    if(col != undefined) {
+      if(sortCol == col) {
+        sortDesc = ! sortDesc;
+      } else {
+        sortDesc = true;
+      }
+      sortCol = col;
+    }
+    
+    data.sort(function(a, b) {
+      if(sortDesc) {
+        return b[sortCol] - a[sortCol];
+      }
+      return a[sortCol] - b[sortCol];
+    });
+  }
+
+  function draw() {
+    /* Sizing and scales. */
+    var rows = data.length,
+        barsPerRow = data[0].length,
+        marginLeft = 130,
+        marginRight = 100,
+        w = $('#chart_div').width() - (marginLeft + marginRight),
+        w = w > 600 ? w : 600,
+        h = (rows * (barsPerRow * 12 + 5)),
+        x = pv.Scale.linear(0, maxValue).range(0, w),
+        y = pv.Scale.ordinal(pv.range(rows)).splitBanded(0, h, 4/5),
+        legendWidth = marginRight - 5,
+        legendX = (w + 5),
+        legendSize = 5,
+        legendY = 0;
+  
+    /* The root panel. */
+    var vis = new pv.Panel()
+        .width(w)
+        .height(h)
+        .bottom(20)
+        .left(marginLeft)
+        .right(marginRight)
+        .top(5)
+        .canvas(canvas);
+  
+    /* The bars. */
+    var bar = vis.add(pv.Panel)
+       .data(data)
+       .top(function() y(this.index))
+       .height(y.range().band)
+       .add(pv.Bar)
+       .data(function(d) d)
+       .top(function() this.index * y.range().band / barsPerRow)
+       .height(y.range().band / barsPerRow)
+       .left(0)
+       .width(x)
+       .fillStyle(pv.Colors.category20().by(pv.index))
+       .text(function(d) d)
+       .event("mouseover", pv.Behavior.tipsy({gravity: "w", fade: true}));
+  
+    /* The legend. */
+    vis.add(pv.Bar)
+       .data(columnNames)
+       .top(function() this.index * 14)
+       .height(12)
+       .left(legendX)
+       .width(12)
+       .fillStyle(pv.Colors.category20().by(pv.index))
+       .event("mousedown", function() {sort(this.index); draw();})
+       .anchor("right").add(pv.Label)
+       .textMargin(5)
+       .textAlign("left")
+       .text(function() columnNames[this.index]);
+
+    /* The variable label. */
+    bar.parent.anchor("left").add(pv.Label)
+       .textMargin(5)
+       .textAlign("right")
+       .text(function() labels[this.parent.index]);
+  
+    /* X-axis ticks. */
+    vis.add(pv.Rule)
+        .data(x.ticks(5))
+        .left(x)
+        .strokeStyle(function(d) d ? "rgba(255,255,255,.3)" : "#000")
+        .add(pv.Rule)
+        .bottom(0)
+        .height(5)
+        .strokeStyle("#000")
+        .anchor("bottom").add(pv.Label)
+        .text(x.tickFormat);
+  
+    vis.render();
+
+    $(window).resize(function() {draw();});
+  }
+
+  return {draw: draw, sort: sort};
+};
+
+chart = WebivaChart(data, labels);
+
+$j(document).ready(function() {
+  chart.sort();
+  chart.draw();
+});
+</script>
+
 </div>

@@ -550,7 +550,8 @@ EOF
   attr_reader :container
   attr_accessor :revision, :mode, :active_template, :language, :user, :path_args, :page_information
   attr_reader :controller
-  
+  attr_reader :forced_revision
+
   # To create a SiteNodeEngine, you need to pass it a container (usually a SiteNode, but
   # could also be a framework PageModifier in the editor)
   #
@@ -574,6 +575,10 @@ EOF
       else
         @revision = @container.page_revisions.find_by_id(options[:edit])
       end
+      @language = @revision.language if @revision
+    elsif options[:revision] 
+      @revision = options[:revision]
+      @forced_revision = @revision.id
       @language = @revision.language if @revision
     else
       @mode = 'display'
