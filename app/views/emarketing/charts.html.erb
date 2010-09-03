@@ -33,129 +33,19 @@ chart_top = @stats.size > 3 ? ((@stats.size - 3) * 3) : 0
 <div id="chart_canvas"></div>
 </div>
 
-<script type="text/javascript+protovis">
+<script type="text/javascript">
 
 <% if @all_fields -%>
 var data = [<%= @stats.collect { |stat| "[#{stat.visits}, #{stat.hits}, #{stat.subscribers}, #{stat.leads}, #{stat.conversions}]" }.join(', ') %>];
+var columns = ['Visitors', 'Hits', 'Subscribers', 'Leads', 'Conversions'];
 <% else -%>
 var data = [<%= @stats.collect { |stat| "[#{stat.visits}, #{stat.hits}]" }.join(', ') %>];
+var columns = ['Visitors', 'Hits'];
 <% end -%>
 var labels = [<%= @stats.collect { |stat| "'#{jh stat.target.send(@title)}'" }.join(', ') %>];
+var urls = [<%= @stats.collect { |stat| "'#{jh url_for(stat.target.admin_url)}'" }.join(', ') %>];
 
-WebivaChart = function(d, l, opts) {
-  var $ = jQuery;
-  var data = d;
-  var labels = l;
-  var sortCol = 0;
-  var sortDesc = true;
-  var canvas = 'chart_canvas';
-  var maxValue = 0;
-  for(var i=0; i<data.length; i++) {
-    maxValue = Math.max(maxValue, data[i].max());
-  }
-
-  var columnNames = ['Visitors', 'Hits'];
-
-  function sort(col) {
-    if(col != undefined) {
-      if(sortCol == col) {
-        sortDesc = ! sortDesc;
-      } else {
-        sortDesc = true;
-      }
-      sortCol = col;
-    }
-    
-    data.sort(function(a, b) {
-      if(sortDesc) {
-        return b[sortCol] - a[sortCol];
-      }
-      return a[sortCol] - b[sortCol];
-    });
-  }
-
-  function draw() {
-    /* Sizing and scales. */
-    var rows = data.length,
-        barsPerRow = data[0].length,
-        marginLeft = 130,
-        marginRight = 100,
-        w = $('#chart_div').width() - (marginLeft + marginRight),
-        w = w > 600 ? w : 600,
-        h = (rows * (barsPerRow * 12 + 5)),
-        x = pv.Scale.linear(0, maxValue).range(0, w),
-        y = pv.Scale.ordinal(pv.range(rows)).splitBanded(0, h, 4/5),
-        legendWidth = marginRight - 5,
-        legendX = (w + 5),
-        legendSize = 5,
-        legendY = 0;
-  
-    /* The root panel. */
-    var vis = new pv.Panel()
-        .width(w)
-        .height(h)
-        .bottom(20)
-        .left(marginLeft)
-        .right(marginRight)
-        .top(5)
-        .canvas(canvas);
-  
-    /* The bars. */
-    var bar = vis.add(pv.Panel)
-       .data(data)
-       .top(function() y(this.index))
-       .height(y.range().band)
-       .add(pv.Bar)
-       .data(function(d) d)
-       .top(function() this.index * y.range().band / barsPerRow)
-       .height(y.range().band / barsPerRow)
-       .left(0)
-       .width(x)
-       .fillStyle(pv.Colors.category20().by(pv.index))
-       .text(function(d) d)
-       .event("mouseover", pv.Behavior.tipsy({gravity: "w", fade: true}));
-  
-    /* The legend. */
-    vis.add(pv.Bar)
-       .data(columnNames)
-       .top(function() this.index * 14)
-       .height(12)
-       .left(legendX)
-       .width(12)
-       .fillStyle(pv.Colors.category20().by(pv.index))
-       .event("mousedown", function() {sort(this.index); draw();})
-       .anchor("right").add(pv.Label)
-       .textMargin(5)
-       .textAlign("left")
-       .text(function() columnNames[this.index]);
-
-    /* The variable label. */
-    bar.parent.anchor("left").add(pv.Label)
-       .textMargin(5)
-       .textAlign("right")
-       .text(function() labels[this.parent.index]);
-  
-    /* X-axis ticks. */
-    vis.add(pv.Rule)
-        .data(x.ticks(5))
-        .left(x)
-        .strokeStyle(function(d) d ? "rgba(255,255,255,.3)" : "#000")
-        .add(pv.Rule)
-        .bottom(0)
-        .height(5)
-        .strokeStyle("#000")
-        .anchor("bottom").add(pv.Label)
-        .text(x.tickFormat);
-  
-    vis.render();
-
-    $(window).resize(function() {draw();});
-  }
-
-  return {draw: draw, sort: sort};
-};
-
-chart = WebivaChart(data, labels);
+var chart = WebivaBarChart({data: data, labels: labels, columns: columns, urls: urls, canvas: 'chart_canvas', container: 'chart_div'});
 
 $j(document).ready(function() {
   chart.sort();

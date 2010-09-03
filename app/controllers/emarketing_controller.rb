@@ -193,6 +193,7 @@ class EmarketingController < CmsController # :nodoc: all
     require_js 'tipsy/jquery.tipsy.js'
     require_js 'protovis/tipsy.js'
     require_css 'tipsy/tipsy.css'
+    require_js 'charts.js'
 
     chart_links
   end
