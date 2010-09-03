@@ -33,11 +33,11 @@
     </ul>
   </nav>
 </header>
-
-<div id='cms_main_body'>
   <div id='cms_breadcrumbs'>
     <%= render_webiva_breadcrumbs(@cms_page_info) %>
   </div>  
+
+<div id='cms_main_body'>
   <% if flash[:notice] %>
       <div id='flash_notice' class='flash_notice'>
         <div><%= flash[:notice] %> <a href='javascript:void(0);' onclick="new Effect.Fade('flash_notice', { duration: 0.5 });">(Close Notice)</a></div>

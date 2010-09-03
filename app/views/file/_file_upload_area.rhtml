@@ -1,0 +1,40 @@
+
+<div class='action_area_content' id='files_upload_area'  style='float:left;' >
+  <div id='upload_progress' style='display:none;' ></div>
+  <div id='upload_action'>
+    <%= form_tag({:action => 'upload'}, :onsubmit => "this.target = 'UploadTarget'; FileEditor.startUpload(this); FileEditor.hideDetails(); return true;", :enctype => 'multipart/form-data') %>
+    <div style='float:left;'>
+      <h2>
+        <%= theme_image_tag('framework/filemanager_upload_file.gif') -%>    
+        <%= "Upload New File:".t %>
+      </h2>
+    </div>
+    <div style='float:left; position:relative;'>
+      <input type='hidden' name='X-Progress-ID' id='upload_identifier' value=''/>
+      <input type='hidden' id='upload_file_parent_id' name='upload_file[parent_id]' value='<%= @folder.id %>'/>
+
+      <input type='text' id='file_upload_name' readonly='readonly' class='file_input_textbox'/>
+      <div class='filemanager_file_input'> 
+        <input type='button' value='Browse' class="button_link" />
+        <%= file_field 'upload_file','filename', :id => 'file_column', :class=>'file_input_hidden', :onchange => "FileEditor.selectedChange(); $j('#file_upload_name').val(this.value);" %>
+      </div>
+
+      <%= submit_tag "Upload".t, :id => 'upload_button', :class => 'button_link' %>
+
+      <div class='clear'></div>
+
+      <label for='replace_same'><input type='checkbox' name='replace_same' id='replace_same' checked='checked'/><%= "Replace matching files".t %></label>
+
+      <span id='upload_extra' style='display:none;'>
+        <label for='extract_archive'><input type='checkbox' name='extract_archive' id='extract_archive'/><%= "Extract Archived Files".t %></label>
+      </span>
+    </div>
+
+    <div id='upload_status_area'></div>
+    <script>$('file_column').value = '';$('upload_button').disabled = true;</script>
+
+  </form>
+  </div>
+
+  <iframe id="UploadTarget" name="UploadTarget" src="" style="width:0px;height:0px;border:0"></iframe>
+</div>

@@ -36,7 +36,7 @@ html[xmlns] .clearfix {
 }
 
 /* Design Styles */
-h1, h2, h3, h4 { font-family: 'Droid Sans', arial, serif; letter-spacing:-0.03em; }
+h1, h2, h3, h4, h1 a { font-family: 'Droid Sans', arial, serif; letter-spacing:-0.03em; }
 body { font-family:Arial; font-size:12px; } 
 h2 { font-size:18px; padding-bottom:10px; color:#7a5534; }
 .header_value { color:#a87c4f; }
@@ -148,20 +148,25 @@ a { color:#00bcdc; text-decoration:none; }
 
 /* Buttons */
 
-a.button_link { 
+.button_link, form input[type=submit].button_link, form input[type=button].button_link,
+button.button_link { 
   text-transform:downcase;
   font-size:14px;
   font-weight:bold;
-  color:white; display:inline-block; padding:4px 10px; 
-  background-color:#c7cb2d; 
+  color:white; padding:4px 4px; 
+  background-color: #00bcdc; 
   -moz-border-radius: 10px;
   -webkit-border-radius: 10px;
   text-decoration:none; 
+  border:0px;
+  display:inline-block;
 }
 
-a.button_link_alternative { 
-  background-color: #00bcdc !important;
+.button_link_alternative { 
+  background-color:#c7cb2d  !important;
 }
+
+
 
 /* Form */
 
@@ -409,4 +414,49 @@ form input[type=submit], form input[type=button] {
 .ordered_selection_list_remove a { text-decoration: none; font-weight:bold; color:black; }
 
 
+
+/* Stat Viewer */
+
+.stat_viewer {
+  padding:0px 0px 10px 0px;
+  border:1px solid #bbd6e1;
+  margin:0 0 10px 0;
+}
+
+.stat_viewer_open { 
+  padding:0px 0px 10px 0px;
+  margin:0 0 10px 0;
+  border:0px;
+ }
+
+.stat_viewer td {
+  padding:5px 2px;
+}
+
+.stat_viewer td.header {
+  padding:5px 5px;
+	color:#53789d;
+  font-weight:bold;
+  border-bottom:1px solid #CCCCCC;
+  height:20px;
+  background-color:#bcd9e3;
+}
+
+.stat_viewer td.spacer {
+ height:15px;
+}
+
+.stat_viewer td.label {
+ padding:8px 4px 4px 15px;
+ font-weight:bold;
+	color:#53789d;
+ text-align:right;
+
+}
+
+.stat_viewer td.stat {
+ padding:8px 15px 4px 0px;
+
+
+}
 

@@ -1,0 +1,10 @@
+<div class='action_area_content'  style='float:right'>
+  <%= form_tag '',  :onsubmit => "FileEditor.runSearch(this); return false;"  %>
+    <h2>
+       <%= theme_image_tag('framework/filemanager_search.gif') -%>    
+       Search For <input class="text_field_input" id="search_search" name="search[search]" size="20" type="text" />
+       <input class="button_link" id="search_submit" name="commit" type="submit" value="Search" />
+    </h2>
+  </form>
+</div>
+

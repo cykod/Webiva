@@ -14,7 +14,7 @@
       </div>
   </div>
 
-  <div class='fm_lock' id='item_lock_<%= file.id %>' <%= "style='display:none;'" unless file.private? %>><img src='<%= theme_src("icons/lock.gif") %>' /></div>
+  <div class='fm_lock' id='item_lock_<%= file.id %>' <%= "style='display:none;'" unless file.private? %>><span class='sprite_icon lock_sprite'></span></div>
   <div class='fm_extension' ><%= file.extension %></div>
   <div class='fm_processing'><%= "Processing" if file.processor_status == 'processing' %></div>
   <div style='display:none;' class='fm_item_count'></div>

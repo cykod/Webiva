@@ -694,6 +694,10 @@ class DomainFile < DomainModel
      df
    end
    
+
+   def mini_icon_class
+    "folder#{!self.special.blank? ? "_#{self.special}" : ''}_sprite"
+   end
    
    def mini_icon #:nodoc:
     "/images/icons/filemanager/mini_folder#{!self.special.blank? ? "_#{self.special}" : ''}.gif"

@@ -22,11 +22,14 @@
 
 <% if fld.parent_id.nil? %>
 <span class="mod_node" >
-	<%= theme_image_tag 'icons/domain.gif', :class => "node_handle_icon", :id => "node_handle_#{fld.id}" , :onclick => "FileEditor.selectTreeNode(#{fld.id});" %>
+  <%= tag('span',
+          {
+           :class => 'node_handle_icon sprite_icon domain_sprite',
+           :id => "node_handle_#{fld.id}", :onclick => "FileEditor.selectTreeNode(#{fld.id});" }, true) %></span>
   <a href='javascript:void(0);' class='node_title'  id='node_title_<%= fld.id %>' onclick="FileEditor.selectTreeNode(<%= fld.id %>);"><%= "Domain Root".t %></a>
 </span>
 <% else -%>
-	<%= image_tag theme_src(fld.mini_icon), :class => "node_handle_icon", :id => "node_handle_#{fld.id}" , :onclick => "FileEditor.selectTreeNode(#{fld.id});" %>
+  <%= content_tag :span, "", :class => "node_handle_icon sprite_icon #{fld.mini_icon_class}", :id => "node_handle_#{fld.id}" , :onclick => "FileEditor.selectTreeNode(#{fld.id});" %>
   <a href='javascript:void(0);' class='node_title'  id='node_title_<%= fld.id %>' onclick="FileEditor.selectTreeNode(<%= fld.id %>);"><%= fld.name %></a>
 <% end -%>
 
