@@ -10,6 +10,21 @@ class DomainLogReferrer  < DomainModel
     self.matching(domain,path).first || self.create(:referrer_domain => domain,:referrer_path =>path)
   end
 
+  def title
+    "#{self.referrer_domain}#{self.referrer_path}"
+  end
+
+  def admin_url
+    nil
+  end
+
+  def self.chart_traffic_handler_info
+    {
+      :name => 'Referrer Traffic',
+      :url => { :controller => '/emarketing', :action => 'charts', :path => ['traffic'] + self.name.underscore.split('/') }
+    }
+  end
+
   def self.traffic_scope(from, duration, opts={})
     scope = DomainLogSession.between(from, from+duration).visits('domain_log_referrer_id')
     if opts[:target_id]

@@ -48,7 +48,7 @@ class EmarketingController < CmsController # :nodoc: all
   end
   
   def visitors
-    cms_page_info([ ['E-marketing',url_for(:action => 'index') ], 'Visitors' ],'e_marketing')
+    cms_page_path ['Marketing'], 'Visitors'
     visitor_table_output params
     
     google = Configuration.google_analytics
@@ -106,7 +106,7 @@ class EmarketingController < CmsController # :nodoc: all
   end
 
   def stats
-    cms_page_info([ ['E-marketing',url_for(:action => 'index') ], 'Real Time Statistics' ],'e_marketing')
+    cms_page_path ['Marketing'], 'Real Time Statistics'
     require_js 'emarketing.js'
     chart_links
   end
@@ -118,7 +118,7 @@ class EmarketingController < CmsController # :nodoc: all
 
     raise 'No chart found' unless @chart_info
 
-    @when = params[:when] || params[:q] || 'today'
+    @when = params[:when] || 'today'
     @all_fields = params[:all]
 
     @from = Time.now.at_midnight
@@ -151,31 +151,18 @@ class EmarketingController < CmsController # :nodoc: all
     groups = @chart_info[:class].send(@stat_type, @from, @duration, @interval)
     @group = groups[0]
     @stats = @group.domain_log_stats
-
-    @max_hits = 0
-    @max_visits = 0
-
     @title = @chart_info[:title] || :title
 
-    unless @stats.empty?
-      @max_hits = @stats.collect(&:hits).max
-      @max_visits = @stats.collect(&:visits).max
-    end
-
     if @format == 'json'
-      data = nil
+      data = {:from => @from, :duration => @duration, :stat_type => @stat_type, :when => @when}
       if @all_fields
-        data = {
-          :cols => [{:id => 'title', :label => 'Title', :type => 'string'}, {:id => 'visitors', :label => 'Visitors', :type => 'number'}, {:id => 'hits', :label => 'Hits', :type => 'number'}, {:id => 'subscribers', :label => 'Subscribers', :type => 'number'}, {:id => 'leads', :label => 'Leads', :type => 'number'}, {:id => 'conversions', :label => 'Conversions', :type => 'number'}],
-          :rows => @stats.collect { |stat| {:c => [{:v => stat.target.send(@title)}, {:v => stat.visits}, {:v => stat.hits}, {:v => stat.subscribers}, {:v => stat.leads}, {:v => stat.conversions}]} }
-        }
+        data[:columns] = ['Visitors', 'Hits', 'Subscribers', 'Leads', 'Conversions']
+        data[:data] = @stats.collect { |stat| [stat.visits, stat.hits, stat.subscribers, stat.leads, stat.conversions] }
       else
-        data = {
-          :cols => [{:id => 'title', :label => 'Title', :type => 'string'}, {:id => 'visitors', :label => 'Visitors', :type => 'number'}, {:id => 'hits', :label => 'Hits', :type => 'number'}],
-          :rows => @stats.collect { |stat| {:c => [{:v => stat.target.send(@title)}, {:v => stat.visits}, {:v => stat.hits}]} }
-        }
+        data[:columns] = ['Visitors', 'Hits']
+        data[:data] = @stats.collect { |stat| [stat.visits, stat.hits] }
       end
-      return render :json => {:table => data, :version => '0.6', :title => 'Chart', :urls => @stats.collect{|stat| url_for(stat.target.admin_url)}}
+      return render :json => data
     elsif @format == 'csv'
       report = StringIO.new
       csv_data = FasterCSV.generate do |writter|
@@ -185,10 +172,10 @@ class EmarketingController < CmsController # :nodoc: all
         end
       end
       return send_data csv_data, :type => 'text/csv; charset=iso-8859-1; header=present', :disposition => "attachment; filename=stats.csv"
-
     end
 
-    cms_page_info([ ['E-marketing',url_for(:action => 'index') ], @chart_info[:name] ],'e_marketing')
+    cms_page_path ['Marketing'], @chart_info[:name]
+
     require_js 'protovis/protovis-r3.2.js'
     require_js 'tipsy/jquery.tipsy.js'
     require_js 'protovis/tipsy.js'

@@ -130,7 +130,9 @@ WebivaBarChart = function(opts) {
          .anchor("right").add(pv.Label)
          .textMargin(5)
          .textAlign("left")
-         .text(function() columns[this.index]);
+         .text(function() columns[this.index])
+         .events("all")
+         .event("click", function() {sort(this.index); draw(true);});
      }
 
     if(urls) {
@@ -148,7 +150,9 @@ WebivaBarChart = function(opts) {
       bar.parent.anchor("left").add(pv.Label)
          .textMargin(5)
          .textAlign("right")
-         .text(function() truncate(dataTable[this.parent.index].label, 22));
+         .text(function() truncate(dataTable[this.parent.index].label, 22))
+         .title(function() dataTable[this.parent.index].label)
+         .events("all");
     }
 
     var numTicks = 5;
