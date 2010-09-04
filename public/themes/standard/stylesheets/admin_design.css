@@ -42,6 +42,7 @@ h2 { font-size:18px; padding-bottom:10px; color:#7a5534; }
 .header_value { color:#a87c4f; }
 
 a { color:#00bcdc; text-decoration:none; }
+a:hover { text-decoration:underline; }
 
 .small { font-size:.7em; }
 .large { font-size: 1.4em; }
@@ -151,12 +152,12 @@ a { color:#00bcdc; text-decoration:none; }
 .button_link, form input[type=submit].button_link, form input[type=button].button_link,
 button.button_link { 
   text-transform:downcase;
-  font-size:14px;
-  font-weight:bold;
-  color:white; padding:4px 4px; 
+  font-size:12px;
+  font-weight:normal;
+  color:white; padding:6px 6px; 
   background-color: #00bcdc; 
-  -moz-border-radius: 10px;
-  -webkit-border-radius: 10px;
+  -moz-border-radius: 8px;
+  -webkit-border-radius: 8px;
   text-decoration:none; 
   border:0px;
   display:inline-block;
@@ -164,6 +165,10 @@ button.button_link {
 
 .button_link_alternative { 
   background-color:#c7cb2d  !important;
+}
+
+.button_link:disabled { 
+  opacity:0.5;
 }
 
 
@@ -430,6 +435,7 @@ form input[type=submit], form input[type=button] {
  }
 
 .stat_viewer td {
+  color:#603b17;
   padding:5px 2px;
 }
 
@@ -449,14 +455,11 @@ form input[type=submit], form input[type=button] {
 .stat_viewer td.label {
  padding:8px 4px 4px 15px;
  font-weight:bold;
-	color:#53789d;
  text-align:right;
 
 }
 
 .stat_viewer td.stat {
  padding:8px 15px 4px 0px;
-
-
 }
 

@@ -1,7 +1,8 @@
 
 <div id='cms_container'> 
 
-<header>
+<div id='cms_header_wrapper'>
+<header id='cms_header'>
   <% if myself.id && myself.editor? %>
 
     <div id='cms_header_tools'>
@@ -33,6 +34,7 @@
     </ul>
   </nav>
 </header>
+</div>
   <div id='cms_breadcrumbs'>
     <%= render_webiva_breadcrumbs(@cms_page_info) %>
   </div>  
@@ -55,3 +57,44 @@
 </div>
 
 </div>
+<script>
+$j(document).scroll(function(d) {
+      var top = $j(document).scrollTop();
+      var offset = $j("#cms_header").height();
+      var diff = top - offset;
+      if(diff < 0) { diff = 0; }
+
+      if(diff > 0) {
+          $j('header').width($j('header').width());
+         $j("header").addClass('fixed_header');
+      }
+      else {
+         $j("header").removeClass('fixed_header');
+         $j('header').width('auto');
+
+      }
+  });
+
+
+$j(window).bind('resize',function(d) {
+      var top = $j(document).scrollTop();
+      var offset = $j("#cms_header").height();
+      var diff = top - offset;
+      if(diff < 0) { diff = 0; }
+
+      if(diff > 0) {
+         $j("header").removeClass('fixed_header');
+         $j('header').width('auto');
+          $j('header').width($j('header').width());
+         $j("header").addClass('fixed_header');
+      }
+      else {
+         $j("header").removeClass('fixed_header');
+         $j('header').width('auto');
+
+      }
+  });
+
+
+
+</script>

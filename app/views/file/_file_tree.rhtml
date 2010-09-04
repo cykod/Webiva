@@ -10,7 +10,8 @@
 <% end -%>
 
 <% if fld.parent_id.nil? %>
-	<%= theme_image_tag("icons/menu/white.gif") -%>  
+  <%= #theme_image_tag("icons/menu/white.gif") 
+-%>  
 <% elsif fld.subfolders.length > 0 -%>
 	<%= theme_image_tag "icons/menu/last_closed.gif", :class => "line_icon", :id => "toggle_#{fld.id}", :onclick => "FileEditor.toggleVisible(this);"  -%>
 <% else -%>
@@ -52,7 +53,7 @@
 
 
 	<br/>
-	<div id='children_<%= fld.id %>' class='node_children' <%= "style='display:none;'" unless fld.parent_id.nil? %>>
+  <div id='children_<%= fld.id %>' class='node_children<%= " node_children_first" if  fld.parent_id.nil? %>' <%= "style='display:none;'" unless fld.parent_id.nil? %>>
 		<% if fld.subfolders.length > 0 -%>
 		<%= render :partial => "file_tree",  :locals => { :folders => fld.subfolders } %>
 		<% end -%>

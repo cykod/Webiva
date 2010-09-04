@@ -1,12 +1,10 @@
-
-<div class='action_area_content' id='files_upload_area'  style='float:left;' >
   <div id='upload_progress' style='display:none;' ></div>
   <div id='upload_action'>
     <%= form_tag({:action => 'upload'}, :onsubmit => "this.target = 'UploadTarget'; FileEditor.startUpload(this); FileEditor.hideDetails(); return true;", :enctype => 'multipart/form-data') %>
     <div style='float:left;'>
       <h2>
-        <%= theme_image_tag('framework/filemanager_upload_file.gif') -%>    
-        <%= "Upload New File:".t %>
+        <%= theme_image_tag('framework/filemanager_upload_file.gif',:align =>'baseline') -%>    
+        <%= "Upload File".t %>&nbsp;
       </h2>
     </div>
     <div style='float:left; position:relative;'>
@@ -37,4 +35,3 @@
   </div>
 
   <iframe id="UploadTarget" name="UploadTarget" src="" style="width:0px;height:0px;border:0"></iframe>
-</div>

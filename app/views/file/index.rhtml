@@ -7,18 +7,17 @@
 <div id='fm_dragbox' style='display:none;'></div>
 <%= render :partial => 'file_javascript' %>
 
-<div id='folder_action_area'>
-  <%= render :partial => 'file_upload_area' %>
-</div>
+<div class='action_area'>
+  <div id='folder_action_area' class='block_left' >
+    <%= render :partial => 'file_upload_area' %>
+  </div>
 
 
-<div class='action_area_content'  style='float:right'>
-   <%= render :partial => 'file_search_bar' %>
-</div>
-<div style='clear:both'></div>
-
-</div>
-
+  <div class='block_right'>
+    <%= render :partial => 'file_search_bar' %>
+  </div>
+ </div>
+ <div class='clear'></div>
 
 <div id='filemanager_files'>
 
@@ -48,7 +47,7 @@
         </div>
       </div>
 
-      <h2>  <div style='float:left;' id='folder_title'><%= render :partial => 'folder_title',:locals => { :folder => @folder } %></div>  
+      <h2>  <div class='block_left' id='folder_title'><%= render :partial => 'folder_title',:locals => { :folder => @folder } %></div>  
         <ul class='page_detail_buttons' style='position:relative; top:-5px;'>
           <li>
             <span  id='folder_order'>
@@ -74,12 +73,11 @@
           <div class='file_manager_icon clearfix' id='file_manager' >
             <%= render :partial => "folder_details", :locals => { :folder => @folder }	 %>
           </div>
+          <div class='clear'></div>
       </div>
 
 
     </div>
-
-    <div class='clear'></div>
   </div>
 </div> <!-- end #filemanager_files -->
 

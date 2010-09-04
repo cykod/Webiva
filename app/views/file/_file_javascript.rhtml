@@ -35,6 +35,7 @@ FileEditor = {
         FileEditor.display = 'list';
         $('file_manager').className = 'file_manager_list clearfix';
         FileEditor.updateIconSizes();
+        $j(window).resize();
     }
     else if(view_type == 'icon') {
         $('view_icon').className = 'image_icon_selected';
@@ -42,6 +43,7 @@ FileEditor = {
         FileEditor.display = 'icon';
         $('file_manager').className = 'file_manager_icon clearfix';
         FileEditor.updateIconSizes();
+        $j(window).resize();
     }
   },
   
@@ -67,6 +69,7 @@ FileEditor = {
       if(selectedSize != FileEditor.iconSizeName) {
         FileEditor.reloadThumbImages(selectedSize);
       }
+        $j(window).resize();
     }
     
     
@@ -274,7 +277,8 @@ FileEditor = {
 	fmCreateDraggable: function (elem) {
     if(elem && elem.id != '') { 
       var draggable = new Draggable(elem.id,
-      { handle: 'handle_' + elem.id,
+          { 
+        handle: 'handle_wrapper_' + SCMS.getElemNum(elem.id),
         revert:true,
         scroll: window,
         starteffect: FileEditor.iconStartDrag,
@@ -413,7 +417,7 @@ FileEditor = {
   
 	
 	createTreeFolderDroppable: function(elem) {
-		var dropTitle = getChild(elem,'node_line');
+		var dropTitle = $(elem).select('.node_line')[0];
 		
 		return Droppables.add(dropTitle.id, { 
 			hoverclass:'node_accept',
@@ -438,7 +442,7 @@ FileEditor = {
 		FileEditor.selectTreeNode(null);
 		elem.saved_bg = elem.style.backgroundImage;
 		elem.style.backgroundImage = 'none';
-		var droppable = getChild(elem,'node_line');
+		var droppable= $(elem).select('.node_line')[0];
 		Droppables.remove(droppable.id);
 	},
 	
@@ -451,7 +455,7 @@ FileEditor = {
 	
 	// Tree Related Functions
 	refreshNodeView: function(nodeDiv) {
-		var updateDiv = getChild(nodeDiv,'node_children');
+		var updateDiv = $(nodeDiv).select('.node_children')[0];
 	
 		var elems = getChildElementsByClass(updateDiv,'node');
 		
@@ -495,7 +499,7 @@ FileEditor = {
 	  var moved_folder = $('node_element_' + moved_folder_id);
 	  var dest_folder = $('node_element_' + dest_folder_id);
 	  
-	  var dest_children = getChild(dest_folder,'node_children');
+    var dest_children =  $(dest_folder).select('.node_children')[0];
 	  
 	  var moved_folder_parent_children = moved_folder.parentNode;
 	  var moved_folder_parent = moved_folder_parent_children.parentNode;
@@ -717,6 +721,10 @@ FileEditor = {
   	
   	deleteSelected: function(file_ids) {
   	  if(confirm('<%= jh "Are you sure you want to delete the selected item(s)?" %>')) {
+          var loadParent = null
+          if(file_ids[0] == FileEditor.nodeSelected) {
+                loadParent = SCMS.getElemNum($('node_element_' + FileEditor.nodeSelected).parentNode);
+          }
   	      var itms = file_ids ? file_ids : FileEditor.selectedItems;
   	      var req = $H({ 'file_id[]' : itms });
 		      new Ajax.Request('<%= url_for :controller => "file", :action => "delete_files" %>',
@@ -726,6 +734,7 @@ FileEditor = {
 					            itms.each(function(item_id) { FileEditor.removeItem(item_id); });
 					            FileEditor.hideDetails();
 					            FileEditor.updateAvailableStorage();
+                      if(loadParent) FileEditor.gotoFolder(loadParent);
 					         } });               
 			}
   	},
@@ -756,6 +765,7 @@ FileEditor = {
     uploadProgressID: null,
     
     startUpload:function(form) {
+        FileEditor.selectUpload();
         var uuid = "";
 	for (i = 0; i < 32; i++) { uuid += Math.floor(Math.random() * 16).toString(16); }
         form.action = "<%= url_for :action => 'upload' -%>?X-Progress-ID=" + uuid;
