@@ -567,7 +567,7 @@ See ActiveTable for usage examples
      The name of the element to update, defaults to [name]
 =end
   def active_table_for(name,active_table_output,options={},&block)
-    options = options.clone 
+    options = options.symbolize_keys
 
     pagination = active_table_output.paging
     objects = active_table_output.data
@@ -614,7 +614,9 @@ See ActiveTable for usage examples
       form ='form'
     end
 
-    concat("<#{form} id='#{name}_update_form' method='post'>");
+    wrapper_opts = { }
+    wrapper_opts[:style] = "display:block;" if options[:width]
+    concat("<div  #{wrapper_opts.collect { |key,val| "#{key}='#{val}'" }.join(' ')} class='active_table_wrapper'><#{form} id='#{name}_update_form' method='post'>");
 
     yield(nil) if(form_elements)
     # Initial Tabl Tag     
@@ -719,9 +721,9 @@ EOF
         if(table_actions && table_actions.length > 0)
           concat(table_actions.collect { |act|
                    if act[1] == 'js'
-                     "<input type='submit' value='#{vh act[0].t}' onclick='if(ActiveTable.countChecked(\"#{name}\") > 0) { #{jvh act[2]}; } return false;'/>"
+                     "<input class='button_link' type='submit' value='#{vh act[0].t}' onclick='if(ActiveTable.countChecked(\"#{name}\") > 0) { #{jvh act[2]}; } return false;'/>"
                    else
-                     "<input type='submit' value='#{vh act[0].t}' onclick='ActiveTable.action(\"#{act[1]}\",\"#{act[2] ? jvh(act[2]) : ''}\", \"#{name}\", \"#{refresh_url}\",\"#{update_element}\"); return false;'/>"
+                     "<input class='button_link' type='submit' value='#{vh act[0].t}' onclick='ActiveTable.action(\"#{act[1]}\",\"#{act[2] ? jvh(act[2]) : ''}\", \"#{name}\", \"#{refresh_url}\",\"#{update_element}\"); return false;'/>"
                    end
                  }.join(" "))  
         end
@@ -776,7 +778,7 @@ EOF
     else
       concat("<tbody><tr><td colspan='#{columns.length}'><div align='center'>#{"No Entries".t}</div></td></tr></tbody>")
     end
-    concat('</table></form>')
+    concat('</table></form></div>')
     concat("<script>ActiveTable.checkAll(\"#{name}\",false);</script>")
   end
 

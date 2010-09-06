@@ -5,6 +5,8 @@ header { height:106px; display:block; position:relative; background-color:#f3f6e
 #cms_header_wrapper { height:142px; }
  #cms_logo { position:absolute; bottom:-36px; left:30px; z-index:10; }
 
+#cms_manage_window { margin: 10px 20px; }
+
 header.fixed_header {
   position:fixed; top:-114px;
   z-index:1000;
@@ -223,8 +225,8 @@ hr { clear:both; border:0px; color:white; background-color:white; height:10px; }
   .lock_sprite{ background:url(../images/icons/site_tree.gif) -101px 0px no-repeat; }
 
   .page_detail_buttons { float:right; }
-  .page_detail_buttons li { float:left; margin-left:5px; }
-  .page_detail_buttons li a { 
+  .page_detail_buttons > li { float:left; margin-left:5px; }
+  .page_detail_buttons > li > a { 
     font-size:14px;
     font-weight:bold;
     text-transform:capitalize;
@@ -295,8 +297,7 @@ div.file_manager_directory { margin:5px; }
   position:relative;
   z-index:400;
 }
-
-#folder_order select {
+#folder_order select, #user_segments_user_segment_id {
   color:white;
   background-color:#00b591;
   border:0px;
@@ -307,7 +308,6 @@ div.file_manager_directory { margin:5px; }
 #folder_order select:active {
   outline:none;
 }
-
 fm_image_img {
   background-color:#DDDDDD;
 }
@@ -648,3 +648,32 @@ background: -webkit-gradient(
 
 
 }
+
+
+
+/* Wizards */
+
+#wizard_table {
+  margin-top:20px; 
+  clear:both; 
+  height:450px;
+}
+
+#wizard_steps {
+}
+
+#wizard_content {
+
+}
+
+.wizard_div {
+
+}
+
+#wizard_buttons {
+ height:30px;
+ text-align:right;
+ padding-right:20px;
+}
+
+

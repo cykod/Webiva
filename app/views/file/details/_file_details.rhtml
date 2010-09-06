@@ -39,7 +39,7 @@
  <% end -%>  
 
   <% if !@popup && file.editable? -%>
-    <button onclick='FileEditor.editFile(<%= file.id %>);'>Edit File</button>
+    <button class='button_link' onclick='FileEditor.editFile(<%= file.id %>);'>Edit File</button>
   <% end -%>
   <button class='button_link last' onclick='FileEditor.deleteSelected([<%= file.id  %>]);'>Delete</button>
   <div style='clear:both;'></div>

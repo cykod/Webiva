@@ -225,6 +225,8 @@ class MembersController < CmsController # :nodoc: all
     segmentations
 
     display_targets_table(false)
+
+
   end
 
    active_table :user_segments_table,
