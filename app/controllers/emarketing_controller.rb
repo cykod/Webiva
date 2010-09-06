@@ -22,7 +22,10 @@ class EmarketingController < CmsController # :nodoc: all
        [ "Real Time Statistics", :editor_visitors, "emarketing_statistics.gif", { :action => 'stats' }, 
           "View Real Time Visits to your site" ]
     ]
-          
+
+    get_handler_info(:chart, :traffic).each do |handler|
+      @subpages << [handler[:name], :editor_visitors, 'emarketing_statistics.gif', handler[:url], handler[:description] || handler[:name]]
+    end
   end
   
  include ActiveTable::Controller   
@@ -108,12 +111,18 @@ class EmarketingController < CmsController # :nodoc: all
   def stats
     cms_page_path ['Marketing'], 'Real Time Statistics'
     require_js 'emarketing.js'
-    chart_links
   end
 
   def charts
     @stat_type = params[:path][0]
     @handler, @format = params[:path][1..-1].join('/').split('.')
+    if @handler =~ /\/(\d+)$/
+      @target_id = $1.to_i
+      @handler.sub!("/#{@target_id}", '')
+    end
+    @type_id = params[:type_id] ? params[:type_id].to_i : nil
+    @type_id = nil if @type_id == 0
+
     @chart_info = get_handler_info(:chart, @stat_type, @handler)
 
     raise 'No chart found' unless @chart_info
@@ -148,7 +157,7 @@ class EmarketingController < CmsController # :nodoc: all
       @duration = 1.month
     end
 
-    groups = @chart_info[:class].send(@stat_type, @from, @duration, @interval)
+    groups = @chart_info[:class].send(@stat_type, @from, @duration, @interval, :target_id => @target_id, :type_id => @type_id)
     @group = groups[0]
     @stats = @group.domain_log_stats
     @title = @chart_info[:title] || :title
@@ -174,6 +183,10 @@ class EmarketingController < CmsController # :nodoc: all
       return send_data csv_data, :type => 'text/csv; charset=iso-8859-1; header=present', :disposition => "attachment; filename=stats.csv"
     end
 
+    if @chart_info[:type_options]
+      @type_options = @chart_info[:type_options].is_a?(Symbol) ? @chart_info[:class].send(@chart_info[:type_options]) : @chart_info[:type_options]
+    end
+
     cms_page_path ['Marketing'], @chart_info[:name]
 
     require_js 'protovis/protovis-r3.2.js'
@@ -181,8 +194,6 @@ class EmarketingController < CmsController # :nodoc: all
     require_js 'protovis/tipsy.js'
     require_css 'tipsy/tipsy.css'
     require_js 'charts.js'
-
-    chart_links
   end
 
   def real_time_stats_request
@@ -245,14 +256,5 @@ class EmarketingController < CmsController # :nodoc: all
     format = '%b %e, %Y %I:%M%P'
     data = { :range => range, :from => Time.at(from).strftime(format), :to => Time.at(to).strftime(format), :uniques => uniques, :hits => hits, :labels => labels }
     return render :json => data
-  end
-
-  protected
-
-  def chart_links
-    @chart_links = [['Real Time Statistics', {:action => 'stats'}]]
-    get_handler_info(:chart, :traffic).each do |handler|
-      @chart_links << [handler[:name], handler[:url]]
-    end
   end
 end

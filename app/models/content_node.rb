@@ -243,8 +243,13 @@ class ContentNode < DomainModel
   def self.chart_traffic_handler_info
     {
       :name => 'Content Traffic',
-      :url => { :controller => '/emarketing', :action => 'charts', :path => ['traffic'] + self.name.underscore.split('/') }
+      :url => { :controller => '/emarketing', :action => 'charts', :path => ['traffic'] + self.name.underscore.split('/') },
+      :type_options => :traffic_type_options
     }
+  end
+
+  def self.traffic_type_options
+    ContentType.select_options_with_nil
   end
 
   def self.traffic_scope(from, duration, opts={})

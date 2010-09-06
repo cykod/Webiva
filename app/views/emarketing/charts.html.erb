@@ -14,20 +14,22 @@ when 'last_month'
 end
 %>
 
-<% action_panel do |p| -%>
-  <% @chart_links.each do |link| -%>
-    <%= p.link link[0], :icon => 'show.gif', :url => link[1] %>
-  <% end -%>
-<% end -%>
-<hr/>
-
 <%
 chart_top = @stats.size > 3 ? ((@stats.size - 3) * 3) : 0
 %>
 <div class='admin_content'>
   <div style="padding-bottom:10px;">
-    <%= @when_options.collect { |opt| link_to opt[0], {:when => opt[1]}, :class => @when == opt[1] ? 'selected' : nil }.join(' | ') %>
+    <%= @when_options.collect { |opt| link_to opt[0], {:when => opt[1], :type_id => @type_id, :target_id => @target_id}, :class => @when == opt[1] ? 'selected' : nil }.join(' | ') %>
   </div>
+
+<% if @type_options -%>
+  <div style="padding:0 0 10px 5px;">
+  <form method='GET'>
+    <%= hidden_field_tag 'when', @when %>
+    <%= select_tag 'type_id', options_for_select(@type_options, @type_id), :onchange => 'this.form.submit();' %>
+  </form>
+  </div>
+<% end -%>
 
 <div id="chart_div">
 <div id="chart_canvas"></div>
