@@ -159,7 +159,7 @@ class EmarketingController < CmsController # :nodoc: all
 
     groups = @chart_info[:class].send(@stat_type, @from, @duration, @interval, :target_id => @target_id, :type_id => @type_id)
     @group = groups[0]
-    @stats = @group.domain_log_stats
+    @stats = @target_id ? @group.target_stats : @group.domain_log_stats
     @title = @chart_info[:title] || :title
 
     if @format == 'json'
