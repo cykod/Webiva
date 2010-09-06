@@ -194,7 +194,7 @@ describe StructureController do
 
       @rev.title.should be_blank
 
-      put(:update_revision, { :revision => @rev.id, :revision_edit => { :title => 'New Revision Title' }})
+      put(:update_revision, { :revision_id => @rev.id, :revision_edit => { :title => 'New Revision Title' }})
 
       @rev.reload
       @rev.title.should == 'New Revision Title'
