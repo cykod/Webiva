@@ -181,3 +181,14 @@ WebivaBarChart = function(opts) {
 
   return {draw: draw, sort: sort};
 };
+
+WebivaBarChart.fetch = function(url, opts) {
+  if(opts == undefined) { opts = {}; }
+  $j.getJSON(url, function(res) {
+               opts.data = res.data;
+               opts.columns = res.columns;
+               var chart = WebivaBarChart(opts);
+               if(opts.sortCol) { chart.sort(opts.sortCol); }
+               chart.draw();
+             });
+};

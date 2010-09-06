@@ -255,7 +255,6 @@ class ContentNode < DomainModel
   def self.traffic_scope(from, duration, opts={})
     scope = DomainLogEntry.between(from, from+duration).hits_n_visits('content_node_id')
     if opts[:target_id]
-      Rails.logger.error 'target_id: ' + opts[:target_id]
       scope = scope.scoped(:conditions => {:content_node_id => opts[:target_id]})
     elsif opts[:type_id]
       scope = scope.scoped(:joins => :content_node, :conditions => ['`content_nodes`.content_type_id = ?', opts[:type_id]])

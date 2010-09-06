@@ -163,7 +163,7 @@ class EmarketingController < CmsController # :nodoc: all
     @title = @chart_info[:title] || :title
 
     if @format == 'json'
-      data = {:from => @from, :duration => @duration, :stat_type => @stat_type, :when => @when}
+      data = {:from => @from, :duration => @duration, :stat_type => @stat_type, :when => @when, :target_id => @target_id, :type_id => @type_id}
       if @all_fields
         data[:columns] = ['Visitors', 'Hits', 'Subscribers', 'Leads', 'Conversions']
         data[:data] = @stats.collect { |stat| [stat.visits, stat.hits, stat.subscribers, stat.leads, stat.conversions] }
