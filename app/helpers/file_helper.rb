@@ -13,6 +13,15 @@ module FileHelper
     end
   end
 
+  def filemanager_details(file)
+     details = []
+       details << "#{file.width}x#{file.height}" if file.image? 
+       details << number_to_human_size(file.file_size) if file.file_size
+       details << "Created " + file.created_at.localize(DEFAULT_DATETIME_FORMAT.t) if file.created_at 
+       details.join(", ")
+
+  end
+
   def filemanager_register_details(file)
     file_info = fm_file_info(file)
   <<-END_OF_SCRIPT
@@ -44,7 +53,7 @@ module FileHelper
     tag("img",
         :title => file.name,
         :src => url,
-        :align => 'middle',
+        :align => 'absmiddle',
         :id => "thumb_image_#{file.id}",
         :width => thumb_size[0],
         :height => thumb_size[1]

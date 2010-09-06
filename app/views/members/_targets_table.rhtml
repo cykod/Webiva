@@ -18,8 +18,8 @@
   <td nowrap='1'>
     <%= entry_checkbox 'user',t.id %>
   </td>
-  <td align='center'>
-    <%= t.user_level %>
+  <td valign='center' align='center'>
+    <div style='font-size:18px;'><%= t.user_level_dingbat %></div>
   </td>
   <td align='center' nowrap='1'>
     <%= t.editor? ? '' : link_to(theme_image_tag('icons/actions/edit.gif'), :action => 'edit', :path => [ t.id, @segment ? @segment.id : nil ].compact) %>

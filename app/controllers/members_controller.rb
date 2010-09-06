@@ -201,7 +201,8 @@ class MembersController < CmsController # :nodoc: all
       handle_table_actions
     end
 
-    @active_table_output = email_targets_table_generate params, :per_page => 25, :include => [:user_class, :domain_file]
+    params[email_targets_table_name] = params[:email_targets_table]
+    @active_table_output = email_targets_table_generate params, :per_page => 10, :include => [:user_class, :domain_file]
 
     @handlers_data = UserSegment.get_handlers_data(@active_table_output.data(&:id), @fields)
 
@@ -224,6 +225,8 @@ class MembersController < CmsController # :nodoc: all
     segmentations
 
     display_targets_table(false)
+
+
   end
 
    active_table :user_segments_table,

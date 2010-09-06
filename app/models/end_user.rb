@@ -422,6 +422,19 @@ class EndUser < DomainModel
     return usr
   end
 
+
+  # Returns a dingbat representing the user level
+  def user_level_dingbat
+    if self.user_level == 0
+      "&#10061;"
+    elsif self.acknowledged?
+       "&##{10111 + self.user_level};"
+    else
+      "&##{10121 + self.user_level};"
+    end
+  end
+
+
   # Returns the full name of the user
   def name
     if !self.full_name.blank?

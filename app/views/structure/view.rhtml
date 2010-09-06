@@ -130,7 +130,7 @@ if @show_archived == 'hide'
   $j(document).scroll(function(d) {
       var top = $j(document).scrollTop();
       var offset = $j("#site_structure").offset();
-      var diff = top - offset.top;
+      var diff = top - offset.top + 22;
       if(diff < 0) { diff = 0; }
 
       if(diff > 0) {

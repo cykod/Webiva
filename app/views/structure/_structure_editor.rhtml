@@ -266,7 +266,7 @@ var StructureEditor = {
    scrollElementInfo: function() {
      var top = $j(document).scrollTop();
      var offset = $j("#site_structure").offset();
-     var diff = top - offset.top + 15;
+     var diff = top - offset.top + 40;
      if(diff < 0) { diff = 0; }
      $j('#element_info').css({'margin-top': diff });
    }, 

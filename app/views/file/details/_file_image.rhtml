@@ -1,7 +1,10 @@
 <% if file.image? || file.thumb? -%>
+<div id='fm_file_image_details'>
+Preview:
 <div id='fm_file_image'>
   <%= (file.image? && file.width < 256 && file.height < 256) ? file.image_tag(:original) :  file.image_tag(:small) %>
   
 </div>
+</diV>
 <% end -%>
 

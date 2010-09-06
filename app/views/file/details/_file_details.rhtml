@@ -1,4 +1,6 @@
 <div id='details_<%= file.id %>'>
+
+<div  class='tree_detail_body'>
 <%= render :partial => '/file/details/file_name', :locals => {:file => file } %>
 
 <%= render :partial => file.details_partial, :locals => {:file => file } %>
@@ -16,13 +18,13 @@
 
 <div id='fm_file_actions'>
   <% if @popup && file.file_type_match(@select) && !(@mce && !file.private? && file.image?) -%>
-    <button onclick='FileEditor.callbackFile(<%= file.id %>);'>Select</button>
+    <button  class='button_link' onclick='FileEditor.callbackFile(<%= file.id %>);'>Select</button>
   <% end -%>
-  <button  onclick='FileEditor.copyFile(<%= file.id %>)'>Copy File</button>
+  <button  class='button_link'  onclick='FileEditor.copyFile(<%= file.id %>)'>Copy File</button>
   <% if file.private? -%>
-    <button onclick='FileEditor.makeFilePublic(<%= file.id %>)'>Make Public</button>
+    <button class='button_link'  onclick='FileEditor.makeFilePublic(<%= file.id %>)'>Make Public</button>
   <% else -%>
-    <button onclick='FileEditor.makeFilePrivate(<%= file.id %>)'>Make Private</button>
+    <button  class='button_link' onclick='FileEditor.makeFilePrivate(<%= file.id %>)'>Make Private</button>
   <% end -%>
 
   <% if(file.processor_status == 'ok')  -%>
@@ -30,22 +32,23 @@
         <% Configuration.file_types.processors.each do |processor| -%>
           <% handler = (processor == 'local') ? { :name => 'Local Storage' } : get_handler_info(:website,:file,processor)  %>
           <%  if(file.processor != processor) %>
-          <button onclick='FileEditor.switchFileProcessor(<%= file.id %>,"<%= processor -%>")'><%= jh ('Switch to ' + handler[:name]).t %></button>
+          <button class='button_link' onclick='FileEditor.switchFileProcessor(<%= file.id %>,"<%= processor -%>")'><%= jh ('Switch to ' + handler[:name]).t %></button>
           <% end -%>
         <% end -%>
       <% end -%>
  <% end -%>  
 
   <% if !@popup && file.editable? -%>
-    <button onclick='FileEditor.editFile(<%= file.id %>);'>Edit File</button>
+    <button class='button_link' onclick='FileEditor.editFile(<%= file.id %>);'>Edit File</button>
   <% end -%>
-  <button class='last' onclick='FileEditor.deleteSelected([<%= file.id  %>]);'>Delete</button>
+  <button class='button_link last' onclick='FileEditor.deleteSelected([<%= file.id  %>]);'>Delete</button>
   <div style='clear:both;'></div>
 </div>
 
-
+</div> 
 <% ajax_tabs ['File Details','Revisions'], @selected_tab || 'File Details' do |t| %>
 <% t.tab do -%>
+  <div style='overflow:hidden'>
 
   <% stat_view :class => 'stat_viewer_open' do |v| -%>
     <%= v.raw 'File', link_to(file.name, file.url,:target => 'blank') %>
@@ -55,6 +58,7 @@
     <%= v.raw 'Uploaded By', file.creator ? link_to(file.creator.name, :controller => '/members',:action=>'view',:path => [ file.creator_id ]) : h('<Unknown>') %>
   <% end -%>
 
+</div>
 <% end -%>
 
 <% t.tab do -%>
