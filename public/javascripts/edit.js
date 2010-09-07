@@ -114,7 +114,6 @@ var cmsEdit = {
         cmsEdit.pageUrl = page_url;
 
       if(cmsEdit.pageUrl == 'Domain') cmsEdit.pageUrl = '/';
-        $('cms_goto_page').href = cmsEdit.pageUrl;
     }
     cmsEdit.pageType= page_type;
     cmsEdit.pageId = page_id;
@@ -126,6 +125,7 @@ var cmsEdit = {
     }
     cmsEdit.previousPageType = page_type;
     cmsEdit.previousPageId = page_id;
+    $('cms_goto_page').href = cmsEdit.editURL + 'goto' + "/" + cmsEdit.pageType + "/" + cmsEdit.pageId + "/" + cmsEdit.revisionId + '?url=' + escape(cmsEdit.pageUrl)
   },
 
   setParagraphIndex: function(para_index) {
@@ -301,7 +301,7 @@ var cmsEdit = {
     },
 
     gotoPage: function() {
-      return cmsEdit.leavePage(cmsEdit.pageUrl);
+      return cmsEdit.leavePage(cmsEdit.editURL + 'goto' + "/" + cmsEdit.pageType + "/" + cmsEdit.pageId + "/" + cmsEdit.revisionId + '?url=' + escape(cmsEdit.pageUrl));
     },
 
     closeStyleWin: function() {
@@ -328,7 +328,6 @@ var cmsEdit = {
       }
       else {
         return true;
-
       }
     },
 

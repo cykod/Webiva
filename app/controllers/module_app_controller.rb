@@ -115,8 +115,15 @@ class ModuleAppController < ApplicationController
     get_handlers(:page,:before_request).each do |req|
       cls = req[0].constantize.new(self)
       return false if(!cls.before_request)
-    end    
-    engine = SiteNodeEngine.new(@page,:display => session[:cms_language], :path => path_args)
+    end
+
+    if params['__VER__']
+      @revision = @page.page_revisions.find_by_identifier_hash(params['__VER__'])
+      return display_missing_page unless @revision
+      return render :inline => 'Invalid version' unless @revision.revision_type == 'real' || @revision.revision_type == 'temp'
+    end
+
+    engine = SiteNodeEngine.new(@page,:display => session[:cms_language], :path => path_args, :revision => @revision)
 
     begin 
       @output = engine.run(self,myself)
