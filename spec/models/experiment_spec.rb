@@ -26,6 +26,9 @@ describe Experiment do
         @exp.update_attributes :name => 'Test', :versions => [{:revision => '0.01', :weight => 50}, {:revision => '0.02', :weight => 50}]
       end
     end
+    
+    @exp = Experiment.find @exp.id
+    @exp.experiment_container.should == home_page
   end
 
   it "should not be able to create an experiment with multiple versions when weights are incorrect" do

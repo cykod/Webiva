@@ -76,6 +76,7 @@ class Experiment < DomainModel
 
   def versions=(vers)
     @versions = []
+    vers = vers.sort { |a,b| a[0].to_i <=> b[0].to_i }.collect { |v| v[1] } if vers.is_a?(Hash)
     vers.each do |ver|
       version = ver[:id] ? self.experiment_versions.find_by_id(ver[:id]) : nil
       version ||= ExperimentVersion.new(:experiment_id => self.id, :language => self.language)

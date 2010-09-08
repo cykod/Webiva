@@ -2,8 +2,8 @@ class InitialExperimentSetup < ActiveRecord::Migration
   def self.up
     create_table :experiments do |t|
       t.string :name
-      t.string :experiement_container_type
-      t.integer :experiement_container_id
+      t.string :experiment_container_type
+      t.integer :experiment_container_id
       t.datetime :started_at
       t.datetime :ended_at
       t.text :note
