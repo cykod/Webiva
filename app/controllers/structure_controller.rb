@@ -448,15 +448,26 @@ class StructureController < CmsController  # :nodoc: all
   end
 
   def experiment
-    @container = SiteNode.find params[:path][0]
-    @language = params[:path][1] || 'en'
+    view_language
 
-    @experiment = @container.experiment || Experiment.new(:experiment_container => @container)
-    @experiment.language = @language
+    @container = SiteNode.find params[:path][0]
+
+    @new = params[:new]
+    if @new
+      @experiment = Experiment.new(:experiment_container => @container)
+    else
+      @experiment = @container.experiment || Experiment.new(:experiment_container => @container)
+    end
+
+    @experiment.language = @view_language
     @min_revisions = @experiment.started? ? @experiment.versions.size : 2
     @experiment.num_versions = @experiment.id ? @experiment.versions.size : @min_revisions
+    @experiment.num_versions = @min_revisions if @experiment.num_versions < @min_revisions
 
-    @revisions = @container.page_revisions.find(:all, :conditions => {:revision_type => 'real', :language => @language}, :select => 'revision, version_name, active', :order => :revision).collect { |r| ["#{r.active ? '*' : ''} #{r.revision} #{r.version_name}".strip, r.revision] }
+    @revisions = @container.page_revisions.find(:all, :conditions => {:revision_type => 'real', :language => @view_language}, :select => 'revision, version_name, active', :order => :revision).collect { |r| ["#{r.active ? '*' : ''} #{r.revision} #{r.version_name}".strip, r.revision] }
+
+    @max_revisions = @revisions.size
+    @max_revisions = @min_revisions if @max_revisions < @min_revisions
 
     if request.post? && params[:experiment]
       @experiment.num_versions = (params[:num_versions] || @min_revisions).to_i
@@ -473,6 +484,28 @@ class StructureController < CmsController  # :nodoc: all
     end
 
     render :partial => 'experiment'
+  end
+
+  def update_experiment
+    view_language
+
+    @experiment = Experiment.find params[:path][0]
+    @experiment.language = @view_language
+
+    if params[:start]
+      @experiment.start! params[:start_time]
+    elsif params[:restart]
+      @experiment.restart! params[:end_time], :start_time => params[:start_time], :reset => params[:reset]
+    elsif params[:stop]
+      @experiment.end_experiment! params[:end_time]
+    else params[:select] && params[:version_id]
+      version_id = params[:version_id].to_i
+      @experiment.end_experiment! unless @experiment.finished?
+      @version = @experiment.versions.find { |v| v.id == version_id }
+      PageRevision.activate_page_revision(@experiment.experiment_container, @version.page_revision.id) if @version && @version.page_revision
+    end
+
+    p_element_info @experiment.experiment_container
   end
 
   protected

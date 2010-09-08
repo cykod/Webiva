@@ -4,6 +4,7 @@
 <script type="text/javascript">
 submitExperimentForm = function(frm, update) {
   var params = Form.serialize(frm);
+  params += '&language=<%= @view_language %><%= @new ? "&new=1" : "" %>';
   if(update) { params += '&update=1'; }
   SCMS.updateOverlay("<%= url_for %>", params);
 }
@@ -12,13 +13,17 @@ submitExperimentForm = function(frm, update) {
 <% admin_form_for :experiment, @experiment, :html => { :onsubmit => "submitExperimentForm(this, 1); return false;" } do |f| -%>
   <%= f.custom_field '', :value => f.output_error_message('', :base) if @experiment.errors.on(:base) %>
   <%= f.text_field :name %>
-  <%= f.custom_field :num_versions, :value => select_tag(:num_versions, options_for_select((2..@revisions.size).to_a, @experiment.num_versions), :onchange => 'submitExperimentForm(this.form);') %>
+  <%= f.custom_field :num_versions, :value => select_tag(:num_versions, options_for_select((@min_revisions..@max_revisions).to_a, @experiment.num_versions), :onchange => 'submitExperimentForm(this.form);') %>
   <%= f.header 'Select Revisions'.t, :description => 'Leave blank to distribute evenly'.t %>
   <% (1..@experiment.num_versions).each do |i| -%>
     <% version = @experiment.versions[i-1] || ExperimentVersion.new
     -%>
     <% cms_unstyled_fields_for "experiment[versions][#{i}]", version do |sf| -%>
-      <%= f.custom_field i.to_s, :value => "#{version.id ? sf.hidden_field(:id) : ''}#{sf.select(:revision, @revisions)} #{sf.text_field(:weight, :size => 4)}%" %>
+      <% if @experiment.is_running? && version.id -%>
+        <%= f.custom_field i.to_s, :value => "#{version.id ? sf.hidden_field(:id) : ''}#{sf.text_field(:revision, :readonly => true, :size => 4)} #{sf.text_field(:weight, :size => 4)}%" %>
+      <% else -%>
+        <%= f.custom_field i.to_s, :value => "#{version.id ? sf.hidden_field(:id) : ''}#{sf.select(:revision, @revisions)} #{sf.text_field(:weight, :size => 4)}%" %>
+      <% end -%>
     <% end -%>
   <% end -%>
   <%= f.spacer %>

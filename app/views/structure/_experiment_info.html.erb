@@ -1,0 +1,44 @@
+<ul class='description_list'>
+<li><h2><%= 'Running an Experiment'.t %></h2></li>
+
+<li>
+  <strong><%= "Name:".t %></strong> <%= h experiment.name %>
+  <a href='javascript:void(0);' onclick="SCMS.remoteOverlay('<%= url_for :action => 'experiment', :path => @node.id, :language => @view_language %>');">edit</a>
+</li>
+
+<% if ! experiment.started? && ! experiment.finished? -%>
+  <li>Experiment has not started. <a href="javascript:void(0);" onclick="StructureEditor.updateExperiment(<%= experiment.id %>, '<%= jh experiment.language %>', 'start')">Start it now.</a></li>
+<% elsif experiment.is_running? -%>
+  <li><strong><%= "Started on:".t %></strong> <%= experiment.started_at.to_s(:full) %></li>
+  <li>
+    <strong><%= "Ends on:".t %></strong> <%= experiment.ended_at ? experiment.ended_at.to_s(:full) : '(not set)'.t %>
+    <a href="javascript:void(0);" onclick="StructureEditor.updateExperiment(<%= experiment.id %>, '<%= jh experiment.language %>', 'stop')">stop</a>
+  </li>
+<% elsif experiment.finished? -%>
+  <li><strong><%= "Started on:".t %></strong> <%= experiment.started_at.to_s(:full) %></li>
+  <li>
+    <strong><%= "Ended on:".t %></strong> <%= experiment.ended_at.to_s(:full) %>
+    <a href="javascript:void(0);" onclick="StructureEditor.updateExperiment(<%= experiment.id %>, '<%= jh experiment.language %>', 'restart')">restart</a>
+  </li>
+<% end -%>
+
+<li>
+<table class="mini_table">
+<% experiment.experiment_versions.each do |version| -%>
+  <tr>
+  <td><%= version.title %> (<%= version.weight %>%)</td>
+  <td>&nbsp;| <%= '%d Visits' / version.num_visits %></td>
+  <td>&nbsp;| <%= '%d Conversions' / version.num_conversions %></td>
+  <td>&nbsp;| <%= version.success_percent %>%</td>
+  <td>
+    &nbsp;
+    <a href="<%= url_for :controller => 'edit', :action => 'page', :path => ['page', experiment.experiment_container.id, version.page_revision.id] %>">Edit</a>
+    <% if experiment.started? -%>
+      <a href="javascript:void(0);" onclick="StructureEditor.updateExperiment(<%= experiment.id %>, '<%= jh experiment.language %>', 'select', 'version_id=<%= version.id %>')">Select</a>
+    <% end -%>
+  </td>
+  </tr>
+<% end -%>
+</table>
+</li>
+</ul>

@@ -1059,9 +1059,14 @@ var StructureEditor = {
       return false;
     }
 
+  },
+
+  updateExperiment: function(experiment_id, language, action, params) {
+    var updateUrl = "<%= url_for :action => 'update_experiment' %>/" + experiment_id;
+    var parameters = "language=" + language + "&" + action + "=1";
+    if(params) { parameters += '&' + params; }
+    new Ajax.Updater('element_info', updateUrl, {parameters: parameters, evalScripts: true});
   }
-
-
 }
 
 </script>
