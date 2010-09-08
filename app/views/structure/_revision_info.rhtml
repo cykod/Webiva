@@ -45,7 +45,7 @@ latest = @active_revision_info[2] -%>
    <% end -%>
    <div class='third'>
          <br/>
-        <a class='large' href='#'>Run an Experiment</a>
+        <a class='large' href='javascript:void(0);' onclick="SCMS.remoteOverlay('<%= url_for :action => 'experiment', :path => @node.id %>');">Run an Experiment</a>
    </div>
 
  <% end -%>

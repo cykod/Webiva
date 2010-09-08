@@ -1,6 +1,6 @@
 
 class Experiment < DomainModel
-  attr_accessor :language
+  attr_accessor :language, :num_versions
 
   has_many :experiment_versions, :order => :id, :dependent => :destroy
   has_many :experiment_users
@@ -10,10 +10,16 @@ class Experiment < DomainModel
   validates_presence_of :experiment_container_type
   validates_presence_of :experiment_container_id
 
+  def finished?
+    ! self.ended_at.blank? && self.ended_at <= Time.now
+  end
+
+  def started?
+    self.started_at && self.started_at <= Time.now
+  end
+
   def is_running?
-    return false if self.started_at.blank? || (self.started_at > Time.now)
-    return false if ! self.ended_at.blank? && self.ended_at < Time.now
-    true
+    self.started? && ! self.finished?
   end
 
   def active?
@@ -22,7 +28,7 @@ class Experiment < DomainModel
 
   def validate
     if @versions && @versions.size > 0
-      if self.total_weight != 100
+      if self.total_weight != 100 && self.total_weight != 0
         self.errors.add_to_base("Weights must added up to 100")
         @versions.each { |v| v.errors.add(:weight, 'is invalid') }
       end
@@ -60,7 +66,7 @@ class Experiment < DomainModel
   end
 
   def total_weight
-    self.versions.collect(&:weight).inject(0) { |sum, n| sum + n }
+    self.versions.collect(&:weight).inject(0) { |sum, n| sum + n.to_i }
   end
 
   # returns an array of language specific versions
@@ -101,8 +107,16 @@ class Experiment < DomainModel
         end
       end
 
+      auto_set_weight = self.total_weight == 0
+      weight_per_version = @versions.size > 0 ? self.total_weight / @versions.size : 0
+      left_over_weight = @versions.size > 0 ? self.total_weight % @versions.size : 0
       @versions.each do |ver|
         ver.experiment_id = self.id
+        if auto_set_weight
+          ver.weight = weight_per_version
+          ver.weight += 1 if left_over_weight > 0
+          left_over_weight -= 1
+        end
         ver.save
       end
 

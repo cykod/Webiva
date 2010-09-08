@@ -449,10 +449,21 @@ class StructureController < CmsController  # :nodoc: all
 
   def experiment
     @container = SiteNode.find params[:path][0]
+    @language = params[:path][1] || 'en'
+
     @experiment = @container.experiment || @container.build_experiment(:experiment_container => @container)
+    @experiment.language = @language
+    @min_revisions = @experiment.started? ? @experiment.versions.size : 2
+    @experiment.num_versions = @min_revisions
+
+    @revisions = @container.page_revisions.find(:all, :conditions => {:revision_type => 'real', :language => @language}, :select => 'revision, version_name, active', :order => :revision).collect { |r| ["#{r.active ? '*' : ''} #{r.revision} #{r.version_name}".strip, r.revision] }
 
     if request.post? && params[:experiment]
-      if @experiment.update_attributes params[:experiment]
+      @experiment.num_versions = (params[:num_versions] || @min_revisions).to_i
+      @experiment.num_versions = @min_revisions if @experiment.num_versions < @min_revisions
+
+      @experiment.attributes = params[:experiment]
+      if params[:commit] && @experiment.save
         @container.update_attribute :experiment_id, @experiment.id
         render :update do |page|
           page << 'RedBox.close();'

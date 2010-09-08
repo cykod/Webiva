@@ -1,3 +1,27 @@
 <div class="cms_form">
+<h2><%= 'Run an Experiment'.t %></h2>
+
+<script type="text/javascript">
+submitExperimentForm = function(frm, commit) {
+  var params = $j(frm).serialize();
+  if(commit) { params += '&commit=1'; }
+  SCMS.updateOverlay("<%= url_for %>", params);
+}
+</script>
+
+<% admin_form_for :experiment, @experiment, :html => { :onsubmit => "submitExperimentForm(this, 1); return false;" } do |f| -%>
+  <%= f.text_field :name %>
+  <%= f.custom_field :num_versions, :value => select_tag(:num_versions, options_for_select((2..@revisions.size).to_a, @experiment.num_versions), :onchange => 'submitExperimentForm(this.form);') %>
+  <%= f.header 'Select Revisions'.t, :description => 'Leave blank to distribute evenly'.t %>
+  <% (1..@experiment.num_versions).each do |i| -%>
+    <% version = @experiment.versions[i-1] || ExperimentVersion.new
+    -%>
+    <% cms_unstyled_fields_for 'experiment[versions][]', version do |sf| -%>
+      <%= f.custom_field i.to_s, :value => "#{version.id ? sf.hidden_field(:id) : ''}#{sf.select(:revision, @revisions)} #{sf.text_field(:weight, :size => 4)}%" %>
+    <% end -%>
+  <% end -%>
+  <%= f.spacer %>
+  <%= f.cancel_submit_buttons "Cancel", "Submit", { :onclick => 'RedBox.close(); return false;' } %>
+<% end -%>
 
 </div>
