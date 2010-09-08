@@ -281,4 +281,19 @@ describe Experiment do
     @user.reload
     @user.success.should be_false
   end
+
+  it "should be able to auto populate weights" do
+    home_page = SiteVersion.default.root.pages.find_by_title('')
+    @exp = Experiment.new :experiment_container => home_page, :language => 'en'
+    assert_difference 'ExperimentVersion.count', 3 do
+      assert_difference 'Experiment.count', 1 do
+        @exp.update_attributes :name => 'Test', :versions => [{:revision => '0.01', :weight => ''}, {:revision => '0.02', :weight => ''}, {:revision => '0.03', :weight => ''}]
+      end
+    end
+
+    @exp.total_weight.should == 100
+    @exp.versions[0].weight.should == 34
+    @exp.versions[1].weight.should == 33
+    @exp.versions[2].weight.should == 33
+  end
 end

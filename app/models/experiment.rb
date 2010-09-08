@@ -108,8 +108,8 @@ class Experiment < DomainModel
       end
 
       auto_set_weight = self.total_weight == 0
-      weight_per_version = @versions.size > 0 ? self.total_weight / @versions.size : 0
-      left_over_weight = @versions.size > 0 ? self.total_weight % @versions.size : 0
+      weight_per_version = @versions.size > 0 ? 100 / @versions.size : 0
+      left_over_weight = @versions.size > 0 ? 100 % @versions.size : 0
       @versions.each do |ver|
         ver.experiment_id = self.id
         if auto_set_weight
