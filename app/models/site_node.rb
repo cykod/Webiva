@@ -47,6 +47,22 @@ class SiteNode < DomainModel
   # Expires the entire site when save or deleted
   expires_site
 
+  def is_running_an_experiment?
+    self.experiment_id && self.experiment && self.experiment.is_running?
+  end
+
+  def experiment_version(domain_log_visitor, language)
+    return nil unless self.experiment
+    self.experiment.get_version(domain_log_visitor, language)
+  end
+
+  def experiment_page_revision(domain_log_visitor, language)
+    return @experiment_page_revision if @experiment_page_revision
+    version = self.experiment_version(domain_log_visitor, language)
+    return nil unless version
+    @experiment_page_revision = self.page_revisions.first :conditions => {:revision => version.revision, :language => version.language, :revision_type => 'real'}
+  end
+
   def before_validation #:nodoc:
     self.node_type = 'P' if self.node_type.blank?
   end
