@@ -61,6 +61,12 @@ describe ExperimentVersion do
     home_page = SiteNode.find home_page.id
     home_page.is_running_an_experiment?.should be_true
 
+    assert_difference 'ExperimentUser.count', 0 do
+      home_page.experiment_page_revision(visitor, 'es').should be_nil
+      home_page.experiment_page_revision(visitor, 'fr').should be_nil
+      home_page.experiment_page_revision(visitor, 'de').should be_nil
+    end
+
     assert_difference 'ExperimentUser.count', 1 do
       @experiment_page_revision = home_page.experiment_page_revision(visitor, language)
     end
