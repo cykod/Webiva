@@ -19,7 +19,9 @@ class SiteNode < DomainModel
           
   belongs_to :site_module,
               :foreign_key => 'node_data'
-              
+
+  belongs_to :experiment, :dependent => :destroy
+
   belongs_to :domain_file,
               :foreign_key => 'node_data'
 

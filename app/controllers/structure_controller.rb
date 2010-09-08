@@ -447,6 +447,22 @@ class StructureController < CmsController  # :nodoc: all
     render :partial => 'edit_page_revision'
   end
 
+  def experiment
+    @container = SiteNode.find params[:path][0]
+    @experiment = @container.experiment || @container.build_experiment(:experiment_container => @container)
+
+    if request.post? && params[:experiment]
+      if @experiment.update_attributes params[:experiment]
+        @container.update_attribute :experiment_id, @experiment.id
+        render :update do |page|
+          page << 'RedBox.close();'
+        end
+      end
+    end
+
+    render :partial => 'experiment'
+  end
+
   protected
 
   def view_language
