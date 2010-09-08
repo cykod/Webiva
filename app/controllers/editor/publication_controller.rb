@@ -32,11 +32,12 @@ class Editor::PublicationController < ParagraphController #:nodoc:all
   end
   
   class CreateOptions < HashModel
-    default_options :redirect_page_id => nil, :options => [], :success_text => nil, :redirect_page => nil
+    default_options :redirect_page_id => nil, :options => [], :success_text => nil, :redirect_page => nil, :user_level => nil
     page_options :redirect_page_id
+    integer_options :user_level
 
     def redirect_page_id
-      @redirect_page || @redirect_page_id
+      (@redirect_page || @redirect_page_id).to_i
     end
 
     def validate
@@ -45,6 +46,9 @@ class Editor::PublicationController < ParagraphController #:nodoc:all
       end
     end
     
+    def self.user_level_options
+      [['--Select User Level--', nil]] + EndUser.user_level_select_options.select { |lvl| lvl[1] >= 3 && lvl[1] <= 5 }
+    end
   end
 
 

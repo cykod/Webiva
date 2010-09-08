@@ -32,6 +32,7 @@ describe DomainLogVisitor do
     dlv = DomainLogVisitor.first
 
     Proc.new {
+      @cookies[:v] = @cookies[:v][:value]
      DomainLogVisitor.log_visitor(@cookies,@user,@session,@request)
     }.should change { DomainLogVisitor.count }.by(0)
     
@@ -46,6 +47,7 @@ describe DomainLogVisitor do
     dlv = DomainLogVisitor.first.end_user_id.should be_nil
 
     @session = {}
+    @cookies[:v] = @cookies[:v][:value]
     DomainLogVisitor.log_visitor(@cookies,usr,@session,@request)
 
     dlv = DomainLogVisitor.first.end_user_id.should == usr.id

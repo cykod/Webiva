@@ -10,6 +10,8 @@ class ParagraphRenderer < ParagraphFeature
   class ParagraphRedirect #:nodoc:all
       attr_accessor :paction
       attr_accessor :args
+      attr_accessor :user_level
+
       def initialize(args)
         @args = args
       end
@@ -31,7 +33,8 @@ class ParagraphRenderer < ParagraphFeature
     attr_accessor :paction_data
     attr_accessor :content_nodes
     attr_accessor :paragraph_id
-    
+    attr_accessor :user_level
+
     def method_missing(method,args)
       @rnd.send(method)
     end
@@ -166,7 +169,14 @@ class ParagraphRenderer < ParagraphFeature
     end
   end 
 
-  
+  def elevate_user_level(user, user_level)
+    @paragraph_user_level = user_level if user.elevate_user_level(user_level)
+  end
+
+  def unsubscribe_user(user)
+    @paragraph_user_level = user_level if user.unsubscribe
+  end
+
   attr_reader :user_class
   attr_reader :language
   attr_reader :controller
@@ -574,8 +584,10 @@ class ParagraphRenderer < ParagraphFeature
       @paragraph_output.paction = @paction
       @paragraph_output.page_title = @page_title
       @paragraph_output.content_nodes = @content_node_list
+      @paragraph_output.user_level = @paragraph_user_level if @paragraph_output.is_a?(ParagraphOutput)
     elsif @paragraph_output.is_a?(ParagraphRedirect)
       @paragraph_output.paction = @paction
+      @paragraph_output.user_level = @paragraph_user_level
     end
     @paragraph_output 
   end

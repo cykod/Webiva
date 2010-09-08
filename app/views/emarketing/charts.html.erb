@@ -13,73 +13,46 @@ when 'last_month'
   chart_title = @from.strftime('%B')
 end
 %>
-<script type="text/javascript">
-google.load("visualization", "1", {packages:["corechart"]});
-google.setOnLoadCallback(drawChart);
-function drawChart() {
-  var width = 1000;
-  var height = <%= @stats.size * 36 %> + 80;
-  var data = new google.visualization.DataTable();
-  data.addColumn('string', 'Content');
-  data.addColumn('number', 'Visitors');
-  data.addColumn('number', 'Hits');
-  data.addRows(<%= @stats.size %>);
-  <% @stats.each_with_index do |stat,idx| -%>
-    data.setCell(<%= idx %>, 0, '<%= jh stat.target.send(@title) %>', '<%= jh stat.target.send(@title) %>', {url: '<%= url_for stat.target.admin_url %>'});
-    data.setValue(<%= idx %>, 1, <%= stat.visits %>);
-    data.setValue(<%= idx %>, 2, <%= stat.hits %>);
-  <% end -%>
 
-  var sortColumn = 1;
-  var sortDesc = true;
-  data.sort([{column: sortColumn, desc: sortDesc}]);
-
-  var chart = new google.visualization.BarChart(document.getElementById('chart_div'));
-  var chartOptions = {
-    width: width,
-    height: height,
-    title: '<%= jh chart_title %>',
-    hAxis: {minValue: 0, maxValue: <%= @max_hits %>, textStyle: {fontSize: 12}},
-    vAxis: {textStyle: {fontSize: 13}},
-    legendTextStyle: {fontSize: 11},
-    titleTextStyle: {fontSize: 15},
-    tooltipTextStyle: {fontSize: 12}
-  };
-
-  chart.draw(data, chartOptions);
-
-  google.visualization.events.addListener(chart, 'select', function(event) {
-    var row = chart.getSelection()[0].row;
-    var col = chart.getSelection()[0].column;
-    if( row == undefined ) {
-      if(col == sortColumn) {
-        sortDesc = ! sortDesc;
-      } else {
-        sortDesc = true;
-      }
-      sortColumn = col;
-      data.sort([{column: sortColumn, desc: sortDesc}]);
-      chart.draw(data, chartOptions);
-
-    } else {
-      var url = data.getProperty(row, 0, 'url');
-      document.location = url;
-    }
-  });
-}
-
-</script>
-
-<% action_panel do |p| -%>
-  <% @chart_links.each do |link| -%>
-    <%= p.link link[0], :icon => 'show.gif', :url => link[1] %>
-  <% end -%>
-<% end -%>
-<hr/>
-
+<%
+chart_top = @stats.size > 3 ? ((@stats.size - 3) * 3) : 0
+%>
 <div class='admin_content'>
   <div style="padding-bottom:10px;">
-    <%= @when_options.collect { |opt| link_to opt[0], {:when => opt[1]}, :class => @when == opt[1] ? 'selected' : nil }.join(' | ') %>
+    <%= @when_options.collect { |opt| link_to opt[0], {:when => opt[1], :type_id => @type_id, :target_id => @target_id}, :class => @when == opt[1] ? 'selected' : nil }.join(' | ') %>
   </div>
-  <div id="chart_div"></div>
+
+<% if @type_options -%>
+  <div style="padding:0 0 10px 5px;">
+  <form method='GET'>
+    <%= hidden_field_tag 'when', @when %>
+    <%= select_tag 'type_id', options_for_select(@type_options, @type_id), :onchange => 'this.form.submit();' %>
+  </form>
+  </div>
+<% end -%>
+
+<div id="chart_div">
+<div id="chart_canvas"></div>
+</div>
+
+<script type="text/javascript">
+
+<% if @all_fields -%>
+var data = [<%= @stats.collect { |stat| "[#{stat.visits}, #{stat.hits}, #{stat.subscribers}, #{stat.leads}, #{stat.conversions}]" }.join(', ') %>];
+var columns = ['Visitors', 'Hits', 'Subscribers', 'Leads', 'Conversions'];
+<% else -%>
+var data = [<%= @stats.collect { |stat| "[#{stat.visits}, #{stat.hits}]" }.join(', ') %>];
+var columns = ['Visitors', 'Hits'];
+<% end -%>
+var labels = [<%= @stats.collect { |stat| "'#{jh stat.target.send(@title)}'" }.join(', ') %>];
+var urls = [<%= @stats.collect { |stat| "'#{jh url_for(stat.target.admin_url)}'" }.join(', ') %>];
+
+var chart = WebivaBarChart({data: data, labels: labels, columns: columns, urls: urls, canvas: 'chart_canvas', container: 'chart_div'});
+
+$j(document).ready(function() {
+  chart.sort();
+  chart.draw();
+});
+</script>
+
 </div>

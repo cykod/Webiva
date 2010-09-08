@@ -43,12 +43,16 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
         if entry.errors.length == 0 && entry.save
           expire_content(publication.content_model_id)
   
+          user = entry.connected_end_user ? entry.connected_end_user : myself
+
           session['content_model'] ||= {}
           session['content_model'][publication.content_model.table_name] = entry.id
           if publication.update_action_count > 0
-            publication.run_triggered_actions(entry,'create',myself)
+            publication.run_triggered_actions(entry,'create',user)
           end
           
+          self.elevate_user_level(user, @options.user_level) if user && user.id && ! @options.user_level.blank? && @options.user_level > 0
+
           if @options.redirect_page_url
             return redirect_paragraph @options.redirect_page_url
           else

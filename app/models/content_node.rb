@@ -243,27 +243,35 @@ class ContentNode < DomainModel
   def self.chart_traffic_handler_info
     {
       :name => 'Content Traffic',
-      :url => { :controller => '/emarketing', :action => 'charts', :path => ['traffic'] + self.name.underscore.split('/') }
+      :url => { :controller => '/emarketing', :action => 'charts', :path => ['traffic'] + self.name.underscore.split('/') },
+      :type_options => :traffic_type_options
     }
   end
 
-  def self.traffic_scope(from, duration, content_node_id=nil)
+  def self.traffic_type_options
+    ContentType.select_options_with_nil
+  end
+
+  def self.traffic_scope(from, duration, opts={})
     scope = DomainLogEntry.between(from, from+duration).hits_n_visits('content_node_id')
-    if content_node_id
-      scope = scope.scoped(:conditions => {:content_node_id => content_node_id})
+    if opts[:target_id]
+      scope = scope.scoped(:conditions => {:content_node_id => opts[:target_id]})
+    elsif opts[:type_id]
+      scope = scope.scoped(:joins => :content_node, :conditions => ['`content_nodes`.content_type_id = ?', opts[:type_id]])
     else
       scope = scope.content_only
     end
     scope
   end
 
-  def self.traffic(from, duration, intervals, target=nil)
-    DomainLogGroup.stats(target ? target : self.name, from, duration, intervals, :type => 'traffic') do |from, duration|
-      self.traffic_scope from, duration, target ? target.id : nil
+  def self.traffic(from, duration, intervals, opts={})
+    stat_type = opts[:type_id] ? "traffic_content_type_#{opts[:type_id]}" : 'traffic'
+    DomainLogGroup.stats(self.name, from, duration, intervals, :type => stat_type, :target_id => opts[:target_id]) do |from, duration|
+      self.traffic_scope from, duration, opts
     end
   end
 
   def traffic(from, duration, intervals)
-    self.class.traffic from, duration, intervals, self
+    self.class.traffic from, duration, intervals, :target_id => self.id
   end
 end

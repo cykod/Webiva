@@ -27,9 +27,7 @@ module Content::CoreFeature
     end
     
     class EmailTargetConnectOptions < HashModel
-      attributes :add_target_tags => '', :update_target_tags => '',:add_target_source => '', :matched_fields => {}, :override_content_node_user => 'never', :user_level => 4
-
-      integer_options :user_level
+      attributes :add_target_tags => '', :update_target_tags => '',:add_target_source => '', :matched_fields => {}, :override_content_node_user => 'never'
 
       def validate
         self.errors.add(:matched_fields,'must match email address') unless self.matched_fields.values.include?('end_user.email')
@@ -56,7 +54,7 @@ module Content::CoreFeature
       opts = self.options # Need to bind this locally
       
       cls.send(:define_method,:email_target_connect) do
-        { :fields => arr, :add_tags => opts.add_target_tags, :update_tags => opts.update_target_tags, :add_source => opts.add_target_source, :user_level => opts.user_level }
+        { :fields => arr, :add_tags => opts.add_target_tags, :update_tags => opts.update_target_tags, :add_source => opts.add_target_source }
       end
       
       cls.send(:before_save,:email_target_connect_update)
@@ -71,7 +69,7 @@ module Content::CoreFeature
       
       opts = self.options # Need to bind this locally
       
-      update_data = { :fields => arr, :add_tags => opts.add_target_tags, :update_tags => opts.update_target_tags, :add_source => opts.add_target_source, :user_level => opts.user_level }
+      update_data = { :fields => arr, :add_tags => opts.add_target_tags, :update_tags => opts.update_target_tags, :add_source => opts.add_target_source }
 
       target = ContentTypeMethods.email_target_connect_update(update_data, result.data_model)
       result.end_user_id = target.id if target && result.end_user_id.nil?
@@ -132,45 +130,45 @@ module Content::CoreFeature
           target.lead_source = update_data[:add_source] 
         end 
         
-        ok = target.save
-        
-        if ok && !update_data[:add_tags].blank? && new_object
-          add_tags = update_data[:add_tags].split(",").collect { |tg| tg.strip }.collect do |tg|
-            if tg =~ /^\%\%([a-zA-Z09_\-]+)\%\%$/
-              begin
-                entry.send($1)
-              rescue Exception => e
-                nil
+        if target.save
+          if !update_data[:add_tags].blank? && new_object
+            add_tags = update_data[:add_tags].split(",").collect { |tg| tg.strip }.collect do |tg|
+              if tg =~ /^\%\%([a-zA-Z09_\-]+)\%\%$/
+                begin
+                  entry.send($1)
+                rescue Exception => e
+                  nil
+                end
+              else
+                tg
               end
-            else
-              tg
-            end
-          end.find_all { |tg| !tg.blank? }
+            end.find_all { |tg| !tg.blank? }
           
-          target.tag_names_add(add_tags.join(","))      
-        end
+            target.tag_names_add(add_tags.join(","))      
+          end
         
-        if ok &&  !update_data[:update_tags].blank?
-          update_tags = update_data[:update_tags].split(",").collect { |tg| tg.strip }.collect do |tg|
-            if tg =~ /^\%\%([a-zA-Z09_\-]+)\%\%$/
-              begin
-                entry.send($1)
-              rescue Exception => e
-                nil
+          if !update_data[:update_tags].blank?
+            update_tags = update_data[:update_tags].split(",").collect { |tg| tg.strip }.collect do |tg|
+              if tg =~ /^\%\%([a-zA-Z09_\-]+)\%\%$/
+                begin
+                  entry.send($1)
+                rescue Exception => e
+                  nil
+                end
+              else
+                tg
               end
-            else
-              tg
-            end
-          end.find_all { |tg| !tg.blank? }
+            end.find_all { |tg| !tg.blank? }
           
-          target.tag_names_add(update_tags.join(","))
-        end 
+            target.tag_names_add(update_tags.join(","))
+          end 
         
-        if ok && update_address && address.end_user_id.blank?
-          address.update_attribute(:end_user_id,target.id)
-        end
+          if update_address && address.end_user_id.blank?
+            address.update_attribute(:end_user_id,target.id)
+          end
 
-        target.elevate_user_level(update_data[:user_level]) if ok
+          entry.connected_end_user = target
+        end
 
         target
       end  

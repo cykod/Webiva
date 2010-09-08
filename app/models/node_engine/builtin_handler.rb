@@ -9,6 +9,7 @@ class NodeEngine::BuiltinHandler < NodeEngine::HandlerBase
     context[:user_class] = @engine.user.user_class_id.to_s
     context[:language] = @engine.language
     context[:path_args] = @engine.path_args.join("/")
+    context[:revision] = @engine.forced_revision if @engine.forced_revision
   end
 
   def before_page

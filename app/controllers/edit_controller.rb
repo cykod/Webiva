@@ -338,7 +338,17 @@ class EditController < ModuleController # :nodoc: all
   
   end
   
-  
+  def goto
+    get_container
+    @site_node = @container_cls.find_page(@container_id)
+    @page_revision = @site_node.page_revisions.find(params[:path][2])
+    @page_revision.update_attribute(:identifier_hash, PageRevision.generate_hash) unless @page_revision.identifier_hash
+    @url = params[:url] || @site_node.node_path
+    @url += "?__VER__=#{@page_revision.identifier_hash}" if @site_node.is_a?(SiteNode)
+    @url = Configuration.domain_link @url
+    redirect_to @url
+  end
+
   def add_paragraph 
     get_container
     edit_page_info(@container_type,@container_id,params[:path][2],false)

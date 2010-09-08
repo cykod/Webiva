@@ -72,6 +72,7 @@ class Role < DomainModel
 
     # If a role doesn't exist, doesn't mean we have it
     what.map do |elm|
+      elm = elm.to_s
       if @@system_roles.include?(elm)
         elm
       else

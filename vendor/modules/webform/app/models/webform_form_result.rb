@@ -49,6 +49,10 @@ class WebformFormResult < DomainModel
     @data_model = self.content_model.create_data_model(self.data)
   end
 
+  def connected_end_user
+    self.data_model.connected_end_user
+  end
+
   def before_validation_on_create
     if self.name.nil?
       self.name = self.end_user ? self.end_user.name : 'Anonymous'.t

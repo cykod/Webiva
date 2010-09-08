@@ -40,6 +40,7 @@ class ContentController < ModuleController #:nodoc: all
 
   register_handler :chart, :traffic, 'ContentNode'
   register_handler :chart, :traffic, 'SiteNode'
+  register_handler :chart, :traffic, 'DomainLogReferrer'
 
   def index
     @content_models,@content_actions = CmsController.get_content_models_and_actions

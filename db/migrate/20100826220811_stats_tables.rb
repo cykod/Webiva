@@ -16,6 +16,7 @@ class StatsTables < ActiveRecord::Migration
       t.integer :target_id
       t.integer :visits
       t.integer :hits
+      t.integer :subscribers
       t.integer :leads
       t.integer :conversions
       t.integer :stat1
@@ -30,10 +31,12 @@ class StatsTables < ActiveRecord::Migration
 
     add_column :domain_log_entries, :domain_id, :integer
     add_column :domain_log_entries, :site_version_id, :integer
+    add_column :domain_log_entries, :user_level, :integer
 
     add_column :domain_log_sessions, :domain_id, :integer
     add_column :domain_log_sessions, :site_version_id, :integer
     add_column :domain_log_sessions, :updated_at, :datetime
+    add_column :domain_log_sessions, :user_level, :integer
   end
 
   def self.down
@@ -42,9 +45,11 @@ class StatsTables < ActiveRecord::Migration
     drop_table :domain_log_group_entries
     remove_column :domain_log_entries, :domain_id
     remove_column :domain_log_entries, :site_version_id
+    remove_column :domain_log_entries, :user_level
     remove_column :domain_log_sessions, :domain_id
     remove_column :domain_log_sessions, :site_version_id
     remove_column :domain_log_sessions, :updated_at
+    remove_column :domain_log_sessions, :user_level
   end
 end
 

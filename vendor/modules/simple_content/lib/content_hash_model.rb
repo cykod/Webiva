@@ -76,6 +76,7 @@ class ContentHashModel
   def data_model_class
     return @cls if @cls
     @cls = Class.new(HashModel)
+    @cls.send(:attr_accessor, :connected_end_user)
     # Setup the fields in the model as necessary (required, validation, etc)
     self.content_model_fields.each do |fld|
       fld.setup_model(@cls)

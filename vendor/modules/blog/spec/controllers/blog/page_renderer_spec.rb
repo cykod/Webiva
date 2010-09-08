@@ -94,6 +94,7 @@ describe Blog::PageRenderer, :type => :controller do
     Blog::BlogBlog.should_receive(:find_by_id).with(@blog.id).and_return(@blog)
     @blog.should_receive(:find_post_by_permalink).with(@post.permalink).and_return(@post)
 
+    @rnd.should_receive(:set_page_connection).with(:comments_ok, true)
     @rnd.should_receive(:set_page_connection).with(:content_id, ['Blog::BlogPost',@post.id])
     @rnd.should_receive(:set_page_connection).with(:post, @post.id)
 
