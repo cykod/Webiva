@@ -460,19 +460,10 @@ class StructureController < CmsController  # :nodoc: all
     end
 
     @experiment.language = @view_language
-    @min_revisions = @experiment.started? ? @experiment.versions.size : 2
-    @experiment.num_versions = @experiment.id ? @experiment.versions.size : @min_revisions
-    @experiment.num_versions = @min_revisions if @experiment.num_versions < @min_revisions
-
-    @revisions = @container.page_revisions.find(:all, :conditions => {:revision_type => 'real', :language => @view_language}, :select => 'revision, version_name, active', :order => :revision).collect { |r| ["#{r.active ? '*' : ''} #{r.revision} #{r.version_name}".strip, r.revision] }
-
-    @max_revisions = @revisions.size
-    @max_revisions = @min_revisions if @max_revisions < @min_revisions
+    @experiment.page_revision_options = @container.page_revisions.find(:all, :conditions => {:revision_type => 'real', :language => @view_language}, :select => 'revision, version_name, active', :order => :revision).collect { |r| ["#{r.active ? '*' : ''} #{r.revision} #{r.version_name}".strip, r.revision] }
 
     if request.post? && params[:experiment]
-      @experiment.num_versions = (params[:num_versions] || @min_revisions).to_i
-      @experiment.num_versions = @min_revisions if @experiment.num_versions < @min_revisions
-
+      @experiment.num_versions = params[:num_versions].to_i
       @experiment.attributes = params[:experiment]
       if params[:update] && @experiment.save
         @container.update_attribute :experiment_id, @experiment.id

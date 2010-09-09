@@ -4,6 +4,7 @@ class Editor::ActionRenderer < ParagraphRenderer #:nodoc:all
 
   paragraph :triggered_action
   paragraph :html_headers, :cache => true
+  paragraph :experiment
 
   def triggered_action
 
@@ -15,6 +16,17 @@ class Editor::ActionRenderer < ParagraphRenderer #:nodoc:all
       render_paragraph :text => '[Triggered Actions]'
     else
       render_paragraph :nothing => true
+    end
+  end
+
+  def experiment
+    @options = paragraph_options(:experiment)
+
+    if editor?
+      render_paragraph :text => '[Experiment Success]'
+    else
+      require_js '/javascripts/experiment.js'
+      render_paragraph :inline => "<script type=\"text/javascript\">WebivaExperiment.success(#{@options.experiment_id}, #{@options.delayed ? @options.delay_for.to_i : 0});</script>\n"
     end
   end
 

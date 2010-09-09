@@ -1,6 +1,6 @@
 
 class Experiment < DomainModel
-  attr_accessor :language, :num_versions
+  attr_accessor :language, :page_revision_options
 
   has_many :experiment_versions, :order => :id, :dependent => :destroy
   has_many :experiment_users
@@ -9,6 +9,28 @@ class Experiment < DomainModel
   validates_presence_of :name
   validates_presence_of :experiment_container_type
   validates_presence_of :experiment_container_id
+
+  def num_versions
+    @num_versions ||= self.min_versions
+  end
+
+  def num_versions=(n)
+    @num_versions = n >= self.min_versions ? n : self.min_versions
+  end
+
+  def min_versions
+    return @min_versions if @min_versions
+    @min_versions = self.started? ? self.versions.size : 2
+    @min_versions = 2 if @min_versions < 2
+    @min_versions
+  end
+
+  def max_versions
+    return @max_versions if @max_versions
+    @max_versions = self.page_revision_options ? self.page_revision_options.size : self.min_versions
+    @max_versions = self.min_versions if @max_versions < self.min_versions
+    @max_versions
+  end
 
   def finished?
     ! self.ended_at.blank? && self.ended_at <= Time.now
