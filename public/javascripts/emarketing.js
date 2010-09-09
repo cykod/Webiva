@@ -199,18 +199,19 @@ RealTimeStatsViewer = {
     RealTimeStatsViewer.chartTimer = setTimeout( 'RealTimeStatsViewer.requestRealTimeCharts(true);', RealTimeStatsViewer.chart.range*60*1000 );
   },
 
-  realTimeChartsUrl: function(update) {
+  realTimeChartsUrl: function(update, site_node_id) {
     var url = "/website/emarketing/real_time_charts_request";
     url += '?range=' + RealTimeStatsViewer.chart.range + '&intervals=' + RealTimeStatsViewer.chart.intervals;
 
-    if( typeof(update) != 'undefined' )
-      url += '&update=1';
+    if(typeof(update) != 'undefined') { url += '&update=1'; }
+
+    if(site_node_id) { url += "&site_node_id=" + site_node_id }
 
     return url;
   },
 
-  requestRealTimeCharts: function(update) {
-    new Ajax.Request(RealTimeStatsViewer.realTimeChartsUrl(update),
+  requestRealTimeCharts: function(update, site_node_id) {
+    new Ajax.Request(RealTimeStatsViewer.realTimeChartsUrl(update, site_node_id),
 		     { onComplete: RealTimeStatsViewer.realTimeChartsOnComplete
 		     });
   },

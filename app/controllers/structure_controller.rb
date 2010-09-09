@@ -55,6 +55,13 @@ class StructureController < CmsController  # :nodoc: all
     @wizard_list = get_handlers(:structure,:wizard) if myself.has_role?('editor_structure_advanced')
     @wizard_list ||= []
 
+    require_js 'protovis/protovis-r3.2.js'
+    require_js 'tipsy/jquery.tipsy.js'
+    require_js 'protovis/tipsy.js'
+    require_css 'tipsy/tipsy.css'
+    require_js 'charts.js'
+    require_js 'emarketing.js'
+
     cms_page_path [], 'Website'
     #'website',myself.has_role?('editor_structure_advanced') ? 'CMSStructure.popup();' : nil
     render :action => 'view', :layout => "manage"

@@ -234,6 +234,7 @@ class EmarketingController < CmsController # :nodoc: all
     range = (params[:range] || 5).to_i
     intervals = (params[:intervals] || 10).to_i
     update_only = (params[:update] || 0).to_i == 1
+    site_node_id = params[:site_node_id]
 
     now = Time.now
     now = now.to_i - (now.to_i % range.minutes)
@@ -243,12 +244,23 @@ class EmarketingController < CmsController # :nodoc: all
     uniques = []
     hits = []
     labels = []
-    groups = DomainLogEntry.traffic Time.at(from), range.minutes, intervals
+    groups = []
+    if site_node_id
+      site_node = SiteNode.find_by_id site_node_id
+      groups = site_node.traffic(Time.at(from), range.minutes, intervals) if site_node
+    else
+      groups = DomainLogEntry.traffic Time.at(from), range.minutes, intervals
+    end
 
     groups.sort { |a,b| b.started_at <=> a.started_at }.each do |group|
       stat = group.domain_log_stats[0]
-      uniques << stat.visits
-      hits << stat.hits
+      if stat
+        uniques << stat.visits
+        hits << stat.hits
+      else
+        uniques << 0
+        hits << 0
+      end
       labels << group.ended_at.strftime('%I:%M')
       break if update_only
     end
