@@ -2,7 +2,14 @@ require File.dirname(__FILE__) + "/../spec_helper"
 
 describe Experiment do
 
-  reset_domain_tables :experiment, :experiment_version, :experiment_user, :site_node, :site_version
+  reset_domain_tables :experiment, :experiment_version, :experiment_user, :site_node, :site_version, :domain_log_visitor, :domain_log_session
+
+  def get_session
+    return @session if @session
+    visitor = DomainLogVisitor.create :ip_address => '127.0.0.1'
+    session = DomainLogSession.create :ip_address => '127.0.0.1'
+    @session = {:cms_language => 'en', :domain_log_session => {:id => session.id, :end_user_id => nil}, :domain_log_visitor => {:id => visitor.id, :end_user_id => nil, :loc => nil}}
+  end
 
   it "should require a name and a container" do
     exp = Experiment.new
@@ -159,8 +166,6 @@ describe Experiment do
 
   it "should be able to pick a version for a visitor" do
     language = 'en'
-    visitor = DomainLogVisitor.create :ip_address => '127.0.0.1'
-    visitor.id.should_not be_nil
 
     home_page = SiteVersion.default.root.pages.find_by_title('')
     @exp = Experiment.new :experiment_container => home_page, :language => 'en'
@@ -173,18 +178,18 @@ describe Experiment do
     @exp.start!
 
     assert_difference 'ExperimentUser.count', 1 do
-      @version = @exp.get_version(visitor, language)
+      @version = @exp.get_version(get_session)
     end
 
     @version.should_not be_nil
 
-    @user = @exp.get_user(visitor, language)
+    @user = @exp.get_user(get_session)
     @user.experiment_version_id.should == @version.id
 
     @user.success.should be_false
 
     assert_difference 'ExperimentUser.count', 0 do
-      @version2 = @exp.get_version(visitor, language)
+      @version2 = @exp.get_version(get_session)
     end
 
     @version2.should_not be_nil
@@ -193,7 +198,7 @@ describe Experiment do
     language = 'es'
 
     assert_difference 'ExperimentUser.count', 0 do
-      @version = @exp.get_version(visitor, language)
+      @version = @exp.get_version(get_session)
     end
 
     @visitor.should be_nil
@@ -201,8 +206,6 @@ describe Experiment do
 
   it "should be able to mark an experiment as successful" do
     language = 'en'
-    visitor = DomainLogVisitor.create :ip_address => '127.0.0.1'
-    visitor.id.should_not be_nil
 
     home_page = SiteVersion.default.root.pages.find_by_title('')
     @exp = Experiment.new :experiment_container => home_page, :language => 'en'
@@ -215,17 +218,17 @@ describe Experiment do
     @exp.start!
 
     assert_difference 'ExperimentUser.count', 1 do
-      @version = @exp.get_version(visitor, language)
+      @version = @exp.get_version(get_session)
     end
 
     @version.should_not be_nil
 
-    @user = @exp.get_user(visitor, language)
+    @user = @exp.get_user(get_session)
     @user.experiment_version_id.should == @version.id
 
     @user.success.should be_false
 
-    Experiment.success! @exp.id, visitor, language
+    Experiment.success! @exp.id, get_session
 
     @user.reload
     @user.success.should be_true
@@ -233,8 +236,6 @@ describe Experiment do
 
   it "should not return a version unless the experiment has started" do
     language = 'en'
-    visitor = DomainLogVisitor.create :ip_address => '127.0.0.1'
-    visitor.id.should_not be_nil
 
     home_page = SiteVersion.default.root.pages.find_by_title('')
     @exp = Experiment.new :experiment_container => home_page, :language => 'en'
@@ -245,7 +246,7 @@ describe Experiment do
     end
 
     assert_difference 'ExperimentUser.count', 0 do
-      @version = @exp.get_version(visitor, language)
+      @version = @exp.get_version(get_session)
     end
 
     @version.should be_nil
@@ -253,8 +254,6 @@ describe Experiment do
 
   it "should not mark users as successful if experiment is over" do
     language = 'en'
-    visitor = DomainLogVisitor.create :ip_address => '127.0.0.1'
-    visitor.id.should_not be_nil
 
     home_page = SiteVersion.default.root.pages.find_by_title('')
     @exp = Experiment.new :experiment_container => home_page, :language => 'en'
@@ -267,19 +266,19 @@ describe Experiment do
     @exp.start!
 
     assert_difference 'ExperimentUser.count', 1 do
-      @version = @exp.get_version(visitor, language)
+      @version = @exp.get_version(get_session)
     end
 
     @version.should_not be_nil
 
-    @user = @exp.get_user(visitor, language)
+    @user = @exp.get_user(get_session)
     @user.experiment_version_id.should == @version.id
 
     @user.success.should be_false
 
     @exp.end_experiment!
 
-    Experiment.success! @exp.id, visitor, language
+    Experiment.success! @exp.id, get_session
 
     @user.reload
     @user.success.should be_false
