@@ -157,12 +157,15 @@ RealTimeStatsViewer = {
         data.setValue(i, 2, RealTimeStatsViewer.chart.hits[i]);
     }
     var chart = new google.visualization.ColumnChart(document.getElementById('real_time_charts'));
+    var color = '#603813';
     chart.draw(data, {width: width,
                       height: height,
                       title: RealTimeStatsViewer.chart.from + ' - ' + RealTimeStatsViewer.chart.to,
                       legend: 'right',
-                      vAxis: {title: 'Visitors / Hits', minValue: 0, maxValue: maxValue},
-                      hAxis: {title: 'Every ' + RealTimeStatsViewer.chart.range + ' minutes'}
+                      legendTextStyle: {color: color},
+                      titleTextStyle: {color: color},
+                      vAxis: {title: 'Visitors / Hits', minValue: 0, maxValue: maxValue, textStyle: {color: color}, titleTextStyle: {color: color}},
+                      hAxis: {title: 'Every ' + RealTimeStatsViewer.chart.range + ' minutes', textStyle: {color: color}, titleTextStyle: {color: color}}
                      });
   },
 
