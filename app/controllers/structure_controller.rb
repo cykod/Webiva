@@ -467,8 +467,12 @@ class StructureController < CmsController  # :nodoc: all
       @experiment.attributes = params[:experiment]
       if params[:update] && @experiment.save
         @container.update_attribute :experiment_id, @experiment.id
+
+        p_element_info @container, false
+
         render :update do |page|
           page << 'RedBox.close();'
+          page.replace_html 'element_info', :partial => 'page_element_info'
         end
         return
       end
@@ -533,13 +537,13 @@ class StructureController < CmsController  # :nodoc: all
   end
   
   # Page Element Information
-  def p_element_info(node)
+  def p_element_info(node, display=true)
    @languages = Configuration.languages
     @revision_info = node.language_revisions(@languages)
     @active_revision_info = @revision_info.detect { |rev| rev[0] == @view_language }
     @node = node
     
-    render :partial => 'page_element_info'
+    render :partial => 'page_element_info' if display
   end
 
   # Group Element Information

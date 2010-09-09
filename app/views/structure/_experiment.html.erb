@@ -26,6 +26,8 @@ submitExperimentForm = function(frm, update) {
       <% end -%>
     <% end -%>
   <% end -%>
+  <%= f.header 'Optional' %>
+  <%= f.page_selector :conversion_site_node_id %>
   <%= f.spacer %>
   <%= f.cancel_submit_buttons "Cancel", "Submit", { :onclick => 'RedBox.close(); return false;' } %>
 <% end -%>

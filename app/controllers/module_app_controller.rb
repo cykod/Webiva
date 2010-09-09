@@ -123,8 +123,8 @@ class ModuleAppController < ApplicationController
       return render :inline => 'Invalid version' unless @revision.revision_type == 'real' || @revision.revision_type == 'temp'
     elsif @page.is_running_an_experiment?
       self.log_visitor
-      if session[:domain_log_visitor] && session[:domain_log_visitor][:id]
-        @revision = @page.experiment_page_revision session[:domain_log_visitor], session[:cms_language]
+      if session[:domain_log_visitor]
+        @revision = @page.experiment_page_revision session
       end
     end
 

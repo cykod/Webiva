@@ -7,6 +7,7 @@ class InitialExperimentSetup < ActiveRecord::Migration
       t.datetime :started_at
       t.datetime :ended_at
       t.text :note
+      t.integer :conversion_site_node_id
     end
 
     create_table :experiment_versions do |t|
@@ -18,6 +19,7 @@ class InitialExperimentSetup < ActiveRecord::Migration
 
     create_table :experiment_users do |t|
       t.integer :domain_log_visitor_id
+      t.integer :domain_log_session_id
       t.integer :experiment_version_id
       t.integer :experiment_id
       t.string :language

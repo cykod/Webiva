@@ -51,14 +51,14 @@ class SiteNode < DomainModel
     self.experiment_id && self.experiment && self.experiment.is_running? && self.experiment.active?
   end
 
-  def experiment_version(domain_log_visitor, language)
+  def experiment_version(session)
     return nil unless self.experiment
-    self.experiment.get_version(domain_log_visitor, language)
+    self.experiment.get_version(session)
   end
 
-  def experiment_page_revision(domain_log_visitor, language)
+  def experiment_page_revision(session)
     return @experiment_page_revision if @experiment_page_revision
-    version = self.experiment_version(domain_log_visitor, language)
+    version = self.experiment_version(session)
     return nil unless version
     @experiment_page_revision = self.page_revisions.first :conditions => {:revision => version.revision, :language => version.language, :revision_type => 'real'}
   end

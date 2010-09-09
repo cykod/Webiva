@@ -5,6 +5,7 @@ class Experiment < DomainModel
   has_many :experiment_versions, :order => :id, :dependent => :destroy
   has_many :experiment_users
   belongs_to :experiment_container, :polymorphic => true
+  belongs_to :conversion_site_node, :class_name => 'SiteNode'
 
   validates_presence_of :name
   validates_presence_of :experiment_container_type
@@ -147,22 +148,22 @@ class Experiment < DomainModel
     end
   end
 
-  def get_user(domain_log_visitor, language)
-    user = self.experiment_users.find_by_domain_log_visitor_id_and_language(domain_log_visitor[:id], language)
-    user.update_attribute(:end_user_id, domain_log_visitor[:end_user_id]) if user && user.end_user_id.nil? && domain_log_visitor[:end_user_id]
+  def get_user(session)
+    return nil unless session[:domain_log_visitor] && session[:cms_language]
+    user = self.experiment_users.find_by_domain_log_visitor_id_and_language(session[:domain_log_visitor][:id], session[:cms_language])
+    user.update_attribute(:end_user_id, session[:domain_log_visitor][:end_user_id]) if user && user.end_user_id.nil? && session[:domain_log_visitor][:end_user_id]
     user
   end
 
-  def get_version(domain_log_visitor, language)
+  def get_version(session)
     return nil unless self.is_running?
+    return nil unless session[:domain_log_visitor] && session[:cms_language]
 
-    domain_log_visitor = domain_log_visitor.attributes.symbolize_keys if domain_log_visitor.is_a?(DomainModel)
-
-    user = self.get_user(domain_log_visitor, language)
+    user = self.get_user(session)
     return user.experiment_version if user
 
     @versions = nil
-    self.language = language
+    self.language = session[:cms_language]
 
     weight_sum = 0
     random_weight = rand(self.total_weight)
@@ -173,18 +174,20 @@ class Experiment < DomainModel
 
     return nil unless version
 
-    self.experiment_users.create :experiment_version_id => version.id, :domain_log_visitor_id => domain_log_visitor[:id], :language => language, :end_user_id => domain_log_visitor[:end_user_id]
+
+    self.experiment_users.create :experiment_version_id => version.id, :domain_log_visitor_id => session[:domain_log_visitor][:id], :language => self.language, :end_user_id => session[:domain_log_visitor][:end_user_id], :domain_log_session_id => session[:domain_log_session][:id]
     version
   end
 
-  def success!(domain_log_visitor, language)
-    user = self.get_user(domain_log_visitor, language)
-    user.success! if user && self.is_running?
+  def success!(session)
+    return unless self.is_running?
+    user = self.get_user(session)
+    user.success! if user
   end
 
-  def self.success!(experiment_id, domain_log_visitor, language)
-    domain_log_visitor = domain_log_visitor.attributes.symbolize_keys if domain_log_visitor.is_a?(DomainModel)
+  def self.success!(experiment_id, session)
+    return unless session[:domain_log_visitor] && session[:cms_language]
     exp = Experiment.find_by_id experiment_id
-    exp.success!(domain_log_visitor, language) if exp
+    exp.success!(session) if exp
   end
 end

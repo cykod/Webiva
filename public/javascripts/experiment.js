@@ -9,6 +9,9 @@ WebivaExperiment = {
   },
 
   finished: function(experiment_id) {
-    alert( 'experiment: ' + experiment_id + ' was completed' );
+    if(! experiment_id) { return; }
+    var script = document.createElement('script');
+    script.src = '/website/editor/action/exp/' + experiment_id;
+    document.documentElement.firstChild.appendChild(script);
   }
 };

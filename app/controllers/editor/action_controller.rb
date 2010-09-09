@@ -1,7 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 class Editor::ActionController < ParagraphController #:nodoc:all
-  permit 'editor_editor'
 
   # Editor for authorization paragraphs
   editor_header "System Paragraphs", :paragraph_action
@@ -9,7 +8,14 @@ class Editor::ActionController < ParagraphController #:nodoc:all
 
   editor_for :html_headers, :name => 'HTML/JS/CSS Headers'
 
-  editor_for :experiment, :name => 'Experiment Success'
+  editor_for :experiment, :name => 'Experiment Conversion'
+
+  user_actions [:exp]
+
+  def exp
+    Experiment.success! params[:path][0], session
+    render :nothing => true
+  end
 
   def triggered_action
   end
@@ -49,21 +55,33 @@ class Editor::ActionController < ParagraphController #:nodoc:all
   end
 
   class ExperimentOptions < HashModel
-    attributes :experiment_id => nil, :delayed => false, :delay_for => 10
+    attributes :experiment_id => nil, :type => 'automatic', :delay_for => 10
 
-    boolean_options :delayed
     integer_options :delay_for, :experiment_id
 
     validates_presence_of :experiment_id
 
-    options_form(
-                 fld(:experiment_id, :select, :options => :experiment_options),
-                 fld(:delayed, :yes_no),
-                 fld(:delay_for, :text_field, :size => 5, :unit => 'seconds')
-                 )
+#    options_form(
+#                 fld(:experiment_id, :select, :options => :experiment_options),
+#                 fld(:type, :select, :options => :type_options),
+#                 fld(:delay_for, :text_field, :size => 5, :unit => 'seconds')
+#                 )
 
-    def self.experiment_options
-      Experiment.find(:all, :conditions => ["ended_at >= ? || ended_at IS NULL", Time.now]).collect { |e| [e.name, e.id] }
+    def manual_js
+      self.experiment_id ? "onclick=\"WebivaExperiment.finished(#{self.experiment_id});\"" : ''
+    end
+
+    @@type_options = [['Automatic', 'automatic'], ['Delayed', 'delayed'], ['Manual', 'manual']]
+    def self.type_options
+      @@type_options
+    end
+
+    def experiment_options
+      [['--Select Experiment--'.t, nil]] + Experiment.find(:all, :conditions => ["ended_at >= ? || ended_at IS NULL || id = ?", Time.now, self.experiment_id]).collect { |e| [e.name, e.id] }
+    end
+
+    def experiment
+      @experiment ||= Experiment.find_by_id(self.experiment_id)
     end
   end
 end
