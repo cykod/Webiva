@@ -4,6 +4,9 @@
 <li>
   <strong><%= "Name:".t %></strong> <%= h experiment.name %>
   <a href='javascript:void(0);' onclick="SCMS.remoteOverlay('<%= url_for :action => 'experiment', :path => @node.id, :language => @view_language %>');">edit</a>
+  <% if experiment.finished? -%>
+    <a href='javascript:void(0);' onclick="StructureEditor.updateExperiment(<%= experiment.id %>, '<%= jh experiment.language %>', 'hide')">hide</a>
+  <% end -%>
 </li>
 
 <% if ! experiment.started? && ! experiment.finished? -%>

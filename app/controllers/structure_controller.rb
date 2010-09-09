@@ -487,12 +487,18 @@ class StructureController < CmsController  # :nodoc: all
     @experiment = Experiment.find params[:path][0]
     @experiment.language = @view_language
 
+    @container = @experiment.experiment_container
+
+    return render :nothing => true unless @container
+
     if params[:start]
       @experiment.start! params[:start_time]
     elsif params[:restart]
       @experiment.restart! params[:end_time], :start_time => params[:start_time], :reset => params[:reset]
     elsif params[:stop]
       @experiment.end_experiment! params[:end_time]
+    elsif params[:hide]
+      @container.update_attribute(:experiment_id, nil) if @experiment.finished?
     else params[:select] && params[:version_id]
       version_id = params[:version_id].to_i
       @experiment.end_experiment! unless @experiment.finished?
@@ -500,7 +506,7 @@ class StructureController < CmsController  # :nodoc: all
       PageRevision.activate_page_revision(@experiment.experiment_container, @version.page_revision.id) if @version && @version.page_revision
     end
 
-    p_element_info @experiment.experiment_container
+    p_element_info @container
   end
 
   protected
