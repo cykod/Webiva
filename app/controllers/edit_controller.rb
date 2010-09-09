@@ -54,9 +54,9 @@ class EditController < ModuleController # :nodoc: all
     revision.make_real()
   end
   
-  def save_temporary_revision_as(revision,version)
+  def save_temporary_revision_as(revision,version,name=nil)
     revision.updated_by = myself
-    revision.make_new_version(version)
+    revision.make_new_version(version, name)
   end
   
   
@@ -400,13 +400,15 @@ class EditController < ModuleController # :nodoc: all
     generate_paragraph_types
     
     version = params[:version]
+    version_name = params[:name]
+
     get_container
     edit_page_info(@container_type,@container_id,params[:path][2],false)
   
     sort_paragraphs(params[:zone] || {})
     update_paragraphs(params[:paragraph] || {})
     
-    save_temporary_revision_as(@revision,version)
+    save_temporary_revision_as(@revision,version,version_name)
     @old_revision=@revision
     
     edit_page_info(params[:path][0] == 'page' ? 'site_node' : 'site_node_modifier',
@@ -417,7 +419,12 @@ class EditController < ModuleController # :nodoc: all
     render :action => 'save_changes'
   end
 
-  
+  def change_version
+    get_container
+    @site_node = @container_cls.find_page(@container_id)
+    @page_revision = @site_node.page_revisions.find(params[:path][2])
+    render :partial => 'change_version'
+  end
   
   def backup_changes
     raise 'NotOk'
