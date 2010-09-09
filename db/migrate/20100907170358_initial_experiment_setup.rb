@@ -8,6 +8,7 @@ class InitialExperimentSetup < ActiveRecord::Migration
       t.datetime :ended_at
       t.text :note
       t.integer :conversion_site_node_id
+      t.timestamps
     end
 
     create_table :experiment_versions do |t|

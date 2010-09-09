@@ -49,6 +49,26 @@ class Experiment < DomainModel
     self.experiment_container && self.id && self.experiment_container.experiment_id == self.id
   end
 
+  def display_status
+    if self.finished?
+      'Finished'.t
+    elsif self.is_running?
+      'Running'.t
+    else
+      'Not Started'.t
+    end
+  end
+
+  def page_title
+    return '' unless self.experiment_container
+    self.experiment_container.node_path
+  end
+
+  def conversion_title
+    return nil unless self.conversion_site_node
+    self.conversion_site_node.node_path
+  end
+
   def validate
     if @versions && @versions.size > 0
       if self.total_weight != 100 && self.total_weight != 0
