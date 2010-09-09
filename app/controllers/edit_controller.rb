@@ -421,6 +421,7 @@ class EditController < ModuleController # :nodoc: all
 
   def change_version
     get_container
+    @version = params[:version]
     @site_node = @container_cls.find_page(@container_id)
     @page_revision = @site_node.page_revisions.find(params[:path][2])
     render :partial => 'change_version'
