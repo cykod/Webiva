@@ -146,6 +146,12 @@ class Experiment < DomainModel
 
       @versions = nil
     end
+
+    if @old_conversion_site_node_id
+      old_site_node = SiteNode.find_by_id @old_conversion_site_node_id
+      self.remove_experiment_conversion_paragraph old_site_node if old_site_node
+      self.add_experiment_conversion_paragraph self.conversion_site_node if self.conversion_site_node
+    end
   end
 
   def get_user(session)
@@ -189,5 +195,34 @@ class Experiment < DomainModel
     return unless session[:domain_log_visitor] && session[:cms_language]
     exp = Experiment.find_by_id experiment_id
     exp.success!(session) if exp
+  end
+
+  def conversion_site_node_id=(site_node_id)
+    @old_conversion_site_node_id = self.conversion_site_node_id
+    self.write_attribute :conversion_site_node_id, site_node_id
+  end
+
+  def add_experiment_conversion_paragraph(site_node)
+    return if self.has_experiment_conversion_paragraph?(site_node)
+
+    site_node.live_revisions.each do |rv|
+      rv.push_paragraph '/editor/action', 'experiment', {:experiment_id => self.id, :type => 'automatic'}
+    end
+  end
+
+  def remove_experiment_conversion_paragraph(site_node)
+    return unless self.has_experiment_conversion_paragraph?(site_node)
+
+    site_node.live_revisions.each do |rv|
+      rv.page_paragraphs.find(:all, :conditions => {:display_type => 'experiment', :display_module => '/editor/action'}).each do |para|
+        para.destroy if para.data[:experiment_id] == self.id
+      end
+    end
+  end
+
+  def has_experiment_conversion_paragraph?(site_node)
+    site_node.live_revisions.first.page_paragraphs.find(:all, :conditions => {:display_type => 'experiment', :display_module => '/editor/action'}).find do |para|
+      para.data[:experiment_id] == self.id
+    end
   end
 end
