@@ -6,6 +6,7 @@ class DomainLogVisitor < DomainModel
    before_create :generate_hash
 
    has_many :domain_log_sessions, :order => 'domain_log_sessions.created_at DESC'
+   has_many :experiment_users
 
    def last_session
      self.domain_log_sessions[0]
@@ -55,6 +56,9 @@ class DomainLogVisitor < DomainModel
         else
           cookies[:v] = nil
         end
+      elsif cookies[:v] && session[:domain_log_visitor].is_a?(Integer)
+        div = DomainLogVisitor.find_by_id session[:domain_log_visitor]
+        session[:domain_log_visitor] = { :id => dlv.id, :loc => dlv.country, :end_user_id => user.id } if div
       end
 
       if  !cookies[:v]

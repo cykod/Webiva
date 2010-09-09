@@ -687,11 +687,13 @@ var cmsEdit = {
 
   },
 
-  saveAsSend: function(version) {
+  saveAsSend: function(version, name) {
     cmsEdit.hideSaveAs();
     cmsEdit.pageModified=false;
     $('cms_save_changes').disabled = true;
-    cmsEdit.sendChanges('save_as',"version=" + version);
+    var params = "version=" + version
+    if(name) { params += "&name=" + name; }
+    cmsEdit.sendChanges('save_as',params);
   },
 
   sendChanges: function(action,params,cleanup,callback) {
@@ -935,16 +937,11 @@ var cmsEdit = {
     SCMS.hidePopupDiv('cms_save_as');
   },
 
-  saveAsSpecific: function() {
-    SCMS.hidePopupDiv('cms_save_as');
-    SCMS.setKeyHandler(null);
-    RedBox.showInline('cms_save_as_specific');
-  },
-
   saveAsSpecificSubmit: function(frm) {
     // Get Value
-    var elem = Form.findFirstElement(frm);
+    var elem = frm.version;
     var value = elem.value;
+    var name = frm.name.value;
 
     regexp = /^[0-9]*\.[0-9]{1,2}$/
     if(!regexp.test(value)) {
@@ -953,7 +950,7 @@ var cmsEdit = {
     }
     else {
       cmsEdit.closeBox();
-      cmsEdit.saveAsSend(value);
+      cmsEdit.saveAsSend(value, name);
     }
 
 
@@ -1367,9 +1364,11 @@ var cmsEdit = {
         $('cms_paragraph_display_'+elem_id).innerHTML = "<div class='cms_paragraph_editor_cover'></div>" + html;
 
       cmsEdit.pageChanged();
-    }
+  },
 
-
+  changeVersion: function(version) {
+    SCMS.remoteOverlay(cmsEdit.editURL + 'change_version' + "/" + cmsEdit.pageType + "/" + cmsEdit.pageId + "/" + cmsEdit.revisionId + '?version=' + version);
+  }
 
 }
 

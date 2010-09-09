@@ -21,6 +21,7 @@
 
     <% if @active_revision_info[1] %>
       <%= render :partial => 'page_element_content_info' %>
+      <%= render :partial => 'page_element_chart', :locals => {:node => @node} %>
       <%= render :partial => 'page_element_images', :locals => { :revision => @active_revision_info[1] } %>
     <% end -%>
 <% end -%>
@@ -35,6 +36,7 @@
 <% else -%>
 <div class='tree_detail_body'>
     <%= render :partial => @active_revision_info[1]  ? 'revision_info' : 'create_revision_info' %>
+    <%= render :partial => 'page_element_chart', :locals => {:node => @node} %>
     <%= render :partial => 'page_element_content_info' %>
     <%= render :partial => 'page_element_images', :locals => { :revision => @active_revision_info[1] } %>
 </div>

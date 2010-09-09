@@ -224,8 +224,19 @@ class PageRevision < DomainModel
     end
   
   end
-  
-  def make_new_version(version = 'minor')
+
+  def get_next_version(version='minor')
+    container = self.revision_container
+    max_revision = container.page_revisions.find(:first,:order => 'page_revisions.revision DESC')
+
+    if version == 'major'
+      max_revision.revision.floor + 1
+    elsif version == 'minor'
+      max_revision.revision + 0.01
+    end
+  end
+
+  def make_new_version(version = 'minor', version_name=nil)
   
     container = self.revision_container
     max_revision = container.page_revisions.find(:first,:order => 'page_revisions.revision DESC')
@@ -245,6 +256,7 @@ class PageRevision < DomainModel
     end
     
     self.update_attributes(:revision => new_version,
+                           :version_name => version_name,
                            :active => false,
                            :revision_type => 'real',
                            :updated_at => Time.now)

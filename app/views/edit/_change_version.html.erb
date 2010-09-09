@@ -1,0 +1,16 @@
+<div class="cms_form">
+
+<h3><%= "Save as a new version".t %></h3>
+
+<% admin_form_for :page_revision, @page_revision, :html => {:onsubmit => 'cmsEdit.saveAsSpecificSubmit(this); return false;'} do |f| -%>
+  <%= f.custom_field :version_name, :value => text_field_tag(:name, '', :id => 'version_name') %>
+  <%= f.custom_field :version, :value => text_field_tag(:version, @page_revision.get_next_version(@version)) %>
+  <%= f.spacer %>
+  <%= f.cancel_submit_buttons "Cancel", "Submit", { :onclick => 'RedBox.close(); return false;' } %>
+<% end -%>
+
+</div>
+
+<script>
+setTimeout(function() {$('version_name').focus(); }, 100);
+</script>

@@ -97,14 +97,6 @@ tinyMCE.init({
   <input class='cms_button' type='button' value='<%= vh "Cancel".t %>' onclick='cmsEdit.cancelAction();' />
   </div>
 </div>
-<div id='cms_save_as_specific' class='cms_form' style='display:none;'>
-  <h3><%= "Save as a custom version".t %></h3>
-  <form onsubmit='cmsEdit.saveAsSpecificSubmit(this); return false;'>
-    <%= "New Version Number: ".t %><input type='text' size='30' value='' />
-    <input type='submit' value='<%= "Save".t %>'/>
-    <input type='submit' value='<%= "Cancel".t %>' onclick='cmsEdit.closeBox(); return false;'/>
-  </form>
-</div>
 
 <div id="cms_header">
     <div id='cms_info_line'>
@@ -201,9 +193,8 @@ tinyMCE.init({
       <input type='submit' id='cms_save_changes' value='<%= vh "Save Changes".t %>' disabled='true' onclick='cmsEdit.saveChanges(); return false;' />    
       <input type='submit' id='cms_save_as_button' value='<%= vh "Save As...".t %>' onclick='cmsEdit.saveAs(); return false;' />
       <div id='cms_save_as' onmouseover='delayedHideShow(this)' onmouseout='delayedHide(this);' class='cms_popup' style='display:none; right:1px; top:25px; <%= Locale.language_code == 'fr' ? 'width:450px;' : 'width:200px;' %> '>
-        <a class='cms_ajax_link'  href='javascript:void(0);' onclick='cmsEdit.saveAsSend("minor")'><%= "Save As a New Minor Version".t %></a><br/>
-        <a class='cms_ajax_link'  href='javascript:void(0);' onclick='cmsEdit.saveAsSend("major")'><%= "Save As a New Major Version".t %></a><br/>
-        <a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.saveAsSpecific()'><%= "Save As a Custom Version".t %></a><br/>
+        <a class='cms_ajax_link'  href='javascript:void(0);' onclick='cmsEdit.changeVersion("minor")'><%= "Save As a New Minor Version".t %></a><br/>
+        <a class='cms_ajax_link'  href='javascript:void(0);' onclick='cmsEdit.changeVersion("major")'><%= "Save As a New Major Version".t %></a><br/>
       </div>    
         <a href='javascript:void(0);' onclick='cmsEdit.pageMenu();'>
       <img src='<%= theme_src("framework/page_title_menu_icon.gif") %>' width='24' height='24' align='absmiddle'/>

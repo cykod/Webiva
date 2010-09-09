@@ -19,7 +19,9 @@ class SiteNode < DomainModel
           
   belongs_to :site_module,
               :foreign_key => 'node_data'
-              
+
+  belongs_to :experiment, :dependent => :destroy
+
   belongs_to :domain_file,
               :foreign_key => 'node_data'
 
@@ -44,6 +46,22 @@ class SiteNode < DomainModel
 
   # Expires the entire site when save or deleted
   expires_site
+
+  def is_running_an_experiment?
+    self.experiment_id && self.experiment && self.experiment.is_running? && self.experiment.active?
+  end
+
+  def experiment_version(session)
+    return nil unless self.experiment
+    self.experiment.get_version(session)
+  end
+
+  def experiment_page_revision(session)
+    return @experiment_page_revision if @experiment_page_revision
+    version = self.experiment_version(session)
+    return nil unless version
+    @experiment_page_revision = self.page_revisions.first :conditions => {:revision => version.revision, :language => version.language, :revision_type => 'real'}
+  end
 
   def before_validation #:nodoc:
     self.node_type = 'P' if self.node_type.blank?

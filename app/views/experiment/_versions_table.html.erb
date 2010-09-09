@@ -1,0 +1,15 @@
+<% current_time = Time.now %>
+<% active_table_for :versions_table, @active_table_output,
+                    :refresh_url => url_for(:action => 'display_versions_table', :path => @experiment.id),
+                    :style => 'width:100%' do |t| %>
+<tr <%= highlight_row 'version',t.id %>>
+  <td align='left' nowrap='1'><%= link_to(theme_image_tag('icons/actions/edit.gif'), :controller => '/edit', :action => 'page', :path => ['page', @experiment.experiment_container.id, t.page_revision.id]) %></td>
+  <td><%= h t.title %></td>
+  <td align='center'><%= t.language %></td>
+  <td align='center'><%= t.weight %></td>
+  <td align='center'><%= t.num_visits %></td>
+  <td align='center'><%= t.num_conversions %></td>
+  <td align='center'><%= "#{t.success_percent}%" %></td>
+</tr>
+
+<% end -%>

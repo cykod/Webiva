@@ -55,6 +55,13 @@ class StructureController < CmsController  # :nodoc: all
     @wizard_list = get_handlers(:structure,:wizard) if myself.has_role?('editor_structure_advanced')
     @wizard_list ||= []
 
+    require_js 'protovis/protovis-r3.2.js'
+    require_js 'tipsy/jquery.tipsy.js'
+    require_js 'protovis/tipsy.js'
+    require_css 'tipsy/tipsy.css'
+    require_js 'charts.js'
+    require_js 'emarketing.js'
+
     cms_page_path [], 'Website'
     #'website',myself.has_role?('editor_structure_advanced') ? 'CMSStructure.popup();' : nil
     render :action => 'view', :layout => "manage"
@@ -447,6 +454,68 @@ class StructureController < CmsController  # :nodoc: all
     render :partial => 'edit_page_revision'
   end
 
+  def experiment
+    view_language
+
+    @container = SiteNode.find params[:path][0]
+
+    @new = params[:new]
+    if @new
+      @experiment = Experiment.new(:experiment_container => @container)
+    else
+      @experiment = @container.experiment || Experiment.new(:experiment_container => @container)
+    end
+
+    @experiment.language = @view_language
+    @experiment.page_revision_options = @container.page_revisions.find(:all, :conditions => {:revision_type => 'real', :language => @view_language}, :select => 'revision, version_name, active', :order => :revision).collect { |r| ["#{r.active ? '*' : ''} #{r.revision} #{r.version_name}".strip, r.revision] }
+
+    if request.post? && params[:experiment]
+      @experiment.num_versions = params[:num_versions].to_i
+      @experiment.attributes = params[:experiment]
+      if params[:update] && @experiment.save
+        @container.update_attribute :experiment_id, @experiment.id
+
+        p_element_info @container, false
+
+        render :update do |page|
+          page << 'RedBox.close();'
+          page.replace_html 'element_info', :partial => 'page_element_info'
+        end
+        return
+      end
+    end
+
+    render :partial => 'experiment'
+  end
+
+  def update_experiment
+    view_language
+
+    @experiment = Experiment.find params[:path][0]
+    @experiment.language = @view_language
+
+    @container = @experiment.experiment_container
+
+    return render :nothing => true unless @container
+
+    if params[:start]
+      @experiment.start! params[:start_time]
+    elsif params[:restart]
+      @experiment.restart! params[:end_time], :start_time => params[:start_time], :reset => params[:reset]
+    elsif params[:stop]
+      @experiment.end_experiment! params[:end_time]
+    elsif params[:hide]
+      @container.update_attribute(:experiment_id, nil) if @experiment.finished?
+    else params[:select] && params[:version_id]
+      version_id = params[:version_id].to_i
+      @experiment.end_experiment! unless @experiment.finished?
+      @version = @experiment.versions.find { |v| v.id == version_id }
+      PageRevision.activate_page_revision(@experiment.experiment_container, @version.page_revision.id) if @version && @version.page_revision
+    end
+
+    p_element_info @container
+  end
+
   protected
 
   def view_language
@@ -481,13 +550,13 @@ class StructureController < CmsController  # :nodoc: all
   end
   
   # Page Element Information
-  def p_element_info(node)
+  def p_element_info(node, display=true)
    @languages = Configuration.languages
     @revision_info = node.language_revisions(@languages)
     @active_revision_info = @revision_info.detect { |rev| rev[0] == @view_language }
     @node = node
     
-    render :partial => 'page_element_info'
+    render :partial => 'page_element_info' if display
   end
 
   # Group Element Information
