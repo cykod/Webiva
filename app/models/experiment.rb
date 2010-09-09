@@ -150,7 +150,14 @@ class Experiment < DomainModel
     if @old_conversion_site_node_id
       old_site_node = SiteNode.find_by_id @old_conversion_site_node_id
       self.remove_experiment_conversion_paragraph old_site_node if old_site_node
-      self.add_experiment_conversion_paragraph self.conversion_site_node if self.conversion_site_node
+    end
+
+    if self.conversion_site_node
+      if self.finished?
+        self.remove_experiment_conversion_paragraph self.conversion_site_node
+      elsif self.started?
+        self.add_experiment_conversion_paragraph self.conversion_site_node
+      end
     end
   end
 
@@ -206,7 +213,14 @@ class Experiment < DomainModel
     return if self.has_experiment_conversion_paragraph?(site_node)
 
     site_node.live_revisions.each do |rv|
-      rv.push_paragraph '/editor/action', 'experiment', {:experiment_id => self.id, :type => 'automatic'}
+      exp_para = rv.page_paragraphs.find(:all, :conditions => {:display_type => 'experiment', :display_module => '/editor/action'}).find do |para|
+        para.data[:experiment_id] == self.id
+      end
+
+      unless exp_para
+        exp_para = rv.add_paragraph('/editor/action', 'experiment', {:experiment_id => self.id, :type => 'automatic'})
+        exp_para.save
+      end
     end
   end
 
