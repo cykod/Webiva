@@ -121,6 +121,11 @@ class ModuleAppController < ApplicationController
       @revision = @page.page_revisions.find_by_identifier_hash(params['__VER__'])
       return display_missing_page unless @revision
       return render :inline => 'Invalid version' unless @revision.revision_type == 'real' || @revision.revision_type == 'temp'
+    elsif @page.is_running_an_experiment?
+      self.log_visitor
+      if session[:domain_log_visitor] && session[:domain_log_visitor][:id]
+        @revision = @page.experiment_page_revision session[:domain_log_visitor], session[:cms_language]
+      end
     end
 
     engine = SiteNodeEngine.new(@page,:display => session[:cms_language], :path => path_args, :revision => @revision)
@@ -133,9 +138,7 @@ class ModuleAppController < ApplicationController
     end
 
     # Add a new visitor in
-    if Configuration.logging
-      @capture_location =  DomainLogVisitor.log_visitor(cookies,myself,session,request)
-    end
+    self.log_visitor
 
     # If it's a redirect, just redirect
     if @output.redirect?
@@ -172,7 +175,13 @@ class ModuleAppController < ApplicationController
     @output.includes[:js] << "http#{'s' if request.ssl?}://www.google.com/jsapi"
     @output.includes[:js] << "/javascripts/webalytics.js"
   end
-  
+
+  def log_visitor
+    if Configuration.logging
+      @capture_location = DomainLogVisitor.log_visitor(cookies,myself,session,request)
+    end
+  end
+
   def process_logging #:nodoc:
    if Configuration.logging
      unless request.bot?

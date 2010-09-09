@@ -48,7 +48,7 @@ class SiteNode < DomainModel
   expires_site
 
   def is_running_an_experiment?
-    self.experiment_id && self.experiment && self.experiment.is_running?
+    self.experiment_id && self.experiment && self.experiment.is_running? && self.experiment.active?
   end
 
   def experiment_version(domain_log_visitor, language)

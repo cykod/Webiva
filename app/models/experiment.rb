@@ -126,13 +126,15 @@ class Experiment < DomainModel
   end
 
   def get_user(domain_log_visitor, language)
-    user = self.experiment_users.find_by_domain_log_visitor_id_and_language(domain_log_visitor.id, language)
-    user.update_attribute(:end_user_id, domain_log_visitor.end_user_id) if user && user.end_user_id.nil? && domain_log_visitor.end_user_id
+    user = self.experiment_users.find_by_domain_log_visitor_id_and_language(domain_log_visitor[:id], language)
+    user.update_attribute(:end_user_id, domain_log_visitor[:end_user_id]) if user && user.end_user_id.nil? && domain_log_visitor[:end_user_id]
     user
   end
 
   def get_version(domain_log_visitor, language)
     return nil unless self.is_running?
+
+    domain_log_visitor = domain_log_visitor.attributes.symbolize_keys if domain_log_visitor.is_a?(DomainModel)
 
     user = self.get_user(domain_log_visitor, language)
     return user.experiment_version if user
@@ -149,7 +151,7 @@ class Experiment < DomainModel
 
     return nil unless version
 
-    self.experiment_users.create :experiment_version_id => version.id, :domain_log_visitor_id => domain_log_visitor.id, :language => language, :end_user_id => domain_log_visitor.end_user_id
+    self.experiment_users.create :experiment_version_id => version.id, :domain_log_visitor_id => domain_log_visitor[:id], :language => language, :end_user_id => domain_log_visitor[:end_user_id]
     version
   end
 
@@ -159,6 +161,7 @@ class Experiment < DomainModel
   end
 
   def self.success!(experiment_id, domain_log_visitor, language)
+    domain_log_visitor = domain_log_visitor.attributes.symbolize_keys if domain_log_visitor.is_a?(DomainModel)
     exp = Experiment.find_by_id experiment_id
     exp.success!(domain_log_visitor, language) if exp
   end
