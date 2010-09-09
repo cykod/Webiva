@@ -177,15 +177,19 @@ class ModuleAppController < ApplicationController
   end
 
   def log_visitor
+    return if @logged_visit
+    @logged_visit = true
     if Configuration.logging
-      @capture_location = DomainLogVisitor.log_visitor(cookies,myself,session,request)
+      unless request.bot?
+        @capture_location = DomainLogVisitor.log_visitor(cookies,myself,session,request)
+        DomainLogSession.start_session(myself, session, request, @page)
+      end
     end
   end
 
   def process_logging #:nodoc:
    if Configuration.logging
      unless request.bot?
-       DomainLogSession.start_session(myself, session, request, @page)
        DomainLogEntry.create_entry_from_request(myself, @page, (params[:path]||[]).join('/'), request, session, @output)
      end
     end
