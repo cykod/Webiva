@@ -26,6 +26,8 @@ class EmarketingController < CmsController # :nodoc: all
     get_handler_info(:chart, :traffic).each do |handler|
       @subpages << [handler[:name], :editor_visitors, 'emarketing_statistics.gif', handler[:url], handler[:description] || handler[:name]]
     end
+
+    @subpages << ['Experiments', :editor_visitors, 'emarketing_statistics.gif', {:controller => '/experiment', :action => 'index'}, 'View Experiments Results']
   end
   
  include ActiveTable::Controller   
