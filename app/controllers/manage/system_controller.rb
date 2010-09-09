@@ -7,6 +7,32 @@ class Manage::SystemController < CmsController # :nodoc: all
 
   def index
     cms_page_info("System Configuration",'system')
+
+
+    @subpages = [
+       [ "Translation", :system_admin, "system_translation.gif",
+         { :controller => '/manage/translate' }, 
+        "Translate the backend interface"
+       ],
+       [ "Clients", :system_admin, "system_clients.gif",
+         { :controller => '/manage/clients'}, 
+        "Configure the client accounts on the system"
+       ],
+       [ "Client\nUsers", :client_admin, "system_client_users.gif",
+         {  :controller => '/manage/users'  }, 
+        "Manage client level users"
+       ],
+       [ "Domains", :client_admin, "website_domains.png",
+         {  :controller => '/manage/domains' }, 
+        "View domains and edit options and components"
+       ],
+       [ "Issue Tracker", :system_admin, "system_issues.gif",
+         {  :controller => '/manage/issues' },
+         "View issues that the system has reported"
+       ]
+     ]
+
+    
   
     @client_user = self.client_user
     render :action => 'index' 

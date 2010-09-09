@@ -6,7 +6,17 @@
           $j(show_hide[0]).show();
           $j(show_hide[1]).hide();
         });
-     }
+      },
+      toggler: function(sel) {
+        var show_hide = sel.split(",");
+        $j(this).hover(function() {
+          $j(show_hide[0]).show();
+          $j(show_hide[1]).hide();
+        }, function() { 
+          $j(show_hide[1]).show();
+          $j(show_hide[0]).hide();
+        });
+      }
   }
 
   JClick = {

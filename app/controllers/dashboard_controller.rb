@@ -22,18 +22,8 @@ class DashboardController < CmsController #:nodoc:all
         end
       end
     end
-
-    @cms_titlebar_handlers||=[]
-    @cms_titlebar_handlers.unshift(self)
   end
 
-  protected
-
-  def titlebar_html
-    "<a href='javascript:void(0);' onclick='CMSDashboard.toggleEdit();'><img title='Toggle Widget Editing' src='#{theme_src('framework/page_title_edit_icon.gif')}' align='absmiddle'/></a>"
-  end
-
-  public 
 
   def positions
     columns = [ params[:column_0]||[], params[:column_1]||[], params[:column_2]||[] ]

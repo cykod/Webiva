@@ -75,7 +75,7 @@ WebivaBarChart = function(opts) {
         barsPerRow = dataTable[0].data.length,
         marginTop = 5,
         marginBottom = 20,
-        marginLeft = 130,
+        marginLeft = 190,
         marginRight = 100,
         w = canvasWidth() - (marginLeft + marginRight),
         h = (rows * (barsPerRow * 12 + 5)),
@@ -150,7 +150,7 @@ WebivaBarChart = function(opts) {
       bar.parent.anchor("left").add(pv.Label)
          .textMargin(5)
          .textAlign("right")
-         .text(function() truncate(dataTable[this.parent.index].label, 22))
+         .text(function() truncate(dataTable[this.parent.index].label, 40))
          .title(function() dataTable[this.parent.index].label)
          .events("all");
     }

@@ -15,36 +15,36 @@ class OptionsController < CmsController  # :nodoc: all
     
     @subpages =
       [
-       [ "Editor Accounts", :editor_editors, "website_editors.gif",
+       [ "Editor\nAccounts", :editor_editors, "website_editors.png",
          { :controller => 'editors' }, 
          "Administor editor accounts, managing who can edit pages on the system" ]
       ]
 
     if Configuration.domain_info.email_enabled?
       @subpages <<
-        [ "Domain Emails", :editor_emails, "emarketing_templates.gif",
+        [ "Domain\nEmails", :editor_emails, "emarketing_templates.gif",
           { :controller => '/email' },
           "Manage the email accounts associated with this domain" ]
     end
 
     @subpages += 
       [ 
-       [ "Permissions", :editor_permissions, "site_editors.gif",
+       [ "Permissions", :editor_permissions, "website_permissions.png",
          { :controller => '/permissions' },
          "Administor permissions, controlling which user profiles has access to features of the site."
        ],
-       [ "Website Configuration", :editor_site_management, "website_configuration.gif",
+       [ "Website\nConfiguration", :editor_site_management, "website_configuration.png",
          { :controller => '/options', :action => 'configuration' }, "Presents various site-wide configuration options that can be set up. Configure System Languages."
        ],
-       [ "Themes", :editor_design_templates, "design_templates.gif",
+       [ "Themes", :editor_design_templates, "website_themes.png",
          { :controller => '/templates' },
          "Create, Select and Edit site themes. Themes control the look of your site."
        ],
-       [ "Module Setup", :editor_site_management, 'module_setup.gif',
+       [ "Modules", :editor_site_management, 'website_modules.png',
          {  :controller => '/modules'},
-         "Enables additional CMS functionalities via plugin modules. Modules features can be accessed either via website, page editor paragraph types, or additional administrative pages."
+         "Enables additional CMS functionalities via plugin modules. Module features can be accessed either via website, page editor paragraph types, or additional administrative pages."
        ],
-       [ "Domains", :editor_site_management, 'system_domains.gif',
+       [ "Site\nDomains", :editor_site_management, 'website_domains.png',
          { :controller => '/domains' },
          "Administer the domains where this site can be accessed."
        ]
@@ -77,7 +77,26 @@ class OptionsController < CmsController  # :nodoc: all
   
   def configuration
     cms_page_path [ "Options" ], "Configuration"
-    
+
+
+     @subpages = [
+       [ "Domain Options", :editor_editors, "website_configuration.png",
+         { :action => 'domain_options' }, 
+        "Manage domain level options"
+       ],
+       [ "Languages", :editor_editors, "website_configuration.png",
+         { :action => 'languages' }, 
+        "Configure the available languages on the site"
+       ],
+       [ "Files", :editor_editors, "website_configuration.png",
+         { :action => 'files' }, 
+        "Manage the file processor for Files uploaded to the system"
+       ],
+       [ "Image Sizes", :editor_editors, "website_configuration.png",
+         { :action => 'image_sizes' }, 
+        "Configure image sizes available on the site"
+       ]
+     ]
   end
   
   def languages

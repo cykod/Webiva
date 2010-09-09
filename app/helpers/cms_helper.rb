@@ -802,20 +802,24 @@ EOF
     html = pages.collect do |pg|
       idx += 1
       if myself.has_role?(pg[1].to_s)
-        pg_html = <<-OUTPUT
-          <td><a href='#{url_for pg[3]}' onmouseover='SCMS.show_hide("subpage_#{idx}","subpage_none");' onmouseout='SCMS.show_hide("subpage_none","subpage_#{idx}");'>#{theme_image_tag "actions/" + pg[2]}<br/>#{pg[0].t}</a></td>
+        icon_html = <<-OUTPUT
+          <td class='icon'><a href='#{url_for pg[3]}' j-action='toggler' toggler="#subpage_#{idx},#subpage_none">#{theme_image_tag "actions/" + pg[2]}</a></td>
         OUTPUT
-        help = "<div class='action_icon_mouseover' id='subpage_#{idx}' style='display:none;'>#{h(pg[4])}</div>"
-        [ pg_html, help ]
+        pg_html = <<-OUTPUT
+          <td class='txt'><a href='#{url_for pg[3]}'  j-action='toggler' toggler="#subpage_#{idx},#subpage_none">#{pg[0].t.gsub("\n","<br/>")}</a></td>
+        OUTPUT
+        help = "<div class='action_icon_mouseover' id='subpage_#{idx}' style='display:none;'><div class='action_icon_mouseover_body'>#{h(pg[4])}</div></div>"
+        [ icon_html, pg_html, help ]
       else 
         [ '','' ]
       end
     end
     
          
-    output +=  html.map { |elm| elm[0] }.join
-    output += "</table><div class='action_icon_mouseover' id='subpage_none'></div>"
-    output += html.map { |elm| elm[1] }.join
+    output +=  html.map { |elm| elm[0] }.join + "</tr><tr>"
+    output +=  html.map { |elm| elm[1] }.join + "</tr>"
+    output += "</table><div class='action_icon_mouseover' id='subpage_none'><div class='action_icon_mouseover_body'></div></div>"
+    output += html.map { |elm| elm[2] }.join
     output
   end
 
