@@ -7,7 +7,7 @@ to = now
 from = now - (range*intervals).minutes
 
 groups = node.traffic Time.at(from), 1.hour, intervals
-chart_data = DomainLogGroup.traffic_chart_data groups, :desc => true
+chart_data = DomainLogGroup.traffic_chart_data groups, :desc => true, :label => '%l %P'
 if chart_data[:hits].find{ |h| h > 0 }
 -%>
 <div class='tree_detail_secondary_section'>
