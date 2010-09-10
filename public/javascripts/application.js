@@ -111,8 +111,8 @@ SCMS = {
 		var row = selected_td.parentNode;
 		var tbody = row.parentNode;
 
-		var tabs = getChildElements(row); // 0, T1-Tn, Extra
-		var contents = getChildElements(tbody); // Header, T1-Tn
+		var tabs = row ? getChildElements(row) : []; // 0, T1-Tn, Extra
+		var contents = tbody ? getChildElements(tbody) : []; // Header, T1-Tn
 
 		var i=0;
 		for(i=1;i<contents.length;i++) {
@@ -125,11 +125,12 @@ SCMS = {
 			}
 			else {
 				tabs[i-1].className = 'selected';
-				Element.show(contents[i]);
+                                if(contents.length > i ) {
+                                  Element.show(contents[i]);
+                                }
 			}
 
 		}
-
 	},
 
 

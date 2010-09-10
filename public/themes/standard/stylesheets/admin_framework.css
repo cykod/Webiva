@@ -1011,7 +1011,11 @@ table.display_table td.field {
 .visitor_container_body {
   background-color:white;
   padding:12px 0px 12px 8px;
-  -moz-border-radius: 10px;
-  -webkit-border-radius: 10px;
+  -moz-border-radius-bottomleft: 10px;
+  -moz-border-radius-bottomright: 10px;
+  -moz-border-radius-topright: 10px;
+  -webkit-border-radius-bottomleft: 10px;
+  -webkit-border-radius-bottomright: 10px;
+  -webkit-border-radius-topright: 10px;
   overflow:hidden;
 }

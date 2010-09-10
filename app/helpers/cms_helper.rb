@@ -276,11 +276,12 @@ images/icons/actions directory of the current theme.
     # This class usually isn't instantiated directly, see CmsHelper#ajax_tabs for usage
     class AjaxTabBuilder
       include ActionView::Helpers::TextHelper
-      def initialize(view,tab_cnt,selected) # :nodoc:
+      def initialize(view,tab_cnt,selected,opts={}) # :nodoc:
         @view = view
         @tab_num = 0
         @selected = selected
-        @tab_cnt = tab_cnt		
+        @tab_cnt = tab_cnt
+        @opts = opts
       end
       
       # Creates a tab inside of the ajax_tabs
@@ -367,7 +368,7 @@ content isn't already loaded.
        concat("<td #{opt==selected ? 'class="selected"' : 'class="normal"'}> <a class='ajax_link' onclick='SCMS.select_tab(this); #{js}' href='javascript:void(0);'>#{opt.t}</a></td>")
      end
      concat("<td class='extra'> &nbsp; </td>	</tr>")
-     yield AjaxTabBuilder.new(self,options.length,selected_id)
+     yield AjaxTabBuilder.new(self,options.length,selected_id) if block_given?
      concat("</table>")
    end
    
