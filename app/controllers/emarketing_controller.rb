@@ -252,23 +252,6 @@ class EmarketingController < CmsController # :nodoc: all
       groups = DomainLogEntry.traffic Time.at(from), range.minutes, intervals
     end
 
-    groups.sort { |a,b| b.started_at <=> a.started_at }.each do |group|
-      stat = group.domain_log_stats[0]
-      if stat
-        uniques << stat.visits
-        hits << stat.hits
-      else
-        uniques << 0
-        hits << 0
-      end
-      labels << group.ended_at.strftime('%I:%M')
-      break if update_only
-    end
-
-    from = to - (range*intervals).minutes
-
-    format = '%b %e, %Y %I:%M%P'
-    data = { :range => range, :from => Time.at(from).strftime(format), :to => Time.at(to).strftime(format), :uniques => uniques, :hits => hits, :labels => labels }
-    return render :json => data
+    return render :json => DomainLogGroup.chart_data(groups, :desc => true).merge(:range => range)
   end
 end
