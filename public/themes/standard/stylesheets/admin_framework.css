@@ -1020,12 +1020,12 @@ table.display_table td.field {
   overflow:hidden;
 }
 
-.visitor_container .button_link {
+.visitor_container .heading .button_link {
   background-color:#cce5e9;
   color: #754C28;
   font-size: 15px;
 }
 
-.visitor_container .selected {
+.visitor_container .heading .selected {
    background-color:#f3f0e0;
 }

@@ -19,8 +19,7 @@ chart_top = @stats.size > 3 ? ((@stats.size - 3) * 3) : 0
 %>
 <div class='admin_content'>
 <div class="visitor_container" style="width:100%;">
-
-  <div style="padding-bottom:10px;">
+  <div class="heading" style="padding-bottom:10px;">
     <%= @when_options.collect { |opt| link_to opt[0], {:when => opt[1], :type_id => @type_id, :target_id => @target_id}, :class => @when == opt[1] ? 'selected button_link' : 'button_link' }.join(' ') %>
   </div>
 
