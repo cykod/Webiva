@@ -39,6 +39,7 @@ html[xmlns] .clearfix {
 h1, h2, h3, h4, h1 a { font-family: 'Droid Sans', arial, serif; letter-spacing:-0.03em; }
 body { font-family:Arial; font-size:12px; } 
 h2 { font-size:18px; padding-bottom:10px; color:#7a5534; }
+.inform {padding-top: 10px;}
 .header_value { color:#a87c4f; }
 
 a { color:#00bcdc; text-decoration:none; }
