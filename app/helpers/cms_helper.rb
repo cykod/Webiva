@@ -786,7 +786,7 @@ EOF
   # adding an additional pages that match the name
   # see app/views/options/index.rhtml and OptionsController#index for an example
  def subpage_display(name,pages)
-    output = "<table class='action_icon_table'><tr>"
+    output = "<table align='center' class='action_icon_table'><tr>"
     
     idx = -1
     
@@ -818,8 +818,8 @@ EOF
          
     output +=  html.map { |elm| elm[0] }.join + "</tr><tr>"
     output +=  html.map { |elm| elm[1] }.join + "</tr>"
-    output += "</table><div class='action_icon_mouseover' id='subpage_none'><div class='action_icon_mouseover_body'></div></div>"
-    output += html.map { |elm| elm[2] }.join
+    output += "</table><div align='center'><div class='action_icon_mouseover' id='subpage_none'><div class='action_icon_mouseover_body'></div></div>"
+    output += html.map { |elm| elm[2] }.join + '</div>'
     output
   end
 

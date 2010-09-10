@@ -265,6 +265,25 @@ form input:focus, form textarea:focus  {
  padding:2px 5px;
 }*/
 
+
+/* Flash Notice */
+
+.flash_notice {
+  margin:5px 40px;
+  border:1px solid #CCCCCC;
+  background-color: #a6cdda;
+  color: #0f75bc;
+  font-weight:bold;
+  padding:10px;
+  text-align:center;
+}
+
+.flash_notice a {
+  color: #0f75bc;
+}
+
+
+
 /* Admin Active Table */
 
 .active_table_wrapper {
@@ -329,11 +348,37 @@ form input:focus, form textarea:focus  {
  background-color: #edc472;
 }
 
+
+.alternate_row {
+  background-color:#CCCCCC;
+}
+
+.active_table tr.highlighted_row td {
+  background-color:#d2e6ec;
+}
+
+.active_table tr.selected_row td {
+  background-color:#ffec91;
+}
+
+
+
+table td .highlighted_col {
+  background-color:#d2e6ec;
+}
+
+.highlighted_text {
+  color:#CC0000;
+}
+
+
+
+
 .pagination_spacer {
   vertical-align:middle;
-  height:10px;
+/*  height:10px;
   margin:5px 0px;
-  background-color: #cce5e9;
+  background-color: #cce5e9;*/
 }
 
 
@@ -354,14 +399,15 @@ form input:focus, form textarea:focus  {
     float:left;
     background-color:#a6cdda;
     margin:0px 2px;
-    border:1px solid #557e9f;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
   }
   
    ul.pagination li.first {
     }
 
-   ul.pagination li.highlight {
-
+   ul.pagination li.highlight a {
+      padding:6px 12px;
     }
 
    ul.pagination li.current {
@@ -375,11 +421,12 @@ form input:focus, form textarea:focus  {
    ul.pagination li.spacer {
         display:block;
         padding:4px;
+        background:inherit;
     }
 
     ul.pagination li a {
       display:block;
-      padding:4px;
+      padding:6px;
       text-decoration:none;
     }
 

@@ -588,12 +588,10 @@ SCMS = {
 
 
   highlightRow: function(row) {
-      //new Effect.Morph(row,{ style: "color: #FF0000; background-color: #CCCCCC;", duration: 0.4, queue: {scope: tools_id }});
       $(row).addClassName('highlighted_row');
   },
 
   lowlightRow: function(row,callback) {
-      //new Effect.Morph(row,{ style: "color: #000000; background-color: #FFFFFF;", duration: 0.4, queue: {scope: tools_id } });
       $(row).removeClassName('highlighted_row');
 
       if(callback == undefined)

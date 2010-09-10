@@ -595,12 +595,11 @@ background: -webkit-gradient(
   position: relative;
   top: 200px;
   z-index: 1001;
-  width: 70px;
-  height: 70px;
+  width: 128px;
+  height: 128px;
   margin: 0 auto;
   text-align: center;
-  background: #666 url(../images/redbox_spinner.gif) no-repeat center center;
-  border: 2px solid black;
+  background: url(../images/redbox_spinner.gif) no-repeat center center;
 }
 
 #RB_window {
@@ -868,7 +867,7 @@ table.mini_table td em { color:#b3b3b3; }
 }
 
 /* Action Icon Table */
-.action_icon_table { width:960px; }
+.action_icon_table { width:920px; }
 
 .action_icon_table td.icon { text-align:center; vertical-align:bottom; padding-bottom:10px; }
 .action_icon_table td.txt { text-align:center; vertical-align:center; }
@@ -879,7 +878,7 @@ table.mini_table td em { color:#b3b3b3; }
 
 .action_icon_mouseover { 
   margin-top:31px;
-  width:960px;
+  width:920px;
   background-color:#cce5e9; 
   padding:20px 10px 10px 10px;
   -moz-border-radius: 8px;

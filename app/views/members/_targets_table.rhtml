@@ -6,7 +6,8 @@
                     :class => 'active_table',
                     :width => '100%',
                     :next => @search.user_segment && @search.terms ? 'more' : '&gt;',
-                    :actions => [['Quick Edit','js','MemberEditor.quickEdit();'],
+                    :actions => [['Acknowledge','acknowledge','Mark the selected entries as acknowledged?'],
+                                 ['Quick Edit','js','MemberEditor.quickEdit();'],
                                  ['Add Tags','js','MemberEditor.addTags();'],
                                  ['Remove Tags','js','MemberEditor.removeTags();'],
                                  segment_action

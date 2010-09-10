@@ -78,6 +78,8 @@ class MembersController < CmsController # :nodoc: all
         update_users = EndUser.find(:all,:conditions => { :id => uids })
         
         case act
+        when 'acknowledge'
+          update_users.map { |usr| usr.update_attribute(:acknowledged,true) }
         when 'add_tags'
           update_users.each do |user|
             user.tag_names_add(params[:added_tags]) if user
@@ -111,7 +113,7 @@ class MembersController < CmsController # :nodoc: all
 
     @email_targets_table_columns = [
       ActiveTable::IconHeader.new('check', :width => '16'),
-      ActiveTable::StaticHeader.new('Lvl', :width => '24'),
+      ActiveTable::OrderHeader.new('user_level',:label => 'Lvl', :width => '24'),
       ActiveTable::StaticHeader.new('Edit', :width => '24'),
       ActiveTable::StaticHeader.new('Image', :width => '70'),
       ActiveTable::StaticHeader.new('Name'),
