@@ -1019,3 +1019,13 @@ table.display_table td.field {
   -webkit-border-radius-topright: 10px;
   overflow:hidden;
 }
+
+.visitor_container .button_link {
+  background-color:#cce5e9;
+  color: #754C28;
+  font-size: 15px;
+}
+
+.visitor_container .selected {
+   background-color:#f3f0e0;
+}

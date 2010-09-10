@@ -84,7 +84,9 @@ WebivaBarChart = function(opts) {
         legendWidth = marginRight - 5,
         legendX = (w + 5),
         legendSize = 5,
-        legendY = 0;
+        legendY = 0,
+        fontColor = '#603813',
+        colors = pv.colors('#C7CB2D', '#754C28');
 
     /* No need to redraw unless we are changing the size of the graph */
     if(force == undefined && currentWidth == w) {
@@ -113,7 +115,8 @@ WebivaBarChart = function(opts) {
        .height(y.range().band / barsPerRow)
        .left(0)
        .width(x)
-       .fillStyle(pv.Colors.category20().by(pv.index))
+       .fillStyle(colors.by(pv.index))
+       .textStyle(fontColor)
        .text(function(d) d + (columns ? ' ' + columns[this.index] : ''))
        .event("mouseover", pv.Behavior.tipsy({gravity: "w", fade: true}));
   
@@ -125,11 +128,12 @@ WebivaBarChart = function(opts) {
          .height(12)
          .left(legendX)
          .width(12)
-         .fillStyle(pv.Colors.category20().by(pv.index))
+         .fillStyle(colors.by(pv.index))
          .event("click", function() {sort(this.index); draw(true);})
          .anchor("right").add(pv.Label)
          .textMargin(5)
          .textAlign("left")
+         .textStyle(fontColor)
          .text(function() columns[this.index])
          .events("all")
          .event("click", function() {sort(this.index); draw(true);});
@@ -150,6 +154,7 @@ WebivaBarChart = function(opts) {
       bar.parent.anchor("left").add(pv.Label)
          .textMargin(5)
          .textAlign("right")
+         .textStyle(fontColor)
          .text(function() truncate(dataTable[this.parent.index].label, 40))
          .title(function() dataTable[this.parent.index].label)
          .events("all");
@@ -168,8 +173,9 @@ WebivaBarChart = function(opts) {
         .add(pv.Rule)
         .bottom(0)
         .height(5)
-        .strokeStyle("#000")
+        .strokeStyle(fontColor)
         .anchor("bottom").add(pv.Label)
+        .textStyle(fontColor)
         .text(x.tickFormat);
   
     vis.render();
