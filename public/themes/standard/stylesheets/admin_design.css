@@ -11,6 +11,7 @@ caption,th { text-align:left; }
 h1,h2,h3,h4,h5,h6 { font-size:100%; font-weight:normal; }
 q:before,q:after { content:''; }
 abbr,acronym { border:0;}
+strong,b { font-weight:bold; }
 
 .clear { clear:both; }
 
@@ -579,3 +580,44 @@ table td .highlighted_col {
 }
 
 
+/* Admin Stat Table */
+
+.stat_table_icon {
+  display:block;
+  float:right;
+  padding-right:15px;
+}
+
+.stat_table_wrapper {
+  -moz-border-radius: 8px;
+  -webkit-border-radius: 8px;
+  background-color:#f2f7e3;
+  padding:0px 8px 8px 8px;
+  display:inline-block;
+}
+
+.stat_table th {
+  color:#603813;
+  font-weight:bold;
+  background-color:#f2f7e3;
+  padding:3px 10px;
+
+}
+
+.stat_table th.first {
+  border-left:0px;
+}
+
+.stat_table td {
+  padding:3px 5px;
+  color:#603813;
+  background-color:white;
+}
+
+.stat_table tbody td {
+  border-left:1px solid #f2f7e3;
+}
+
+.stat_table tbody td.first {
+  border-left:0px;
+}

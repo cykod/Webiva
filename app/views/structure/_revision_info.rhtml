@@ -25,13 +25,8 @@ latest = @active_revision_info[2] -%>
    <% end -%>
  </ul>
 
- <% if @node.experiment -%>
-   <% @node.experiment.language = @view_language -%>
-   <%= render(:partial => 'experiment_info', :locals => {:experiment => @node.experiment}) if @node.experiment.versions.size > 0 %>
- <% end -%>
-
  <% if permit?('editor_editor') %>
-   <h2><%= "Edit Page" %></h2>
+   <h2><%= "Edit Page".t %></h2>
    <% if latest && latest != revision -%>
      <div class='third'>
          <%= button_link("pen.png","edit active", :controller => 'edit', :action => 'page', :path => ['page',@node.id,revision.id ] ) %><br/>
@@ -59,5 +54,10 @@ latest = @active_revision_info[2] -%>
         <a class='large' href='javascript:void(0);' onclick="SCMS.remoteOverlay('<%= url_for :action => 'experiment', :path => @node.id, :language => @view_language, :new => 1 %>');">Run another Experiment</a>
      </div>
    <% end -%>
+ <% end -%>
+
+ <% if @node.experiment -%>
+   <% @node.experiment.language = @view_language -%>
+   <%= render(:partial => 'experiment_info', :locals => {:experiment => @node.experiment}) if @node.experiment.versions.size > 0 %>
  <% end -%>
  </div>
