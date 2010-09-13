@@ -163,6 +163,28 @@ class MyRobotsWebService < ActiveWebService
         options[:body]['commit'] = 'Submit Order'
       end
     end
+
+    add_referer! options
+  end
+
+  def add_referer!(options)
+    return if @add_referer
+    @add_referer = true
+    @referers ||= [
+      'http://www.google.com/#sclient=psy&hl=en&q=evil+genius+robots&aq=f&aqi=&aql=&oq=&gs_rfai=&pbx=1&fp=ab5cdb1806fef4aa',
+      'http://search.yahoo.com/search;_ylt=A0WTfZ1Slo5MC28BpR2bvZx4?p=evil+robots&toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701',
+      'http://www.google.com/#sclient=psy&hl=en&q=evil+genius+robots&aq=f&aqi=&aql=&oq=&gs_rfai=&pbx=1&fp=ab5cdb1806fef4aa',
+      'http://search.yahoo.com/search;_ylt=A0WTfZ1Slo5MC28BpR2bvZx4?p=evil+robots&toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701',
+      'http://www.google.com/#sclient=psy&hl=en&q=evil+robots&aq=f&aqi=&aql=&oq=&gs_rfai=&pbx=1&fp=ab5cdb1806fef4aa',
+      'http://search.yahoo.com/search;_ylt=A0WTfZ1Slo5MC28BpR2bvZx4?p=robots&toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701',
+      'http://www.robots.com/robots.php',
+      'http://www.robots.com/',
+      'http://myrobots.com/'
+    ]
+
+    if rand(100) < 10
+      options[:headers]['referer'] = @referers[rand(@referers.size)]
+    end
   end
 
   def add_product(product)
