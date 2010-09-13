@@ -10,23 +10,23 @@ class Manage::SystemController < CmsController # :nodoc: all
 
 
     @subpages = [
-       [ "Translation", :system_admin, "system_translation.gif",
+       [ "Translation", :system_admin, "system_translation.png",
          { :controller => '/manage/translate' }, 
         "Translate the backend interface"
        ],
-       [ "Clients", :system_admin, "system_clients.gif",
+       [ "Clients", :system_admin, "system_clients.png",
          { :controller => '/manage/clients'}, 
         "Configure the client accounts on the system"
        ],
-       [ "Client\nUsers", :client_admin, "system_client_users.gif",
+       [ "Client\nUsers", :client_admin, "system_client_users.png",
          {  :controller => '/manage/users'  }, 
         "Manage client level users"
        ],
-       [ "Domains", :client_admin, "website_domains.png",
+       [ "Domains", :client_admin, "system_domains.png",
          {  :controller => '/manage/domains' }, 
         "View domains and edit options and components"
        ],
-       [ "Issue Tracker", :system_admin, "system_issues.gif",
+       [ "Issue Tracker", :system_admin, "system_issue_tracker.png",
          {  :controller => '/manage/issues' },
          "View issues that the system has reported"
        ]

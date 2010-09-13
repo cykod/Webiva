@@ -211,6 +211,7 @@ hr { clear:both; border:0px; color:white; background-color:white; height:10px; }
   .module_node { background:url(../images/icons/site_tree.gif) -68px 0px no-repeat; }
   .redirect_node { background:url(../images/icons/site_tree.gif) -85px 0px no-repeat; }
   .document_node { background:url(../images/icons/site_tree.gif) -135px no-repeat; }
+  .group_node { background:url(../images/icons/site_tree.gif) -152px 0px no-repeat; }
 
   .framework_modifier { background:url(../images/icons/site_tree.gif) 0px 0px no-repeat; }
   .template_modifier{ background:url(../images/icons/site_tree.gif) -17px 0px no-repeat; }
@@ -1029,3 +1030,95 @@ table.display_table td.field {
 .visitor_container .heading .selected {
    background-color:#f3f0e0;
 }
+
+
+
+
+ul.sortable_list_remove {
+ position:relative;
+ display:block;	
+ width:200px;
+ border:1px solid #000000;
+ margin:10px 0;
+ padding:5px;
+ height:30px;
+ background-color:#000000;
+
+}
+
+ul.horizontal_sortable {
+  position:relative;
+  list-style: none;
+  display:block;	
+  margin:0px 0px;
+  padding:0px;
+  background-color:#CCCCCC;
+  
+}
+
+ul.horizontal_sortable li {
+	display:block;
+	list-style: none;
+	cursor:move;
+	float:left;
+	background-color:#CCCCCC;
+	margin: 0 2px 0 0;
+	padding: 4px;
+	width:125px;
+	overflow:hidden;
+	color:#000000;
+}
+
+
+ul.horizontal_sortable_example {
+  position:relative;
+  list-style: none;
+  display:block;	
+  margin:0px 0px;
+  padding:0px;
+  background-color:#CCCCFF;
+  
+}
+
+ul.horizontal_sortable_example li {
+	display:block;
+	list-style: none;
+	float:left;
+	background-color:#CCCCFF;
+	border-right:2px #FFFFFF solid;
+	margin: 0;
+	padding: 4px;
+	width:125px;
+	overflow:hidden;
+	color:#000000;
+  text-align:center;
+}
+
+ul.horizontal_sortable_example li.last {
+	border:0px;
+}
+
+/* Designs Styles */
+
+.style_display {
+ margin:5px; 
+ padding:5px;
+ border:1px solid #000000;
+ width:300px; 
+ height:420px; 
+ overflow:auto; 
+ -moz-border-radius: 5px;
+ -webkit-border-radius: 5px;
+}
+
+.template_style {
+ margin:3px;
+ border-bottom:1px solid #CCCCCC;
+ padding:4px;
+ cursor:pointer;
+ -moz-border-radius: 5px;
+ -webkit-border-radius: 5px;
+}
+
+
+

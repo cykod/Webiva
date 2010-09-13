@@ -1,8 +1,8 @@
-<div id="user_note" class='cms_form admin_form' style='width:650px;'>
+<div id="user_note" class='cms_form admin_form' style='width:680px;'>
 <div align="right"><a href="javascript:void(0);" onclick="RedBox.close();">[x] close</a></div>
 <h3><%= @user.name %></h3>
 
-<div class='admin_content' style='width:315px; padding-right:10px; float:left;'>
+<div style='width:315px; padding-right:10px; float:left;'>
 <% stat_view do |t| -%>
   <%= t.raw 'First Name'.t,  @user.first_name %>
   <%= t.raw 'Last Name'.t,  @user.last_name %>
@@ -21,7 +21,7 @@
 
 </div>
 
-<div class="admin_content" style='width:325px; float:left;'>
+<div style='width:325px; float:left;'>
 
 <% remote_cms_form_for :note, @note, :update => 'RB_window' do |f| %>
   <%= f.text_area :note, :rows => 3, :vertical => true, :label => 'Note'.t %>

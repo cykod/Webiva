@@ -21,6 +21,7 @@ class DomainLogReferrer  < DomainModel
   def self.chart_traffic_handler_info
     {
       :name => 'Referrer Traffic',
+      :icon => 'traffic_referrer.png',
       :url => { :controller => '/emarketing', :action => 'charts', :path => ['traffic'] + self.name.underscore.split('/') }
     }
   end

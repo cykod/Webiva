@@ -80,19 +80,19 @@ class OptionsController < CmsController  # :nodoc: all
 
 
      @subpages = [
-       [ "Domain Options", :editor_editors, "website_configuration.png",
+       [ "Domain Options", :editor_editors, "config_domain.png",
          { :action => 'domain_options' }, 
         "Manage domain level options"
        ],
-       [ "Languages", :editor_editors, "website_configuration.png",
+       [ "Languages", :editor_editors, "config_languages.png",
          { :action => 'languages' }, 
         "Configure the available languages on the site"
        ],
-       [ "Files", :editor_editors, "website_configuration.png",
+       [ "Files", :editor_editors, "config_files.png",
          { :action => 'files' }, 
         "Manage the file processor for Files uploaded to the system"
        ],
-       [ "Image Sizes", :editor_editors, "website_configuration.png",
+       [ "Image Sizes", :editor_editors, "config_image_sizes.png",
          { :action => 'image_sizes' }, 
         "Configure image sizes available on the site"
        ]

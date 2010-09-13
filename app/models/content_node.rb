@@ -243,7 +243,7 @@ class ContentNode < DomainModel
   def self.chart_traffic_handler_info
     {
       :name => 'Content Traffic',
-      :url => { :controller => '/emarketing', :action => 'charts', :path => ['traffic'] + self.name.underscore.split('/') },
+      :url => { :controller => '/emarketing', :action => 'charts', :path => ['traffic'] + self.name.underscore.split('/') }, :icon => 'traffic_content.png',
       :type_options => :traffic_type_options
     }
   end
