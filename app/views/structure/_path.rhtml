@@ -41,10 +41,9 @@
    	node_title_click = "StructureEditor.groupPopup('#{path.id}')"
    end
  -%>
-   
 
 <% path.site_node_modifiers.each do |mod| -%>
-   <% if mod.modifier_type  != 'page' -%>
+   <% if mod.modifier_type.to_s  != 'page' -%>
      <% if @display_modifiers == 'show'  -%>
         <%= render :partial => 'site_node_modifier', :locals => { :mod => mod } %>
     <% end -%>

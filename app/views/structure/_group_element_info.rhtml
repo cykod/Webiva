@@ -23,7 +23,7 @@ GroupEditor= {
 
 </script><% if permit?('editor_structure') %>
 <ul class='page_detail_buttons'>
-  <li class='icon'><a href='javascript:void(0);'  title='<%= vh 'Delete Group'.t%>' onclick='StructureEditor.nodeDelete(<%= @node.id %>,"<%= jh "Are you sure you want to delete this group and all it\'s sub-pages?" .t %>");'><%= image_tag(theme_src('icons/header_actions/delete_page.png')) %></a></li>
+  <li class='icon'><a href='javascript:void(0);'  title='<%= vh 'Delete Group'.t%>' onclick='StructureEditor.nodeDelete(<%= @node.id %>,"<%= jvh "Are you sure you want to delete this group and all it\'s sub-pages?" .t %>");'><%= image_tag(theme_src('icons/header_actions/delete_page.png')) %></a></li>
 </ul>  
 <% end -%>
 
