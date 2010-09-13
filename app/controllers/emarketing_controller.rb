@@ -233,17 +233,13 @@ class EmarketingController < CmsController # :nodoc: all
   def real_time_charts_request
     range = (params[:range] || 5).to_i
     intervals = (params[:intervals] || 10).to_i
-    update_only = (params[:update] || 0).to_i == 1
+    update_only = params[:update]
     site_node_id = params[:site_node_id]
 
     now = Time.now
     now = now.to_i - (now.to_i % range.minutes)
-    to = now
     from = now - (range*intervals).minutes
 
-    uniques = []
-    hits = []
-    labels = []
     groups = []
     if site_node_id
       site_node = SiteNode.find_by_id site_node_id
@@ -252,23 +248,6 @@ class EmarketingController < CmsController # :nodoc: all
       groups = DomainLogEntry.traffic Time.at(from), range.minutes, intervals
     end
 
-    groups.sort { |a,b| b.started_at <=> a.started_at }.each do |group|
-      stat = group.domain_log_stats[0]
-      if stat
-        uniques << stat.visits
-        hits << stat.hits
-      else
-        uniques << 0
-        hits << 0
-      end
-      labels << group.ended_at.strftime('%I:%M')
-      break if update_only
-    end
-
-    from = to - (range*intervals).minutes
-
-    format = '%b %e, %Y %I:%M%P'
-    data = { :range => range, :from => Time.at(from).strftime(format), :to => Time.at(to).strftime(format), :uniques => uniques, :hits => hits, :labels => labels }
-    return render :json => data
+    return render :json => DomainLogGroup.traffic_chart_data(groups, :desc => true, :update_only => update_only).merge(:range => range)
   end
 end

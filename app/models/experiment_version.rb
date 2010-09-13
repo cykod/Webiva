@@ -9,10 +9,12 @@ class ExperimentVersion < DomainModel
   validates_presence_of :weight
   validates_presence_of :experiment_id
 
-  def title
+  def title(opts={})
     return @title if @title
     return @title = self.revision.to_s unless self.page_revision
-    @title = "#{self.page_revision.active? ? '*' : ''} #{self.revision} #{self.page_revision.version_name}"
+    @title = "#{self.revision} #{self.page_revision.version_name}"
+    @title = "#{self.page_revision.active? ? '*' : ''} #{@title}" unless opts[:name_only]
+    @title
   end
 
   def num_visits

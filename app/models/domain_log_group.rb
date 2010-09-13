@@ -101,4 +101,32 @@ class DomainLogGroup < DomainModel
       stat.update_attribute :hits, page_counts[target_id]
     end
   end
+
+  def self.traffic_chart_data(groups, opts={})
+    to = groups[0].started_at
+    from = groups[-1].ended_at
+
+    opts[:label] ||= '%I:%M'
+
+    groups = groups.sort { |a,b| b.started_at <=> a.started_at } if opts[:desc]
+
+    uniques = []
+    hits = []
+    labels = []
+    groups.each do |group|
+      stat = group.domain_log_stats[0]
+      if stat
+        uniques << stat.visits
+        hits << stat.hits
+      else
+        uniques << 0
+        hits << 0
+      end
+      labels << group.ended_at.strftime(opts[:label])
+      break if opts[:update_only]
+    end
+
+    format = opts[:format] || '%b %e, %Y %I:%M%P'
+    data = { :from => from.strftime(format), :to => to.strftime(format), :uniques => uniques, :visits => uniques, :hits => hits, :labels => labels }
+  end
 end

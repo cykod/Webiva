@@ -1,25 +1,28 @@
 <% @date_format = "%d %b %T %p".t -%>
+<div class="visitor_container">
 
-<b>
+<div class="heading">
+
+<h2>
 <% if @user -%>
   <%= 'User #%s:' / @user.id.to_s -%>
   <%= link_to @user.name, url_for(:controller => "/members", :action => 'view', :path => @user.id) -%>
 <% else -%>
   <%= 'Anonymous user from %s' / @entry.ip_address.to_s -%>
 <% end -%>
-</b><br/>
-<b>IP Address: <%= @entry.ip_address %>, <%= @entry.ip_address_name %>
+</h2>
+
+IP Address: <%= @entry.ip_address %>, <%= @entry.ip_address_name %>
 <% if @entry.has_location? %>
   ( <%= @entry.location_display %>
   <%= link_to 'Location Estimate', "http://maps.google.com/maps?ll=#{@entry.latitude},#{@entry.longitude}", :target => '_blank' if @entry.latitude %> )
 <% end -%>
-</b><br/>
 
-<b>Content Viewed last Visit: <b><br/>
+<h2 class="inform">Content Viewed last Visit:</h2>
 <% @entry.last_session.session_content.each do |content_node| %>
  <%= link_to h(content_node.title), content_node.link %><br/>
 <% end -%>
-<br/>
+
 <br/>
 
 <div class="real-time-stats">
@@ -28,12 +31,16 @@
     <div class="page2">Where / <em>Action</em></div>
   </div>
 </div>
-<div id="vistor_stats" class="real-time-stats real-time-stats-block two-tone-list">
+
+</div>
+
+<div class="visitor_container_body">
+<div id="vistor_stats" class="real-time-stats real-time-stats-block">
 <% @sessions.each_with_index do |ses,idx| %>
   <div class='header'>Session started <%= ses.created_at.to_s(:long) %> from <%= ses.ip_address %></div>
 <% ses.domain_log_entries.each_with_index do |entry, index| -%>
   <% next unless entry.is_a?(DomainLogEntry) -%>
-  <div class="row <%= index % 2 == 0 ? 'even' : 'odd'%>">
+  <div>
     <div class="stats clearfix">
       <div class="date"><%= entry.occurred_at.localize @date_format %></div>
       <div class="page2"><%= link_to entry.url, entry.url, :target => '_blank' %></div>
@@ -46,3 +53,5 @@
 <% end -%>
 </div>
 
+</div>
+</div>
