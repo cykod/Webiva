@@ -34,7 +34,11 @@ chart_top = @stats.size > 3 ? ((@stats.size - 3) * 3) : 0
 
 <div class="visitor_container_body">
 <div id="chart_div">
-<div id="chart_canvas"></div>
+<div id="chart_canvas">
+<% if @stats.empty? -%>
+<h2 class="no_data"><%= 'No data'.t %></h2>
+<% end -%>
+</div>
 </div>
 </div>
 
