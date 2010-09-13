@@ -17,17 +17,17 @@ class EmarketingController < CmsController # :nodoc: all
     
     
     @subpages = [
-       [ "Visitor Statistics", :editor_visitors, "emarketing_statistics.gif", { :action => 'visitors' }, 
+       [ "Visitor Statistics", :editor_visitors, "traffic_visitors.png", { :action => 'visitors' }, 
           "View and Track Visitors to your site" ],
-       [ "Real Time Statistics", :editor_visitors, "emarketing_statistics.gif", { :action => 'stats' }, 
+       [ "Real Time Statistics", :editor_visitors, "traffic_realtime.png", { :action => 'stats' }, 
           "View Real Time Visits to your site" ]
     ]
 
     get_handler_info(:chart, :traffic).each do |handler|
-      @subpages << [handler[:name], :editor_visitors, 'emarketing_statistics.gif', handler[:url], handler[:description] || handler[:name]]
+      @subpages << [handler[:name], :editor_visitors, handler[:icon] || 'traffic_page.png', handler[:url], handler[:description] || handler[:name]]
     end
 
-    @subpages << ['Experiments', :editor_visitors, 'emarketing_statistics.gif', {:controller => '/experiment', :action => 'index'}, 'View Experiments Results']
+    @subpages << ['Experiments', :editor_visitors, 'traffic_visitors.png', {:controller => '/experiment', :action => 'index'}, 'View Experiments Results']
   end
   
  include ActiveTable::Controller   

@@ -412,6 +412,7 @@ class StructureController < CmsController  # :nodoc: all
                SiteNode,
                [ hdr(:string, 'node_path', :label => 'Url'),
                  hdr(:static, 'Title'),
+                 hdr(:static, 'Menu Title'),
                  hdr(:static, 'Meta Description'),
                  hdr(:static, 'Meta Keywords')
                ]

@@ -15,6 +15,7 @@
     <% end -%>
   </td>
   <td><%= h truncate(revision.title, :length => 80) %></td>
+  <td><%= h truncate(revision.menu_title, :length => 30) %></td>
   <td><%= h truncate(revision.meta_description, :length => 80) %></td>
   <td><%= h truncate(revision.meta_keywords, :length => 80) %></td>
 </tr>

@@ -16,9 +16,9 @@ class MailManagerController < CmsController # :nodoc: all
     cms_page_path [], "Mail"
 
     @subpages =  [ 
-      [ "Subscriptions", :editor_mailing,"emarketing_subscriptions.gif", { :controller => '/subscription' },
+      [ "Subscriptions", :editor_mailing,"mail_subscriptions.png", { :controller => '/subscription' },
           "Edit Newsletters and Mailing Lists Subscriptions" ],
-      [ "Email Templates", :editor_mailing,"emarketing_templates.gif", { :controller => '/mail_manager', :action => 'templates' },
+      [ "Email Templates", :editor_mailing,"mail_templates.png", { :controller => '/mail_manager', :action => 'templates' },
         "Edit Mail Templates" ]
           
       ]

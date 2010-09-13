@@ -1,5 +1,11 @@
 <hr/>
-<h2><%= 'Experiments'.t %></h2>
+<% if experiment.started? && ! experiment.finished? -%>
+   <h2><%= 'Active Experiment'.t %></h2>
+ <% elsif experiment.finished? %>
+   <h2><%= 'Last Experiment'.t %></h2>
+ <% else %>
+   <h2><%= "Current Experiment (Not Started)".t %></h2>
+<% end -%>
 
 <div class="clearfix">
 
@@ -17,15 +23,15 @@
 <% if ! experiment.started? && ! experiment.finished? -%>
   <li>Experiment has not started. <a href="javascript:void(0);" onclick="StructureEditor.updateExperiment(<%= experiment.id %>, '<%= jh experiment.language %>', 'start')">Start it now.</a></li>
 <% elsif experiment.is_running? -%>
-  <li><strong><%= "Started on:".t %></strong> <%= experiment.started_at.to_s(:datetime) %></li>
+  <li><strong><%= "Started on:".t %></strong> <%= experiment.started_at.to_s(:long) %></li>
   <li>
     <strong><%= "Ends on:".t %></strong> <%= experiment.ended_at ? experiment.ended_at.to_s(:datetime) : '(not set)'.t %>
     <a href="javascript:void(0);" onclick="StructureEditor.updateExperiment(<%= experiment.id %>, '<%= jh experiment.language %>', 'stop')">stop</a>
   </li>
 <% elsif experiment.finished? -%>
-  <li><strong><%= "Started on:".t %></strong> <%= experiment.started_at.to_s(:datetime) %></li>
+  <li><strong><%= "Started on:".t %></strong> <%= experiment.started_at.to_s(:long) %></li>
   <li>
-    <strong><%= "Ended on:".t %></strong> <%= experiment.ended_at.to_s(:datetime) %>
+    <strong><%= "Ended on:".t %></strong> <%= experiment.ended_at.to_s(:long) %>
     <a href="javascript:void(0);" onclick="StructureEditor.updateExperiment(<%= experiment.id %>, '<%= jh experiment.language %>', 'restart')">restart</a>
   </li>
 <% end -%>

@@ -535,6 +535,7 @@ class SiteNode < DomainModel
     {
       :name => 'Page Traffic',
       :title => :node_path,
+      :icon => 'traffic_page.png',
       :url => { :controller => '/emarketing', :action => 'charts', :path => ['traffic'] + self.name.underscore.split('/') }
     }
   end
