@@ -10,7 +10,7 @@ class SimpleContent::PageRenderer < ParagraphRenderer
     if ! editor?
       unless @options.valid?
         return render_paragraph :text => 'Reconfigure paragraph'.t if myself.editor?
-        return render_paragraph :nothting => true
+        return render_paragraph :nothing => true
       end
     end
 
