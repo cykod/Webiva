@@ -25,7 +25,7 @@ class Media::Players::Audio::WordPressAudioPlayer < Media::Players::Audio::Base
     output << self.render_word_press_audio_player_setup(self.swf_url)
     output << "</script>\n";
 
-    renderer.header_html output
+    renderer.html_include('extra_head_html',output)
   end
 
   def render_player(container_id)
