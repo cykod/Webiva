@@ -692,7 +692,7 @@ block is non-nil
             preload = "<script>WebivaMenu.preloadImage('#{jvh rollover.url(size)}');</script>"
           end
           img_tag =  tag('img',tag_opts) + preload.to_s
-          img_tag = "<div style='float:#{shadow_align}; margin:#{border}; #{attr['style']}'><div style='width:#{img_size[0] + 12}px; float:#{shadow_align};' class='cms_gallery_shadow'><div><p>" + img_tag + "</p></div></div></div>" if shadow
+          img_tag = "<div style='float:#{shadow_align}; margin:#{border}; #{attr['style']}'><div style='width:#{img_size[0] + 12}px; float:#{shadow_align};' class='cms_gallery_shadow'><div><p>" + img_tag + "</p></div></div></div>" if img_size[0] && shadow
         end
         if tag.single?
           img_tag
