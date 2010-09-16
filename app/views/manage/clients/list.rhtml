@@ -2,10 +2,9 @@
 <%= active_table_javascript %>
 </script>
 
-<ul class='action_panel'>
-  <li><a href='<%= url_for :action => 'new' %>'><%= theme_icon("action","icons/actions/add.png") %><%= "New Client".t %></li>
-</ul>
-
+<% action_panel  do |p| -%>
+  <%= p.link 'New Client',:action => 'new', :icon => 'add.png' %>
+<% end -%>
 
 <div class='admin_content'>
 <div id='client_table'>

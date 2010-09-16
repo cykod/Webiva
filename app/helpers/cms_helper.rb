@@ -188,7 +188,7 @@ images/icons/actions directory of the current theme.
    def action_panel(options = {},&block)  # :yields: ActionPanelBuilder.new
       concat("<ul class='action_panel' id='action_panel'>")
       
-      apb = ActionPanelBuilder.new(self)
+      apb = ActionPanelBuilder.new(self, :directory => 'title_actions')
       yield apb
       
       if options[:handler]
@@ -223,16 +223,36 @@ images/icons/actions directory of the current theme.
      concat("<h2>More Actions <a class='title_link' href=\"javascript:void(0);\" j-action='slideup,swap' swap='#more_actions_link,#less_actions_link' slideup=\"#more_actions_panel\">(close actions)</a></h2>")
      concat("<ul>")
       
-      apb = ActionPanelBuilder.new(self)
+      apb = ActionPanelBuilder.new(self, :directory => 'actions')
       yield apb
+
+      if options[:handler]
+        handlers = get_handler_info('action_panel',options[:handler])
+
+        if handlers
+          handlers.each do |handler|
+            (handler[:links] || []).each do |link|
+              opts = link.clone
+              name = opts.delete(:link)
+              role = opts.delete(:role)
+
+              if !role || myself.has_role?(role)
+                concat(apb.link(name,opts))
+              end
+            end
+          end
+        end
+      end
+
 
       concat('</ul></div>')
    end
 
    # This class usually isn't instantiated directly, see CmsHelper#action_panel for usage
    class ActionPanelBuilder 
-      def initialize(ctrl) #:nodoc:
+      def initialize(ctrl, options = {}) #:nodoc:
         @ctrl = ctrl
+        @b_opts = options
       end
     
       # Creates a link in the action panel
@@ -257,7 +277,7 @@ images/icons/actions directory of the current theme.
           opts = options[:url]
         end
 
-        icon =  @ctrl.theme_icon("action","icons/actions/" + icon) if icon
+        icon =  @ctrl.theme_icon("action","icons/#{@b_opts[:directory]}/" + icon) if icon
         return "<li #{right}#{id}#{hide}>" + @ctrl.send(:link_to,icon.to_s + @ctrl.send(:h,txt),opts,html_options) + "</li>"
       end
       
