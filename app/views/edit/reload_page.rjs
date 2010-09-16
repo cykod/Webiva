@@ -1,6 +1,6 @@
 page << "cmsEdit.setPageInfo('#{@container_arg}','#{@page.id}','#{@revision.id}','#{@revision.language}',#{@revision.active},#{@output.css_site_template_id},'#{@page.node_path}');"
 
-page.replace_html :cms_info_url, :inline => "&nbsp;<img align='absmiddle' src='#{theme_src(@container_arg == 'page' ? '/images/icons/page.gif' : '/images/icons/framework.gif')}'/>#{@site_node.node_path}&nbsp;"
+page.replace_html :cms_info_url, :inline => "&nbsp;<span class='site_node #{(@container_arg == 'page' ? 'page_node' : 'framework_modifier')}'></span>#{@site_node.node_path}&nbsp;"
 page << "Element.#{@container_arg == 'page' ? 'hide' : 'show'}('cms_add_framework_elements_icons');"
 
 page.replace_html :cms_info_page_title, :inline => "&nbsp;#{@revision.title.to_s.empty? ?  "[No Title]".t : truncate(@revision.title,:length => 30)}&nbsp;"

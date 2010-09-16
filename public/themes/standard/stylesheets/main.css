@@ -633,3 +633,27 @@ body
 
 .ordered_selection_list_remove a { text-decoration: none; font-weight:bold; color:black; }
 
+
+
+#cms_header   .site_node_modifier { width:17px; height:17px; display:inline-block; vertical-align:middle;}
+#cms_header   .site_node { width:17px; height:17px; display:inline-block;  vertical-align:middle;}
+#cms_header   .domain_node { background:url(../images/icons/site_tree.gif) -34px 0px no-repeat; }
+#cms_header   .page_node { background:url(../images/icons/site_tree.gif) -51px 0px no-repeat; }
+#cms_header   .module_node { background:url(../images/icons/site_tree.gif) -68px 0px no-repeat; }
+#cms_header   .redirect_node { background:url(../images/icons/site_tree.gif) -85px 0px no-repeat; }
+#cms_header   .document_node { background:url(../images/icons/site_tree.gif) -135px no-repeat; }
+#cms_header   .group_node { background:url(../images/icons/site_tree.gif) -152px 0px no-repeat; }
+
+#cms_header   .framework_modifier { background:url(../images/icons/site_tree.gif) 0px 0px no-repeat; }
+#cms_header  .template_modifier{ background:url(../images/icons/site_tree.gif) -17px 0px no-repeat; }
+#cms_header   .lock_modifier{ background:url(../images/icons/site_tree.gif) -101px 0px no-repeat; }
+#cms_header   .ssl_modifier{ background:url(../images/icons/site_tree.gif) -118px 0px no-repeat; }
+#cms_header   .domain_modifier{ background:url(../images/icons/site_tree.gif) -169px 0px no-repeat; }
+
+#cms_header   .sprite_icon {  width:17px; height:17px; display:inline-block; vertical-align:middle;}
+#cms_header   .folder_sprite { background:url(../images/icons/site_tree.gif) -152px 0px no-repeat; }
+#cms_header   .folder_template_sprite { background:url(../images/icons/site_tree.gif) -186px no-repeat; }
+#cms_header   .domain_sprite { background:url(../images/icons/site_tree.gif) -169px 0px no-repeat; }
+#cms_header   .lock_sprite{ background:url(../images/icons/site_tree.gif) -101px 0px no-repeat; }
+
+

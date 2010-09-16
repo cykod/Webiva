@@ -118,13 +118,13 @@ tinyMCE.init({
       </span>
       <span style='position:relative;'>   
 			<%= "Page:".t %> <a id='cms_info_url'  class='cms_ajax_link' href='javascript:void(0);' onclick='SCMS.popupDiv("cms_select_page");'>&nbsp;
-          <img src='<%= @page.page_type == 'page' ? theme_src('icons/page.gif') : theme_src('icons/framework.gif') %>' align='absmiddle' />
+        <span class='site_node <%= @page.page_type == 'page' ? "page_node" : "framework_modifier" %>'></span>
       <%= @site_node.node_path %>&nbsp;</a> 
       <div id='cms_select_page' class='cms_popup' style='display:none; top:15px; left:10px;'>
         <% @pages.each do |page| -%>
           <% if myself.has_role?('editor_structure') || page[0].page_type == 'page' -%>
           <a href='javascript:void(0);' class='cms_ajax_link<%= '_selected' if @site_node.id == page[0].id %>' onclick='cmsEdit.reloadPage("<%= page[0].page_type %>",<%= page[0].id %>,"<%= page[1] %>");'  id='page_selector_<%= page[0].page_type %>_<%= page[0].id %>'>
-          <img src='<%= page[0].page_type == 'page' ? theme_src('/images/icons/page.gif') : theme_src('/images/icons/framework.gif') %>' align='absmiddle' />
+            <span class='site_node <%= page[0].page_type == 'page' ? "page_node" : "framework_modifier" %>'></span>
             <%= page[0].node_path %> 
          </a>
          <br/>
