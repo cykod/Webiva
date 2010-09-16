@@ -86,7 +86,7 @@ class Feedback::CommentsRenderer < ParagraphRenderer
   def pingback_auto_discovery
     pingback_server_url = url_for(:controller => '/feedback/pingback', :action => 'index')
     output = "<link rel=\"pingback\" href=\"#{vh pingback_server_url}\" />"
-    header_html output
+    include_in_head output
 
     render_paragraph :nothing => true
   end
