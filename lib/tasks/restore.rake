@@ -99,8 +99,6 @@ namespace "cms" do
       puts("There was a problem rebuilding domain file instances - importing domain anyway")
     end
 
-    SiteTemplate.find(:all).map(&:save)
-    SiteFeature.find(:all).map(&:save)
     
     if(File.exists?(directory + "/storage.tar.gz"))
       
@@ -123,6 +121,13 @@ namespace "cms" do
       DomainFile.update_all("server_id = #{Server.server_id}", 'file_type != "fld"')
       server_hash = DomainModel.generate_hash
       DomainFile.update_all "server_hash = '#{server_hash}'", 'file_type != "fld" and server_hash IS NULL'
+    end
+
+    begin
+      SiteTemplate.find(:all).map(&:save)
+      SiteFeature.find(:all).map(&:save)
+    rescue Exception => e
+      puts("There was a problem resaving site templates and features - continuing import anyway")
     end
 
     # Clear out the cache for the domain
