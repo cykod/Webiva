@@ -109,13 +109,38 @@ class DomainLogSession < DomainModel
   end
 
   def self.affiliate_scope(from, duration, opts={})
-    scope = DomainLogSession.between(from, from+duration).visits('affiliate')
-    scope = scope.scoped(:conditions => 'affiliate IS NOT NULL')
+    scope = DomainLogSession.between(from, from+duration)
+    if opts[:affiliate] && opts[:campaign]
+      scope = scope.scoped(:conditions => ['affiliate = ? AND campaign = ? AND origin IS NOT NULL', opts[:affiliate], opts[:campaign]])
+      scope = scope.visits('origin')
+    elsif opts[:affiliate]
+      scope = scope.scoped(:conditions => ['affiliate = ? AND campaign IS NOT NULL', opts[:affiliate]])
+      scope = scope.visits('campaign')
+    elsif opts[:campaign]
+      scope = scope.scoped(:conditions => ['campaign = ? AND affiliate IS NOT NULL', opts[:campaign]])
+      scope = scope.visits('affiliate')
+    else
+      scope = scope.scoped(:conditions => 'affiliate IS NOT NULL')
+      scope = scope.visits('affiliate')
+    end
     scope
   end
 
   def self.affiliate(from, duration, intervals, opts={})
-    DomainLogGroup.stats('DomainLogGroupEntry', from, duration, intervals, :type => 'affiliate', :process_stats => :process_stats, :class => DomainLogGroupEntry) do |from, duration|
+    type = 'affiliate_traffic'
+    group = 'affiliate'
+    if opts[:affiliate] && opts[:campaign]
+      type = 'affiliate_campaign_origin_traffic'
+      group = 'origin'
+    elsif opts[:affiliate]
+      type = 'affiliate_campaign_traffic'
+      group = 'campaign'
+    elsif opts[:campaign]
+      type = 'campaign_affiliate_traffic'
+      group = 'affiliate'
+    end
+
+    DomainLogGroup.stats('DomainLogGroupEntry', from, duration, intervals, :type => type, :group => group, :process_stats => :process_stats, :class => DomainLogGroupEntry) do |from, duration|
       self.affiliate_scope from, duration, opts
     end
   end

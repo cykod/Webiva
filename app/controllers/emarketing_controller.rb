@@ -198,6 +198,62 @@ class EmarketingController < CmsController # :nodoc: all
     require_js 'charts.js'
   end
 
+  def affiliates
+    @affiliate = params[:affiliate]
+    @campaign = params[:campaign]
+    @origin = params[:origin]
+    @affiliate = nil if @affiliate.blank?
+    @campaign = nil if @campaign.blank?
+    @origin = nil if @origin.blank?
+
+    @stat_type = 'affiliate'
+
+    @when = params[:when] || 'today'
+    @all_fields = params[:all]
+
+    @from = Time.now.at_midnight
+    @duration = 1.day
+    @interval = 1
+
+    @when_options = [['Today', 'today'], ['Yesterday', 'yesterday'], ['This Week', 'week'], ['Last Week', 'last_week'], ['This Month', 'month'], ['Last Month', 'last_month']]
+
+    case @when
+    when 'today'
+      @from = Time.now.at_midnight
+      @duration = 1.day
+    when 'yesterday'
+      @from = Time.now.at_midnight.yesterday
+      @duration = 1.day
+    when 'week'
+      @from = Time.now.at_beginning_of_week
+      @duration = 1.week
+    when 'last_week'
+      @from = Time.now.at_beginning_of_week - 1.week
+      @duration = 1.week
+    when 'month'
+      @from = Time.now.at_beginning_of_month
+      @duration = 1.month
+    when 'last_month'
+      @from = Time.now.at_beginning_of_month - 1.month
+      @duration = 1.month
+    end
+
+    groups = DomainLogSession.affiliate @from, @duration, @interval, :affiliate => @affiliate, :campaign => @campaign
+    @group = groups[0]
+    @stats = @group.domain_log_stats
+
+    @affiliates = DomainLogSession.find(:all, :select => 'DISTINCT affiliate', :conditions => 'affiliate IS NOT NULL').collect(&:affiliate)
+    @campaigns = DomainLogSession.find(:all, :select => 'DISTINCT campaign', :conditions => 'campaign IS NOT NULL').collect(&:campaign)
+
+    cms_page_path ['Marketing'], 'Affiliates'
+
+    require_js 'protovis/protovis-r3.2.js'
+    require_js 'tipsy/jquery.tipsy.js'
+    require_js 'protovis/tipsy.js'
+    require_css 'tipsy/tipsy.css'
+    require_js 'charts.js'
+  end
+
   def real_time_stats_request
     now = Time.now
     from = params[:from] ? Time.at(params[:from].to_i) : nil
