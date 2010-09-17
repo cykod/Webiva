@@ -108,15 +108,15 @@ class DomainLogSession < DomainModel
     end
   end
 
-  def self.affiliate_scope(from, duration, domain_log_referrer_id=nil)
+  def self.affiliate_scope(from, duration, opts={})
     scope = DomainLogSession.between(from, from+duration).visits('affiliate')
     scope = scope.scoped(:conditions => 'affiliate IS NOT NULL')
     scope
   end
 
-  def self.affiliate(from, duration, intervals, target=nil)
-    DomainLogGroup.stats(target ? target : 'DomainLogGroupEntry', from, duration, intervals, :type => 'affiliate', :process_stats => :process_stats) do |from, duration|
-      self.affiliate_scope from, duration, target ? target.id : nil
+  def self.affiliate(from, duration, intervals, opts={})
+    DomainLogGroup.stats('DomainLogGroupEntry', from, duration, intervals, :type => 'affiliate', :process_stats => :process_stats, :class => DomainLogGroupEntry) do |from, duration|
+      self.affiliate_scope from, duration, opts
     end
   end
 
