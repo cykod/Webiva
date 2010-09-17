@@ -44,7 +44,6 @@ class DomainLogSession < DomainModel
         referrer_id = nil
       end
 
-
       ses.attributes = {
         :domain_log_visitor_id => visitor_id,
         :affiliate => tracking.affiliate,
@@ -130,13 +129,13 @@ class DomainLogSession < DomainModel
     type = 'affiliate_traffic'
     group = 'affiliate'
     if opts[:affiliate] && opts[:campaign]
-      type = 'affiliate_campaign_origin_traffic'
+      type = "a:#{opts[:affiliate]}:c:#{opts[:campaign]}:traffic"
       group = 'origin'
     elsif opts[:affiliate]
-      type = 'affiliate_campaign_traffic'
+      type = "a:#{opts[:affiliate]}:traffic"
       group = 'campaign'
     elsif opts[:campaign]
-      type = 'campaign_affiliate_traffic'
+      type = "c:#{opts[:campaign]}:traffic"
       group = 'affiliate'
     end
 
