@@ -27,6 +27,8 @@ class EmarketingController < CmsController # :nodoc: all
       @subpages << [handler[:name], :editor_visitors, handler[:icon] || 'traffic_page.png', handler[:url], handler[:description] || handler[:name]]
     end
 
+    @subpages << ['Affiliate Traffic', :editor_visitors, 'traffic_visitors.png', {:action => 'affiliates'}, 'View Affiliate Traffic']
+
     @subpages << ['Experiments', :editor_visitors, 'traffic_visitors.png', {:controller => '/experiment', :action => 'index'}, 'View Experiments Results']
   end
   
