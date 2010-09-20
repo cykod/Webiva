@@ -202,9 +202,11 @@ class EmarketingController < CmsController # :nodoc: all
     @affiliate = params[:affiliate]
     @campaign = params[:campaign]
     @origin = params[:origin]
+    @display = params[:display]
     @affiliate = nil if @affiliate.blank?
     @campaign = nil if @campaign.blank?
     @origin = nil if @origin.blank?
+    @display = nil if @display.blank?
 
     @stat_type = 'affiliate'
 
@@ -238,12 +240,12 @@ class EmarketingController < CmsController # :nodoc: all
       @duration = 1.month
     end
 
-    groups = DomainLogSession.affiliate @from, @duration, @interval, :affiliate => @affiliate, :campaign => @campaign
+    groups = DomainLogSession.affiliate @from, @duration, @interval, :affiliate => @affiliate, :campaign => @campaign, :origin => @origin, :display => @display
     @group = groups[0]
     @stats = @group.domain_log_stats
 
-    @affiliates = DomainLogSession.find(:all, :select => 'DISTINCT affiliate', :conditions => 'affiliate IS NOT NULL').collect(&:affiliate)
-    @campaigns = DomainLogSession.find(:all, :select => 'DISTINCT campaign', :conditions => 'campaign IS NOT NULL').collect(&:campaign)
+    @displays = [['Affiliate', 'affiliate'], ['Campaign', 'campaign'], ['Origin', 'origin']]
+    @affiliates, @campaigns, @origins = DomainLogSession.get_affiliates
 
     cms_page_path ['Marketing'], 'Affiliates'
 
