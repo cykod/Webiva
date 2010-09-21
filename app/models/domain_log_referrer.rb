@@ -27,7 +27,7 @@ class DomainLogReferrer  < DomainModel
   end
 
   def self.traffic_scope(from, duration, opts={})
-    scope = DomainLogSession.between(from, from+duration).visits('domain_log_referrer_id')
+    scope = DomainLogSession.between(from, from+duration).hits_n_visits('domain_log_referrer_id')
     if opts[:target_id]
       scope = scope.scoped(:conditions => {:domain_log_referrer_id => opts[:target_id]})
     else
@@ -37,12 +37,10 @@ class DomainLogReferrer  < DomainModel
   end
 
   def self.traffic(from, duration, intervals, opts={})
-    DomainLogGroup.stats(self.name, from, duration, intervals, :type => 'traffic', :process_stats => :process_stats, :class => self) do |from, duration|
+    DomainLogSession.update_sessions_for from, duration, intervals
+
+    DomainLogGroup.stats(self.name, from, duration, intervals, :type => 'traffic') do |from, duration|
       self.traffic_scope from, duration, opts
     end
-  end
-
-  def self.process_stats(group, opts={})
-    DomainLogGroup.update_hits group, :group => :domain_log_referrer_id
   end
 end
