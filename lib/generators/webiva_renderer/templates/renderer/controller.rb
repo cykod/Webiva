@@ -10,6 +10,6 @@ class <%= module_class %>::<%= renderer_class %>Controller < ParagraphController
   class <%= paragraph.camelcase %>Options < HashModel
 
   end
-<%- end -%>
 
+<%- end -%>
 end
