@@ -128,6 +128,8 @@ class ActiveWebService
   #   The method to call or the class to create before method returns.
   # [:resource]
   #   The name of the element to return from the response.
+  # [:no_body]
+  #   Removes the body argument from a post/put route
   def self.route(name, path, options={})
     args = path.scan /:[a-z_]+/
     function_args = args.collect{ |arg| arg[1..-1] }
@@ -160,7 +162,7 @@ class ActiveWebService
     end
 
     method = method.to_s
-    function_args << 'body' if method == 'post' || method == 'put'
+    function_args << 'body' if (method == 'post' || method == 'put') && options[:no_body].nil?
     function_args << 'options={}'
 
     method_src = <<-METHOD
@@ -172,11 +174,13 @@ class ActiveWebService
       method_src << "path.sub! '#{arg}', #{function_args[idx]}.to_s\n"
     end
 
-    if method == 'post' || method == 'put'
-      if options[:resource]
-        method_src << "options[:body] = {'#{options[:resource].to_s}' => body}\n"
-      else
-        method_src << "options[:body] = body\n"
+    if options[:no_body].nil?
+      if method == 'post' || method == 'put'
+        if options[:resource]
+          method_src << "options[:body] = {'#{options[:resource].to_s}' => body}\n"
+        else
+          method_src << "options[:body] = body\n"
+        end
       end
     end
 
