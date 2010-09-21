@@ -1227,6 +1227,11 @@ onComplete: function(req) {  FileEditor.adjustDetailHeight();} }
       
       var pos = $('element_info').cumulativeOffset();
       var dim = $('element_info').getDimensions();
+      if($('file_pagination')) {
+        var elem_height = $('file_pagination').getDimensions().height + 20;
+        pos[1] += elem_height;
+        dim.height -= elem_height;
+      }
       if(FileEditor.dragX > pos[0] && FileEditor.dragY > pos[1] &&
          FileEditor.dragX < (pos[0] + dim.width) &&  FileEditor.dragY < (pos[1] + dim.height) ) {
         // If we don't have a control key held down

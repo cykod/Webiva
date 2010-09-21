@@ -223,6 +223,8 @@ hr { clear:both; border:0px; color:white; background-color:white; height:10px; }
   .sprite_icon {  width:17px; height:17px; display:inline-block; vertical-align:middle;}
   .folder_sprite { background:url(../images/icons/site_tree.gif) -152px 0px no-repeat; }
   .folder_template_sprite { background:url(../images/icons/site_tree.gif) -186px no-repeat; }
+  .folder_galleries_sprite { background:url(../images/icons/site_tree.gif) -186px no-repeat; }
+  .folder_gallery_sprite { background:url(../images/icons/site_tree.gif) -205px no-repeat; }
   .domain_sprite { background:url(../images/icons/site_tree.gif) -169px 0px no-repeat; }
   .lock_sprite{ background:url(../images/icons/site_tree.gif) -101px 0px no-repeat; }
 
