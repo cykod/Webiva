@@ -161,9 +161,23 @@ class Blog::WordpressImporter
     body = item['encoded']
     return if body.blank?
 
-    node_path = SiteNode.generate_node_path(item['post_name'])
-    node_path = '' if node_path == 'home'
-    SiteVersion.current.root_node.push_subpage(node_path) do |nd, rv|
+    path = nil
+    begin
+      uri = URI.parse(item['link'])
+      path = uri.path.sub(/^\//, '').sub(/\/$/, '')
+    rescue
+    end
+
+    return unless path
+
+    node_path = nil
+    parent = SiteVersion.current.root_node
+    path.split('/').each do |node_path|
+      node_path = '' if node_path == 'home'
+      parent = parent.push_subpage(node_path)
+    end
+
+    parent.push_subpage(node_path) do |nd, rv|
       rv.title = item['title']
       # Basic Paragraph
       rv.push_paragraph(nil, 'html') do |para|

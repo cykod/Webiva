@@ -8,7 +8,7 @@
   <%= f.header 'Import WordPress Blog' %>
   <%= f.filemanager_file :wordpress_export_file_id, :label => 'Export file', :description => "Log into your blog. Goto Tools > Export and click Download" %>
   <%= f.custom_field '', :value => 'Or' %>
-  <%= f.text_field :wordpress_url, :label => 'URL', :size => 40, :description => "The home page of your word press blog.\n Example: http://<username>.wordpress.com/" %>
+  <%= f.text_field :wordpress_url, :label => 'URL', :size => 40, :description => "The home page of your word press blog.\n Example: http://<blog's name>.wordpress.com/" %>
   <%= f.text_field :wordpress_username, :label => 'Username', :size => 15 %>
   <%= f.password_field :wordpress_password, :label => 'Password', :size => 15 %>
   <%= f.check_boxes :wordpress_import_settings, [['Import comments', 'comments'], ['Import pages', 'pages']], :label => 'Import settings' %>
