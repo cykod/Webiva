@@ -1,6 +1,6 @@
 <% pages,data =  folder.ordered_children(@order,@page) -%>
 <% if pages[:pages] > 1  -%>
-<div style='width:100%' align='right'>
+<div style='width:100%; z-index:600; height:35px;' align='right' id='file_pagination'>
   <div style='float:right;'>
     <%= admin_pagination(Proc.new { |page| "FileEditor.loadFolder(#{folder.id},null,#{page});" },pages) -%>
   </div>
@@ -8,7 +8,6 @@
     Showing <%= pages[:first] -%>-<%= pages[:last] -%> of <%= pages[:total] -%> &nbsp;
   </div>
 </div>
-<div style='clear:both;'></div>
 <% end -%>
 <% data.each do |file| %>
   <%= render :partial => 'file_item', :locals => { :file => file } %>

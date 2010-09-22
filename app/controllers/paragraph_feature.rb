@@ -1421,7 +1421,7 @@ block is non-nil
           
           result = ''
           
-          if pages > 1
+          if pages && pages > 1
             
             # Show back button
             if page > 1

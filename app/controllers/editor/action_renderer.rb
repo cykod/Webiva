@@ -66,7 +66,15 @@ class Editor::ActionRenderer < ParagraphRenderer #:nodoc:all
       end
 
       if !@options.html_header.blank?
-        include_in_head(@options.html_header)
+        re = Regexp.new("(['\"\(\>])images\/([a-zA-Z0-9_\\-\\/. ]+?)(['\"\<\)])" ,Regexp::IGNORECASE | Regexp::MULTILINE)
+
+        header = @options.html_header.gsub(re) do |mtch|
+          pre = $1
+          post = $3
+          df = DomainFile.find_by_file_path("/#{$2}")
+          df ? "#{pre}#{df.url}#{post}" : mtch[0]
+        end
+        include_in_head(header)
       end
     end
 

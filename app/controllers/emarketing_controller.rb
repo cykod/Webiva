@@ -27,6 +27,8 @@ class EmarketingController < CmsController # :nodoc: all
       @subpages << [handler[:name], :editor_visitors, handler[:icon] || 'traffic_page.png', handler[:url], handler[:description] || handler[:name]]
     end
 
+    @subpages << ['Affiliate Traffic', :editor_visitors, 'traffic_visitors.png', {:action => 'affiliates'}, 'View Affiliate Traffic']
+
     @subpages << ['Experiments', :editor_visitors, 'traffic_visitors.png', {:controller => '/experiment', :action => 'index'}, 'View Experiments Results']
   end
   
@@ -190,6 +192,64 @@ class EmarketingController < CmsController # :nodoc: all
     end
 
     cms_page_path ['Marketing'], @chart_info[:name]
+
+    require_js 'protovis/protovis-r3.2.js'
+    require_js 'tipsy/jquery.tipsy.js'
+    require_js 'protovis/tipsy.js'
+    require_css 'tipsy/tipsy.css'
+    require_js 'charts.js'
+  end
+
+  def affiliates
+    @affiliate = params[:affiliate]
+    @campaign = params[:campaign]
+    @origin = params[:origin]
+    @display = params[:display]
+    @affiliate = nil if @affiliate.blank?
+    @campaign = nil if @campaign.blank?
+    @origin = nil if @origin.blank?
+    @display = nil if @display.blank?
+
+    @stat_type = 'affiliate'
+
+    @when = params[:when] || 'today'
+    @all_fields = params[:all]
+
+    @from = Time.now.at_midnight
+    @duration = 1.day
+    @interval = 1
+
+    @when_options = [['Today', 'today'], ['Yesterday', 'yesterday'], ['This Week', 'week'], ['Last Week', 'last_week'], ['This Month', 'month'], ['Last Month', 'last_month']]
+
+    case @when
+    when 'today'
+      @from = Time.now.at_midnight
+      @duration = 1.day
+    when 'yesterday'
+      @from = Time.now.at_midnight.yesterday
+      @duration = 1.day
+    when 'week'
+      @from = Time.now.at_beginning_of_week
+      @duration = 1.week
+    when 'last_week'
+      @from = Time.now.at_beginning_of_week - 1.week
+      @duration = 1.week
+    when 'month'
+      @from = Time.now.at_beginning_of_month
+      @duration = 1.month
+    when 'last_month'
+      @from = Time.now.at_beginning_of_month - 1.month
+      @duration = 1.month
+    end
+
+    groups = DomainLogSession.affiliate @from, @duration, @interval, :affiliate => @affiliate, :campaign => @campaign, :origin => @origin, :display => @display
+    @group = groups[0]
+    @stats = @group.domain_log_stats
+
+    @displays = [['Affiliate', 'affiliate'], ['Campaign', 'campaign'], ['Origin', 'origin']]
+    @affiliates, @campaigns, @origins = DomainLogSession.get_affiliates
+
+    cms_page_path ['Marketing'], 'Affiliates'
 
     require_js 'protovis/protovis-r3.2.js'
     require_js 'tipsy/jquery.tipsy.js'

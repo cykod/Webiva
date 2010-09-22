@@ -84,24 +84,6 @@ class DomainLogGroup < DomainModel
     self.domain_log_stats.find(:all, :conditions => {:target_id => target_id})
   end
 
-  def self.update_hits(group, opts={})
-    return unless opts[:group]
-
-    index_by = opts[:index_by] || :target_id
-
-    target_ids = group.domain_log_stats.collect(&index_by).sort.uniq
-    return if target_ids.empty?
-
-    domain_log_session_ids = DomainLogSession.find(:all, :select => 'id', :conditions => {opts[:group] => target_ids}).collect(&:id)
-    DomainLogSession.update_entry_stats domain_log_session_ids
-
-    page_counts = DomainLogSession.sum(:page_count, :conditions => {:id => domain_log_session_ids}, :group => opts[:group])
-
-    group.domain_log_stats.index_by(&index_by).each do |target_id, stat|
-      stat.update_attribute :hits, page_counts[target_id]
-    end
-  end
-
   def self.traffic_chart_data(groups, opts={})
     to = groups[0].started_at
     from = groups[-1].ended_at

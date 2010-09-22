@@ -81,7 +81,7 @@ class DomainLogVisitor < DomainModel
    end
 
    def self.log_location(cookies,session,location = {})
-     if cookies[:v] && session[:domain_log_visitor][:id] && session[:domain_log_visitor][:loc].blank?
+     if cookies[:v] && session[:domain_log_visitor] && session[:domain_log_visitor][:id] && session[:domain_log_visitor][:loc].blank?
        dlv =  DomainLogVisitor.find_by_visitor_hash(cookies[:v])
        if dlv
          location[:country] = 'UN' if location[:country].blank?

@@ -165,6 +165,7 @@ class MyRobotsWebService < ActiveWebService
     end
 
     add_referer! options
+    add_tracking! options
   end
 
   def add_referer!(options)
@@ -184,6 +185,22 @@ class MyRobotsWebService < ActiveWebService
 
     if rand(100) < 10
       options[:headers]['referer'] = @referers[rand(@referers.size)]
+    end
+  end
+
+  def add_tracking!(options)
+    return if @add_tracking
+    @add_tracking = true
+    @affiliates ||= ['google', 'yahoo', 'msn']
+    @campaigns ||= ['cms', 'trial', 'subscription']
+    @origins ||= {'google' => ['cmsworld.com', 'feedburner.com']}
+
+    if rand(100) < 30
+      affid = @affiliates[rand(@affiliates.size)]
+      c = @campaigns[rand(@campaigns.size)]
+      o = @origins[affid] ? @origins[affid][rand(@origins[affid].size)] : ''
+      f = 1 + rand(100000)
+      options[:query] = "affid=#{affid}&c=#{c}&o=#{o}&f=#{f}"
     end
   end
 

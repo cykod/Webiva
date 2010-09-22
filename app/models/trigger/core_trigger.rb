@@ -22,6 +22,10 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
         { :name => :referrer,
           :description => 'Set the user referrer',
           :options_partial => '/triggered_action/referrer'
+        },
+        { :name => :post_back,
+          :description => 'Setup a Post Back',
+          :options_partial => '/triggered_action/post_back'
         }
       ]
 
@@ -154,8 +158,41 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
     end    
   end
   
-  
-  
-      
+  class PostBackTrigger < Trigger::TriggerBase
+    class PostBackOptions < HashModel
+      attributes :url => nil, :format => 'params'
+
+      validates_presence_of :url
+      validates_presence_of :format
+      validates_urlness_of :url
+    end
+
+    options 'Post Back Options', PostBackOptions
+
+    def perform(data={}, user=nil)
+      data = data.attributes if data.is_a?(DomainModel)
+      data['user'] = user.attributes.slice('id', 'first_name', 'last_name', 'email') if user && user.id
+      body = nil
+      content_type = nil
+      case options.format
+      when 'xml'
+        body = data.to_xml
+        content_type = 'application/xml'
+      when 'json'
+        body = data.to_json
+        content_type = 'application/json'
+      else
+        body = data.to_params
+        content_type = 'application/x-www-form-urlencoded'
+      end
+
+      uri = URI.parse(options.url)
+      Net::HTTP.start(uri.host, uri.port) do |http|
+        path = uri.path
+        path += '?' + uri.query if uri.query
+        http.request_post(path, body, 'Content-Type' => content_type)
+      end
+    end
+  end
 end
 

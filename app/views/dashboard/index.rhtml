@@ -111,9 +111,9 @@ CMSDashboard = {
 </script>
 
 <% action_panel :more => myself.has_role?(:editor_site_management)   do |p| -%>
-  <%= p.link 'Edit Widgets', { :icon => 'edit.png', :url => 'javascript:void(0);', :id => 'edit_widgets' }, :onclick => 'CMSDashboard.editWidgets();', :"j-action" => 'swap', :swap => '#stop_editing_widgets,#edit_widgets' %>
+  <%= p.link 'Edit Widgets', { :icon => 'add.png', :url => 'javascript:void(0);', :id => 'edit_widgets' }, :onclick => 'CMSDashboard.editWidgets();', :"j-action" => 'swap', :swap => '#stop_editing_widgets,#edit_widgets' %>
 
-  <%= p.link 'Stop Editing Widgets', { :icon => 'edit.png', :hidden => true, :url => 'javascript:void(0);', :id => 'stop_editing_widgets' }, :onclick => 'CMSDashboard.stopEditingWidgets();', :"j-action" => 'swap', :swap => '#edit_widgets,#stop_editing_widgets' %>
+  <%= p.link 'Stop Editing Widgets', { :icon => 'remove.png', :hidden => true, :url => 'javascript:void(0);', :id => 'stop_editing_widgets' }, :onclick => 'CMSDashboard.stopEditingWidgets();', :"j-action" => 'swap', :swap => '#edit_widgets,#stop_editing_widgets' %>
 
 <% end -%>
 <% if myself.has_role?(:editor_site_management)  %>

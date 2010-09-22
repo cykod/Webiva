@@ -24,7 +24,7 @@ class Webform::PageRenderer < ParagraphRenderer
           if @result.save
             @options.deliver_webform_results(@result)
             user = @result.connected_end_user ? @result.connected_end_user : myself
-            paragraph.run_triggered_actions(@result.webform_form,'submitted',user)
+            paragraph.run_triggered_actions(@result,'submitted',user)
             @saved = true
 
             self.elevate_user_level(user, @options.user_level) if user && user.id && @options.user_level
