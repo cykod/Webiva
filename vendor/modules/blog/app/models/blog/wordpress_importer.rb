@@ -1,16 +1,40 @@
 
 class Blog::WordpressImporter
-  attr_accessor :xml, :blog, :images, :folder
+  attr_accessor :xml, :blog, :images, :folder, :error, :import_comments, :import_pages
 
   include ActionView::Helpers::TagHelper
   include ActionView::Helpers::TextHelper
 
   def initialize
     self.images = {}
+    self.import_pages = true
+    self.import_comments = true
   end
 
   def folder
     @folder ||= DomainFile.push_folder self.blog.name
+  end
+
+  def import_file(file)
+    file = file.filename if file.is_a?(DomainFile)
+    File.open(file, 'r') { |f| self.xml = f.read }
+    true
+  end
+
+  def import_site(url, username, password)
+    service = Blog::WordpressWebService.new url, username, password
+    unless service.login
+      self.error = service.error
+      return false
+    end
+
+    self.xml = service.export
+    unless self.xml
+      self.error = service.error
+      return false
+    end
+
+    true
   end
 
   def parse
@@ -22,24 +46,43 @@ class Blog::WordpressImporter
 
   def import
     xml_data = self.parse
-    return unless xml_data
+    unless xml_data
+      self.error = 'WordPress file is invalid'
+      return false
+    end
+
+    unless xml_data['rss'] && xml_data['rss']['channel']
+      self.error = 'WordPress file is invalid'
+      return false
+    end
 
     categories = {}
     blog_categories = xml_data['rss']['channel']['category']
-    blog_categories = [blog_categories] unless blog_categories.is_a?(Array)
-    blog_categories.each do |category|
-      cat = self.push_category(category)
-      next unless cat
-      categories[category['cat_name']] = cat
+    if blog_categories
+      blog_categories = [blog_categories] unless blog_categories.is_a?(Array)
+      blog_categories.each do |category|
+        cat = self.push_category(category)
+        next unless cat
+        categories[category['cat_name']] = cat
+      end
     end
 
     items = xml_data['rss']['channel']['item']
-    items = [items] unless items.is_a?(Array)
-    items.each do |item|
-      if item['post_type'] == 'post'
-        self.create_post categories, item
+    if items
+      items = [items] unless items.is_a?(Array)
+      items.each do |item|
+        if item['post_type'] == 'post'
+          self.create_post categories, item
+        elsif item['post_type'] == 'page'
+          self.create_page item
+        end
       end
+    else
+      self.error = 'WordPress file has no posts to import'
+      return false
     end
+
+    true
   end
 
   def push_category(opts={})
@@ -73,9 +116,13 @@ class Blog::WordpressImporter
   def create_post(categories, item={})
     body = item['encoded']
     return if body.blank?
+    return if self.blog.blog_posts.find_by_permalink item['post_name']
+
     status = item['status'] == 'publish' ? 'published' : 'draft'
     disallow_comments = item['comment_status'] == 'open' ? false : true
     post = self.blog.blog_posts.create :body => self.parse_body(body), :author => item['creator'], :title => item['title'], :status => 'published', :published_at => Time.parse(item['pubDate']), :status => status, :disallow_comments => disallow_comments, :permalink => item['post_name'], :created_at => Time.parse(item['post_date_gmt']), :preview => self.parse_body(item['excerpt'])
+
+    return unless post.id
 
     post_categories = item['category']
     post_categories = [post_categories] unless post_categories.is_a?(Array)
@@ -102,9 +149,26 @@ class Blog::WordpressImporter
   end
 
   def create_comment(post, comment)
+    return unless self.import_comments
     return if comment['comment_content'].blank?
     user = comment['comment_author_email'].blank? ? nil : EndUser.push_target(comment['comment_author_email'], :name => comment['comment_author'])
     rating = comment['comment_approved'] == "1" ? 1 : 0
     Comment.create :target => post, :end_user_id => user ? user.id : nil, :posted_at => Time.parse(comment['comment_date_gmt']), :posted_ip => comment['comment_author_IP'], :name => comment['comment_author'], :email => comment['comment_author_email'], :comment => comment['comment_content'], :rating => rating
+  end
+
+  def create_page(item)
+    return unless self.import_pages
+    body = item['encoded']
+    return if body.blank?
+
+    node_path = SiteNode.generate_node_path(item['post_name'])
+    node_path = '' if node_path == 'home'
+    SiteVersion.current.root_node.push_subpage(node_path) do |nd, rv|
+      rv.title = item['title']
+      # Basic Paragraph
+      rv.push_paragraph(nil, 'html') do |para|
+        para.display_body = self.parse_body(body)
+      end
+    end
   end
 end
