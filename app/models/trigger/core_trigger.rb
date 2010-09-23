@@ -99,7 +99,7 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
 
       if options.send_type == 'message'
         msg_options = { :html => body }
-        msg_options[:from] = options.message_from unless options.message_from.blank?
+        msg_options[:from] = DomainModel.variable_replace(options.message_from,data_vars) unless options.message_from.blank?
         
         emails.each do |email|
           MailTemplateMailer.deliver_message_to_address(email,options.subject,msg_options)
