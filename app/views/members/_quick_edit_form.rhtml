@@ -7,6 +7,7 @@
   <%= f.select :source, [['-',nil]]  + EndUser.source_select_options, :label => 'Origin' %>
   <%= f.text_field :referrer %>
   <%= f.text_field :lead_source %>
+  <%= f.text_field :vip_number %>
 
   <%= f.spacer %>
   <%= f.cancel_submit_buttons "Cancel", "Update", { :onclick => "RedBox.close(); return false;" }, { :onclick => "MemberEditor.quickEditSubmit($('quick_edit_form').serialize()); return false;" } %>

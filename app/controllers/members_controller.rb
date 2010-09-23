@@ -99,7 +99,7 @@ class MembersController < CmsController # :nodoc: all
           custom_segment = UserSegment.find params[:path][0]
           custom_segment.remove_ids(uids) if custom_segment && custom_segment.segment_type == 'custom'
         when 'quick_edit'
-          quick_edit_fields = [ :referrer,:user_class_id,:user_level,:source,:lead_source ]
+          quick_edit_fields = [ :referrer,:user_class_id,:user_level,:source,:lead_source,:vip_number ]
           fields = params[:edit].slice(*quick_edit_fields)
           quick_edit_fields.each { |fld| fields.delete(fld) if fields[fld].blank? }
           update_users.each { |usr| usr.update_attributes(fields) }

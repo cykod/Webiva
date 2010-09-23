@@ -1008,6 +1008,11 @@ table.display_table td.field {
   display: inline-block;
 }
 
+.cms_form .visitor_container {
+  float: none;
+  margin-top: 10px;
+}
+
 .visitor_container .heading {
   padding:0 10px;
 } 
@@ -1146,6 +1151,4 @@ ul#zones_example li.last {
  -moz-border-radius: 5px;
  -webkit-border-radius: 5px;
 }
-
-
 
