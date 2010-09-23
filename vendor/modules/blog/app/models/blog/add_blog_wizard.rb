@@ -108,7 +108,7 @@ class Blog::AddBlogWizard < WizardModel
     end
 
     # Create Dummy Content
-    if self.blog.blog_posts.count == 0 && self.number_of_dummy_posts > 0
+    if self.blog.blog_posts.count == 0 && self.number_of_dummy_posts.to_i > 0
       categories = [self.create_dummy_category(1), self.create_dummy_category(2)]
       (1..self.number_of_dummy_posts).each do |idx|
         self.create_dummy_post(categories[rand(categories.size)])
