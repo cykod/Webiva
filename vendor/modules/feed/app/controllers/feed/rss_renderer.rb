@@ -116,7 +116,8 @@ class Feed::RssRenderer < ParagraphRenderer
 
 
 
-    c.value_tag('feed:items:item:ago') { |t| distance_of_time_in_words_to_now(t.locals.item.date) if t.locals.item.date }
+    c.value_tag('feed:items:item:ago') { |t| 
+       distance_of_time_in_words_to_now(t.locals.item.date).gsub('about','').strip if t.locals.item.date }
 
      
     
