@@ -278,12 +278,8 @@ FEATURE
   
   def login_feature(data)
     webiva_feature(:login) do |c|
-      c.define_tag 'logged_in' do |tag|
-        if data[:user]
-          tag.expand
-        else
-          ''
-        end
+      c.expansion_tag 'logged_in' do |tag|
+        data[:user]
       end
       c.define_tag 'login_form' do |tag|
         # Go through each section
