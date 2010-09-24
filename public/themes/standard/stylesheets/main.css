@@ -105,7 +105,7 @@ body
  position:absolute;
  top:0px;
  left:0px;
- z-index:500;
+ z-index:1000;
  color:#000000;
 }
   #cms_header { color:#000000; }
