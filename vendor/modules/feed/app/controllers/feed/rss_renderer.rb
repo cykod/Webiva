@@ -66,6 +66,9 @@ class Feed::RssRenderer < ParagraphRenderer
     </cms:no_feed>    
     </div>
   FEATURE
+
+
+  include ActionView::Helpers::DateHelper
   
   def rss_feed_view_feature(data)
     webiva_feature(:rss_feed_view,data) do |c|
@@ -109,6 +112,12 @@ class Feed::RssRenderer < ParagraphRenderer
     c.define_value_tag('feed:items:item:author') { |tag| tag.locals.item.author }
     c.define_value_tag('feed:items:item:categories') { |tag| tag.locals.item.categories.map { |cat| cat.content }.join(", ") }
     c.define_value_tag('feed:items:item:description') { |tag| tag.locals.item.description }
+    c.date_tag('feed:items:item:date') { |t| t.locals.item.date } 
+
+
+
+    c.value_tag('feed:items:item:ago') { |t| distance_of_time_in_words_to_now(t.locals.item.date) if t.locals.item.date }
+
      
     
    end
