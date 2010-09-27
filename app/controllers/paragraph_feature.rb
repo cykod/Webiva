@@ -1625,19 +1625,22 @@ block is non-nil
 	  opts = options.clone.merge(tag.attr.symbolize_keys)
 	  ext = file.extension.to_s.downcase
 
+    @player_idx ||= 0
+    @player_idx += 1
+
 	  case ext
 	  when 'mp3'
 	    media_options = Media::MediaController::AudioOptions.new(opts)
 	    media_options.media_file_id = file.id
 	    media_options.media_file = file
-	    container_id = "#{media_options.media_type}_#{paragraph.id}"
+	    container_id = "#{media_options.media_type}_#{paragraph.id}_#{@player_idx}"
 	    media_options.player.headers(self)
 	    media_options.player.render_player(container_id)
 	  when 'flv'
 	    media_options = Media::MediaController::VideoOptions.new(opts)
 	    media_options.media_file_id = file.id
 	    media_options.media_file = file
-	    container_id = "#{media_options.media_type}_#{paragraph.id}"
+	    container_id = "#{media_options.media_type}_#{paragraph.id}_#{@player_idx}"
 	    media_options.player.headers(self)
 	    media_options.player.render_player(container_id)
 	  when 'mov'

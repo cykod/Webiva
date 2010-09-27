@@ -29,6 +29,13 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       @usr = EndUser.new
       @address = @usr.build_address(:address_name => 'Default Address'.t, :country => @options.country )
       @business = @usr.build_work_address(:address_name => 'Business Address'.t, :country => @options.country )
+      if request.post? && params[:user] && params[:partial]
+        @usr.attributes =  params[:user].slice(*(@options.required_fields + @options.optional_fields + @options.always_required_fields).uniq)
+        @address.attributes = params[:address].slice( @options.available_address_field_list.keys) if params[:address]
+        @business.attributes = params[:business].slice( @options.available_address_field_list.keys) if params[:business]
+
+
+      end
 
       if @options.publication
         @model = @options.publication.content_model.content_model.new
@@ -41,7 +48,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
 
     @captcha = WebivaCaptcha.new(self) if @options.require_captcha
 
-    if request.post? && params[:user] && !@registered
+    if request.post? && params[:user] && !@registered && !params[:partial]
       # See we already have an unregistered user with this email
       @usr = EndUser.find_target(params[:user][:email],:no_create => true)
       
