@@ -212,7 +212,17 @@ class ActiveWebService
     end
     method_src << "end\n"
 
-    self.class_eval method_src, __FILE__, __LINE__
+    if options[:instance]
+      options[:instance].instance_eval method_src, __FILE__, __LINE__
+    elsif options[:class]
+      options[:class].class_eval method_src, __FILE__, __LINE__
+    else
+      self.class_eval method_src, __FILE__, __LINE__
+    end
+  end
+
+  def route(name, path, options={})
+    self.class.route name, path, options.merge(:instance => self)
   end
 
   # Creates routes for a RESTful API

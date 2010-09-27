@@ -596,9 +596,14 @@ class DomainFile < DomainModel
    
   # Returns the themes folder of the file system
    def self.themes_folder
-     DomainFile.find(:first,:conditions => "name = 'Themes' and parent_id = #{self.root_folder.id}") || DomainFile.create(:name => 'Themes', :parent_id => self.root_folder.id, :file_type => 'fld')
+     self.push_folder 'Themes'
    end
-   
+
+   def self.push_folder(name, opts={})
+     parent_id = opts[:parent_id] || self.root_folder.id
+     DomainFile.find(:first,:conditions => ["name = ? and parent_id = ?", name, parent_id]) || DomainFile.create(:name => name, :parent_id => parent_id, :file_type => 'fld')
+   end
+
    # Is this an image
    def image?; self.file_type == 'img'; end
 
@@ -1329,7 +1334,25 @@ class DomainFile < DomainModel
       nil
     end
   end
-  
+
+  def add(filename, opts={})
+    return nil unless self.folder?
+
+    filename = filename.filename if filename.is_a?(DomainFile)
+
+    # if it is a url, create a URI
+    if filename =~ /^https?:\/\//
+      begin
+        filename = URI.parse(filename)
+      rescue URI::Error => e
+        return nil
+      end
+    end
+
+    process_immediately = opts.has_key?(:process_immediately) ? opts[:process_immediately] : true
+    DomainFile.create :parent_id => self.id, :filename => filename, :process_immediately => process_immediately
+  end
+
   def self.download(uri, limit=10)
     raise ArgumentError, 'HTTP redirect too deep' if limit == 0
 

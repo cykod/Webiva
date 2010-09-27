@@ -21,7 +21,7 @@
          end 
          target_title =  target_cache[t.target_type][t.target_id] && target_cache[t.target_type][t.target_id].content_node ? target_cache[t.target_type][t.target_id].content_node.title : ''
       -%>
-        <%= truncate(target_title,35) if target_cache[t.target_type][t.target_id] %>
+        <%= truncate(target_title,:length => 35) if target_cache[t.target_type][t.target_id] %>
     </td>
     <td valign='baseline' align='center'><img src='<%= theme_src(t.rating_icon) %>'/></td>
     <td valign='baseline' nowrap='1'><%= v(t.end_user.name) if t.end_user -%></td>
