@@ -96,6 +96,61 @@ h1.inpage { float:none; padding-left:0px;  }
 
 .admin_content { clear:both; padding-top:18px; }
 
+.admin_left_sidebar {
+  float:left;
+  width:225px;
+  margin-top:18px;
+  border:1px solid  #bcd9e3;
+  background-repeat:repeat-y;
+}
+
+.admin_left_sidebar .top {
+  height:20px;
+  background-color:#bcd9e3;
+}
+
+.admin_left_sidebar .content {
+ padding:10px;
+}
+
+
+.admin_left_sidebar .bottom {
+  height:1px;
+  background-color:#bcd9e3;
+}
+
+
+.admin_left_sidebar .actions {
+  display:block;
+  list-style:none;
+  margin:0px;
+  padding:0px;
+}
+
+.admin_left_sidebar .actions li {
+  display:block;
+  padding:5px 0px;
+}
+
+
+.admin_left_sidebar .actions li a {
+  color:#3b648c;
+ font-weight:bold;
+  text-decoration:none;
+}
+
+
+.admin_center_content {
+  float:left;
+  padding-left: 35px;
+
+}
+
+.admin_content_clear {
+ clear:both;
+
+}
+
 hr { clear:both; border:0px; color:white; background-color:white; height:10px; }
 
 /* Tree Container */
@@ -1008,6 +1063,11 @@ table.display_table td.field {
   display: inline-block;
 }
 
+.cms_form .visitor_container {
+  float: none;
+  margin-top: 10px;
+}
+
 .visitor_container .heading {
   padding:0 10px;
 } 
@@ -1146,6 +1206,4 @@ ul#zones_example li.last {
  -moz-border-radius: 5px;
  -webkit-border-radius: 5px;
 }
-
-
 

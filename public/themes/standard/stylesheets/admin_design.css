@@ -54,8 +54,18 @@ a:hover { text-decoration:underline; }
 .third { width:28%; padding-right:4%; float:left; }
 
 
+p.info {
+  width: 550px;
+  font-size: 12px;
+  padding-bottom: 15px;
+  color: #754C28;
+}
 
-
+p.header {
+  padding: 5px 5px;
+  border-bottom: 4px solid #754C28;
+  color: #754C28;
+}
 
 /* Auto Complete Stuff */
 

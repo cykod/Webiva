@@ -1,9 +1,11 @@
-<table class='editor_table' cellspacing ='0' cellpadding='5'>
+<div class="stat_table_wrapper">
+<table class='stat_table' cellspacing ='0' cellpadding='5'>
 <tr>
-  <th></th>
+  <th class="first"></th>
   <th><%= "Name".t %></th>
   <th><%= "Description".t %></th>
   <th><%= "Type".t %></th>
+  <th></th>
 </tr>
 <% @all_user_classes.each do |cls| -%>
   <%= render :partial => 'user_profile', :locals => { :cls => cls } %>
@@ -13,7 +15,7 @@
 <tbody>
 <%= form_tag('',:id => 'create_form' ,:onsubmit=>'UserClassEditor.createNew(); return false;') %>
 <tr id='create_class'>
-  <td></td>
+  <td class="first"></td>
   <td><input type='text' size='20' id='create_new_name' name='name' /></td>
   <td><input type='text' size='40' id='create_new_desc'  name='description' /></td>
   <td><input type='checkbox' id='create_new_editor' name='editor' value='1' /><%= "Editor Profile".t %></td>
@@ -22,3 +24,4 @@
 </form>
 </tbody>
 </table>
+</div>
