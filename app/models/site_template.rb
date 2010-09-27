@@ -490,10 +490,11 @@ class SiteTemplate < DomainModel
           end
           img = folder.children.find_by_name(pieces[0]) if folder
           if img
-            if self.is_a?(SiteTemplate) && self.template_type != 'site'
-              output_body += mtch[1] + Configuration.domain_link(img.url()) + mtch[3]
+            url = img.url
+            if self.is_a?(SiteTemplate) && self.template_type != 'site' && url[0..0] == '/'
+              output_body += mtch[1] + Configuration.domain_link(url) + mtch[3]
             else
-              output_body += mtch[1] + img.url() + mtch[3]
+              output_body += mtch[1] + url + mtch[3]
             end
           else
             output_body += mtch[1] + '/images/no_image.gif' + mtch[3]

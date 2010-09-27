@@ -47,6 +47,10 @@ class MailTemplate < DomainModel
  belongs_to :site_template
  
  has_options :template_type, [['Site Template','site'],['Campaign Template','campaign']]
+
+ process_file_instance :body_html, :body_html_display
+
+ 
  
  attr_reader :prepared_body
  
@@ -236,7 +240,7 @@ class MailTemplate < DomainModel
  
  def get_links #:nodoc:
     links = []
-    body_html.scan(@@href_regexp) do |mtch|
+    (body_html_display || body_html).scan(@@href_regexp) do |mtch|
       href = $3
       if !(href =~ /^[a-zA-Z0-9]+\:.*$/)
         links << href
@@ -250,7 +254,7 @@ class MailTemplate < DomainModel
  def prepare_to_send #:nodoc:
   if !@prepared_body
     @prepared_body = {}
-    @prepared_body[:html] ||= body_html if is_html
+    @prepared_body[:html] ||= body_html_display || body_html if is_html
     @prepared_body[:text] ||= body_text if is_text
     
     # Replace any of the HTML type variables
@@ -368,7 +372,7 @@ class MailTemplate < DomainModel
   prepare_to_send
   if is_html
     links = []
-    @prepared_body[:html] ||= body_html
+    @prepared_body[:html] ||= body_html_display || body_html
     @prepared_body[:html].gsub!(@@href_regexp) do |mtch|
       whole_match = $&
       href=$3
