@@ -39,7 +39,7 @@ class Blog::WordpressImporter
 
   def parse
     begin
-      Hash.from_xml self.xml.gsub('excerpt:encoded>', 'excerpt>').gsub(/<category domain="tag"(.*?)<\/category>/, '<tag\1</tag>')
+      Hash.from_xml self.xml.gsub('excerpt:encoded>', 'excerpt>').gsub(/<category domain="tag"(.*?)<\/category>/, '<tag\1</tag>').gsub(/<\/?atom:.*?>/, '')
     rescue
     end
   end
