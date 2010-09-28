@@ -718,6 +718,7 @@ background: -webkit-gradient(
 }
 
 #wizard_steps {
+  width:170px !important;
 }
 
 #wizard_content {
@@ -768,6 +769,7 @@ background: -webkit-gradient(
   background-color:#f3e380;
 }
 
+#wizard .tree_detail { margin: 0 0 0 190px; }
 
 /* Search */
 

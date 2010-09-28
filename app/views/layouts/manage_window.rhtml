@@ -6,7 +6,9 @@
 
 <body onload='<%= @onload %>'>
 <div id='cms_manage_window'>
-<%= yield %>
+  <%= render :partial => '/layouts/wizard_top' if @wizard %>
+  <%= yield %>
+  <%= render :partial => '/layouts/wizard_bottom' if @wizard %>
 </div>
 </body>
 </html>

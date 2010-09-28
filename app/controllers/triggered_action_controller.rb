@@ -7,7 +7,7 @@ class TriggeredActionController < WizardController  # :nodoc: all
   wizard_steps [ [ 'index', 'Trigger &amp; Action' ],
                  [ 'options', 'Options' ],
                  [ 'confirm', 'Confirm' ] ]
-  layout 'manage_wizard'
+  layout 'manage_window'
   
 
   private
@@ -63,7 +63,7 @@ class TriggeredActionController < WizardController  # :nodoc: all
     @triggers = @triggered_action.triggers
     @actions = TriggeredAction.available_actions_options
 
-    render :action => 'index', :layout => (@triggers && @triggers.length > 0) ? 'manage_wizard' : 'manage_window'
+    render :action => 'index', :layout =>  'manage_window'
   end
   
 

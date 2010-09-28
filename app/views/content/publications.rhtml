@@ -18,14 +18,10 @@
   }
 
 </script>
-<div class='admin_content'>
-<div class='action_panel'>
-  <ul>
-    <li><a href='<%= url_for :action => 'publish', :path => @content_model.id %>'><%= theme_icon('action','icons/actions/add.gif') %><%= h "Publish".t %></a></li>
-  </ul>
-</div>
-</div>
-<hr/>
+<% action_panel do |p| %>
+  <%= p.link "Publish", :action => 'publish', :path => @content_model.id, :icon => 'add.png' %>
+<% end -%>
+
 <div class='admin_content'>
 <% table_for @publications, [ 'Name','Type','Description','Delete' ], :class=>'active_table', :cellspacing => 0, :id => 'publication_table' do |pub| %>
   <tr <%= highlight_row "pub",pub.id %>  >
