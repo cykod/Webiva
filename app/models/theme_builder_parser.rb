@@ -75,8 +75,7 @@ class ThemeBuilderParser < HashModel
     doc.css('script').remove()
     doc.css('#webiva-theme-builder').remove()
 
-    @head = doc.css('style').text();
-    @head = "<style>\n#{@head}\n</style>" unless @head.blank?
+    @head = doc.css('style').to_html
 
     @html = doc.css('body').first.to_html
     @html = @html.gsub(/<\/?body>/i, '')

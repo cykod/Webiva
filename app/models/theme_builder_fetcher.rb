@@ -13,13 +13,15 @@ class ThemeBuilderFetcher
 
     # because nokogiri is case sensitive
     html.gsub!(/rel=(["'])stylesheet\1/i, 'rel=\1stylesheet\1')
+    html.gsub!(/<body/i, '<body')
+    html.gsub!(/<\/body/i, '</body')
 
     doc = Nokogiri::XML(html)
     doc.css('script').remove()
+    doc.css('iframe').remove()
     doc.css('#webiva-theme-builder').remove()
-    inline_styles = doc.css('style').text();
+    inline_styles = doc.css('style').to_html
     doc.css('style').remove();
-    inline_styles = "<style type=\"text/css\">\n#{self.parse_css(url, inline_styles)}\n</style>" unless inline_styles.blank?
 
     base_href = doc.css('base').first
     @base_url = base_href.attributes['href'].to_s if base_href
@@ -58,7 +60,7 @@ class ThemeBuilderFetcher
       end
     end
 
-    body = doc.css('body').first.to_html
+    body = doc.css('body').to_html
     images.each do |src, file|
       body.gsub!(/(['"])#{src}\1/, "\\1#{file}\\1")
     end
@@ -67,7 +69,7 @@ class ThemeBuilderFetcher
     tmp_path = "#{RAILS_ROOT}/tmp/theme_builder/" + DomainModel.active_domain_id.to_s;
     FileUtils.mkpath(tmp_path)
     filename = tmp_path + "/index.html"
-    File.open(filename, 'w') { |f| f.write "<!DOCTYPE html>\n<html>\n<head>\n#{inline_styles}\n</head>\n#{body}\n</html>" }
+    File.open(filename, 'w') { |f| f.write "<!DOCTYPE html>\n<html>\n<head>\n#{self.parse_css(@base_url, inline_styles)}\n</head>\n#{body}\n</html>" }
     File.open(filename, 'r') do |f|
       html_file = DomainFile.create :filename => f, :parent_id => self.base_folder.id
     end
@@ -174,6 +176,10 @@ class ThemeBuilderFetcher
       end
 
       "url(#{file})"
+    end
+
+    css.gsub!(/@import.*?['"]([^"']+).+?;/).each do |match|
+      self.fetch_css(self.construct_url($1))
     end
 
     @base_uri = nil
