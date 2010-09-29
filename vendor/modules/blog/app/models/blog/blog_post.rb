@@ -185,7 +185,7 @@ class Blog::BlogPost < DomainModel
   end
   
   def preview
-    self.revision.preview.blank? ? self.body_content : self.preview_content
+    self.revision.preview
   end
 
   def self.get_content_options
