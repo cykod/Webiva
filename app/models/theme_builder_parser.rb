@@ -15,7 +15,19 @@ class ThemeBuilderParser < HashModel
     if self.html_file
       self.errors.add(:html_file_id, 'is invalid') unless self.html_file.mime_type == 'text/html'
     elsif ! self.url.blank?
-      self.errors.add(:url, 'is invalid') unless URI::regexp(%w(http https)).match(self.url)
+      if URI::regexp(%w(http https)).match(self.url)
+        if CMS_DEFAULTS['theme_builder_validate']
+          uri = URI.parse self.url
+          webiva_url = "#{uri.scheme}://#{uri.host}#{uri.port == 80 ? '' : (':' + uri.port.to_s)}/webiva.html"
+          begin
+            DomainFile.download(webiva_url)
+          rescue
+            self.errors.add(:url, "page not found #{webiva_url}")
+          end
+        end
+      else
+        self.errors.add(:url, 'is invalid') 
+      end
     else
       self.errors.add(:html_file_id, 'is missing')
     end
