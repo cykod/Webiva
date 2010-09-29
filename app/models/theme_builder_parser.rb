@@ -59,29 +59,40 @@ class ThemeBuilderParser < HashModel
 
     File.open(self.html_file.filename, 'r') { |f| @html = f.read }
 
+    @html = @html.gsub(/(['"])(images\/[^\1]+?)\1/) do |match|
+      quote = $1
+      src = $2
+      "#{quote}#{self.editor_url(src)}#{quote}"
+    end
+
+    @html = @html.gsub(/url\((images\/[^\1]+?)\)/) do |match|
+      src = $1
+      "url(#{self.editor_url(src)})"
+    end
+
     doc = Nokogiri::HTML.parse(@html)
 
     doc.css('script').remove()
     doc.css('#webiva-theme-builder').remove()
 
+    @head = doc.css('style').text();
+    @head = "<style>\n#{@head}\n</style>" unless @head.blank?
+
     @html = doc.css('body').first.to_html
     @html = @html.gsub(/<\/?body>/i, '')
 
-    @html = @html.gsub(/(['"])(images\/[^\1]+?)\1/) do |match|
-      quote = $1
-      src = $2
-      puts src.inspect
-      "#{quote}#{self.editor_url(src)}#{quote}"
-    end
-
     @html
+  end
+
+  def head
+    self.html unless @head
+    @head
   end
 
   def create_site_template
     self.theme_html = self.theme_html.gsub(/(['"])(\/__fs__\/[^\1]+?)\1/) do |match|
       quote = $1
       src = $2
-      puts src.inspect
       "#{quote}#{self.image_url(src)}#{quote}"
     end
 
@@ -100,7 +111,12 @@ class ThemeBuilderParser < HashModel
 
     self.theme_html = self.theme_html.gsub(/ class=""/, '')
 
-    site_template = SiteTemplate.create :template_type => 'site', :name => self.theme_name, :description => '', :template_html => self.theme_html, :style_design => self.style_design, :style_struct => self.style_struct, :domain_file_id => self.images_folder.id
+    @head = self.head.gsub(/url\((\/__fs__\/.+?)\)/) do |match|
+      src = $1
+      "url(#{self.image_url(src)})"
+    end
+
+    site_template = SiteTemplate.create :template_type => 'site', :name => self.theme_name, :description => '', :template_html => self.theme_html, :style_design => self.style_design, :style_struct => self.style_struct, :domain_file_id => self.images_folder.id, :head => @head
 
     orderer_zones.each_with_index do |name, idx|
       site_template.site_template_zones.create :name => name, :position => (idx+1)
@@ -137,8 +153,9 @@ class ThemeBuilderParser < HashModel
     ThemeBuilderFetcher.fetch self.url
   end
 
-  def editor_css
-    self.css.gsub(/url\((images\/.+?)\)/) do |match|
+  def editor_css(styles=nil)
+    styles ||= self.css
+    styles.gsub(/url\((images\/.+?)\)/) do |match|
       src = $1
       "url(#{self.editor_url(src)})"
     end

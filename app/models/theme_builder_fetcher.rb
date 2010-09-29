@@ -17,6 +17,9 @@ class ThemeBuilderFetcher
     doc = Nokogiri::XML(html)
     doc.css('script').remove()
     doc.css('#webiva-theme-builder').remove()
+    inline_styles = doc.css('style').text();
+    doc.css('style').remove();
+    inline_styles = "<style type=\"text/css\">\n#{self.parse_css(url, inline_styles)}\n</style>" unless inline_styles.blank?
 
     base_href = doc.css('base').first
     @base_url = base_href.attributes['href'].to_s if base_href
@@ -64,7 +67,7 @@ class ThemeBuilderFetcher
     tmp_path = "#{RAILS_ROOT}/tmp/theme_builder/" + DomainModel.active_domain_id.to_s;
     FileUtils.mkpath(tmp_path)
     filename = tmp_path + "/index.html"
-    File.open(filename, 'w') { |f| f.write body }
+    File.open(filename, 'w') { |f| f.write "<!DOCTYPE html>\n<html>\n<head>\n#{inline_styles}\n</head>\n#{body}\n</html>" }
     File.open(filename, 'r') do |f|
       html_file = DomainFile.create :filename => f, :parent_id => self.base_folder.id
     end
@@ -147,7 +150,10 @@ class ThemeBuilderFetcher
     css_url = self.construct_url(href)
     css = self.download(css_url, 'text/css')
     return '' unless css
+    self.parse_css css_url, css
+  end
 
+  def parse_css(css_url, css)
     original_base_url = @base_url
     @base_uri = nil
     @domain_link = nil
