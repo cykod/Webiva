@@ -120,7 +120,7 @@ class ThemeBuilderParser < HashModel
     return @style_design if @style_design
 
     @style_struct = ''
-    @style_design = self.css.gsub(/(#[a-zA-Z0-9_\-]+)\s*(\{.*?\})/m) do |match|
+    @style_design = self.css.gsub(/([#a-zA-Z0-9_\-\s,.:*]+#[#a-zA-Z0-9_\-\s,.:*]+)\s*(\{.*?\})/m) do |match|
       @style_struct += "#{$1} #{$2}\n\n"
       ''
     end
