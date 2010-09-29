@@ -164,11 +164,11 @@ class MarketSegment < DomainModel
    
    def user_segment_target_list(options)
      return [] unless self.user_segment
-     self.user_segment.collect { |sub| [ sub.email, sub.name ] }
+     self.user_segment.batch_users(options).collect { |sub| [ sub.email, sub.name ] }
    end
    
    def user_segment_target_entries(options)
      return [] unless self.user_segment
-     self.user_segment.collect { |entry| [ entry.email, entry, entry.id  ] }
+     self.user_segment.batch_users(options).collect { |entry| [ entry.email, entry, entry.id  ] }
    end
 end
