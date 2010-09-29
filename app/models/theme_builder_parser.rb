@@ -31,7 +31,7 @@ class ThemeBuilderParser < HashModel
   end
 
   def css_file
-    @css_file ||= DomainFile.find_by_parent_id_and_name self.html_file.parent.id, 'styles.css'
+    @css_file ||= DomainFile.find_by_parent_id_and_name self.html_file.parent.id, 'styles.css' if self.html_file
   end
 
   def editor_url(src)
