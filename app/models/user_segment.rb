@@ -228,7 +228,7 @@ class UserSegment < DomainModel
 
   # Loops through each user collecting data specified by the block.
   #
-  # yeilds user
+  # yields user
   def collect(opts={}, &block)
     data = []
     self.user_segment_caches.each do |segement|
@@ -263,6 +263,23 @@ class UserSegment < DomainModel
     self.user_segment_caches.each do |segement|
       segement.find_in_batches(opts, &block)
     end
+  end
+
+  def batch_users(opts={})
+    offset = opts.delete(:offset).to_i
+    limit = opts.delete(:limit)
+
+    cache_offset = offset % UserSegmentCache::SIZE
+
+    ids = []
+    ((offset / UserSegmentCache::SIZE).to_i..self.user_segment_caches.length-1).each do |position|
+      cache = self.user_segment_caches.find_by_position(position)
+      ids += cache.id_list[cache_offset...(cache_offset+limit-ids.length)]
+      cache_offset = 0
+      break if ids.length >= limit
+    end
+
+    EndUser.find :all, :conditions => {:id => ids}
   end
 
   # Used to paginate a list of users, returns the same pagination hash as DomainModel.paginate
