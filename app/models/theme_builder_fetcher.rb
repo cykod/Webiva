@@ -16,7 +16,7 @@ class ThemeBuilderFetcher
     html.gsub!(/<body/i, '<body')
     html.gsub!(/<\/body/i, '</body')
 
-    doc = Nokogiri::XML(html)
+    doc = Nokogiri::HTML(html)
     doc.css('script').remove()
     doc.css('iframe').remove()
     doc.css('#webiva-theme-builder').remove()
@@ -90,7 +90,13 @@ class ThemeBuilderFetcher
   end
 
   def add_image(src)
-    src_uri = URI.parse src
+    src_uri = nil
+    begin
+      src_uri = URI.parse src.strip
+    rescue URI::InvalidURIError
+      return src
+    end
+
     folder = self.images_folder
     file_path = 'images'
     parts = src_uri.path.split('/')
