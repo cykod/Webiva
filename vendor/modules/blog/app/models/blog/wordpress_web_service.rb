@@ -58,9 +58,14 @@ class Blog::WordpressWebService < ActiveWebService
 
   def parse_export_form(response)
     parent = Nokogiri::HTML.parse(response.body).css('body').first
-    export_form = parent.css('form')
-    return @error = 'Export form not found' unless export_form.size > 0
-    export_form = export_form.first
+    forms = parent.css('form')
+    return @error = 'Export form not found' unless forms.size > 0
+    export_form = forms.shift
+    while export_form && export_form.css('#mm_start').length == 0
+      export_form = forms.shift
+    end
+    return @error = 'Export form not found' unless export_form
+
     @inputs = {}
     export_form.css('input').each do |input|
       next unless input.attributes['name']
@@ -83,7 +88,7 @@ class Blog::WordpressWebService < ActiveWebService
   def export
     self.wp_export_get
     return false if @error
-    self.wp_export :query => @inputs
+    self.wp_export :query => @inputs, :format => :plain
     return self.response.body if self.response.headers['content-type'].to_s =~ /xml/
     false
   end
