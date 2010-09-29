@@ -168,8 +168,15 @@ class ThemeBuilderFetcher
     @domain_base = nil
     @base_url = css_url
 
+    @imported_css_files ||= {}
     css.gsub!(/@import.*?[('"]+([^)"']+).+?;/).each do |match|
-      self.fetch_css(self.construct_url($1))
+      url = self.construct_url($1)
+      if @imported_css_files[url]
+        ''
+      else
+        @imported_css_files[url] = true
+        self.fetch_css(url)
+      end
     end
 
     images = {}
