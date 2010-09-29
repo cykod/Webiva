@@ -126,6 +126,7 @@ class MailManagerController < CmsController # :nodoc: all
   def send_test_template
     @mail_template = MailTemplate.new(params[:mail_template])
     
+    @mail_template.pre_process_file_instance_body_html
     @mail_template.replace_image_sources
     @mail_template.replace_link_hrefs
     
