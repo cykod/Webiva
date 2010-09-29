@@ -192,6 +192,7 @@ ThemeBuilder = {
 
     $j(zone.panel).remove();
     $j(zone.block).removeAttr('zone');
+    $j(newZone.block).attr('zone', newZone.index);
     ThemeBuilder.selectedBlock = null;
     ThemeBuilder.zonePanel(newZone);
     ThemeBuilder.resetBlockLevelEvents();
