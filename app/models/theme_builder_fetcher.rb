@@ -1,0 +1,180 @@
+require 'nokogiri'
+
+class ThemeBuilderFetcher
+  def self.fetch(url)
+    fetcher = ThemeBuilderFetcher.new
+    fetcher.fetch url
+  end
+
+  def fetch(url)
+    @url = url
+    html = self.download url
+    return false unless html
+
+    # because nokogiri is case sensitive
+    html.gsub!(/rel=(["'])stylesheet\1/i, 'rel=\1stylesheet\1')
+
+    doc = Nokogiri::XML(html)
+    doc.css('script').remove()
+    doc.css('#webiva-theme-builder').remove()
+
+    base_href = doc.css('base').first
+    @base_url = base_href.attributes['href'].to_s if base_href
+    begin URI.parse @base_url rescue @base_url = nil end
+    @base_url = url if @base_url.blank?
+
+    css = ''
+    doc.css('link[rel=stylesheet]').each do |link_tag|
+      href = link_tag.attributes['href'].to_s
+      unless href.blank?
+        css += self.fetch_css href
+      end
+    end
+
+    tmp_path = "#{RAILS_ROOT}/tmp/theme_builder/" + DomainModel.active_domain_id.to_s;
+    FileUtils.mkpath(tmp_path)
+    filename = tmp_path + "/styles.css"
+    File.open(filename, 'w') { |f| f.write css }
+    File.open(filename, 'r') do |f|
+      DomainFile.create :filename => f, :parent_id => self.base_folder.id
+    end
+
+    images = {}
+    doc.css('img').each do |img_tag|
+      orig_src = img_tag.attributes['src'].to_s
+      next if orig_src.blank?
+
+      src = self.construct_url(orig_src)
+      images[orig_src] = images[src] if images[src]
+      next if images[src]
+
+      file = self.add_image self.construct_url(src)
+      if file
+        images[src] = file
+        images[orig_src] = file
+      end
+    end
+
+    body = doc.css('body').first.to_html
+    images.each do |src, file|
+      body.gsub!(/(['"])#{src}\1/, "\\1#{file}\\1")
+    end
+
+    html_file = nil
+    tmp_path = "#{RAILS_ROOT}/tmp/theme_builder/" + DomainModel.active_domain_id.to_s;
+    FileUtils.mkpath(tmp_path)
+    filename = tmp_path + "/index.html"
+    File.open(filename, 'w') { |f| f.write body }
+    File.open(filename, 'r') do |f|
+      html_file = DomainFile.create :filename => f, :parent_id => self.base_folder.id
+    end
+
+    html_file
+  end
+
+  def theme_builder_folder
+    @theme_builder_folder ||= DomainFile.push_folder('Theme Builder')
+  end
+
+  def base_folder
+    @base_folder ||= DomainFile.push_folder self.uri.host, :parent_id => self.theme_builder_folder.id
+  end
+
+  def images_folder
+    @images_folder ||= DomainFile.push_folder 'images', :parent_id => self.base_folder.id
+  end
+
+  def add_image(src)
+    src_uri = URI.parse src
+    folder = self.images_folder
+    file_path = 'images'
+    parts = src_uri.path.split('/')
+    parts.shift
+    parts.pop
+    parts.shift if parts[0].to_s.downcase == 'images'
+    parts.each do |part|
+      file_path += "/#{part}"
+      folder = DomainFile.push_folder part, :parent_id => folder.id
+    end
+    file = folder.add src
+    return nil unless file
+    file_path += "/#{file.name}"
+    file_path
+  end
+
+  def download(url, content_type='text/html')
+    begin
+      response = DomainFile.download url
+      response.body if response.code == "200" && response.content_type == content_type
+    rescue
+      nil
+    end
+  end
+
+  def base_uri
+    @base_uri ||= URI.parse @base_url
+  end
+
+  def uri
+    @uri ||= URI.parse @url
+  end
+
+  def domain_link
+    @domain_link ||= "#{self.base_uri.scheme}://#{self.base_uri.host}:#{self.base_uri.port}"
+  end
+
+  def base_path
+    return @domain_base if @domain_base
+    path = self.base_uri.path
+    path = '/' if path.blank?
+    path = path.sub(/\/[^\/]+$/, '/')
+    @domain_base = "#{path}"
+  end
+
+  def construct_url(path)
+    if path =~ /^\//
+      path = File.expand_path path
+      "#{self.domain_link}#{path}"
+    elsif path =~ /^http/
+      path
+    else
+      path = File.expand_path "#{self.base_path}#{path}"
+      "#{self.domain_link}#{path}"
+    end
+  end
+
+  def fetch_css(href)
+    css_url = self.construct_url(href)
+    css = self.download(css_url, 'text/css')
+    return '' unless css
+
+    original_base_url = @base_url
+    @base_uri = nil
+    @domain_link = nil
+    @domain_base = nil
+    @base_url = css_url
+
+    images = {}
+    css.gsub!(/url\(["']?([^'"]+?)['"]?\)/) do |match|
+      orig_src = $1
+      src = self.construct_url(orig_src)
+      images[orig_src] = images[src] if images[src]
+      next if images[src]
+
+      file = self.add_image src
+      if file
+        images[src] = file
+        images[orig_src] = file
+      end
+
+      "url(#{file})"
+    end
+
+    @base_uri = nil
+    @domain_link = nil
+    @domain_base = nil
+    @base_url = original_base_url
+
+    css
+  end
+end

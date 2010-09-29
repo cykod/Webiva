@@ -1,0 +1,10 @@
+<div class='admin_content'>
+
+<% admin_form_for :parser, @parser do |f| -%>
+  <%= f.filemanager_file :html_file_id %>
+  <%= f.text_field(:url) %>
+  <%= f.spacer %>
+  <%= f.submit_tag 'Submit' %>
+<% end -%>
+
+</div>

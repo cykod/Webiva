@@ -1,0 +1,146 @@
+require 'nokogiri'
+
+class ThemeBuilderParser < HashModel
+  attributes :html_file_id => nil, :theme_html => nil, :theme_name => 'Theme Builder Theme', :url => nil, :setting_up_theme => false
+
+  domain_file_options :html_file_id
+
+  def strict?; true; end
+
+  def is_html_file?
+    self.html_file && self.html_file.mime_type == 'text/html'
+  end
+
+  def validate
+    if self.html_file
+      self.errors.add(:html_file_id, 'is invalid') unless self.html_file.mime_type == 'text/html'
+    elsif ! self.url.blank?
+      self.errors.add(:url, 'is invalid') unless URI::regexp(%w(http https)).match(self.url)
+    else
+      self.errors.add(:html_file_id, 'is missing')
+    end
+
+    if self.setting_up_theme
+      self.errors.add(:theme_html, 'is missing') if self.theme_html.blank?
+      self.errors.add(:theme_name, 'is missing') if self.theme_name.blank?
+    end
+  end
+
+  def images_folder
+    @images_folder ||= DomainFile.push_folder 'images', :parent_id => self.html_file.parent.id
+  end
+
+  def css_file
+    @css_file ||= DomainFile.find_by_parent_id_and_name self.html_file.parent.id, 'styles.css'
+  end
+
+  def editor_url(src)
+    return src unless src =~ /^images/
+    file = DomainFile.find_by_file_path self.images_folder.file_path + src.sub('images', '')
+    file ? file.editor_url : src
+  end
+
+  def image_url(src)
+    return src unless src=~ /^\/__fs__\/(.*)/
+    file = DomainFile.find_by_prefix $1
+    return src unless file
+
+    url = file.name
+    while file.parent && file.parent.name != 'images'
+      url = "#{file.parent.name}/#{url}"
+      file = file.parent
+    end
+
+    "images/#{url}"
+  end
+
+  def html
+    return @html if @html
+
+    File.open(self.html_file.filename, 'r') { |f| @html = f.read }
+
+    doc = Nokogiri::HTML.parse(@html)
+
+    doc.css('script').remove()
+    doc.css('#webiva-theme-builder').remove()
+
+    @html = doc.css('body').first.to_html
+    @html = @html.gsub(/<\/?body>/i, '')
+
+    @html = @html.gsub(/(['"])(images\/[^\1]+?)\1/) do |match|
+      quote = $1
+      src = $2
+      puts src.inspect
+      "#{quote}#{self.editor_url(src)}#{quote}"
+    end
+
+    @html
+  end
+
+  def create_site_template
+    self.theme_html = self.theme_html.gsub(/(['"])(\/__fs__\/[^\1]+?)\1/) do |match|
+      quote = $1
+      src = $2
+      puts src.inspect
+      "#{quote}#{self.image_url(src)}#{quote}"
+    end
+
+    zones = []
+    self.theme_html = self.theme_html.gsub(/<cms:zone name="(.*?)"><\/cms:zone>/) do |match|
+      zone = $1
+      zones << zone
+      "<cms:zone name=\"#{zone}\"/>"
+    end
+
+    orderer_zones = []
+    self.theme_html = self.theme_html.gsub(/ zone="(\d+)"/) do |match|
+      orderer_zones << zones[$1.to_i]
+      ''
+    end
+
+    self.theme_html = self.theme_html.gsub(/ class=""/, '')
+
+    site_template = SiteTemplate.create :template_type => 'site', :name => self.theme_name, :description => '', :template_html => self.theme_html, :style_design => self.style_design, :style_struct => self.style_struct, :domain_file_id => self.images_folder.id
+
+    orderer_zones.each_with_index do |name, idx|
+      site_template.site_template_zones.create :name => name, :position => (idx+1)
+    end
+
+    site_template
+  end
+
+  def css
+    return @css if @css
+    @css = ''
+    File.open(self.css_file.filename, 'r') { |f| @css = f.read } if self.css_file
+    @css
+  end
+
+  def style_design
+    return @style_design if @style_design
+
+    @style_struct = ''
+    @style_design = self.css.gsub(/(#[a-zA-Z0-9_\-]+)\s*(\{.*?\})/m) do |match|
+      @style_struct += "#{$1} #{$2}\n\n"
+      ''
+    end
+
+    @style_design
+  end
+
+  def style_struct
+    @style_struct
+  end
+
+  def fetch
+    return self.html_file if self.html_file
+    ThemeBuilderFetcher.fetch self.url
+  end
+
+  def editor_css
+    self.css.gsub(/url\((images\/.+?)\)/) do |match|
+      src = $1
+      "url(#{self.editor_url(src)})"
+    end
+  end
+end
