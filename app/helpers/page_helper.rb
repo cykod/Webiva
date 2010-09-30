@@ -8,7 +8,7 @@ module PageHelper
       if js_header; js_includes ||= []; js_includes += js_header; end 
 
       js_includes.uniq.each do |js|
-        if js.to_s[0] != '/'
+        if js.to_s[0..3] == 'http'
           concat(" <script src=\"#{vh js}\" type='text/javascript'></script>\n")
         else 
           concat(" " + javascript_include_tag(js) + "\n")
