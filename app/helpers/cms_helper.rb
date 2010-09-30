@@ -873,7 +873,7 @@ EOF
 
   # Load a remote script over http or https as necessary
   def remote_script(script)
-    prefix =  request.ssl? ? 'http://' : 'https://'
+    prefix =  request.ssl? ? 'https://' : 'http://'
     "<script src='#{prefix}#{vh script}'></script>"
   end
 
