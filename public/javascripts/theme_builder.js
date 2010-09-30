@@ -230,6 +230,7 @@ ThemeBuilder = {
     zone.className = $j(zone.block).attr('class');
     var w = $j(zone.block).outerWidth(true) - 2;
     var h = $j(zone.block).outerHeight(true) - 2;
+    if(w > $j(document).width()) { w = $j(document).width(); }
     var offset = $j(zone.block).offset();
     var top = offset.top;
     var left = offset.left;
@@ -254,38 +255,39 @@ ThemeBuilder = {
     input.setAttribute('id', 'webiva-zone-input-' + zone.index);
     $j(input).keypress(function(e) { ThemeBuilder.keypressZoneName(e, this, zone); });
     title.appendChild(input);
-    div.appendChild(title);
+
+    span = document.createElement('span');
+    span.setAttribute('class', 'tag');
+    span.innerHTML = ThemeBuilder.tagDesc(zone).replace('<', '&lt;').replace('>', '&gt;');
+    title.appendChild(span);
 
     var clear = document.createElement('a');
     clear.setAttribute('class', 'webiva-theme-builder-clear-zone');
     clear.href = '#';
-    clear.innerHTML = 'Remove';
+    clear.innerHTML = '[x] remove';
     $j(clear).bind('click', function() { ThemeBuilder.removeZone(zone); return false; });
-    div.appendChild(clear);
+    title.appendChild(clear);
 
-    var ul = document.createElement('ul');
-    ul.setAttribute('class', 'webiva-theme-builder-controls');
+    div.appendChild(title);
 
-    var li = document.createElement('li');
     if(zone.parent) {
       var anchor = document.createElement('a');
       anchor.zone = zone;
       anchor.href = '#';
-      anchor.innerHTML = 'select parent node';
+      anchor.innerHTML = 'Select container';
       anchor.title = ThemeBuilder.tagDesc(zone.parent);
       $j(anchor).bind('click', function() { ThemeBuilder.changeZone(zone, zone.parent.block); return false; });
-      li.appendChild(anchor);
-    } else {
-      li.innerHTML = '&nbsp;';
+      var container = document.createElement('div');
+      container.setAttribute('class', 'webiva-theme-builder-select-container');
+      container.appendChild(anchor);
+      /*
+      span = document.createElement('span');
+      span.setAttribute('class', 'tag');
+      span.innerHTML = ThemeBuilder.tagDesc(zone.parent).replace('<', '&lt;').replace('>', '&gt;');
+      container.appendChild(span);
+      */
+      div.appendChild(container);
     }
-
-    ul.appendChild(li);
-
-    li = document.createElement('li');
-    li.innerHTML = ThemeBuilder.tagDesc(zone).replace('<', '&lt;').replace('>', '&gt;');
-    ul.appendChild(li);
-
-    div.appendChild(ul);
 
     document.getElementById('webiva-theme-builder-panels').appendChild(div);
     $j(div).maxZIndex({inc: 1});
@@ -312,19 +314,27 @@ ThemeBuilder = {
     $j('#webiva-zone-' + zone.index).hide();
     $j('#webiva-zone-input-' + zone.index).show();
 
-    setTimeout(function() { $j('#webiva-zone-input-' + zone.index).focus(); }, 10);
+    setTimeout(function() {
+      $j('#webiva-zone-input-' + zone.index).focus();
+      $j('#webiva-zone-input-' + zone.index).bind('blur', function() {
+        ThemeBuilder.keypressZoneName({keyCode: 13}, block, zone);
+      });
+    }, 10);
   },
 
   keypressZoneName: function(event, block, zone) {
     if(event.keyCode == 13) {
-      zone.name = block.value;
-      $j('#webiva-zone-' + zone.index).text(block.value);
+      var name = $j('#webiva-zone-input-' + zone.index).val();
+      zone.name = name;
+      $j('#webiva-zone-' + zone.index).text(name);
       $j('#webiva-zone-' + zone.index).show();
       $j('#webiva-zone-input-' + zone.index).hide();
+      $j('#webiva-zone-input-' + zone.index).unbind('blur');
       ThemeBuilder.updateZonesList();
     } else if(event.keyCode == 27) {
       $j('#webiva-zone-' + zone.index).show();
       $j('#webiva-zone-input-' + zone.index).hide();
+      $j('#webiva-zone-input-' + zone.index).unbind('blur');
       setTimeout(function() { block.value = zone.name; }, 10);
     }
   },
@@ -333,6 +343,7 @@ ThemeBuilder = {
     var panel = $j('#webiva-theme-builder-select-zone-panel').first();
     var block = ThemeBuilder.selectedBlock;
     var w = $j(block).outerWidth(true);
+    if(w > $j(document).width()) { w = $j(document).width(); }
     var h = $j(block).outerHeight(true);
     var offset = $j(block).offset();
 

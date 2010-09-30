@@ -98,3 +98,26 @@ ul#webiva-theme-builder-zones li {
   z-index: 1000 ! important;
   border-bottom: 1px solid #000 ! important;
 }
+
+.webiva-theme-builder-zone-panel .tag {
+  color: #000 ! important;
+  font-size: 11px ! important;
+  padding: 0 10px ! important;
+}
+
+.webiva-theme-builder-zone-panel a {
+  color: #00BCDC ! important;
+  font-size: 12px ! important;
+  text-decoration: none ! important;
+}
+
+.webiva-theme-builder-zone-panel a:hover {
+  text-decoration: underline ! important;
+}
+
+.webiva-theme-builder-zone-panel a span.tag {
+  color: #000 ! important;
+  font-size: 11px ! important;
+  text-decoration: none ! important;
+  padding: 0 ! important;
+}
