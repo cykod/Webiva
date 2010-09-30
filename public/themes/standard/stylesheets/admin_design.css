@@ -188,6 +188,9 @@ button.button_link {
 
 /* Form */
 
+#RB_window .admin_form { background-color:white;   -moz-border-radius: 25px;
+  -webkit-border-radius: 25px;
+ }
 
 form {
 }
