@@ -170,8 +170,17 @@ ThemeBuilder = {
 
     var index = ThemeBuilder.zones.length;
     $j(ThemeBuilder.selectedBlock).attr('zone', index);
+    var name = "Zone " + (index+1);
+    var id = $j(ThemeBuilder.selectedBlock).attr('id');
+    if(id) {
+      id = id.replace(/^ +/, '');
+      id = id.replace(/ +/, '');
+      id = id.replace(/[_\-]/, ' ');
+      id = id.substr(0, 1).toUpperCase() + id.substr(1);
+      name = id;
+    }
 
-    var zone = {block: ThemeBuilder.selectedBlock, name: "Zone " + (index+1), index: index};
+    var zone = {block: ThemeBuilder.selectedBlock, name: name, index: index, editted: false};
 
     ThemeBuilder.zones.push(zone);
 
@@ -187,7 +196,19 @@ ThemeBuilder = {
       return false;
     }
 
-    var newZone = {block: block, name: zone.name, index: zone.index};
+    var name = zone.name;
+    if(! zone.editted) {
+      var id = $j(block).attr('id');
+      if(id) {
+        id = id.replace(/^ +/, '');
+        id = id.replace(/ +/, '');
+        id = id.replace(/[_\-]/, ' ');
+        id = id.substr(0, 1).toUpperCase() + id.substr(1);
+        name = id;
+      }
+    }
+
+    var newZone = {block: block, name: name, index: zone.index, editted: zone.editted};
     ThemeBuilder.zones[zone.index] = newZone;
 
     $j(zone.panel).remove();
@@ -326,6 +347,7 @@ ThemeBuilder = {
     if(event.keyCode == 13) {
       var name = $j('#webiva-zone-input-' + zone.index).val();
       zone.name = name;
+      zone.editted = true;
       $j('#webiva-zone-' + zone.index).text(name);
       $j('#webiva-zone-' + zone.index).show();
       $j('#webiva-zone-input-' + zone.index).hide();
