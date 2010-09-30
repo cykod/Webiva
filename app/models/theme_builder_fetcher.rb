@@ -29,10 +29,14 @@ class ThemeBuilderFetcher
     @base_url = url if @base_url.blank?
 
     css = ''
-    doc.css('link[rel=stylesheet]').each do |link_tag|
+    doc.css('link').each do |link_tag|
+      next unless link_tag.attributes['rel'].to_s.include?('stylesheet')
       href = link_tag.attributes['href'].to_s
+      media = link_tag.attributes['media'].to_s
       unless href.blank?
+        css += "\n@media #{media} {" unless media == 'screen' || media == ''
         css += self.fetch_css href
+        css += "\n}" unless media == 'screen' || media == ''
       end
     end
 
@@ -60,6 +64,12 @@ class ThemeBuilderFetcher
       end
     end
 
+    doc.css('a').each do |anchor_tag|
+      href = anchor_tag.attributes['href'].to_s
+      next if href.blank? || href =~ /^(#|https?:|mailto:|javascript:)/i
+      anchor_tag['href'] = self.construct_url href
+    end
+
     body = doc.css('body').to_html
     images.each do |src, file|
       body.gsub!(/(['"])#{src}\1/, "\\1#{file}\\1")
@@ -69,7 +79,7 @@ class ThemeBuilderFetcher
     tmp_path = "#{RAILS_ROOT}/tmp/theme_builder/" + DomainModel.active_domain_id.to_s;
     FileUtils.mkpath(tmp_path)
     filename = tmp_path + "/index.html"
-    File.open(filename, 'w') { |f| f.write "<!DOCTYPE html>\n<html>\n<head>\n#{self.parse_css(@base_url, inline_styles)}\n</head>\n#{body}\n</html>" }
+    File.open(filename, 'w') { |f| f.write "<!DOCTYPE html>\n<html>\n<head>\n#{doc.css('meta').to_html}\n#{self.parse_css(@base_url, inline_styles)}\n</head>\n#{body}\n</html>" }
     File.open(filename, 'r') do |f|
       html_file = DomainFile.create :filename => f, :parent_id => self.base_folder.id
     end
@@ -131,7 +141,7 @@ class ThemeBuilderFetcher
   end
 
   def domain_link
-    @domain_link ||= "#{self.base_uri.scheme}://#{self.base_uri.host}:#{self.base_uri.port}"
+    @domain_link ||= "#{self.base_uri.scheme}://#{self.base_uri.host}#{self.base_uri.port == 80 ? '' : (':' + self.base_uri.port.to_s)}"
   end
 
   def base_path

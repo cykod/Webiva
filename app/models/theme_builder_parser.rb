@@ -82,17 +82,16 @@ class ThemeBuilderParser < HashModel
       "url(#{self.editor_url(src)})"
     end
 
-    doc = Nokogiri::HTML.parse(@html)
+    doc = Nokogiri::HTML(@html)
 
     doc.css('script').remove()
+    doc.css('object').remove()
+    doc.css('embed').remove()
     doc.css('#webiva-theme-builder').remove()
 
-    @head = doc.css('style').to_html
+    @head = doc.css('meta').to_html + doc.css('style').to_html
 
-    @html = doc.css('body').first.to_html
-    @html = @html.gsub(/<\/?body>/i, '')
-
-    @html
+    @html = doc.css('body').inner_html
   end
 
   def head
