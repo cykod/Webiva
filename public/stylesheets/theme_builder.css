@@ -33,6 +33,7 @@
 
 #webiva-theme-builder-controls-box li {
   padding-bottom: 3px ! important;
+  margin: 0 ! important;
 }
 
 .webiva-theme-builder-zone-panel {
@@ -43,6 +44,8 @@
   position: absolute ! important;
   opacity: 0.9 ! important;
   border: 1px solid #000 ! important;
+  margin: 0 ! important;
+  padding: 0 ! important;
 }
 
 #webiva-theme-builder-select-zone-panel {
@@ -52,12 +55,15 @@
   background-color: #FFF ! important;
   border: 2px solid #000 ! important;
   padding: 5px ! important;
+  margin: 0 ! important;
 }
 
 .webiva-theme-builder-zone-panel h5, #webiva-theme-builder-select-zone-panel h5, #webiva-theme-builder-controls-box h5 {
   font-size: 14px ! important;
   padding-bottom: 4px ! important;
   color: #7a5534 ! important;
+  margin: 0 ! important;
+  padding: 0 ! important;
 }
 
 .webiva-theme-builder-zone-panel h5 {
@@ -129,6 +135,7 @@ ul#webiva-theme-builder-zones li {
   font-size: 11px ! important;
   text-decoration: none ! important;
   padding: 0 ! important;
+  margin: 0 ! important;
 }
 
 #webiva-theme-builder-zone-display {
