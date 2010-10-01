@@ -36,6 +36,8 @@ class ModuleAppController < ApplicationController
   include SiteNodeEngine::Controller
 
 
+  attr_accessor :visiting_end_user_id
+
   # Specifies actions that shouldn't use the CMS for authentication layout or login
   # (Often used for ajax actions)
   def self.user_actions(names)
@@ -190,9 +192,41 @@ class ModuleAppController < ApplicationController
   def process_logging #:nodoc:
    if Configuration.logging
      unless request.bot?
-       DomainLogEntry.create_entry_from_request(myself, @page, (params[:path]||[]).join('/'), request, session, @output)
+
+       user = myself
+
+       if session[:visiting_end_user_id]
+         @visiting_end_user_id = session[:visiting_end_user_id]
+         session[:visiting_end_user_id] = nil
+       end
+
+       user = self.process_visiting_user if @visiting_end_user_id
+
+       DomainLogEntry.create_entry_from_request(user, @page, (params[:path]||[]).join('/'), request, session, @output)
      end
     end
+  end
+
+  def process_visiting_user #:nodoc:
+    # if a user is logged in they are not visiting
+    return myself if myself.id
+
+    user = EndUser.find_by_id @visiting_end_user_id
+    return myself unless user
+
+    if user.elevate_user_level(EndUser::UserLevel::VISITED) && @output.respond_to?(:user_level)
+      @output.user_level = EndUser::UserLevel::VISITED
+    end
+
+    if session[:domain_log_session]
+      ses = DomainLogSession.find_by_id session[:domain_log_session][:id]
+      if ses && ses.end_user_id.nil?
+        ses.update_attribute(:end_user_id, user.id)
+        ses.domain_log_visitor.update_attribute(:end_user_id, user.id) if ses.domain_log_visitor && ses.domain_log_visitor.end_user_id.nil?
+      end
+    end
+
+    user
   end
 
   def set_robots! #:nodoc:
