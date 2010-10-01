@@ -44,6 +44,11 @@ end
 
 PageRevision.find(:all,:conditions => { :active => 1, :revision_type => 'real' }, :include => :page_paragraphs).each { |rev| rev.page_paragraphs.map(&:save); rev.make_real } 
 
+UPDATE domain_files set processor='local' WHERE processor != 'local'
+# Upgrade all the files w/ meta data
+ DomainFile.find(:all).map(&:upgrade_file)
+
+SiteFeature.all.map(&:save)
 
 # Need to create 
 
