@@ -22,7 +22,7 @@ class DomainLogEntry < DomainModel
     self.create_entry(user, 
                       site_node, 
                       path, 
-                      session[:domain_log_session][:id], 
+                      session[:domain_log_session] ? session[:domain_log_session][:id] : nil, 
                       output ? output.status.to_i : nil, 
                       action,
                       (output && output.page? && output.content_nodes) ? output.content_nodes[0] : nil,

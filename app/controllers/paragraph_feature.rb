@@ -374,7 +374,7 @@ block is non-nil
       define_tag(name) do |tag|
         val = yield(tag)
         if tag.single?
-          val = truncate(Util::TextFormatter.text_plain_generator(val), :limit => tag.attr['limit'].to_i, :omission => tag.attr['omission'] || '...') if tag.attr['limit']
+          val = truncate(Util::TextFormatter.text_plain_generator(val), :length => tag.attr['limit'].to_i, :omission => tag.attr['omission'] || '...') if tag.attr['limit']
           if tag.attr['escape']
             escape_value_helper(val,tag.attr['escape']) 
           else 

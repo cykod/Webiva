@@ -95,6 +95,7 @@ class ApplicationController < ActionController::Base
         opts[:path] = [ opts[:path] ]
       end
     end
+    opts.delete(:path) if opts[:path] && opts[:path] == [ nil ]
     super
   end
 

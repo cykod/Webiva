@@ -245,8 +245,8 @@ module Content
       elsif options[:format] && options[:format] == 'simple'
         simple_format(h(val))
       else
-        if options[:limit]
-          Content::Field.snippet(h(val),options[:limit].to_i,options[:omission] || '...')
+        if options[:snippet]
+          Content::Field.snippet(h(val),options[:snippet].to_i,options[:omission] || '...')
         else
           h val
         end

@@ -67,6 +67,7 @@ header.fixed_header {
 #cms_breadcrumbs a { color:#754c28; text-decoration:none; }
 #cms_breadcrumbs a:hover { text-decoration:underline; }
 h1 { font-size:30px; color: #754c28; float:left; padding-left:15px; font-weight:bold;  }
+#RB_window h1 { float:none; padding-left:0px; }
 h1.inpage { float:none; padding-left:0px;  }
 
 .action_panel {  }
