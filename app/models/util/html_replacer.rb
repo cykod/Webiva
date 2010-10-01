@@ -21,7 +21,7 @@ class Util::HtmlReplacer
   # Replace all site links with full http:// links
   # Only necessary if not tracking links
   def self.replace_link_hrefs(txt)
-    txt.gsub(@@href_regexp) do |mtch|
+    txt.to_s.gsub(@@href_regexp) do |mtch|
       href=$3
       # Only replace absolute urls
       if href[0..0] == '/'

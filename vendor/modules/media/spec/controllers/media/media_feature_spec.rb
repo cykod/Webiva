@@ -39,7 +39,6 @@ describe Media::MediaFeature, :type => :view do
     it "should display an audio player" do
       @feature.should_receive(:paragraph).any_number_of_times.and_return(@paragraph)
       @feature.should_receive(:require_js).and_return('')
-      @feature.should_receive(:header_html)
       @audio_options.should_receive(:media_file).at_least(1).and_return(@media)
       @output = @feature.media_media_audio_feature({:options => @audio_options})
       @output.should include(@media.full_url)
