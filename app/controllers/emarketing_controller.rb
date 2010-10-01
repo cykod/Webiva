@@ -164,6 +164,7 @@ class EmarketingController < CmsController # :nodoc: all
     groups = @chart_info[:class].send(@stat_type, @from, @duration, @interval, :target_id => @target_id, :type_id => @type_id)
     @group = groups[0]
     @stats = @target_id ? @group.target_stats : @group.domain_log_stats
+    @stats.delete_if { |stat| stat.target.nil? }
     @title = @chart_info[:title] || :title
 
     if @format == 'json'
@@ -245,6 +246,7 @@ class EmarketingController < CmsController # :nodoc: all
     groups = DomainLogSession.affiliate @from, @duration, @interval, :affiliate => @affiliate, :campaign => @campaign, :origin => @origin, :display => @display
     @group = groups[0]
     @stats = @group.domain_log_stats
+    @stats.delete_if { |stat| stat.target.nil? }
 
     @displays = [['Affiliate', 'affiliate'], ['Campaign', 'campaign'], ['Origin', 'origin']]
     @affiliates, @campaigns, @origins = DomainLogSession.get_affiliates
