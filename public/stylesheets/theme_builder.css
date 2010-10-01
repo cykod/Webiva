@@ -1,0 +1,144 @@
+
+.webiva-theme-builder-over-block {
+  background-color: #EEE ! important;
+  opacity:0.6 ! important;
+}
+
+
+.webiva-theme-builder-selected-block {
+  opacity:0.2 ! important;
+}
+
+.webiva-theme-builder-zone {
+  opacity: 0.05 ! important;
+}
+
+#webiva-theme-builder-controls-box {
+  position: fixed ! important;
+  top: 50px ! important;
+  left: 0px ! important;
+  width: 200px ! important;
+  padding: 5px 5px 5px 10px ! important;
+  margin: 0 ! important;
+  border-left: 0px ! important;
+  border-top: 1px solid #000 ! important;
+  border-right: 2px solid #000 ! important;
+  border-bottom: 2px solid #000 ! important;
+  background-color: #FFF ! important;
+}
+
+#webiva-theme-builder-controls-box ul li a {
+  color: #00BCDC ! important;
+}
+
+#webiva-theme-builder-controls-box li {
+  padding-bottom: 3px ! important;
+  margin: 0 ! important;
+}
+
+.webiva-theme-builder-zone-panel {
+  text-align: center ! important;
+  color: #000 ! important;
+  font-size: 12px ! important;
+  background-color: #EEE ! important;
+  position: absolute ! important;
+  opacity: 0.9 ! important;
+  border: 1px solid #000 ! important;
+  margin: 0 ! important;
+  padding: 0 ! important;
+}
+
+#webiva-theme-builder-select-zone-panel {
+  text-align: center ! important;
+  position: absolute ! important;
+  width: 200px ! important;
+  background-color: #FFF ! important;
+  border: 2px solid #000 ! important;
+  padding: 5px ! important;
+  margin: 0 ! important;
+}
+
+.webiva-theme-builder-zone-panel h5, #webiva-theme-builder-select-zone-panel h5, #webiva-theme-builder-controls-box h5 {
+  font-size: 14px ! important;
+  padding-bottom: 4px ! important;
+  color: #7a5534 ! important;
+  margin: 0 ! important;
+  padding: 0 ! important;
+}
+
+.webiva-theme-builder-zone-panel h5 {
+  font-weight: bold ! important;
+}
+
+.webiva-theme-builder-zone-panel span, .webiva-theme-builder-zone-panel a {
+  font-weight: normal ! important;
+}
+
+.webiva-theme-builder-zone-tag {
+  padding-top: 4px ! important;
+  font-size: 11px ! important;
+  color: #7a5534 ! important;
+}
+
+ul#webiva-theme-builder-zones {
+  position:relative ! important;
+  list-style: none ! important;
+  display:block ! important;	
+  margin:0px 0px ! important;
+  padding:0px ! important;
+  background-color:#FFF ! important;
+  margin-left:90px ! important;
+  height: 22px ! important;
+}
+
+ul#webiva-theme-builder-zones li {
+  display:block ! important;
+  list-style: none ! important;
+  float:left ! important;
+  margin: 0 2px 0 0 ! important;
+  padding:4px 0px ! important;
+  width:125px ! important;
+  overflow:hidden ! important;
+  background-color:#f3e380 ! important; 
+  color:#3b648c ! important;
+  text-align:center ! important;
+ -moz-border-radius: 5px ! important;
+ -webkit-border-radius: 5px ! important;
+}
+
+.fixed_secondary_header {
+  position: fixed ! important;
+  top: 28px ! important;
+  background: #FFF ! important;
+  z-index: 1000 ! important;
+  border-bottom: 1px solid #000 ! important;
+}
+
+.webiva-theme-builder-zone-panel .tag {
+  color: #000 ! important;
+  font-size: 11px ! important;
+  padding: 0 10px ! important;
+}
+
+.webiva-theme-builder-zone-panel a {
+  color: #00BCDC ! important;
+  font-size: 12px ! important;
+  text-decoration: none ! important;
+}
+
+.webiva-theme-builder-zone-panel a:hover {
+  text-decoration: underline ! important;
+}
+
+.webiva-theme-builder-zone-panel a span.tag {
+  color: #000 ! important;
+  font-size: 11px ! important;
+  text-decoration: none ! important;
+  padding: 0 ! important;
+  margin: 0 ! important;
+}
+
+#webiva-theme-builder-zone-display {
+  height: 56px ! important;
+  padding: 5px ! important;
+}

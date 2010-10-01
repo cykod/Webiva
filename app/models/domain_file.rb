@@ -8,6 +8,7 @@ require 'ftools'
 require 'fileutils'
 require 'RMagick'
 require 'net/http'
+require 'net/https'
 require 'uri'
 
 =begin rdoc
@@ -1386,13 +1387,33 @@ class DomainFile < DomainModel
   def self.download(uri, limit=10)
     raise ArgumentError, 'HTTP redirect too deep' if limit == 0
 
-    uri = URI.parse(uri) if uri.is_a?(String)
-    response = Net::HTTP.get_response(uri)
+    response = self.download_response uri
     case response
-    when Net::HTTPSuccess     then response
+    when Net::HTTPSuccess
+      if response.header['content-encoding'] == 'gzip'
+        class <<response
+          alias_method :orig_body, :body
+          def body; Zlib::GzipReader.new(StringIO.new(orig_body.to_s)).read; end
+        end
+      end
+      response
     when Net::HTTPRedirection then download(response['location'], limit - 1)
     else
       response.error!
+    end
+  end
+
+  def self.download_response(uri)
+    uri = URI.parse(uri) if uri.is_a?(String)
+    if uri.scheme == 'https'
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = true
+      http.start do |http|
+        request = Net::HTTP::Get.new(uri.path)
+        http.request(request)
+      end
+    else
+      Net::HTTP.get_response(uri)
     end
   end
 

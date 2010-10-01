@@ -482,13 +482,8 @@ class SiteTemplate < DomainModel
       if parent_folder
         while mtch = re.match(body)
           output_body += mtch.pre_match
-          # do search by parent folder id
-          pieces = mtch[2].split("/")
-          folder = parent_folder
-          while pieces.length > 1
-            folder = parent_folder.children.find_by_name(pieces.shift)
-          end
-          img = folder.children.find_by_name(pieces[0]) if folder
+          file_path = parent_folder.file_path + '/' + mtch[2]
+          img = DomainFile.find_by_file_path file_path
           if img
             url = img.url
             if self.is_a?(SiteTemplate) && self.template_type != 'site' && url[0..0] == '/'
