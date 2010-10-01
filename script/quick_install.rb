@@ -314,6 +314,9 @@ INTRODUCTION
     ok = system('rake gems:build:force')
     report_error(ok,'Could not build local gems (run "rake --trace gems:build:force" manually to see errors)')
     puts('Done rebuildings local gems...')
+    puts('Installing additional gems...')
+    ok = system('rake gems:install')
+    report_error(ok,'Could not install gems (run "rake --trace gems:install" manually to see errors)')
   end
 
 
