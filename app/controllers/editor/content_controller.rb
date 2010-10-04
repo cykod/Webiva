@@ -4,7 +4,7 @@ class Editor::ContentController < ParagraphController #:nodoc:all
   # Editor for authorization paragraphs
   editor_header "Content Paragraphs", :paragraph_content
 
-  editor_for :recent_content, :name => 'Recent Content'
+  editor_for :recent_content, :name => 'Recent Content', :feature => :recent_content
 
   class RecentContentOptions < HashModel
     attributes :content_type_ids => [], :count => 10, :order_by => 'newest'
@@ -18,7 +18,7 @@ class Editor::ContentController < ParagraphController #:nodoc:all
            fld(:order_by,:select,:options => :order_by_options,:label => "Display"),
            fld(:content_type_ids,:ordered_array,:options => :content_type_options,
                :label => "Limit by Content Type",
-               :description => "Widget will show all updated content or only specific types")
+               :description => "Paragraph will show all updated content or only specific types")
                 )
 
     def content_type_options
