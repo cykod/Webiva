@@ -92,7 +92,7 @@ module ModelExtension::EndUserImportExtension
       [ 'username','Username'.t,['username'],:field],
       [ 'password', 'Password'.t, ['password'], :special ],
       [ 'cell_phone','Cell Phone'.t,['cell phone'],:field],
-      [ 'remove_tags', 'Remove Tags'.t, [ 'tags' ], :tags ],
+      [ 'remove_tags', 'Remove Tags'.t, [ 'tags' ], :remove_tags ],
 #      [ 'domain_file_id', 'Image'.t, :special ],
       ['dob', 'Date of Birth'.t, ['date of birth','birth date'], :special ],
       ['vip_number', 'VIP Number'.t, ['vip number','vip'], :field ],
@@ -121,10 +121,8 @@ module ModelExtension::EndUserImportExtension
   def import_csv(filename,data,options={}) #:nodoc:
     actions = data[:actions]
     matches = data[:matches]
-    create = data[:create]
 
     deliminator = options[:deliminator]
-
 
     opts = options[:options]
     user_opts = opts[:user_options] || {}
@@ -136,6 +134,8 @@ module ModelExtension::EndUserImportExtension
 
     page = 1 if page < 1
 
+    reader_offset = nil
+    reader_limit = nil
     unless import
       reader_offset = (page-1) * page_size
       reader_limit = reader_offset + page_size
@@ -143,7 +143,6 @@ module ModelExtension::EndUserImportExtension
 
     entry_errors = []
 
-    invert_matches = matches.invert
     email_field = nil
     reader = CSV.open(filename,"r",deliminator)
     file_fields = reader.shift
@@ -153,7 +152,15 @@ module ModelExtension::EndUserImportExtension
     if SiteModule.module_enabled?('user_profile')
       user_fields += UserProfileType.import_fields
     end
-        
+    
+    segment = nil
+    if import
+      if opts[:user_list] == 'create'
+        segment = UserSegment.create(:main_page => true, :segment_type => 'custom', :name => opts[:user_list_name], :order_by => 'created', :order_direction => 'DESC') unless opts[:user_list_name].blank?
+      elsif ! opts[:user_list].blank?
+        segment = UserSegment.find_by_id opts[:user_list].to_i
+      end
+    end
 
     file_fields.each_with_index do |fld,idx|
       if actions[idx.to_s] == 'm'
@@ -174,8 +181,14 @@ module ModelExtension::EndUserImportExtension
 
     opts[:all_tags] ||= ''
     opts[:create_tags] ||= ''
+    uids = []
+
+    opts[:all_tags] = opts[:all_tags].split(',')
+    opts[:create_tags] = opts[:create_tags].split(',')
+    opts[:create_tags] = nil if opts[:create_tags].empty?
 
     new_user_class = UserClass.find_by_id(opts[:user_class_id]) || UserClass.default_user_class
+
     reader.each do |row|
 
       if(row.join.blank?)
@@ -198,13 +211,12 @@ module ModelExtension::EndUserImportExtension
             entry = EndUser.new(:user_class_id => new_user_class.id, :source => 'import')
           end
 
-
           extra_tags = nil
           remove_tags = nil
 
           if opts[:import_mode] == 'normal' ||
-            ( entry_method == :update  && opts[:import_mode] == 'update' ) ||
-            ( entry_method == :create && opts[:import_mode] == 'create' )
+              ( entry_method == :update  && opts[:import_mode] == 'update' ) ||
+              ( entry_method == :new && opts[:import_mode] == 'create' )
             fields.each do |fld|
               value = row[fld[1]].to_s
               if fld[4].to_sym == :field
@@ -223,20 +235,20 @@ module ModelExtension::EndUserImportExtension
             end
 
             entry.attributes = entry_values
-            entry.valid?
 
-            if true # skip validation, allow no email address
+            if entry.valid?
               entry_addresses.each do |key,adr|
                 adr.save
                 entry.send("#{key}=".to_sym,adr.id)
               end
 
-              if user_opts.include?('vip') &&  entry.vip_number.blank?
+              if user_opts.include?('vip') && entry.vip_number.blank?
                 entry.vip_number = EndUser.generate_vip()
               end
 
 
               if(entry.save(false))
+                uids << entry.id
                 entry_addresses.each do |key,adr|
                   if adr.end_user_id != entry.id 
                     adr.update_attribute(:end_user_id,entry.id)
@@ -256,26 +268,19 @@ module ModelExtension::EndUserImportExtension
                   end
                 end
 
+                tags_to_add = opts[:all_tags]
+                tags_to_add += opts[:create_tags] if opts[:create_tags] && entry_method == :new
+                tags_to_add += extra_tags.split(',') unless extra_tags.blank?
 
-                if !opts[:all_tags].empty?
-                  entry.tag_names_add(opts[:all_tags])
-                end
-                # Add any create tags
-                if !opts[:create_tags].empty? && entry_method == :new
-                  entry.tag_names_add(opts[:create_tags])
-                end
-
-                if extra_tags
-                  entry.tag_names_add(extra_tags)
-                end
+                entry.tag tags_to_add unless tags_to_add.empty?
 
                 if remove_tags
+                  entry.reload unless tags_to_add.empty?
                   entry.tag_remove(remove_tags, :separator => ',')
                 end
-
               end
             else
-              entry_errors << [idx, entry.errors ]
+              entry_errors << [idx, entry.email]
             end
           end
         else
@@ -301,6 +306,8 @@ module ModelExtension::EndUserImportExtension
     end
     reader.close
 
+    segment.add_ids uids if segment
+
     if import
       return entry_errors
     else
@@ -312,20 +319,21 @@ module ModelExtension::EndUserImportExtension
 
   def process_profile_import(entry,entry_profiles,field,value) #:nodoc:
     return if value.blank?
-    @content_model_field_cache ||= {}
+    content_model_field_cache DataCache.local_cache('end_user_import_extension:content_model_field_cache') || {}
     if field =~ /user_profile_field_([0-9]+)_([0-9]+)/
       user_profile_type_id = $1.to_i
       user_profile_column_id = $2.to_i
-      @content_model_field_cache[user_profile_column_id] ||= ContentModelField.find_by_id(user_profile_column_id)
+      content_model_field_cache[user_profile_column_id] ||= ContentModelField.find_by_id(user_profile_column_id)
 
 
-      if content_field = @content_model_field_cache[user_profile_column_id]
+      if content_field = content_model_field_cache[user_profile_column_id]
         if !content_field.field.blank?
           entry_profiles[user_profile_type_id] ||= {}
           entry_profiles[user_profile_type_id][content_field.field] = value
         end
       end
     end
+    DataCache.put_local_cache 'end_user_import_extension:content_model_field_cache', content_model_field_cache
   end
 
 
