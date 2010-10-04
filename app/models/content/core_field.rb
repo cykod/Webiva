@@ -848,7 +848,13 @@ class Content::CoreField < Content::FieldHandler
       if @model_field.relation_class == EndUser
         c.expansion_tag("#{name_base}:#{tag_name}") do |t|
           entry =  t.locals.send(local)
-          if entry
+          users =  entry.send(relation_name) if entry
+          if entry && relation
+            if t.single?
+              users.map(&:full_name).join(t.attr['separator']||", ")
+            else
+              c.each_local_value(users,t,'user')
+            end
             t.locals.user =  t.locals.send(local).send(relation_name)
           else
             nil
@@ -860,13 +866,12 @@ class Content::CoreField < Content::FieldHandler
 
         c.define_tag("#{name_base}:#{tag_name}") do |t|
           entry =  t.locals.send(local)
-          relation = entry.send(relation_name)
+          relation = entry.send(relation_name) if entry
           if entry && relation
             if t.single?
-              relation.identifier_name
+              relation.map(&:identifier_name).join(t.attr['separator']||", ")
             else
-              t.locals.send("#{sub_local}=",relation)
-              t.expand
+              c.each_local_value(relation,t,sub_local)
             end
           end
         end
@@ -875,7 +880,7 @@ class Content::CoreField < Content::FieldHandler
         if !options[:subfeature]
           if @cm_relation = @model_field.content_model_relation
             @cm_relation.content_model_fields.each do |fld|
-              fld.site_feature_value_tags(c,"#{name_base}:#{tag_name}",:full,:local => sub_local)
+              fld.site_feature_value_tags(c,"#{name_base}:#{tag_name}",:full,:local => sub_local,:subfeature => true)
             end
           end
         end
