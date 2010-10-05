@@ -120,7 +120,7 @@ class Blog::WordpressImporter
 
     status = item['status'] == 'publish' ? 'published' : 'draft'
     disallow_comments = item['comment_status'] == 'open' ? false : true
-    post = self.blog.blog_posts.create :body => self.parse_body(body), :author => item['creator'], :title => item['title'], :status => 'published', :published_at => Time.parse(item['pubDate']), :status => status, :disallow_comments => disallow_comments, :permalink => item['post_name'], :created_at => Time.parse(item['post_date_gmt']), :preview => self.parse_body(item['excerpt'])
+    post = self.blog.blog_posts.create :body => self.parse_body(body), :author => item['creator'], :title => item['title'], :published_at => Time.parse(item['pubDate']), :status => status, :disallow_comments => disallow_comments, :permalink => item['post_name'], :created_at => Time.parse(item['post_date_gmt']), :preview => self.parse_body(item['excerpt'])
 
     return unless post.id
 

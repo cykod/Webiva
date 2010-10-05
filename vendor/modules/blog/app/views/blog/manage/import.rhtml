@@ -5,6 +5,9 @@
   <%= f.header 'Select a CSV file to import' %>
   <%= f.filemanager_file :import_file_id, :description => "File must be a CSV with the following columns:\n Title, permalink, author,published date, preview, body, embed\nOnly title and body are required to have non-empty values but all columns must be present" %>
 
+  <%= f.header 'Import RSS Feed' %>
+  <%= f.text_field :rss_url, :label => 'URL', :size => 40 %>
+
   <%= f.header 'Import WordPress Blog' %>
   <%= f.filemanager_file :wordpress_export_file_id, :label => 'Export file', :description => "Log into your blog. Goto Tools > Export and click Download" %>
   <%= f.custom_field '', :value => 'Or' %>
