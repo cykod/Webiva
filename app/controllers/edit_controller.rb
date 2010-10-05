@@ -84,7 +84,9 @@ class EditController < ModuleController # :nodoc: all
           @real_revision =@page.page_revisions.find(passed_revision_id)
           page_revision_id=@real_revision.id
         else
-          @real_revision = @page.page_revisions.find(:first,:conditions => 'revision_type = "real"',
+          conditions = { :revision_type => 'real' }
+          conditions[:revision] = params[:version] if params[:version] 
+          @real_revision = @page.page_revisions.find(:first,:conditions => conditions,
                                               :order => "language=#{Configuration.connection.quote(passed_revision_id)} DESC, active DESC, revision DESC, id DESC")
           page_revision_id = @real_revision.id
         end
