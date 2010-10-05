@@ -16,7 +16,18 @@
           $j(show_hide[1]).show();
           $j(show_hide[0]).hide();
         });
-      }
+       },
+       change: function(sel) {
+         var settings = sel.split(",");
+         var elem = settings[0];
+         var value = settings[1];
+         var show = settings.length > 2 ? settings[2] : 'show';
+         var hide = settings.length > 3 ? settings[3] : 'hide';
+         if($j(this).val() == value) { $j(elem)[show](); } else { $j(elem)[hide](); }
+         $j(this).change(function() {
+           if($j(this).val() == value) { $j(elem)[show](); } else { $j(elem)[hide](); }
+         });
+       }
   }
 
   JClick = {

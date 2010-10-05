@@ -27,12 +27,15 @@ class MemberImportWorker <  Workling::Base #:nodoc:all
     count = 1 if count < 1
     results[:entries] = count
     
-    
+    results[:errors] = []
     results[:initialized] = true
     results[:imported] = 0
-    EndUser.import_csv(filename,args[:data],:import => true, :options => args[:options],:deliminator => args[:deliminator]) do |imported,errors|
+    Workling.return.set(args[:uid],results)
+
+    EndUser.import_csv(filename,args[:data],:import => true, :options => args[:options],:deliminator => args[:deliminator]) do |imported, errors|
       results[:imported] += imported
-      Workling.return.set(args[:uid],results)
+      results[:errors] << "row #{errors[0][0]+2}, error importing \"#{errors[0][1]}\"" unless errors.empty?
+      Workling.return.set(args[:uid],results) if (results[:imported] % 10) == 0
     end
     
     results[:completed] = true

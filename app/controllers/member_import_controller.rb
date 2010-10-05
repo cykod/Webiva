@@ -128,7 +128,7 @@ class MemberImportController < WizardController # :nodoc: all
         match = { :action => submitted_actions[idx.to_s], :field => submitted_matches[idx.to_s].to_s }
       else 
         match_field = @member_fields.detect do |clb|
-          clb[2].include?(fld.downcase)
+          clb[2].include?(fld.downcase) || fld.downcase == clb[0] || fld.downcase == clb[1].downcase
         end
         match = { :action => 'm' }
         if match_field 
@@ -143,7 +143,6 @@ class MemberImportController < WizardController # :nodoc: all
   end
   
   def options
-
     cms_page_path [ "People" ], "Member Import - Options"
      
     if request.post?
@@ -151,9 +150,12 @@ class MemberImportController < WizardController # :nodoc: all
       redirect_to :action => 'confirm'
     end
      
-     @options = DefaultsHashObject.new(params[:options] || session[:member_import_wizard][:options] ||  { :import_mode => 'normal' } )
+    @options = DefaultsHashObject.new(params[:options] || session[:member_import_wizard][:options] ||  { :import_mode => 'normal' } )
  
-     @enable_next = true
+    @segments = UserSegment.select_options_with_nil 'User List', :conditions => {:segment_type => 'custom'}, :order => 'name'
+    @segments += [['--Create a new User List--', 'create']]
+
+    @enable_next = true
   end
   
   def confirm
@@ -214,25 +216,14 @@ class MemberImportController < WizardController # :nodoc: all
 
   def status
     if session[:member_import_worker_key]
-      begin 
-        results = Workling.return.get(session[:member_import_worker_key]) || { }
-        @initialized = results[:initialized]
-        @completed = results[:completed]
-        @entries = results[:entries]
-        @imported = results[:imported]
-
-        if @initialized
-          @percentage = (@imported.to_f / (@entries < 1 ? 1 : @entries) *100).to_i
-          if @entries < 1
-            @entries = 1
-          end
-        else
-          @enties = nil
-          @percentage = 0
-        end
-      rescue Exception => e
-        @invalid_worker = true
-      end
+      results = Workling.return.get(session[:member_import_worker_key]) || { }
+      @initialized = results[:initialized]
+      @completed = results[:completed]
+      @errors = results[:errors]
+      @entries = results[:entries].to_i
+      @imported = results[:imported].to_i
+      @entries = 1 if @entries == 0
+      @percentage = (@imported.to_f / @entries.to_f * 100.0).to_i
     else
       @invalid_worker = true 
     end
