@@ -722,7 +722,7 @@ FileEditor = {
   	deleteSelected: function(file_ids) {
   	  if(confirm('<%= jh "Are you sure you want to delete the selected item(s)?" %>')) {
           var loadParent = null
-          if(file_ids[0] == FileEditor.nodeSelected) {
+          if(file_ids && file_ids[0] == FileEditor.nodeSelected) {
                 loadParent = SCMS.getElemNum($('node_element_' + FileEditor.nodeSelected).parentNode);
           }
   	      var itms = file_ids ? file_ids : FileEditor.selectedItems;
