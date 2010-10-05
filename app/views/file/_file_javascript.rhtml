@@ -1023,7 +1023,7 @@ FileEditor = {
               alert('<%= "Private files cannot be added to pages. Use the File Element from the page structure instead.".t %>');
             }
             else {
-              <%= @callback || 'callback'%>('<%= @field %>',info.file_type,file_id,info.name,info.editor_url,info.thumb_url,info.name);
+              <%= @callback || 'callback'%>('<%= @field %>',info.file_type,file_id,info.name,info.editor_url,info.thumb_editor_url,info.name);
               setTimeout('window.close();',20);
             }
           }

@@ -9,6 +9,7 @@ module FileHelper
       file_info['name'] = file.file_path
       file_info['thumb_url'] = file.thumbnail_url(theme,:thumb)
       file_info['editor_url'] = file.editor_url
+      file_info['thumb_editor_url'] = file.editor_url(:thumb)
       file_info['private_file'] = file.private?
     end
   end
