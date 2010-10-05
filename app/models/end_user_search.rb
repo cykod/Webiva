@@ -16,6 +16,7 @@ class EndUserSearch
       ids = ids.collect { |cache| cache[:end_user_id] }
       users_by_id = EndUser.find(:all, opts.merge(:conditions => {:id => ids})).index_by(&:id)
       @users = ids.map { |id| users_by_id[id] }
+      @users.compact! # just incase the user was deleted and the cache wasn't
       [@pages, @users]
     end
   end

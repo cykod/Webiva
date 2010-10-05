@@ -40,7 +40,7 @@ class MembersController < CmsController # :nodoc: all
     if self.search_results
       self.search.users
     elsif self.segment
-      pages, users = self.segment.paginate self.search.page, :per_page => 25, :include => opts[:include]
+      pages, users = self.segment.paginate self.search.page, :per_page => opts[:limit] || 10, :include => opts[:include]
       users
     else
       EndUser.find(:all, :conditions => 'client_user_id IS NULL', :offset => opts[:offset], :limit => opts[:limit], :order => self.class.module_options.order(opts), :include => opts[:include])
@@ -208,7 +208,7 @@ class MembersController < CmsController # :nodoc: all
     end
 
     params[email_targets_table_name] = params[:email_targets_table]
-    @active_table_output = email_targets_table_generate params, :per_page => 10, :include => [:user_class, :domain_file]
+    @active_table_output = email_targets_table_generate params, :include => [:user_class, :domain_file]
 
     @handlers_data = UserSegment.get_handlers_data(@active_table_output.data(&:id), @fields)
 
