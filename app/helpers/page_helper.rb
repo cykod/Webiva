@@ -225,8 +225,8 @@ selected_icon : unselected_icon}' id='#{elem_id}#{star}' align='absmiddle' title
     return nil unless objects
     objects.map do |obj| 
       nd = ContentNode.find_by_id(obj)
-      if nd
-        admin_url = nd.admin_url.symbolize_keys
+      if nd && admin_url = nd.admin_url 
+        admin_url.symbolize_keys!
         if myself.has_content_permission?(admin_url.delete(:permission))
           name = admin_url.delete(:title) || nd.node_type.underscore.titleize
           url = url_for(admin_url) + "?return_to_site=true"
