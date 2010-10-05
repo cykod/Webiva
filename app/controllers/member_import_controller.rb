@@ -219,6 +219,7 @@ class MemberImportController < WizardController # :nodoc: all
       results = Workling.return.get(session[:member_import_worker_key]) || { }
       @initialized = results[:initialized]
       @completed = results[:completed]
+      @errors = results[:errors]
       @entries = results[:entries].to_i
       @imported = results[:imported].to_i
       @entries = 1 if @entries == 0

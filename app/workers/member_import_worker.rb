@@ -34,7 +34,7 @@ class MemberImportWorker <  Workling::Base #:nodoc:all
 
     EndUser.import_csv(filename,args[:data],:import => true, :options => args[:options],:deliminator => args[:deliminator]) do |imported, errors|
       results[:imported] += imported
-      results[:errors] << "row #{errors[0]+2}, error importing #{errors[1]}" unless errors.empty?
+      results[:errors] << "row #{errors[0][0]+2}, error importing \"#{errors[0][1]}\"" unless errors.empty?
       Workling.return.set(args[:uid],results) if (results[:imported] % 10) == 0
     end
     

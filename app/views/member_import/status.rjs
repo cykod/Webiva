@@ -5,6 +5,7 @@ else
     page.replace_html 'import_calculation', "#{@imported}/#{@entries}"
     page << "$('completed_bar').style.width ='#{@percentage * 4}px';"
     page.replace_html 'completed_percentage', "#{@percentage}%"
+    page.replace_html 'import_errors', @errors.join('<br/>') unless @errors.empty?
   end
 
   if @completed
