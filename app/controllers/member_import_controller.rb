@@ -128,7 +128,7 @@ class MemberImportController < WizardController # :nodoc: all
         match = { :action => submitted_actions[idx.to_s], :field => submitted_matches[idx.to_s].to_s }
       else 
         match_field = @member_fields.detect do |clb|
-          clb[2].include?(fld.downcase)
+          clb[2].include?(fld.downcase) || fld.downcase == clb[0] || fld.downcase == clb[1].downcase
         end
         match = { :action => 'm' }
         if match_field 
