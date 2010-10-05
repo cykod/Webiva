@@ -18,8 +18,10 @@ class Blog::RssImporter
     begin
       res = DomainFile.download url
       self.xml = res.body.to_s
+      true
     rescue
       self.error = 'RSS feed download failed'
+      false
     end
   end
 
