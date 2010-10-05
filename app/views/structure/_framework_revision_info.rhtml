@@ -7,17 +7,17 @@ latest = @active_revision_info[2] -%>
  <% if permit?('editor_editor') %>
    <% if latest && latest != revision -%>
      <div class='third'>
-         <%= button_link("pen.png","edit active", :controller => 'edit', :action => 'page', :path => ['framework',@mod.id,revision.id ] ) %><br/>
+         <%= button_link("pen.png","edit active", :controller => 'edit', :action => 'page', :path => ['framework',@mod.id,revision.language] ) %><br/>
        <%= revision_saved_details(revision) %>
      </div>
       <div class='third'>
-        <%= button_link("pen.png","edit newest",  { :controller => 'edit', :action => 'page', :path => ['framework',@mod.id,latest.id ] }, :alternative => true ) %><br/>
+        <%= button_link("pen.png","edit newest",  { :controller => 'edit', :action => 'page', :path => ['framework',@mod.id,latest.language], :version => latest.revision}, :alternative => true ) %><br/>
        <%= revision_saved_details(latest) %>
      </div>
      
    <% else -%>
      <div class='third'>
-       <%= button_link("pen.png","edit framework", :controller => 'edit', :action => 'page', :path => ['framework',@mod.id,revision.id ] ) %><br/>
+       <%= button_link("pen.png","edit framework", :controller => 'edit', :action => 'page', :path => ['framework',@mod.id,revision.language ] ) %><br/>
        <%= revision_saved_details(revision) %>
      </div>
    <% end -%>
