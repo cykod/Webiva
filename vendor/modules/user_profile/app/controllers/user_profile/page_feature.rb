@@ -29,6 +29,35 @@ Please re-enter the URL, no profile exists for the name entered
     end 
   end
 
+
+  feature :user_profile_page_list_profiles, :default_feature => <<-FEATURE
+  <cms:users>
+   <ul class='users'>
+   <cms:user>
+     <li>
+     <img align='left'>
+     <h2><cms:link><cms:name/></cms:link></h2>
+     </li>
+   </cms:user>
+   </ul>
+   <cms:pages/>
+  </cms:users>
+
+FEATURE
+
+
+def user_profile_page_list_profiles_feature(data)
+  webiva_custom_feature(:user_profile_page_list_profiles,data) do |c|
+    c.loop_tag('user') { |t| data[:users] }
+    c.user_details_tags('user') { |t| t.locals.user.end_user }
+    c.link_tag('user:') { |t| data[:user_profile_type].content_type.content_link(t.locals.user) }
+    c.expansion_tag('user:profile') { |t| t.locals.entry = t.locals.user.content_model_entry if data[:content_model] }
+
+    c.content_model_fields_value_tags('user:profile',data[:user_profile_type].display_content_model_fields) if data[:content_model]
+    c.pagelist_tag('pages') { |t| data[:pages] }
+  end
+end
+
   feature :user_profile_page_profile_privacy, :default_feature => <<-FEATURE
 <cms:user>
   <cms:name/>
