@@ -421,6 +421,16 @@ class EditController < ModuleController # :nodoc: all
     render :action => 'save_changes'
   end
 
+  def preview
+    save_changes_helper(false)
+    get_container
+
+    render :update do |page|
+      page << "$('cms_saving_icon').style.visibility='hidden';"
+      page << "cmsEdit.openPreviewWindow();"
+    end
+  end
+  
   def change_version
     get_container
     @version = params[:version]

@@ -192,6 +192,7 @@ tinyMCE.init({
       |      
       <input type='submit' id='cms_save_changes' value='<%= vh "Save Changes".t %>' disabled='true' onclick='cmsEdit.saveChanges(); return false;' />    
       <input type='submit' id='cms_save_as_button' value='<%= vh "Save As...".t %>' onclick='cmsEdit.saveAs(); return false;' />
+      <input type='submit' id='cms_preview_button' value='<%= vh "Preview".t %>' onclick='cmsEdit.previewChanges(); return false;' />
       <div id='cms_save_as' onmouseover='delayedHideShow(this)' onmouseout='delayedHide(this);' class='cms_popup' style='display:none; right:1px; top:25px; <%= Locale.language_code == 'fr' ? 'width:450px;' : 'width:200px;' %> '>
         <a class='cms_ajax_link'  href='javascript:void(0);' onclick='cmsEdit.changeVersion("minor")'><%= "Save As a New Minor Version".t %></a><br/>
         <a class='cms_ajax_link'  href='javascript:void(0);' onclick='cmsEdit.changeVersion("major")'><%= "Save As a New Major Version".t %></a><br/>
