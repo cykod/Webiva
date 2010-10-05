@@ -74,7 +74,7 @@ class EndUser < DomainModel
   belongs_to :work_address, :class_name => 'EndUserAddress', :foreign_key => :work_address_id
   has_many :addresses, :class_name => 'EndUserAddress', :dependent => :destroy
 
-  has_one :end_user_cache, :dependent => :destroy, :class_name => 'EndUserCache'
+  has_one :end_user_cache, :dependent => :delete, :class_name => 'EndUserCache'
 
   has_many :end_user_cookies, :dependent => :delete_all, :class_name => 'EndUserCookie'
 
