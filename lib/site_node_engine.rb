@@ -566,6 +566,8 @@ EOF
     @container = container
     @capture_data = options[:capture]
 
+    @preview = options[:preview]
+
     @path_args = options[:path] || []
     if options[:edit] 
       @mode = 'edit'
@@ -691,7 +693,8 @@ EOF
                                                       :language => @language,
                                                       :connections => page_connections,
                                                       :capture => @capture_data,
-                                                      :repeat_count => repeat_count)
+                                                      :repeat_count => repeat_count,
+                                                      :preview => @preview)
                 # We may not have a result if the page connections
                 # aren't fullfilled yet
                 if result
@@ -850,7 +853,7 @@ EOF
     
     # Cache the page information, if it's not already cached and we do have a cache active
     # (Ignore when in edit mode)
-    if !@cached_info && @mode != 'edit' && CMS_CACHE_ACTIVE
+    if !@cached_info && @mode != 'edit' && CMS_CACHE_ACTIVE && ! @preview
      DataCache.put_container(@container,@path_hash_info,@page_information.to_hash)
     end
     
@@ -1083,13 +1086,13 @@ EOF
           controller.compile_paragraph(
                                        @container.is_a?(SiteNode) ? @container : @container.site_node,
                                        @page_information.revision,para,
-                                       :page_path => @page_path, :language => @language)
+                                       :page_path => @page_path, :language => @language, :preview => @preview)
         output.includes.each do |inc_type,inc_arr| 
           includes[inc_type] ||= []
           includes[inc_type] += inc_arr
         end
 
-        body = controller.render_paragraph(@container.is_a?(SiteNode) ? @container : @container.site_node, @page_information.revision,output, :language => @language)
+        body = controller.render_paragraph(@container.is_a?(SiteNode) ? @container : @container.site_node, @page_information.revision,output, :language => @language, :preview => @preview)
       end
     end
     

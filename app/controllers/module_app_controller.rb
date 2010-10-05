@@ -120,6 +120,7 @@ class ModuleAppController < ApplicationController
     end
 
     if params['__VER__']
+      @preview = true
       @revision = @page.page_revisions.find_by_identifier_hash(params['__VER__'])
       return display_missing_page unless @revision
       return render :inline => 'Invalid version' unless @revision.revision_type == 'real' || @revision.revision_type == 'temp'
@@ -130,7 +131,7 @@ class ModuleAppController < ApplicationController
       end
     end
 
-    engine = SiteNodeEngine.new(@page,:display => session[:cms_language], :path => path_args, :revision => @revision)
+    engine = SiteNodeEngine.new(@page,:display => session[:cms_language], :path => path_args, :revision => @revision, :preview => @preview)
 
     begin 
       @output = engine.run(self,myself)

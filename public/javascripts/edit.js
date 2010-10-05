@@ -125,7 +125,7 @@ var cmsEdit = {
     }
     cmsEdit.previousPageType = page_type;
     cmsEdit.previousPageId = page_id;
-    $('cms_goto_page').href = cmsEdit.editURL + 'goto' + "/" + cmsEdit.pageType + "/" + cmsEdit.pageId + "/" + cmsEdit.revisionId + '?url=' + escape(cmsEdit.pageUrl)
+    $('cms_goto_page').href = cmsEdit.pageUrl;
   },
 
   setParagraphIndex: function(para_index) {
@@ -301,7 +301,7 @@ var cmsEdit = {
     },
 
     gotoPage: function() {
-      return cmsEdit.leavePage(cmsEdit.editURL + 'goto' + "/" + cmsEdit.pageType + "/" + cmsEdit.pageId + "/" + cmsEdit.revisionId + '?url=' + escape(cmsEdit.pageUrl));
+      return cmsEdit.leavePage(cmsEdit.pageUrl);
     },
 
     closeStyleWin: function() {
@@ -700,8 +700,6 @@ var cmsEdit = {
 
     tinyMCE.triggerSave();
 
-
-
     var update_params = cmsEdit._getParagraphOrder();
     update_params += cmsEdit._getParagraphData();
     if(params != undefined) {
@@ -726,6 +724,15 @@ var cmsEdit = {
                      });
 
 
+  },
+
+  previewChanges: function() {
+    cmsEdit.sendChanges('preview');
+  },
+
+  openPreviewWindow: function() {
+    var url = cmsEdit.editURL + 'goto' + "/" + cmsEdit.pageType + "/" + cmsEdit.pageId + "/" + cmsEdit.revisionId + '?url=' + escape(cmsEdit.pageUrl);
+    openWindow(url, 'edit_preview', null, null, 'yes', 'yes');
   },
 
   _getParagraphOrder: function() {

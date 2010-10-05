@@ -185,6 +185,7 @@ class ParagraphRenderer < ParagraphFeature
   def initialize(user_class,ctrl,para,site_node,revision,opts = {}) #:nodoc:
     @user_class = user_class
     @language = opts[:language]
+    @preview_mode = opts[:preview]
     @controller = ctrl
     @site_node = site_node
     @revision = revision
@@ -683,7 +684,7 @@ an integer representing the number of seconds to keep the element in the cache.
     display_string = "#{paragraph.id}_#{paragraph.language}_#{display_string}"
     result = nil
 
-    unless editor? || options[:skip]
+    unless editor? || options[:skip] || @preview_mode
       if obj.nil?
         paragraph_cache_id = paragraph.id == -1 ? "Mod#{site_node.id}" : paragraph.id.to_s
         result = DataCache.get_content("Paragraph",paragraph_cache_id,display_string)
@@ -707,7 +708,7 @@ an integer representing the number of seconds to keep the element in the cache.
       output = result.to_hash
       output[:cached_includes] = @includes.clone
 
-      unless editor? || options[:skip]
+      unless editor? || options[:skip] || @preview_mode
         if obj.nil?
           DataCache.put_content("Paragraph",paragraph_cache_id,display_string,output,expiration)
         elsif obj.is_a?(Array)

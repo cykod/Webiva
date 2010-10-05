@@ -129,6 +129,7 @@ class PageRevision < DomainModel
     new_rev.updated_at = Time.now
     new_rev.parent_revision = self
     new_rev.variables ||= {}
+    new_rev.identifier_hash = nil
     new_rev.save
     new_rev.paragraph_update_map = {}
     
