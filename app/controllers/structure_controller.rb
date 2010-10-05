@@ -444,6 +444,7 @@ class StructureController < CmsController  # :nodoc: all
     if request.post? && params[:revision]
       @revision.updated_by = myself
       if @revision.update_attributes params[:revision]
+        expire_site
         render :update do |page|
           page << 'RedBox.close();'
           page << 'PageEditor.refreshList();'
