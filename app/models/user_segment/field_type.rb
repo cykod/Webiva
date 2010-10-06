@@ -81,28 +81,30 @@ class UserSegment::FieldType
     when :date, :datetime
       begin
         return value if value.is_a?(Time)
-        return Time.parse(value)
+        return Time.parse(value) unless value.is_a?(Array)
       rescue
       end
     when :option
-      value = value.downcase if value.is_a?(String)
-      value = opts[:options].find do |o|
-        if o.is_a?(Array)
-          o[1] == value
-        else
-          o == value
+      unless value.is_a?(Array)
+        value = value.downcase if value.is_a?(String)
+        value = opts[:options].find do |o|
+          if o.is_a?(Array)
+            o[1] == value
+          else
+            o == value
+          end
         end
-      end
 
-      return value[1] if value.is_a?(Array)
-      return value
+        return value[1] if value.is_a?(Array)
+        return value
+      end
     when :boolean
       return value if value.is_a?(TrueClass) || value.is_a?(FalseClass)
       value = value.downcase if value.is_a?(String)
       return true if value == 1 || value == '1' || value == 'true'
       return false if value == 0 || value == '0' || value == 'false'
     when :model
-      unless value.is_a?(Array)
+      if value.is_a?(String) || value.is_a?(Integer)
         options = self.model_options(opts)
         value = value.to_i if options.size > 0 && options[0].is_a?(Array) && options[0][1].is_a?(Integer)
         if options[0].is_a?(Array)
