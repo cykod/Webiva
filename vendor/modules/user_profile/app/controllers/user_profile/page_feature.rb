@@ -50,7 +50,13 @@ def user_profile_page_list_profiles_feature(data)
   webiva_custom_feature(:user_profile_page_list_profiles,data) do |c|
     c.loop_tag('user') { |t| data[:users] }
     c.user_details_tags('user') { |t| t.locals.user.end_user }
-    c.link_tag('user:') { |t| data[:user_profile_type].content_type.content_link(t.locals.user) }
+    c.link_tag('user:') do |t| 
+      if data[:options].profile_detail_page_url
+       "#{data[:options].profile_detail_page_url}/#{t.locals.user.url}"
+      else
+       data[:user_profile_type].content_type.content_link(t.locals.user) 
+      end
+    end
     c.expansion_tag('user:profile') { |t| t.locals.entry = t.locals.user.content_model_entry if data[:content_model] }
 
     c.content_model_fields_value_tags('user:profile',data[:user_profile_type].display_content_model_fields) if data[:content_model]
