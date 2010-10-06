@@ -105,4 +105,8 @@ class WebformFormResult < DomainModel
       fld.content_export(self.data_model)
     end
   end
+
+  def webform_name
+    self.webform_form.name
+  end
 end
