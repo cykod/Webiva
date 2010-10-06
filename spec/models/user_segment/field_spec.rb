@@ -23,10 +23,10 @@ describe UserSegment::Field do
     @field = UserSegment::Field.new :field => 'created', :operation => 'before', :arguments => [1, 'days'], :child => {:field => 'registered', :operation => 'is', :arguments => [true]}
     @field.valid?.should be_true
 
-    @field = UserSegment::Field.new :field => 'user_level', :operation => 'is', :arguments => [1]
+    @field = UserSegment::Field.new :field => 'user_level', :operation => 'is', :arguments => [[1]]
     @field.valid?.should be_true
 
-    @field = UserSegment::Field.new :field => 'user_level', :operation => 'is', :arguments => [2]
+    @field = UserSegment::Field.new :field => 'user_level', :operation => 'is', :arguments => [[2]]
     @field.valid?.should be_true
   end
 

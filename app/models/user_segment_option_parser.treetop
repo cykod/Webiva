@@ -66,9 +66,17 @@ grammar UserSegmentOption
   end
 
   rule argument
-    space arg:(string / float / integer / boolean) space {
+    space arg:(string / float / integer / boolean / array) space {
       def eval(env={})
         arg.eval(env)
+      end
+    }
+  end
+
+  rule array
+    '[' arg:(string / float / integer / boolean) more:(',' val:(string / float / integer / boolean))* ']' {
+      def eval(env={})
+        [arg.eval(env)] + more.elements.collect{ |e| e.val.eval(env) }
       end
     }
   end

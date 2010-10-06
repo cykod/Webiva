@@ -125,4 +125,16 @@ describe UserSegmentOptionParser do
       ['not', {:field => 'test', :operation => 'is', :arguments => [false], :child => nil}, {:field => 'product', :operation => 'purchased', :arguments => ['computer'], :child => {:field => 'created', :operation => 'since', :arguments => [1, 'days'], :child => nil}}]
     ]
   end
+
+  it "should parse array values as arguments" do
+    code = <<-CODE
+    user_level.is([4,5,6])
+    CODE
+    parse(code).should == [[nil, {:field => 'user_level', :operation => 'is', :arguments => [[4,5,6]], :child => nil}]]
+
+    code = <<-CODE
+    user_level.is("days", [4,5,6], true, [1,2], 5)
+    CODE
+    parse(code).should == [[nil, {:field => 'user_level', :operation => 'is', :arguments => ["days", [4,5,6], true, [1,2], 5], :child => nil}]]
+  end
 end
