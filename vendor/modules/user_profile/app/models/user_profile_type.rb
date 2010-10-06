@@ -72,6 +72,37 @@ class UserProfileType < DomainModel
   end
 
 
+  def paginate_users(page,options={})
+
+    conds = { :published => 1 }
+    conds['end_users.registered'] = 1 if options[:registered_only]
+    conds[:protected] = 0 if options[:hide_protected]
+
+    pages,users = UserProfileEntry.paginate(page,:joins => [ :end_user ], :conditions => conds, :order => options[:order], :include => :end_user)
+    
+
+    if self.content_model 
+      cls = self.content_model.model_class
+
+      model_attributes = { self.content_model_field_name => users.map(&:end_user_id) }
+
+      model_entries = cls.find(:all,:conditions => model_attributes).index_by(&(self.content_model_field_name.to_sym))
+
+      users.each do |usr|
+        entry = model_entries[usr.end_user_id]
+        if entry
+          usr.content_model_entry_cache = entry 
+        else
+          usr.content_model_entry_cache = cls.new( self.content_model_field_name => usr.end_user_id)
+        end
+      end
+    end
+
+    [ pages,users ]
+
+  end
+
+
   protected
 
   def update_user_classes

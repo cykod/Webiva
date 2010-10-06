@@ -144,6 +144,11 @@ FEATURE
       end
       
       c.button_tag('edit:submit')
+
+      data[:options].user_edit_features.each do |feature|
+        feature.feature_instance.feature_tags(c,data[:feature])
+      end
+
     end
   end
 

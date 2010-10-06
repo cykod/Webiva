@@ -13,6 +13,10 @@ class UserProfile::AdminController < ModuleController
   register_handler :model, :end_user, "UserProfileUserHandler", :actions => [:after_save]
   register_handler :members, :view, "UserProfile::ManageController"
 
+  register_handler :editor, :auth_user_edit_feature, "UserProfile::UserEditExtension"
+
+
+
   register_permissions :user_profile, [ [ :manage, 'Manage User Profile', 'Manage User Profile' ],
     [ :config, 'Configure User Profile', 'Configure User Profile' ]
   ]

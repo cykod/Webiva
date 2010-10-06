@@ -20,6 +20,7 @@ class UserProfileEntry < DomainModel
    }
   }
 
+  cached_content  :identifier => :url
 
   content_node(:container_type => 'UserProfileType', :container_field => 'user_profile_type_id', :push_value => true, :except => Proc.new() { |e| e.url.blank? })
 
@@ -76,6 +77,10 @@ class UserProfileEntry < DomainModel
     end
 
     @content_model_entry
+  end
+
+  def content_model_entry_cache=(val)
+    @content_model_entry = val
   end
 
   def create_full_name
