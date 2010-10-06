@@ -76,7 +76,7 @@ Ex: <b>created</b>.<u>since</u>(7, "days") - Will return all the user who where 
         <li><%= operation[:argument_names][idx] %> - <em><%= arg %></em>
           <% if arg == :option -%>
             <ul><li>
-            <%= operation[:argument_options][idx][:options].collect { |opt| opt = "#{opt[1]} '#{opt[0]}'" if opt.is_a?(Array); opt }.join(', ') if arg == :option %>
+            <%= operation[:argument_options][idx][:options].collect { |opt| opt = opt[0] if opt.is_a?(Array); opt }.join(', ') if arg == :option %>
             </li></ul>
           <% end -%>
         </li>
