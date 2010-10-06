@@ -866,7 +866,7 @@ class CmsUnstyledForm < StyledForm
     options = options.symbolize_keys
     options[:class] = !options[:class].blank? ? tag.to_s + '_input ' + options[:class].to_s : tag.to_s + '_input'
     {
-      :output => output.call( {:class => options[:class], :required => nil, :noun => nil })
+      :output => output.call( {:class => options[:class], :required => nil, :noun => nil, :label => nil })
     }
   end
   
