@@ -6,7 +6,7 @@
 
 
 <%= stylesheet_link_tag 'common' %>
-<link href='http://fonts.googleapis.com/css?family=Droid+Sans' rel='stylesheet' type='text/css'>
+<%= remote_stylesheet 'fonts.googleapis.com/css?family=Droid+Sans' %>
 <%= theme_stylesheet_link_tag  "admin_design", :media => 'all' %>
 <%= theme_stylesheet_link_tag  "admin_framework", :media => 'all' %>
 <script> var AUTH_TOKEN = "<%= form_authenticity_token.to_s %>";</script>
@@ -17,7 +17,7 @@
    $j = jQuery.noConflict();
 </script>
 <%= javascript_include_tag 'jaction' %>
-<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+<%= remote_script 'www.google.com/jsapi' %>
 
 <% unless @no_legacy_cs %>
 <%= javascript_include_tag "overlib/overlib" %>

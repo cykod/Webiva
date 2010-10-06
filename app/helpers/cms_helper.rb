@@ -877,6 +877,13 @@ EOF
     "<script src='#{prefix}#{vh script}'></script>"
   end
 
+  # Load a remote stylesheet over http or https as necessary
+  def remote_stylesheet(stylesheet)
+    prefix =  request.ssl? ? 'https://' : 'http://'
+    "<link href='#{prefix}#{vh stylesheet}' rel='stylesheet' type='text/css' />"
+
+  end
+
   def button_link(icon,text,url,options = {})
     opt = options.clone
     alternative = " button_link_alternative" if opt.delete(:alternative)
