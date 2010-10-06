@@ -74,13 +74,11 @@ class UserProfileType < DomainModel
 
   def paginate_users(page,options={})
 
-    if options[:registered_only]
-      conds =  [ 'end_users.registered = 1']
-    else
-      conds = nil
-    end
+    conds = { :published => 1 }
+    conds['end_users.registered'] = 1 if options[:registered_only]
+    conds[:protected] = 0 if options[:hide_protected]
 
-    pages,users = UserProfileEntry.paginate(page,:joins => [ :end_user ], :conditions => conds, :order => options[:order])
+    pages,users = UserProfileEntry.paginate(page,:joins => [ :end_user ], :conditions => conds, :order => options[:order], :include => :end_user)
     
 
     if self.content_model 

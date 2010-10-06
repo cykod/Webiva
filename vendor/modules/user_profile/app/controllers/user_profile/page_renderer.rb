@@ -68,7 +68,8 @@ class UserProfile::PageRenderer < ParagraphRenderer
       if url.blank? && @options.default_to_user
         UserProfileEntry.find_by_end_user_id_and_user_profile_type_id(myself.id, @options.profile_type_id)
       else
-        UserProfileEntry.find_by_url_and_user_profile_type_id(url, @options.profile_type_id)
+        profile = UserProfileEntry.find_by_url_and_user_profile_type_id(url, @options.profile_type_id)
+        profile && profile.published? ? profile : nil
       end
     end
 
