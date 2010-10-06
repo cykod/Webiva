@@ -672,16 +672,21 @@ module UserSegmentOption
             if r6
               r2 = r6
             else
-              @index = i2
-              r2 = nil
+              r7 = _nt_array
+              if r7
+                r2 = r7
+              else
+                @index = i2
+                r2 = nil
+              end
             end
           end
         end
       end
       s0 << r2
       if r2
-        r7 = _nt_space
-        s0 << r7
+        r8 = _nt_space
+        s0 << r8
       end
     end
     if s0.last
@@ -694,6 +699,153 @@ module UserSegmentOption
     end
 
     node_cache[:argument][start_index] = r0
+
+    r0
+  end
+
+  module Array0
+    def val
+      elements[1]
+    end
+  end
+
+  module Array1
+    def arg
+      elements[1]
+    end
+
+    def more
+      elements[2]
+    end
+
+  end
+
+  module Array2
+    def eval(env={})
+      [arg.eval(env)] + more.elements.collect{ |e| e.val.eval(env) }
+    end
+  end
+
+  def _nt_array
+    start_index = index
+    if node_cache[:array].has_key?(index)
+      cached = node_cache[:array][index]
+      if cached
+        cached = SyntaxNode.new(input, index...(index + 1)) if cached == true
+        @index = cached.interval.end
+      end
+      return cached
+    end
+
+    i0, s0 = index, []
+    if has_terminal?('[', false, index)
+      r1 = instantiate_node(SyntaxNode,input, index...(index + 1))
+      @index += 1
+    else
+      terminal_parse_failure('[')
+      r1 = nil
+    end
+    s0 << r1
+    if r1
+      i2 = index
+      r3 = _nt_string
+      if r3
+        r2 = r3
+      else
+        r4 = _nt_float
+        if r4
+          r2 = r4
+        else
+          r5 = _nt_integer
+          if r5
+            r2 = r5
+          else
+            r6 = _nt_boolean
+            if r6
+              r2 = r6
+            else
+              @index = i2
+              r2 = nil
+            end
+          end
+        end
+      end
+      s0 << r2
+      if r2
+        s7, i7 = [], index
+        loop do
+          i8, s8 = index, []
+          if has_terminal?(',', false, index)
+            r9 = instantiate_node(SyntaxNode,input, index...(index + 1))
+            @index += 1
+          else
+            terminal_parse_failure(',')
+            r9 = nil
+          end
+          s8 << r9
+          if r9
+            i10 = index
+            r11 = _nt_string
+            if r11
+              r10 = r11
+            else
+              r12 = _nt_float
+              if r12
+                r10 = r12
+              else
+                r13 = _nt_integer
+                if r13
+                  r10 = r13
+                else
+                  r14 = _nt_boolean
+                  if r14
+                    r10 = r14
+                  else
+                    @index = i10
+                    r10 = nil
+                  end
+                end
+              end
+            end
+            s8 << r10
+          end
+          if s8.last
+            r8 = instantiate_node(SyntaxNode,input, i8...index, s8)
+            r8.extend(Array0)
+          else
+            @index = i8
+            r8 = nil
+          end
+          if r8
+            s7 << r8
+          else
+            break
+          end
+        end
+        r7 = instantiate_node(SyntaxNode,input, i7...index, s7)
+        s0 << r7
+        if r7
+          if has_terminal?(']', false, index)
+            r15 = instantiate_node(SyntaxNode,input, index...(index + 1))
+            @index += 1
+          else
+            terminal_parse_failure(']')
+            r15 = nil
+          end
+          s0 << r15
+        end
+      end
+    end
+    if s0.last
+      r0 = instantiate_node(SyntaxNode,input, i0...index, s0)
+      r0.extend(Array1)
+      r0.extend(Array2)
+    else
+      @index = i0
+      r0 = nil
+    end
+
+    node_cache[:array][start_index] = r0
 
     r0
   end

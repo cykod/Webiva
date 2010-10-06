@@ -67,7 +67,7 @@ class UserSegment::FieldType
   end
 
   # converts a string to the correct type
-  # supported types are :integer, :float, :double, :date, :datetime, :option, :boolean, :model
+  # supported types are :integer, :float, :double, :date, :datetime, :option, :boolean, :model, :array
   def self.convert_to(value, type, opts={})
     return value if value.nil?
 
@@ -110,6 +110,18 @@ class UserSegment::FieldType
       else
         return value if options.include?(value)
       end
+    when :array
+      if value.is_a?(Array)
+        options = self.model_options(opts)
+        value.delete_if { |v| v == '' }
+        value = value.collect { |v| v.to_i } if options.size > 0 && options[0].is_a?(Array) && options[0][1].is_a?(Integer)
+        if options[0].is_a?(Array)
+          value.each { |v| return nil unless options.rassoc(v) }
+        else
+          value.each { |v| return nil unless options.include?(v) }
+        end
+        return value
+      end      
     end
 
     nil

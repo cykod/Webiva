@@ -91,11 +91,11 @@ describe UserSegment::Filter do
 
     @operations = UserSegment::Filter.new
     options = [
-      ['not', {:field => 'created', :operation => 'since', :arguments => [3, 'days'], :child => nil}, {:field => 'user_level', :operation => 'is', :arguments => [1], :child => nil}],
+      ['not', {:field => 'created', :operation => 'since', :arguments => [3, 'days'], :child => nil}, {:field => 'user_level', :operation => 'is', :arguments => [[1]], :child => nil}],
       [nil, {:field => 'activated', :operation => 'is', :arguments => [true], :child => nil}]
     ]
     code = <<-CODE
-    not created.since(3, "days") + user_level.is(1)
+    not created.since(3, "days") + user_level.is([1])
     activated.is(true)
     CODE
     @operations.parse(code).should be_true
@@ -103,7 +103,7 @@ describe UserSegment::Filter do
     @operations.to_a.should == options
     @operations.end_user_ids.length.should == 1
     @operations.end_user_ids.include?(@user6.id).should be_true
-    @operations.to_expr.should == "not created.since(3, \"days\") + user_level.is(1)\nactivated.is(true)"
-    @operations.to_builder.should == {:operator => 'not', :condition => 'or', :field => 'created', :operation => 'since', :argument0 => 3, :argument1 => 'days', :child => {:field => 'user_level', :operation => 'is', :argument0 => 1, :condition => 'with', :child => {:operator => nil, :field => 'activated', :operation => 'is', :argument0 => true}}}
+    @operations.to_expr.should == "not created.since(3, \"days\") + user_level.is([1])\nactivated.is(true)"
+    @operations.to_builder.should == {:operator => 'not', :condition => 'or', :field => 'created', :operation => 'since', :argument0 => 3, :argument1 => 'days', :child => {:field => 'user_level', :operation => 'is', :argument0 => [1], :condition => 'with', :child => {:operator => nil, :field => 'activated', :operation => 'is', :argument0 => true}}}
   end
 end

@@ -55,10 +55,10 @@ class EndUserSegmentType
       EndUser.user_level_select_options
     end
 
-    register_operation :is, [['User Level', :model, {:class => UserLevelType}]]
+    register_operation :is, [['User Level', :array, {:class => UserLevelType}]]
 
     def self.is(cls, group_field, field, user_level)
-      cls.scoped(:conditions => ["#{field} = ?", user_level])
+      cls.scoped(:conditions => ["#{field} in(?)", user_level])
     end
   end
 end
