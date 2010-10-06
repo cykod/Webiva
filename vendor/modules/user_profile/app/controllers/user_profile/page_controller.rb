@@ -26,11 +26,11 @@ class UserProfile::PageController < ParagraphController
 
 
   class ListProfilesOptions < HashModel
-    attributes :profile_type_id => nil, :order_by => 'newest', :registered_only => true, :per_page => 20
+    attributes :profile_type_id => nil, :order_by => 'newest', :registered_only => true, :per_page => 20, :hide_protected => false
 
     validates_presence_of :profile_type_id
     integer_options :per_page
-    boolean_options :registered_only
+    boolean_options :registered_only, :hide_protected
 
 
     has_options :order_by, [['Newest','newest'],['Updated','updated'],['Alphabetical','alpha']]
@@ -38,6 +38,7 @@ class UserProfile::PageController < ParagraphController
     options_form(fld(:profile_type_id,:select,:options => :profile_type_select_options),
                  fld(:order_by,:select, :options => :order_by_select_options),
                  fld(:per_page,:text_field),
+                 fld(:hide_protected,:yes_no,:description => 'Hide protected users'),
                  fld(:registered_only,:yes_no,:description => 'Only show registered users (recommended)'))
 
     def profile_type_select_options

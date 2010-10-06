@@ -67,7 +67,6 @@ class NodeEngine::BuiltinHandler < NodeEngine::HandlerBase
         @output.status = 'Lock'
         @output.redirect = redirection
         
-        @output.paction = engine.user.action("/lock/lockout",:identifier => redirection)
         return @output
       end
     end

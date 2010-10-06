@@ -216,6 +216,14 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       end
     end
 
+    @feature = { }
+
+
+    @options.user_edit_features.each do |feature|
+      feature.feature_instance.generate(params,@usr)
+    end
+
+
     if request.post? && ( params[:user] || params[:model] ) && !editor? && myself.id
       params[:user] ||= {}
       handle_image_upload(params[:user],:domain_file_id)
@@ -250,6 +258,12 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
         all_valid = false unless @model.errors.length == 0
       end
 
+      @options.user_edit_features.each do |feature|
+        all_valid=false unless feature.feature_instance.valid?
+      end
+
+
+    
       # if there are no errors on anything
       # save the user,
       @failed = true unless all_valid
@@ -281,6 +295,11 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
 
           @model.save if @model
 
+          @options.user_edit_features.each do |feature|
+            feature.feature_instance.post_process(@usr)
+          end
+
+
           if @options.access_token_id
             tkn = AccessToken.find_by_id(@options.access_token_id)
             @usr.add_token!(tkn) if tkn
@@ -308,6 +327,12 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
     end
 
     @reset_password = flash['reset_password']
+
+    @options.user_edit_features.each do |feature|
+      feature.feature_instance.feature_data(@feature)
+    end
+
+
     render_paragraph :feature => :user_edit_account
   end
 

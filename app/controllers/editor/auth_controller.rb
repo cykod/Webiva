@@ -3,7 +3,7 @@
 class Editor::AuthController < ParagraphController #:nodoc:all
   permit 'editor_editor'
   
-  user_actions [:add_feature, :add_login_feature]
+  user_actions [:add_feature, :add_login_feature, :add_user_edit_feature]
 
   # Editor for authorization paragraphs
   editor_header "Member Paragraphs", :paragraph_member
@@ -203,7 +203,12 @@ class Editor::AuthController < ParagraphController #:nodoc:all
     :work_address_required_fields => [],
     :address_required_fields => [],
     :content_publication_id => nil, :content_publication_user_field => nil,
+<<<<<<< HEAD
     :access_token_id => nil
+=======
+    :access_token_id => nil, :user_level => 4,
+    :features => []
+>>>>>>> 11f292c... User profile editor feature and list profile support
 
     page_options :success_page_id
 
@@ -213,13 +218,32 @@ class Editor::AuthController < ParagraphController #:nodoc:all
       self.required_fields = [] if @passed_hash[:required_fields].blank?
       self.optional_fields = [] if @passed_hash[:optional_fields].blank?
       if self.content_publication_id
-	if self.content_publication_user_field
-	  errors.add(:content_publication_user_field) unless self.publication_field_options.rassoc self.content_publication_user_field
-	else
-	  errors.add(:content_publication_user_field) unless self.content_publication_user_field
-	end
+        if self.content_publication_user_field
+          errors.add(:content_publication_user_field) unless self.publication_field_options.rassoc self.content_publication_user_field
+        else
+          errors.add(:content_publication_user_field) unless self.content_publication_user_field
+        end
+      end
+      if !self.features.is_a?(Array)
+        self.features = self.features.to_a.sort {  |a,b| a[0] <=> b[0]  }.map {  |elm| obj = Handlers::ParagraphFeature.new(elm[1]);  obj.to_hash }
+
+        self.user_edit_features.each do |feature|
+          if !feature.options.valid?
+            self.errors.add_to_base('Feature Error')
+          end
+        end
       end
     end
+
+    def user_edit_features
+      @edut_features ||= self.features.map do |feature|
+        Handlers::ParagraphFeature.new(feature.merge({ :feature_type => 'editor_auth_user_edit_feature'}))
+      end
+    end
+
+    def available_features
+      [['--Select a feature to add--','']] + get_handler_options(:editor,:auth_user_edit_feature)
+     end
 
     def available_field_list
       { :email => [ 'Email'.t,:text_field, :email ],
@@ -393,41 +417,6 @@ class Editor::AuthController < ParagraphController #:nodoc:all
     end
   end
 
-  def edit_account
-     @options = EditAccountOptions.new(params[:edit_profile] || @paragraph.data || {})
-    
-    if request.post? && @options.valid?
-      if @options.include_subscriptions.is_a?(Array)
-         @options.include_subscriptions = @options.include_subscriptions.find_all { |elem| !elem.blank? }.collect { |elem| elem.to_i } 
-      else
-        @options.include_subscriptions = []
-      end
-      @options.success_page = @options.success_page.to_i
-      @paragraph.data = @options.to_h
-      @paragraph.save
-      render_paragraph_update
-      return
-    end
-
-    @content_publications = [ ['No Publication', 0 ] ] + ContentPublication.find(:all,:conditions => 'publication_type = "create"',:order => 'content_models.name, content_publications.name',
-                                                    :include => :content_model ).collect { |pub| [ pub.content_model.name + ' - ' + pub.name, pub.id ] }
-  
-    @pages = [[ '--Select Page--'.t, nil ]] + SiteNode.page_options()
-  
-    @fields = %w{username gender first_name last_name dob address work_address}
-    @field_options = [ [ 'Required', 'required' ], [ 'Optional','optional' ], ['Do not Display','off' ] ]
-    @subscriptions = UserSubscription.find_select_options(:all,:order => 'name')
-  end
-  
-  class EditAccountOptions < HashModel
-    default_options :success_page => nil, :form_display => 'normal', :first_name => 'required', :last_name => 'required', 
-                    :gender => 'required', :username => 'off', :dob => 'off', :address => 'off', :work_address => 'off', :add_tags => '',
-                     :include_subscriptions => [],  :country => 'United States', :reset_password => 'show',
-                    :address_type => 'us', :edit_button => nil
-    validates_presence_of :success_page
-    integer_options :success_page
-  end  
-
   def enter_vip
     @options = EnterVipOptions.new(params[:enter_vip] || @paragraph.data || {})
     
@@ -529,4 +518,19 @@ class Editor::AuthController < ParagraphController #:nodoc:all
     end  
     
   end
+
+  def add_user_edit_feature
+    @info = get_handler_info(:editor,:auth_user_edit_feature,params[:feature_handler])
+    
+    if @info && myself.editor?
+      @feature = Handlers::ParagraphFeature.new({ })
+      @feature.feature_handler = @info[:identifier]   
+      @feature.feature_type = 'editor_auth_user_edit_feature'
+      render :partial => 'user_edit_feature', :locals => { :feature => @feature, :idx => params[:index] }
+    else
+      render :nothing => true
+    end  
+    
+  end
+
 end

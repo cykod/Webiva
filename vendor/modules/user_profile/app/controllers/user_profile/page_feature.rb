@@ -58,34 +58,5 @@ def user_profile_page_list_profiles_feature(data)
   end
 end
 
-  feature :user_profile_page_profile_privacy, :default_feature => <<-FEATURE
-<cms:user>
-  <cms:name/>
-  <br/><cms:img /> 
 
-<cms:profile_options>
-<cms:protected/>
-<cms:private/>
-</cms:profile_options>
-
-</cms:user>
-
-<cms:no_user>
-Please re-enter the URL, no profile exists for the name entered
-</cms:no_user>
-  FEATURE
-
-
-  def user_profile_page_profile_privacy_feature(data)
-    webiva_feature(:user_profile_page_profile_privacy,data) do |c|
-      c.user_details_tags('user') { |t| t.locals.user }
-      c.expansion_tag("myself") { |t| t.locals.user == myself }
-
-      c.form_for_tag('profile_options','profile_options') { |t|  data[:profile_entry_options] }
-      c.field_tag('profile_options:protected', :control => :check_box)
-      c.field_tag('profile_options:private', :control => :check_box)
-    end 
-  end
 end
-
-
