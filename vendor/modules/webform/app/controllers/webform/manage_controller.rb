@@ -160,12 +160,21 @@ class Webform::ManageController < ModuleController
     @webform = WebformForm.find(params[:path][0])
     @result = WebformFormResult.find(params[:path][1])
 
+    @ajax = request.xhr?
+
     if request.post? && params[:result]
       if @result.update_attributes(params[:result])
         @saved = true
+        return render(:nothing => true) if @ajax
+        return redirect_to :action => 'results', :path => @webform.id
       end
     end
 
-    render :action => 'result', :layout => false
+    if @ajax
+      render :action => 'result', :layout => false
+    else
+      cms_page_path ['Content', 'Webforms', [@webform.name, url_for(:action => :results, :path => @webform.id)]], 'Result'
+      render :action => 'result'
+    end
   end
 end

@@ -41,6 +41,10 @@ class WebformFormResult < DomainModel
     self.content_model.content_node_body(self.data_model, lang, opts)
   end
 
+  def content_description(language) #:nodoc:
+    "Webform"
+  end
+
   def data_model
     return @data_model if @data_model
     return nil unless self.webform_form

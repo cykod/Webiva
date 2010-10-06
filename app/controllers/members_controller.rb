@@ -2,7 +2,7 @@
 
 class MembersController < CmsController # :nodoc: all
 
-  permit 'editor_members', :only => [ :index, :create, :edit, :view, :delete_member ]
+  permit 'editor_members', :except => [:lookup_autocomplete]
 
   layout 'manage'
   
