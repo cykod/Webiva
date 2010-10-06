@@ -53,7 +53,7 @@ WebivaBarChart = function(opts) {
     length = length ? length : 25;
 
     if(str.length > length) {
-      return str.substring(0, length-3) + '...';
+      return str.substring(0, length-4) + '...';
     }
 
     return str;
@@ -155,7 +155,7 @@ WebivaBarChart = function(opts) {
          .textMargin(5)
          .textAlign("right")
          .textStyle(fontColor)
-         .text(function() truncate(dataTable[this.parent.index].label, 40))
+         .text(function() truncate(dataTable[this.parent.index].label, 37))
          .title(function() dataTable[this.parent.index].label)
          .events("all");
     }
