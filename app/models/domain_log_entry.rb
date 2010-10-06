@@ -58,7 +58,7 @@ class DomainLogEntry < DomainModel
   end
   
   def user?
-    return self.user_id != nil
+    self.user_id != nil && self.user
   end
 
   def username
