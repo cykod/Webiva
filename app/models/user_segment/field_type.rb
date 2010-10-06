@@ -156,6 +156,8 @@ class UserSegment::FieldType
           value = value.inject(0) { |a,b| a + b } / value.size
         when 'count'
           value = value.size
+        else
+          value = info[:handler].send(info[:display_method], value) if info[:display_method] && info[:handler].respond_to?(info[:display_method])
         end
       else # index_by
         value = data.send(display_field)
