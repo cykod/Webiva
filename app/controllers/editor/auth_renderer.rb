@@ -153,7 +153,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
 
           if @model
             # Re-update entry as we now have a user object
-            @options.publication.assign_entry(@model,params[:model],renderer_state(:myself => @usr))
+            @options.publication.assign_entry(@model,params[:model],renderer_state(:user => @usr))
             @model.save
           end
 
