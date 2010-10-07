@@ -14,8 +14,11 @@ class UserProfile::PageRenderer < ParagraphRenderer
 
     @user_profile = find_profile
 
+    is_myself = @user_profile && @user_profile.end_user == myself
 
-    result = renderer_cache(@user_profile) do |cache|
+    display_string = is_myself ? 'myself' : 'other' 
+
+    result = renderer_cache(@user_profile,display_string) do |cache|
       if @user_profile
         @profile_user = @user_profile.end_user
         @content_model = @user_profile.content_model
