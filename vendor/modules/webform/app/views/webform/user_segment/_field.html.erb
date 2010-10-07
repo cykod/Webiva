@@ -1,0 +1,10 @@
+<%=
+case field
+when :webform
+  result = handler_data[user.id].max { |a,b| a.posted_at <=> b.posted_at }
+  content_tag(:a, result.webform_name, :href => 'javascript:void(0);', :onclick => 'SCMS.remoteOverlay("' + url_for(:controller => '/webform/manage', :action => 'result', :path => [result.webform_form.id, result.id], :table => 'email_targets_table_update_form') + '");') if result
+when :webform_reviewed
+  result = handler_data[user.id].max { |a,b| a.posted_at <=> b.posted_at }
+  result.reviewed ? 'Yes'.t : 'No'.t
+end
+%>

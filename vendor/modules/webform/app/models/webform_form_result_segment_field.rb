@@ -17,9 +17,9 @@ class WebformFormResultSegmentField < UserSegment::FieldHandler
     end
   end
 
-  register_field :webform, WebformType, :field => :webform_form_id, :name => 'Webform', :display_field => :webform_name
-  register_field :webform_posted_at, UserSegment::CoreType::DateTimeType, :field => :posted_at, :name => 'Webform Posted At', :sortable => true
-  register_field :webform_reviewed, UserSegment::CoreType::BooleanType, :field => :reviewed, :name => 'Webform Reviewed'
+  register_field :webform, WebformType, :field => :webform_form_id, :name => 'Webform', :display_field => :webform_name, :partial => '/webform/user_segment/field'
+  register_field :webform_posted_at, UserSegment::CoreType::DateTimeType, :field => :posted_at, :name => 'Webform Posted At', :sortable => true, :display_method => 'max'
+  register_field :webform_reviewed, UserSegment::CoreType::BooleanType, :field => :reviewed, :name => 'Webform Reviewed', :partial => '/webform/user_segment/field'
   # register_field :webform_data, UserSegment::CoreType::StringType, :field => :data, :name => 'Webform Results'
 
   def self.sort_scope(order_by, direction)
