@@ -124,8 +124,7 @@ class DomainLogSession < DomainModel
 
   def self.update_sessions(sessions)
     sessions.each do |session|
-      next unless session.last_entry_at.nil? || session.updated_at.nil? || (session.updated_at < 5.minutes.ago && session.created_at > 1.day.ago)
-      session.calculate!
+      session.calculate! if session.last_entry_at.nil? || session.updated_at.nil? || (session.updated_at < 5.minutes.ago && session.created_at > 1.day.ago)
     end
   end
 

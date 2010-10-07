@@ -12,11 +12,7 @@
 <% end -%>
 </h2>
 
-IP Address: <%= @entry.ip_address %>, <%= @entry.ip_address_name %>
-<% if @entry.has_location? %>
-  ( <%= @entry.location_display %>
-  <%= link_to 'Location Estimate', "http://maps.google.com/maps?ll=#{@entry.latitude},#{@entry.longitude}", :target => '_blank' if @entry.latitude %> )
-<% end -%>
+<%= render :partial => '/emarketing/visitor_info', :locals => {:visitor => @entry} %>
 
 <h2 class="inform">Content Viewed last Visit:</h2>
 <% @entry.last_session.session_content.each do |content_node| %>

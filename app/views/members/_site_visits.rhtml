@@ -5,7 +5,7 @@
 <%= "Total Sessions:".t %> <%= @sessions.size %>, <%= "Total Pages:".t %> <%= @sessions.inject(0){ |sum,s| sum + s.page_count } %>
 <br/><br/>
 
-<% table_for @sessions, [ 'Session','Date Started','Time','Pages'], :class=>'data_table',:cellspacing => '0' do |entry| %>
+<% table_for @sessions, [ 'Session','Date Started','Time','Pages','User Level','Referrer','Affiliate','Campaign'], :class=>'data_table',:cellspacing => '0' do |entry| %>
 
 <tbody>
 <tr class='highlighted_row'>
@@ -22,13 +22,20 @@
   </td><td>1 Page
 <% end -%>
 </td>
+<td><%= h EndUser.user_level_options[entry.user_level] || '' %></td>
+<td><%= h entry.domain_log_referrer ? entry.domain_log_referrer.referrer_domain : '' %></td>
+<td><%= h entry.affiliate || '' %></td>
+<td><%= h entry.campaign || '' %></td>
 </tr>
 </tbody>
 
 <tbody id="session_entries_<%= entry.id %>" <%= "style='display:none;'" unless @first %>>
+<% if entry.domain_log_visitor -%>
+<tr><td></td><td colspan="7"><%= render :partial => '/emarketing/visitor_info', :locals => {:visitor => entry.domain_log_visitor} %></td></tr>
+<% end -%>
 <tr>
 <td></td>
-<td colspan="3" id="session_<%= entry.id %>" <%= 'j-loaded="1"' if @first%>>
+<td colspan="7" id="session_<%= entry.id %>" <%= 'j-loaded="1"' if @first%>>
 <%= render(:partial => 'site_entries', :locals => {:entries => entry.domain_log_entries.find(:all, :order => 'occurred_at DESC')}) if @first -%>
 <%= 'Loading...'.t unless @first -%>
 <% @first = false -%>
