@@ -1,22 +1,6 @@
 <script>
 <%=  active_table_javascript %>
-
-WebformResults = {
-  overlay: function(url) {
-    new Ajax.Request(url,
-                     { method: 'get',
-                       onComplete: function(transport) { SCMS.overlay(transport.responseText); }
-                     });
-  },
-
-  mark_as: function(url, reviewed) {
-    new Ajax.Request(url,
-                     { method: 'post',
-                       parameters: 'result[reviewed]=' + reviewed,
-                       onComplete: function(transport) { $('webform_result_table_update_form').onsubmit(); SCMS.closeOverlay(); }
-                     });
-  }
-}
+<%= render :partial => '/webform/manage/javascript' %>
 
 Exporter = {
     generate: function() {

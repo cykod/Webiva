@@ -9,8 +9,9 @@ class Webform::AdminController < ModuleController
   
   register_permissions :webform, [[:manage, 'Manage Webform', 'Manage Webform']
                                  ]
-
   register_handler :webiva, :widget, 'WebformWidget'
+
+  register_handler :user_segment, :fields, 'WebformFormResultSegmentField'
 
   cms_admin_paths "options",
     "Options" => { :controller => '/options' },

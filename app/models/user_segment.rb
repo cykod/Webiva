@@ -368,9 +368,51 @@ class UserSegment < DomainModel
     UserSegment::FieldHandler.display_fields(opts).collect { |field, info| [info[:handler].field_heading(field), field.to_s] }.sort { |a, b| a[0] <=> b[0] }
   end
 
+  def self.fields_group_options(opts={})
+    group_options = []
+    seen_options = {}
+    display_fields = UserSegment::FieldHandler.display_fields(opts)
+    UserSegment::FieldHandler.handlers.each do |handler|
+      options = []
+      handler[:class].user_segment_fields.each do |field, values|
+        next unless display_fields[field]
+        next if seen_options[field.to_s]
+        options << ['-  ' + values[:name], field.to_s]
+        seen_options[field.to_s] = 1
+      end
+
+      unless options.empty?
+        options.sort! { |a, b| a[0] <=> b[0] }
+        group_options << [handler[:name], options]
+      end
+    end
+    group_options
+  end
+
   # Returns a list of sortable fields
   def self.order_by_options(opts={})
     UserSegment::FieldHandler.sortable_fields(opts).collect { |field, info| [info[:handler].field_heading(field), field.to_s] }.sort { |a, b| a[0] <=> b[0] }
+  end
+
+  def self.order_by_group_options(opts={})
+    group_options = []
+    seen_options = {}
+    sortable_fields = UserSegment::FieldHandler.sortable_fields(opts)
+    UserSegment::FieldHandler.handlers.each do |handler|
+      options = []
+      handler[:class].user_segment_fields.each do |field, values|
+        next unless sortable_fields[field]
+        next if seen_options[field.to_s]
+        options << ['-  ' + values[:name], field.to_s]
+        seen_options[field.to_s] = 1
+      end
+
+      unless options.empty?
+        options.sort! { |a, b| a[0] <=> b[0] }
+        group_options << [handler[:name], options]
+      end
+    end
+    group_options
   end
 
   # Returns the text version of the filter
