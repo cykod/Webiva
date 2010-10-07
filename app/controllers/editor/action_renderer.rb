@@ -5,6 +5,30 @@ class Editor::ActionRenderer < ParagraphRenderer #:nodoc:all
   paragraph :triggered_action
   paragraph :html_headers, :cache => true
   paragraph :experiment
+  paragraph :robots
+
+  def robots
+    return render_paragraph :text => 'Reconfigure Data Output' unless paragraph.data
+
+    data = paragraph.data
+
+    result = renderer_cache do |cache|
+      output = ''
+      SiteNode.find(:all, :conditions => {:index_page => [2,0]}, :order => 'index_page DESC, title').each do |node|
+        if node.index_page == 2
+          output += "Allow: #{node.node_path}\n"
+        elsif node.index_page == 0
+          output += "Disallow: #{node.node_path}\n"
+        end
+      end
+
+      output = "User-agent: *\n#{output}" unless output.blank?
+      output = "#{data[:extra]}\n#{output}" unless data[:extra].blank?
+      cache[:output] = output
+    end
+
+    data_paragraph :disposition => '', :type => 'text/plain', :data => result.output
+  end
 
   def triggered_action
 
