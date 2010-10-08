@@ -34,7 +34,8 @@ class UserProfile::PageRenderer < ParagraphRenderer
     if @user_profile
       set_title(result.full_name)
       set_title(result.full_name,"profile")
-      set_page_connection(:profile_content, ['UserProfileEntry',@user_profile.id])
+      set_page_connection(:profile_content, @user_profile)
+      set_page_connection(:profile_myself, is_myself ? @user_profile : nil)
       set_content_node(@user_profile)
     end
 
