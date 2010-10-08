@@ -468,7 +468,11 @@ class SiteNode < DomainModel
   
   def can_index?
     return false if self.index_page == 0
-    return false if self.parent && ! self.parent.can_index?
+
+    self.self_and_ancestors.reverse.each do |nd|
+      return false if nd.index_page == 0
+    end
+
     true
   end
 
