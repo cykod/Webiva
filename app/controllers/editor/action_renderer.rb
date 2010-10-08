@@ -12,7 +12,7 @@ class Editor::ActionRenderer < ParagraphRenderer #:nodoc:all
 
     data = paragraph.data
 
-    result = renderer_cache do |cache|
+    result = renderer_cache(nil, 'robots') do |cache|
       output = ''
       SiteNode.find(:all, :conditions => {:index_page => [2,0]}, :order => 'index_page DESC, title').each do |node|
         if node.index_page == 2
