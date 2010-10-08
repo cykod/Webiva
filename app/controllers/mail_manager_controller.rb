@@ -122,7 +122,11 @@ class MailManagerController < CmsController # :nodoc: all
             redirect_to redirect_url
           end
         else
-          redirect_to :action => 'templates'
+          if @mail_template.template_type == 'campaign'
+            redirect_to :action => 'templates', :show_campaign => 1
+          else
+            redirect_to :action => 'templates'
+          end
         end
       end
     end
