@@ -13,18 +13,30 @@ class Editor::ActionRenderer < ParagraphRenderer #:nodoc:all
 
     data = paragraph.data
 
-    result = renderer_cache(nil, 'robots') do |cache|
-      output = ''
-      SiteNode.find(:all, :conditions => {:index_page => [2,0]}, :order => 'index_page DESC, title').each do |node|
+    result = renderer_cache(nil, 'robots', :skip => true) do |cache|
+      pages = ''
+      SiteNode.find(:all, :conditions => {:index_page => [2,0], :node_type => 'P'}, :order => 'index_page DESC, title').each do |node|
         if node.index_page == 2
-          output += "Allow: #{node.node_path}\n"
+          pages += "Allow: #{node.node_path}\n"
         elsif node.index_page == 0
-          output += "Disallow: #{node.node_path}\n"
+          pages += "Disallow: #{node.node_path}\n"
         end
       end
 
-      output = "User-agent: *\n#{output}" unless output.blank?
-      output = "#{data[:extra]}\n#{output}" unless data[:extra].blank?
+      pages = "User-agent: *\n#{pages}" unless pages.blank?
+
+      sitemaps = SiteNode.find(:all, :conditions => {:node_type => 'M', :module_name => '/editor/sitemap'}).collect do |node|
+        output = "Sitemap: #{Configuration.domain_link(node.node_path)}"
+      end.join("\n")
+
+      sitemaps ||= ''
+      data[:extra] ||= ''
+
+      output = ''
+      output += "#{data[:extra]}\n\n" unless data[:extra].blank?
+      output += "#{sitemaps}\n\n" unless sitemaps.blank?
+      output += pages unless pages.blank?
+
       cache[:output] = output
     end
 
