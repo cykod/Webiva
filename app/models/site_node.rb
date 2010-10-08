@@ -466,6 +466,12 @@ class SiteNode < DomainModel
     @page_content = ContentNode.find(:all,:conditions => { :content_type_id => content_type_ids },:include => :node, :order => 'created_at DESC', :limit => limit )
   end
   
+  def can_index?
+    return false if self.index_page == 0
+    return false if self.parent && ! self.parent.can_index?
+    true
+  end
+
   protected
   
   def after_create #:nodoc:

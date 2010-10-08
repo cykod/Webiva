@@ -51,7 +51,7 @@ class Blog::BlogPost < DomainModel
   end
   
   content_node :container_type => :content_node_container_type,  :container_field => Proc.new { |post| post.content_node_container_id },
-  :preview_feature => '/blog/page_feature/blog_post_preview'
+  :preview_feature => '/blog/page_feature/blog_post_preview', :push_value => true
 
   def revision
     @revision ||= self.active_revision ? self.active_revision.clone : Blog::BlogPostRevision.new
