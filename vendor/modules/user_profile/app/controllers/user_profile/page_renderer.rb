@@ -36,6 +36,8 @@ class UserProfile::PageRenderer < ParagraphRenderer
       set_title(result.full_name,"profile")
       set_page_connection(:profile_content, @user_profile)
       set_page_connection(:profile_myself, is_myself ? @user_profile : nil)
+      set_page_connection(:user_target, @user_profile.end_user )
+      set_page_connection(:user_content, [ "EndUser", @user_profile.end_user_id ])
       set_content_node(@user_profile)
     end
 

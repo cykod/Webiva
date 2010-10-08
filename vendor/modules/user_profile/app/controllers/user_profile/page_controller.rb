@@ -4,7 +4,7 @@ class UserProfile::PageController < ParagraphController
 
   editor_header 'User Profile Paragraphs'
 
-  editor_for :display_profile, :name => "Display Profile", :feature => :user_profile_page_display_profile, :inputs => { :user_profile => [ [:url, 'User URL', :path]] }, :outputs => [ [ :profile_content, "Profile Entry",:target], [ :profile_myself, "Viewing Own Profile", :target] ]
+  editor_for :display_profile, :name => "Display Profile", :feature => :user_profile_page_display_profile, :inputs => { :user_profile => [ [:url, 'User URL', :path]] }, :outputs => [ [ :profile_content, "Profile Entry",:target], [ :profile_myself, "Viewing Own Profile", :target], [ :user, 'User Target',:target ], [:user_content, 'User Content', :content ]]
 
   editor_for :list_profiles, :name => 'List Profiles', :feature => :user_profile_page_list_profiles
 
