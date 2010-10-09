@@ -662,9 +662,14 @@ class MembersController < CmsController # :nodoc: all
   end
   
   def member_visits
-    @user = EndUser.find_by_id(params[:path][0]) 
-    @entry_info,@entries = DomainLogEntry.find_user_sessions(@user)
+    @user = EndUser.find_by_id(params[:path][0])
+    @sessions = DomainLogEntry.user_sessions @user.id
     render :partial => 'site_visits'
+  end
+
+  def member_visit_entries
+    @session = DomainLogSession.find params[:path][0]
+    render :partial => 'site_entries', :locals => {:entries => @session.domain_log_entries.find(:all, :order => 'occurred_at DESC')}
   end
 
   def add_tags_form

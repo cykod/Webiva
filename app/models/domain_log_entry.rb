@@ -142,4 +142,13 @@ class DomainLogEntry < DomainModel
       DomainLogEntry.between(from, from+duration).scoped(:select => "count(*) as hits, count( DISTINCT domain_log_session_id ) as visits")
     end
   end
+
+  def self.user_sessions(end_user_id)
+    sessions = DomainLogSession.find :all, :conditions => {:end_user_id => end_user_id}, :include => [:domain_log_referrer, :domain_log_visitor]
+    visitor_ids = DomainLogVisitor.find(:all, :select => :id, :conditions => {:end_user_id => end_user_id}).collect(&:id)
+    sessions += DomainLogSession.find(:all, :conditions => ['domain_log_visitor_id in(?) && (end_user_id IS NULL || end_user_id = ?)', visitor_ids, end_user_id], :include => [:domain_log_referrer, :domain_log_visitor]) unless visitor_ids.empty?
+    sessions = sessions.uniq.sort { |a,b| b.created_at <=> a.created_at }
+    DomainLogSession.update_sessions sessions
+    sessions
+  end
 end

@@ -122,6 +122,12 @@ class DomainLogSession < DomainModel
     end
   end
 
+  def self.update_sessions(sessions)
+    sessions.each do |session|
+      session.calculate! if session.last_entry_at.nil? || session.updated_at.nil? || (session.updated_at < 5.minutes.ago && session.created_at > 1.day.ago)
+    end
+  end
+
   def self.affiliate_scope(from, duration, opts={})
     scope = DomainLogSession.between(from, from+duration)
     scope = scope.scoped(:conditions => {:affiliate => opts[:affiliate]}) if opts[:affiliate]
