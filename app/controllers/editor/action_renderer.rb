@@ -5,6 +5,68 @@ class Editor::ActionRenderer < ParagraphRenderer #:nodoc:all
   paragraph :triggered_action
   paragraph :html_headers, :cache => true
   paragraph :experiment
+  paragraph :robots
+  paragraph :sitemap
+
+  def robots
+    return render_paragraph :text => 'Reconfigure Data Output' unless paragraph.data
+
+    data = paragraph.data
+
+    result = renderer_cache(nil, 'robots', :skip => true) do |cache|
+      pages = ''
+      SiteNode.find(:all, :conditions => {:index_page => [2,0], :node_type => 'P'}, :order => 'index_page DESC, title').each do |node|
+        if node.index_page == 2
+          pages += "Allow: #{node.node_path}\n"
+        elsif node.index_page == 0
+          pages += "Disallow: #{node.node_path}\n"
+        end
+      end
+
+      pages = "User-agent: *\n#{pages}" unless pages.blank?
+
+      sitemaps = SiteNode.find(:all, :conditions => {:node_type => 'M', :module_name => '/editor/sitemap'}).collect do |node|
+        output = "Sitemap: #{Configuration.domain_link(node.node_path)}"
+      end.join("\n")
+
+      sitemaps ||= ''
+      data[:extra] ||= ''
+
+      output = ''
+      output += "#{data[:extra]}\n\n" unless data[:extra].blank?
+      output += "#{sitemaps}\n\n" unless sitemaps.blank?
+      output += pages unless pages.blank?
+
+      cache[:output] = output
+    end
+
+    data_paragraph :disposition => '', :type => 'text/plain', :data => result.output
+  end
+
+  def sitemap
+    return render_paragraph :text => 'Reconfigure Data Output' unless paragraph.data
+
+    data = paragraph.data
+
+    result = renderer_cache(nil, 'sitemap') do |cache|
+      @types = ContentType.find :all
+
+      @detail_pages = @types.index_by(&:detail_site_node_url)
+      @list_pages = @types.index_by(&:list_site_node_url)
+
+      @urls = {}
+      ContentNodeValue.find(:all, :conditions => {:search_result => true, :protected_result => false}, :include => :content_node).each do |value|
+        next if value.link.blank?
+        next if @detail_pages[value.link] && ! @list_pages[value.link]
+        next if value.content_node.node_type == 'SiteNode' && ! value.content_node.node.can_index?
+        @urls[value.link] = {:loc => value.link, :updated_at => value.updated_at}
+      end
+
+      cache[:output] = render_to_string(:partial => '/editor/action/sitemap', :locals => {:data => data, :urls => @urls})
+    end
+
+    data_paragraph :disposition => '', :type => 'text/xml', :data => result.output
+  end
 
   def triggered_action
 
