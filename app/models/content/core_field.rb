@@ -516,7 +516,11 @@ class Content::CoreField < Content::FieldHandler
       output = []
       val.each { |vl|  output << opts[vl] if opts[vl] }
       separator = options[:separator] || ', '
-      h output.join(separator)    
+      output.map! { |itm| h itm.to_s } 
+      output = output.map { |itm| "#{options[:pre]}#{itm}" } if options[:pre]
+      output = output.map { |itm| "#{itm}#{options[:post]}" } if options[:post]
+
+      output.join(separator)    
     end
     filter_setup :not_empty, :multiple_like
   end
