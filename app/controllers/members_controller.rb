@@ -12,7 +12,8 @@ class MembersController < CmsController # :nodoc: all
   
   # need to include 
   include ActiveTable::Controller   
-  
+  include MembersHelper
+
   protected 
 
   def segmentations

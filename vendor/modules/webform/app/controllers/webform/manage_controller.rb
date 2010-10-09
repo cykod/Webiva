@@ -162,11 +162,20 @@ class Webform::ManageController < ModuleController
 
     @ajax = request.xhr?
 
+    @table = params[:table]
+
     if request.post? && params[:result]
       if @result.update_attributes(params[:result])
         @saved = true
-        return render(:nothing => true) if @ajax
-        return redirect_to :action => 'results', :path => @webform.id
+        if @ajax
+          render :update do |page|
+            page << 'SCMS.closeOverlay();'
+            page << "$('#{@table}').onsubmit();" if @table
+          end
+          return
+        else
+          return redirect_to :action => 'results', :path => @webform.id
+        end
       end
     end
 
