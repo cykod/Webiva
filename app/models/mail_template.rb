@@ -114,7 +114,7 @@ class MailTemplate < DomainModel
  end  
 
  def validate
-   if self.template_type == 'campaign'
+   if self.template_type == 'campaign' && self.id
      if self.body_format == 'html'
        errors.add(:body_type, 'is invalid. (Campaign template types can be text or both.)')
      else
