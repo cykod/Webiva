@@ -14,6 +14,8 @@ class Editor::AdminController < ModuleController #:nodoc:all
   content_node_type "Static Pages", "SiteNode",  :search => true, :editable => false, :title_field => :name, :url_field => :node_path
 
   module_for :opensearch, 'OpenSearch', :description => 'Add OpenSearch to your site'
+  module_for :robots, 'Robots.txt', :description => 'Add a robots.txt file to your site'
+  module_for :sitemap, 'Site Map', :description => 'Add a Site Map to your site'
 
   def opensearch
     @node = SiteNode.find_by_id_and_module_name(params[:path][0],'/editor/opensearch') unless @node
@@ -74,4 +76,39 @@ class Editor::AdminController < ModuleController #:nodoc:all
 
   end
 
+  def robots
+    @node = SiteNode.find_by_id_and_module_name(params[:path][0],'/editor/robots') unless @node
+
+    @page_modifier = @node.page_modifier
+
+    @options = RobotsOptions.new(params[:options] || @page_modifier.modifier_data || {})
+    
+    if request.post? && params[:options] && @options.valid?
+      @page_modifier.update_attribute(:modifier_data,@options.to_h)
+      expire_site
+      flash.now[:notice] = 'Updated Options'
+     end
+  end
+
+  class RobotsOptions < HashModel
+    attributes :extra => nil
+  end
+
+  def sitemap
+    @node = SiteNode.find_by_id_and_module_name(params[:path][0],'/editor/sitemap') unless @node
+
+    @page_modifier = @node.page_modifier
+
+    @options = SitemapOptions.new(params[:options] || @page_modifier.modifier_data || {})
+    
+    if request.post? && params[:options] && @options.valid?
+      @page_modifier.update_attribute(:modifier_data,@options.to_h)
+      expire_site
+      flash.now[:notice] = 'Updated Options'
+     end
+  end
+
+  class SitemapOptions < HashModel
+    attributes :extra => nil
+  end
 end

@@ -25,8 +25,8 @@ Please re-enter the URL, no profile exists for the name entered
       c.user_details_tags('user') { |t| t.locals.user }
       c.expansion_tag('user:profile') { |t| t.locals.entry = data[:user_profile].content_model_entry if data[:content_model] }
       c.expansion_tag('logged_in') { |t| myself.id }
-      c.expansion_tag('user:published') { |t| t.locals.user.published? }
-      c.expansion_tag('user:protected') { |t| t.locals.user.protected? } 
+      c.expansion_tag('user:published') { |t| data[:user_profile].published? }
+      c.expansion_tag('user:protected') { |t| data[:user_profile].protected? } 
       c.content_model_fields_value_tags('user:profile', data[:user_profile_type].display_content_model_fields) if data[:content_model]
     end 
   end

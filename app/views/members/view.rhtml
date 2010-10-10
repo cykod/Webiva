@@ -20,8 +20,8 @@ MemberViewer = {
   <%= p.link 'Edit User',:icon => 'pen.png',:action => 'edit', :path => [ @user, @segment ? @segment.id : nil ].compact %>
   <%= p.link 'Login as User', { :icon => 'download.gif',:action => 'login', :path => @user }, :method => 'post' %>
 <% end -%>
-<hr/>
 <% end -%>
+<hr/>
 
 <table width='100%'>
 <tr>
@@ -60,6 +60,7 @@ MemberViewer = {
   </td>
   <td valign='top'>
 
+<div class="tab_container">
 <% ajax_tabs [ 'Details', 'Notes' ] + @handler_tabs, 'Details' do |t| -%>
 
 <% t.tab do -%>
@@ -99,6 +100,7 @@ MemberViewer = {
 <% end -%>
 
 <% end -%>
+</div>
 
   </td>
 </tr>

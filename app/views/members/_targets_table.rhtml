@@ -40,15 +40,8 @@
     %>
   </td>
 
-  <% if @fields -%>
-    <% @fields.each do |field| -%>
-      <%=
-          info = UserSegment::FieldHandler.display_fields[field.to_sym]
-          next unless info
-          value = info[:handler].field_output(t, @handlers_data[info[:handler].to_s], field.to_sym)
-          "<td align='center'>#{value}</td>"
-      %>
-    <% end -%>
+  <% display_segment_fields(t) do |field, output| -%>
+    <td align='center'><%= output %></td>
   <% end -%>
 </tr>  
 
