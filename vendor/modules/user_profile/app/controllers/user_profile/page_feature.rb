@@ -37,7 +37,7 @@ Please re-enter the URL, no profile exists for the name entered
    <ul class='users'>
    <cms:user>
      <li>
-     <img align='left'>
+     <cms:img align='left'>
      <h2><cms:link><cms:name/></cms:link></h2>
      </li>
    </cms:user>
