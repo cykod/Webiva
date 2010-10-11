@@ -5,7 +5,7 @@
 <% table_for entries, [ 'Occurred','Path','Action','User Level'], :class => 'stat_table', :cellspacing => '0', :width => '100%' do |entry| %>
 <tr>
 <td><%= entry.occurred_at.localize @time_format %></td>
-<td>/<%= entry.page_path %></td>
+<td><%= entry.url %></td>
 <td><%= h entry.action || '-' %> </td>
 <td><%= h EndUser.user_level_options[entry.user_level] || '' %></td>
 </tr>
