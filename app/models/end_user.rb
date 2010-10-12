@@ -669,6 +669,8 @@ Not doing so could allow a user to change their user profile (for example) and e
   def current_shipping_address
     if self.shipping_address && !self.shipping_address.address.blank?
      self.shipping_address
+    elsif self.billing_address && !self.billing_address.address.blank?
+      self.billing_address
     else
       self.default_address
     end
