@@ -45,7 +45,7 @@ class ThemeBuilderFetcher
     filename = tmp_path + "/styles.css"
     File.open(filename, 'w') { |f| f.write css }
     File.open(filename, 'r') do |f|
-      DomainFile.create :filename => f, :parent_id => self.base_folder.id
+      DomainFile.create :filename => f, :parent_id => self.base_folder.id, :process_immediately => true
     end
 
     images = {}
