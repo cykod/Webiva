@@ -88,6 +88,7 @@ SEARCH_WIDGET
 
 
   def render_webiva_menu(menu,selected) 
+    return '' unless menu
     menu.items.map do |item|
       <<-EOF
       <li #{"class='selected'" if selected == item.identifier }>
