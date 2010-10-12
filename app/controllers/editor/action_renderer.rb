@@ -56,7 +56,7 @@ class Editor::ActionRenderer < ParagraphRenderer #:nodoc:all
 
       @urls = {}
       ContentNodeValue.find(:all, :conditions => {:search_result => true, :protected_result => false}, :include => :content_node).each do |value|
-        next if value.link.blank?
+        next if value.link.blank? || value.content_node.nil? || value.content_node.node.nil?
         next if @detail_pages[value.link] && ! @list_pages[value.link]
         next if value.content_node.node_type == 'SiteNode' && ! value.content_node.node.can_index?
         @urls[value.link] = {:loc => value.link, :updated_at => value.updated_at}
