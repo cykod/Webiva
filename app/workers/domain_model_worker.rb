@@ -26,7 +26,7 @@ class DomainModelWorker <  Workling::Base #:nodoc:all
     cls = class_name.constantize
 
     results = { :processed => false, :successful => true }
-    Workling.return.set(args[:uid], results)
+    Workling.return.set(jobkey, results)
 
     if (args[:entry_id].blank?)
       ret_val = cls.send(args[:method],args[:params] || {})
@@ -34,7 +34,7 @@ class DomainModelWorker <  Workling::Base #:nodoc:all
     else
       entry = cls.find_by_id(args[:entry_id])
       if entry
-        ret_val = entry.send(args[:method],args[:params] || {})
+        ret_val = entry.send(args[:method],(args[:params] || {}).merge(:uid => jobkey))
         results.merge!(ret_val) if ret_val.is_a?(Hash)
       else
         results[:successful] = false
@@ -42,7 +42,7 @@ class DomainModelWorker <  Workling::Base #:nodoc:all
     end
     
     results[:processed] = true
-    Workling.return.set(args[:uid], results)
+    Workling.return.set(jobkey, results)
     
   end
   
