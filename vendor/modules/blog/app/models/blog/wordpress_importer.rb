@@ -93,6 +93,18 @@ class Blog::WordpressImporter
   end
 
   def parse_body(body)
+    body.gsub!(/(\[caption.*?\])(.*?)\[\/caption\]/) do |match|
+      content = $2
+      div = $1.sub('[caption', '<div').sub(/\]$/, '>').sub('align="', 'class="wp-caption ')
+
+      caption = ''
+      if div =~ /caption=(["'])([^\1]+)\1/
+        caption = $2
+      end
+
+      "#{div}#{content}<p class=\"wp-caption-text\">#{caption}</p></div>"
+    end
+
     body.gsub!(/src=("|')([^\1]+?)\1/) do |match|
       quote = $1
       src = $2
@@ -120,7 +132,19 @@ class Blog::WordpressImporter
 
     status = item['status'] == 'publish' ? 'published' : 'draft'
     disallow_comments = item['comment_status'] == 'open' ? false : true
-    post = self.blog.blog_posts.create :body => self.parse_body(body), :author => item['creator'], :title => item['title'], :published_at => Time.parse(item['pubDate']), :status => status, :disallow_comments => disallow_comments, :permalink => item['post_name'], :created_at => Time.parse(item['post_date_gmt']), :preview => self.parse_body(item['excerpt'])
+    published_at = Time.now
+    begin
+      published_at = Time.parse(item['pubDate'])
+    rescue
+    end
+
+    posted_at = Time.now
+    begin
+      posted_at = Time.parse(item['post_date'])
+    rescue
+    end
+
+    post = self.blog.blog_posts.create :body => self.parse_body(body), :author => item['creator'], :title => item['title'], :published_at => published_at, :status => status, :disallow_comments => disallow_comments, :permalink => item['post_name'], :created_at => posted_at, :preview => self.parse_body(item['excerpt'])
 
     return unless post.id
 
@@ -153,7 +177,14 @@ class Blog::WordpressImporter
     return if comment['comment_content'].blank?
     user = comment['comment_author_email'].blank? ? nil : EndUser.push_target(comment['comment_author_email'], :name => comment['comment_author'])
     rating = comment['comment_approved'] == "1" ? 1 : 0
-    Comment.create :target => post, :end_user_id => user ? user.id : nil, :posted_at => Time.parse(comment['comment_date_gmt']), :posted_ip => comment['comment_author_IP'], :name => comment['comment_author'], :email => comment['comment_author_email'], :comment => comment['comment_content'], :rating => rating
+
+    posted_at = Time.now
+    begin
+      posted_at = Time.parse(comment['comment_date'])
+    rescue
+    end
+
+    Comment.create :target => post, :end_user_id => user ? user.id : nil, :posted_at => posted_at, :posted_ip => comment['comment_author_IP'], :name => comment['comment_author'], :email => comment['comment_author_email'], :comment => comment['comment_content'], :rating => rating
   end
 
   def create_page(item)
