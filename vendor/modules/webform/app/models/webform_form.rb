@@ -138,8 +138,6 @@ class WebformForm < DomainModel
   end
 
   def run_export_csv(args)
-    results = {:completed => 0}
-
     tmp_path = "#{RAILS_ROOT}/tmp/export/"
     FileUtils.mkpath(tmp_path)
     
@@ -149,12 +147,12 @@ class WebformForm < DomainModel
 
     domain_file = DomainFile.save_temporary_file filename, :name => sprintf("%s_%d.%s",'Webform_Results'.t,Time.now.strftime("%Y_%m_%d"),'csv')
 
-    results[:domain_file_id] = domain_file.id
-    results[:entries] = self.webform_form_results.count
-    results[:type] = 'csv'
-    results[:completed] = 1
-
-    results
+    { :filename => filename,
+      :domain_file_id => domain_file.id,
+      :entries => self.webform_form_results.count,
+      :type => 'text/csv',
+      :completed => 1
+    }
   end
 
   def export_csv(filename)
