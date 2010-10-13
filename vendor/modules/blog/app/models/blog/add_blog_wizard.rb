@@ -123,7 +123,7 @@ class Blog::AddBlogWizard < WizardModel
   def create_dummy_category(num=1)
     name = DummyText.words(1).split(' ')[0..1].join(' ')
     category = self.blog.blog_categories.create :name => name
-    category = self.blog.blog_categories.create(:name => "#{name} #{num}") if category.nil?
+    category = self.blog.blog_categories.create(:name => "#{name} #{num}") if category.id.nil?
     category
   end
 
