@@ -430,11 +430,10 @@ class FileController < CmsController # :nodoc: all
     results = Workling.return.get session[:download_worker_key]
 
     @completed = false
-    @failed = false
     if results
-      @completed = results[:processed]
-      @failed = false
+      @completed = results[:processed] || results[:completed]
     end
+    @failed = @completed && results[:domain_file_id].blank?
 
     render :json => {:completed => @completed, :failed => @failed}
   end

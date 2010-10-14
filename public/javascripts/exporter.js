@@ -4,6 +4,7 @@ WebivaExporter = function(opts) {
   var buttonId = opts.button;
   var statusId = opts.status ? opts.status : buttonId + '_status';
   var generateUrl = opts.url;
+  var frm = opts.frm;
   var statusUrl = opts.statusUrl ? opts.statusUrl : '/website/file/export_status';
   var downloadUrl = opts.downloadUrl ? opts.downloadUrl : '/website/file/export_file';
   var onComplete = opts.onComplete;
@@ -50,7 +51,8 @@ WebivaExporter = function(opts) {
       $(statusId).show();
       $(statusId).html('Exporting File');
   
-      $.get(generateUrl, function(data) {
+      var data = frm ? $(frm).serialize() : null;
+      $.post(generateUrl, data, function(data) {
         $(statusId).html('Generating File');
         status();
       });
