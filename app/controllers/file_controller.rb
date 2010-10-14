@@ -435,6 +435,8 @@ class FileController < CmsController # :nodoc: all
     end
     @failed = @completed && results[:domain_file_id].blank?
 
+    session[:download_worker_key] = nil if @failed
+
     render :json => {:completed => @completed, :failed => @failed}
   end
 
