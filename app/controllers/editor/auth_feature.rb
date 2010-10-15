@@ -445,7 +445,7 @@ FEATURE
   
   def email_list_feature(data)
     webiva_feature(:email_list,data) do |c|
-      c.form_for_tag('form','email_list_signup') { !data[:submitted] ? data[:email_list] : nil }
+      c.form_for_tag('form',"email_list_#{paragraph.id}") { !data[:submitted] ? data[:email_list] : nil }
       
       c.define_form_error_tag('form:errors')
       
