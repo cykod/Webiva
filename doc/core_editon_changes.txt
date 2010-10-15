@@ -31,9 +31,6 @@ Removed tell_friend and tell_friend_link paragraphs
 
 
 
-
-Feedback - must add migration 4 into the database manually and remove migration 2 (migration overlap issue) 
-
 # 11 is the old DB name
 old_db = 11
 paras  = PageParagraph.find(:all,:conditions => "display_type in ('code','html') AND display_body like '%/system/storage/#{old_db}%'")
