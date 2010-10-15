@@ -300,6 +300,158 @@ hr { clear:both; border:0px; color:white; background-color:white; height:10px; }
    .page_detail_buttons li.icon a { padding: 2px 5px; }
   .page_detail_buttons li.selected a { color:white; }
 
+/* Active Tree */
+
+.active_tree_node_group {
+  float:left;
+  padding-right:45px;
+}
+
+.active_tree_node_header {
+  font-weight:bold;
+  color: #d85b28;
+  font-size:14px;
+
+}
+
+.active_tree_node_header i {
+  font-weight:normal;
+  color: #aaaaaa;
+  
+}
+
+.active_tree_nodes div {
+  float:left;
+  padding:10px 10px 10px 0px;
+}
+
+.active_tree_node_elem a {
+  color:#53789d;
+  font-weight:bold;
+  text-decoration:none;
+  
+}
+
+.active_tree_node_elem a img {
+  vertical-align:bottom;
+  
+}
+
+ul.active_tree { 
+  list-style-type: none;
+  
+  padding: 0px;
+  margin: 12px;
+}
+
+ul.active_tree ul { 
+  list-style-type: none;
+  display:block;
+  margin-left:14px;
+}
+
+
+ul.active_tree li {
+  margin-top: -6px;
+  padding:2px 0px 2px 0px;
+  clear:both;
+  position:relative;
+}
+
+ul.active_tree li a {
+  padding: 2px 0 0 0px;
+}
+
+ul.active_tree li .handle {
+  float:left;
+  display:block;
+  background: url(../images/icons/tree/file.png) no-repeat left top;
+  width:14px;
+  height:12px;
+  padding:4px 0 0 0;
+  position:relative;
+  z-index:40;
+  cursor: move;
+}
+
+ul.active_tree li.file {
+  padding-left: 18px;
+}
+ul.active_tree li.file a {
+  padding-left: 18px;
+  background: url(file.png) no-repeat left top;
+}
+ul.active_tree li span.toggle {
+  display: block;
+  float: left;
+  width: 15px;
+  height: 14px;
+  margin: 0px 3px 0 0;
+  cursor: pointer;
+  position:relative;
+  z-index:40;
+  top:-2px;
+}
+
+ul.active_tree li .active_tree_leaf_content { 
+  position:relative;
+  z-index:50;
+}
+
+ul.active_tree li span.toggle {
+  background: url(../images/icons/tree/last_open.gif) top left no-repeat;
+}
+
+ul.active_tree li.active_tree_leaf span.no_children {
+  background: url(../images/icons/tree/last.gif) top left;
+}
+
+ul.active_tree li.closed span.toggle {
+  background: url(../images/icons/tree/last_closed.gif) top left no-repeat;
+}
+ul.active_tree li.closed li {
+  display: none;
+}
+
+ul.active_tree li .active_tree_dropper { 
+  position:absolute;
+  left:-20px;
+  width:200px;
+  height:20px;
+  top:0px;
+  z-index:0;
+}
+
+ul.active_tree li.drop_hover >  .active_tree_dropper {
+  background: url(../images/icons/tree/drag.png) no-repeat bottom left;
+}
+ul.active_tree li.drop_top > .active_tree_dropper {
+  background-position: 12px top !important;
+}
+ul.active_tree li.drop_bottom > .active_tree_dropper {
+  background-position: 12px bottom !important;
+  top:auto !important;
+  bottom:0px !important;
+}
+ul.active_tree li.drop_insert > .active_tree_dropper {
+  background-position: 32px 100% !important;
+}
+
+.active_tree_last_item { 
+     background: url(../images/icons/menu/last_top.gif) no-repeat top left;
+}
+
+.active_tree_center_item { 
+    background: url(../images/icons/menu/line.gif) repeat-y top left;
+}
+
+.active_tree_selected_leaf > .active_tree_leaf_content { background-color:#DDDDDD; }
+
+/* Editor Forms */
+.full_page_form table.styled_table {
+ width:100%;
+}
+
 /* Content Models */
 .content_models {
 
