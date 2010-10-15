@@ -122,7 +122,9 @@ class Blog::WordpressImporter
       body.gsub! src, file.editor_url
     end
 
-    simple_format body
+    body.strip!
+    body = simple_format(body) unless body.blank?
+    body
   end
 
   def create_post(categories, item={})
