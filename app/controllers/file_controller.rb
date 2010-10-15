@@ -4,7 +4,7 @@ require 'mime/types'
 
 class FileController < CmsController # :nodoc: all
 
-  permit "editor_files"
+  permit "editor_files", :except => [:export_status, :export_file]
 
   layout "manage"
   
@@ -422,5 +422,34 @@ class FileController < CmsController # :nodoc: all
   end
 
   def update_storage
+  end
+
+  def export_status
+    return render(:nothing => true) unless session[:download_worker_key]
+
+    results = Workling.return.get session[:download_worker_key]
+
+    @completed = false
+    if results
+      @completed = results[:processed] || results[:completed]
+    end
+    @failed = @completed && results[:domain_file_id].blank?
+
+    session[:download_worker_key] = nil if @failed
+
+    render :json => {:completed => @completed, :failed => @failed}
+  end
+
+  def export_file
+    return render(:nothing => true) unless session[:download_worker_key]
+
+    results = Workling.return.get session[:download_worker_key]
+    session[:download_worker_key] = nil
+
+    if results
+      send_domain_file results[:domain_file_id], :type => results[:type]
+    else
+      render :nothing => true
+    end
   end
 end

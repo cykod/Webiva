@@ -46,6 +46,8 @@
       </div>
   <% end -%>
 
+  <%= render :partial => '/file/still_downloading' %>
+
   <h1><%= render_webiva_title(@cms_page_info[:title].is_a?(Array) ? @cms_page_info[:title][-1] : @cms_page_info[:title]) %></h1>
 
   <%= render :partial => '/layouts/wizard_top' if @wizard %>

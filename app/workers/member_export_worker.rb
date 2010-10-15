@@ -72,7 +72,7 @@ class MemberExportWorker <  Workling::Base #:nodoc:all
 
     results[:domain_file_id] = domain_file.id
     results[:entries] = idx
-    results[:type] = 'csv'
+    results[:type] = 'text/csv'
     results[:completed] = 1
 
     Workling.return.set(args[:uid],results)
