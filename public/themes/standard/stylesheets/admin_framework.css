@@ -302,41 +302,6 @@ hr { clear:both; border:0px; color:white; background-color:white; height:10px; }
 
 /* Active Tree */
 
-.active_tree_node_group {
-  float:left;
-  padding-right:45px;
-}
-
-.active_tree_node_header {
-  font-weight:bold;
-  color: #d85b28;
-  font-size:14px;
-
-}
-
-.active_tree_node_header i {
-  font-weight:normal;
-  color: #aaaaaa;
-  
-}
-
-.active_tree_nodes div {
-  float:left;
-  padding:10px 10px 10px 0px;
-}
-
-.active_tree_node_elem a {
-  color:#53789d;
-  font-weight:bold;
-  text-decoration:none;
-  
-}
-
-.active_tree_node_elem a img {
-  vertical-align:bottom;
-  
-}
-
 ul.active_tree { 
   list-style-type: none;
   
