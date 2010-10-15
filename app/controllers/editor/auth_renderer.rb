@@ -670,8 +670,8 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
   def email_list
     @options = paragraph_options(:email_list)
     
-    @user = EmailListUser.new(params[:email_list_signup])
-    if (request.post? || params[:get_post]) && params[:email_list_signup]
+    @user = EmailListUser.new(params["email_list_#{paragraph.id}"] || params[:email_list_signup])
+    if (request.post? || params[:get_post]) && (params["email_list_#{paragraph.id}"]  ||  params[:email_list_signup])
       @user.valid?
       
       unless @options.partial_post == 'yes' && params[:partial_post]
@@ -685,9 +685,13 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
         if !@target.registered?
           @target.first_name = @user.first_name if !@user.first_name.blank? && @options.first_name != 'off'
           @target.last_name = @user.last_name if !@user.last_name.blank? && @options.last_name != 'off'
-          @target.lead_source = @options.user_source unless @options.user_source.blank?
           @target.source = 'website'
           @target.user_level = 4
+          if @target.lead_source.blank?
+            conn_type,conn_id = page_connection
+            @target.lead_source = conn_id if conn_type == :source 
+            @target.lead_source = @options.user_source if @target.lead_source.blank? 
+          end
           @target.save
           if @options.zip != 'off' 
             adr = @target.address || EndUserAddress.new
