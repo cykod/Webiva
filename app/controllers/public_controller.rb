@@ -134,6 +134,9 @@ class PublicController < ApplicationController  # :nodoc: all
   
     # Only editors can access the file store directly
     return render(:inline => 'File not found', :status => 404) unless myself.editor?
+    return render(:inline => 'File not found', :status => 404) unless params[:prefix][-1]
+
+
     
     if (@file_param = params[:prefix][-1].split(":")).length == 2
       @size = @file_param[1] 
