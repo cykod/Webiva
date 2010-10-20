@@ -3,12 +3,7 @@
 require 'radius'
 require 'pp'
 
-begin
-  require 'less'
-  LESS_AVAILABLE = true
-rescue MissingSourceFile => e
-  LESS_AVAILABLE = false
-end
+LESS_AVAILABLE = false
 
 class SiteTemplate < DomainModel
 
