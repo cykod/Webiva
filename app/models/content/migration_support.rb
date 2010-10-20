@@ -102,6 +102,9 @@ module Content::MigrationSupport  #:nodoc:
         field_name_prefix = field[:name].downcase.gsub(/[^a-z0-9]+/,"_")[0..20].singularize
         # use an index if necessary, (e.g. blog_2, etc if necessary )
         field_name_index = 1
+        if field_name_prefix == 'id'
+          field_name_prefix = 'fld_id'
+        end
         field_name_try = field_name_prefix
         
         while self.content_model_fields.find(:first,:conditions => [ 'field=?',field_name_try ] )
