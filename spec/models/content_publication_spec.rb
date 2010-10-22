@@ -5,7 +5,7 @@ describe ContentPublication do
 
   include ContentSpecHelper
 
-  reset_domain_tables :content_publications,:content_publication_fields, :content_model_features
+  reset_domain_tables :content_publications,:content_publication_fields, :content_model_features, :content_tags,:content_tag_tags
 
  
    before(:all) do
@@ -175,7 +175,31 @@ describe ContentPublication do
     end
     
   end
-  
-  
-  
+
+
+  it "should filter items by content tags correctly" do
+    @cm.update_attributes(:show_tags => true)
+
+    @cm.reload
+    cls = @cm.model_class(true)
+
+    @entry0 = cls.create(:string_field => 'a', :text_field => 'Yay!', :tag_names => 'Yes, No, Maybe')
+    @entry1 = cls.create(:string_field => 'b', :text_field => 'Nay!', :tag_names => 'Yes, Go Go, TaDa')
+    @entry2 = cls.create(:string_field => 'c', :text_field => 'Yay!', :tag_names => 'Go Go')
+    @entry3 = cls.create(:string_field => 'd', :text_field => 'Nay!', :tag_names => 'No, Maybe, TaDa')
+
+    @publication = @cm.content_publications.create(:name => 'List',:publication_type => 'list',:publication_module => 'content/core_publication')
+
+
+   @tag = ContentTag.find_by_name('Go Go')
+
+   @paging, @data = @publication.get_list_data(1, { :tags => [ @tag.id ]  }  )
+   @data.length.should == 2 # Should only return first
+
+   @data.include?(@entry0).should be_false
+   @data.include?(@entry1).should be_true
+   @data.include?(@entry2).should be_true
+
+  end
+
 end

@@ -297,9 +297,9 @@ class ContentPublication < DomainModel
 
       tags = (options[:tags]||[]).find_all() { |elm| !elm.blank? }
       if tags.length > 0
-        filter[:conditions] << 'content_tags.id IN (?)'
+        filter[:conditions] << 'content_tag_tags.content_tag_id IN (?)'
         filter[:values] << tags
-        filter[:joins] << "INNER JOIN content_tags ON (`#{content_model.table_name}`.id = content_tags.id)"
+        filter[:joins] << "INNER JOIN content_tag_tags ON (`#{content_model.table_name}`.id = content_tag_tags.content_id AND content_tag_tags.content_type = #{content_model.connection.quote(content_model.table_name.classify)})"
       end
     end
 
