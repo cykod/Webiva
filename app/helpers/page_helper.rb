@@ -22,7 +22,7 @@ module PageHelper
     if css_includes || css_header
       if css_header; css_includes ||= []; css_includes += css_header; end 
       css_includes.uniq.each do |css|
-        concat(" " + stylesheet_link_tag(css) + "\n")
+        concat(" " + stylesheet_link_tag(css, :media => 'all') + "\n")
       end
     end
     nil
