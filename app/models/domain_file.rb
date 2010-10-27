@@ -920,6 +920,7 @@ class DomainFile < DomainModel
     
     File.open(File.join(dir,self.read_attribute(:filename)),'rb') do |f|
       self.filename=f
+      self.process_immediately = true
       self.save
     end
     
