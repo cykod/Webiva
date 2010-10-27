@@ -53,6 +53,37 @@
       openclose: function() { this.toggle(); }
   }
 
+  JForm = {
+      updateform: function(sel) {
+        var settings = sel ? sel.split(",") : [];
+        var url = settings.length > 0 ? settings[0] : document.location.pathname;
+        var container = settings.length > 1 ? settings[1] : $j(this[0].form).parent();
+        var frm = settings.length > 2 ? $j(settings[2]) : $j(this[0].form);
+        $j(this[0]).change(function() {
+          container.load(url, frm.serializeArray());
+        });
+      },
+
+      submitform: function(sel) {
+        var settings = sel ? sel.split(",") : [];
+        var url = settings[0];
+        var frm = $j(this[0]);
+        var container = settings.length > 1 ? settings[1] : frm.parent();
+
+        $j(this[0]).submit(function() {
+          var data = frm.serializeArray();
+          data.push({name: 'commit', value: 1});
+          $j.post(url, data, function(res, status, xhr) {
+            var contentType = xhr.getResponseHeader("Content-Type");
+            if(!(contentType && contentType.match(/^\s*(text|application)\/(x-)?(java|ecma)script(;.*)?\s*$/i))) {
+              container.html(res);
+            }
+          });
+          return false;
+        });
+      }
+  }
+
   JSetup = {
       setup: function() {
         $j("*[j-action]").each(function() {
@@ -65,6 +96,10 @@
               var actfield = acts[i];
               var sel = $j(elem).attr(actfield);
               JAction[acts[i]].call(elem,sel);
+            } else if(JForm[acts[i]]) {
+              var actfield = acts[i];
+              var sel = $j(elem).attr(actfield);
+              JForm[acts[i]].call(elem,sel);
             }
             else if(JClick[acts[i]]) {
               (function(actfield) {
