@@ -16,6 +16,8 @@ class UserProfile::PageController < ParagraphController
 
     validates_presence_of :profile_type_id
 
+    canonical_paragraph "UserProfileType", :profile_type_id
+
     options_form(fld(:profile_type_id,:select,:options => :profile_type_select_options),
                  fld(:default_to_user,:yes_no))
 
