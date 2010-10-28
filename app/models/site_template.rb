@@ -346,7 +346,7 @@ class SiteTemplate < DomainModel
   # the Design Styles
   def self.css_design_styles(site_template_id,lang) 
     css = SiteTemplate.render_template_css(site_template_id,lang,false)
-    Util::CssParser.parse_names(css,['classes']).sort
+    Util::CssParser.parse_names(css,['classes']).sort.map { |elm| elm.to_s[1..-1] }
   end
   
   def self.css_styles(site_template_id,lang)
