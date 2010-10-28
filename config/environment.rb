@@ -99,6 +99,7 @@ Rails::Initializer.run do |config|
   config.gem 'soap4r', :lib => 'soap/soap'
   config.gem "json"
   config.gem "httparty"
+  config.gem "fastercsv"
 
   if RAILS_ENV == 'test'
     config.gem 'factory_girl',:source => 'http://gemcutter.org'

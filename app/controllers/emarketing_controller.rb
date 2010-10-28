@@ -1,5 +1,4 @@
 # Copyright (C) 2009 Pascal Rettig.
-require 'fastercsv'
 
 class EmarketingController < CmsController # :nodoc: all
   include ActionView::Helpers::DateHelper
