@@ -1,4 +1,27 @@
 
+=begin rdoc
+DomainLogGroup's are a collection of stats over a specified time.
+
+Fields:
+ target_type: The model used to collect stats
+ target_id: Optional field, used to generate stats for a specific
+ stat_type: Represents the scope used to generate the stats
+ started_at: Start time
+ duration: The period of time the stats were generated for, in seconds
+ expires_at: When the stats are considered invalid. Used when calculating
+             live stats and you want to cache them for a minute. This is 
+             automatically set to 5.minutes.since if the (from + duration) > Time.now.
+
+Ex:
+# Calculates the amount of traffic for the last 5 days
+
+DomainLogGroup.stats('DomainLogEntry', (Time.now.at_midnight - 5.days), 1.day, 5, :stat_type => 'traffic') do |from, duration|
+  DomainLogEntry.between(from, from+duration).scoped(:select => "count(*) as hits, count( DISTINCT domain_log_session_id ) as visits")
+end
+
+The above method will create 5 groups each with 1 stat.
+=end
+
 class DomainLogGroup < DomainModel
   has_many :domain_log_stats, :dependent => :delete_all
 
