@@ -22,7 +22,7 @@ class UserProfileEntry < DomainModel
 
   cached_content  :identifier => :url
 
-  content_node(:container_type => 'UserProfileType', :container_field => 'user_profile_type_id', :push_value => true, :except => Proc.new() { |e| e.url.blank? })
+  content_node(:container_type => 'UserProfileType', :container_field => 'user_profile_type_id', :push_value => true, :except => Proc.new() { |e| e.url.blank? }, :published => :published)
 
   def self.find_published_profile(url,profile_type_id)
     self.find_by_url_and_user_profile_type_id(url,profile_type_id,:conditions => { :published => true })
