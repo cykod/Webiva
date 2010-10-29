@@ -19,7 +19,7 @@ DomainLogGroup.stats('DomainLogEntry', (Time.now.at_midnight - 5.days), 1.day, 5
   DomainLogEntry.between(from, from+duration).scoped(:select => "count(*) as hits, count( DISTINCT domain_log_session_id ) as visits")
 end
 
-The above method will create 5 groups each with 1 stat.
+'
 =end
 
 class DomainLogGroup < DomainModel
