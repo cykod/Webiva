@@ -733,7 +733,8 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
         end
 
         self.elevate_user_level @target, EndUser::UserLevel::SUBSCRIBED
-        
+        self.visiting_end_user_id = @target.id
+
         # Handle Subscription
         if @options.user_subscription_id
           sub = UserSubscription.find_by_id(@options.user_subscription_id)
