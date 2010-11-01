@@ -52,8 +52,15 @@ Factory.define :domain_log_entry, :class => DomainLogEntry do |d|
   d.user_level nil
 end
 
+Factory.define :domain_log_referrer, :class => DomainLogReferrer do |d|
+  d.sequence(:referrer_domain) { |n| "www.test#{n}.com" }
+  d.sequence(:referrer_path) { |n| "/page#{n}.html" }
+  d.created_at Time.now
+  d.updated_at Time.now
+end
+
 def create_domain_log_session(opts={})
-  visitor = Factory(:domain_log_visitor, opts)
+  visitor = Factory(:domain_log_visitor, opts.slice(:end_user_id))
   opts[:domain_log_visitor_id] = visitor.id
   Factory(:domain_log_session, opts)
 end

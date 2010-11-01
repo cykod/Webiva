@@ -86,6 +86,7 @@ class DomainLogGroup < DomainModel
       :target_type => target_type,
       :target_id => target_id,
       :stat_type => opts[:type],
+      :has_target_entry => opts[:has_target_entry],
       :started_at => started_at,
       :duration => duration.to_i
     }

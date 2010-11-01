@@ -11,7 +11,7 @@ class DomainLogSession < DomainModel
   belongs_to :domain_log_visitor
   belongs_to :site_version
 
-  named_scope :between, lambda { |from, to| {:conditions => ['created_at >= ? AND created_at < ?', from, to]} }
+  named_scope :between, lambda { |from, to| {:conditions => ['domain_log_sessions.created_at >= ? AND domain_log_sessions.created_at < ?', from, to]} }
   named_scope :visits, lambda { |group_by| group_by =~ /_id$/ ? {:select => "#{group_by} as target_id, count(*) as visits", :group => 'target_id'} : {:select => "#{group_by} as target_value, count(*) as visits", :group => 'target_value'} }
   named_scope :hits_n_visits, lambda { |group_by| group_by =~ /_id$/ ? {:select => "#{group_by} as target_id, count(*) as visits, sum(page_count) as hits", :group => 'target_id'} : {:select => "#{group_by} as target_value, count(*) as visits, sum(page_count) as hits", :group => 'target_value'} }
   named_scope :hits_n_visits_n_uniques, lambda { |group_by| group_by =~ /_id$/ ? {:select => "#{group_by} as target_id, count(*) as visits, sum(page_count) as hits, count(DISTINCT ip_address) as stat1", :group => 'target_id'} : {:select => "#{group_by} as target_value, count(*) as visits, sum(page_count) as hits, count(DISTINCT ip_address) as stat1", :group => 'target_value'} }
@@ -152,7 +152,7 @@ class DomainLogSession < DomainModel
 
     DomainLogSession.update_sessions_for from, duration, intervals
 
-    DomainLogGroup.stats('DomainLogGroupEntry', from, duration, intervals, :type => type, :group => group) do |from, duration|
+    DomainLogGroup.stats(self.name, from, duration, intervals, :type => type, :group => group, :has_target_entry => true) do |from, duration|
       self.affiliate_scope from, duration, opts
     end
   end

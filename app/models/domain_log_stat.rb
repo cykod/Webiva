@@ -3,7 +3,7 @@ class DomainLogStat < DomainModel
   belongs_to :domain_log_group
 
   def target_type
-    self.domain_log_group.target_type
+    self.domain_log_group.has_target_entry? ? 'DomainLogGroupEntry' : self.domain_log_group.target_type
   end
 
   def target
