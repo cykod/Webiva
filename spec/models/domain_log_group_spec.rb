@@ -759,7 +759,9 @@ describe DomainLogGroup do
 
       assert_difference 'DomainLogGroup.count', 1 do
         assert_difference 'DomainLogStat.count', 2 do
-          @groups = DomainLogReferrer.traffic(from, duration, intervals, :domain => 'test.com')
+          assert_difference 'DomainLogGroupEntry.count', 2 do
+            @groups = DomainLogReferrer.traffic(from, duration, intervals, :domain => 'test.com')
+          end
         end
       end
 
