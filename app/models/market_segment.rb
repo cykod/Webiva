@@ -11,7 +11,8 @@ class MarketSegment < DomainModel
   has_options :segment_type,
                [['Subscription', 'subscription'],
                 ['User List', 'user_segment'],
-                ['Content Model', 'content_model']]
+                ['Content Model', 'content_model'],
+                ['Everyone', 'everyone']]
                  
 
   named_scope :with_segment_type, lambda { |segment_type| {:conditions => {:segment_type => segment_type}} }
@@ -117,7 +118,11 @@ class MarketSegment < DomainModel
      return nil unless self.options[:user_segment_id]
      @user_segment = UserSegment.find_by_id(self.options[:user_segment_id])
    end
-   
+
+   def self.push_everyone_segment
+     MarketSegment.first(:conditions => {:segment_type => 'everyone'}) || MarketSegment.create(:name => 'Everyone', :segment_type => 'everyone', :options => {})
+   end
+
    private
 
    def subscription_target_count(options={})
@@ -170,5 +175,19 @@ class MarketSegment < DomainModel
    def user_segment_target_entries(options)
      return [] unless self.user_segment
      self.user_segment.batch_users(options).collect { |entry| [ entry.email, entry, entry.id  ] }
+   end
+
+   def everyone_target_count(options={})
+     EndUser.count :conditions => 'client_user_id IS NULL'
+   end
+   
+   def everyone_target_list(options)
+     scope = EndUser.scoped(:conditions => 'client_user_id IS NULL')
+     scope.find(:all, options).collect { |sub| [ sub.email, sub.name ] }
+   end
+   
+   def everyone_target_entries(options)
+     scope = EndUser.scoped(:conditions => 'client_user_id IS NULL')
+     scope.find(:all, options).collect { |entry| [ entry.email, entry, entry.id  ] }
    end
 end

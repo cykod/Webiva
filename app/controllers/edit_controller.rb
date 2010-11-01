@@ -262,7 +262,7 @@ class EditController < ModuleController # :nodoc: all
     get_container
     edit_page_info(@container_type,@container_id,params[:path][2],true)
     
-    @design_styles = SiteTemplate.css_design_styles(@output.css_site_template_id,@revision.language).map { |elm| elm.to_s[1..-1] }
+    @design_styles = SiteTemplate.css_design_styles(@output.css_site_template_id,@revision.language)
 
 
     generate_paragraph_types
