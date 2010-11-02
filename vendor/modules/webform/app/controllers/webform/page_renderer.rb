@@ -27,10 +27,8 @@ class Webform::PageRenderer < ParagraphRenderer
             paragraph.run_triggered_actions(@result,'submitted',user)
             @saved = true
 
-            if user && user.id
-              self.elevate_user_level(user, @options.user_level) if @options.user_level
-              self.visiting_end_user_id = user.id
-            end
+            self.elevate_user_level(user, @options.user_level) if @options.user_level
+            self.visiting_end_user_id = user.id if user && user.id
 
             return redirect_paragraph :site_node => @options.destination_page_id if @options.destination_page_id
           end

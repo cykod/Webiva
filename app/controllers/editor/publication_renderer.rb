@@ -51,7 +51,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
             publication.run_triggered_actions(entry,'create',user)
           end
           
-          self.elevate_user_level(user, @options.user_level) if user && user.id && ! @options.user_level.blank? && @options.user_level > 0
+          self.elevate_user_level(user, @options.user_level) if ! @options.user_level.blank? && @options.user_level > 0
 
           if @options.redirect_page_url
             return redirect_paragraph @options.redirect_page_url
