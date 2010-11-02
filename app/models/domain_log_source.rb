@@ -32,6 +32,22 @@ class DomainLogSource < DomainModel
     DomainLogSource.find(:all, :conditions => {:active => true}, :order => 'position')
   end
 
+  def self.traffic_scope(from, duration, opts={})
+    scope = DomainLogSession.valid_sessions.between(from, from+duration).hits_n_visits('domain_log_source_id')
+    if opts[:target_id]
+      scope = scope.scoped(:conditions => {:domain_log_source_id => opts[:target_id]})
+    end
+    scope
+  end
+
+  def self.traffic(from, duration, intervals, opts={})
+    DomainLogSession.update_sessions_for from, duration, intervals
+
+    DomainLogGroup.stats(self.name, from, duration, intervals, :type => 'traffic') do |from, duration|
+      self.traffic_scope from, duration, opts
+    end
+  end
+
   class AffiliateOptions < HashModel
     def matches?(session)
       session.affiliate.blank? ? false : true

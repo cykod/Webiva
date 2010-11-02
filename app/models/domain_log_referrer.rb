@@ -27,7 +27,7 @@ class DomainLogReferrer  < DomainModel
   end
 
   def self.traffic_scope(from, duration, opts={})
-    scope = DomainLogSession.between(from, from+duration)
+    scope = DomainLogSession.valid_sessions.between(from, from+duration)
     if opts[:target_id]
       scope = scope.scoped(:conditions => {:domain_log_referrer_id => opts[:target_id]}).hits_n_visits('domain_log_referrer_id')
     elsif opts[:domain]

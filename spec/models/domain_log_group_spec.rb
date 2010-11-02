@@ -686,6 +686,9 @@ describe DomainLogGroup do
 
       @referrer4 = Factory(:domain_log_referrer, :referrer_domain => 'mytest.com')
       create_session 4.hours.ago, 2, false, :domain_log_referrer_id => @referrer4.id
+
+      create_session 4.hours.ago, 2, false, :domain_log_referrer_id => @referrer4.id, :ignore => true
+      create_session 4.hours.ago, 2, false, :domain_log_referrer_id => @referrer4.id, :domain_log_source_id => nil
     end
 
     after do
@@ -693,13 +696,13 @@ describe DomainLogGroup do
     end
 
     it "calculate basic traffic stats" do
-      start_time = 1.day.ago
+      from = 1.day.ago
+      duration = 1.day
+      intervals = 1
 
       assert_difference 'DomainLogGroup.count', 1 do
         assert_difference 'DomainLogStat.count', 1 do
-          DomainLogGroup.stats('DomainLogEntry', start_time, 1.day, 1, :stat_type => 'traffic') do |from, duration|
-            DomainLogEntry.between(from, from+duration).hits_n_visits(nil)
-          end
+          DomainLogEntry.traffic(from, duration, intervals)
         end
       end
 

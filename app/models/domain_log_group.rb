@@ -95,7 +95,7 @@ class DomainLogGroup < DomainModel
     group = DomainLogGroup.create attributes
 
     results.each do |result|
-      stat = group.domain_log_stats.create result.attributes.slice('target_id', 'target_value', 'visits', 'hits', 'subscribers', 'leads', 'conversions', 'stat1', 'stat2')
+      stat = group.domain_log_stats.create result.attributes.slice('target_id', 'target_value', 'visits', 'hits', 'subscribers', 'leads', 'conversions', 'stat1', 'stat2', 'total_value')
     end
 
     opts[:class].send(opts[:process_stats], group, opts) if opts[:process_stats]

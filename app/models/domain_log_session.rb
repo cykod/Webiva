@@ -14,9 +14,10 @@ class DomainLogSession < DomainModel
 
   named_scope :between, lambda { |from, to| {:conditions => ['domain_log_sessions.created_at >= ? AND domain_log_sessions.created_at < ?', from, to]} }
   named_scope :visits, lambda { |group_by| group_by =~ /_id$/ ? {:select => "#{group_by} as target_id, count(*) as visits", :group => 'target_id'} : {:select => "#{group_by} as target_value, count(*) as visits", :group => 'target_value'} }
-  named_scope :hits_n_visits, lambda { |group_by| group_by =~ /_id$/ ? {:select => "#{group_by} as target_id, count(*) as visits, sum(page_count) as hits", :group => 'target_id'} : {:select => "#{group_by} as target_value, count(*) as visits, sum(page_count) as hits", :group => 'target_value'} }
-  named_scope :hits_n_visits_n_uniques, lambda { |group_by| group_by =~ /_id$/ ? {:select => "#{group_by} as target_id, count(*) as visits, sum(page_count) as hits, count(DISTINCT ip_address) as stat1", :group => 'target_id'} : {:select => "#{group_by} as target_value, count(*) as visits, sum(page_count) as hits, count(DISTINCT ip_address) as stat1", :group => 'target_value'} }
+  named_scope :hits_n_visits, lambda { |group_by| group_by =~ /_id$/ ? {:select => "#{group_by} as target_id, count(*) as visits, sum(page_count) as hits, sum(session_value) as total_value", :group => 'target_id'} : {:select => "#{group_by} as target_value, count(*) as visits, sum(page_count) as hits, sum(session_value) as total_value", :group => 'target_value'} }
+  named_scope :hits_n_visits_n_uniques, lambda { |group_by| group_by =~ /_id$/ ? {:select => "#{group_by} as target_id, count(*) as visits, sum(page_count) as hits, count(DISTINCT ip_address) as stat1, sum(session_value) as total_value", :group => 'target_id'} : {:select => "#{group_by} as target_value, count(*) as visits, sum(page_count) as hits, count(DISTINCT ip_address) as stat1, sum(session_value) as total_value", :group => 'target_value'} }
   named_scope :referrer_only, :conditions => 'domain_log_referrer_id IS NOT NULL'
+  named_scope :valid_sessions, :conditions => '`ignore` = false AND domain_log_source_id IS NOT NULL'
 
   def self.start_session(user, session, request, site_node=nil)
     return unless request.session_options
@@ -141,7 +142,7 @@ class DomainLogSession < DomainModel
   end
 
   def self.affiliate_scope(from, duration, opts={})
-    scope = DomainLogSession.between(from, from+duration)
+    scope = DomainLogSession.valid_sessions.between(from, from+duration)
     scope = scope.scoped(:conditions => {:affiliate => opts[:affiliate]}) if opts[:affiliate]
     scope = scope.scoped(:conditions => {:campaign => opts[:campaign]}) if opts[:campaign]
     scope = scope.scoped(:conditions => {:origin => opts[:origin]}) if opts[:origin]

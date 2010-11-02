@@ -33,8 +33,8 @@ Factory.define :domain_log_session, :class => DomainLogSession do |d|
   d.site_version_id nil
   d.updated_at Time.now
   d.user_level nil
-  d.ignore true
-  d.domain_log_source_id nil
+  d.ignore false
+  d.domain_log_source_id 6
   d.session_value nil
 end
 
