@@ -64,6 +64,10 @@ class DomainLogSession < DomainModel
 
   end
 
+  def before_save
+    self.ignore ||= true if self.end_user_id && self.end_user && self.end_user.client_user?
+  end
+
   def username
     self.end_user_id ? self.end_user.name : 'Anonymous'.t
   end
