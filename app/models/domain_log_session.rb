@@ -10,6 +10,7 @@ class DomainLogSession < DomainModel
   belongs_to :domain_log_referrer
   belongs_to :domain_log_visitor
   belongs_to :site_version
+  belongs_to :domain_log_source
 
   named_scope :between, lambda { |from, to| {:conditions => ['domain_log_sessions.created_at >= ? AND domain_log_sessions.created_at < ?', from, to]} }
   named_scope :visits, lambda { |group_by| group_by =~ /_id$/ ? {:select => "#{group_by} as target_id, count(*) as visits", :group => 'target_id'} : {:select => "#{group_by} as target_value, count(*) as visits", :group => 'target_value'} }
@@ -76,7 +77,6 @@ class DomainLogSession < DomainModel
     end
   end
 
-  
   def last_entry_at(force = false)
     atr = self.read_attribute(:last_entry_at)
     if atr.blank? || force
@@ -84,7 +84,6 @@ class DomainLogSession < DomainModel
     else  
       atr
     end
-    
   end
   
   def length(force = false)
@@ -97,8 +96,17 @@ class DomainLogSession < DomainModel
     end
   end
   
+  def session_value(force = false)
+    atr =  self.read_attribute(:session_value)
+    if atr.blank? || force
+      self.domain_log_entries.sum(:value)
+    else
+      atr
+    end
+  end
+
   def calculate!
-    self.update_attributes(:page_count => self.page_count(true), :last_entry_at => self.last_entry_at(true), :length => self.length(true), :updated_at => Time.now)
+    self.update_attributes(:page_count => self.page_count(true), :last_entry_at => self.last_entry_at(true), :length => self.length(true), :session_value => self.session_value(true), :updated_at => Time.now)
   end
 
   def self.update_stats(domain_log_session_id, page_count, last_entry_at)
@@ -165,6 +173,16 @@ class DomainLogSession < DomainModel
     origins = DomainLogSession.find(:all, :select => 'DISTINCT origin', :conditions => ['origin IS NOT NULL && created_at > ?', 2.months.ago]).collect(&:origin)
     DataCache.put_container 'Affiliates', nil, {'affiliates' => affiliates, 'campaigns' => campaigns, 'origins' => origins}, 10.minutes
     return affiliates, campaigns, origins
+  end
+
+  def self.log_source(cookies, session)
+    return unless session[:domain_log_session] && session[:domain_log_session][:id]
+
+    ses = DomainLogSession.find_by_id session[:domain_log_session][:id]
+    return unless ses
+
+    source = DomainLogSource.get_source ses
+    ses.update_attributes :ignore => false, :domain_log_source_id => source.id if source
   end
 
   class Tracking

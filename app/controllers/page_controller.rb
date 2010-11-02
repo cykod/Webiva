@@ -51,6 +51,7 @@ class PageController < ModuleAppController
 
   def webalytics
     DomainLogVisitor.log_location(cookies,session,params[:loc])
+    DomainLogSession.log_source(cookies, session)
     render :nothing => true
   end
   

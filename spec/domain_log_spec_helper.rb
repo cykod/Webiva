@@ -1,4 +1,3 @@
-
 Factory.define :end_user, :class => EndUser do |d|
   d.sequence(:email) { |n| "user#{n}@test.dev" }
 end
@@ -34,6 +33,9 @@ Factory.define :domain_log_session, :class => DomainLogSession do |d|
   d.site_version_id nil
   d.updated_at Time.now
   d.user_level nil
+  d.ignore true
+  d.domain_log_source_id nil
+  d.session_value nil
 end
 
 Factory.define :domain_log_entry, :class => DomainLogEntry do |d|
@@ -50,6 +52,7 @@ Factory.define :domain_log_entry, :class => DomainLogEntry do |d|
   d.domain_id nil
   d.site_version_id nil
   d.user_level nil
+  d.value nil
 end
 
 Factory.define :domain_log_referrer, :class => DomainLogReferrer do |d|
@@ -69,4 +72,9 @@ def create_domain_log_entry(session, opts={})
   opts[:user_id] = session.domain_log_visitor.end_user_id
   opts[:domain_log_session_id] = session.id
   Factory(:domain_log_entry, opts)
+end
+
+def setup_domain_log_sources
+  # from db/migrate/20101101174337_add_has_target_entry_to_domain_log_group.rb
+  DomainLogSource.connection.execute "INSERT INTO domain_log_sources (name, position, source_handler, options) VALUES('Affiliate', 1, 'domain_log_source/affiliate', ''), ('Email Campaign', 2, 'domain_log_source/email_campaign', ''), ('Social Network', 3, 'domain_log_source/social_network', ''), ('Search', 4, 'domain_log_source/search', ''), ('Referrer', 5, 'domain_log_source/referrer', ''), ('Type-in', 6, 'domain_log_source/type_in', '')"
 end
