@@ -414,6 +414,7 @@ EOF
   class RedirectOutput < Output #:nodoc:all
     attr_accessor :redirect
     attr_accessor :user_level
+    attr_accessor :user_value
     def redirect?
       true
     end
@@ -439,6 +440,7 @@ EOF
     attr_accessor :meta_keywords
     attr_accessor :content_nodes
     attr_accessor :user_level
+    attr_accessor :user_value
 
     def initialize
       super
@@ -702,6 +704,7 @@ EOF
                     @output = RedirectOutput.new
                     @output.status = result.args.delete(:status)  if result.args.is_a?(Hash)
                     @output.user_level = result.user_level
+                    @output.user_value = result.user_value
 
                     @output.paction = result.paction if result.paction
                     @output.redirect = result.args
@@ -714,7 +717,12 @@ EOF
 
                   if result.is_a?(ParagraphRenderer::ParagraphOutput)
                     @page_information[:user_level] = result.user_level if result.user_level && result.user_level > @page_information[:user_level].to_i
-                    
+
+                    if result.user_value
+                      @page_information[:user_value] ||= 0.0
+                      @page_information[:user_value] += result.user_value.to_f
+                    end
+
                     page_connections.merge!(result.page_connections  || {}) 
                     # Get any remaining includes 
                     result.includes.each do |inc_type,inc_value|
@@ -756,6 +764,7 @@ EOF
     @output = PageOutput.new
 
     @output.user_level = @page_information.user_level
+    @output.user_value = @page_information.user_value
     @output.revision = @page_information.revision
     @output.status = '200'
     @output.language = @language

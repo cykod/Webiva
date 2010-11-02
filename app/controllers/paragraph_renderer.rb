@@ -11,6 +11,7 @@ class ParagraphRenderer < ParagraphFeature
       attr_accessor :paction
       attr_accessor :args
       attr_accessor :user_level
+      attr_accessor :user_value
 
       def initialize(args)
         @args = args
@@ -34,6 +35,7 @@ class ParagraphRenderer < ParagraphFeature
     attr_accessor :content_nodes
     attr_accessor :paragraph_id
     attr_accessor :user_level
+    attr_accessor :user_value
 
     def method_missing(method,args)
       @rnd.send(method)
@@ -170,11 +172,17 @@ class ParagraphRenderer < ParagraphFeature
   end 
 
   def elevate_user_level(user, user_level)
-    @paragraph_user_level = user_level if user.elevate_user_level(user_level)
+    user.elevate_user_level(user_level)
+    @paragraph_user_level = user_level
   end
 
   def unsubscribe_user(user)
     @paragraph_user_level = user_level if user.unsubscribe
+  end
+
+  def set_user_value(val)
+    @paragraph_user_value ||= 0.0
+    @paragraph_user_value += val.to_f
   end
 
   attr_reader :user_class
@@ -586,9 +594,11 @@ class ParagraphRenderer < ParagraphFeature
       @paragraph_output.page_title = @page_title
       @paragraph_output.content_nodes = @content_node_list
       @paragraph_output.user_level = @paragraph_user_level if @paragraph_output.is_a?(ParagraphOutput)
+      @paragraph_output.user_value = @paragraph_user_value if @paragraph_output.is_a?(ParagraphOutput)
     elsif @paragraph_output.is_a?(ParagraphRedirect)
       @paragraph_output.paction = @paction
       @paragraph_output.user_level = @paragraph_user_level
+      @paragraph_output.user_value = @paragraph_user_value
     end
     @paragraph_output 
   end
