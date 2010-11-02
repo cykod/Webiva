@@ -21,6 +21,8 @@ class AddHasTargetEntryToDomainLogGroup < ActiveRecord::Migration
 
     add_column :domain_log_stats, :total_value, :decimal, :precision => 14, :scale => 2, :default => 0.0
 
+    add_column :end_users, :value, :decimal, :precision => 14, :scale => 2, :default => 0.0
+
     self.connection.execute "INSERT INTO domain_log_sources (name, position, source_handler, options) VALUES('Affiliate', 1, 'domain_log_source/affiliate', ''), ('Email Campaign', 2, 'domain_log_source/email_campaign', ''), ('Social Network', 3, 'domain_log_source/social_network', ''), ('Search', 4, 'domain_log_source/search', ''), ('Referrer', 5, 'domain_log_source/referrer', ''), ('Type-in', 6, 'domain_log_source/type_in', '')"
 
     # Update session sources
@@ -56,5 +58,7 @@ class AddHasTargetEntryToDomainLogGroup < ActiveRecord::Migration
     remove_column :domain_log_entries, :value
 
     remove_column :domain_log_stats, :total_value
+
+    remove_column :end_users, :value
   end
 end

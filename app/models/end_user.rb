@@ -556,6 +556,14 @@ class EndUser < DomainModel
     end
   end
 
+  def update_user_value(val)
+    self.class.update_user_value self.id, val
+  end
+
+  def self.update_user_value(end_user_id, val)
+    self.connection.execute "UPDATE end_users SET `value` = `value` + #{val} WHERE id = #{end_user_id}"
+  end
+
   def update_editor_login #:nodoc:
     if self.registered? && self.activated? && self.editor?
       editor_login= EditorLogin.find_by_domain_id_and_email(Configuration.domain_id,self.email) || EditorLogin.new

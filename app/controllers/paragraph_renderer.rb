@@ -172,15 +172,17 @@ class ParagraphRenderer < ParagraphFeature
   end 
 
   def elevate_user_level(user, user_level)
-    user.elevate_user_level(user_level)
+    user.elevate_user_level(user_level) if user && user.id
     @paragraph_user_level = user_level
   end
 
   def unsubscribe_user(user)
-    @paragraph_user_level = user_level if user.unsubscribe
+    user.unsubscribe if user && user.id
+    @paragraph_user_level = user_level
   end
 
-  def set_user_value(val)
+  def set_user_value(user, val)
+    user.update_user_value(val) if user && user.id
     @paragraph_user_value ||= 0.0
     @paragraph_user_value += val.to_f
   end
