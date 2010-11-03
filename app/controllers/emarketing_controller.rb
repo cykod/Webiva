@@ -13,8 +13,41 @@ class EmarketingController < CmsController # :nodoc: all
 
   def index
     cms_page_path [],'Marketing'
-    
-    @traffic = DomainLogSource.traffic Time.now.at_midnight, 1.day, 5
+
+    interval = 3
+
+    @groups = DomainLogSource.traffic(Time.now.at_midnight - (interval-1).days, 1.day, interval).reverse
+    @sources = DomainLogSource.sources.reverse
+
+    @traffic = @groups.collect do |group|
+      hits = 0
+      visits = 0
+      subscribers = 0
+      leads = 0
+      conversions = 0
+      total_value = 0
+
+      stats = group.domain_log_stats.index_by(&:target_id)
+
+      group.domain_log_stats.each do |stat|
+        hits += stat.hits.to_i
+        visits += stat.visits.to_i
+        subscribers += stat.subscribers.to_i
+        leads += stat.leads.to_i
+        conversions += stat.conversions.to_i
+        total_value += stat.total_value.to_f
+      end
+
+      { :started_at => group.started_at,
+        :ended_at => group.ended_at,
+        :duration => group.duration,
+        :total_value => total_value,
+        :hits => hits,
+        :visits => visits,
+        :user_levels => [(visits - (subscribers + leads + conversions)), subscribers, leads, conversions],
+        :sources => @sources.collect { |source| stats[source.id] ? stats[source.id].visits : 0 }
+      }
+    end
 
     @subpages = [
        [ "Visitor Statistics", :editor_visitors, "traffic_visitors.png", { :action => 'visitors' }, 

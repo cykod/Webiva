@@ -45,6 +45,9 @@ class AddHasTargetEntryToDomainLogGroup < ActiveRecord::Migration
 
     # ignore client users
     self.connection.execute 'UPDATE domain_log_sessions, end_users SET `ignore` = 1 WHERE end_user_id IS NOT NULL AND end_user_id = end_users.id AND end_users.client_user_id IS NOT NULL'
+
+    # ignore visitors that do not have a country
+    self.connection.execute 'UPDATE domain_log_sessions, domain_log_visitors SET `ignore` = 1 WHERE domain_log_visitor_id IS NOT NULL AND domain_log_visitor_id = domain_log_visitors.id AND domain_log_visitors.country IS NULL'
   end
 
   def self.down
