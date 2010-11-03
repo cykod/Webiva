@@ -6,6 +6,17 @@ class DomainLogSource < DomainModel
 
   serialize :options
 
+  def self.chart_traffic_handler_info
+    {
+      :name => 'Traffic Sources',
+      :icon => 'traffic_referrer.png',
+      :url => { :controller => '/emarketing', :action => 'charts', :path => ['traffic'] + self.name.underscore.split('/') }
+    }
+  end
+
+  def title; self.name; end
+  def admin_url; nil; end
+
   def self.get_source(session)
     self.sources.each do |source|
       return source if source.matches?(session)

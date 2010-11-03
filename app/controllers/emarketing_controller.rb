@@ -14,7 +14,8 @@ class EmarketingController < CmsController # :nodoc: all
   def index
     cms_page_path [],'Marketing'
     
-    
+    @traffic = DomainLogSource.traffic Time.now.at_midnight, 1.day, 5
+
     @subpages = [
        [ "Visitor Statistics", :editor_visitors, "traffic_visitors.png", { :action => 'visitors' }, 
           "View and Track Visitors to your site" ],
