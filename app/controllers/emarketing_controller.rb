@@ -90,7 +90,7 @@ class EmarketingController < CmsController # :nodoc: all
         :date => @date.strftime('%F'),
         :user_levels => @traffic.collect{|t| t[:user_levels][1..-1]},
         :sources => @traffic.collect{|t| t[:sources]},
-        :total_values => @traffic.collect{|t| number_to_currency(t[:total_value])},
+        :total_values => @traffic.collect{|t| t[:total_value].to_f > 0.0 ? number_to_currency(t[:total_value]) : ''},
         :days => @traffic.collect{|t| t[:started_at].strftime('%A')},
         :dates => @traffic.collect{|t| t[:started_at].strftime('%F')}
       }

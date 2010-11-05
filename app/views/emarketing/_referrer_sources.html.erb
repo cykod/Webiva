@@ -2,18 +2,18 @@
 <div class="active_table_wrapper">
 <table cellpadding='0' cellspacing='0' class='active_table'>
 <tr>
-<th class="first" colspan="2" width="200"><a href="javascript:void(0);" onclick="SourcesCharts.next()">Next</a></th>
+<th class="first" colspan="2" width="200"><a href="javascript:void(0);" onclick="SourcesCharts.next()"><%= 'Next'.t %></a></th>
 <% @traffic.each_with_index do |t, index| -%>
 <th class="day"><span id="chart_day<%= index + 1 %>"><%= t[:started_at].strftime('%A') %></span></th>
 <% end -%>
-<th width="200"><div align="right"><a href="javascript:void(0);" onclick="SourcesCharts.prev()">Prev</a></div></th>
+<th width="200"><div align="right"><a href="javascript:void(0);" onclick="SourcesCharts.prev()"><%= 'Previous'.t %></a></div></th>
 </tr>
 
 <tr>
 <td class="section"><%= 'Revenue'.t %></td>
 <td></td>
 <% @traffic.each_with_index do |t, index| -%>
-<td class="value" align="center"><span id="chart_value<%= index + 1 %>"><%= number_to_currency t[:total_value] %></span></td>
+<td class="value" align="center"><span id="chart_value<%= index + 1 %>"><%= t[:total_value].to_f > 0.0 ? number_to_currency(t[:total_value]) : '' %></span></td>
 <% end -%>
 <td></td>
 </tr>
