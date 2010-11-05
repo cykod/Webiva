@@ -123,6 +123,21 @@ class MarketSegment < DomainModel
      MarketSegment.first(:conditions => {:segment_type => 'everyone'}) || MarketSegment.create(:name => 'Everyone', :segment_type => 'everyone', :options => {})
    end
 
+   def data_model_class
+     case self.segment_type
+     when 'subscription'
+       UserSubscriptionEntry
+     when 'user_segment'
+       EndUser
+     when 'everyone'
+       EndUser
+     when 'content_model'
+       self.content_model.content_model
+     else
+       nil
+     end
+   end
+
    private
 
    def subscription_target_count(options={})
