@@ -27,22 +27,9 @@ WebivaStatsChart = function(opts) {
   }
 
   var maxUserLevel = 0;
-  for(var i=0; i<user_levels.length; i++) {
-    var sum = 0;
-    for(var j=0; j<user_levels[i].length; j++) { sum += user_levels[i][j]; }
-    if(maxUserLevel < sum) {
-      maxUserLevel = sum;
-    }
-  }
 
   var maxVisits = 0;
   var visits = new Array();
-  for(var i=0; i<sources[0].length; i++) {
-    var sum = 0;
-    for(var j=0; j<sources.length; j++) { sum += sources[j][i]; }
-    if(maxVisits < sum) { maxVisits = sum; }
-    visits.push(sum);
-  }
 
   var fonts = {
     legend: {font: '12px sans-serif', color: fontColor, margin: 15},
@@ -52,13 +39,42 @@ WebivaStatsChart = function(opts) {
   };
 
   var dimensions = {
-    bar: {width: 150, height: 400, bottom: 10},
+    bar: {width: 150, height: 400, top: 5, bottom: 5},
     pie: {radius: 0, y: 0, area:0},
     padding: 30
   };
 
   dimensions.pie.radius = dimensions.bar.width / 2 - 8;
   dimensions.pie.area = dimensions.pie.radius * dimensions.pie.radius * Math.PI;
+
+  function load(data) {
+    user_levels = data.user_levels;
+    sources = data.sources;
+    setup();
+  }
+
+  function setup() {
+    maxUserLevel = 0;
+    maxVisits = 0;
+    visits = new Array();
+
+    for(var i=0; i<user_levels.length; i++) {
+      var sum = 0;
+      for(var j=0; j<user_levels[i].length; j++) { sum += user_levels[i][j]; }
+      if(maxUserLevel < sum) {
+        maxUserLevel = sum;
+      }
+    }
+
+    for(var i=0; i<sources.length; i++) {
+      var sum = 0;
+      for(var j=0; j<sources[i].length; j++) { sum += sources[i][j]; }
+      if(maxVisits < sum) { maxVisits = sum; }
+      visits.push(sum);
+    }
+  }
+
+  setup();
 
   function legend(vis, x, y, colors, labels, callback) {
     vis.add(pv.Bar)
@@ -93,7 +109,7 @@ WebivaStatsChart = function(opts) {
         r = Math.sqrt(area / Math.PI);
 
     vis.add(pv.Bar)
-    .top(1)
+    .top(0)
     .left(0)
     .width(dimensions.bar.width-1)
     .height(dimensions.bar.width-1)
@@ -127,18 +143,18 @@ WebivaStatsChart = function(opts) {
         data = new Array(),
         y = pv.Scale.linear(0, maxVisits).range(0, dimensions.bar.height);
 
-    for(var i=0; i<sources.length; i++) {
+    for(var i=0; i<sources[index].length; i++) {
       if(sources_to_display[i]) {
-        data.push([sources[i][index]]);
+        data.push([sources[index][i]]);
         colors.push(source_colors[i]);
       }
     }
 
     colors.push('#EEEEEE');
     var sum = 0;
-    for(var i=0; i<sources.length; i++) {
+    for(var i=0; i<sources[index].length; i++) {
       if(! sources_to_display[i]) {
-        sum += sources[i][index];
+        sum += sources[index][i];
       }
     }
 
@@ -149,6 +165,7 @@ WebivaStatsChart = function(opts) {
     var vis = new pv.Panel()
     .width(dimensions.bar.width)
     .height(dimensions.bar.height)
+    .top(dimensions.bar.top)
     .bottom(dimensions.bar.bottom)
     .left(0)
     .fillStyle(backgroundColor)
@@ -168,6 +185,9 @@ WebivaStatsChart = function(opts) {
     .text(function(d) d > 0 ? d : '');
 
     var numTicks = 5;
+    if(numTicks > maxVisits) {
+      numTicks = maxVisits;
+    }
 
     /* Y-axis ticks. */
     vis.add(pv.Rule)
@@ -199,11 +219,16 @@ WebivaStatsChart = function(opts) {
     var dim = getTextDims('0', fonts.ticks.font);
     var width = maxVisits.toString().length * dim.width + 10;
     var numTicks = 5;
+    if(numTicks > maxVisits) {
+      numTicks = maxVisits;
+    }
+
 
     /* The root panel. */
     var vis = new pv.Panel()
     .width(5)
     .height(dimensions.bar.height)
+    .top(dimensions.bar.top)
     .bottom(dimensions.bar.bottom)
     .left(width)
     .canvas(canvas);
@@ -229,6 +254,7 @@ WebivaStatsChart = function(opts) {
     var vis = new pv.Panel()
     .width(200)
     .height(dimensions.bar.height)
+    .top(dimensions.bar.top)
     .bottom(dimensions.bar.bottom)
     .left(0)
     .canvas(canvas);
@@ -278,5 +304,5 @@ WebivaStatsChart = function(opts) {
     drawUserLevelsLegend('chart_pie_legend');
   }
 
-  return {draw: draw};
+  return {draw: draw, load: load};
 };

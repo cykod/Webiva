@@ -2,6 +2,7 @@
 
 class EmarketingController < CmsController # :nodoc: all
   include ActionView::Helpers::DateHelper
+  include ActionView::Helpers::NumberHelper
 
   layout 'manage'
 
@@ -14,9 +15,44 @@ class EmarketingController < CmsController # :nodoc: all
   def index
     cms_page_path [],'Marketing'
 
-    interval = 3
+    @subpages = [
+       [ "Visitor Statistics", :editor_visitors, "traffic_visitors.png", { :action => 'visitors' }, 
+          "View and Track Visitors to your site" ],
+       [ "Real Time Statistics", :editor_visitors, "traffic_realtime.png", { :action => 'stats' }, 
+          "View Real Time Visits to your site" ]
+    ]
 
-    @groups = DomainLogSource.traffic(Time.now.at_midnight - (interval-1).days, 1.day, interval).reverse
+    get_handler_info(:chart, :traffic).each do |handler|
+      @subpages << [handler[:name], :editor_visitors, handler[:icon] || 'traffic_page.png', handler[:url], handler[:description] || handler[:name]]
+    end
+
+    require_js 'protovis/protovis-r3.2'
+    require_js 'protovis/protovis-d3.2'
+    require_js 'tipsy/jquery.tipsy'
+    require_js 'protovis/tipsy'
+    require_js 'charts/sources'
+    require_css 'tipsy/tipsy.css'
+
+    sources_charts(false)
+
+    @subpages << ['Affiliate Traffic', :editor_visitors, 'traffic_visitors.png', {:action => 'affiliates'}, 'View Affiliate Traffic']
+
+    @subpages << ['Experiments', :editor_visitors, 'traffic_visitors.png', {:controller => '/experiment', :action => 'index'}, 'View Experiments Results']
+  end
+
+
+  def sources_charts(display=true)
+    interval = 5
+
+    @date = params[:date] ? Time.parse(params[:date]) : Time.now - (interval-1).days
+    case params[:direction]
+    when 'prev'
+      @date -= 1.day
+    when 'next'
+      @date += 1.day
+    end
+
+    @groups = DomainLogSource.traffic(@date.at_midnight, 1.day, interval).reverse
     @sources = DomainLogSource.sources.reverse
 
     @traffic = @groups.collect do |group|
@@ -49,22 +85,20 @@ class EmarketingController < CmsController # :nodoc: all
       }
     end
 
-    @subpages = [
-       [ "Visitor Statistics", :editor_visitors, "traffic_visitors.png", { :action => 'visitors' }, 
-          "View and Track Visitors to your site" ],
-       [ "Real Time Statistics", :editor_visitors, "traffic_realtime.png", { :action => 'stats' }, 
-          "View Real Time Visits to your site" ]
-    ]
-
-    get_handler_info(:chart, :traffic).each do |handler|
-      @subpages << [handler[:name], :editor_visitors, handler[:icon] || 'traffic_page.png', handler[:url], handler[:description] || handler[:name]]
+    if display
+      render :json => {
+        :date => @date.strftime('%F'),
+        :user_levels => @traffic.collect{|t| t[:user_levels][1..-1]},
+        :sources => @traffic.collect{|t| t[:sources]},
+        :total_values => @traffic.collect{|t| number_to_currency(t[:total_value])},
+        :days => @traffic.collect{|t| t[:started_at].strftime('%A')},
+        :dates => @traffic.collect{|t| t[:started_at].strftime('%F')}
+      }
+    else
+      @date += 1.day
     end
-
-    @subpages << ['Affiliate Traffic', :editor_visitors, 'traffic_visitors.png', {:action => 'affiliates'}, 'View Affiliate Traffic']
-
-    @subpages << ['Experiments', :editor_visitors, 'traffic_visitors.png', {:controller => '/experiment', :action => 'index'}, 'View Experiments Results']
   end
-  
+
  include ActiveTable::Controller   
   active_table :visitor_table,
                 DomainLogVisitor,

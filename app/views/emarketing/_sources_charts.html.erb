@@ -1,0 +1,67 @@
+
+<table>
+<tr>
+<td></td>
+<td><a href="javascript:void(0);" onclick="SourcesCharts.next()">Next</a></td>
+<% @traffic.each_with_index do |t, index| -%>
+<th><span id="chart_day<%= index + 1 %>"><%= t[:started_at].strftime('%A') %></span></th>
+<% end -%>
+<td><a href="javascript:void(0);" onclick="SourcesCharts.prev()">Prev</a></td>
+</tr>
+
+<tr>
+<td><%= 'Revenue'.t %></td>
+<td></td>
+<% @traffic.each_with_index do |t, index| -%>
+<td><span id="chart_value<%= index + 1 %>"><%= number_to_currency t[:total_value] %></span></td>
+<% end -%>
+<td></td>
+</tr>
+
+<tr>
+<td><%= 'Conversions'.t %></td>
+<td></td>
+<% @traffic.each_with_index do |t, index| -%>
+<td><div id="chart_pie<%= index + 1 %>"></div></td>
+<% end -%>
+<td><div id="chart_pie_legend"></div></td>
+</tr>
+
+<tr>
+<td><%= 'Visitors'.t %></td>
+<td><div id="chart_bar_ruler"></div></td>
+<% @traffic.each_with_index do |t, index| -%>
+<td><div id="chart_bar<%= index + 1 %>"></div></td>
+<% end -%>
+<td><div id="chart_bar_legend"></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<% @traffic.each_with_index do |t, index| -%>
+<td><span id="chart_date<%= index + 1 %>"><%= t[:started_at].strftime('%F') %></span></td>
+<% end -%>
+<td></td>
+</tr>
+
+</table>
+
+<script type="text/javascript">
+
+SourcesCharts.chart = WebivaStatsChart(
+{
+user_level_types: ['Subscribers', 'Leads', 'Conversions'],
+user_level_colors: ['#C7CB2D', '#754C28', '#FF0000'],
+
+source_types: <%= @sources.collect(&:name).to_json %>,
+source_colors: ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"],
+
+sources: <%= @traffic.collect { |t| t[:sources] }.to_json %>,
+
+user_levels: <%= @traffic.collect { |t| t[:user_levels][1..-1] }.to_json %>
+
+});
+
+SourcesCharts.chart.draw();
+</script>

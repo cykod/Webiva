@@ -117,6 +117,7 @@ class DomainLogSession < DomainModel
   def self.update_stats(domain_log_session_id, page_count, last_entry_at, session_value)
     last_entry_at = DomainModel.connection.quote last_entry_at
     updated_at = DomainModel.connection.quote Time.now
+    session_value ||= 0
     DomainLogSession.connection.execute "UPDATE `domain_log_sessions` SET page_count = #{page_count}, last_entry_at = #{last_entry_at}, length = UNIX_TIMESTAMP(#{last_entry_at}) - UNIX_TIMESTAMP(created_at), updated_at = #{updated_at}, session_value = #{session_value} WHERE id = #{domain_log_session_id}"
   end
 
