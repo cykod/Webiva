@@ -42,7 +42,7 @@ class EmarketingController < CmsController # :nodoc: all
 
 
   def referrer_sources(display=true)
-    interval = 5
+    interval = 3
 
     @date = params[:date] ? Time.parse(params[:date]) : Time.now - (interval-1).days
     case params[:direction]

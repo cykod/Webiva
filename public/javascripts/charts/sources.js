@@ -108,15 +108,17 @@ WebivaStatsChart = function(opts) {
     var a = pv.Scale.linear(0, pv.sum(data)).range(0, 2 * Math.PI),
         r = Math.sqrt(area / Math.PI);
 
+    /*
     vis.add(pv.Bar)
-    .top(0)
-    .left(0)
-    .width(dimensions.bar.width-1)
-    .height(dimensions.bar.width-1)
+    .top(1)
+    .left(1)
+    .width(dimensions.bar.width-2)
+    .height(dimensions.bar.width-2)
     .fillStyle(backgroundColor)
     .strokeStyle('#666666')
     .lineWidth(1)
     .antialias(false);
+    */
 
     vis.add(pv.Wedge)
     .data(data)
