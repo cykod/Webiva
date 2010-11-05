@@ -1,51 +1,52 @@
 
-<table>
+<div class="active_table_wrapper">
+<table class="active_table">
 <tr>
-<td></td>
-<td><a href="javascript:void(0);" onclick="SourcesCharts.next()">Next</a></td>
+<th class="first" colspan="2"><a href="javascript:void(0);" onclick="SourcesCharts.next()">Next</a></th>
 <% @traffic.each_with_index do |t, index| -%>
-<th><span id="chart_day<%= index + 1 %>"><%= t[:started_at].strftime('%A') %></span></th>
+<th class="day"><span id="chart_day<%= index + 1 %>"><%= t[:started_at].strftime('%A') %></span></th>
 <% end -%>
-<td><a href="javascript:void(0);" onclick="SourcesCharts.prev()">Prev</a></td>
+<th><a href="javascript:void(0);" onclick="SourcesCharts.prev()">Prev</a></th>
 </tr>
 
 <tr>
-<td><%= 'Revenue'.t %></td>
+<td class="section"><%= 'Revenue'.t %></td>
 <td></td>
 <% @traffic.each_with_index do |t, index| -%>
-<td><span id="chart_value<%= index + 1 %>"><%= number_to_currency t[:total_value] %></span></td>
+<td class="value"><span id="chart_value<%= index + 1 %>"><%= number_to_currency t[:total_value] %></span></td>
 <% end -%>
 <td></td>
 </tr>
 
 <tr>
-<td><%= 'Conversions'.t %></td>
+<td class="section"><%= 'Conversions'.t %></td>
 <td></td>
 <% @traffic.each_with_index do |t, index| -%>
 <td><div id="chart_pie<%= index + 1 %>"></div></td>
 <% end -%>
-<td><div id="chart_pie_legend"></div></td>
+<td class="legend"><div id="chart_pie_legend"></div></td>
 </tr>
 
 <tr>
-<td><%= 'Visitors'.t %></td>
+<td class="section"><%= 'Visitors'.t %></td>
 <td><div id="chart_bar_ruler"></div></td>
 <% @traffic.each_with_index do |t, index| -%>
 <td><div id="chart_bar<%= index + 1 %>"></div></td>
 <% end -%>
-<td><div id="chart_bar_legend"></div></td>
+<td class="legend"><div id="chart_bar_legend"></div></td>
 </tr>
 
 <tr>
 <td></td>
 <td></td>
 <% @traffic.each_with_index do |t, index| -%>
-<td><span id="chart_date<%= index + 1 %>"><%= t[:started_at].strftime('%F') %></span></td>
+<td class="date"><span id="chart_date<%= index + 1 %>"><%= t[:started_at].strftime('%F') %></span></td>
 <% end -%>
 <td></td>
 </tr>
 
 </table>
+</div>
 
 <script type="text/javascript">
 

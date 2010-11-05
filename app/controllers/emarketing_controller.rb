@@ -33,7 +33,7 @@ class EmarketingController < CmsController # :nodoc: all
     require_js 'charts/sources'
     require_css 'tipsy/tipsy.css'
 
-    sources_charts(false)
+    referrer_sources(false)
 
     @subpages << ['Affiliate Traffic', :editor_visitors, 'traffic_visitors.png', {:action => 'affiliates'}, 'View Affiliate Traffic']
 
@@ -41,7 +41,7 @@ class EmarketingController < CmsController # :nodoc: all
   end
 
 
-  def sources_charts(display=true)
+  def referrer_sources(display=true)
     interval = 5
 
     @date = params[:date] ? Time.parse(params[:date]) : Time.now - (interval-1).days
@@ -94,8 +94,6 @@ class EmarketingController < CmsController # :nodoc: all
         :days => @traffic.collect{|t| t[:started_at].strftime('%A')},
         :dates => @traffic.collect{|t| t[:started_at].strftime('%F')}
       }
-    else
-      @date += 1.day
     end
   end
 

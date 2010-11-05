@@ -4,21 +4,21 @@ SourcesCharts = {
   date: "<%= @date.strftime('%F') %>",
 
   next: function() {
-    $j.getJSON("<%= url_for :action => 'sources_charts' %>", {date: SourcesCharts.date, direction: 'next'}, function(res) {SourcesCharts.load(res);});
+    $j.getJSON("<%= url_for :action => 'referrer_sources' %>", {date: SourcesCharts.date, direction: 'next'}, function(res) {SourcesCharts.load(res);});
   },
 
   prev: function() {
-    $j.getJSON("<%= url_for :action => 'sources_charts' %>", {date: SourcesCharts.date, direction: 'prev'}, function(res) {SourcesCharts.load(res);});
+    $j.getJSON("<%= url_for :action => 'referrer_sources' %>", {date: SourcesCharts.date, direction: 'prev'}, function(res) {SourcesCharts.load(res);});
   },
 
   load: function(data) {
     SourcesCharts.date = data.date;
     SourcesCharts.chart.load(data);
 
-    for(var i=1; i<=data.total_values.length; i++) {
-      $j('#chart_day' + i).text(data.days[i]);
-      $j('#chart_date' + i).text(data.dates[i]);
-      $j('#chart_value' + i).text(data.total_values[i]);
+    for(var i=0; i<data.total_values.length; i++) {
+      $j('#chart_day' + (i+1)).text(data.days[i]);
+      $j('#chart_date' + (i+1)).text(data.dates[i]);
+      $j('#chart_value' + (i+1)).text(data.total_values[i]);
     }
 
     SourcesCharts.chart.draw();
@@ -28,9 +28,7 @@ SourcesCharts = {
 
 <div class='admin_content'>
 <br/>
-<div id="sources_charts">
-<%= render :partial => 'sources_charts' %>
-</div>
+<%= render :partial => 'referrer_sources' %>
 <br/>
 <%= subpage_display :emarketing, @subpages %>
 
