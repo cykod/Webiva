@@ -203,12 +203,8 @@ class Editor::AuthController < ParagraphController #:nodoc:all
     :work_address_required_fields => [],
     :address_required_fields => [],
     :content_publication_id => nil, :content_publication_user_field => nil,
-<<<<<<< HEAD
-    :access_token_id => nil
-=======
     :access_token_id => nil, :user_level => 4,
     :features => []
->>>>>>> 11f292c... User profile editor feature and list profile support
 
     page_options :success_page_id
 
