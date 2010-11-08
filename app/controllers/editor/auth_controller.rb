@@ -252,7 +252,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
         :introduction => ['Introduction'.t, :radio_buttons, :introduction, { :options => [ ['Mr.'.t,'Mr.'],['Mrs.'.t,'Mrs.' ], ['Ms.'.t, 'Ms.'] ] } ],
         :username => [ 'Username'.t,:text_field, :username ],
         :salutation => [ 'Salutation'.t,:text_field, :salutation ],
-        :domain_file_id => [ 'Upload Profile Image'.t,:upload_image, :domain_file_id ]
+        :image => [ 'Upload Profile Image'.t,:upload_image, :domain_file_id ]
       }
     end
 
