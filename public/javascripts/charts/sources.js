@@ -278,6 +278,34 @@ WebivaStatsChart = function(opts) {
              drawSourcesLegend('chart_bar_legend');
            });
 
+
+    vis.add(pv.Panel)
+      .top(function() source_types.length * (fonts.check.size + fonts.check.spacing) + 22)
+      .width(fonts.check.size)
+      .height(fonts.check.size)
+      .left(0)
+      .fillStyle(null)
+      .anchor("center").add(pv.Label)
+      .font(fonts.check.font)
+      .anchor("right").add(pv.Label)
+      .textMargin(fonts.legend.margin/2)
+      .textAlign("left")
+      .font(fonts.legend.font)
+      .textStyle(fonts.legend.color)
+      .text('(select all)')
+      .events("all")
+      .event("click", function() {
+               for(var i=0; i<sources_to_display.length; i++) {
+                 sources_to_display[i] = true;
+               }
+               
+               for(var i=0; i<visits.length; i++) {
+                 drawSources(i, 'chart_bar' + (i+1));
+               }
+
+               drawSourcesLegend('chart_bar_legend');
+             });
+
     vis.render();
   }
 
