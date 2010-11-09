@@ -306,7 +306,7 @@ class MailTemplate < DomainModel
       if src[0..0] == '/'
         src = "http://" + Configuration.full_domain + src
       end
-     "<img#{$1} src='#{src}'#{$5}>"
+     "<img#{$1}src='#{src}'#{$5}>"
     end
   end
  end
