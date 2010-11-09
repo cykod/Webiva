@@ -155,8 +155,14 @@ class ModuleAppController < ApplicationController
     # Else it's something that we have access to,
     # need to display it
     elsif @output.document?
+      begin
         handle_document_node(@output,@page)
-        return false
+      rescue SiteNodeEngine::NoActiveVersionException,ActiveRecord::RecordNotFound, SiteNodeEngine::MissingPageException => e
+        display_missing_page
+        return
+      end
+
+      return false
     elsif @output.page?
         # if we made it here - need to jump over to the application
         get_handlers(:page,:post_process).each do |req|
