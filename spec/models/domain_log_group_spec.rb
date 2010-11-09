@@ -7,9 +7,10 @@ describe DomainLogGroup do
 
   def delete_all_stat_data
     EndUser.destroy_all
-    DomainLogVisitor.destroy_all
-    DomainLogSession.destroy_all
-    DomainLogReferrer.destroy_all
+    DomainLogVisitor.delete_all
+    DomainLogSession.delete_all
+    DomainLogReferrer.delete_all
+    DomainLogEntry.delete_all
     SiteVersion.delete_all
     SiteNodeModifier.delete_all
     SiteNode.delete_all

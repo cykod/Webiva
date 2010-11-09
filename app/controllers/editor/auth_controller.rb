@@ -16,11 +16,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
 
   editor_for :user_edit_account, :name => 'User Edit Account', :feature => 'user_edit_account', :triggers => [ ['Edit Account','action' ]] 
 
-#  editor_for :edit_account, :name => 'Edit Account', :triggers => [ ['Edit Profile','action' ]] 
-
- 
   editor_for :missing_password, :name => 'Missing Password', :triggers => [ ['Sent Email','action']], :features => ['missing_password']
-  
   
   editor_for :email_list, :name => 'Email List Signup', :triggers => [ ['Signed Up','action']], :features => ['email_list'], :inputs => [ [:source,"Source URL",:path ]] 
   editor_for :splash, :name => 'Splash Page'

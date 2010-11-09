@@ -8,7 +8,7 @@ class Editor::ContentRenderer < ParagraphRenderer #:nodoc:all
   def recent_content
     @options = paragraph_options(:recent_content)
 
-    conditions = @options.content_type_ids.length > 0 ? {  :content_type_id => @options.content_type_ids } : nil
+    conditions = @options.content_type_ids.length > 0 ? {  :content_type_id => @options.content_type_ids } : {}
     conditions[:published] = true
     @nodes = ContentNode.find(:all,:conditions => conditions, :limit => @options.count, :order => @options.order )
 

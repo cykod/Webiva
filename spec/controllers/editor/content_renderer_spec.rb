@@ -12,21 +12,21 @@ describe Editor::ContentRenderer, :type => :controller do
     end
 
     it "should render the recent content paragraph" do
-      ContentNode.should_receive(:find).once.with(:all, :conditions => nil, :limit => 10, :order => 'created_at DESC').and_return([])
+      ContentNode.should_receive(:find).once.with(:all, :conditions => {:published => true}, :limit => 10, :order => 'created_at DESC').and_return([])
       @rnd = generate_renderer
       @rnd.should_render_feature("recent_content")
       renderer_get @rnd
     end
 
     it "should render the recent content paragraph for specific types" do
-      ContentNode.should_receive(:find).once.with(:all, :conditions => {:content_type_id => [4, 5]}, :limit => 10, :order => 'created_at DESC').and_return([])
+      ContentNode.should_receive(:find).once.with(:all, :conditions => {:content_type_id => [4, 5], :published => true}, :limit => 10, :order => 'created_at DESC').and_return([])
       @rnd = generate_renderer :content_type_ids => [4, 5]
       @rnd.should_render_feature("recent_content")
       renderer_get @rnd
     end
 
     it "should render the recent content paragraph by most recently updated" do
-      ContentNode.should_receive(:find).once.with(:all, :conditions => nil, :limit => 5, :order => 'updated_at DESC').and_return([])
+      ContentNode.should_receive(:find).once.with(:all, :conditions => {:published => true}, :limit => 5, :order => 'updated_at DESC').and_return([])
       @rnd = generate_renderer :order_by => 'updated', :count => 5
       @rnd.should_render_feature("recent_content")
       renderer_get @rnd
