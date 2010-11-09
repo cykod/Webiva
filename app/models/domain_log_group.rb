@@ -48,7 +48,7 @@ class DomainLogGroup < DomainModel
         scope = yield from, duration
         groups << self.create_group(target_type, from, duration, scope, opts)
       end
-      from += duration
+      from = from.localtime + duration
     end
     groups
   end

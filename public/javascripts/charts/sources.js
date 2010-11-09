@@ -9,7 +9,7 @@ WebivaStatsChart = function(opts) {
   var user_level_types = opts.user_level_types;
   var user_level_colors =  pv.colors(opts.user_level_colors);
   var fontColor = '#603813';
-  var backgroundColor = '#F6F6F6';
+  var backgroundColor = '#F2F7E3';
   var sources_to_display = new Array();
   for(var i=0; i<source_types.length; i++) {
     sources_to_display.push(true);
@@ -33,19 +33,18 @@ WebivaStatsChart = function(opts) {
 
   var fonts = {
     legend: {font: '12px sans-serif', color: fontColor, margin: 15},
-    check: {font: '18px sans-serif', color: '#000000', size: 16, spacing: 4, text: String.fromCharCode(10003)},
-    numbers: {font: 'bold 11px sans-serif', color: '#000000'},
+    check: {font: '22px sans-serif', color: '#FFFFFF', size: 16, spacing: 4, text: String.fromCharCode(10003)},
+    numbers: {font: 'bold 14px sans-serif', color: '#FFFFFF'},
     ticks: {font: '11px sans-serif', color: fontColor}
   };
 
   var dimensions = {
-    bar: {width: 150, height: 400, top: 5, bottom: 5},
-    pie: {radius: 0, y: 0, area:0},
+    width: 150,
+    bar: {width: 120, height: 250, top: 5, bottom: 5},
+    conversions: {width: 25, spacing: 10},
+    legend: {width: 130},
     padding: 30
   };
-
-  dimensions.pie.radius = dimensions.bar.width / 2 - 8;
-  dimensions.pie.area = dimensions.pie.radius * dimensions.pie.radius * Math.PI;
 
   function load(data) {
     user_levels = data.user_levels;
@@ -59,10 +58,10 @@ WebivaStatsChart = function(opts) {
     visits = new Array();
 
     for(var i=0; i<user_levels.length; i++) {
-      var sum = 0;
-      for(var j=0; j<user_levels[i].length; j++) { sum += user_levels[i][j]; }
-      if(maxUserLevel < sum) {
-        maxUserLevel = sum;
+      for(var j=0; j<user_levels[i].length; j++) {
+        if(user_levels[i][j] > maxUserLevel) {
+          maxUserLevel = user_levels[i][j];
+        }
       }
     }
 
@@ -100,47 +99,43 @@ WebivaStatsChart = function(opts) {
   }
 
   function userLevelChart(vis, x, y, colors, data) {
-    var total = 0;
-    for(var i=0; i<data.length; i++) { total += data[i]; }
+    /* The bars. */
+    var rows = data.length,
+        w = dimensions.conversions.width * data.length + dimensions.conversions.spacing * data.length,
+        h = dimensions.bar.width,
+        left = (dimensions.width - w) / 2,
+        x = pv.Scale.ordinal(pv.range(rows)).splitBanded(0, w),
+        y = pv.Scale.linear(0, maxUserLevel).range(0, h);
 
-    var area = dimensions.pie.area * (total / maxUserLevel);
-
-    var a = pv.Scale.linear(0, pv.sum(data)).range(0, 2 * Math.PI),
-        r = Math.sqrt(area / Math.PI);
-
-    /*
     vis.add(pv.Bar)
-    .top(1)
-    .left(1)
-    .width(dimensions.bar.width-2)
-    .height(dimensions.bar.width-2)
-    .fillStyle(backgroundColor)
-    .strokeStyle('#666666')
-    .lineWidth(1)
-    .antialias(false);
-    */
-
-    vis.add(pv.Wedge)
     .data(data)
-    .top(y + dimensions.bar.width / 2)
-    .left(x + dimensions.bar.width / 2)
-    .outerRadius(r)
-    .angle(a)
-    .title(function(d) d)
+    .bottom(0)
+    .height(y)
+    .left(function() (data.length - this.index - 1) * x.range().band + left + dimensions.conversions.spacing / 2)
+    .width(dimensions.conversions.width)
     .fillStyle(colors.by(pv.index))
-    .add(pv.Wedge) // invisible wedge to offset label
-    .outerRadius(r)
-    .fillStyle(null)
-    .anchor("center").add(pv.Label)
+    .anchor("top").add(pv.Label)
     .textAngle(0)
+    .textMargin(5)
     .font(fonts.numbers.font)
     .textStyle(fonts.numbers.color)
     .text(function(d) d > 0 ? d : '');
+
+    var numTicks = 5;
+    if(numTicks > maxUserLevel) {
+      numTicks = maxUserLevel;
+    }
+
+    /* Y-axis ticks. */
+    vis.add(pv.Rule)
+    .data(y.ticks(numTicks))
+    .bottom(y)
+    .strokeStyle(function(d) d ? "rgba(255,255,255,.5)" : null);
   }
 
   function drawSources(index, canvas) {
     /* Sizing and scales. */
-    var x = 0,
+    var x = (dimensions.width - dimensions.bar.width) / 2,
         colors = new Array(),
         data = new Array(),
         y = pv.Scale.linear(0, maxVisits).range(0, dimensions.bar.height);
@@ -165,7 +160,7 @@ WebivaStatsChart = function(opts) {
 
     /* The root panel. */
     var vis = new pv.Panel()
-    .width(dimensions.bar.width)
+    .width(dimensions.width)
     .height(dimensions.bar.height)
     .top(dimensions.bar.top)
     .bottom(dimensions.bar.bottom)
@@ -195,6 +190,7 @@ WebivaStatsChart = function(opts) {
     vis.add(pv.Rule)
     .data(y.ticks(numTicks))
     .bottom(y)
+    //.width(dimensions.width)
     .strokeStyle(function(d) d ? "rgba(255,255,255,.18)" : null);
 
     vis.render();
@@ -203,9 +199,10 @@ WebivaStatsChart = function(opts) {
   function drawUserLevels(index, canvas) {
     /* The root panel. */
     var vis = new pv.Panel()
-    .width(dimensions.bar.width)
+    .width(dimensions.width)
     .height(dimensions.bar.width)
-    .bottom(0)
+    .bottom(5)
+    .top(5)
     .left(0)
     .fillStyle(backgroundColor)
     .canvas(canvas);
@@ -254,14 +251,14 @@ WebivaStatsChart = function(opts) {
   function drawSourcesLegend(canvas) {
     /* The root panel. */
     var vis = new pv.Panel()
-    .width(200)
-    .height(dimensions.bar.height)
+    .width(dimensions.legend.width)
+    .height(130)
     .top(dimensions.bar.top)
     .bottom(dimensions.bar.bottom)
     .left(0)
     .canvas(canvas);
 
-    legend(vis, 0, 20, pv.colors(source_colors), source_types, function(index, single) {
+    legend(vis, 0, 0, pv.colors(source_colors), source_types, function(index, single) {
              if(single) {
                for(var i=0; i<sources_to_display.length; i++) {
                  sources_to_display[i] = false;
@@ -280,7 +277,7 @@ WebivaStatsChart = function(opts) {
 
 
     vis.add(pv.Panel)
-      .top(function() source_types.length * (fonts.check.size + fonts.check.spacing) + 22)
+      .top(function() source_types.length * (fonts.check.size + fonts.check.spacing) + 2)
       .width(fonts.check.size)
       .height(fonts.check.size)
       .left(0)
@@ -292,6 +289,7 @@ WebivaStatsChart = function(opts) {
       .textAlign("left")
       .font(fonts.legend.font)
       .textStyle(fonts.legend.color)
+      .textDecoration("underline")
       .text('(select all)')
       .events("all")
       .event("click", function() {
@@ -311,13 +309,13 @@ WebivaStatsChart = function(opts) {
 
   function drawUserLevelsLegend(canvas) {
     var vis = new pv.Panel()
-    .width(dimensions.bar.width)
-    .height(dimensions.bar.width)
+    .width(dimensions.legend.width)
+    .height(60)
     .bottom(0)
     .left(0)
     .canvas(canvas);
 
-    legend(vis, 0, 20, user_level_colors, user_level_types);
+    legend(vis, 0, 0, user_level_colors, user_level_types);
 
     vis.render();
   }

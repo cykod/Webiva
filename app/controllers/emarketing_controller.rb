@@ -33,6 +33,12 @@ class EmarketingController < CmsController # :nodoc: all
     require_js 'charts/sources'
     require_css 'tipsy/tipsy.css'
 
+    @site_traffic = {
+      :today => DomainLogEntry.traffic(Time.now.at_midnight, 1.day, 1),
+      :yesterday => DomainLogEntry.traffic(1.day.ago.at_midnight, 1.day, 1),
+      :this_week => DomainLogEntry.traffic(Time.now.at_beginning_of_week, 1.week, 1)
+    }
+
     referrer_sources(false)
 
     @subpages << ['Affiliate Traffic', :editor_visitors, 'traffic_visitors.png', {:action => 'affiliates'}, 'View Affiliate Traffic']
@@ -52,7 +58,7 @@ class EmarketingController < CmsController # :nodoc: all
       @date += 1.day
     end
 
-    @groups = DomainLogSource.traffic(@date.at_midnight, 1.day, interval).reverse
+    @groups = DomainLogSource.traffic(@date.at_midnight, 1.day, interval)
     @sources = DomainLogSource.sources.reverse
 
     @traffic = @groups.collect do |group|
