@@ -2,7 +2,8 @@
 SourcesCharts = {
   chart: null,
   date: "<%= @date.strftime('%F') %>",
-  today: "<%= Time.now.strftime('%F') %>",
+  start: "<%= @date.strftime('%F') %>",
+  today: "<%= Time.now.strftime('%m/%d/%Y') %>",
 
   next: function() {
     $j.getJSON("<%= url_for :action => 'referrer_sources' %>", {date: SourcesCharts.date, direction: 'next'}, function(res) {SourcesCharts.load(res);});
@@ -15,6 +16,12 @@ SourcesCharts = {
   load: function(data) {
     SourcesCharts.date = data.date;
     SourcesCharts.chart.load(data);
+
+    if(SourcesCharts.date == SourcesCharts.start) {
+      $j('#chart_next_day_button').hide();
+    } else {
+      $j('#chart_next_day_button').show();
+    }
 
     for(var i=0; i<data.total_values.length; i++) {
       if(data.dates[i] == SourcesCharts.today) {

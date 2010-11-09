@@ -92,7 +92,7 @@
 </th>
 
 <th>
-<div style="float:right;"><a href="javascript:void(0);" onclick="SourcesCharts.next()"><%= theme_image_tag('icons/actions/right.png', :align=> 'absmiddle') %></a></div>
+<div id="chart_next_day_button" style="display:none; float:right;"><a href="javascript:void(0);" onclick="SourcesCharts.next()"><%= theme_image_tag('icons/actions/right.png', :align=> 'absmiddle') %></a></div>
 <span id="chart_day3">&#9734; <%= @traffic[2][:started_at].strftime('%A') %></span>
 </th>
 
@@ -141,7 +141,7 @@
 <tr>
 <td colspan="2"></td>
 <% @traffic.each_with_index do |t, index| -%>
-<td class="date" align="center"><span id="chart_date<%= index + 1 %>"><%= t[:started_at].strftime('%F') %></span></td>
+<td class="date" align="center"><span id="chart_date<%= index + 1 %>"><%= t[:started_at].strftime('%m/%d/%Y') %></span></td>
 <% end -%>
 </tr>
 
