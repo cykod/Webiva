@@ -191,6 +191,11 @@ class DomainLogSession < DomainModel
     ses.update_attributes :ignore => false, :domain_log_source_id => source.id if source
   end
 
+  def self.cron_update_sessions(opts={})
+    return unless opts[:hour] == 4
+    self.update_sessions_for 1.day.ago, 1.day, 1
+  end
+
   class Tracking
     attr_accessor :request
 

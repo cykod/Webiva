@@ -39,8 +39,6 @@ class DomainLogReferrer  < DomainModel
   end
 
   def self.traffic(from, duration, intervals, opts={})
-    DomainLogSession.update_sessions_for from, duration, intervals
-
     type = 'traffic'
     group = nil
     if opts[:domain]
@@ -50,6 +48,7 @@ class DomainLogReferrer  < DomainModel
     has_target_entry = group ? true : false
 
     DomainLogGroup.stats(self.name, from, duration, intervals, :type => type, :group => group, :has_target_entry => has_target_entry) do |from, duration|
+      DomainLogSession.update_sessions_for from, duration, 1
       self.traffic_scope from, duration, opts
     end
   end
