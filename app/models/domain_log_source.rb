@@ -52,9 +52,8 @@ class DomainLogSource < DomainModel
   end
 
   def self.traffic(from, duration, intervals, opts={})
-    DomainLogSession.update_sessions_for from, duration, intervals
-
     DomainLogGroup.stats(self.name, from, duration, intervals, :type => 'traffic') do |from, duration|
+      DomainLogSession.update_sessions_for from, duration, 1
       self.traffic_scope from, duration, opts
     end
   end
