@@ -31,21 +31,15 @@ SourcesCharts = {
 }
 </script>
 
-<% action_panel :more => true do |p| -%>
-<% end -%>
-
-<% more_action_panel do |p| -%>
-  <% @subpages.each do |page| -%>
-    <%= p.link page[0], page[3] %>
-  <% end -%>
-<% end -%>
-
-<hr/>
-
 <div class='admin_content'>
 
 <div align="center">
 <%= render :partial => 'referrer_sources' %>
 </div>
+
+<br/>
+<br/>
+<br/>
+<%= subpage_display :marketing, @subpages %>
 
 </div>
