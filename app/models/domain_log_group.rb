@@ -1,4 +1,27 @@
 
+=begin rdoc
+DomainLogGroup's are a collection of stats over a specified time.
+
+Fields:
+ target_type: The model used to collect stats
+ target_id: Optional field, used to generate stats for a specific
+ stat_type: Represents the scope used to generate the stats
+ started_at: Start time
+ duration: The period of time the stats were generated for, in seconds
+ expires_at: When the stats are considered invalid. Used when calculating
+             live stats and you want to cache them for a minute. This is 
+             automatically set to 5.minutes.since if the (from + duration) > Time.now.
+
+Ex:
+# Calculates the amount of traffic for the last 5 days
+
+DomainLogGroup.stats('DomainLogEntry', (Time.now.at_midnight - 5.days), 1.day, 5, :stat_type => 'traffic') do |from, duration|
+  DomainLogEntry.between(from, from+duration).scoped(:select => "count(*) as hits, count( DISTINCT domain_log_session_id ) as visits")
+end
+
+'
+=end
+
 class DomainLogGroup < DomainModel
   has_many :domain_log_stats, :dependent => :delete_all
 
@@ -22,10 +45,10 @@ class DomainLogGroup < DomainModel
       if group
         groups << group
       else
-        scope = yield from, duration
+        scope = yield from.localtime, duration
         groups << self.create_group(target_type, from, duration, scope, opts)
       end
-      from += duration
+      from = from.localtime + duration
     end
     groups
   end
@@ -63,6 +86,7 @@ class DomainLogGroup < DomainModel
       :target_type => target_type,
       :target_id => target_id,
       :stat_type => opts[:type],
+      :has_target_entry => opts[:has_target_entry],
       :started_at => started_at,
       :duration => duration.to_i
     }
@@ -71,7 +95,7 @@ class DomainLogGroup < DomainModel
     group = DomainLogGroup.create attributes
 
     results.each do |result|
-      stat = group.domain_log_stats.create result.attributes.slice('target_id', 'target_value', 'visits', 'hits', 'subscribers', 'leads', 'conversions', 'stat1', 'stat2')
+      stat = group.domain_log_stats.create result.attributes.slice('target_id', 'target_value', 'visits', 'hits', 'subscribers', 'leads', 'conversions', 'stat1', 'stat2', 'total_value')
     end
 
     opts[:class].send(opts[:process_stats], group, opts) if opts[:process_stats]

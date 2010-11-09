@@ -1,0 +1,168 @@
+
+<style>
+.chart_table_wrapper {
+  -moz-border-radius: 8px;
+  -webkit-border-radius: 8px;
+  background-color:#cce5e9; 
+  padding:0px 8px 8px 8px;
+  display:inline-block;
+}
+
+.chart_table_wrapper h1 {
+  display: block;
+  float: none;
+  padding: 10px 0 5px 15px;
+  font-weight: normal;
+  font-size: 20px;
+  text-align: left;
+}
+
+.chart_table_wrapper h2 {
+  font-size: 20px;
+  padding: 0;
+}
+
+.chart_wrapper {
+  -moz-border-radius: 8px;
+  -webkit-border-radius: 8px;
+  background-color:#F2F7E3;
+  padding:2px 0 0 0;
+  display:inline-block;
+}
+
+.chart_table th {
+  text-align: center;
+  font-size: 17px;
+  color: #00bcdc;
+  padding: 4px 6px;
+  height: 20px;
+}
+
+.chart_table td {
+  background-color: #FFFFFF;
+  padding: 6px;
+  color: #603813;
+}
+
+.chart_table td.first {
+  padding-left: 15px;
+}
+
+.chart_table td.ruler {
+  padding: 6px 0;
+}
+
+.chart_table .legend {
+  padding-top: 6px;
+}
+
+.session_traffic {
+  height: 480px;
+  padding-left: 6px;
+}
+
+.session_traffic .stat {
+  -moz-border-radius: 8px;
+  -webkit-border-radius: 8px;
+  font-size: 20px;
+  font-weight: bold;
+  background-color: #00bcdc;
+  color: #FFF;
+  padding: 10px;
+  width: 170px;
+}
+</style>
+
+<div style="padding-right:15px; display:inline-block;">
+<%= render :partial => 'site_traffic', :locals => {:site_traffic => @site_traffic} %>
+</div>
+
+<div class="chart_table_wrapper">
+<h1>Traffic Breakdown</h1>
+<table cellpadding='0' cellspacing='0' class="chart_table">
+<tr>
+<th class="first" colspan="2"></th>
+<th>
+<span id="chart_day1"><%= @traffic[0][:started_at].strftime('%A') %></span>
+<div style="float:left;"><a href="javascript:void(0);" onclick="SourcesCharts.prev()"><%= theme_image_tag('icons/actions/left.png', :align=> 'absmiddle') %></a></div>
+</th>
+
+<th>
+<span id="chart_day2"><%= @traffic[1][:started_at].strftime('%A') %></span>
+</th>
+
+<th>
+<div style="float:right;"><a href="javascript:void(0);" onclick="SourcesCharts.next()"><%= theme_image_tag('icons/actions/right.png', :align=> 'absmiddle') %></a></div>
+<span id="chart_day3">&#9734; <%= @traffic[2][:started_at].strftime('%A') %></span>
+</th>
+
+<th></th>
+</tr>
+
+<tr>
+<td colspan="6"></td>
+</tr>
+
+<tr>
+<td class="first" colspan="2">
+<h2><%= 'Revenue'.t %></h2>
+</td>
+<% @traffic.each_with_index do |t, index| -%>
+<td align="center">
+<div style="width:152px; padding-bottom:4px; font-weight: bold; font-size:16px; height:20px;" class="chart_wrapper">
+<span id="chart_value<%= index + 1 %>"><%= t[:total_value].to_f > 0.0 ? number_to_currency(t[:total_value]) : '&nbsp;' %></span>
+</div>
+</td>
+<% end -%>
+<td rowspan="4"></td>
+</tr>
+
+<tr>
+<td valign="top" class="first" colspan="2">
+<h2><%= 'Conversions'.t %></h2>
+<div class="legend" id="chart_pie_legend"></div>
+</td>
+<% @traffic.each_with_index do |t, index| -%>
+<td><div class="chart_wrapper" id="chart_pie<%= index + 1 %>"></div></td>
+<% end -%>
+</tr>
+
+<tr>
+<td valign="top" class="first">
+<h2><%= 'Visitors'.t %></h2>
+<div class="legend" id="chart_bar_legend"></div>
+</td>
+<td class="ruler"><div id="chart_bar_ruler"></div></td>
+<% @traffic.each_with_index do |t, index| -%>
+<td><div class="chart_wrapper" id="chart_bar<%= index + 1 %>"></div></td>
+<% end -%>
+</tr>
+
+<tr>
+<td colspan="2"></td>
+<% @traffic.each_with_index do |t, index| -%>
+<td class="date" align="center"><span id="chart_date<%= index + 1 %>"><%= t[:started_at].strftime('%F') %></span></td>
+<% end -%>
+</tr>
+
+</table>
+</div>
+
+<script type="text/javascript">
+
+SourcesCharts.chart = WebivaStatsChart(
+{
+user_level_types: ['Subscribers', 'Leads', 'Conversions'],
+user_level_colors: ['#BE1E2D', '#754C28', '#C7CB2D'],
+
+source_types: <%= @sources.collect(&:name).to_json %>,
+source_colors: ["#00B591", "#F9A11B", "#915FA7", "#00BCDC", "#F5D20D", "#A6A8AB"],
+
+sources: <%= @traffic.collect { |t| t[:sources] }.to_json %>,
+
+user_levels: <%= @traffic.collect { |t| t[:user_levels][1..-1] }.to_json %>
+
+});
+
+SourcesCharts.chart.draw();
+</script>

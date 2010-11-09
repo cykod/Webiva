@@ -13,7 +13,10 @@ class DomainLogEntry < DomainModel
   named_scope :recent, lambda { |from| from ||= 1.minute.ago; {:conditions => ['occurred_at > ?', from]} }
   named_scope :between, lambda { |from, to| {:conditions => ['`domain_log_entries`.occurred_at >= ? AND `domain_log_entries`.occurred_at < ?', from, to]} }
   named_scope :content_only, :conditions => 'content_node_id IS NOT NULL'
-  named_scope :hits_n_visits, lambda { |group_by| {:select => "#{group_by} as target_id, count(*) AS hits, count( DISTINCT domain_log_session_id ) AS visits, SUM(IF(user_level=3,1, 0)) AS subscribers, SUM(IF(user_level=4,1, 0)) AS leads, SUM(IF(user_level=5,1, 0)) AS conversions", :group => 'target_id'} }
+  named_scope :hits_n_visits, lambda { |group_by|
+    group_by ? {:select => "#{group_by} as target_id, count(*) AS hits, count( DISTINCT domain_log_session_id ) AS visits, SUM(IF(domain_log_entries.user_level=3,1, 0)) AS subscribers, SUM(IF(domain_log_entries.user_level=4,1, 0)) AS leads, SUM(IF(domain_log_entries.user_level=5,1, 0)) AS conversions, SUM(`value`) as total_value", :group => 'target_id'} : {:select => "count(*) AS hits, count( DISTINCT domain_log_session_id ) AS visits, SUM(IF(domain_log_entries.user_level=3,1, 0)) AS subscribers, SUM(IF(domain_log_entries.user_level=4,1, 0)) AS leads, SUM(IF(domain_log_entries.user_level=5,1, 0)) AS conversions, SUM(`value`) as total_value"}
+  }
+  named_scope :valid_sessions, :conditions => 'domain_log_sessions.`ignore` = 0 AND domain_log_sessions.domain_log_source_id IS NOT NULL', :joins => :domain_log_session
 
   def self.create_entry_from_request(user, site_node, path, request, session, output)
     return nil unless request.session_options
@@ -26,10 +29,11 @@ class DomainLogEntry < DomainModel
                       output ? output.status.to_i : nil, 
                       action,
                       (output && output.page? && output.content_nodes) ? output.content_nodes[0] : nil,
-                      (output && (output.page? || output.redirect?)) ? output.user_level : nil)
+                      (output && (output.page? || output.redirect?)) ? output.user_level : nil,
+                      (output && (output.page? || output.redirect?)) ? output.user_value : nil)
   end
 
-  def self.create_entry(user,site_node,path,domain_log_session_id,http_status,action=nil,content_node_id=nil,user_level=nil)
+  def self.create_entry(user,site_node,path,domain_log_session_id,http_status,action=nil,content_node_id=nil,user_level=nil,user_value=nil)
     entry = DomainLogEntry.create(
       :user_id => user.id,
       :user_class_id => user.user_profile_id,
@@ -43,8 +47,9 @@ class DomainLogEntry < DomainModel
       :content_node_id => content_node_id,
       :http_status => http_status,
       :end_user_action_id => action.is_a?(EndUserAction) ? action.id : nil,
-      :user_level => user_level)
-    entry.domain_log_session.update_attribute(:user_level, user_level) if user_level
+      :user_level => user_level,
+      :value => user_value)
+    entry.domain_log_session.update_attribute(:user_level, user_level) if user_level && entry.domain_log_session.user_level.to_i < user_level
     entry
   end
   
@@ -139,7 +144,7 @@ class DomainLogEntry < DomainModel
 
   def self.traffic(from, duration, intervals, opts={})
     DomainLogGroup.stats(self.name, from, duration, intervals, :type => 'traffic') do |from, duration|
-      DomainLogEntry.between(from, from+duration).scoped(:select => "count(*) as hits, count( DISTINCT domain_log_session_id ) as visits")
+      DomainLogEntry.valid_sessions.between(from, from+duration).hits_n_visits nil
     end
   end
 

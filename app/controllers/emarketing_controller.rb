@@ -2,6 +2,7 @@
 
 class EmarketingController < CmsController # :nodoc: all
   include ActionView::Helpers::DateHelper
+  include ActionView::Helpers::NumberHelper
 
   layout 'manage'
 
@@ -13,8 +14,7 @@ class EmarketingController < CmsController # :nodoc: all
 
   def index
     cms_page_path [],'Marketing'
-    
-    
+
     @subpages = [
        [ "Visitor Statistics", :editor_visitors, "traffic_visitors.png", { :action => 'visitors' }, 
           "View and Track Visitors to your site" ],
@@ -26,11 +26,83 @@ class EmarketingController < CmsController # :nodoc: all
       @subpages << [handler[:name], :editor_visitors, handler[:icon] || 'traffic_page.png', handler[:url], handler[:description] || handler[:name]]
     end
 
+    require_js 'protovis/protovis-r3.2'
+    require_js 'protovis/protovis-d3.2'
+    require_js 'tipsy/jquery.tipsy'
+    require_js 'protovis/tipsy'
+    require_js 'charts/sources'
+    require_css 'tipsy/tipsy.css'
+
+    @site_traffic = {
+      :today => DomainLogEntry.traffic(Time.now.at_midnight, 1.day, 1),
+      :yesterday => DomainLogEntry.traffic(1.day.ago.at_midnight, 1.day, 1),
+      :this_week => DomainLogEntry.traffic(Time.now.at_beginning_of_week, 1.week, 1)
+    }
+
+    referrer_sources(false)
+
     @subpages << ['Affiliate Traffic', :editor_visitors, 'traffic_visitors.png', {:action => 'affiliates'}, 'View Affiliate Traffic']
 
     @subpages << ['Experiments', :editor_visitors, 'traffic_visitors.png', {:controller => '/experiment', :action => 'index'}, 'View Experiments Results']
   end
-  
+
+
+  def referrer_sources(display=true)
+    interval = 3
+
+    @date = params[:date] ? Time.parse(params[:date]) : Time.now - (interval-1).days
+    case params[:direction]
+    when 'prev'
+      @date -= 1.day
+    when 'next'
+      @date += 1.day
+    end
+
+    @groups = DomainLogSource.traffic(@date.at_midnight, 1.day, interval)
+    @sources = DomainLogSource.sources.reverse
+
+    @traffic = @groups.collect do |group|
+      hits = 0
+      visits = 0
+      subscribers = 0
+      leads = 0
+      conversions = 0
+      total_value = 0
+
+      stats = group.domain_log_stats.index_by(&:target_id)
+
+      group.domain_log_stats.each do |stat|
+        hits += stat.hits.to_i
+        visits += stat.visits.to_i
+        subscribers += stat.subscribers.to_i
+        leads += stat.leads.to_i
+        conversions += stat.conversions.to_i
+        total_value += stat.total_value.to_f
+      end
+
+      { :started_at => group.started_at,
+        :ended_at => group.ended_at,
+        :duration => group.duration,
+        :total_value => total_value,
+        :hits => hits,
+        :visits => visits,
+        :user_levels => [(visits - (subscribers + leads + conversions)), subscribers, leads, conversions],
+        :sources => @sources.collect { |source| stats[source.id] ? stats[source.id].visits : 0 }
+      }
+    end
+
+    if display
+      render :json => {
+        :date => @date.strftime('%F'),
+        :user_levels => @traffic.collect{|t| t[:user_levels][1..-1]},
+        :sources => @traffic.collect{|t| t[:sources]},
+        :total_values => @traffic.collect{|t| t[:total_value].to_f > 0.0 ? number_to_currency(t[:total_value]) : ''},
+        :days => @traffic.collect{|t| t[:started_at].strftime('%A')},
+        :dates => @traffic.collect{|t| t[:started_at].strftime('%F')}
+      }
+    end
+  end
+
  include ActiveTable::Controller   
   active_table :visitor_table,
                 DomainLogVisitor,

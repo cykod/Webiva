@@ -10,12 +10,14 @@ class DomainLogSession < DomainModel
   belongs_to :domain_log_referrer
   belongs_to :domain_log_visitor
   belongs_to :site_version
+  belongs_to :domain_log_source
 
-  named_scope :between, lambda { |from, to| {:conditions => ['created_at >= ? AND created_at < ?', from, to]} }
+  named_scope :between, lambda { |from, to| {:conditions => ['domain_log_sessions.created_at >= ? AND domain_log_sessions.created_at < ?', from, to]} }
   named_scope :visits, lambda { |group_by| group_by =~ /_id$/ ? {:select => "#{group_by} as target_id, count(*) as visits", :group => 'target_id'} : {:select => "#{group_by} as target_value, count(*) as visits", :group => 'target_value'} }
-  named_scope :hits_n_visits, lambda { |group_by| group_by =~ /_id$/ ? {:select => "#{group_by} as target_id, count(*) as visits, sum(page_count) as hits", :group => 'target_id'} : {:select => "#{group_by} as target_value, count(*) as visits, sum(page_count) as hits", :group => 'target_value'} }
-  named_scope :hits_n_visits_n_uniques, lambda { |group_by| group_by =~ /_id$/ ? {:select => "#{group_by} as target_id, count(*) as visits, sum(page_count) as hits, count(DISTINCT ip_address) as stat1", :group => 'target_id'} : {:select => "#{group_by} as target_value, count(*) as visits, sum(page_count) as hits, count(DISTINCT ip_address) as stat1", :group => 'target_value'} }
+  named_scope :hits_n_visits, lambda { |group_by| group_by =~ /_id$/ ? {:select => "#{group_by} as target_id, count(*) as visits, sum(page_count) as hits, sum(session_value) as total_value, SUM(IF(domain_log_sessions.user_level=3,1, 0)) AS subscribers, SUM(IF(domain_log_sessions.user_level=4,1, 0)) AS leads, SUM(IF(domain_log_sessions.user_level=5,1, 0)) AS conversions", :group => 'target_id'} : {:select => "#{group_by} as target_value, count(*) as visits, sum(page_count) as hits, sum(session_value) as total_value, SUM(IF(domain_log_sessions.user_level=3,1, 0)) AS subscribers, SUM(IF(domain_log_sessions.user_level=4,1, 0)) AS leads, SUM(IF(domain_log_sessions.user_level=5,1, 0)) AS conversions", :group => 'target_value'} }
+  named_scope :hits_n_visits_n_uniques, lambda { |group_by| group_by =~ /_id$/ ? {:select => "#{group_by} as target_id, count(*) as visits, sum(page_count) as hits, count(DISTINCT ip_address) as stat1, sum(session_value) as total_value, SUM(IF(domain_log_sessions.user_level=3,1, 0)) AS subscribers, SUM(IF(domain_log_sessions.user_level=4,1, 0)) AS leads, SUM(IF(domain_log_sessions.user_level=5,1, 0)) AS conversions", :group => 'target_id'} : {:select => "#{group_by} as target_value, count(*) as visits, sum(page_count) as hits, count(DISTINCT ip_address) as stat1, sum(session_value) as total_value, SUM(IF(domain_log_sessions.user_level=3,1, 0)) AS subscribers, SUM(IF(domain_log_sessions.user_level=4,1, 0)) AS leads, SUM(IF(domain_log_sessions.user_level=5,1, 0)) AS conversions", :group => 'target_value'} }
   named_scope :referrer_only, :conditions => 'domain_log_referrer_id IS NOT NULL'
+  named_scope :valid_sessions, :conditions => '`ignore` = false AND domain_log_source_id IS NOT NULL'
 
   def self.start_session(user, session, request, site_node=nil)
     return unless request.session_options
@@ -63,6 +65,10 @@ class DomainLogSession < DomainModel
 
   end
 
+  def before_save
+    self.ignore ||= true if self.end_user_id && self.end_user && self.end_user.client_user?
+  end
+
   def username
     self.end_user_id ? self.end_user.name : 'Anonymous'.t
   end
@@ -76,7 +82,6 @@ class DomainLogSession < DomainModel
     end
   end
 
-  
   def last_entry_at(force = false)
     atr = self.read_attribute(:last_entry_at)
     if atr.blank? || force
@@ -84,7 +89,6 @@ class DomainLogSession < DomainModel
     else  
       atr
     end
-    
   end
   
   def length(force = false)
@@ -97,14 +101,24 @@ class DomainLogSession < DomainModel
     end
   end
   
-  def calculate!
-    self.update_attributes(:page_count => self.page_count(true), :last_entry_at => self.last_entry_at(true), :length => self.length(true), :updated_at => Time.now)
+  def session_value(force = false)
+    atr =  self.read_attribute(:session_value)
+    if atr.blank? || force
+      self.domain_log_entries.sum(:value)
+    else
+      atr
+    end
   end
 
-  def self.update_stats(domain_log_session_id, page_count, last_entry_at)
+  def calculate!
+    self.update_attributes(:page_count => self.page_count(true), :last_entry_at => self.last_entry_at(true), :length => self.length(true), :session_value => self.session_value(true), :updated_at => Time.now)
+  end
+
+  def self.update_stats(domain_log_session_id, page_count, last_entry_at, session_value)
     last_entry_at = DomainModel.connection.quote last_entry_at
     updated_at = DomainModel.connection.quote Time.now
-    DomainLogSession.connection.execute "UPDATE `domain_log_sessions` SET page_count = #{page_count}, last_entry_at = #{last_entry_at}, length = UNIX_TIMESTAMP(#{last_entry_at}) - UNIX_TIMESTAMP(created_at), updated_at = #{updated_at} WHERE id = #{domain_log_session_id}"
+    session_value ||= 0
+    DomainLogSession.connection.execute "UPDATE `domain_log_sessions` SET page_count = #{page_count}, last_entry_at = #{last_entry_at}, length = UNIX_TIMESTAMP(#{last_entry_at}) - UNIX_TIMESTAMP(created_at), updated_at = #{updated_at}, session_value = #{session_value} WHERE id = #{domain_log_session_id}"
   end
 
   def self.update_sessions_for(from, duration, intervals)
@@ -114,10 +128,10 @@ class DomainLogSession < DomainModel
     unless ids.empty?
 
       # calculate page_count and last_entry_at for sessions
-      DomainLogEntry.find(:all, :select => 'domain_log_session_id, count(*) as page_count, max(occurred_at) as last_entry_at', :group => 'domain_log_session_id', :conditions => {'domain_log_session_id' => ids}).each do |entry|
+      DomainLogEntry.find(:all, :select => 'domain_log_session_id, count(*) as page_count, max(occurred_at) as last_entry_at, SUM(`value`) as session_value', :group => 'domain_log_session_id', :conditions => {'domain_log_session_id' => ids}).each do |entry|
 
         # update the session
-        DomainLogSession.update_stats entry.domain_log_session_id, entry.page_count, entry.last_entry_at
+        DomainLogSession.update_stats entry.domain_log_session_id, entry.page_count, entry.last_entry_at, entry.session_value
       end
     end
   end
@@ -129,7 +143,7 @@ class DomainLogSession < DomainModel
   end
 
   def self.affiliate_scope(from, duration, opts={})
-    scope = DomainLogSession.between(from, from+duration)
+    scope = DomainLogSession.valid_sessions.between(from, from+duration)
     scope = scope.scoped(:conditions => {:affiliate => opts[:affiliate]}) if opts[:affiliate]
     scope = scope.scoped(:conditions => {:campaign => opts[:campaign]}) if opts[:campaign]
     scope = scope.scoped(:conditions => {:origin => opts[:origin]}) if opts[:origin]
@@ -152,7 +166,7 @@ class DomainLogSession < DomainModel
 
     DomainLogSession.update_sessions_for from, duration, intervals
 
-    DomainLogGroup.stats('DomainLogGroupEntry', from, duration, intervals, :type => type, :group => group) do |from, duration|
+    DomainLogGroup.stats(self.name, from, duration, intervals, :type => type, :group => group, :has_target_entry => true) do |from, duration|
       self.affiliate_scope from, duration, opts
     end
   end
@@ -165,6 +179,16 @@ class DomainLogSession < DomainModel
     origins = DomainLogSession.find(:all, :select => 'DISTINCT origin', :conditions => ['origin IS NOT NULL && created_at > ?', 2.months.ago]).collect(&:origin)
     DataCache.put_container 'Affiliates', nil, {'affiliates' => affiliates, 'campaigns' => campaigns, 'origins' => origins}, 10.minutes
     return affiliates, campaigns, origins
+  end
+
+  def self.log_source(cookies, session)
+    return unless session[:domain_log_session] && session[:domain_log_session][:id]
+
+    ses = DomainLogSession.find_by_id session[:domain_log_session][:id]
+    return unless ses
+
+    source = DomainLogSource.get_source ses
+    ses.update_attributes :ignore => false, :domain_log_source_id => source.id if source
   end
 
   class Tracking

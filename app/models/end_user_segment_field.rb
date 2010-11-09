@@ -17,6 +17,7 @@ class EndUserSegmentField < UserSegment::FieldHandler
 
   register_field :acknowledged, UserSegment::CoreType::BooleanType, :name => 'Acknowledged', :sortable => true, :builder_name => 'Show acknowledged accounts?'
   register_field :user_level, EndUserSegmentType::UserLevelType, :name => 'User Level', :sortable => true
+  register_field :user_value, EndUserSegmentType::UserLevelType, :field => :value, :name => 'User Value', :sortable => true
   register_field :dob, UserSegment::CoreType::DateTimeType, :name => 'DOB', :sortable => true
   register_field :last_name, UserSegment::CoreType::StringType, :name => 'Last Name', :sortable => true
   register_field :first_name, UserSegment::CoreType::StringType, :name => 'First Name', :sortable => true
