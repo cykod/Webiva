@@ -18,7 +18,7 @@ SourcesCharts = {
     for(var i=0; i<data.total_values.length; i++) {
       $j('#chart_day' + (i+1)).text(data.days[i]);
       $j('#chart_date' + (i+1)).text(data.dates[i]);
-      $j('#chart_value' + (i+1)).text(data.total_values[i] == '' ? '' : data.total_values[i]);
+      $j('#chart_value' + (i+1)).html(data.total_values[i] == '' ? '&nbsp;' : data.total_values[i]);
     }
 
     SourcesCharts.chart.draw();
@@ -26,12 +26,18 @@ SourcesCharts = {
 }
 </script>
 
+<% action_panel :more => true do |p| -%>
+<% end -%>
+
+<% more_action_panel do |p| -%>
+  <% @subpages.each do |page| -%>
+    <%= p.link page[0], page[3] %>
+  <% end -%>
+<% end -%>
+
+<hr/>
+
 <div class='admin_content'>
-
-<%= subpage_display :emarketing, @subpages %>
-
-<br/>
-<br/>
 
 <div align="center">
 <%= render :partial => 'referrer_sources' %>
