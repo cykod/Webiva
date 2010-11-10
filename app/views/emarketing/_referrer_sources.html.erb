@@ -155,7 +155,7 @@ SourcesCharts.chart = WebivaStatsChart(
 user_level_types: ['Subscribers', 'Leads', 'Conversions'],
 user_level_colors: ['#BE1E2D', '#754C28', '#C7CB2D'],
 
-source_types: <%= @sources.collect(&:name).to_json %>,
+source_types: <%= @sources.collect{ |s| s[:name] }.to_json %>,
 source_colors: ["#00B591", "#F9A11B", "#915FA7", "#00BCDC", "#F5D20D", "#A6A8AB"],
 
 sources: <%= @traffic.collect { |t| t[:sources] }.to_json %>,

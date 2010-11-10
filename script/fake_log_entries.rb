@@ -29,6 +29,7 @@ class MyRobotsWebService < ActiveWebService
     @user ||= self.class.get_random_user
   end
 
+  route :webalytics, '/webalytics'
   route :home, '/', :return => :handle_response
   route :about_us, '/about-us', :return => :handle_response
   route :faqs, '/faqs', :return => :handle_response
@@ -180,7 +181,8 @@ class MyRobotsWebService < ActiveWebService
       'http://search.yahoo.com/search;_ylt=A0WTfZ1Slo5MC28BpR2bvZx4?p=robots&toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701',
       'http://www.robots.com/robots.php',
       'http://www.robots.com/',
-      'http://myrobots.com/'
+      'http://myrobots.com/',
+      'http://www.facebook.com/robots'
     ]
 
     if rand(100) < 10
@@ -293,6 +295,8 @@ class MyRobotsWebService < ActiveWebService
     return if @update_ip
     @update_ip = true
 
+    self.webalytics :query => {:loc => {:country => 'US'}}
+
     session = DomainLogSession.find_by_session_id @cookies['_session_id']
     session.update_attribute(:ip_address, self.random_ip) if session
     visitor = DomainLogVisitor.find_by_visitor_hash @cookies['v']
@@ -360,7 +364,7 @@ def add_thread
         end
       end
     }
-    sleep 1 + rand(10)
+    sleep 1 # + rand(10)
     @counter.stop
   }
 end
