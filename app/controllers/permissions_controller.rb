@@ -72,7 +72,7 @@ class PermissionsController < CmsController # :nodoc: all
       @permissions[category.to_sym].each do |perm|
       
         permission_name = category + "_" + perm[0].to_s
-        perms = permissions[permission_name]
+        perms = permissions[permission_name] if permissions
         @user_classes.each do |cls|
           if perms && perms[cls.id.to_s]
             cls.has_role(permission_name,nil,true)
