@@ -187,8 +187,8 @@ class DomainLogSession < DomainModel
     ses = DomainLogSession.find_by_id session[:domain_log_session][:id]
     return unless ses
 
-    source = DomainLogSource.get_source ses
-    ses.update_attributes :ignore => false, :domain_log_source_id => source.id if source
+    source = DomainLogSource.get_source ses, session
+    ses.update_attributes :ignore => false, :domain_log_source_id => source[:id] if source
   end
 
   def self.cron_update_sessions(opts={})

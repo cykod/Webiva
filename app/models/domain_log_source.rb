@@ -17,10 +17,17 @@ class DomainLogSource < DomainModel
   def title; self.name; end
   def admin_url; nil; end
 
-  def self.get_source(session)
+  def self.get_source(domain_log_session, session={})
     self.sources.each do |source|
-      return source if source.matches?(session)
+      handler = self.handler_obj source[:source_handler], source[:options]
+      return source if handler && handler.matches?(domain_log_session, session)
     end
+    nil
+  end
+
+  def self.handler_obj(handler, options)
+    return "#{handler}_options".camelize.constantize.new(options)
+    rescue NameError
     nil
   end
 
@@ -29,9 +36,7 @@ class DomainLogSource < DomainModel
   end
 
   def handler_obj
-    return @handler_obj ||= "#{self.source_handler}_options".camelize.constantize.new(self.options)
-    rescue NameError
-    nil
+    @handler_obj ||= self.class.handler_obj self.source_handler, self.options
   end
 
   def configurable?
@@ -39,8 +44,16 @@ class DomainLogSource < DomainModel
     self.handler_obj.configurable?
   end
 
+  def after_save
+    DataCache.expire_container self.class.name
+  end
+
   def self.sources
-    DomainLogSource.find(:all, :conditions => {:active => true}, :order => 'position')
+    sources = DataCache.get_cached_container self.name, 'sources'
+    return sources if sources
+    sources = DomainLogSource.find(:all, :conditions => {:active => true}, :order => 'position').collect { |s| s.attributes.symbolize_keys }
+    DataCache.put_cached_container self.name, 'sources', sources
+    sources
   end
 
   def self.traffic_scope(from, duration, opts={})
@@ -59,14 +72,16 @@ class DomainLogSource < DomainModel
   end
 
   class AffiliateOptions < HashModel
-    def matches?(session)
-      session.affiliate.blank? ? false : true
+    def matches?(domain_log_session, session)
+      domain_log_session.affiliate.blank? ? false : true
     end
   end
 
   class EmailCampaignOptions < HashModel
-    def matches?(session)
-      return Module.const_get('MarketCampaignQueueSession').find_by_session_id(session.session_id) ? true : false
+    def matches?(domain_log_session, session)
+      return false unless session[:from_email_campaign]
+      return false unless SiteModule.module_enabled?('mailing')
+      return Module.const_get('MarketCampaignQueueSession').find_by_session_id(domain_log_session.session_id) ? true : false
       rescue NameError
       return false
     end
@@ -75,11 +90,11 @@ class DomainLogSource < DomainModel
   class SocialNetworkOptions < HashModel
     attributes :sites => nil
 
-    def matches?(session)
-      return false unless session.domain_log_referrer
+    def matches?(domain_log_session, session)
+      return false unless domain_log_session.domain_log_referrer
 
       self.sites.each do |site|
-        return true if session.domain_log_referrer.referrer_domain.include?(site)
+        return true if domain_log_session.domain_log_referrer.referrer_domain.include?(site)
       end
 
       false
@@ -109,18 +124,18 @@ class DomainLogSource < DomainModel
   end
 
   class SearchOptions < HashModel
-    def matches?(session)
-      session.query.blank? ? false : true
+    def matches?(domain_log_session, session)
+      domain_log_session.query.blank? ? false : true
     end
   end
 
   class ReferrerOptions < HashModel
-    def matches?(session)
-      session.domain_log_referrer ? true : false
+    def matches?(domain_log_session, session)
+      domain_log_session.domain_log_referrer ? true : false
     end
   end
 
   class TypeInOptions < HashModel
-    def matches?(session); true; end
+    def matches?(domain_log_session, session); true; end
   end
 end
