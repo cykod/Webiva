@@ -120,7 +120,7 @@ class MyRobotsWebService < ActiveWebService
 
   def save_cookies
     @cookies ||= {}
-    @response.headers['set-cookie'].collect { |cookie| cookie.split("\; ")[0].split('=') }.each do |c|
+    @response.headers.to_hash['set-cookie'].collect { |cookie| cookie.split("\; ")[0].split('=') }.each do |c|
       @cookies[c[0]] = c[1]
     end
   end
