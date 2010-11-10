@@ -36,7 +36,7 @@ class Blog::WordpressWebService < ActiveWebService
     end
 
     @cookies ||= {}
-    @response.headers['set-cookie'].collect { |cookie| cookie.split("\; ")[0].split('=') }.each do |c|
+    @response.headers.to_hash['set-cookie'].collect { |cookie| cookie.split("\; ")[0].split('=') }.each do |c|
       @cookies[c[0]] = c[1]
     end
   end
@@ -49,7 +49,7 @@ class Blog::WordpressWebService < ActiveWebService
     begin
       self.wp_login_post @inputs, :no_follow => true
     rescue HTTParty::RedirectionTooDeep => e
-      e.response.header['set-cookie'].split(',').collect { |cookie| cookie.split("\; ")[0].split('=') }.each do |c|
+      e.response.header.to_hash['set-cookie'].split(',').collect { |cookie| cookie.split("\; ")[0].split('=') }.each do |c|
         @cookies[c[0]] = c[1]
       end
     end
