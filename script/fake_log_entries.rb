@@ -4,7 +4,10 @@ require 'rubygems'
 require File.expand_path(File.dirname(__FILE__) + "/../config/environment")
 require 'httparty'
 
+SESSIONS = ARGV[1].to_i
+DAYS_AGO = ARGV[2]
 DOMAIN_ID = 3
+start_time = Time.now.utc
 
 class MyRobotsWebService < ActiveWebService
   attr_accessor :authenticity_token
@@ -297,24 +300,33 @@ class MyRobotsWebService < ActiveWebService
 
     self.webalytics :query => {:loc => {:country => 'US'}}
 
-    session = DomainLogSession.find_by_session_id @cookies['_session_id']
-    session.update_attribute(:ip_address, self.random_ip) if session
-    visitor = DomainLogVisitor.find_by_visitor_hash @cookies['v']
-    visitor.update_attribute(:ip_address, self.random_ip) if visitor
+    unless DAYS_AGO
+      begin
+        Domain.find(DOMAIN_ID).execute {
+          session = DomainLogSession.find_by_session_id @cookies['_session_id']
+          session.update_attribute(:ip_address, self.random_ip) if session
+          visitor = DomainLogVisitor.find_by_visitor_hash @cookies['v']
+          visitor.update_attribute(:ip_address, self.random_ip) if visitor
+        }
+      rescue
+      end
+    end
   end
 end
 
 class ThreadCounter < Monitor
-  attr_reader :count
+  attr_reader :count, :total
 
   def initialize
     @count = 0
+    @total = 0
     super
   end
 
   def start
     synchronize do
       @count += 1
+      @total += 1
     end
   end
 
@@ -326,45 +338,46 @@ class ThreadCounter < Monitor
 end
 
 @counter = ThreadCounter.new
-@domain = Domain.find DOMAIN_ID
 
 def add_thread
   @counter.start
   Thread.new {
-    @domain.execute {
-      service = MyRobotsWebService.new
+    service = MyRobotsWebService.new
 
-      percent = rand(100)
-      if percent < 5
-        puts "Buying robots"
-        service.home
-        service.shop
-        (1+rand(5)).times do |t|
-          service.add_random_product
-        end
-        service.purchase
-      elsif percent < 15
-        puts "Contacting Us"
-        service.home
-        service.contact_us
-      elsif percent < 45
-        puts "Bounce"
-        service.home
-      elsif percent < 50
-        puts "Bounce"
-        service.about_us
-      else
-        puts "Looking around"
-        service.home
-        service.about_us
-        service.faqs
-        service.shop
-        (1+rand(20)).times do |t|
-          service.send service.random_product
-        end
+    percent = rand(100)
+    if percent < 5
+      puts "Buying robots"
+      service.home
+      service.shop
+      (1+rand(5)).times do |t|
+        service.add_random_product
       end
-    }
-    sleep 1 # + rand(10)
+      service.purchase
+    elsif percent < 15
+      puts "Contacting Us"
+      service.home
+      service.contact_us
+    elsif percent < 45
+      puts "Bounce"
+      service.home
+    elsif percent < 50
+      puts "Bounce"
+      service.about_us
+    else
+      puts "Looking around"
+      service.home
+      service.about_us
+      service.faqs
+      service.shop
+      (1+rand(20)).times do |t|
+        service.send service.random_product
+      end
+    end
+
+    unless DAYS_AGO
+      sleep 1 + rand(10)
+    end
+
     @counter.stop
   }
 end
@@ -372,13 +385,31 @@ end
 max_threads = 6
 max_threads.times do |i|
   add_thread
+  break if SESSIONS && @counter.total >= SESSIONS
 end
 
 while(true)
-  sleep 1
+  unless DAYS_AGO
+    sleep 1
+  end
+
+  break if SESSIONS && @counter.total >= SESSIONS
+
   puts "# threads: " + @counter.count.inspect
   if @counter.count < max_threads
     puts "starting a new thread"
     add_thread
   end
+end
+
+if DAYS_AGO
+  Thread.list.each { |t| t.join unless t == Thread.current }
+
+  Domain.find(DOMAIN_ID).execute {
+    end_time = Time.now.utc
+
+    DomainModel.connection.execute "UPDATE domain_log_visitors SET created_at = DATE_SUB(created_at, INTERVAL #{DAYS_AGO} DAY), updated_at = DATE_SUB(updated_at, INTERVAL #{DAYS_AGO} DAY) WHERE created_at BETWEEN '#{start_time.to_s(:db)}' AND '#{end_time.to_s(:db)}'"
+    DomainModel.connection.execute "UPDATE domain_log_sessions SET created_at = DATE_SUB(created_at, INTERVAL #{DAYS_AGO} DAY), updated_at = DATE_SUB(updated_at, INTERVAL #{DAYS_AGO} DAY) WHERE created_at BETWEEN '#{start_time.to_s(:db)}' AND '#{end_time.to_s(:db)}'"
+    DomainModel.connection.execute "UPDATE domain_log_entries SET occurred_at = DATE_SUB(occurred_at, INTERVAL #{DAYS_AGO} DAY) WHERE occurred_at BETWEEN '#{start_time.to_s(:db)}' AND '#{end_time.to_s(:db)}'"
+  }
 end
