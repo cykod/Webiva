@@ -30,6 +30,8 @@ WebivaStatsChart = function(opts) {
 
   var maxVisits = 0;
   var visits = new Array();
+  var maxVisibleVisits = 0;
+  var visibleSources = 0;
 
   var fonts = {
     legend: {font: '12px sans-serif', color: fontColor, margin: 15},
@@ -65,9 +67,20 @@ WebivaStatsChart = function(opts) {
       }
     }
 
+    maxVisibleVisits = 0;
+    visibleSources = 0;
+    for(var i=0; i<sources_to_display.length; i++) {
+      if(sources_to_display[i]) { visibleSources++; }
+    }
+
     for(var i=0; i<sources.length; i++) {
       var sum = 0;
-      for(var j=0; j<sources[i].length; j++) { sum += sources[i][j]; }
+      var sumVisible = 0;
+      for(var j=0; j<sources[i].length; j++) {
+        sum += sources[i][j];
+        if(sources_to_display[j]) { sumVisible += sources[i][j]; }
+      }
+      if(maxVisibleVisits < sumVisible) { maxVisibleVisits = sumVisible; }
       if(maxVisits < sum) { maxVisits = sum; }
       visits.push(sum);
     }
@@ -119,7 +132,7 @@ WebivaStatsChart = function(opts) {
     .textMargin(5)
     .font(fonts.numbers.font)
     .textStyle(fonts.numbers.color)
-    .text(function(d) d > 0 ? d : '');
+    .text(function(d) y(d) > 12 ? d : '');
 
     var numTicks = 5;
     if(numTicks > maxUserLevel) {
@@ -135,10 +148,11 @@ WebivaStatsChart = function(opts) {
 
   function drawSources(index, canvas) {
     /* Sizing and scales. */
+    var max = visibleSources == 1 ? maxVisibleVisits : maxVisits;
     var x = (dimensions.width - dimensions.bar.width) / 2,
         colors = new Array(),
         data = new Array(),
-        y = pv.Scale.linear(0, maxVisits).range(0, dimensions.bar.height);
+        y = pv.Scale.linear(0, max).range(0, dimensions.bar.height);
 
     for(var i=0; i<sources[index].length; i++) {
       if(sources_to_display[i]) {
@@ -147,15 +161,18 @@ WebivaStatsChart = function(opts) {
       }
     }
 
-    colors.push('#EEEEEE');
-    var sum = 0;
-    for(var i=0; i<sources[index].length; i++) {
-      if(! sources_to_display[i]) {
-        sum += sources[index][i];
+    if(visibleSources > 1) {
+      colors.push('#EEEEEE');
+      var sum = 0;
+      for(var i=0; i<sources[index].length; i++) {
+        if(! sources_to_display[i]) {
+          sum += sources[index][i];
+        }
       }
+
+      data.push([sum]);
     }
 
-    data.push([sum]);
     colors = pv.colors(colors);
 
     /* The root panel. */
@@ -179,7 +196,7 @@ WebivaStatsChart = function(opts) {
     .anchor("center").add(pv.Label)
     .font(fonts.numbers.font)
     .textStyle(fonts.numbers.color)
-    .text(function(d) d > 0 ? d : '');
+    .text(function(d) y(d) > 12 ? d : '');
 
     var numTicks = 5;
     if(numTicks > maxVisits) {
@@ -268,6 +285,8 @@ WebivaStatsChart = function(opts) {
                sources_to_display[index] = ! sources_to_display[index];
              }
 
+             setup();
+
              for(var i=0; i<visits.length; i++) {
                drawSources(i, 'chart_bar' + (i+1));
              }
@@ -297,6 +316,8 @@ WebivaStatsChart = function(opts) {
                  sources_to_display[i] = true;
                }
                
+               setup();
+
                for(var i=0; i<visits.length; i++) {
                  drawSources(i, 'chart_bar' + (i+1));
                }
