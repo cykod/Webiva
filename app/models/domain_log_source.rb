@@ -94,7 +94,7 @@ class DomainLogSource < DomainModel
       return false unless domain_log_session.domain_log_referrer
 
       self.sites.each do |site|
-        return true if domain_log_session.domain_log_referrer.referrer_domain.include?(site)
+        return true if domain_log_session.domain_log_referrer.referrer_domain == site
       end
 
       false
@@ -113,7 +113,7 @@ class DomainLogSource < DomainModel
     end
 
     def default_sites
-      ['.facebook.com', '.myspace.com']
+      ['facebook.com', 'myspace.com', 'twitter.com']
     end
 
     def configurable?; true; end
