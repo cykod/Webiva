@@ -7,8 +7,11 @@ describe DomainLogSource do
 
   queue_session_klass = nil
   begin
-    queue_session_klass = Module.const_get('MarketCampaignQueueSession')
-    reset_domain_tables :market_campaign_queue_session
+    result = DomainModel.connection.execute "show tables like 'market_campaign_queue_sessions'"
+    if result.num_rows > 0
+      queue_session_klass = Module.const_get('MarketCampaignQueueSession')
+      reset_domain_tables :market_campaign_queue_session
+    end
   rescue NameError
   end
 
@@ -21,18 +24,19 @@ describe DomainLogSource do
       session = Factory(:domain_log_session, :affiliate => 'test')
       source = DomainLogSource.get_source(session)
       source.should_not be_nil
-      source.source_handler.should == 'domain_log_source/affiliate'
+      source[:source_handler].should == 'domain_log_source/affiliate'
     end
   end
 
   if queue_session_klass
     describe "Email Campaign" do
       it "should detect email source" do
+        SiteModule.should_receive(:module_enabled?).with('mailing').and_return(true)
         session = Factory(:domain_log_session)
         queue_session_klass.create :session_id => session.session_id, :entry_created_at => Time.now
-        source = DomainLogSource.get_source(session)
+        source = DomainLogSource.get_source(session, :from_email_campaign => true)
         source.should_not be_nil
-        source.source_handler.should == 'domain_log_source/email_campaign'
+        source[:source_handler].should == 'domain_log_source/email_campaign'
       end
     end
   end
@@ -43,7 +47,7 @@ describe DomainLogSource do
       session = Factory(:domain_log_session, :domain_log_referrer_id => referrer.id)
       source = DomainLogSource.get_source(session)
       source.should_not be_nil
-      source.source_handler.should == 'domain_log_source/social_network'
+      source[:source_handler].should == 'domain_log_source/social_network'
     end
   end
 
@@ -52,7 +56,7 @@ describe DomainLogSource do
       session = Factory(:domain_log_session, :query => 'test')
       source = DomainLogSource.get_source(session)
       source.should_not be_nil
-      source.source_handler.should == 'domain_log_source/search'
+      source[:source_handler].should == 'domain_log_source/search'
     end    
   end
 
@@ -62,7 +66,7 @@ describe DomainLogSource do
       session = Factory(:domain_log_session, :domain_log_referrer_id => referrer.id)
       source = DomainLogSource.get_source(session)
       source.should_not be_nil
-      source.source_handler.should == 'domain_log_source/referrer'
+      source[:source_handler].should == 'domain_log_source/referrer'
     end
   end
 
@@ -71,7 +75,7 @@ describe DomainLogSource do
       session = Factory(:domain_log_session)
       source = DomainLogSource.get_source(session)
       source.should_not be_nil
-      source.source_handler.should == 'domain_log_source/type_in'
+      source[:source_handler].should == 'domain_log_source/type_in'
     end
   end
 end
