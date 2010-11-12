@@ -729,6 +729,11 @@ class SiteTemplate < DomainModel
       SiteTemplate.import_bundle bundler, child, opts
     end
 
+    site_template = SiteTemplate.find site_template.id
+    site_template.options[:values] = {}
+    site_template.update_option_values nil
+    site_template.save
+
     site_template
   end
 
