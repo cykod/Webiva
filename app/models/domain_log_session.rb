@@ -19,14 +19,14 @@ class DomainLogSession < DomainModel
   named_scope :referrer_only, :conditions => 'domain_log_referrer_id IS NOT NULL'
   named_scope :valid_sessions, :conditions => '`ignore` = false AND domain_log_source_id IS NOT NULL'
 
-  def self.start_session(user, session, request, site_node=nil)
+  def self.start_session(user, session, request, site_node=nil, ignore=true)
     return unless request.session_options
 
     if !session[:domain_log_session] || session[:domain_log_session][:end_user_id] != user.id
       tracking = Tracking.new(request)
       session[:user_referrer] = tracking.referrer_domain if tracking.referrer_domain
       session[:domain_log_visitor] ||= {}
-      ses = self.session(session[:domain_log_visitor][:id],request.session_options[:id], user, request.remote_ip, true, tracking, site_node)
+      ses = self.session(session[:domain_log_visitor][:id],request.session_options[:id], user, request.remote_ip, true, tracking, site_node, ignore)
       session[:domain_log_session] = { :id => ses.id, :end_user_id => user.id }
     end
   end
@@ -38,7 +38,7 @@ class DomainLogSession < DomainModel
   end
   
 #  validates_uniqueness_of :session_id
-  def self.session(visitor_id,session_id,user,ip_address,save_entry=true,tracking=nil,site_node=nil)
+  def self.session(visitor_id,session_id,user,ip_address,save_entry=true,tracking=nil,site_node=nil,ignore=true)
     user = user.id if user.is_a?(EndUser)
     returning (self.find_by_session_id(session_id) || self.new(:session_id => session_id, :ip_address => ip_address)) do |ses|
 
@@ -57,6 +57,7 @@ class DomainLogSession < DomainModel
         :query => tracking.search,
         :domain_id => DomainModel.active_domain_id,
         :site_version_id => site_node ? site_node.site_version_id : nil,
+        :ignore => ignore,
         :affiliate_data => tracking.affiliate_data} if tracking && ses.id.nil?
 
       ses.attributes = {:end_user_id => user}
