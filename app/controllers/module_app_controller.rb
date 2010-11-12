@@ -191,7 +191,7 @@ class ModuleAppController < ApplicationController
     if Configuration.logging
       unless request.bot?
         @capture_location = DomainLogVisitor.log_visitor(cookies,myself,session,request)
-        DomainLogSession.start_session(myself, session, request, @page)
+        DomainLogSession.start_session(myself, session, request, @page, @capture_location)
       end
     end
   end
