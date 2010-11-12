@@ -52,6 +52,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
           end
           
           self.elevate_user_level(user, @options.user_level) if ! @options.user_level.blank? && @options.user_level > 0
+          self.visiting_end_user_id = user.id
 
           if @options.redirect_page_url
             return redirect_paragraph @options.redirect_page_url
