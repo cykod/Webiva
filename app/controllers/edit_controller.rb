@@ -198,14 +198,16 @@ class EditController < ModuleController # :nodoc: all
                         ]
     @available_paragraph_types = @paragraph_types.clone
     @available_paragraph_types += [ ['builtin', 'code', 'Code Paragraph',nil,[]],
-                                    ['builtin', 'textile', 'Textile Paragraph',nil,[]],
-                                    ['builtin', 'markdown', 'Markdown Paragraph',nil,[]] ]
+                                    ['builtin', 'markdown', 'Markdown Paragraph',nil,[]],
+                                    ['builtin', 'textile', 'Textile Paragraph',nil,[]] ]
     @paragraph_types << @available_paragraph_types[-3] if myself.has_role?('paragraph_code')
     @paragraph_types << @available_paragraph_types[-2] if myself.has_role?('paragraph_textile')
     @paragraph_types << @available_paragraph_types[-1] if myself.has_role?('paragraph_markdown')
 
     editor_paragraph_types = ParagraphController.get_editor_paragraphs
-    editor_paragraph_types.sort { |elm1,elm2| elm1[0] <=> elm2[0] }
+    editor_paragraph_types.sort! { |elm1,elm2| elm1[0] <=> elm2[0] }
+    editor_paragraph_types.each { |elm| elm[2].sort! { |a,b| a[2] <=> b[2] } }
+
     last_type = nil
     editor_paragraph_types.each do |type|
       @available_paragraph_types += type[2]
@@ -216,17 +218,17 @@ class EditController < ModuleController # :nodoc: all
         last_type = type[0]
       end
     end
-    
 
     module_paragraphs =  SiteModule.get_module_paragraphs
-    module_paragraphs.sort { |elm1,elm2| elm1[0] <=> elm2[0] }
     last_type = nil
-    module_paragraphs.each do |header_type,type|
-      @available_paragraph_types += type[2]
+    module_paragraphs.to_a.sort{ |a,b| a[0] <=> b[0] }.each do |type|
+      type = type[1]
+      paras = type[2].sort { |a,b| a[2] <=> b[2] }
+      @available_paragraph_types += paras
       
       if myself.has_role?('paragraph_module') && (!type[1] || myself.has_role?(type[1].to_s))
         @paragraph_types << type[0] if(last_type != type[0])
-        @paragraph_types += type[2]
+        @paragraph_types += paras
         last_type = type[0]
       end
     end
@@ -235,7 +237,6 @@ class EditController < ModuleController # :nodoc: all
     @available_paragraph_types += content_paragraphs 
     @paragraph_types +=  content_paragraphs  if myself.has_role?('paragraph_content')
 
-    
     @paragraph_hash = {}
     @available_paragraph_types.each do |para| 
       if para.is_a?(Array) && para.length == 2
@@ -246,9 +247,6 @@ class EditController < ModuleController # :nodoc: all
         @paragraph_hash["#{para[3]}_#{para[1]}_#{para[5]}" ] = para 
       end
     end
-    
-    
-    
   end
   
   def get_site_features
