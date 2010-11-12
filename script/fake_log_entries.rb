@@ -4,7 +4,8 @@ require 'rubygems'
 require File.expand_path(File.dirname(__FILE__) + "/../config/environment")
 require 'httparty'
 
-SESSIONS = ARGV[1].to_i
+SESSIONS = ARGV[1]
+SESSIONS = SESSIONS.to_i if SESSIONS
 DAYS_AGO = ARGV[2]
 DOMAIN_ID = 3
 start_time = Time.now.utc
@@ -220,6 +221,7 @@ class MyRobotsWebService < ActiveWebService
 
   def purchase
     user = self.get_random_user
+    puts "#{user[:first_name]} #{user[:last_name]} is making a purchase"
     self.checkout
     self.register 'first_name' => user[:first_name], 'last_name' => user[:last_name], 'email' => user[:email]
     self.shipping 'first_name' => user[:first_name], 'last_name' => user[:last_name], 'address' => user[:address], 'country' => user[:country], 'city' => user[:city], 'state' => user[:state], 'zip' => user[:zip]
@@ -229,6 +231,7 @@ class MyRobotsWebService < ActiveWebService
 
   def contact_us
     user = self.get_random_user
+    puts "#{user[:first_name]} #{user[:last_name]} is contacting us"
     self.contact
     self.add_contact 'name' => user[:name], 'email' => user[:email], 'message' => DummyText.paragraph
   end
@@ -395,7 +398,7 @@ while(true)
 
   break if SESSIONS && @counter.total >= SESSIONS
 
-  puts "# threads: " + @counter.count.inspect
+  puts "sessions(#{@counter.total}) # threads: #{@counter.count}"
   if @counter.count < max_threads
     puts "starting a new thread"
     add_thread
