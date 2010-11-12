@@ -1,7 +1,9 @@
 <a class='mod_node' id='mod_<%= mod.id %>' 
    onclick='StructureEditor.selectNode("mod",<%= mod.id %>);' 
    <% if mod.modifier_type == 'framework' -%>
-     ondblclick="document.location = '<%= jh url_for(:controller => 'edit', :action =>'page', :path => ['framework',mod.id ]) %>';" 
+     ondblclick="document.location = '<%= jh url_for(:controller => 'edit', :action =>'page', :path => ['framework',mod.id,@view_language]) %>';" 
+   <% elsif mod.modifier_type == 'template' -%>
+     ondblclick="document.location = '<%= jh url_for(:controller => 'templates', :action =>'edit', :path => mod.options.template_id) %>';" 
    <% end -%>
    >
    <span class='node_handle site_node_modifier <%= mod.modifier_type %>_modifier' id='mod_handle_<%= mod.id %>' ></span> 
