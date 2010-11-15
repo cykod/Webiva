@@ -50,7 +50,13 @@ function uploader(place, status, targetPHP, show, uploadForm) {
         if(! canSendAsBinary) {
           body += "Content-Transfer-Encoding: base64\r\n";
         }
-        body += "Content-Type: application/octet-stream\r\n\r\n";
+
+        contentType = 'application/octet-stream';
+        if(file.type && file.type != "") {
+          contentType = file.type;
+        }
+
+        body += "Content-Type: " + contentType + "\r\n\r\n";
         body += canSendAsBinary ? bin : window.btoa(bin);
         body += "\r\n";
         body += '--' + boundary;
