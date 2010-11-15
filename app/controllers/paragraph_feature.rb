@@ -1655,6 +1655,38 @@ block is non-nil
       end
     end
 
+    def define_header_tag(name)
+      define_tag(name) do |tag|
+        content = yield(tag) if block_given?
+        content ||= tag.expand unless tag.single?
+        html_include(:head_html, content) unless content.blank?
+      end
+      nil
+    end
+
+    def define_meta_tag(name, options={})
+      define_tag(name) do |tag|
+        content = yield(tag) if block_given?
+        content ||= tag.expand unless tag.single?
+        content ||= tag.attr['content']
+
+        if tag.attr['name']
+          case tag.attr['name'].downcase
+          when 'description'
+            html_include(:meta_description, content)
+          when 'keywords'
+            html_include(:meta_keywords, content)
+          end
+        else
+          opts = options.stringify_keys
+          opts.merge! tag.attr
+          opts['content'] = content
+          html_include(:head_html, tag(:meta, opts))
+        end
+      end
+      nil
+    end
+
     # get versions of all the define_... methods without the define
     skip_methods = %w(define_form_tag define_tag)
     instance_methods.each do |method_name|
@@ -1920,6 +1952,10 @@ block is non-nil
                                                  :localize_values => options[:localize_values],
                                                  :localize => options[:localize],
                                                  :default_feature => options[:default] )
+
+      context.header_tag('header')
+      context.meta_tag('meta')
+
       feature_parser = Radius::Parser.new(context, :tag_prefix => 'cms')
       begin
         feature_parser.parse(feature.body_html || feature.body)
