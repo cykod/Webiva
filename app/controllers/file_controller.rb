@@ -180,8 +180,9 @@ class FileController < CmsController # :nodoc: all
     folder = nil unless folder.folder?
 
     if DomainFile.available_file_storage > 0 && folder
-      filename = params[:upload_file][:filename] || params[:upload_file_filename]
-      @upload_file = DomainFile.create(:filename => filename, :parent_id => folder.id, :creator_id => myself.id, :skip_transform => true, :skip_post_processing => true)
+      filename = params[:upload_file][:filename]
+      encoding = params[:upload_file][:encoding]
+      @upload_file = DomainFile.create(:filename => filename, :parent_id => folder.id, :encoding => encoding, :creator_id => myself.id, :skip_transform => true, :skip_post_processing => true)
     
       worker_key = FileWorker.async_do_work(:domain_file_id => @upload_file.id,
                                             :domain_id => DomainModel.active_domain_id,

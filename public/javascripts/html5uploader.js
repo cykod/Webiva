@@ -14,7 +14,6 @@
 */
 
 function uploader(place, status, targetPHP, show, uploadForm) {
-  fileUploadName = 'upload_file[filename]';
 
   // Upload image files
   upload = function(file) {
@@ -25,6 +24,7 @@ function uploader(place, status, targetPHP, show, uploadForm) {
       this.loadEnd = function() {
         bin = reader.result;
         xhr = new XMLHttpRequest();
+        var canSendAsBinary = xhr.sendAsBinary != null;
         xhr.open('POST', targetPHP, true);
         var boundary = '---------------------------';
         for(var i=0; i<25; i++) {
@@ -39,31 +39,30 @@ function uploader(place, status, targetPHP, show, uploadForm) {
           body += value.value + "\r\n";
         }
 
-        if(! xhr.sendAsBinary) {
+        if(! canSendAsBinary) {
           body += '--' + boundary + "\r\n";
-          body += "Content-Disposition: form-data; name=\"base64\"\r\n\r\n";
-          body += "1\r\n";
+          body += "Content-Disposition: form-data; name=\"upload_file[encoding]\"\r\n\r\n";
+          body += "base64\r\n";
         }
 
         body += '--' + boundary + "\r\n";
         body += "Content-Disposition: form-data; name=\"upload_file[filename]\"; filename=\"" + file.name + "\"\r\n";
+        if(! canSendAsBinary) {
+          body += "Content-Transfer-Encoding: base64\r\n";
+        }
         body += "Content-Type: application/octet-stream\r\n\r\n";
-        body += xhr.sendAsBinary ? bin : window.btoa(bin);
+        body += canSendAsBinary ? bin : window.btoa(bin);
         body += "\r\n";
         body += '--' + boundary;
         body += '--';
 
         xhr.setRequestHeader('content-type', 'multipart/form-data; boundary=' + boundary);
         // Firefox 3.6 provides a feature sendAsBinary ()
-        if(xhr.sendAsBinary != null) {
+        if(canSendAsBinary) {
           xhr.sendAsBinary(body);
           // Chrome 7 sends data but you must use the base64_decode on the PHP side
         } else {
-          xhr.open('POST', targetPHP+'?up=true&base64=true', true);
-          xhr.setRequestHeader('UP-FILENAME', file.name);
-          xhr.setRequestHeader('UP-SIZE', file.size);
-          xhr.setRequestHeader('UP-TYPE', file.type);
-          xhr.send(window.btoa(bin));
+          xhr.send(body);
         }
         if (show) {
           var newFile  = document.createElement('div');
