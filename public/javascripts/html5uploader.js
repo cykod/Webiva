@@ -26,7 +26,10 @@ function uploader(place, status, targetPHP, show, uploadForm) {
         bin = reader.result;
         xhr = new XMLHttpRequest();
         xhr.open('POST', targetPHP, true);
-        var boundary = 'xxxxxxxxx';
+        var boundary = '---------------------------';
+        for(var i=0; i<25; i++) {
+          boundary += Math.floor(Math.random()*10).toString();
+        }
         var body = '';
         var values = $j('#' + uploadForm).serializeArray();
         for(var i=0; i<values.length; i++) {
