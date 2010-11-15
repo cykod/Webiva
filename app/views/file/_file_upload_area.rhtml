@@ -1,6 +1,6 @@
   <div id='upload_progress' style='display:none;' ></div>
   <div id='upload_action'>
-    <%= form_tag({:action => 'upload'}, :onsubmit => "this.target = 'UploadTarget'; FileEditor.startUpload(this); FileEditor.hideDetails(); return true;", :enctype => 'multipart/form-data') %>
+    <%= form_tag({:action => 'upload'}, :onsubmit => "this.target = 'UploadTarget'; FileEditor.startUpload(this); FileEditor.hideDetails(); return true;", :enctype => 'multipart/form-data', :id => 'file_upload_form') %>
     <div style='float:left;'>
       <h2>
         <%= theme_image_tag('framework/filemanager_upload_file.gif',:align =>'baseline') -%>    

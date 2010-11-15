@@ -50,7 +50,6 @@ class FileController < CmsController # :nodoc: all
   public
 
   def index
-  
     cms_page_path [], "Files"
     
     folder_id = params[:path][0] if params[:path]
@@ -75,8 +74,7 @@ class FileController < CmsController # :nodoc: all
     @page = params[:page] || 1
     
     require_js('edit_area/edit_area_loader')
-	  
-   
+    require_js 'html5uploader'
   end
   
   def load_folder
@@ -182,7 +180,8 @@ class FileController < CmsController # :nodoc: all
     folder = nil unless folder.folder?
 
     if DomainFile.available_file_storage > 0 && folder
-      @upload_file = DomainFile.create(:filename => params[:upload_file][:filename], :parent_id => folder.id, :creator_id => myself.id, :skip_transform => true, :skip_post_processing => true)
+      filename = params[:upload_file][:filename] || params[:upload_file_filename]
+      @upload_file = DomainFile.create(:filename => filename, :parent_id => folder.id, :creator_id => myself.id, :skip_transform => true, :skip_post_processing => true)
     
       worker_key = FileWorker.async_do_work(:domain_file_id => @upload_file.id,
                                             :domain_id => DomainModel.active_domain_id,

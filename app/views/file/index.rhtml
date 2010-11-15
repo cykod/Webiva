@@ -70,6 +70,9 @@
         <div style='clear:both;'></div>
       </h2>
 
+      <div id="status">Drag the files from a folder to a selected area ...</div>
+      <div id="list"></div>
+
       <div class='tree_detail_body' id='element_info'>
           <div class='file_manager_icon clearfix' id='file_manager' >
             <%= render :partial => "folder_details", :locals => { :folder => @folder }	 %>
@@ -86,6 +89,12 @@
   <%= render :partial => 'file_search' %>
 </div>
 
+<script>
+var webivaUploader = null;
+$j(document).ready(function() {
+ new uploader('element_info', 'status', '<%= url_for :action => "upload" %>', 'list', 'file_upload_form');
+});
+</script>
 
 
 
