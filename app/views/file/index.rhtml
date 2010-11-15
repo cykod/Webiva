@@ -92,7 +92,12 @@
 <script>
 var webivaUploader = null;
 $j(document).ready(function() {
- new uploader('element_info', 'status', '<%= url_for :action => "upload" %>', 'list', 'file_upload_form');
+ new uploader('element_info', 'status', '<%= url_for :action => "upload" %>', 'list', 'file_upload_form',
+              function(file) {
+              },
+              function(xhr) {
+              }
+ );
 });
 </script>
 

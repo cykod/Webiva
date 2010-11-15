@@ -13,7 +13,7 @@
 *	IE 6+
 */
 
-function uploader(place, status, targetPHP, show, uploadForm) {
+function uploader(place, status, targetPHP, show, uploadForm, beforeUpload, onComplete) {
 
   // Upload image files
   upload = function(file) {
@@ -22,8 +22,21 @@ function uploader(place, status, targetPHP, show, uploadForm) {
 
       // Once the process of reading file
       this.loadEnd = function() {
+        if(beforeUpload) {
+          beforeUpload(reader.file);
+        }
+
         bin = reader.result;
         xhr = new XMLHttpRequest();
+
+        if(onComplete) {
+          xhr.onreadystatechange = function(){
+            if(xhr.readyState == 4) {
+              onComplete(xhr);
+            }
+          }
+        }
+
         var canSendAsBinary = xhr.sendAsBinary != null;
         xhr.open('POST', targetPHP, true);
         var boundary = '---------------------------';
@@ -46,14 +59,14 @@ function uploader(place, status, targetPHP, show, uploadForm) {
         }
 
         body += '--' + boundary + "\r\n";
-        body += "Content-Disposition: form-data; name=\"upload_file[filename]\"; filename=\"" + file.name + "\"\r\n";
+        body += "Content-Disposition: form-data; name=\"upload_file[filename]\"; filename=\"" + reader.file.name + "\"\r\n";
         if(! canSendAsBinary) {
           body += "Content-Transfer-Encoding: base64\r\n";
         }
 
         contentType = 'application/octet-stream';
-        if(file.type && file.type != "") {
-          contentType = file.type;
+        if(file.type && reader.file.type != "") {
+          contentType = reader.file.type;
         }
 
         body += "Content-Type: " + contentType + "\r\n\r\n";
@@ -72,7 +85,7 @@ function uploader(place, status, targetPHP, show, uploadForm) {
         }
         if (show) {
           var newFile  = document.createElement('div');
-          newFile.innerHTML = 'Loaded : '+file.name+' size '+file.size+' B';
+          newFile.innerHTML = 'Loaded : '+ reader.file.name +' size '+ reader.file.size +' B';
           document.getElementById(show).appendChild(newFile);
         }
         if (status) {
@@ -104,17 +117,22 @@ function uploader(place, status, targetPHP, show, uploadForm) {
         }
       }
 
+      var reader = new FileReader();
+      reader.file = file;
+
       // Preview images
       this.previewNow = function(event) {
         bin = preview.result;
         var img = document.createElement("img");
         img.className = 'addedIMG';
-        img.file = file;
+        img.file = preview.file;
         img.src = bin;
         document.getElementById(show).appendChild(img);
+
+        // The function that starts reading the file as a binary string
+        reader.readAsBinaryString(reader.file);
       }
 
-      reader = new FileReader();
       // Firefox 3.6, WebKit
       if(reader.addEventListener) {
         reader.addEventListener('loadend', this.loadEnd, false);
@@ -133,7 +151,9 @@ function uploader(place, status, targetPHP, show, uploadForm) {
             reader.onprogress = this.loadProgress;
           }
       }
+
       var preview = new FileReader();
+      preview.file = file;
       // Firefox 3.6, WebKit
       if(preview.addEventListener) {
         preview.addEventListener('loadend', this.previewNow, false);
@@ -142,13 +162,14 @@ function uploader(place, status, targetPHP, show, uploadForm) {
         preview.onloadend = this.previewNow;
       }
 
-      // The function that starts reading the file as a binary string
-      reader.readAsBinaryString(file);
-
       // Preview uploaded files
       if (show) {
-        preview.readAsDataURL(file);
+        preview.readAsDataURL(preview.file);
+      } else {
+        // The function that starts reading the file as a binary string
+        reader.readAsBinaryString(reader.file);
       }
+
 
       // Safari 5 does not support FileReader
     } else {
