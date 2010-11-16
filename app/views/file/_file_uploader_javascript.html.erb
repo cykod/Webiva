@@ -17,18 +17,20 @@ FileUploader = {
     var files = dt.files;
     if(files == null || files.length <= 0) { return; }
 
-    FileUploader.files = files;
+    FileUploader.files = new Array();
 
     if(FileEditor) {
       FileEditor.startUpload(this);
       FileEditor.hideDetails();
     }
 
-    for(var i=0; i<FileUploader.files.length; i++) {
-      FileUploader.files[i].reader = new FileReader();
-      FileUploader.files[i].content = null;
-      FileUploader.files[i].error = null;
-      FileUploader.files[i].progress = {loaded: 0, percentage: 0, total: 0};
+    for(var i=0; i<files.length; i++) {
+      var file = files[i];
+      file.reader = new FileReader();
+      file.content = null;
+      file.error = null;
+      file.progress = {loaded: 0, percentage: 0, total: 0};
+      FileUploader.files.push(file);
     }
 
     FileUploader.read();
@@ -38,9 +40,15 @@ FileUploader = {
     for(var i=0; i<FileUploader.files.length; i++) {
       var file = FileUploader.files[i];
       (function(file) {
-        file.reader.addEventListener('loadend', function(e) { FileUploader.loadEnd(file, e); }, false);
-        file.reader.addEventListener('error', function(e) { FileUploader.loadError(file, e); }, false);
-        file.reader.addEventListener('progress', function(e) { FileUploader.loadProgress(file, e); }, false);
+        if(file.reader.addEventListener) {
+          file.reader.addEventListener('loadend', function(e) { FileUploader.loadEnd(file, e); }, false);
+          file.reader.addEventListener('error', function(e) { FileUploader.loadError(file, e); }, false);
+          file.reader.addEventListener('progress', function(e) { FileUploader.loadProgress(file, e); }, false);
+        } else {
+          file.reader.onloadend = function(e) { FileUploader.loadEnd(file, e); };
+          file.reader.onerror = function(e) { FileUploader.loadError(file, e); };
+          file.reader.onprogress = function(e) { FileUploader.loadProgress(file, e); };
+        }
         file.reader.readAsBinaryString(file);
        })(file);
     }
@@ -90,6 +98,19 @@ FileUploader = {
   },
 
   upload: function() {
+    try {
+      FileUploader._upload();
+    } catch(err) {
+      body = null;
+      delete(xhr);
+      alert( '<%= "Upload failed out of memory, try sending less files or use file upload form.".t %>' );
+      FileEditor.finishedProcessing();
+      FileUploader.reset();
+      return;
+    }
+  },
+
+  _upload: function() {
     if(FileUploader.canUpload() == false) { return; }
 
     var xhr = new XMLHttpRequest();
@@ -100,10 +121,27 @@ FileUploader = {
       }
     }
 
+    xhr.upload.addEventListener("progress", function(e) {
+      var received = Number(e.position);
+      var size = Number(e.totalSize);
+      if(size > 0) {
+        var percent = Math.round(100 * received / size);
+        var width = percent * 4;
+        if(percent == 100) {
+          $('upload_progress').innerHTML = "<%= 'Writing File...'.t -%>";
+        } else {
+          percent = percent + "%"
+          var progress_html  = "<div class='progress_bar'><div class='progress' style='width:" + width + "px;'></div>";
+          progress_html += "<div class='progress_indicator'>" + percent + "</div></div>";
+          $('upload_progress').innerHTML = progress_html;
+        }
+      }
+    }, false );
+
     var canSendAsBinary = xhr.sendAsBinary != null;
 
     var frm = $j('#' + FileUploader.uploadForm);
-    xhr.open('POST', frm.attr('action'), true);
+    xhr.open('POST', frm.attr('action'), true );
     var boundary = '---------------------------';
     for(var i=0; i<25; i++) {
       boundary += Math.floor(Math.random()*10).toString();
@@ -129,8 +167,9 @@ FileUploader = {
     }
 
     var numErrors = 0;
-    for(var i=0; i<FileUploader.files.length; i++) {
-      var file = FileUploader.files[i];
+    var totalFiles = FileUploader.files.length;
+    while(FileUploader.files.length > 0) {
+      var file = FileUploader.files.pop();
       if(file.error) { numErrors++; continue; }
 
       body += '--' + boundary + "\r\n";
@@ -147,12 +186,13 @@ FileUploader = {
       body += "Content-Type: " + contentType + "\r\n\r\n";
       body += canSendAsBinary ? file.content : window.btoa(file.content);
       body += "\r\n";
+      delete(file);
     }
 
     body += '--' + boundary;
     body += '--';
 
-    if(numErrors == FileUploader.files.length) {
+    if(numErrors > 0 && numErrors == totalFiles) {
       alert( "Problem reading files" );
       return;
     }
@@ -165,6 +205,9 @@ FileUploader = {
     } else {
       xhr.send(body);
     }
+
+    body = null;
+    delete(xhr);
   },
 
   reset: function() {
