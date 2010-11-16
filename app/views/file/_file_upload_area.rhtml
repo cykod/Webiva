@@ -13,7 +13,7 @@
 
       <div class='filemanager_file_input'> 
         <input type='button' value='Upload' class="button_link" />
-        <%= file_field 'upload_file','filename', :id => 'file_column', :class=>'file_input_hidden', :onchange => "FileEditor.selectedChange(); FileEditor.startUpload(this.form); FileEditor.hideDetails();  this.form.submit();" %>
+        <%= file_field 'upload_file','filename', :id => 'file_column', :class=>'file_input_hidden', :onchange => "FileEditor.selectedChange(); FileEditor.startUpload(this.form); FileEditor.hideDetails(); FileUploader.files = new Array(); this.form.submit();" %>
       </div>
 
       <div style='float:left; padding:6px 0 0 2px;'>
