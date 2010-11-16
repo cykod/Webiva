@@ -180,11 +180,17 @@ class FileController < CmsController # :nodoc: all
     folder = nil unless folder.folder?
 
     if DomainFile.available_file_storage > 0 && folder
-      filename = params[:upload_file][:filename]
       encoding = params[:upload_file][:encoding]
-      @upload_file = DomainFile.create(:filename => filename, :parent_id => folder.id, :encoding => encoding, :creator_id => myself.id, :skip_transform => true, :skip_post_processing => true)
+
+      filenames = params[:upload_file][:filename]
+      filenames = [filenames] unless filenames.is_a?(Array)
+
+      domain_file_ids = filenames.collect do |filename|
+        @upload_file = DomainFile.create(:filename => filename, :parent_id => folder.id, :encoding => encoding, :creator_id => myself.id, :skip_transform => true, :skip_post_processing => true)
+        @upload_file.id
+      end.compact
     
-      worker_key = FileWorker.async_do_work(:domain_file_id => @upload_file.id,
+      worker_key = FileWorker.async_do_work(:domain_file_ids => domain_file_ids,
                                             :domain_id => DomainModel.active_domain_id,
                                             :extract_archive => params[:extract_archive],
                                             :replace_same => params[:replace_same]
