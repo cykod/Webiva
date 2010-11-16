@@ -750,17 +750,8 @@ FileEditor = {
     // File Upload Functions
     selectedChange: function() {
     	var filename = $('file_column').value;
-    	$('upload_extra').checked='false';
     	Element.hide('upload_status_area');
     	var compressed_extensions = ['.gz','.zip','.tar'];
-    	if(compressed_extensions.indexOf(SCMS.get_file_extension(filename)) != -1) {
-	    	new Effect.Appear('upload_extra', { duration: 0.5 } );
-    	}
-    	else {
-    		Element.hide('upload_extra');
-    	}
-    	$('upload_button').disabled = false;
-
     },
 
     uploadProgressID: null,
@@ -833,7 +824,6 @@ FileEditor = {
 
     manageUploads: function(errors) {
       $('file_column').value = '';
-      Element.hide('upload_extra');
       if(errors) {
       	alert(errors);
       }

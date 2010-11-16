@@ -11,7 +11,7 @@ FileUploader = {
 
   drop: function(event) {
     event.preventDefault();
-    if(FileUploader.files != null) { return; }
+    if(FileUploader.files != null) { alert( '<%= "Please wait for upload to finsih".t %>' ); return; }
 
     var dt = event.dataTransfer;
     var files = dt.files;
