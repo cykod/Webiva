@@ -172,6 +172,8 @@ FileUploader = {
   },
 
   init: function(formName, place) {
+    if(! FileUploader.canSupportDragDrop) { return; }
+
     FileUploader.uploadForm = formName;
 
     FileUploader.uploadPlace = document.getElementById(place);
