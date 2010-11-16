@@ -4,16 +4,16 @@
 module Content::MigrationSupport  #:nodoc:
 
  def delete_table
+   cClass = ContentMigrator.clone
+
+   if self.table_name
+     cClass.update_up(<<-CODE)
+       drop_table :#{self.table_name} do |t|
+       end
+     CODE
     
-    cClass = ContentMigrator.clone
-    
-    cClass.update_up(<<-CODE)
-      drop_table :#{self.table_name} do |t|
-      end
-    CODE
-    
-    cClass.migrate_domain(Domain.find(DomainModel.active_domain_id))
-  
+     cClass.migrate_domain(Domain.find(DomainModel.active_domain_id))
+   end
   end
   
   def create_table
