@@ -74,7 +74,6 @@ class FileController < CmsController # :nodoc: all
     @page = params[:page] || 1
     
     require_js('edit_area/edit_area_loader')
-    require_js 'html5uploader'
   end
   
   def load_folder
@@ -196,6 +195,9 @@ class FileController < CmsController # :nodoc: all
                                             :replace_same => params[:replace_same]
                                             )
       @processing_key  = session[:upload_file_worker] = worker_key
+
+      return render :json => {:processing_key => @processing_key} if params[:format] == 'json'
+
       respond_to_parent do 
         render :action => 'upload.rjs'
       end
