@@ -62,6 +62,8 @@ class StructureController < CmsController  # :nodoc: all
     require_js 'charts.js'
     require_js 'emarketing.js'
 
+    view_language
+
     cms_page_path [], 'Website'
     #'website',myself.has_role?('editor_structure_advanced') ? 'CMSStructure.popup();' : nil
     render :action => 'view', :layout => "manage"

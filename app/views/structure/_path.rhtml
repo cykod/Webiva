@@ -53,7 +53,7 @@
              :class => "site_node node_handle_icon #{node_icon}",
              :id => "node_handle_#{path.id}" ,
              :onclick => "StructureEditor.selectNode('node',#{path.id});",
-        :ondblclick => "document.location = '#{url_for(:controller => 'edit', :action =>'page', :path => ['page',path.id ])}';")  %></span>
+             :ondblclick => path.node_type == 'P' ? "document.location = '#{url_for(:controller => 'edit', :action =>'page', :path => ['page',path.id,@view_language])}';" : nil)  %></span>
             </span>
   <% end -%>
 <% end -%>
