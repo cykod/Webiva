@@ -47,6 +47,8 @@ class DomainFile < DomainModel
   # disable file processing for the instance
   attr_accessor :skip_post_processing
 
+  attr_accessor :encoding
+
   # Returns the list of built in image sizes
   def self.image_sizes
     @@image_size_array
@@ -377,7 +379,12 @@ class DomainFile < DomainModel
      
 
    end
-   
+
+   def decode(data)
+     data = Base64.decode64(data) if self.encoding == 'base64'
+     data
+   end
+
    # This is called after the file is saved for the first time
    # It will save the file and perform any necessary transforms in images
    # updating the meta data as necessary
@@ -392,12 +399,15 @@ class DomainFile < DomainModel
       
       # Copy the file directly if it's not a file object
       if @file_data.respond_to?(:local_path) and @file_data.local_path and File.exists?(@file_data.local_path)
-        FileUtils.copy_file(@file_data.local_path, self.local_filename)
+        if self.encoding
+          File.open(self.local_filename,'wb') { |f| f.write(self.decode(@file_data.read)) }
+        else
+          FileUtils.copy_file(@file_data.local_path, self.local_filename)
+        end
       elsif @file_data.respond_to?(:read)
-        File.open(self.local_filename,'wb') { |f| f.write(@file_data.read) }
+        File.open(self.local_filename,'wb') { |f| f.write(self.decode(@file_data.read)) }
       end
       File.chmod(0664,self.local_filename)
-      
       
       generate_meta_info(false)
     

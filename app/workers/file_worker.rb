@@ -24,36 +24,34 @@ class FileWorker <  Workling::Base #:nodoc:all
     @processed = false 
     
     DomainFile.disable_post_processing
-    
-    @upload_file = DomainFile.find_by_id args[:domain_file_id]
-    return unless @upload_file
 
-    @upload_file.generate_thumbnails
+    DomainFile.find(:all, :conditions => {:id => args[:domain_file_ids]}).each do |file|
+      @upload_file = file
 
-    @upload_file.update_attributes(:server_id => Server.server_id) if @upload_file.server_id != Server.server_id
+      @upload_file.generate_thumbnails
 
-    parent_folder = @upload_file.parent
+      @upload_file.update_attributes(:server_id => Server.server_id) if @upload_file.server_id != Server.server_id
+
+      parent_folder = @upload_file.parent
  
-    return unless parent_folder
+      next unless parent_folder
 
-    is_gallery = parent_folder.special == 'gallery' ? true : false
+      is_gallery = parent_folder.special == 'gallery' ? true : false
     
-    if(args[:extract_archive] && @upload_file.is_archive?)
-      # If this is a gallery, extract all the files to the same folder
-      extracted_files = @upload_file.extract(:single_folder => is_gallery,
-                                             :file_types => is_gallery ? [ 'img'] : nil )
-      if extracted_files.length > 0
-        @uploaded_ids = extracted_files || []
-        @upload_file.destroy
+      if(args[:extract_archive] && @upload_file.is_archive?)
+        # If this is a gallery, extract all the files to the same folder
+        extracted_files = @upload_file.extract(:single_folder => is_gallery,
+                                               :file_types => is_gallery ? [ 'img'] : nil )
+        if extracted_files.length > 0
+          @uploaded_ids += extracted_files
+          @upload_file.destroy
+        end
       else
-        @uploaded_ids = []
+        if @upload_file.file_type == 'doc'  && !DomainFile.public_file_extensions.include?(@upload_file.extension.to_s.downcase)
+          @upload_file.update_private!(true)
+        end
+        @uploaded_ids << @upload_file.id
       end
-      
-    else 
-      if @upload_file.file_type == 'doc'  && !DomainFile.public_file_extensions.include?(@upload_file.extension.to_s.downcase)
-        @upload_file.update_private!(true)
-      end
-      @uploaded_ids =  [ @upload_file.id ]
     end
 
     DomainFile.enable_post_processing

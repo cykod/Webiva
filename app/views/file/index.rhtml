@@ -6,6 +6,7 @@
 
 <div id='fm_dragbox' style='display:none;'></div>
 <%= render :partial => 'file_javascript' %>
+<%= render :partial => 'file_uploader_javascript' %>
 
 <div class='action_area'>
   <div id='folder_action_area' class='block_left' >
@@ -86,6 +87,9 @@
   <%= render :partial => 'file_search' %>
 </div>
 
+<script>
+$j(document).ready(function() { FileUploader.init('file_upload_form', 'element_info'); });
+</script>
 
 
 

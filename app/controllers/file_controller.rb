@@ -50,7 +50,6 @@ class FileController < CmsController # :nodoc: all
   public
 
   def index
-  
     cms_page_path [], "Files"
     
     folder_id = params[:path][0] if params[:path]
@@ -75,8 +74,6 @@ class FileController < CmsController # :nodoc: all
     @page = params[:page] || 1
     
     require_js('edit_area/edit_area_loader')
-	  
-   
   end
   
   def load_folder
@@ -182,14 +179,25 @@ class FileController < CmsController # :nodoc: all
     folder = nil unless folder.folder?
 
     if DomainFile.available_file_storage > 0 && folder
-      @upload_file = DomainFile.create(:filename => params[:upload_file][:filename], :parent_id => folder.id, :creator_id => myself.id, :skip_transform => true, :skip_post_processing => true)
+      encoding = params[:upload_file][:encoding]
+
+      filenames = params[:upload_file][:filename]
+      filenames = [filenames] unless filenames.is_a?(Array)
+
+      domain_file_ids = filenames.collect do |filename|
+        @upload_file = DomainFile.create(:filename => filename, :parent_id => folder.id, :encoding => encoding, :creator_id => myself.id, :skip_transform => true, :skip_post_processing => true)
+        @upload_file.id
+      end.compact
     
-      worker_key = FileWorker.async_do_work(:domain_file_id => @upload_file.id,
+      worker_key = FileWorker.async_do_work(:domain_file_ids => domain_file_ids,
                                             :domain_id => DomainModel.active_domain_id,
                                             :extract_archive => params[:extract_archive],
                                             :replace_same => params[:replace_same]
                                             )
       @processing_key  = session[:upload_file_worker] = worker_key
+
+      return render :json => {:processing_key => @processing_key} if params[:format] == 'json'
+
       respond_to_parent do 
         render :action => 'upload.rjs'
       end
