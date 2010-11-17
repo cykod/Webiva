@@ -8,7 +8,6 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
   paragraph :user_activation
   paragraph :login
   paragraph :enter_vip
-  paragraph :edit_account
   paragraph :missing_password
   paragraph :email_list
   paragraph :splash
