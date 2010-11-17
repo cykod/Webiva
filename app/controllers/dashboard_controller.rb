@@ -12,6 +12,14 @@ class DashboardController < CmsController #:nodoc:all
   def index
     cms_page_info 'Dashboard', 'dashboard',  myself.has_role?(:editor_site_management) ? 'CMSDashboard.pagePopup();' : nil
 
+    if Rails.env == 'development'
+      begin
+        WorklingStatusWoker.async_do_work :nothing => true
+      rescue Workling::QueueserverNotFoundError
+        flash.now[:notice] = 'Background queue is not running please check your configuration.'
+      end
+    end
+
     @widget_columns = EditorWidget.assemble_widgets(myself)
     @widget_columns.each do |column|
       column.each do  |widget| 
