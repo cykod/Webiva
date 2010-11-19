@@ -1,7 +1,8 @@
 <% action_panel :handler => 'content', :more => true do |p| -%>
+    <%= p.link 'Custom Content Models', :action => 'custom', :icon => 'view.png' if myself.has_role?('editor_content') %>
+
        <% end -%>
 <% more_action_panel do |p| %>
-    <%= p.link 'Custom Content Models', :action => 'custom', :icon => 'publications.gif' if myself.has_role?('editor_content') %>
      <%= p.link 'Configure Content Types', :controller => 'content_types', :icon => 'configure.gif', :right => true if myself.has_role?('editor_content_configure') %>
 
 <% @content_actions.each do |act| %>

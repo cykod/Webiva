@@ -913,6 +913,7 @@ background: -webkit-gradient(
    border-radius:5px;        
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
+  border-radius: 5px;
   cursor:pointer;
   margin:5px 5px 10px 5px;
 }
@@ -929,6 +930,8 @@ background: -webkit-gradient(
   -moz-border-radius-topright: 4px;
   -webkit-border-radius-topleft: 4px;
   -webkit-border-radius-topright: 4px;
+  border-radius-topleft: 4px;
+  border-radius-top-radius: 4px;
   margin:10px 0px 15px 0px;
   padding-bottom:10px;
                     }
@@ -944,7 +947,9 @@ background: -webkit-gradient(
   -moz-border-radius-topright: 4px;
   -webkit-border-radius-topleft: 4px;
   -webkit-border-radius-topright: 4px;
-  padding:5px 10px 6px 10px;
+  border-radius-topleft: 4px;
+  border-radius-top-radius: 4px;
+   padding:5px 10px 6px 10px;
   position:relative;
   
 
@@ -1096,6 +1101,7 @@ table.mini_table td em { color:#b3b3b3; }
   padding:20px 10px 10px 10px;
   -moz-border-radius: 8px;
   -webkit-border-radius: 8px;
+  border-radius: 8px;
 }
 
 
@@ -1105,6 +1111,7 @@ table.mini_table td em { color:#b3b3b3; }
   padding:20px 10px 10px 10px;
   -moz-border-radius: 8px;
   -webkit-border-radius: 8px;
+  border-radius: 8px;
   height:50px;
 }
 
@@ -1178,6 +1185,7 @@ table.display_table td.field {
   padding:20px 6px 10px 6px; 
   -moz-border-radius: 10px;
   -webkit-border-radius: 10px;
+  border-radius: 10px;
   float:left;
   margin-right:10px;
   display: inline-block;
@@ -1201,6 +1209,9 @@ table.display_table td.field {
   -webkit-border-radius-bottomleft: 10px;
   -webkit-border-radius-bottomright: 10px;
   -webkit-border-radius-topright: 10px;
+  border-radius-bottomleft: 10px;
+  border-radius-bottomright: 10px;
+  border-radius-topright: 10px;
   overflow:hidden;
 }
 
@@ -1219,6 +1230,7 @@ table.display_table td.field {
   padding:20px 6px 10px 6px; 
   -moz-border-radius: 10px;
   -webkit-border-radius: 10px;
+  border-radius: 10px;
   float:left;
   margin-right:10px;
   display: inline-block;
@@ -1265,6 +1277,7 @@ ul#zones li {
   text-align:center;
  -moz-border-radius: 5px;
  -webkit-border-radius: 5px;
+ border-radius: 5px;
 
 }
 
@@ -1316,6 +1329,7 @@ ul#zones_example li.last {
  overflow:auto; 
  -moz-border-radius: 5px;
  -webkit-border-radius: 5px;
+ border-radius: 5px;
 }
 
 .template_style {
@@ -1325,5 +1339,6 @@ ul#zones_example li.last {
  cursor:pointer;
  -moz-border-radius: 5px;
  -webkit-border-radius: 5px;
+ border-radius: 5px;
 }
 

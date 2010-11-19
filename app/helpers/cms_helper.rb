@@ -210,10 +210,10 @@ images/icons/actions directory of the current theme.
         end
       end
       if options[:more]
-        concat(apb.link('more actions', { :url => 'javascript:void(0);',:icon => 'add.png', :right=> true, :id => 'more_actions_link' },
+        concat(apb.link('more', { :url => 'javascript:void(0);',:icon => 'add.png', :id => 'more_actions_link' },
                         :"j-action" => 'slidetoggle,swap', :swap => '#less_actions_link,#more_actions_link', :slidetoggle => '#more_actions_panel'))
 
-        concat(apb.link('hide actions', { :url => 'javascript:void(0);',:icon => 'remove.png', :right=> true, :id => 'less_actions_link', :hidden => true },
+        concat(apb.link('less', { :url => 'javascript:void(0);',:icon => 'remove.png', :id => 'less_actions_link', :hidden => true },
                         :"j-action" => 'slidetoggle,swap', :swap => '#more_actions_link,#less_actions_link', :slidetoggle => '#more_actions_panel'))
       end
       concat("</ul>")

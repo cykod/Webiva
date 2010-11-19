@@ -32,8 +32,11 @@ if @show_archived == 'hide'
      <%= link_to image_tag(theme_src('icons/header_actions/collapse.png')), 'javascript:StructureEditor.collapseTree();', :align => 'absmiddle' %> 
 <%= link_to image_tag(theme_src('icons/header_actions/expand.png')), 'javascript:StructureEditor.expandTree();' , :align => 'absmiddle' %> 
   <% if myself.has_role?(:editor_structure_advanced) %>
-    <%= link_to image_tag(theme_src('icons/header_actions/site_trees.png'), :align => 'right'), "javascript:void();", :onclick => "$j('#structure_site_version').slideToggle();"  %> 
-    <div id='structure_site_version' style='display:none;' >
+    <% versions = SiteVersion.select_options %>
+    <% if versions.length == 1 %>
+      <%= link_to image_tag(theme_src('icons/header_actions/site_trees.png'), :align => 'right'), "javascript:void();", :onclick => "$j('#structure_site_version').slideToggle();"  %> 
+  <% end -%>
+  <div id='structure_site_version' <%= "style='display:none;'" if versions.length == 1 %> >
       <%= select_tag :site_version_id, options_for_select( [["+ Create a new site tree".t,"new"]] + SiteVersion.select_options,:selected => @version.id ), :onchange => "StructureEditor.changeVersion(this.value);" %>
       | <a href='javascript:void(0);' onclick='StructureEditor.editVersion(<%= @version.id %>);'  >edit</a>
     </div>
@@ -54,7 +57,7 @@ if @show_archived == 'hide'
 
 <div class='tree_detail' id='add_elements'>
   <h1 class='inpage'>Edit Your Site</h1>
-  <h2>Click on a page name to view and edit (<a href='javascript:void(0);'>more tips</a>)</h2>
+  <h2>Click on a page name to view and edit</h2>
 
 <% if permit?('editor_structure') %>
 <div class='tree_detail_body'>
