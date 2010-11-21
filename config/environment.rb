@@ -83,30 +83,6 @@ Rails::Initializer.run do |config|
  #  File.directory?(lib = "#{dir}/lib") ? lib : dir
  #end
   
-  config.gem 'mysql'
-  config.gem 'mime-types', :lib => 'mime/types'
-  config.gem 'radius'
-  config.gem 'RedCloth', :lib => 'redcloth'
-  config.gem 'BlueCloth', :lib => 'bluecloth'
-  config.gem 'gruff'
-  config.gem 'slave'
-  config.gem 'hpricot'
-  config.gem 'daemons'
-  config.gem 'maruku'
-  config.gem 'net-ssh', :lib => 'net/ssh'
-  config.gem 'rmagick', :lib => 'RMagick'
-  config.gem 'libxml-ruby', :lib => 'xml'
-  config.gem 'soap4r', :lib => 'soap/soap'
-  config.gem "json"
-
-  if RAILS_ENV == 'test'
-    config.gem 'factory_girl',:source => 'http://gemcutter.org'
-  end  
-
-  if CMS_CACHE_ACTIVE
-    config.gem 'memcache-client', :lib => 'memcache'
-  end
-
 end
 
 memcache_options = {
