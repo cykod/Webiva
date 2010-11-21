@@ -30,7 +30,7 @@ namespace :webiva do
 	    deploy.web.disable
 	    config
             run "cd #{deploy_to}/current; ./script/background.rb stop; true"
-            run "cd #{deploy.release_path}; rake gems:build"
+            run "cd #{deploy.release_path}; bundle install --deployment"
 	    deploy.symlink
 	    run "cd #{deploy.release_path}; rake -f #{deploy.release_path}/Rakefile cms:migrate_system_db"
 	    run "cd #{deploy.release_path}; rake -f #{deploy.release_path}/Rakefile cms:migrate_domain_dbs"
