@@ -3,7 +3,7 @@ source :rubygems
 gem 'rails', '2.3.4'
 
 gem 'BlueCloth', '1.0.1', :require => 'bluecloth'
-gem 'RedCloth', '4.1.9', :require => 'redcloth'
+gem 'RedCloth', '4.2.3', :require => 'redcloth'
 gem 'SyslogLogger', '1.4.0'
 gem 'activerecord-activesalesforce-adapter', '2.0.0'
 gem 'builder', '2.1.2'

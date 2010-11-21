@@ -2,7 +2,7 @@ GEM
   remote: http://rubygems.org/
   specs:
     BlueCloth (1.0.1)
-    RedCloth (4.1.9)
+    RedCloth (4.2.3)
     SyslogLogger (1.4.0)
       hoe (>= 1.2.0)
     actionmailer (2.3.4)
@@ -91,7 +91,7 @@ PLATFORMS
 
 DEPENDENCIES
   BlueCloth (= 1.0.1)
-  RedCloth (= 4.1.9)
+  RedCloth (= 4.2.3)
   SyslogLogger (= 1.4.0)
   activerecord-activesalesforce-adapter (= 2.0.0)
   builder (= 2.1.2)
