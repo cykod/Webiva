@@ -1,11 +1,9 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 
 require 'sha1'
 require 'base64'
 require 'fileutils'
 require 'yaml'
-require 'rubygems'
-require 'memcache'
 
 RAILS_ROOT = File.dirname(__FILE__) + "/.."
 
@@ -54,8 +52,8 @@ class WebivaQuickInstall
     create_master_database()
     create_master_users()
     create_initial_yml_files()
+    bundle_gems()
     validate_memcache_servers()
-    rebuild_gems()
     migrate_system_db()
     initialize_system()
     create_domain_db()
@@ -68,8 +66,8 @@ class WebivaQuickInstall
     create_master_database()
     create_master_users()
     create_initial_yml_files()
+    bundle_gems()
     validate_memcache_servers()
-    rebuild_gems()
     migrate_system_db()
     initialize_system()
     create_domain_db()
@@ -80,8 +78,8 @@ class WebivaQuickInstall
   def run_slave_server_install
     get_server_name()
     validate_configs_exists()
+    bundle_gems()
     validate_memcache_servers()
-    rebuild_gems()
     add_server_to_db()
     display_success_message()
   end
@@ -189,6 +187,8 @@ INTRODUCTION
   end
 
   def validate_memcache_servers()
+    require 'memcache'
+
     defaults_config_file = YAML.load_file("#{RAILS_ROOT}/config/defaults.yml")
 
     memcache_servers = defaults_config_file['memcache_servers'] || ['localhost:11211']
@@ -309,11 +309,13 @@ INTRODUCTION
     File.open("#{RAILS_ROOT}/config/#{filename}","w") { |fd| fd.write(YAML.dump(cms_yml_output_file)) }
   end
 
-  def rebuild_gems
-    puts('Rebuilding local gems...')
-    ok = system('rake gems:build:force')
-    report_error(ok,'Could not build local gems (run "rake --trace gems:build:force" manually to see errors)')
-    puts('Done rebuildings local gems...')
+  def bundle_gems
+    puts('Bundling gems...')
+    ok = system('bundle install')
+    report_error(ok,'Could not bundle gems (run "bundle install" manually to see errors)')
+    require 'rubygems'
+    require 'bundler'  # Make the gems accessible to this script.
+    puts('Done bundling gems...')
   end
 
 
@@ -352,17 +354,6 @@ EOF
 
     report_error(ok,"Error creating initial domain database, please run 'rake --trace cms:create_domain_db DOMAIN_ID=1' manually to see errors")
     
-  end
-
-  def build_local_gems
-    print("Building local gems")
-
-    system("find #{RAILS_ROOT}/vendor/gems '*.o' -print | xargs rm")
-    system("find #{RAILS_ROOT}/vendor/gems '*.so' -print | xargs rm")
-    system("find #{RAILS_ROOT}/vendor/gems '*.out' -print | xargs rm")
-
-    ok = system("rake gems:build:force")
-    report_error(ok,'building of local gems failed, please run rake --trace gems:build:force manually')
   end
 
   def display_success_message
