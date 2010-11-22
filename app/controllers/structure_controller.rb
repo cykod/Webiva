@@ -181,6 +181,8 @@ class StructureController < CmsController  # :nodoc: all
     
     @new_node = @node.duplicate!(parent)
     
+    view_language
+
     render :partial => 'path', :locals => { :paths => [@new_node] }    
   end
   
@@ -188,7 +190,9 @@ class StructureController < CmsController  # :nodoc: all
     parent_node = SiteNode.find(params[:parent_id])
     node_type = params[:node_type]  
     title = params[:title] || 'enter_title'
-    
+
+    view_language
+
     if(node_type == 'M')
       module_name = params[:module_name] 
       

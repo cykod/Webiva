@@ -43,7 +43,7 @@ describe DomainLogSource do
 
   describe "Social Network" do
     it "should detect social network source" do
-      referrer = Factory(:domain_log_referrer, :referrer_domain => 'www.facebook.com', :referrer_path => '/')
+      referrer = Factory(:domain_log_referrer, :referrer_domain => 'facebook.com', :referrer_path => '/')
       session = Factory(:domain_log_session, :domain_log_referrer_id => referrer.id)
       source = DomainLogSource.get_source(session)
       source.should_not be_nil
