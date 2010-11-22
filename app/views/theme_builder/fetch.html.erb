@@ -5,9 +5,9 @@ ThemeBuilderFetch = {
       if(data.running) {
         if(data.processed) {
           if(data.successful) {
-            document.location = "<%= url_for :action => 'zones' %>/" + data.html_file_id;
+            document.location = "<%= url_for :action => 'zones' %>";
           } else {
-            $j("#fetch_status").html("<span style='color:red;'><%= "Failed to fetch %s" / "<a target='_blank' href='#{@theme_url}'>#{@theme_url}</a>" %><br/><br/><a href='<%= url_for :action => 'index' %>'><%= 'Go back to Theme Builder' %></a>");
+            $j("#fetch_status").html("<span style='color:red;'><%= "Failed to fetch HTML file %s" / "<a target='_blank' href='#{@theme_url}'>#{@theme_url}</a>" %><br/><br/><a href='<%= url_for :action => 'index' %>'><%= 'Go back to Theme Builder' %></a>");
           }
           return;
         } else {
