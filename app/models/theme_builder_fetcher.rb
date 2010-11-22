@@ -15,7 +15,6 @@ class ThemeBuilderFetcher
     html.gsub!(/rel=(["'])stylesheet\1/i, 'rel=\1stylesheet\1')
     html.gsub!(/<body/i, '<body')
     html.gsub!(/<\/body/i, '</body')
-    html.gsub!("\xe2\x80\xa8", "") # remove unicode line separators U+2028
 
     doc = Nokogiri::HTML(html)
     doc.css('script').remove()
