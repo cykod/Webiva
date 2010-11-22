@@ -18,7 +18,7 @@ class ThemeBuilderController < CmsController
       if @parser.html_file
         return redirect_to :action => 'zones', :path => @parser.html_file.id
       else @parser.url
-        worker_key = @parser.run_worker :run_download, :url => @parser.url
+        worker_key = @parser.run_worker :run_download
         session[:theme_builder_worker_key] = worker_key
         return redirect_to :action => 'fetch', :theme_url => @parser.url
       end

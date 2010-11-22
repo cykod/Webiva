@@ -28,7 +28,11 @@ class DomainModelWorker <  Workling::Base #:nodoc:all
     results = { :processed => false, :successful => true }
     Workling.return.set(jobkey, results)
 
-    if (args[:entry_id].blank?)
+    if args[:hash_model]
+      entry = cls.new args[:attributes]
+      ret_val = entry.send(args[:method], args[:params] || {})
+      results.merge!(ret_val) if ret_val.is_a?(Hash)
+    elsif args[:entry_id].blank?
       ret_val = cls.send(args[:method],args[:params] || {})
       results.merge!(ret_val) if ret_val.is_a?(Hash)
     else

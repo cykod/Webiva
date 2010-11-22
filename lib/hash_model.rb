@@ -374,24 +374,18 @@ class HashModel
     end
   end
 
-  # Run a worker on a specific DomainModel
-  # see DomainModel#run_worker if you already have the ActiveRecord object
-  def self.run_worker(class_name,method,parameters={})
-     DomainModelWorker.async_do_work(:class_name => class_name,
+  def self.run_worker(method, parameters={}, attributes={})
+     DomainModelWorker.async_do_work(:class_name => self.to_s,
                                      :domain_id => DomainModel.active_domain_id,
                                      :params => parameters,
                                      :method => method,
-                                     :language => Locale.language_code  
+                                     :language => Locale.language_code,
+                                     :attributes => attributes,
+                                     :hash_model => true
                                      )
   end
 
-  def self.run_class_worker(method,parameters={})
-    self.run_worker(self.to_s,method,parameters)
-  end
-
-  # Runs a background process worker that will 
-  # issue a find command on this object and then run the specified method
-  def run_worker(method,parameters={}) 
-    self.class.run_worker(self.class.to_s,method,parameters)
+  def run_worker(method, parameters={})
+    self.class.run_worker(method, parameters, self.attributes)
   end
 end

@@ -158,15 +158,15 @@ class ThemeBuilderParser < HashModel
     @style_struct
   end
 
-  def self.download(url)
-    ThemeBuilderFetcher.fetch url
+  def download
+    file = ThemeBuilderFetcher.fetch self.url
+    self.html_file_id = file.id if file && file.id
+    file
   end
 
-  def self.run_download(args)
-    file = self.download args[:url]
-    html_file_id = file.id if file && file.id
-    successful = ! html_file_id.nil?
-    {:successful => successful, :html_file_id => html_file_id}
+  def run_download(args)
+    self.download
+    {:successful => ! self.html_file_id.nil?, :html_file_id => self.html_file_id}
   end
 
   def editor_css(styles=nil)
