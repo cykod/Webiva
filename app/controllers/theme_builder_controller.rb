@@ -15,12 +15,32 @@ class ThemeBuilderController < CmsController
     @parser = ThemeBuilderParser.new params[:parser]
 
     if request.post? && @parser.valid?
-      file = @parser.fetch
-      return redirect_to :action => 'zones', :path => file.id if file
+      if @parser.html_file
+        return redirect_to :action => 'zones', :path => @parser.html_file.id
+      else @parser.url
+        worker_key = @parser.run_worker :run_download, :url => @parser.url
+        session[:theme_builder_worker_key] = worker_key
+        return redirect_to :action => 'fetch', :theme_url => @parser.url
+      end
+
       @parser.errors.add(:url, 'is not an HTML document')
     end
 
     render :action => 'index'
+  end
+
+  def fetch
+    cms_page_path ['Options', 'Themes', 'Theme Builder'], 'Fetching'
+    @theme_url = params[:theme_url]
+    return redirect_to(:action => 'index') if @theme_url.blank?
+  end
+
+  def fetch_status
+    results = Workling.return.get(session[:theme_builder_worker_key]) || {}
+    processed = results[:processed]
+    successful = results[:successful]
+    html_file_id = results[:html_file_id]
+    render :json => {:processed => processed, :successful => successful, :running => ! results.empty?, :html_file_id => html_file_id}
   end
 
   def html
