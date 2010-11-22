@@ -160,29 +160,6 @@ class EmarketingController < CmsController # :nodoc: all
     render :partial => 'visitor_detail'
   end
   
-  def site_statistics
-    conditions = '1'
-  
-    @stats = DefaultsHashObject.new(
-      { 
-        :unique_ips => DomainLogSession.count('ip_address',:distinct => true,:conditions => conditions),
-        :unique_sessions => DomainLogEntry.count('domain_log_session_id',:distinct => true,:conditions => conditions),
-        :registered_users => DomainLogEntry.count('user_id',:distinct => true,:conditions => conditions + " AND user_id IS NOT NULL"),
-        :anonymous_users => DomainLogSession.count('ip_address',:distinct => true,:conditions => conditions + " AND end_user_id IS NULL"),
-        :total_hits => DomainLogEntry.count(:conditions => conditions)
-      }
-    )
-    
-    
-    @page_stats = DomainLogEntry.find(:all,
-                :group => 'node_path',
-                :select => 'node_path, COUNT(*) as views',
-                :order => 'views DESC')
-                
-                
-    render :partial => 'site_statistics'
-  end
-
   def stats
     cms_page_path ['Marketing'], 'Real Time Statistics'
     require_js 'emarketing.js'

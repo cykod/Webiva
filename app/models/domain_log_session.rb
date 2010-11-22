@@ -14,10 +14,28 @@ class DomainLogSession < DomainModel
 
   named_scope :between, lambda { |from, to| {:conditions => ['domain_log_sessions.created_at >= ? AND domain_log_sessions.created_at < ?', from, to]} }
   named_scope :visits, lambda { |group_by| group_by =~ /_id$/ ? {:select => "#{group_by} as target_id, count(*) as visits", :group => 'target_id'} : {:select => "#{group_by} as target_value, count(*) as visits", :group => 'target_value'} }
-  named_scope :hits_n_visits, lambda { |group_by| group_by =~ /_id$/ ? {:select => "#{group_by} as target_id, count(*) as visits, sum(page_count) as hits, sum(session_value) as total_value, SUM(IF(domain_log_sessions.user_level=3,1, 0)) AS subscribers, SUM(IF(domain_log_sessions.user_level=4,1, 0)) AS leads, SUM(IF(domain_log_sessions.user_level=5,1, 0)) AS conversions", :group => 'target_id'} : {:select => "#{group_by} as target_value, count(*) as visits, sum(page_count) as hits, sum(session_value) as total_value, SUM(IF(domain_log_sessions.user_level=3,1, 0)) AS subscribers, SUM(IF(domain_log_sessions.user_level=4,1, 0)) AS leads, SUM(IF(domain_log_sessions.user_level=5,1, 0)) AS conversions", :group => 'target_value'} }
-  named_scope :hits_n_visits_n_uniques, lambda { |group_by| group_by =~ /_id$/ ? {:select => "#{group_by} as target_id, count(*) as visits, sum(page_count) as hits, count(DISTINCT ip_address) as stat1, sum(session_value) as total_value, SUM(IF(domain_log_sessions.user_level=3,1, 0)) AS subscribers, SUM(IF(domain_log_sessions.user_level=4,1, 0)) AS leads, SUM(IF(domain_log_sessions.user_level=5,1, 0)) AS conversions", :group => 'target_id'} : {:select => "#{group_by} as target_value, count(*) as visits, sum(page_count) as hits, count(DISTINCT ip_address) as stat1, sum(session_value) as total_value, SUM(IF(domain_log_sessions.user_level=3,1, 0)) AS subscribers, SUM(IF(domain_log_sessions.user_level=4,1, 0)) AS leads, SUM(IF(domain_log_sessions.user_level=5,1, 0)) AS conversions", :group => 'target_value'} }
+  named_scope :hits_n_visits, lambda { |group_by| self.hits_n_visits_options group_by }
+  named_scope :hits_n_visits_n_uniques, lambda { |group_by| self.hits_n_visits_options group_by, true }
   named_scope :referrer_only, :conditions => 'domain_log_referrer_id IS NOT NULL'
-  named_scope :valid_sessions, :conditions => '`ignore` = false AND domain_log_source_id IS NOT NULL'
+  named_scope :valid_sessions, :conditions => '`ignore` = 0 AND domain_log_source_id IS NOT NULL'
+
+
+  def self.hits_n_visits_options(group_by=nil, uniques=false)
+    select = "count(*) as visits, sum(page_count) as hits, sum(session_value) as total_value, SUM(IF(domain_log_sessions.user_level=3,1, 0)) AS subscribers, SUM(IF(domain_log_sessions.user_level=4,1, 0)) AS leads, SUM(IF(domain_log_sessions.user_level=5,1, 0)) AS conversions"
+
+    select += ", count(DISTINCT ip_address) as stat1" if uniques
+
+    return {:select => select} unless group_by
+
+    group_by = group_by.to_s
+    if group_by =~ /_id$/
+      select += ", #{group_by} as target_id"
+      return {:select => select, :group => 'target_id'}
+    end
+
+    select += ", #{group_by} as target_value"
+    {:select => select, :group => 'target_value'}
+  end
 
   def self.start_session(user, session, request, site_node=nil, ignore=true)
     return unless request.session_options

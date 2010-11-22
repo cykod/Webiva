@@ -17,15 +17,6 @@
       VisitorViewer.selectedEntry = entry_id;
     },
     
-    loadStatistics: function() {
-      if(!$('site_statistics_details')) {
-        new Ajax.Updater('site_statistics',
-                          "<%= url_for :action => 'site_statistics' %>/" );
-      }
-    
-    
-    },
-    
     googleRadios: function() {
       if($('options_google_analytics_disabled').checked) {
         $('options_analytics_code').disabled = true;

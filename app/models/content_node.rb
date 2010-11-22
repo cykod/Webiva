@@ -253,7 +253,7 @@ class ContentNode < DomainModel
   end
 
   def self.traffic_scope(from, duration, opts={})
-    scope = DomainLogEntry.between(from, from+duration).hits_n_visits('content_node_id')
+    scope = DomainLogEntry.valid_sessions.between(from, from+duration).hits_n_visits('content_node_id')
     if opts[:target_id]
       scope = scope.scoped(:conditions => {:content_node_id => opts[:target_id]})
     elsif opts[:type_id]
