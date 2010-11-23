@@ -91,7 +91,7 @@ class InitialDb < ActiveRecord::Migration
       t.column "zone_idx", :integer, :default => 0, :null => false
       t.column "position", :integer, :default => 0, :null => false
       t.column "display_type", :string, :default => "text"
-      t.column "display_body", :text, :default => "", :null => false
+      t.column "display_body", :text
       t.column "name", :string
       t.column "display_module", :string
       t.column "site_module_id", :integer
