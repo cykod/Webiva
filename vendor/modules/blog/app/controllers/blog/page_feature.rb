@@ -131,18 +131,18 @@ class Blog::PageFeature < ParagraphFeature
     c.expansion_tag('entry:more') { |tag| !tag.locals.entry.preview.blank? }
     c.link_tag('entry:detail') do |tag| 
       if !data[:detail_page].blank?
-        "#{data[:detail_page]}/#{tag.locals.entry.permalink}" 
+        SiteNode.link data[:detail_page], tag.locals.entry.permalink
       else
         tag.locals.entry.content_node.link if tag.locals.entry.content_node
       end
     end
-    c.link_tag('entry:full_detail') { |tag| "#{Configuration.domain_link(data[:detail_page].to_s + '/' + tag.locals.entry.permalink.to_s)}" }
+    c.link_tag('entry:full_detail') { |tag| "#{SiteNode.domain_link(data[:detail_page], tag.locals.entry.permalink)}" }
 
     c.value_tag('entry:categories') do |tag|
       categories = tag.locals.entry.blog_categories(true).collect(&:name)
       categories = categories[0..tag.attr['limit'].to_i] if tag.attr['limit']
       if categories.length > 0
-	categories.map! { |cat| "<a href='#{data[:list_page]}/category/#{CGI::escape(cat)}'>#{h cat}</a>" } unless tag.attr['no_link']
+	categories.map! { |cat| "<a href='#{SiteNode.link(data[:list_page], 'category', CGI::escape(cat))}'>#{h cat}</a>" } unless tag.attr['no_link']
 	categories.join(", ")
       else 
 	nil
@@ -152,7 +152,7 @@ class Blog::PageFeature < ParagraphFeature
     c.value_tag('entry:tags') do |tag|
       tags = tag.locals.entry.content_tags(true)
       if tags.length > 0
-	tags.collect {|tg| "<a href='#{data[:list_page]}/tag/#{h tg.name}'>#{h tg.name}</a>" }.join(", ")
+	tags.collect {|tg| "<a href='#{SiteNode.link(data[:list_page], 'tag', h(tg.name))}'>#{h tg.name}</a>" }.join(", ")
       else
 	nil
       end
@@ -191,7 +191,7 @@ class Blog::PageFeature < ParagraphFeature
 
       c.loop_tag('category') { |tag| data[:categories] }
 
-      c.link_tag('category:category') { |tag| "#{data[:list_page]}/category/#{CGI::escape(tag.locals.category.name)}" }
+      c.link_tag('category:category') { |tag| "#{SiteNode.link(data[:list_page], 'category', CGI::escape(tag.locals.category.name))}" }
       
       c.expansion_tag 'category:selected' do |tag|
 	tag.locals.category.name == data[:selected_category].to_s
