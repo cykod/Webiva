@@ -11,6 +11,7 @@ class UserProfileType < DomainModel
   belongs_to :content_model_field
 
   after_save :update_user_classes
+  after_save :update_entries_content_model
 
   content_node_type :user_profile, "UserProfileEntry", :content_name => :name,:title_field => :create_full_name, :url_field => :url
 
@@ -104,6 +105,12 @@ class UserProfileType < DomainModel
 
 
   protected
+
+  def update_entries_content_model
+    if self.content_model_id_changed?
+      self.user_profile_entries.update_all "content_model_id = #{self.content_model_id ? self.content_model_id : 'NULL'}"
+    end
+  end
 
   def update_user_classes
     if @cached_class_ids
