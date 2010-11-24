@@ -20,7 +20,7 @@ if ( ! grep $DEV_USER /etc/passwd >& /dev/null ); then
 fi
 
 /usr/bin/apt-get update
-/usr/bin/apt-get -y install mysql-server mysql-client ruby1.8 ruby1.8-dev rdoc1.8 libmagick9-dev libimage-size-ruby1.8 g++ gcc libmysql-ruby1.8 irb openssl zip unzip libopenssl-ruby apache2 memcached libmysqlclient15-dev build-essential git-core rubygems rake libxslt1-dev
+/usr/bin/apt-get -y install mysql-server mysql-client ruby1.8 ruby1.8-dev rdoc1.8 libmagick9-dev libimage-size-ruby1.8 g++ gcc libmysql-ruby1.8 irb openssl zip unzip libopenssl-ruby apache2 memcached libmysqlclient15-dev build-essential git-core rubygems rake libxslt1-dev libapache2-mod-passenger
 
 if ! ( /usr/bin/dpkg -l | grep openssh-server >& /dev/null ); then
     ANSWER=n
@@ -30,42 +30,6 @@ if ! ( /usr/bin/dpkg -l | grep openssh-server >& /dev/null ); then
 	/usr/bin/apt-get -y install openssh-server
     fi
 fi
-
-
-# apt.brightbox.net is used to install package libapache2-mod-passenger
-if ! ( /usr/bin/dpkg -S libapache2-mod-passenger >& /dev/null ); then
-    ADDED_BRIGHTBOX=0
-
-    if [ -f /etc/apt/sources.list.d/brightbox.list ]; then
-	echo "brightbox installed"
-    else
-	ADDED_BRIGHTBOX=1
-
-	ANSWER=n
-	echo "brightbox repository is used to install libapache2-mod-passenger"
-	read -p "Do you want to install brightbox? (y/n): " ANSWER
-	if [ $ANSWER = 'y' ]; then
-	    echo "deb http://apt.brightbox.net hardy main" > /etc/apt/sources.list.d/brightbox.list
-	    /usr/bin/wget -q -O - http://apt.brightbox.net/release.asc | /usr/bin/apt-key add -
-	    /usr/bin/apt-get update
-	fi
-    fi
-
-    if ! ( /usr/bin/apt-get -y install libapache2-mod-passenger ); then
-	echo "failed to install libapache2-mod-passenger"
-	exit
-    fi
-
-    if [ $ADDED_BRIGHTBOX = 1 ]; then
-	ANSWER=n
-	read -p "Do you want to uninstall brightbox (y/n): " ANSWER
-	if [ $ANSWER = 'y' ]; then
-	    /bin/mv /etc/apt/sources.list.d/brightbox.list /etc/apt/sources.list.d/brightbox.list.off
-	    echo "Moved /etc/apt/sources.list.d/brightbox.list to /etc/apt/sources.list.d/brightbox.list.off"
-	fi
-    fi
-fi
-
 
 if [ ! -f /usr/bin/gem ]; then
     echo "/usr/bin/gem not found. Can not install required gems."
