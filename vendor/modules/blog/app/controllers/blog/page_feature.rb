@@ -225,7 +225,7 @@ class Blog::PageFeature < ParagraphFeature
       
       c.link_tag('archive:archive') do |tag|
 	formatted = tag.locals.archive[:date].strftime("%B%Y")
-	"#{data[:list_page]}/archive/#{formatted}"
+	"#{SiteNode.link(data[:list_page], 'archive', formatted)}"
       end
 
       c.date_tag('archive:date',DEFAULT_DATETIME_FORMAT.t) { |tag| tag.locals.archive[:date] }
