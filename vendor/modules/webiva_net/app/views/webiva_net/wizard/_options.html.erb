@@ -14,4 +14,6 @@
   <div style="height:180px;"></div>
 <% end -%>
 
+<%= f.check_boxes :replace_same, [['Replace matching bundle elements', true]], :single => true, :vertical => true, :label => '' %>
+<%= f.spacer %>
 <%= f.text_area :pages, :rows => 10, :vertical => true %>
