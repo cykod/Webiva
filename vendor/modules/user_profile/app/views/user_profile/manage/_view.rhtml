@@ -27,7 +27,7 @@
 <div class='profiles'>
  <% if @matching_profile_types.count > 1 %>
   <div class="type">
-    <%= select_tag :profile_type, options_for_select(@matching_profile_types), @current_profile_type_id,
+    <%= select_tag :profile_type, options_for_select(@matching_profile_types, @current_profile_type_id),
         :html => { :onchange => "ProfileData.changeType(this.value);" } %>
   </div>
 <% end -%>
