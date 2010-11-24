@@ -36,7 +36,7 @@ if [ ! -f /usr/bin/gem ]; then
     exit
 fi
 
-/usr/bin/gem install starling fastthread daemons
+/usr/bin/gem install starling fastthread daemons httparty fastercsv --no-rdoc --no-ri
 
 echo "# Set this to yes to enable memcached.
 ENABLE_MEMCACHED=yes" > /etc/default/memcached
@@ -73,7 +73,7 @@ if [ ! -f /etc/apache2/sites-available/webiva ]; then
 " > /etc/apache2/sites-available/webiva
 fi
 
-if [ ! -f /var/run/mysqld/mysqld.pid ]; then
+if [ ! -f /var/run/mysqld/mysqld.pid -a ! -S /var/run/mysqld/mysqld.sock ]; then
     echo "Halting, MySQL is not running"
     exit
 fi
@@ -99,6 +99,15 @@ cd $WEBIVA_BASE_DIR
 
 if [ ! -f $WEBIVA_DIR ]; then
     sudo -u $DEV_USER git clone git://github.com/cykod/Webiva.git
+
+    cd $WEBIVA_DIR
+
+    ANSWER=n
+    echo ""
+    read -p "Do you want to use the Webiva development branch? (y/n): " ANSWER
+    if [ $ANSWER = 'y' ]; then
+	sudo -u $DEV_USER git checkout --track -b development origin/development
+    fi
 fi
 
 cd $WEBIVA_DIR
