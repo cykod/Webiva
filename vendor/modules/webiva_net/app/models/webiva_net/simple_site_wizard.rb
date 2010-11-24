@@ -2,14 +2,14 @@
 class WebivaNet::SimpleSiteWizard < Wizards::SimpleSite
 
   def self.structure_wizard_handler_info
-    { :name => "Webiva.net Setup a Basic Site",
+    { :name => "Setup a Basic Site",
       :description => 'This wizard will setup a basic site with a theme.',
       :permit => "editor_structure_advanced",
       :url => self.wizard_url
     }
   end
 
-  attributes :theme => nil, :replace_same => false
+  attributes :theme => nil, :replace_same => true
 
   boolean_options :replace_same
   validates_presence_of :theme
