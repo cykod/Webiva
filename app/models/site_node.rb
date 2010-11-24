@@ -565,4 +565,20 @@ class SiteNode < DomainModel
   def traffic(from, duration, intervals)
     self.class.traffic from, duration, intervals, :target_id => self.id
   end
+
+  def link(*paths)
+    SiteNode.link self.node_path, *paths
+  end
+
+  def self.link(*paths)
+    '/' + paths.map{ |p| p && p[0..0] == '/' ? p[1..-1] : p }.reject(&:blank?).join('/')
+  end
+
+  def domain_link(*paths)
+    SiteNode.domain_link self.node_path, *paths
+  end
+
+  def self.domain_link(*paths)
+    Configuration.domain_link(SiteNode.link(*paths))
+  end
 end

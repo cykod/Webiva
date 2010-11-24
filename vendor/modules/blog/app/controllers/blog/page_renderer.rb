@@ -232,16 +232,18 @@ class Blog::PageRenderer < ParagraphRenderer
 
   def get_detail_page
     detail_page =  @options.detail_page_url
+    return nil unless detail_page
     if @options.include_in_path == 'blog_id'
       detail_page += "/#{blog.id}"
     elsif  @options.include_in_path == 'target_id'
       detail_page += "/#{blog.target_id}"
     end
-    detail_page
+    SiteNode.link detail_page
   end
 
   def get_list_page(blog)
     list_page =  @options.list_page_url
+    return nil unless list_page
     if blog
       if @options.include_in_path == 'blog_id'
         list_page += "/#{blog.id}"
@@ -249,6 +251,6 @@ class Blog::PageRenderer < ParagraphRenderer
         list_page += "/#{blog.target_id}"
       end
     end
-    list_page
+    SiteNode.link list_page
   end
 end
