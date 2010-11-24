@@ -13,9 +13,9 @@ class WebivaNet::SimpleSiteWizard < Wizards::SimpleSite
 
   validates_presence_of :theme
 
-  options_form(
-               fld(:theme, :select, :options => :theme_options)
-               )
+  def validate
+    self.errors.add(:pages, 'are missing') if self.pages.blank?
+  end
 
   def theme_options
     WebivaNet::Theme.themes.collect { |t| [t.name, t.guid] }
@@ -28,4 +28,6 @@ class WebivaNet::SimpleSiteWizard < Wizards::SimpleSite
     bundler.import
     SiteTemplate.last :conditions => ['parent_id IS NULL']
   end
+
+  def options_partial; "/webiva_net/wizard/options"; end
 end
