@@ -644,6 +644,7 @@ class SiteTemplate < DomainModel
   end
   
   def before_create
+    self.head ||= ''
     self.options ||= {}
     self.options = { :options => self.options[:options] || [],
       :presets => self.options[:presets] || [],
