@@ -39,7 +39,7 @@ task :domain_cron => :environment do |t|
       end
     end
     
-    print "\n"
+    # print "\n"
   end
   
 end
