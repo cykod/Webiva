@@ -314,7 +314,7 @@ INTRODUCTION
     ok = system('bundle install')
     report_error(ok,'Could not bundle gems (run "bundle install" manually to see errors)')
     require 'rubygems'
-    require 'bundler'  # Make the gems accessible to this script.
+    require 'bundler/setup'  # Make the gems accessible to this script.
     puts('Done bundling gems...')
   end
 
