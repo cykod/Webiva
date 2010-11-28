@@ -16,7 +16,7 @@ task :domain_cron => :environment do |t|
   tm = Time.mktime(now.year,now.month,now.day,current_hour)
   
   domains.each do |dmn|
-    print "Running #{current_hour} o' Clock Crons for Domain: #{dmn['name']}\n"
+    # print "Running #{current_hour} o' Clock Crons for Domain: #{dmn['name']}\n"
     
     DomainModel.activate_domain(dmn)
     DataCache.reset_local_cache
@@ -29,7 +29,7 @@ task :domain_cron => :environment do |t|
       
       crons.each do |cron|
         if cron[2][:hours].blank? || cron[2][:hours].include?(current_hour)
-          print("    #{cron[1].humanize} - #{cron[0]}\n")
+          # print("    #{cron[1].humanize} - #{cron[0]}\n")
           begin
             cron[1].constantize.send(cron[0].to_sym,tm)
           rescue Exception => e
