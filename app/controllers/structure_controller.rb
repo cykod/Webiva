@@ -166,7 +166,9 @@ class StructureController < CmsController  # :nodoc: all
     
     node = SiteNode.find(parent_id)
     md = node.add_modifier(modifier_type, :created_by_id => myself.id)
-    
+
+    view_language
+
     render :partial => 'site_node_modifier', :locals => { :mod => md }
   end
   
