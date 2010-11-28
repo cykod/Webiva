@@ -67,6 +67,7 @@ class UserProfileEntry < DomainModel
 
   def content_model_entry
     return @content_model_entry if @content_model_entry
+    return nil unless self.content_model
 
     cls = self.content_model.model_class
     model_attributes = { self.user_profile_type.content_model_field_name => self.end_user_id }
