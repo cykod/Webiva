@@ -10,6 +10,7 @@ class WebivaNet::AdminController < ModuleController
  
  permit 'editor_site_management'
 
+ register_handler :structure, :wizard, "WebivaNet::SimpleSiteWizard"
  register_handler :webiva, :titlebar, "WebivaNet::TitlebarHandler"
  register_handler :action_panel, :templates, "WebivaNet::ThemesController"
 

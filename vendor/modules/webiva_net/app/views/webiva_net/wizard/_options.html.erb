@@ -1,0 +1,19 @@
+<% f.custom_field :theme, :vertical => true, :label => 'Select a theme' do |cf| %>
+  <ul style="width:1200px; height: 180px; overflow-x:auto; white-space:nowrap; position:absolute;">
+  <% WebivaNet::Theme.themes.each do |theme| -%>
+    <li style="display:inline-block; padding: 0 5px;">
+    <label>
+    <%= theme.thumbnail_tag %>
+    <br/>
+    <%= radio_button_tag 'wizard[theme]', theme.guid, theme.guid == options.theme %>
+    <%= h theme.name %>
+    </label>
+    </li>
+  <% end -%>
+  </ul>
+  <div style="height:180px;"></div>
+<% end -%>
+
+<%= f.check_boxes :replace_same, [['Replace matching bundle elements', true]], :single => true, :vertical => true, :label => '' %>
+<%= f.spacer %>
+<%= f.text_area :pages, :rows => 10, :vertical => true, :label => 'Pages to add to your site', :description => 'Enter one page name per line' %>

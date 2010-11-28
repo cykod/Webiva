@@ -77,8 +77,8 @@ class StructureController < CmsController  # :nodoc: all
     @wizard_list = get_handler_info(:structure,:wizard) if myself.has_role?('editor_structure_advanced')
     @wizard_list ||= []
     @wizard_list = @wizard_list.select { |info| myself.has_role?(info[:permit]) }
- 
-  end
+    @wizard_list.delete_if { |info| info[:class] == Wizards::SimpleSite } if SiteModule.module_enabled?('webiva_net')
+   end
 
   def wizard
     @version = SiteVersion.find_by_id(params[:version])

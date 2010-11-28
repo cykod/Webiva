@@ -711,6 +711,8 @@ class SiteTemplate < DomainModel
     site_template ||= SiteTemplate.new(:parent_id => data['parent_id'], :name => data['name'])
     site_template.update_attributes data.slice('description', 'template_html', 'options', 'style_struct', 'style_design', 'template_type', 'head', 'doctype', 'partial', 'lightweight', 'preprocessor').merge('domain_file_id' => domain_file_id)
 
+    data['id'] = site_template.id
+
     # Create the zones
     site_template.site_template_zones.clear
     data['zones'].each_with_index do |name, idx|
