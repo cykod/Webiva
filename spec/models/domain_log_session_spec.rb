@@ -2,11 +2,11 @@ require File.dirname(__FILE__) + "/../spec_helper"
 
 describe DomainLogSession do
 
-  reset_domain_tables :domain_log_sessions, :domain_log_entries, :domain_log_referrers
+  reset_domain_tables :domain_log_sessions, :domain_log_entries, :domain_log_referrers, :domain_log_visitors, :domain_log_groups, :end_users
 
   before(:each) do
     @user = EndUser.new 
-    @session_id = DomainModel.generate_hash # Make up a session up
+    @session_id = DomainModel.generate_hash[0..31] # Make up a session up
     @ip_address = "127.0.0.1"
     @visitor_id = 1
   end
@@ -78,7 +78,7 @@ describe DomainLogSession do
     ses.domain_log_referrer.referrer_domain.should == 'aff.dev'
     ses.domain_log_referrer.referrer_path.should == '/test.html'
 
-    @session_id = DomainModel.generate_hash # Make up a session up
+    @session_id = DomainModel.generate_hash[0..31] # Make up a session up
     session = {}
     request = mock :referrer => "http://#{DomainModel.active_domain_name}/test.html", :parameters => {'affid' => 'test', 'c' => 'testcamp', 'o' => 'testorigin', 'f' => 'free'}, :session_options => {:id => @session_id}, :remote_ip => @ip_address
     DomainLogSession.start_session @user, session, request
