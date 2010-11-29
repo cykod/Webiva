@@ -19,7 +19,7 @@ Webiva is a Website Building System targeted at Web Developers (we built it to u
 Getting Webiva
 --------------
 
-Webiva is available at GitHub at http://github.com/cykod/Webiva
+Webiva is available at GitHub at [http://github.com/cykod/Webiva](http://github.com/cykod/Webiva)
 
 Getting Started
 ---------------
@@ -34,7 +34,7 @@ Bugs
 
 Please report any issues or bugs to the webiva lighthouse project page at:
 
-http://webiva.lighthouseapp.com/
+[http://webiva.lighthouseapp.com/](http://webiva.lighthouseapp.com)
 
 License & Copyright
 -------------------
@@ -48,8 +48,9 @@ The inclusion of any of the software above should not be interpreted in any way 
 Resources
 ---------
 
-http://www.webiva.org should have all the latest details on the open-source release of Webiva.
-http://www.webiva.net is your resource for documentation and community forums
+The [Webiva.org Open-source Site](http://www.webiva.org) should have all the latest details on the open-source release of Webiva.
+The [Weibva.net Community Site](http://www.webiva.net) is your resource for documentation and community forums
+The [Webiva.com Hosted CMS](http://www.webiva.com) is a SaaS hosted version of Webiva.
 
 Contact
 -------
