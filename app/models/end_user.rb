@@ -224,7 +224,7 @@ class EndUser < DomainModel
   # [:valid_at]
   #   Date this token will start being valid
   def add_token!(tkn,options = { }) 
-    eut = self.end_user_tokens.find_by_access_token_id(tkn) ||
+    eut = self.end_user_tokens.find_by_access_token_id(tkn.id) ||
       self.end_user_tokens.create(:access_token_id => tkn.id)
 
     # If we are setting any additional options,
