@@ -1,6 +1,7 @@
+require 'resthome'
 require 'nokogiri'
 
-class Blog::WordpressWebService < ActiveWebService
+class Blog::WordpressWebService < RESTHome
   attr_accessor :error
 
   headers 'User-Agent' => 'Mozilla/5.0 (Windows; U; Windows NT 6.1; ru; rv:1.9.2.3) Gecko/20100401 Firefox/4.0 (.NET CLR 3.5.30729)'
@@ -34,11 +35,6 @@ class Blog::WordpressWebService < ActiveWebService
       next unless input.attributes['name']
       @inputs[input.attributes['name'].to_s] = (input.attributes['value'] || '').to_s
     end
-
-    @cookies ||= {}
-    @response.headers.to_hash['set-cookie'].collect { |cookie| cookie.split("\; ")[0].split('=') }.each do |c|
-      @cookies[c[0]] = c[1]
-    end
   end
 
   def login
@@ -49,9 +45,7 @@ class Blog::WordpressWebService < ActiveWebService
     begin
       self.wp_login_post @inputs, :no_follow => true
     rescue HTTParty::RedirectionTooDeep => e
-      e.response.header.to_hash['set-cookie'].split(',').collect { |cookie| cookie.split("\; ")[0].split('=') }.each do |c|
-        @cookies[c[0]] = c[1]
-      end
+      save_cookies e.response.header.to_hash['set-cookie']
     end
     @error ? false : true
   end
@@ -91,11 +85,5 @@ class Blog::WordpressWebService < ActiveWebService
     self.wp_export :query => @inputs, :format => :plain
     return self.response.body if self.response.headers['content-type'].to_s =~ /xml/
     false
-  end
-
-  def build_options!(options)
-    super
-    options[:headers] ||= {}
-    options[:headers]['cookie'] = @cookies.to_a.collect{|c| "#{c[0]}=#{c[1]}"}.join('; ') + ';' if @cookies
   end
 end
