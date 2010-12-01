@@ -1,28 +1,16 @@
-<b> <%= "Framework Details:".t %> <%= @node.node_path %></b><br/><br/>
-
-
-<table class='ajax_tabs' cellpadding='0' cellspacing='0'>
-  <tr>
-    <td class='normal'>&nbsp;</td>
-  <% @revision_info.each do |info| -%>
-    
-      <td <%= info == @revision_info.first ? 'class="selected"' : 'class="normal"' %> <a class='ajax_link' onclick='SCMS.select_tab(this); ' href='javascript:void(0);'>
-          <span id='title_<%= @node.id %>_<%= info[0] %>' style='<%= "font-weight:bold;" if info[1] %>'>
-           <%= info[0].upcase %>
-          </span>
-        </a>
-      </td>
-  <% end -%>    
-    <td class='extra'> &nbsp; </td>  
- </tr>
-  <% @revision_info.each do |info| -%>
-  <tr style='<%= "display:none;" unless info  == @revision_info.first %>'>
-    <td colspan='<%= @revision_info.length + 2 %>' >
-      <div id='node_<%= @node.id %>_<%= info[0] %>'>
-      <%= render :partial => 'framework_revision_info', :locals => { :info => info } %>
-      </div>
-    </td>
- </tr>
+<ul class='page_detail_buttons'>
+ <% @revision_info.each do |info| %>
+    <li <%= "class='selected'" if info[0] == @active_revision_info[0] %>>
+      <%= link_to info[0],'javascript:void(0);',
+      :onclick => "StructureEditor.showFrameworkLanguage(#{@mod.id},'#{info[0]}');" %></li>
   <% end -%>
 
-</table>
+  <li class='icon'><a href='javascript:void(0);'  title='<%= vh 'Delete Framework'.t%>' onclick='StructureEditor.deleteModifier("mod_<%= @mod.id %>");'><%= image_tag(theme_src('icons/header_actions/delete_page.png')) %></a></li>
+</ul>
+
+<h1 class='inpage'><%= "Framework Details:".t %> <%= @node.node_path %></h1>
+<div class='tree_detail_body'>
+  <div class='tree_detail_main_section clearfix'>
+    <%= render :partial => 'framework_revision_info', :locals => { :info => @active_revision_info } %>
+  </div>
+ </div>

@@ -9,8 +9,18 @@ module FileHelper
       file_info['name'] = file.file_path
       file_info['thumb_url'] = file.thumbnail_url(theme,:thumb)
       file_info['editor_url'] = file.editor_url
+      file_info['thumb_editor_url'] = file.editor_url(:thumb)
       file_info['private_file'] = file.private?
     end
+  end
+
+  def filemanager_details(file)
+     details = []
+       details << "#{file.width}x#{file.height}" if file.image? 
+       details << number_to_human_size(file.file_size) if file.file_size
+       details << "Created " + file.created_at.localize(DEFAULT_DATETIME_FORMAT.t) if file.created_at 
+       details.join(", ")
+
   end
 
   def filemanager_register_details(file)
@@ -44,7 +54,7 @@ module FileHelper
     tag("img",
         :title => file.name,
         :src => url,
-        :align => 'middle',
+        :align => 'absmiddle',
         :id => "thumb_image_#{file.id}",
         :width => thumb_size[0],
         :height => thumb_size[1]

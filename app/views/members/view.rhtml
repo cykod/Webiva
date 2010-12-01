@@ -17,11 +17,11 @@ MemberViewer = {
 
 <% unless @user.client_user_id || (@user.user_class.editor? && !myself.has_role?('editor_editors')) %>
 <% action_panel do |p| -%>
-  <%= p.link 'Edit User',:icon => 'edit.gif',:action => 'edit', :path => [ @user, @segment ? @segment.id : nil ].compact %>
+  <%= p.link 'Edit User',:icon => 'pen.png',:action => 'edit', :path => [ @user, @segment ? @segment.id : nil ].compact %>
   <%= p.link 'Login as User', { :icon => 'download.gif',:action => 'login', :path => @user }, :method => 'post' %>
 <% end -%>
-<hr/>
 <% end -%>
+<hr/>
 
 <table width='100%'>
 <tr>
@@ -60,7 +60,8 @@ MemberViewer = {
   </td>
   <td valign='top'>
 
-<% ajax_tabs [ 'Details' ] + @handler_tabs, 'Details' do |t| -%>
+<div class="tab_container">
+<% ajax_tabs [ 'Details', 'Notes' ] + @handler_tabs, 'Details' do |t| -%>
 
 <% t.tab do -%>
   <div style='padding:5px 10px'>
@@ -83,6 +84,15 @@ MemberViewer = {
     <%= render :partial => 'user_actions_table' %>
   </div>
 <% end -%>
+
+<% t.tab do -%>
+  <% @user.end_user_notes.each do |note| -%>
+    <div class="note">
+      <%= render :partial => 'user_note', :locals => {:note => note} %>
+    </div>
+  <% end -%>
+<% end -%>
+
 <% @handler_tabs.each_with_index do |handler,idx| -%>
   <% t.tab do -%>
     <div style='padding:5px 10px' id='tab_<%= idx+1 %>'><%= "Loading...".t %></div>
@@ -90,6 +100,7 @@ MemberViewer = {
 <% end -%>
 
 <% end -%>
+</div>
 
   </td>
 </tr>

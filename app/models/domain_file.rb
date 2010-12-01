@@ -8,6 +8,7 @@ require 'ftools'
 require 'fileutils'
 require 'RMagick'
 require 'net/http'
+require 'net/https'
 require 'uri'
 
 =begin rdoc
@@ -17,7 +18,7 @@ a site creates a domain file entry.
 =end
 class DomainFile < DomainModel
 
-  @@image_size_array = [ [ :icon, 32], [:thumb, 64], [:preview, 128 ], [ :small , 256 ] ]
+  @@image_size_array = [ [:tiny, 16], [ :icon, 32], [:thumb, 64], [:preview, 128 ], [ :small , 256 ] ]
   @@image_sizes = {}
   @@image_size_array.each { |size|  @@image_sizes[size[0]] = [ size[1], size[1] ]  }
  
@@ -45,6 +46,8 @@ class DomainFile < DomainModel
 
   # disable file processing for the instance
   attr_accessor :skip_post_processing
+
+  attr_accessor :encoding
 
   # Returns the list of built in image sizes
   def self.image_sizes
@@ -198,6 +201,24 @@ class DomainFile < DomainModel
      return false
    end
 
+
+   # Upgrade the meta info in a file from the old Webiva
+   def upgrade_file
+     return if self.file_type == 'fld'
+     begin
+       self.generate_meta_info
+     rescue Exception => e
+        raise self.inspect + e.to_s
+     end
+     fattr = self.read_attribute(:filename)
+     if fattr != self.name
+       ext = File.extname(self.name)
+       desired_name = DomainFile.sanitize_filename(File.basename(self.name,ext) + File.extname(fattr))
+       self.name = fattr
+       self.rename(desired_name)
+     end
+   end
+
    def replace_file(options={})
      @replace = DomainFile.find_by_id(options[:replace_id])
      return unless @replace && ! @replace.folder? && ! self.folder?
@@ -326,6 +347,7 @@ class DomainFile < DomainModel
 
    # Regenerate built in thumbnails and optionally resave the file
    def generate_thumbnails(save_file=true)
+     return if self.file_type=='fld'
      info = {}
      
      info[:image_size] = {}
@@ -357,7 +379,12 @@ class DomainFile < DomainModel
      
 
    end
-   
+
+   def decode(data)
+     data = Base64.decode64(data) if self.encoding == 'base64'
+     data
+   end
+
    # This is called after the file is saved for the first time
    # It will save the file and perform any necessary transforms in images
    # updating the meta data as necessary
@@ -372,21 +399,18 @@ class DomainFile < DomainModel
       
       # Copy the file directly if it's not a file object
       if @file_data.respond_to?(:local_path) and @file_data.local_path and File.exists?(@file_data.local_path)
-        FileUtils.copy_file(@file_data.local_path, self.local_filename)
+        if self.encoding
+          File.open(self.local_filename,'wb') { |f| f.write(self.decode(@file_data.read)) }
+        else
+          FileUtils.copy_file(@file_data.local_path, self.local_filename)
+        end
       elsif @file_data.respond_to?(:read)
-        File.open(self.local_filename,'wb') { |f| f.write(@file_data.read) }
+        File.open(self.local_filename,'wb') { |f| f.write(self.decode(@file_data.read)) }
       end
       File.chmod(0664,self.local_filename)
       
-      
-      self.file_size = File.size(self.local_filename)
-      self.stored_at = Time.now 
-      self.mtime = File.mtime(self.local_filename)
-
-      mime = MIME::Types.type_for(self.abs_filename)
-      mime = [MIME::Type.simplified(@file_data.content_type)] if mime.empty? && @file_data.respond_to?(:content_type) && ! @file_data.content_type.blank?
-      self.mime_type = mime[0] ? mime[0].to_s : 'application/octet-stream'
-
+      generate_meta_info(false)
+    
       # Unless we're skipping the transform on this
       if !@skip_transform
         if(self.file_type=='img' || self.file_type=='thm')
@@ -406,6 +430,23 @@ class DomainFile < DomainModel
       
     end
     
+   end
+
+   def generate_meta_info(save_file=true)
+     self.file_size = File.size(self.local_filename)
+     self.stored_at = Time.now 
+     self.mtime = File.mtime(self.local_filename)
+
+     mime = MIME::Types.type_for(self.abs_filename)
+     mime = [MIME::Type.simplified(@file_data.content_type)] if mime.empty? && @file_data.respond_to?(:content_type) && ! @file_data.content_type.blank?
+     self.mime_type = mime[0] ? mime[0].to_s : 'application/octet-stream'
+
+     if self.extension.blank?
+       ext = File.extname(self.local_filename)[1..-1]
+       self.extension= ext.downcase if ext.to_s.length > 0 
+     end
+
+     self.save if save_file
    end
    
    def set_size(size_name,width,height) #:nodoc:
@@ -596,9 +637,14 @@ class DomainFile < DomainModel
    
   # Returns the themes folder of the file system
    def self.themes_folder
-     DomainFile.find(:first,:conditions => "name = 'Themes' and parent_id = #{self.root_folder.id}") || DomainFile.create(:name => 'Themes', :parent_id => self.root_folder.id, :file_type => 'fld')
+     self.push_folder 'Themes'
    end
-   
+
+   def self.push_folder(name, opts={})
+     parent_id = opts[:parent_id] || self.root_folder.id
+     DomainFile.find(:first,:conditions => ["name = ? and parent_id = ?", name, parent_id]) || DomainFile.create(:name => name, :parent_id => parent_id, :file_type => 'fld')
+   end
+
    # Is this an image
    def image?; self.file_type == 'img'; end
 
@@ -694,6 +740,10 @@ class DomainFile < DomainModel
      df
    end
    
+
+   def mini_icon_class
+    "folder#{!self.special.blank? ? "_#{self.special}" : ''}_sprite"
+   end
    
    def mini_icon #:nodoc:
     "/images/icons/filemanager/mini_folder#{!self.special.blank? ? "_#{self.special}" : ''}.gif"
@@ -880,6 +930,7 @@ class DomainFile < DomainModel
     
     File.open(File.join(dir,self.read_attribute(:filename)),'rb') do |f|
       self.filename=f
+      self.process_immediately = true
       self.save
     end
     
@@ -1325,17 +1376,55 @@ class DomainFile < DomainModel
       nil
     end
   end
-  
+
+  def add(filename, opts={})
+    return nil unless self.folder?
+
+    filename = filename.filename if filename.is_a?(DomainFile)
+
+    # if it is a url, create a URI
+    if filename =~ /^https?:\/\//
+      begin
+        filename = URI.parse(filename)
+      rescue URI::Error => e
+        return nil
+      end
+    end
+
+    process_immediately = opts.has_key?(:process_immediately) ? opts[:process_immediately] : true
+    DomainFile.create :parent_id => self.id, :filename => filename, :process_immediately => process_immediately
+  end
+
   def self.download(uri, limit=10)
     raise ArgumentError, 'HTTP redirect too deep' if limit == 0
 
-    uri = URI.parse(uri) if uri.is_a?(String)
-    response = Net::HTTP.get_response(uri)
+    response = self.download_response uri
     case response
-    when Net::HTTPSuccess     then response
+    when Net::HTTPSuccess
+      if response.header['content-encoding'] == 'gzip'
+        class <<response
+          alias_method :orig_body, :body
+          def body; Zlib::GzipReader.new(StringIO.new(orig_body.to_s)).read; end
+        end
+      end
+      response
     when Net::HTTPRedirection then download(response['location'], limit - 1)
     else
       response.error!
+    end
+  end
+
+  def self.download_response(uri)
+    uri = URI.parse(uri) if uri.is_a?(String)
+    if uri.scheme == 'https'
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = true
+      http.start do |http|
+        request = Net::HTTP::Get.new(uri.path)
+        http.request(request)
+      end
+    else
+      Net::HTTP.get_response(uri)
     end
   end
 

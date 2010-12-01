@@ -73,7 +73,7 @@ class Blog::EditRenderer < ParagraphRenderer
 
     if editor?
       @blog = Blog::BlogBlog.find(:first,:conditions => "is_user_blog = 1")
-      @target = @blog.target
+      @target = @blog.target if @blog
     else
       @target = conn_id
       @blog = Blog::BlogBlog.find_by_target_type_and_target_id(@target.class.to_s,@target.id)

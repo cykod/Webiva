@@ -1,4 +1,3 @@
-<div class='admin_tabbed_content'>
 <script type='text/javascript'>
 	TemplateEdit = {
 		popup: function() {
@@ -260,6 +259,9 @@
 <div align='right' id='template_versions'>
   <%= render :partial => 'template_versions' %>
 </div>
+
+<hr/>
+<div class='admin_tabbed_content tab_container'>
 <form action='' id='site_template_form' onsubmit='return false;' method='post'>
 <% ajax_tabs(@tabs.map { |elm| elm.humanize.t },@display_view == 'advanced' ? 'Edit' : 'Options') do |t| -%>
 
@@ -278,11 +280,14 @@
 
 <% if @tabs.include?('edit') -%>
   <% t.tab do  -%>
-		<div id='zone_display' style='border:1px solid #000000; margin:5px 0;'>
+    <div id='zone_display'>
 			<%= render :partial => 'zone_ordering' %>
 		</div>
 		<% cms_unstyled_fields_for :site_template,@site_template, :html => { :id => 'site_template_html_form' } do |f| %> 
+      <div>
       <%= "Image File Folder:".t %><%= f.filemanager_folder :domain_file_id, :label => 'Image File Folder' %><br/.
+    </div>
+
       <input type='hidden' id='zone_order' name='zone_order' value='' />
       <table width='100%'>
       <tr>

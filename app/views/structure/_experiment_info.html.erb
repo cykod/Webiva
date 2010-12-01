@@ -1,0 +1,75 @@
+<hr/>
+<% if experiment.started? && ! experiment.finished? -%>
+   <h2><%= 'Active Experiment'.t %></h2>
+ <% elsif experiment.finished? %>
+   <h2><%= 'Last Experiment'.t %></h2>
+ <% else %>
+   <h2><%= "Current Experiment (Not Started)".t %></h2>
+<% end -%>
+
+<div class="clearfix">
+
+<%= theme_icon('framework', 'framework/beakers.png', :class => 'stat_table_icon') %>
+
+<ul>
+<li>
+  <strong><%= "Name:".t %></strong> <%= h experiment.name %>
+  <a href='javascript:void(0);' onclick="SCMS.remoteOverlay('<%= url_for :action => 'experiment', :path => @node.id, :language => @view_language %>');">edit</a>
+  <% if experiment.finished? -%>
+    <a href='javascript:void(0);' onclick="StructureEditor.updateExperiment(<%= experiment.id %>, '<%= jh experiment.language %>', 'hide')">hide</a>
+  <% end -%>
+</li>
+
+<% if ! experiment.started? && ! experiment.finished? -%>
+  <li>Experiment has not started. <a href="javascript:void(0);" onclick="StructureEditor.updateExperiment(<%= experiment.id %>, '<%= jh experiment.language %>', 'start')">Start it now.</a></li>
+<% elsif experiment.is_running? -%>
+  <li><strong><%= "Started on:".t %></strong> <%= experiment.started_at.to_s(:long) %></li>
+  <li>
+    <strong><%= "Ends on:".t %></strong> <%= experiment.ended_at ? experiment.ended_at.to_s(:datetime) : '(not set)'.t %>
+    <a href="javascript:void(0);" onclick="StructureEditor.updateExperiment(<%= experiment.id %>, '<%= jh experiment.language %>', 'stop')">stop</a>
+  </li>
+<% elsif experiment.finished? -%>
+  <li><strong><%= "Started on:".t %></strong> <%= experiment.started_at.to_s(:long) %></li>
+  <li>
+    <strong><%= "Ended on:".t %></strong> <%= experiment.ended_at.to_s(:long) %>
+    <a href="javascript:void(0);" onclick="StructureEditor.updateExperiment(<%= experiment.id %>, '<%= jh experiment.language %>', 'restart')">restart</a>
+  </li>
+<% end -%>
+</ul>
+
+
+<div class="stat_table_wrapper">
+<table cellpadding='0' cellspacing='0' class='stat_table' width='100%'>
+<tr>
+  <th class="first"><%= 'default'.t %></th>
+  <th><%= 'version'.t %></th>
+  <th><%= 'traffic'.t %></th>
+  <th><%= 'hits'.t %></th>
+  <th><%= 'conversions'.t %></th>
+  <th><%= 'edit'.t %></th>
+  <% if experiment.started? -%>
+    <th><%= 'approve'.t %></th>
+  <% end -%>
+</tr>
+<% experiment.experiment_versions.each do |version| -%>
+  <tr>
+  <td align="center" class="first"><%= version.page_revision.active ? theme_icon('table_action', 'icons/table_actions/stat_star.png') : '' %></td>
+  <td><%= version.title(:name_only => true) %></td>
+  <td><%= version.weight %>%</td>
+  <td><%= version.num_visits %></td>
+  <td><%= version.num_conversions %> / <%= version.success_percent %>%</td>
+  <td align="center"><a href="<%= url_for :controller => 'edit', :action => 'page', :path => ['page', experiment.experiment_container.id, version.page_revision.id] %>"><%= theme_icon('action', 'icons/actions/edit.gif') %></a></td>
+
+  <% if experiment.started? -%>
+    <td align="center">
+    <%= link_to version.page_revision.active ? theme_icon('table_action', 'icons/table_actions/checked.png') : theme_icon('table_action', 'icons/table_actions/not_checked.png'),
+                "javascript:StructureEditor.updateExperiment(#{experiment.id}, '#{jh experiment.language}', 'select', 'version_id=#{version.id}')",
+                :confirm => 'Are you sure you want to end the experiment and use this version?' %>
+
+    </td>
+  <% end -%>
+  </tr>
+<% end -%>
+</table>
+</div>
+</div>

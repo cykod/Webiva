@@ -1,6 +1,6 @@
 class AddSiteTemplateHead < ActiveRecord::Migration
   def self.up
-    add_column :site_templates, :head,:text
+    add_column :site_templates, :head, :text
   end
 
   def self.down

@@ -9,15 +9,7 @@ Widget = {
 CMSDashboard = {
   editing: false,
 
-  pagePopup:function() {
-    SCMS.popup(
-
-      new Array(
-                ['Edit Site Widgets','<%= url_for :action => :site_widgets  -%>' ]
-              )
-     );
-  },
-
+ 
   updateWidgets:function() {
    this.editing ? this.editWidgets() : this.stopEditingWidgets();
   },
@@ -117,6 +109,20 @@ CMSDashboard = {
 
 
 </script>
+
+<% action_panel :more => myself.has_role?(:editor_site_management)   do |p| -%>
+  <%= p.link 'Edit Widgets', { :icon => 'add.png', :url => 'javascript:void(0);', :id => 'edit_widgets' }, :onclick => 'CMSDashboard.editWidgets();', :"j-action" => 'swap', :swap => '#stop_editing_widgets,#edit_widgets' %>
+
+  <%= p.link 'Stop Editing Widgets', { :icon => 'remove.png', :hidden => true, :url => 'javascript:void(0);', :id => 'stop_editing_widgets' }, :onclick => 'CMSDashboard.stopEditingWidgets();', :"j-action" => 'swap', :swap => '#edit_widgets,#stop_editing_widgets' %>
+
+<% end -%>
+<% if myself.has_role?(:editor_site_management)  %>
+<% more_action_panel do |p| -%>
+  <%= p.link 'Edit Site Widgets',:action => :site_widgets %>
+<% end -%>
+<% end -%>
+
+<hr/>
 
 <table width='100%' cellspacing='0' cellpadding='0'>
   <tr>

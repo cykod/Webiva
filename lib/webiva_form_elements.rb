@@ -744,16 +744,30 @@ module WebivaFormElements
   # Accepts a list of opts like select and radio_buttons does
   def ordered_array(field,opts,options={})
     objects = @object.send(field)
-    
-    # options for select doesn't support disabled arguments, so ryo
-    select_options = ([['--Select--'.t,nil]] + opts).map do |opt|
-      opt_disabled = objects.include?(opt[1]) ? 'disabled="disabled"' : ''
-      "<option value='#{opt[1]}' #{opt_disabled}>#{h(opt[0])}</option>"
-    end.join
 
+    select_options = ''
     opts_hash = {}
-    opts.each { |elm| opts_hash[elm[1]] = elm[0].to_s }
-    
+
+    if options[:grouped]
+      # options for select doesn't support disabled arguments, so ryo
+      select_options = opts.map do |section|
+        group_options = section[1].map do |opt|
+          opts_hash[opt[1]] = opt[0].to_s
+          opt_disabled = objects.include?(opt[1]) ? 'disabled="disabled"' : ''
+          "<option value='#{opt[1]}' #{opt_disabled}>#{h(opt[0])}</option>"
+        end.join
+        "<optgroup label=\"#{h section[0]}\">#{group_options}</optgroup>"
+      end.join
+      select_options = "<option value=''>" + '--Select--'.t + "</option>#{select_options}"
+    else
+      # options for select doesn't support disabled arguments, so ryo
+      select_options = ([['--Select--'.t,nil]] + opts).map do |opt|
+        opts_hash[opt[1]] = opt[0].to_s
+        opt_disabled = objects.include?(opt[1]) ? 'disabled="disabled"' : ''
+        "<option value='#{opt[1]}' #{opt_disabled}>#{h(opt[0])}</option>"
+      end.join
+    end
+
     obj_name = @object_name.to_s.gsub(/\[|\]/,"_");
     idx=-1
     existing_options = objects.map do |elm|

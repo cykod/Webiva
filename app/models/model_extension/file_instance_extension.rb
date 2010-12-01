@@ -127,7 +127,7 @@ module ModelExtension::FileInstanceExtension
   def file_instance_search(column_name,html=nil) #:nodoc:
     file_ids = []
     html = self.send(column_name).to_s if html.blank?
-    html.scan(/\/__fs__\/([0-9a-fA-F\/]+)(\:([a-zA-Z_]+)){0,1}/) do |prefix,slash,size|
+    html.scan(/\/__fs__\/([0-9a-fA-F\/]+)(\:([a-zA-Z_\-]+)){0,1}/) do |prefix,slash,size|
       file_ids << prefix.split("/")[-1].to_i
     end
     files = DomainFile.find(:all,:conditions => { :id => file_ids })
@@ -159,7 +159,7 @@ module ModelExtension::FileInstanceExtension
       end
     end
     indexed_files = file_instance_search(column_name,html)
-    html = html.gsub(/\/__fs__\/([0-9a-fA-F\/]+)(\:([a-zA-Z_]+)){0,1}/) do |match|
+    html = html.gsub(/\/__fs__\/([0-9a-fA-F\/]+)(\:([a-zA-Z_\-]+)){0,1}/) do |match|
       size = $3 ? $3 : nil
       file_id = $1.split("/")[-1].to_i
       file = indexed_files[file_id.to_i]

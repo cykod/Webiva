@@ -41,12 +41,20 @@ class WebformFormResult < DomainModel
     self.content_model.content_node_body(self.data_model, lang, opts)
   end
 
+  def content_description(language) #:nodoc:
+    "Webform"
+  end
+
   def data_model
     return @data_model if @data_model
     return nil unless self.webform_form
 
     self.data ||= {}
     @data_model = self.content_model.create_data_model(self.data)
+  end
+
+  def connected_end_user
+    self.data_model.connected_end_user
   end
 
   def before_validation_on_create
@@ -100,5 +108,9 @@ class WebformFormResult < DomainModel
     writer << self.webform_form.content_model_fields.collect do |fld|
       fld.content_export(self.data_model)
     end
+  end
+
+  def webform_name
+    self.webform_form.name
   end
 end

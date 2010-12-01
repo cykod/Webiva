@@ -14,7 +14,6 @@ class <%= module_class %>::<%= renderer_class %>Renderer < ParagraphRenderer
   
     render_paragraph :feature => :<%= module_path %>_<%= renderer_path %>_<%= paragraph %>
   end
+
 <%- end -%>
-
-
 end

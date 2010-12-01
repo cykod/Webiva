@@ -80,6 +80,21 @@ end
 
 # Find a customer by reference
 @service.find_customer_by_reference '581'
+
+
+class LoremIpsumWebService < ActiveWebService
+
+  route :create_lipsum, '/feed/json', :expected_status => 200, :return => :handle_response
+
+  def initialize
+    self.base_uri = "http://www.lipsum.com"
+  end
+
+  def handle_response(response)
+    response['feed']['lipsum'] if response && response['feed']
+  end
+end
+
 =end
 
 class ActiveWebService
@@ -113,6 +128,8 @@ class ActiveWebService
   #   The method to call or the class to create before method returns.
   # [:resource]
   #   The name of the element to return from the response.
+  # [:no_body]
+  #   Removes the body argument from a post/put route
   def self.route(name, path, options={})
     args = path.scan /:[a-z_]+/
     function_args = args.collect{ |arg| arg[1..-1] }
@@ -145,7 +162,7 @@ class ActiveWebService
     end
 
     method = method.to_s
-    function_args << 'body' if method == 'post' || method == 'put'
+    function_args << 'body' if (method == 'post' || method == 'put') && options[:no_body].nil?
     function_args << 'options={}'
 
     method_src = <<-METHOD
@@ -157,11 +174,13 @@ class ActiveWebService
       method_src << "path.sub! '#{arg}', #{function_args[idx]}.to_s\n"
     end
 
-    if method == 'post' || method == 'put'
-      if options[:resource]
-        method_src << "options[:body] = {'#{options[:resource].to_s}' => body}\n"
-      else
-        method_src << "options[:body] = body\n"
+    if options[:no_body].nil?
+      if method == 'post' || method == 'put'
+        if options[:resource]
+          method_src << "options[:body] = {'#{options[:resource].to_s}' => body}\n"
+        else
+          method_src << "options[:body] = body\n"
+        end
       end
     end
 
@@ -193,7 +212,17 @@ class ActiveWebService
     end
     method_src << "end\n"
 
-    self.class_eval method_src, __FILE__, __LINE__
+    if options[:instance]
+      options[:instance].instance_eval method_src, __FILE__, __LINE__
+    elsif options[:class]
+      options[:class].class_eval method_src, __FILE__, __LINE__
+    else
+      self.class_eval method_src, __FILE__, __LINE__
+    end
+  end
+
+  def route(name, path, options={})
+    self.class.route name, path, options.merge(:instance => self)
   end
 
   # Creates routes for a RESTful API

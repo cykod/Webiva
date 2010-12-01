@@ -1,0 +1,35 @@
+<%
+range = 60
+intervals = 6
+now = Time.now
+now = now.to_i - (now.to_i % range.minutes)
+to = now
+from = now - (range*intervals).minutes
+
+groups = node.traffic Time.at(from), 1.hour, intervals
+chart_data = DomainLogGroup.traffic_chart_data groups, :desc => true, :label => '%l %P'
+if chart_data[:hits].find{ |h| h > 0 }
+-%>
+<div class='tree_detail_secondary_section'>
+  <h2>Page Statistics</h2>
+<div id="real_time_charts"></div>
+</div>
+
+<script type="text/javascript">
+function requestRealTimeCharts() {
+  RealTimeStatsViewer.renderChart();
+}
+
+if( RealTimeStatsViewer && google ) {
+  RealTimeStatsViewer.chart.intervals = <%= intervals %>;
+  RealTimeStatsViewer.chart.range = <%= range %>;
+  RealTimeStatsViewer.chart.from = "<%= chart_data[:from] %>";
+  RealTimeStatsViewer.chart.to = "<%= chart_data[:to] %>";
+  RealTimeStatsViewer.chart.uniques = [<%= chart_data[:uniques].join(',') %>];
+  RealTimeStatsViewer.chart.hits = [<%= chart_data[:hits].join(',') %>];
+  RealTimeStatsViewer.chart.labels = [<%= chart_data[:labels].collect{ |l| "\"#{l}\"" }.join(',') %>];
+
+  google.load("visualization", "1", {packages:["corechart"], callback: requestRealTimeCharts});
+}
+</script>
+<% end -%>

@@ -73,7 +73,7 @@ describe SiteTemplate do
     @site_template.rendered_parts 'en'
 
     design_part = @site_template.site_template_rendered_parts.find_by_part_and_idx 'css', 2
-    design_part.body.should == "body { color: #ff0000; }\n"
+    design_part.body.should == "body { color: #F00; }"
   end
 
   if LESS_AVAILABLE
@@ -286,14 +286,14 @@ describe SiteTemplate do
     @site_template.options[:values]['zimage'].should == @df.id
     @site_template.options[:values]['zimage2'].should == @df.id
 
-    SiteTemplate.render_template_css(@site_template.id, 'en', true).should == "#space { size: 13px; }\nbody { color: #ffffff; }\n.test { font-size: 12px; }\n"
-    SiteTemplate.render_template_css(@site_template.id, 'en', 'struct').should == "#space { size: 13px; }\n"
-    SiteTemplate.render_template_css(@site_template.id, 'en', false).should == "body { color: #ffffff; }\n.test { font-size: 12px; }\n"
+    SiteTemplate.render_template_css(@site_template.id, 'en', true).should == "#space { size: 13px; }body { color: #FFF; } .test { font-size: 12px; }"
+    SiteTemplate.render_template_css(@site_template.id, 'en', 'struct').should == "#space { size: 13px; }"
+    SiteTemplate.render_template_css(@site_template.id, 'en', false).should == "body { color: #FFF; } .test { font-size: 12px; }"
 
-    @site_template.design_style_details('en', true).should == [["body", 1, [["color", "#ffffff"]]], [".test", 2, [["font-size", "12px"]]]]
+    @site_template.design_style_details('en', true).should == [["body", 1, [["color", "#FFF"]]], [".test", 1, [["font-size", "12px"]]]]
     @site_template.structural_style_details('en', true).should == [["#space", 1, [["size", "13px"]]]]
 
-    @site_template.design_style_details('en', false).should == [["body", 1, [["color", "#ffffff"]]], [".test", 2, [["font-size", "12px"]]]]
+    @site_template.design_style_details('en', false).should == [["body", 1, [["color", "#FFF"]]], [".test", 1, [["font-size", "12px"]]]]
     @site_template.structural_style_details('en', false).should == [["#space", 1, [["size", "13px"]]]]
 
     SiteTemplate.css_styles(@site_template.id, 'en').should == ["#space", ".test", "body"]

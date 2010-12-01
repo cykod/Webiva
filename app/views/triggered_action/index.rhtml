@@ -44,15 +44,15 @@ TriggerWizard = {
 
 }
 </script>
-<h1><%= @triggered_action.id ? "Modify triggered action" : "Add a New Triggered Action".t %></h1>
-<% cms_form_for :triggered_action, @triggered_action, :html => { :id => 'wizard_form', :onsubmit => 'return TriggerWizard.validateNext();' } do |f| %>
+<h2><%= @triggered_action.id ? "Modify triggered action" : "Add a New Triggered Action".t %></h2>
+<% admin_form_for :triggered_action, @triggered_action, :html => { :id => 'wizard_form', :onsubmit => 'return TriggerWizard.validateNext();' } do |f| %>
   <% if @action_id %>
     <input type='hidden' name='action_id' value='<%= @action_id %>'/>
   <% else -%>
     <input type='hidden' name='trigger' value='<%= @trigger_type %>'/>
     <input type='hidden' name='trigger_id' value='<%= @trigger_id %>'/>
   <% end -%>
-  <%= f.radio_buttons :full_action_type, @actions, :vertical => true, :label => 'Please select an action', :onchange => 'TriggerWizard.setDescriptiveName(this.value); TriggerWizard.validateNext(); ' %>
+  <%= f.radio_buttons :full_action_type, @actions, :vertical => true, :label => 'Please select an action', :onchange => 'TriggerWizard.setDescriptiveName(this.value); TriggerWizard.validateNext(); ', :separator => '<br/>' %>
   <%= f.select :action_trigger, @triggers, :vertical => true, :onchange => 'TriggerWizard.validateNext();' %>
   <%= f.text_field :name, :vertical => true, :label => 'Descriptive Name', :onchange => 'TriggerWizard.validateNext();' %>
   

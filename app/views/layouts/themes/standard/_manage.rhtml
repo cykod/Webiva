@@ -1,21 +1,21 @@
 
 <div id='cms_container'> 
 
-<div id='cms_header'>
+<div id='cms_header_wrapper'>
+<header id='cms_header'>
   <% if myself.id && myself.editor? %>
 
-  <div id='cms_header_return'>
-    <a href='/'>&laquo; View Site</a> 
-    <% if @cms_return_to_site_url -%> |
-      <a href='<%= h @cms_return_to_site_url -%>'>&laquo; Return to site</a>
-    <% end -%>
-  </div>
-  <div id='cms_header_tools'>
-    <div id='cms_header_tools_content'>
-    <a href='<%= url_for :controller => "/account" %>'><%= "my account".t %></a>
-      | 
-    <a href='<%= url_for :controller => '/manage/access', :action => 'logout' %>'><%= "logout".t %></a>
-      | 
+    <div id='cms_header_tools'>
+      <div id='cms_header_tools_content'>
+        <a href='<%= url_for :controller => "/account" %>'><%= "My Account".t %></a>
+        <a href='<%= url_for :controller => '/manage/access', :action => 'logout' %>'><%= "Logout".t %></a>
+        <div id='cms_header_return'>
+          <a href='/'>&#10038; View Site</a> 
+          <% if @cms_return_to_site_url -%> |
+            <a href='<%= h @cms_return_to_site_url -%>'>&#10038; Return to site</a>
+          <% end -%>
+        </div>
+
       <%= webiva_search_widget -%>
      </div>
   </div>
@@ -27,60 +27,17 @@
   </div>
 
   <% end -%>
-  <div id='cms_logo'><a href='/website/dashboard#cms_page_title'><img src='<%= WEBIVA_LOGO_FILE || theme_src("framework/logo.gif") %>'></a></div>
-  <div id='cms_menu'>
-<%  # Foreground, Background
-    @menu_colors = { 'website' => [ '#29974e', '#add4b8' ],
-                    'files_and_images' => [ '#df5323', "#d4a451" ],
-                    'content' => [ '#539424', "#c1d0a1" ],
-                    'e_marketing' => [ '#5299c4', "#d3e8ec" ],
-                    'options' => [ '#be8806', "#f3e380" ],
-                    'system' => [ '#5a514f', "#c9ccce" ],
-                    'people' => [ '#8d796a', "#d0c5a3"  ]
-                    }
-    %>
-
-      <ul class='cms_menu_list'>
-          <% @menu.each do |mnu| -%>
-              <li><a href='<%= mnu[3] %>' style='background-image:url(<%= theme_src("framework/menu_icon/#{mnu[1]}#{@cms_page_info[:section] == mnu[0] ? '_selected' : ''}.gif")  %>); color:<%= @menu_colors[mnu[0]][0] %>'><%= mnu[2].t %></a></li>
-          <% end -%>
-
-      </ul>
-  </div>
+  <div id='cms_logo'><a href='/website/dashboard#cms_page_title'><img src='<%= WEBIVA_LOGO_FILE || theme_src("framework/logo.png") %>'></a></div>
+  <nav id='cms_menu'>
+    <ul>
+      <%= render_webiva_menu(@menu,@cms_page_info[:section]) %>
+    </ul>
+  </nav>
+</header>
 </div>
-<div style='clear:both;'></div><a name='cms_page_title'></a>
-<div id='cms_title_bar' style=' <%= "background-color:#{@menu_colors[@cms_page_info[:section]][1]}; color:#{@menu_colors[@cms_page_info[:section]][0]}" if @menu_colors[@cms_page_info[:section]] %>'>
-     <% if  @cms_page_info[:title].is_a?(Array) %>
-          <% @cms_page_info[:title].each do |item| %>
-            <% if item.is_a?(Array) && item[1] %>
-              <a style='<%= "color:#{@menu_colors[@cms_page_info[:section]][0]}" if @menu_colors[@cms_page_info[:section]] %>'  href='<%= item[1] %>'><%= h( item.length > 2 ? sprintf(item[0].t,*item[2..-1]) : item[0].t) %></a> 
-            <% else -%>
-              <% if item.is_a?(Array) %>  
-                <%= h(sprintf(item[0].t,*item[2..-1])) %>
-              <% else -%>
-                <%= h item.t %>
-              <% end -%>
-            <% end -%>
-            <%= "&gt;" unless item == @cms_page_info[:title].last %>
-          <% end -%>
-      <% else -%>
-			 <%= @cms_page_info[:title].t %>
-      <% end -%>   
-
-     <div id='cms_title_right'>
-        <% if session[:context_translation] && permit?('client_admin') %>
-          <a href='javascript:void(0);' onclick='openWindow("<%= url_for :controller => '/manage/translate', :action => 'context' %>","Win",800,600,"yes","yes");'><img src='<%= theme_src("framework/page_title_translate.gif") %>' width='32' height='32' align='absmiddle'/>
-          </a>
-        <% end -%>
-        <% if @cms_titlebar_handlers && @cms_titlebar_handlers.length > 0 -%>
-          <%= @cms_titlebar_handlers.map { |h| h.send(:titlebar_html) }.join("") -%>
-        <% end -%>
-        <% if @cms_page_info[:menu_js] %>
-        <a href='javascript:void(0);' onclick='<%= @cms_page_info[:menu_js] %>'><img src='<%= theme_src("framework/page_title_menu_icon.gif")%>' width='28' height='29'  align='absmiddle' /></a>
-        <% end -%>
-      </div>
-      
-</div>
+  <div id='cms_breadcrumbs'>
+    <%= render_webiva_breadcrumbs(@cms_page_info) %>
+  </div>  
 
 <div id='cms_main_body'>
   <% if flash[:notice] %>
@@ -88,6 +45,11 @@
         <div><%= flash[:notice] %> <a href='javascript:void(0);' onclick="new Effect.Fade('flash_notice', { duration: 0.5 });">(Close Notice)</a></div>
       </div>
   <% end -%>
+
+  <%= render :partial => '/file/still_downloading' %>
+
+  <h1><%= render_webiva_title(@cms_page_info[:title].is_a?(Array) ? @cms_page_info[:title][-1] : @cms_page_info[:title]) %></h1>
+
   <%= render :partial => '/layouts/wizard_top' if @wizard %>
     <div id='cms_<%=@cms_page_info[:section]%>_content'>
     <%= yield %>
@@ -97,3 +59,44 @@
 </div>
 
 </div>
+<script>
+$j(document).scroll(function(d) {
+      var top = $j(document).scrollTop();
+      var offset = $j("#cms_header").height();
+      var diff = top - offset;
+      if(diff < 0) { diff = 0; }
+
+      if(diff > 0) {
+          $j('header').width($j('header').width());
+         $j("header").addClass('fixed_header');
+      }
+      else {
+         $j("header").removeClass('fixed_header');
+         $j('header').width('auto');
+
+      }
+  });
+
+
+$j(window).bind('resize',function(d) {
+      var top = $j(document).scrollTop();
+      var offset = $j("#cms_header").height();
+      var diff = top - offset;
+      if(diff < 0) { diff = 0; }
+
+      if(diff > 0) {
+         $j("header").removeClass('fixed_header');
+         $j('header').width('auto');
+          $j('header').width($j('header').width());
+         $j("header").addClass('fixed_header');
+      }
+      else {
+         $j("header").removeClass('fixed_header');
+         $j('header').width('auto');
+
+      }
+  });
+
+
+
+</script>

@@ -108,7 +108,8 @@ class Content::CoreField < Content::FieldHandler
                          :description => 'Belongs to Relationship',
                          :representation => :integer,
                          :relation => true,
-                         :dynamic_fields => [:user_id ]
+                         :dynamic_fields => [:user_id ],
+                         :index => true,
                        },
                        { :name => :has_many, 
                          :description => 'Has Many Relationship',
@@ -515,7 +516,11 @@ class Content::CoreField < Content::FieldHandler
       output = []
       val.each { |vl|  output << opts[vl] if opts[vl] }
       separator = options[:separator] || ', '
-      h output.join(separator)    
+      output.map! { |itm| h itm.to_s } 
+      output = output.map { |itm| "#{options[:pre]}#{itm}" } if options[:pre]
+      output = output.map { |itm| "#{itm}#{options[:post]}" } if options[:post]
+
+      output.join(separator)    
     end
     filter_setup :not_empty, :multiple_like
   end
@@ -583,7 +588,7 @@ class Content::CoreField < Content::FieldHandler
 
     
     def available_options(atr={ })
-      opts = @available_opts ||=  @model_field.relation_class.select_options
+      opts = @available_opts ||=  @model_field.relation_class.select_options(:limit => 100)
     end
 
     def form_field(f,field_name,field_opts,options={})
@@ -661,7 +666,7 @@ class Content::CoreField < Content::FieldHandler
             nil
           end
         end
-        c.user_details_tags("#{name_base}:#{tag_name}",:local => :user)
+        c.user_tags("#{name_base}:#{tag_name}",:local => :user)
       else
         sub_local = "sub_#{local}"
 
@@ -730,7 +735,7 @@ class Content::CoreField < Content::FieldHandler
           opts = { :conditions => conditions,:order => order_by, :group_by_id => options[:group_by_id] }
           opt_hsh = cls.hash_hash(opts)
           
-          available_options =  cls.cache_fetch(opt_hsh,'select_options_grouped')
+          available_options =  cls.cache_fetch_list(opt_hsh+'select_options_grouped')
 
           if !available_options
             all_elems = cls.find(:all,:conditions => conditions, :order => order_by)
@@ -740,7 +745,7 @@ class Content::CoreField < Content::FieldHandler
             end
             available_options = available_options.to_a.sort { |a,b| a[0] <=> b[0] }
 
-            cls.cache_put(opt_hsh,available_options,'select_options_grouped')
+            cls.cache_put_list(opt_hsh+"select_options_grouped",available_options)
           end
 
           control = :grouped_check_boxes
@@ -748,7 +753,7 @@ class Content::CoreField < Content::FieldHandler
         else
           opts = { :conditions => conditions,:order => order_by }
           opt_hsh = cls.hash_hash(opts)
-          available_options = cls.cache_fetch(opt_hsh,'select_options')
+          available_options = cls.cache_fetch_list(opt_hsh + 'select_options')
           
           if !available_options
             available_options = cls.select_options(opts)
@@ -756,7 +761,7 @@ class Content::CoreField < Content::FieldHandler
               available_options.sort! { |a,b| a[0].downcase <=> b[0].downcase }
             end
 
-            cls.cache_put(opt_hsh,available_options,'select_options')
+            cls.cache_put_list(opt_hsh + 'select_options',available_options)
           end
 
 
@@ -847,7 +852,13 @@ class Content::CoreField < Content::FieldHandler
       if @model_field.relation_class == EndUser
         c.expansion_tag("#{name_base}:#{tag_name}") do |t|
           entry =  t.locals.send(local)
-          if entry
+          users =  entry.send(relation_name) if entry
+          if entry && relation
+            if t.single?
+              users.map(&:full_name).join(t.attr['separator']||", ")
+            else
+              c.each_local_value(users,t,'user')
+            end
             t.locals.user =  t.locals.send(local).send(relation_name)
           else
             nil
@@ -859,13 +870,12 @@ class Content::CoreField < Content::FieldHandler
 
         c.define_tag("#{name_base}:#{tag_name}") do |t|
           entry =  t.locals.send(local)
-          relation = entry.send(relation_name)
+          relation = entry.send(relation_name) if entry
           if entry && relation
             if t.single?
-              relation.identifier_name
+              relation.map(&:identifier_name).join(t.attr['separator']||", ")
             else
-              t.locals.send("#{sub_local}=",relation)
-              t.expand
+              c.each_local_value(relation,t,sub_local)
             end
           end
         end
@@ -874,7 +884,7 @@ class Content::CoreField < Content::FieldHandler
         if !options[:subfeature]
           if @cm_relation = @model_field.content_model_relation
             @cm_relation.content_model_fields.each do |fld|
-              fld.site_feature_value_tags(c,"#{name_base}:#{tag_name}",:full,:local => sub_local)
+              fld.site_feature_value_tags(c,"#{name_base}:#{tag_name}",:full,:local => sub_local,:subfeature => true)
             end
           end
         end

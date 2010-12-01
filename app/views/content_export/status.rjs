@@ -1,7 +1,0 @@
-if @completed
-  page << 'Exporter.download();'
-else
-  page << 'setTimeout(Exporter.status,3000);'
-end
-  
-  

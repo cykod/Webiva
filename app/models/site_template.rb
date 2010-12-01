@@ -3,12 +3,7 @@
 require 'radius'
 require 'pp'
 
-begin
-  require 'less'
-  LESS_AVAILABLE = true
-rescue MissingSourceFile => e
-  LESS_AVAILABLE = false
-end
+LESS_AVAILABLE = false
 
 class SiteTemplate < DomainModel
 
@@ -351,7 +346,7 @@ class SiteTemplate < DomainModel
   # the Design Styles
   def self.css_design_styles(site_template_id,lang) 
     css = SiteTemplate.render_template_css(site_template_id,lang,false)
-    Util::CssParser.parse_names(css,['classes']).sort
+    Util::CssParser.parse_names(css,['classes']).sort.map { |elm| elm.to_s[1..-1] }
   end
   
   def self.css_styles(site_template_id,lang)
@@ -482,18 +477,14 @@ class SiteTemplate < DomainModel
       if parent_folder
         while mtch = re.match(body)
           output_body += mtch.pre_match
-          # do search by parent folder id
-          pieces = mtch[2].split("/")
-          folder = parent_folder
-          while pieces.length > 1
-            folder = parent_folder.children.find_by_name(pieces.shift)
-          end
-          img = folder.children.find_by_name(pieces[0]) if folder
+          file_path = parent_folder.file_path + '/' + mtch[2]
+          img = DomainFile.find_by_file_path file_path
           if img
-            if self.is_a?(SiteTemplate) && self.template_type != 'site'
-              output_body += mtch[1] + Configuration.domain_link(img.url()) + mtch[3]
+            url = img.url
+            if self.is_a?(SiteTemplate) && self.template_type != 'site' && url[0..0] == '/'
+              output_body += mtch[1] + Configuration.domain_link(url) + mtch[3]
             else
-              output_body += mtch[1] + img.url() + mtch[3]
+              output_body += mtch[1] + url + mtch[3]
             end
           else
             output_body += mtch[1] + '/images/no_image.gif' + mtch[3]
@@ -515,8 +506,9 @@ class SiteTemplate < DomainModel
     return css unless LESS_AVAILABLE
 
     begin
+      raise Less::SyntaxError.new("@import not supported") if css =~ /\@import/
       Less.parse(css)
-    rescue Less::SyntaxError => e
+    rescue Less::SyntaxError, Less::ImportError => e
       raise e unless opts[:ignore]
       css
     end
@@ -652,6 +644,7 @@ class SiteTemplate < DomainModel
   end
   
   def before_create
+    self.head ||= ''
     self.options ||= {}
     self.options = { :options => self.options[:options] || [],
       :presets => self.options[:presets] || [],
@@ -700,7 +693,8 @@ class SiteTemplate < DomainModel
   def export_to_bundle(bundler)
     bundler.add_folder(self.domain_file) if self.domain_file
 
-    data = self.attributes.slice('name', 'description', 'template_html', 'options', 'style_struct', 'style_design', 'template_type', 'head', 'doctype', 'partial', 'lightweight', 'preprocessor', 'domain_file_id')
+    data = self.attributes.slice('name', 'description', 'template_html', 'style_struct', 'style_design', 'template_type', 'head', 'doctype', 'partial', 'lightweight', 'preprocessor', 'domain_file_id')
+    data['options'] = self.options.merge(:values => {}, :localize_values => {})
     data['features'] = self.site_features.collect { |feature| feature.export_to_bundle(bundler) }.compact
     data['children'] = self.child_templates.collect { |child| child.export_to_bundle(bundler) }
     data['zones'] = self.site_template_zones.collect { |zone| zone.name }
@@ -716,6 +710,8 @@ class SiteTemplate < DomainModel
     site_template = SiteTemplate.find_by_parent_id_and_name(data['parent_id'], data['name']) if opts[:replace_same]
     site_template ||= SiteTemplate.new(:parent_id => data['parent_id'], :name => data['name'])
     site_template.update_attributes data.slice('description', 'template_html', 'options', 'style_struct', 'style_design', 'template_type', 'head', 'doctype', 'partial', 'lightweight', 'preprocessor').merge('domain_file_id' => domain_file_id)
+
+    data['id'] = site_template.id
 
     # Create the zones
     site_template.site_template_zones.clear
@@ -735,6 +731,11 @@ class SiteTemplate < DomainModel
       child['parent_id'] = site_template.id
       SiteTemplate.import_bundle bundler, child, opts
     end
+
+    site_template = SiteTemplate.find site_template.id
+    site_template.options[:values] = {}
+    site_template.update_option_values nil
+    site_template.save
 
     site_template
   end

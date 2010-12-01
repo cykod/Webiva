@@ -1,3 +1,4 @@
+<hr/>
 <script>
 UserSegment = {
   appendOptionsText: function(expr) {
@@ -16,10 +17,10 @@ UserSegment = {
 <% admin_form_for :segment, @segment do |f| -%>
 <%= f.text_field :name %>
 <%= f.text_area :description, :rows => 3 %>
-<%= f.select :order_by, UserSegment.order_by_options %>
+<%= f.grouped_select :order_by, UserSegment.order_by_group_options %>
 <%= f.radio_buttons :order_direction, UserSegment.order_direction_select_options %>
 <%= f.check_boxes :main_page, [['add to quick select list', true]], :single => true  %>
-<%= f.ordered_array :fields, UserSegment.fields_options, :label => 'Fields to Display' %>
+<%= f.ordered_array :fields, UserSegment.fields_group_options, :grouped => true, :label => 'Fields to Display' %>
 
   <% if @segment.segment_type == 'filtered' -%>
     <% f.custom_field 'Filter' do %>

@@ -11,6 +11,7 @@ class UserProfileType < DomainModel
   belongs_to :content_model_field
 
   after_save :update_user_classes
+  after_save :update_entries_content_model
 
   content_node_type :user_profile, "UserProfileEntry", :content_name => :name,:title_field => :create_full_name, :url_field => :url
 
@@ -18,7 +19,7 @@ class UserProfileType < DomainModel
 
 
   def content_admin_url(pe)
-    { :controller => '/user_profile/manage', :action => 'view',:path => [ pe ] }
+    { :controller => '/user_profile/manage', :action => 'user',:path => [ pe ] }
   end
 
   def content_model_field_options
@@ -61,7 +62,55 @@ class UserProfileType < DomainModel
   end
 
 
+  def self.import_fields
+    available_fields = UserProfileType.all.inject([]) do |acc,upt| 
+       acc.concat(upt.display_content_model_fields.map { |fld| [ upt.id, fld ] })
+    end
+     
+    fields =  available_fields.map do |fld|
+      [ "user_profile_field_#{fld[0]}_#{fld[1].id}", "User Profile - #{fld[1].name}", [ fld[1].name.downcase,fld[1].field.to_s.downcase ], :profile ]
+    end
+  end
+
+
+  def paginate_users(page,options={})
+
+    conds = { :published => 1 }
+    conds['end_users.registered'] = 1 if options[:registered_only]
+    conds[:protected] = 0 if options[:hide_protected]
+
+    pages,users = UserProfileEntry.paginate(page,:joins => [ :end_user ], :conditions => conds, :order => options[:order], :include => :end_user)
+    
+
+    if self.content_model 
+      cls = self.content_model.model_class
+
+      model_attributes = { self.content_model_field_name => users.map(&:end_user_id) }
+
+      model_entries = cls.find(:all,:conditions => model_attributes).index_by(&(self.content_model_field_name.to_sym))
+
+      users.each do |usr|
+        entry = model_entries[usr.end_user_id]
+        if entry
+          usr.content_model_entry_cache = entry 
+        else
+          usr.content_model_entry_cache = cls.new( self.content_model_field_name => usr.end_user_id)
+        end
+      end
+    end
+
+    [ pages,users ]
+
+  end
+
+
   protected
+
+  def update_entries_content_model
+    if self.content_model_id_changed?
+      self.user_profile_entries.update_all "content_model_id = #{self.content_model_id ? self.content_model_id : 'NULL'}"
+    end
+  end
 
   def update_user_classes
     if @cached_class_ids

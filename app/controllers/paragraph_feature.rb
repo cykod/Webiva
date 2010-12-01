@@ -374,7 +374,7 @@ block is non-nil
       define_tag(name) do |tag|
         val = yield(tag)
         if tag.single?
-          val = truncate(Util::TextFormatter.text_plain_generator(val), :limit => tag.attr['limit'].to_i, :omission => tag.attr['omission'] || '...') if tag.attr['limit']
+          val = truncate(Util::TextFormatter.text_plain_generator(val), :length => tag.attr['limit'].to_i, :omission => tag.attr['omission'] || '...') if tag.attr['limit']
           if tag.attr['escape']
             escape_value_helper(val,tag.attr['escape']) 
           else 
@@ -547,18 +547,23 @@ block is non-nil
     #   value tag the returns the user's profile id
     # [<cms:user:myself>]
     #   expansion tag that expands only if the user is the currently logged in user
-    def define_user_tags(tag_name)
-    
-      define_expansion_tag(tag_name) { |t| yield t }
-      define_expansion_tag(tag_name + ":logged_in") { |t| usr = yield t; !usr.id.blank? }
-      define_h_tag(tag_name + ":name") { |t| usr = yield t; usr.name if usr }
-      define_h_tag(tag_name + ":username") { |t| usr = yield t; usr.username if usr }
-      define_h_tag(tag_name + ":first_name") { |t| usr = yield t; usr.first_name if usr }
-      define_h_tag(tag_name + ":last_name") { |t| usr = yield t; usr.last_name if usr }
-      define_value_tag(tag_name + ":profile") { |t| usr = yield t; usr.user_profile_id if usr }
-      define_value_tag(tag_name + ":profile_name") { |t| usr = yield t; usr.user_profile.name if usr }
-      define_expansion_tag(tag_name + ":myself") { |t| usr = yield t; usr == myself if usr }
-      define_image_tag(tag_name + ":img") { |t| usr = yield t; usr.image if usr }
+    def define_user_tags(tag_name,options={},&block)
+      local=options[:local]
+      if !local
+        name_parts = tag_name.split(":")
+        local = name_parts[-1]
+      end
+
+      define_expansion_tag(tag_name) { |t| block ? t.locals.send("#{local}=",block.call(t)) : t.locals.send(local) }
+      define_expansion_tag(tag_name + ":logged_in") { |t| usr = t.locals.send(local); !usr.id.blank? }
+      define_h_tag(tag_name + ":name") { |t| usr = t.locals.send(local); usr.name if usr }
+      define_h_tag(tag_name + ":username") { |t| usr = t.locals.send(local); usr.username if usr }
+      define_h_tag(tag_name + ":first_name") { |t| usr = t.locals.send(local); usr.first_name if usr }
+      define_h_tag(tag_name + ":last_name") { |t| usr = t.locals.send(local); usr.last_name if usr }
+      define_value_tag(tag_name + ":profile") { |t| usr = t.locals.send(local); usr.user_profile_id if usr }
+      define_value_tag(tag_name + ":profile_name") { |t| usr = t.locals.send(local); usr.user_profile.name if usr }
+      define_expansion_tag(tag_name + ":myself") { |t| usr = t.locals.send(local); usr == myself if usr }
+      define_image_tag(tag_name + ":img") { |t| usr = t.locals.send(local); usr.image if usr }
     end
 
     # Similar to define_user_tags but it defines a whole bunch of tags
@@ -687,7 +692,7 @@ block is non-nil
             preload = "<script>WebivaMenu.preloadImage('#{jvh rollover.url(size)}');</script>"
           end
           img_tag =  tag('img',tag_opts) + preload.to_s
-          img_tag = "<div style='float:#{shadow_align}; margin:#{border}; #{attr['style']}'><div style='width:#{img_size[0] + 12}px; float:#{shadow_align};' class='cms_gallery_shadow'><div><p>" + img_tag + "</p></div></div></div>" if shadow
+          img_tag = "<div style='float:#{shadow_align}; margin:#{border}; #{attr['style']}'><div style='width:#{img_size[0] + 12}px; float:#{shadow_align};' class='cms_gallery_shadow'><div><p>" + img_tag + "</p></div></div></div>" if img_size[0] && shadow
         end
         if tag.single?
           img_tag
@@ -1416,7 +1421,7 @@ block is non-nil
           
           result = ''
           
-          if pages > 1
+          if pages && pages > 1
             
             # Show back button
             if page > 1
@@ -1613,26 +1618,29 @@ block is non-nil
     end 
     
     def define_media_tag(name, options={}, &block)
-      define_tag(name) do |tag|
+      define_value_tag(name) do |tag|
         file = yield(tag)
 
 	if SiteModule.module_enabled?('media') && file
 	  opts = options.clone.merge(tag.attr.symbolize_keys)
 	  ext = file.extension.to_s.downcase
 
+    @player_idx ||= 0
+    @player_idx += 1
+
 	  case ext
 	  when 'mp3'
 	    media_options = Media::MediaController::AudioOptions.new(opts)
 	    media_options.media_file_id = file.id
 	    media_options.media_file = file
-	    container_id = "#{media_options.media_type}_#{paragraph.id}"
+	    container_id = "#{media_options.media_type}_#{paragraph.id}_#{@player_idx}"
 	    media_options.player.headers(self)
 	    media_options.player.render_player(container_id)
 	  when 'flv'
 	    media_options = Media::MediaController::VideoOptions.new(opts)
 	    media_options.media_file_id = file.id
 	    media_options.media_file = file
-	    container_id = "#{media_options.media_type}_#{paragraph.id}"
+	    container_id = "#{media_options.media_type}_#{paragraph.id}_#{@player_idx}"
 	    media_options.player.headers(self)
 	    media_options.player.render_player(container_id)
 	  when 'mov'
@@ -1640,11 +1648,43 @@ block is non-nil
 	    height = (tag.attr['height'] || 260).to_i
 	    "<embed src='#{file.url}' width='#{width}' height='#{height}' autoplay='false' />"
 	  else
-	    message = tag.single? ? 'Download Media'.t : tag.expand
-	    "<a href='#{med.url}'>#{message}</a>"
+	    message = tag.attr['link'] || file.name
+	    "<a href='#{file.url}'>#{message}</a>"
 	  end
 	end
       end
+    end
+
+    def define_header_tag(name)
+      define_tag(name) do |tag|
+        content = yield(tag) if block_given?
+        content ||= tag.expand unless tag.single?
+        html_include(:head_html, content) unless content.blank?
+      end
+      nil
+    end
+
+    def define_meta_tag(name, options={})
+      define_tag(name) do |tag|
+        content = yield(tag) if block_given?
+        content ||= tag.expand unless tag.single?
+        content ||= tag.attr['content']
+
+        if tag.attr['name']
+          case tag.attr['name'].downcase
+          when 'description'
+            html_include(:meta_description, content)
+          when 'keywords'
+            html_include(:meta_keywords, content)
+          end
+        else
+          opts = options.stringify_keys
+          opts.merge! tag.attr
+          opts['content'] = content
+          html_include(:head_html, tag(:meta, opts))
+        end
+      end
+      nil
     end
 
     # get versions of all the define_... methods without the define
@@ -1665,7 +1705,7 @@ block is non-nil
       yield self
     end
     
-    def define_loop_tag(name,plural=nil) #:nodoc:
+    def define_loop_tag(name,plural=nil,options={}) #:nodoc:
       name_parts = name.split(":")
       name_base = name_parts[-1]
       plural = name_base.pluralize unless plural
@@ -1684,7 +1724,7 @@ block is non-nil
       define_value_tag(name_base + "href")
     end
 
-    def define_user_tags(tag_name)
+    def define_user_tags(tag_name,options = {})
       expansion_tag(tag_name)
       expansion_tag(tag_name + ":logged_in")
       define_value_tag(tag_name + ":name")
@@ -1908,10 +1948,14 @@ block is non-nil
       options = feature.options || {}
         
       SiteTemplate.add_standard_parsing!(context,:values => options[:values],
-                                                 :language => @language, 
+                                                 :language => paragraph.language, 
                                                  :localize_values => options[:localize_values],
                                                  :localize => options[:localize],
                                                  :default_feature => options[:default] )
+
+      context.header_tag('header')
+      context.meta_tag('meta')
+
       feature_parser = Radius::Parser.new(context, :tag_prefix => 'cms')
       begin
         feature_parser.parse(feature.body_html || feature.body)

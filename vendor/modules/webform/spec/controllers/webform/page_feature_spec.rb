@@ -22,13 +22,13 @@ describe Webform::PageFeature, :type => :view do
     @result = WebformFormResult.new :webform_form_id => @model.id, :end_user_id => nil, :ip_address => '0.0.0.0', :name => 'Test Name'
     @options = Webform::PageController::FormOptions.new :webform_form_id => @model.id, :destination_page_id => nil, :email_to => nil, :captcha => nil
 
-    @paragraph = mock :id => 1
+    @paragraph = mock :id => 1, :language => 'en'
 
     @captcha = WebivaCaptcha.new nil
   end
 
   it "should render webform form" do
-    @feature.should_receive(:paragraph).and_return(@paragraph)
+    @feature.should_receive(:paragraph).any_number_of_times.and_return(@paragraph)
     @output = @feature.webform_page_form_feature(:options => @options, :result => @result)
     @output.should have_tag('input[type=text]', :name => 'results_1[first_name]')
     @output.should have_tag('input[type=text]', :name => 'results_1[last_name]')
@@ -37,7 +37,7 @@ describe Webform::PageFeature, :type => :view do
   end
 
   it "should render webform form when saved" do
-    @feature.should_receive(:paragraph).and_return(@paragraph)
+    @feature.should_receive(:paragraph).any_number_of_times.and_return(@paragraph)
     @output = @feature.webform_page_form_feature(:options => @options, :result => @result, :saved => true)
     @output.should include('Thank you')
   end

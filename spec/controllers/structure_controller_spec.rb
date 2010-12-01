@@ -194,7 +194,7 @@ describe StructureController do
 
       @rev.title.should be_blank
 
-      put(:update_revision, { :revision => @rev.id, :revision_edit => { :title => 'New Revision Title' }})
+      put(:update_revision, { :revision_id => @rev.id, :revision_edit => { :title => 'New Revision Title' }})
 
       @rev.reload
       @rev.title.should == 'New Revision Title'
@@ -268,6 +268,28 @@ describe StructureController do
       assert_difference 'SiteVersion.count', 1 do
         post 'site_version', :version => {:name => 'New Version'}
       end
+    end
+  end
+
+  describe 'Multi Page Editor' do
+    # Test all the permutations of an active table
+    it "should handle site nodes list" do
+      controller.should handle_active_table(:site_nodes_table) do |args|
+        post 'display_site_nodes_table', {:path => [SiteVersion.current.id]}.merge(args)
+      end
+    end
+
+    it "should be able to render edit_page_revision" do
+      @rev = @home_page.active_revision('en')
+      get 'edit_page_revision', :path => [@home_page.id, @rev.id]
+    end
+
+    it "should be able to create site_version" do
+      @rev = @home_page.active_revision('en')
+      post 'edit_page_revision', :path => [@home_page.id, @rev.id], :revision => {:title => 'My New Title'}
+
+      @rev.reload
+      @rev.title.should == 'My New Title'
     end
   end
 end

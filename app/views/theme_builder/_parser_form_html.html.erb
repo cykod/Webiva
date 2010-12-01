@@ -1,0 +1,84 @@
+<div id="parser_html_loading" style="border:1px solid; padding: 10px;">
+<%= 'Loading...'.t %>
+</div>
+
+<textarea id="parser_theme_html" name="parser[theme_html]" style="display:none;"></textarea>
+
+<div id="parser_html_wrapper" style="border:1px solid; display:none;">
+<div id="webiva-theme-builder-zone-display">
+  <ul id="webiva-theme-builder-zones">
+  </ul>
+  <div style="clear:both;"></div>
+
+  <div style="padding:5px 0 0 30px;">
+  <input type="button" class="webiva-theme-builder-select-zone-button" onclick="addZone();" value="Select Zone"/>
+  <span class="webiva-theme-builder-zone-tag"></span>
+  </div>
+</div>
+
+<iframe id="parser_html" frameborder="0" width="1000" marginwidth="0" marginheight="0" name="parser_html" scrolling="auto"></iframe>
+</div>
+
+<script type="text/javascript">
+var ifrm = document.getElementById('parser_html');
+ifrm = (ifrm.contentWindow) ? ifrm.contentWindow : (ifrm.contentDocument.document) ? ifrm.contentDocument.document : ifrm.contentDocument;
+ifrm.document.open();
+ifrm.document.write( "<%= jh render :partial => 'html' %>" );
+ifrm.document.close();
+$j('#parser_html').bind('load', function() {
+  var ifrm = document.getElementById('parser_html');
+  $j('#parser_html_loading').hide();
+  $j('#parser_html_wrapper').show();
+  ifrm.height = $j(ifrm.contentWindow.document).height() + 35;
+  ifrm.width = $j(ifrm.contentWindow.document).width() + 35;
+});
+
+function addZone() {
+  var ifrm = document.getElementById('parser_html');
+  ifrm.contentWindow.ThemeBuilder.addZone();
+  return false;
+}
+
+$j(document).scroll(function(d) {
+      var top = $j(document).scrollTop();
+      var offset = $j("#parser_html_wrapper").offset().top;
+      var diff = top - offset;
+      if(diff < 0) { diff = 0; }
+
+      if(diff > 0) {
+          $j('#webiva-theme-builder-zone-display').width($j('#parser_html_wrapper').width());
+         $j('#webiva-theme-builder-zone-display').addClass('fixed_secondary_header');
+      }
+      else {
+         $j('#webiva-theme-builder-zone-display').removeClass('fixed_secondary_header');
+         $j('#webiva-theme-builder-zone-display').width('auto');
+
+      }
+  });
+
+
+$j(window).bind('resize',function(d) {
+      var top = $j(document).scrollTop();
+      var offset = $j("#parser_html_wrapper").offset().top;
+      var diff = top - offset;
+      if(diff < 0) { diff = 0; }
+
+      if(diff > 0) {
+         $j('#webiva-theme-builder-zone-display').removeClass('fixed_secondary_header');
+         $j('#webiva-theme-builder-zone-display').width('auto');
+          $j('#webiva-theme-builder-zone-display').width($j('#parser_html_wrapper').width());
+         $j('#webiva-theme-builder-zone-display').addClass('fixed_secondary_header');
+      }
+      else {
+         $j('#webiva-theme-builder-zone-display').removeClass('fixed_secondary_header');
+         $j('#webiva-theme-builder-zone-display').width('auto');
+
+      }
+  });
+
+function submitTheme() {
+  var ifrm = document.getElementById('parser_html');
+  $j('#parser_theme_html').val(ifrm.contentWindow.ThemeBuilder.html());
+}
+
+</script>

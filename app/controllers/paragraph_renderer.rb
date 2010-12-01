@@ -10,6 +10,9 @@ class ParagraphRenderer < ParagraphFeature
   class ParagraphRedirect #:nodoc:all
       attr_accessor :paction
       attr_accessor :args
+      attr_accessor :user_level
+      attr_accessor :user_value
+
       def initialize(args)
         @args = args
       end
@@ -31,7 +34,9 @@ class ParagraphRenderer < ParagraphFeature
     attr_accessor :paction_data
     attr_accessor :content_nodes
     attr_accessor :paragraph_id
-    
+    attr_accessor :user_level
+    attr_accessor :user_value
+
     def method_missing(method,args)
       @rnd.send(method)
     end
@@ -166,7 +171,22 @@ class ParagraphRenderer < ParagraphFeature
     end
   end 
 
-  
+  def elevate_user_level(user, user_level)
+    user.elevate_user_level(user_level) if user && user.id
+    @paragraph_user_level = user_level
+  end
+
+  def unsubscribe_user(user)
+    user.unsubscribe if user && user.id
+    @paragraph_user_level = user_level
+  end
+
+  def set_user_value(user, val)
+    user.update_user_value(val) if user && user.id
+    @paragraph_user_value ||= 0.0
+    @paragraph_user_value += val.to_f
+  end
+
   attr_reader :user_class
   attr_reader :language
   attr_reader :controller
@@ -175,6 +195,7 @@ class ParagraphRenderer < ParagraphFeature
   def initialize(user_class,ctrl,para,site_node,revision,opts = {}) #:nodoc:
     @user_class = user_class
     @language = opts[:language]
+    @preview_mode = opts[:preview]
     @controller = ctrl
     @site_node = site_node
     @revision = revision
@@ -284,9 +305,16 @@ class ParagraphRenderer < ParagraphFeature
   # Sets a content node associated with this paragraph, 
   # used by the editor to display edit links
   def set_content_node(obj)
-    if myself.editor?
-      @content_node_list ||= []
+    @content_node_list ||= []
+    if obj.is_a?(Fixnum)
       @content_node_list << obj
+    elsif obj.is_a?(ContentNode)
+      @content_node_list << obj.id
+    elsif obj.is_a?(DomainModel)
+      @content_node_list << obj.content_node.id
+    elsif obj.is_a?(Array)
+      cn = ContentNode.fetch(obj[0],obj[1])
+      @content_node_list << cn.id if cn
     end
   end
   
@@ -567,8 +595,12 @@ class ParagraphRenderer < ParagraphFeature
       @paragraph_output.paction = @paction
       @paragraph_output.page_title = @page_title
       @paragraph_output.content_nodes = @content_node_list
+      @paragraph_output.user_level = @paragraph_user_level if @paragraph_output.is_a?(ParagraphOutput)
+      @paragraph_output.user_value = @paragraph_user_value if @paragraph_output.is_a?(ParagraphOutput)
     elsif @paragraph_output.is_a?(ParagraphRedirect)
       @paragraph_output.paction = @paction
+      @paragraph_output.user_level = @paragraph_user_level
+      @paragraph_output.user_value = @paragraph_user_value
     end
     @paragraph_output 
   end
@@ -661,10 +693,10 @@ an integer representing the number of seconds to keep the element in the cache.
 =end
   def renderer_cache(obj=nil,display_string=nil,options={ },&block)
     expiration = options[:expires] || 0
-    display_string = "#{paragraph.id}_#{display_string}"
+    display_string = "#{paragraph.id}_#{paragraph.language}_#{display_string}"
     result = nil
 
-    unless editor? || options[:skip]
+    unless editor? || options[:skip] || @preview_mode
       if obj.nil?
         paragraph_cache_id = paragraph.id == -1 ? "Mod#{site_node.id}" : paragraph.id.to_s
         result = DataCache.get_content("Paragraph",paragraph_cache_id,display_string)
@@ -688,7 +720,7 @@ an integer representing the number of seconds to keep the element in the cache.
       output = result.to_hash
       output[:cached_includes] = @includes.clone
 
-      unless editor? || options[:skip]
+      unless editor? || options[:skip] || @preview_mode
         if obj.nil?
           DataCache.put_content("Paragraph",paragraph_cache_id,display_string,output,expiration)
         elsif obj.is_a?(Array)

@@ -38,7 +38,7 @@ class ContentHashModel
     @content_model_fields = []
     return unless fields
 
-    fields = fields.sort{ |a, b| a[1]['position'] <=> b[1]['position'] }.collect { |data| data[1] } if fields.is_a?(Hash)
+    fields = fields.sort{ |a, b| a[1]['position'].to_i <=> b[1]['position'].to_i }.collect { |data| data[1] } if fields.is_a?(Hash)
 
     @content_model_fields = fields.collect do |data|
       ContentHashModelField.new self, field_data(data[:field]).merge(data.to_hash.symbolize_keys)
@@ -76,6 +76,7 @@ class ContentHashModel
   def data_model_class
     return @cls if @cls
     @cls = Class.new(HashModel)
+    @cls.send(:attr_accessor, :connected_end_user)
     # Setup the fields in the model as necessary (required, validation, etc)
     self.content_model_fields.each do |fld|
       fld.setup_model(@cls)

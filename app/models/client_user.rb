@@ -63,7 +63,7 @@ class ClientUser < SystemModel
     return @end_user if @end_user
     @end_user = EndUser.find(:first,:conditions => [ 'client_user_id = ?',self.id ])
     if(!@end_user)
-      @end_user = EndUser.new(:first_name => 'Administrative',:last_name => 'User', :hashed_password => 'Invalid', :registered => true )
+      @end_user = EndUser.new(:first_name => username, :hashed_password => 'Invalid', :registered => true, :email => email )
       @end_user.user_class_id = UserClass.client_user_class_id
       @end_user.client_user_id = self.id
       @end_user.save(false)

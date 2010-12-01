@@ -22,18 +22,18 @@ GroupEditor= {
 
 
 </script><% if permit?('editor_structure') %>
-
-<div align='right'>
-  <a href='javascript:void(0);' onclick='StructureEditor.nodeDelete(<%= @node.id %>,"<%= jvh "Are you sure you want to delete this group (and all it's members)?" .t %>");'><%= "Delete Group".t %></a>
-</div>  
-
+<ul class='page_detail_buttons'>
+  <li class='icon'><a href='javascript:void(0);'  title='<%= vh 'Delete Group'.t%>' onclick='StructureEditor.nodeDelete(<%= @node.id %>,"<%= jvh "Are you sure you want to delete this group and all it\'s sub-pages?" .t %>");'><%= image_tag(theme_src('icons/header_actions/delete_page.png')) %></a></li>
+</ul>  
 <% end -%>
 
 
-<b> <%= "Grouping at ".t %> <%= @node.node_path %> ( <%= h @node.title -%> )</a> </b><br/><br/>
+<h1 class='inpage'><%= "Grouping at ".t %> <%= @node.node_path %> ( <%= h @node.title -%> )</h1>
 
-<p><%= "Groups allow you to group site elements together without forcing them to be nested together in the site tree.".t -%>
+<div class='tree_detail_body'>
+  <p><%= "Groups allow you to group site elements together without forcing them to be nested together by URL.".t -%></p>
 <% admin_form_for :group, @node_options, :html => { :onsubmit => "GroupEditor.submitForm(this); return false;" } do |f| %>
   <%= f.yes_no :closed, :label => 'Closed by defult', :description => 'If set to yes, this grouping will always start closed when the tree is displayed' %>
   <%= f.submit_tag 'Update' %>
 <% end -%>
+</div>

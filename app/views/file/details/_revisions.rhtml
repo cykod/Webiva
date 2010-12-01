@@ -2,6 +2,7 @@
 <% if file.versions.length == 0 -%>
  <b>No Previous Revisions</b>
 <% else -%>
+<div style='position:absolute; right:0px; z-index:1000; background-color:white;'>
 <% table_for file.versions, ['','Name','Size','Date','By',''], :class => 'active_table' do |t| -%>
 <tr>
   <td nowrap='1'><a href='javascript:void(0);' title='Extract to own file' onclick='FileEditor.extractRevision(<%= t.id %>);'><%= theme_image_tag('icons/actions/upload.gif') %></a></td>
@@ -12,4 +13,5 @@
   <td nowrap='1'><a href='javascript:void(0);' onclick='FileEditor.deleteRevision(<%= t.id %>);'><%= theme_image_tag('icons/actions/delete.gif') %></a></td>
 </tr>
 <% end -%>
+</div>
 <% end -%>

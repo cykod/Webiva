@@ -1,5 +1,3 @@
-
-Sort By: 
-<select name='order' onchange='FileEditor.reorder(this.value);' >
+<select id='folder_order_select' name='order' onchange='FileEditor.reorder(this.value);' >
   <%= options_for_select @order_options, @order %>
 </select>

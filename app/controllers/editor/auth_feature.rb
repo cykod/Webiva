@@ -144,6 +144,11 @@ FEATURE
       end
       
       c.button_tag('edit:submit')
+
+      data[:options].user_edit_features.each do |feature|
+        feature.feature_instance.feature_tags(c,data[:feature])
+      end
+
     end
   end
 
@@ -278,12 +283,8 @@ FEATURE
   
   def login_feature(data)
     webiva_feature(:login) do |c|
-      c.define_tag 'logged_in' do |tag|
-        if data[:user]
-          tag.expand
-        else
-          ''
-        end
+      c.expansion_tag 'logged_in' do |tag|
+        data[:user]
       end
       c.define_tag 'login_form' do |tag|
         # Go through each section
@@ -444,7 +445,7 @@ FEATURE
   
   def email_list_feature(data)
     webiva_feature(:email_list,data) do |c|
-      c.form_for_tag('form','email_list_signup') { !data[:submitted] ? data[:email_list] : nil }
+      c.form_for_tag('form',"email_list_#{paragraph.id}") { !data[:submitted] ? data[:email_list] : nil }
       
       c.define_form_error_tag('form:errors')
       

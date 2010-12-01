@@ -228,7 +228,7 @@ class UserSegment < DomainModel
 
   # Loops through each user collecting data specified by the block.
   #
-  # yeilds user
+  # yields user
   def collect(opts={}, &block)
     data = []
     self.user_segment_caches.each do |segement|
@@ -263,6 +263,23 @@ class UserSegment < DomainModel
     self.user_segment_caches.each do |segement|
       segement.find_in_batches(opts, &block)
     end
+  end
+
+  def batch_users(opts={})
+    offset = opts.delete(:offset).to_i
+    limit = opts.delete(:limit)
+
+    cache_offset = offset % UserSegmentCache::SIZE
+
+    ids = []
+    ((offset / UserSegmentCache::SIZE).to_i..self.user_segment_caches.length-1).each do |position|
+      cache = self.user_segment_caches.find_by_position(position)
+      ids += cache.id_list[cache_offset...(cache_offset+limit-ids.length)]
+      cache_offset = 0
+      break if ids.length >= limit
+    end
+
+    EndUser.find :all, :conditions => {:id => ids}
   end
 
   # Used to paginate a list of users, returns the same pagination hash as DomainModel.paginate
@@ -351,9 +368,51 @@ class UserSegment < DomainModel
     UserSegment::FieldHandler.display_fields(opts).collect { |field, info| [info[:handler].field_heading(field), field.to_s] }.sort { |a, b| a[0] <=> b[0] }
   end
 
+  def self.fields_group_options(opts={})
+    group_options = []
+    seen_options = {}
+    display_fields = UserSegment::FieldHandler.display_fields(opts)
+    UserSegment::FieldHandler.handlers.each do |handler|
+      options = []
+      handler[:class].user_segment_fields.each do |field, values|
+        next unless display_fields[field]
+        next if seen_options[field.to_s]
+        options << ['-  ' + values[:name], field.to_s]
+        seen_options[field.to_s] = 1
+      end
+
+      unless options.empty?
+        options.sort! { |a, b| a[0] <=> b[0] }
+        group_options << [handler[:name], options]
+      end
+    end
+    group_options
+  end
+
   # Returns a list of sortable fields
   def self.order_by_options(opts={})
     UserSegment::FieldHandler.sortable_fields(opts).collect { |field, info| [info[:handler].field_heading(field), field.to_s] }.sort { |a, b| a[0] <=> b[0] }
+  end
+
+  def self.order_by_group_options(opts={})
+    group_options = []
+    seen_options = {}
+    sortable_fields = UserSegment::FieldHandler.sortable_fields(opts)
+    UserSegment::FieldHandler.handlers.each do |handler|
+      options = []
+      handler[:class].user_segment_fields.each do |field, values|
+        next unless sortable_fields[field]
+        next if seen_options[field.to_s]
+        options << ['-  ' + values[:name], field.to_s]
+        seen_options[field.to_s] = 1
+      end
+
+      unless options.empty?
+        options.sort! { |a, b| a[0] <=> b[0] }
+        group_options << [handler[:name], options]
+      end
+    end
+    group_options
   end
 
   # Returns the text version of the filter

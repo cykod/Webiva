@@ -27,8 +27,6 @@ class Blog::PageFeature < ParagraphFeature
 
   def blog_entry_list_feature(data)
     webiva_feature('blog_entry_list') do |c|
-
-      
       c.value_tag 'title' do |tag|
         exists = !data[:type].blank? && !data[:identifier].blank?
         tag.locals.value = "Showing #{data[:type]} &gt; #{data[:identifier]}"
@@ -37,7 +35,26 @@ class Blog::PageFeature < ParagraphFeature
 
       c.link_tag('list_page') { |tag| data[:list_page] }
 
-      c.loop_tag('entry') { |tag| data[:entries] }
+      c.loop_tag('grouping') do |t|
+        by = t.attr['by'] || "%B %Y"
+        # Get a list of entries of the form [ [ "May 2009", <Entry> ], ... ]
+        entries = data[:entries].select(&:published_at).map { |entry| [ entry.published_at.localize(by), entry ] }
+
+        # Now group the entries, keeping the same order
+        # [ [ "May 2009", [ <Entry1>, <Entry2> ], ... ]
+        entries.inject([]) do |acc,entry|
+          if acc[-1] && acc[-1][0] == entry[0]
+            acc[-1][1] << entry[1]
+          else
+            acc << [ entry[0], [ entry[1] ] ]
+          end
+          acc
+        end
+      end
+      c.value_tag('grouping:header') { |t| t.locals.grouping[0] }
+
+
+      c.loop_tag('entry') { |t| t.locals.grouping ? t.locals.grouping[1] : data[:entries] }
         blog_entry_tags(c,data)
 
       c.pagelist_tag('pages') { |t| data[:pages] }
@@ -95,6 +112,7 @@ class Blog::PageFeature < ParagraphFeature
     c.image_tag('entry:image') { |t| t.locals.entry.image }
     c.expansion_tag('entry:comments') { |t| t.locals.entry.comments_count > 0 }
     c.value_tag('entry:comment_count') { |t| t.locals.entry.comments_count }
+    c.value_tag('entry:approved_comment_count') { |t| t.locals.entry.approved_comments_count }
     
     
     %w(title author).each do |elem|
@@ -113,18 +131,18 @@ class Blog::PageFeature < ParagraphFeature
     c.expansion_tag('entry:more') { |tag| !tag.locals.entry.preview.blank? }
     c.link_tag('entry:detail') do |tag| 
       if !data[:detail_page].blank?
-        "#{data[:detail_page]}/#{tag.locals.entry.permalink}" 
+        SiteNode.link data[:detail_page], tag.locals.entry.permalink
       else
         tag.locals.entry.content_node.link if tag.locals.entry.content_node
       end
     end
-    c.link_tag('entry:full_detail') { |tag| "#{Configuration.domain_link(data[:detail_page].to_s + '/' + tag.locals.entry.permalink.to_s)}" }
+    c.link_tag('entry:full_detail') { |tag| "#{SiteNode.domain_link(data[:detail_page], tag.locals.entry.permalink)}" }
 
     c.value_tag('entry:categories') do |tag|
       categories = tag.locals.entry.blog_categories(true).collect(&:name)
       categories = categories[0..tag.attr['limit'].to_i] if tag.attr['limit']
       if categories.length > 0
-	categories.map! { |cat| "<a href='#{data[:list_page]}/category/#{CGI::escape(cat)}'>#{h cat}</a>" } unless tag.attr['no_link']
+	categories.map! { |cat| "<a href='#{SiteNode.link(data[:list_page], 'category', CGI::escape(cat))}'>#{h cat}</a>" } unless tag.attr['no_link']
 	categories.join(", ")
       else 
 	nil
@@ -134,7 +152,7 @@ class Blog::PageFeature < ParagraphFeature
     c.value_tag('entry:tags') do |tag|
       tags = tag.locals.entry.content_tags(true)
       if tags.length > 0
-	tags.collect {|tg| "<a href='#{data[:list_page]}/tag/#{h tg.name}'>#{h tg.name}</a>" }.join(", ")
+	tags.collect {|tg| "<a href='#{SiteNode.link(data[:list_page], 'tag', h(tg.name))}'>#{h tg.name}</a>" }.join(", ")
       else
 	nil
       end
@@ -173,7 +191,7 @@ class Blog::PageFeature < ParagraphFeature
 
       c.loop_tag('category') { |tag| data[:categories] }
 
-      c.link_tag('category:category') { |tag| "#{data[:list_page]}/category/#{CGI::escape(tag.locals.category.name)}" }
+      c.link_tag('category:category') { |tag| "#{SiteNode.link(data[:list_page], 'category', CGI::escape(tag.locals.category.name))}" }
       
       c.expansion_tag 'category:selected' do |tag|
 	tag.locals.category.name == data[:selected_category].to_s
@@ -207,7 +225,7 @@ class Blog::PageFeature < ParagraphFeature
       
       c.link_tag('archive:archive') do |tag|
 	formatted = tag.locals.archive[:date].strftime("%B%Y")
-	"#{data[:list_page]}/archive/#{formatted}"
+	"#{SiteNode.link(data[:list_page], 'archive', formatted)}"
       end
 
       c.date_tag('archive:date',DEFAULT_DATETIME_FORMAT.t) { |tag| tag.locals.archive[:date] }

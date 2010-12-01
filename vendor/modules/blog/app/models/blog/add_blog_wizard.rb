@@ -108,8 +108,8 @@ class Blog::AddBlogWizard < WizardModel
     end
 
     # Create Dummy Content
-    if self.blog.blog_posts.count == 0 && self.number_of_dummy_posts > 0
-      categories = [self.create_dummy_category, self.create_dummy_category]
+    if self.blog.blog_posts.count == 0 && self.number_of_dummy_posts.to_i > 0
+      categories = [self.create_dummy_category(1), self.create_dummy_category(2)]
       (1..self.number_of_dummy_posts).each do |idx|
         self.create_dummy_post(categories[rand(categories.size)])
       end
@@ -120,8 +120,11 @@ class Blog::AddBlogWizard < WizardModel
     @blog ||= Blog::BlogBlog.find self.blog_id
   end
 
-  def create_dummy_category
-    self.blog.blog_categories.create :name => DummyText.words(1).split(' ')[0..1].join(' ')
+  def create_dummy_category(num=1)
+    name = DummyText.words(1).split(' ')[0..1].join(' ')
+    category = self.blog.blog_categories.create :name => name
+    category = self.blog.blog_categories.create(:name => "#{name} #{num}") if category.id.nil?
+    category
   end
 
   def create_dummy_post(cat)

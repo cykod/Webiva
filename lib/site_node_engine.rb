@@ -413,6 +413,8 @@ EOF
   # running the SiteNode results in a redirect
   class RedirectOutput < Output #:nodoc:all
     attr_accessor :redirect
+    attr_accessor :user_level
+    attr_accessor :user_value
     def redirect?
       true
     end
@@ -437,6 +439,8 @@ EOF
     attr_accessor :meta_description
     attr_accessor :meta_keywords
     attr_accessor :content_nodes
+    attr_accessor :user_level
+    attr_accessor :user_value
 
     def initialize
       super
@@ -548,7 +552,8 @@ EOF
   attr_reader :container
   attr_accessor :revision, :mode, :active_template, :language, :user, :path_args, :page_information
   attr_reader :controller
-  
+  attr_reader :forced_revision
+
   # To create a SiteNodeEngine, you need to pass it a container (usually a SiteNode, but
   # could also be a framework PageModifier in the editor)
   #
@@ -563,6 +568,8 @@ EOF
     @container = container
     @capture_data = options[:capture]
 
+    @preview = options[:preview]
+
     @path_args = options[:path] || []
     if options[:edit] 
       @mode = 'edit'
@@ -572,6 +579,10 @@ EOF
       else
         @revision = @container.page_revisions.find_by_id(options[:edit])
       end
+      @language = @revision.language if @revision
+    elsif options[:revision] 
+      @revision = options[:revision]
+      @forced_revision = @revision.id
       @language = @revision.language if @revision
     else
       @mode = 'display'
@@ -684,13 +695,16 @@ EOF
                                                       :language => @language,
                                                       :connections => page_connections,
                                                       :capture => @capture_data,
-                                                      :repeat_count => repeat_count)
+                                                      :repeat_count => repeat_count,
+                                                      :preview => @preview)
                 # We may not have a result if the page connections
                 # aren't fullfilled yet
                 if result
                   if result.is_a?(ParagraphRenderer::ParagraphRedirect) && !options[:error_page]
                     @output = RedirectOutput.new
                     @output.status = result.args.delete(:status)  if result.args.is_a?(Hash)
+                    @output.user_level = result.user_level
+                    @output.user_value = result.user_value
 
                     @output.paction = result.paction if result.paction
                     @output.redirect = result.args
@@ -702,6 +716,13 @@ EOF
 
 
                   if result.is_a?(ParagraphRenderer::ParagraphOutput)
+                    @page_information[:user_level] = result.user_level if result.user_level && result.user_level > @page_information[:user_level].to_i
+
+                    if result.user_value
+                      @page_information[:user_value] ||= 0.0
+                      @page_information[:user_value] += result.user_value.to_f
+                    end
+
                     page_connections.merge!(result.page_connections  || {}) 
                     # Get any remaining includes 
                     result.includes.each do |inc_type,inc_value|
@@ -741,7 +762,9 @@ EOF
 
     # Finally, it we made it here, lets output a page
     @output = PageOutput.new
-    
+
+    @output.user_level = @page_information.user_level
+    @output.user_value = @page_information.user_value
     @output.revision = @page_information.revision
     @output.status = '200'
     @output.language = @language
@@ -839,7 +862,7 @@ EOF
     
     # Cache the page information, if it's not already cached and we do have a cache active
     # (Ignore when in edit mode)
-    if !@cached_info && @mode != 'edit' && CMS_CACHE_ACTIVE
+    if !@cached_info && @mode != 'edit' && CMS_CACHE_ACTIVE && ! @preview
      DataCache.put_container(@container,@path_hash_info,@page_information.to_hash)
     end
     
@@ -1072,13 +1095,13 @@ EOF
           controller.compile_paragraph(
                                        @container.is_a?(SiteNode) ? @container : @container.site_node,
                                        @page_information.revision,para,
-                                       :page_path => @page_path, :language => @language)
+                                       :page_path => @page_path, :language => @language, :preview => @preview)
         output.includes.each do |inc_type,inc_arr| 
           includes[inc_type] ||= []
           includes[inc_type] += inc_arr
         end
 
-        body = controller.render_paragraph(@container.is_a?(SiteNode) ? @container : @container.site_node, @page_information.revision,output, :language => @language)
+        body = controller.render_paragraph(@container.is_a?(SiteNode) ? @container : @container.site_node, @page_information.revision,output, :language => @language, :preview => @preview)
       end
     end
     

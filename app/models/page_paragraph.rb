@@ -71,7 +71,7 @@ class PageParagraph < DomainModel
 #  validates_presence_of :page_revision
 
   def language
-    @language || self.page_revision.language
+    @language || (self.page_revision ? self.page_revision.language : Configuration.languages[0] )
   end
   
   def before_create

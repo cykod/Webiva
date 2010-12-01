@@ -1,34 +1,44 @@
-<% if permit?('editor_structure') %>
+<% @node.experiment.language = @view_language if @node.experiment -%>
 
-<div align='right'>
-<a href='javascript:void(0);' onclick='StructureEditor.copyPage(<%= @node.parent_id %>,<%= @node.id %>,"<%= jh "Duplicate this page?" .t %>");'><%= "Duplicate Page".t %></a> | 
-  <a href='javascript:void(0);' onclick='StructureEditor.nodeDelete(<%= @node.id %>,"<%= jh "Are you sure you want to delete this page?" .t %>");'><%= "Delete Page".t %></a>
-</div>  
+<ul class='page_detail_buttons'>
+  <% @revision_info.each do |info| %>
+    <li <%= "class='selected'" if info[0] == @active_revision_info[0] %>>
+      <%= link_to info[0],'javascript:void(0);',
+      :onclick => "StructureEditor.showPageLanguage(#{@node.id},'#{info[0]}');" %></li>
+  <% end -%>
 
+  <li class='icon'><a href='javascript:void(0);' onclick='StructureEditor.copyPage(<%= @node.parent_id %>,<%= @node.id %>,"<%= jh "Duplicate this page?" .t %>");' title='<%= vh 'Duplicate Page'.t%>' ><%=image_tag(theme_src('icons/header_actions/duplicate_page.png'))  %></a></li>
+  <li class='icon'><a href='javascript:void(0);'  title='<%= vh 'Delete Page'.t%>' onclick='StructureEditor.nodeDelete(<%= @node.id %>,"<%= jh "Are you sure you want to delete this page?" .t %>");'><%= image_tag(theme_src('icons/header_actions/delete_page.png')) %></a></li>
+</ul>  
+
+<h1 class='inpage'><%= "Page:".t %> <a href='<%= @node.node_path %>'><%= @node.node_path == '/' ? 'Home Page'.t : @node.node_path %></a></h1>
+<br/>
+
+<% if  permit?('editor_structure') || permit?('editor_structure_advanced') %>
+
+<% ajax_tabs ['Info','Options'] ,'Info'  do |t| %>
+<% t.tab do %>
+    <%= render :partial => @active_revision_info[1]  ? 'revision_info' : 'create_revision_info' %>
+
+    <% if @active_revision_info[1] %>
+      <%= render :partial => 'page_element_content_info' %>
+      <%= render :partial => 'page_element_chart', :locals => {:node => @node} %>
+      <%= render :partial => 'page_element_images', :locals => { :revision => @active_revision_info[1] } %>
+    <% end -%>
 <% end -%>
 
-
-<b> <%= "Page Details:".t %> <a href='<%= @node.node_path %>'><%= @node.node_path %></a> </b><br/><br/>
-
-
-<% 
-  menu =  @revision_info.map { |elm| elm[0].upcase } +(( permit?('editor_structure') || permit?('editor_structure_advanced')) ?  [ 'Options'] : [] )
-  ajax_tabs menu, menu[0] do |t| %>
-
-<% @revision_info.each do |info| -%>
- <% t.tab do %>
-   <div id='node_<%= @node.id %>_<%= info[0] %>'>
-     <%= render :partial => 'revision_info', :locals => { :info => info } %>
-   </div>
- <% end -%>
-<% end -%>
-
-<% if permit?('editor_structure') || permit?('editor_structure_advanced') %>
-  <% t.tab do %>
+<% t.tab do %>
    <div id='site_node_page_options' >
        <%= render :partial => 'site_node_options' %>
    </div>
-  <% end -%>
 <% end -%>
+<% end %>
 
+<% else -%>
+<div class='tree_detail_body'>
+    <%= render :partial => @active_revision_info[1]  ? 'revision_info' : 'create_revision_info' %>
+    <%= render :partial => 'page_element_chart', :locals => {:node => @node} %>
+    <%= render :partial => 'page_element_content_info' %>
+    <%= render :partial => 'page_element_images', :locals => { :revision => @active_revision_info[1] } %>
+</div>
 <% end-%>

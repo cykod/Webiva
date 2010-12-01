@@ -99,6 +99,23 @@ class PageRevision < DomainModel
   
   end
   
+  # create a deep-copy of this revision in a new language
+  def create_translation(language)
+    new_revision = self.clone
+    new_revision.language = language
+    new_revision.revision_type = 'real'
+    new_revision.active= false
+    new_revision.save
+
+    self.page_paragraphs.each do |para|
+      new_para = para.clone
+      new_para.page_revision_id=new_revision.id
+      new_para.save
+    end
+
+    new_revision
+  end
+
 
   # Create a new temporary revision
   # deep-cloning the paragraphs, and updating the paragraph connections
@@ -112,6 +129,7 @@ class PageRevision < DomainModel
     new_rev.updated_at = Time.now
     new_rev.parent_revision = self
     new_rev.variables ||= {}
+    new_rev.identifier_hash = nil
     new_rev.save
     new_rev.paragraph_update_map = {}
     
@@ -207,8 +225,19 @@ class PageRevision < DomainModel
     end
   
   end
-  
-  def make_new_version(version = 'minor')
+
+  def get_next_version(version='minor')
+    container = self.revision_container
+    max_revision = container.page_revisions.find(:first,:order => 'page_revisions.revision DESC')
+
+    if version == 'major'
+      max_revision.revision.floor + 1
+    elsif version == 'minor'
+      max_revision.revision + 0.01
+    end
+  end
+
+  def make_new_version(version = 'minor', version_name=nil)
   
     container = self.revision_container
     max_revision = container.page_revisions.find(:first,:order => 'page_revisions.revision DESC')
@@ -228,6 +257,7 @@ class PageRevision < DomainModel
     end
     
     self.update_attributes(:revision => new_version,
+                           :version_name => version_name,
                            :active => false,
                            :revision_type => 'real',
                            :updated_at => Time.now)

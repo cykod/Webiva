@@ -5,8 +5,7 @@ class MemberExportController < CmsController # :nodoc: all
   permit 'editor_members'
 
   cms_admin_paths "people",
-                  "People" => { :controller => '/members' },
-                  "User Lists" => { :controller => '/members', :action => 'segments' }
+                  "People" => { :controller => '/members' }
 
   def index    
     @export = DefaultsHashObject.new(:download => 'all')
@@ -28,32 +27,12 @@ class MemberExportController < CmsController # :nodoc: all
   def generate_file
     @segment = UserSegment.find_by_id params[:path][0]
 
-    worker_key = MemberExportWorker.async_do_work( :domain_id => DomainModel.active_domain_id,
+    session[:download_worker_key] = MemberExportWorker.async_do_work(
+                                      :domain_id => DomainModel.active_domain_id,
                                       :export_options => (params[:export] || {})[:include],
                                       :user_segment_id => @segment ? @segment.id : nil
-                                      )
+                                    )
 
-    session[:member_download_worker_key] = worker_key
-    
     render :nothing => true
-  end
-  
-  def status
-    if(session[:member_download_worker_key]) 
-      results = Workling.return.get(session[:member_download_worker_key])
-      
-      @completed = results ? (results[:completed] || false) : false
-    end
-  end
-  
-  def download_file
-    if(session[:member_download_worker_key]) 
-      results = Workling.return.get(session[:member_download_worker_key])
-      send_domain_file results[:domain_file_id], :type => "text/" + results[:type]
-      session[:member_download_worker_key] = nil
-    else
-      render :nothing => true
-    end
-  
   end
 end

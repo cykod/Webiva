@@ -8,7 +8,6 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
   paragraph :user_activation
   paragraph :login
   paragraph :enter_vip
-  paragraph :edit_account
   paragraph :missing_password
   paragraph :email_list
   paragraph :splash
@@ -29,6 +28,13 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       @usr = EndUser.new
       @address = @usr.build_address(:address_name => 'Default Address'.t, :country => @options.country )
       @business = @usr.build_work_address(:address_name => 'Business Address'.t, :country => @options.country )
+      if request.post? && params[:user] && params[:partial]
+        @usr.attributes =  params[:user].slice(*(@options.required_fields + @options.optional_fields + @options.always_required_fields).uniq)
+        @address.attributes = params[:address].slice( @options.available_address_field_list.keys) if params[:address]
+        @business.attributes = params[:business].slice( @options.available_address_field_list.keys) if params[:business]
+
+
+      end
 
       if @options.publication
         @model = @options.publication.content_model.content_model.new
@@ -41,12 +47,12 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
 
     @captcha = WebivaCaptcha.new(self) if @options.require_captcha
 
-    if request.post? && params[:user] && !@registered
+    if request.post? && params[:user] && !@registered && !params[:partial]
       # See we already have an unregistered user with this email
       @usr = EndUser.find_target(params[:user][:email],:no_create => true)
       
       if @usr.registered?
-        # If not, we need to create a new user
+        # If user is registered we need to create a new user
         @usr = EndUser.new(:source => 'website')
       end
       
@@ -91,7 +97,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       # save the user,
 
       @failed = true unless all_valid
-      
+
       if all_valid 
       
         # Set a source if we have one        
@@ -116,10 +122,10 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
           @usr.generate_activation_string
         end
 
-        # Make sure save is sucessful - will recheck validation and
+        # Make sure save is successful - will recheck validation and
         # rescan for uniques
         if(@usr.save)
-
+          self.elevate_user_level @usr, @options.user_level
 
           @usr.tag_names_add(@options.add_tags) unless @options.add_tags.blank?
           @usr.tag_names_add(session[:user_tags]) if session[:user_tags]
@@ -131,7 +137,9 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
           @business.update_attribute(:end_user_id,@usr.id) if @business.id
 
           if @options.include_subscriptions.is_a?(Array) && @options.include_subscriptions.length > 0
-            update_subscriptions(@usr,@options.include_subscriptions,params[:subscription])
+            @options.subscriptions.each do |sub|
+              sub.subscribe_user @usr, :ip_address => request.remote_ip
+            end
           end
 
           @options.register_features.each do |feature|
@@ -144,7 +152,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
 
           if @model
             # Re-update entry as we now have a user object
-            @options.publication.assign_entry(@model,params[:model],renderer_state(:myself => @usr))
+            @options.publication.assign_entry(@model,params[:model],renderer_state(:user => @usr))
             @model.save
           end
 
@@ -209,6 +217,14 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       end
     end
 
+    @feature = { }
+
+
+    @options.user_edit_features.each do |feature|
+      feature.feature_instance.generate(params,@usr)
+    end
+
+
     if request.post? && ( params[:user] || params[:model] ) && !editor? && myself.id
       params[:user] ||= {}
       handle_image_upload(params[:user],:domain_file_id)
@@ -243,6 +259,12 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
         all_valid = false unless @model.errors.length == 0
       end
 
+      @options.user_edit_features.each do |feature|
+        all_valid=false unless feature.feature_instance.valid?
+      end
+
+
+    
       # if there are no errors on anything
       # save the user,
       @failed = true unless all_valid
@@ -262,6 +284,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
         # Make sure save is sucessful - will recheck validation and
         # rescan for uniques
         if(@usr.save)
+          self.elevate_user_level @usr, @options.user_level
 
           @usr.tag_names_add(@options.add_tags) unless @options.add_tags.blank?
 
@@ -269,10 +292,17 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
           @business.update_attribute(:end_user_id,@usr.id) if @business.id
 
           if @options.include_subscriptions.is_a?(Array) && @options.include_subscriptions.length > 0
-            update_subscriptions(@usr,@options.include_subscriptions,params[:subscription])
+            @options.subscriptions.each do |sub|
+              sub.subscribe_user @usr, :ip_address => request.remote_ip
+            end
           end
 
           @model.save if @model
+
+          @options.user_edit_features.each do |feature|
+            feature.feature_instance.post_process(@usr)
+          end
+
 
           if @options.access_token_id
             tkn = AccessToken.find_by_id(@options.access_token_id)
@@ -301,6 +331,12 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
     end
 
     @reset_password = flash['reset_password']
+
+    @options.user_edit_features.each do |feature|
+      feature.feature_instance.feature_data(@feature)
+    end
+
+
     render_paragraph :feature => :user_edit_account
   end
 
@@ -492,107 +528,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
     render_paragraph :text => enter_vip_feature(data)  
   end
 
-  def edit_account
-    opts = paragraph_options(:edit_account)
-
-    return render_paragraph :text => '' unless myself.id && myself.is_a?(EndUser)
-
-    @required_fields = %w(email)
-    @optional_fields = %w{first_name last_name gender username dob}
-    @adr_fields = %w(company phone fax address city state zip country)
-
-    @user = myself
-    @address = @user.address ? @user.address : @user.build_address(:address_name => 'Default Address'.t )
-    @work_address = @user.work_address ? @user.work_address : @user.build_work_address(:address_name => 'Default Work Address'.t )
-    @address.end_user_id = @user.id
-    @work_address.end_user_id = @user.id
-
-    if !editor? && request.post? && params[:user]
-      @user.attributes = params[:user].slice(*(@required_fields + @optional_fields))
-
-      all_valid = true
-      if opts.address != 'off'
-
-        @address.attributes = params[:address].slice(*@adr_fields)
-        @address.country = opts.country unless opts.country.blank?
-        @address.validate_registration(:home,opts.address == 'required',opts.address_type )
-        all_valid = false unless @address.errors.empty?
-      end
-
-      if opts.work_address != 'off'
-        @work_address.attributes = params[:work_address].slice(*@adr_fields)
-        @work_address.country = opts.country unless opts.country.blank?
-        @work_address.validate_registration(:work,opts.work_address == 'required',opts.address_type )
-        all_valid = false unless @work_address.errors.empty?
-      end
-
-      if opts.content_publication.to_i > 0
-        fill_entry(@publication,@entry,@user)
-
-        all_valid = false unless @entry.valid?
-      end
-
-      @user.valid?
-
-      @user.validate_registration(opts.to_h)
-      all_valid = false unless @user.errors.empty?
-
-      if all_valid
-        if opts.address != 'off'
-          @address.save
-          @user.address_id = @address.id
-        end
-        if opts.work_address != 'off'
-          @work_address.save
-          @user.work_address_id = @work_address.id
-        end
-
-        @user.save
-
-        if !opts.add_tags.to_s.empty?
-          @user.tag_names_add(opts.add_tags)
-        end
-
-        if opts.include_subscriptions.is_a?(Array) && opts.include_subscriptions.length > 0
-          update_subscriptions(@user,opts.include_subscriptions,params[:subscription])
-        end 
-
-        if paragraph.update_action_count > 0
-          paragraph.run_triggered_actions(@user,'action',@user)
-        end
-
-        paragraph_action(myself.action('/editor/auth/edit_account_profile', :identifier => @user.email))
-
-        if opts.success_page
-          nd = SiteNode.find_by_id(opts.success_page)
-          if nd 
-            redirect_paragraph nd.node_path if nd
-            return 
-          end
-        end
-        render_paragraph :text => 'Successfully Edited Profile'.t 
-        return
-      end
-    end
-
-    if opts.include_subscriptions.is_a?(Array) && opts.include_subscriptions.length > 0
-
-      @subscriptions = UserSubscription.find(:all,:order => :name,:conditions => "id IN (#{opts.include_subscriptions.collect {|sub| DomainModel.connection.quote(sub) }.join(",")})")
-    else
-      @subscriptions = nil
-    end
-
-    render_paragraph :partial => '/editor/auth/edit_account',
-      :locals => { :user => @user, 
-        :opts => opts.to_h.merge(:vertical => opts.form_display == 'vertical'), 
-        :fields => @optional_fields,
-        :address => @address,
-        :work_address => @work_address,
-        :subscriptions => @subscriptions,
-        :reset_password => flash['reset_password'] }
-  end
-
-# update users subscriptions
+  # update users subscriptions
   def update_subscriptions(user,available_subscriptions,subscriptions)
 
     subscription_conditions = "user_subscription_id IN (#{available_subscriptions.collect {|sub| DomainModel.connection.quote(sub) }.join(",")})"
@@ -663,8 +599,8 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
   def email_list
     @options = paragraph_options(:email_list)
     
-    @user = EmailListUser.new(params[:email_list_signup])
-    if (request.post? || params[:get_post]) && params[:email_list_signup]
+    @user = EmailListUser.new(params["email_list_#{paragraph.id}"] || params[:email_list_signup])
+    if (request.post? || params[:get_post]) && (params["email_list_#{paragraph.id}"]  ||  params[:email_list_signup])
       @user.valid?
       
       unless @options.partial_post == 'yes' && params[:partial_post]
@@ -674,13 +610,15 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       end
       
       if @user.errors.empty?
-        @target = EndUser.find_target(@user.email)
+        @target = EndUser.find_target(@user.email, :source => 'website')
         if !@target.registered?
           @target.first_name = @user.first_name if !@user.first_name.blank? && @options.first_name != 'off'
           @target.last_name = @user.last_name if !@user.last_name.blank? && @options.last_name != 'off'
-          @target.lead_source = @options.user_source unless @options.user_source.blank?
-          @target.source = 'website'
-          @target.user_level = 4
+          if @target.lead_source.blank?
+            conn_type,conn_id = page_connection
+            @target.lead_source = conn_id if conn_type == :source 
+            @target.lead_source = @options.user_source if @target.lead_source.blank? 
+          end
           @target.save
           if @options.zip != 'off' 
             adr = @target.address || EndUserAddress.new
@@ -692,7 +630,10 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
             end
           end
         end
-        
+
+        self.elevate_user_level @target, EndUser::UserLevel::SUBSCRIBED
+        self.visiting_end_user_id = @target.id
+
         # Handle Subscription
         if @options.user_subscription_id
           sub = UserSubscription.find_by_id(@options.user_subscription_id)

@@ -11,12 +11,13 @@
 </div>
 
 <script>
-Event.observe(window, 'load', function() {
-  if( RealTimeStatsViewer && Raphael ) {
-    RealTimeStatsViewer.chart.intervals = 6;
-    RealTimeStatsViewer.requestRealTimeCharts();
-  } else {
-    $('real_time_charts').update( '<p>Must reload page to activate widget.</p>' );
-  }
-});
+
+function requestRealTimeCharts() {
+  RealTimeStatsViewer.requestRealTimeCharts();
+}
+
+if( RealTimeStatsViewer && google ) {
+  RealTimeStatsViewer.chart.intervals = 6;
+  google.load("visualization", "1", {packages:["corechart"], callback: requestRealTimeCharts});
+}
 </script>

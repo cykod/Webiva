@@ -9,7 +9,7 @@ class DomainLogEntriesIndexUpdate < ActiveRecord::Migration
     end
 
     add_index :domain_log_entries, [ :session_id ], :name => 'session_index'
-    add_index :domain_log_entries, [ :occurred_at ], :name => 'occurred_index'
+    add_index :domain_log_entries, [ :occurred_at, :site_node_id ], :name => 'occurred_index'
     add_index :domain_log_entries, [ :user_id, :session_id ], :name => 'user_index'
       
   end

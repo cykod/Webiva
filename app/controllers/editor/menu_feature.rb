@@ -23,10 +23,11 @@ class Editor::MenuFeature < ParagraphFeature #:nodoc:all
   :default_feature => <<-FEATURE
 <ul class='menu'>
   <cms:section>
-    <li><cms:link selected_class='selected'><cms:title/></cms:link></li>
+    <li><cms:link selected_class='selected'><cms:title/></cms:link>
     <cms:menu><ul> <cms:section>
         <li><cms:link selected_class='selected'><cms:title/></cms:link></li>
      </cms:section></ul></cms:menu>
+     </li>
   </cms:section>
 </ul>
   FEATURE

@@ -1,19 +1,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
 <head>
+  <%= render :partial => '/application/header_mce' %>
 
-    <title><%= @title || "CMS" %></title>
-
-    <script> var AUTH_TOKEN = "<%= form_authenticity_token.to_s %>";</script>
-    <%= stylesheet_link_tag 'common' %>
-    <%= theme_stylesheet_link_tag  "admin_framework" %>
-    <%= theme_stylesheet_link_tag 'admin_framework_full' %>
-    <%= javascript_include_tag "tiny_mce/tiny_mce_popup_cms" %>
-    <%= javascript_include_tag "overlib/overlib" %>
-    <%= javascript_include_tag :defaults %>
-    <%= javascript_include_tag "builder" %>
-    <%= javascript_include_tag "slider" %>
-    
 <script>
   MCE_Popup = {
   
@@ -60,7 +49,39 @@
         ed.undoManager.add();
       }
     }
-    else if(file_type == 'doc' || file_type == 'thm') {
+    else if(file_type == 'thm') {
+      if(elm != null && elm.nodeName == "A") {
+        if(src == '')
+          tinyMCEPopup.execCommand("mceRemoveNode");
+        else {
+          elm.href = url;
+	  inst.repaint();
+	}
+      } else if(currentSelection)  {
+        html = "<a target='_blank' href='" + url + "'>" + selectedText + "</a>";
+	ed.execCommand("mceInsertContent", false, html);
+      } else {
+        file_opts = {};
+      
+        if(opts) {
+          if(opts['align']) {
+            file_opts['align'] = opts['align'];
+          }
+        }
+
+        tinymce.extend(file_opts, {
+          src: thumb,
+          mce_src: thumb,
+        });
+
+        ed.dom.setAttribs(elm,file_opts);
+	ed.execCommand("mceInsertContent", false,  "<a target='_blank' href='" + url + "'>" + '<img id="__mce_tmp" />' + "</a>", {skip_undo : 1});
+        ed.dom.setAttribs('__mce_tmp', file_opts);
+	ed.dom.setAttrib('__mce_tmp', 'id', '');
+        ed.undoManager.add();
+      }
+        
+    } else if(file_type == 'doc') {
       file_opts = {
                   target: '_blank',
                   href: url

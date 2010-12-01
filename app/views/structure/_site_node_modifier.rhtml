@@ -1,24 +1,12 @@
 <a class='mod_node' id='mod_<%= mod.id %>' 
    onclick='StructureEditor.selectNode("mod",<%= mod.id %>);' 
    <% if mod.modifier_type == 'framework' -%>
-     ondblclick="document.location = '<%= jh url_for(:controller => 'edit', :action =>'page', :path => ['framework',mod.id ]) %>';" 
+     ondblclick="document.location = '<%= jh url_for(:controller => 'edit', :action =>'page', :path => ['framework',mod.id,@view_language]) %>';" 
+   <% elsif mod.modifier_type == 'template' -%>
+     ondblclick="document.location = '<%= jh url_for(:controller => 'templates', :action =>'edit', :path => mod.options.template_id) %>';" 
    <% end -%>
    >
-  <span class='node_handle' id='mod_handle_<%= mod.id %>' >
-    <% if mod.modifier_type == 'framework' -%>
-      <%= image_tag(theme_src("icons/framework.gif"), :class => "mod_icon") %>
-    <% elsif mod.modifier_type  == 'template' -%>
-      <%= image_tag(theme_src("icons/template.gif"), :class => "mod_icon") %>  
-    <% elsif mod.modifier_type  == 'lock' -%>
-      <%= image_tag(theme_src("icons/lock.gif"), :class => "mod_icon") %>  
-    <% elsif mod.modifier_type  == 'edit' -%>
-      <%= image_tag(theme_src("icons/edit_control.gif"), :class => "mod_icon") %>  
-    <% elsif mod.modifier_type  == 'ssl' -%>
-      <%= image_tag(theme_src("icons/ssl.gif"), :class => "mod_icon") %>  
-    <% elsif mod.modifier_type  == 'domain' -%>
-      <%= image_tag(theme_src("icons/domain_control.gif"), :class => "mod_icon") %>  
-    <% end -%>
-  </span> 
+   <span class='node_handle site_node_modifier <%= mod.modifier_type %>_modifier' id='mod_handle_<%= mod.id %>' ></span> 
   <script>
     document.getElementById('mod_<%= mod.id %>').mod_type = '<%= mod.modifier_type %>';
     document.getElementById('mod_<%= mod.id %>').mod_id = '<%= mod.id %>';

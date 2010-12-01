@@ -1,6 +1,11 @@
+<% if permit?('editor_structure') %>
+<ul class='page_detail_buttons'>
+  <li class='icon'><a href='javascript:void(0);'  title='<%= vh 'Delete Domain Modifier'.t%>' onclick='StructureEditor.deleteModifier("mod_<%= @mod.id %>");'><%= image_tag(theme_src('icons/header_actions/delete_page.png')) %></a></li>
+</ul>
+<% end -%>
 
-<% if flash[:notice] %><div class="flash_notice"><%= flash[:notice] %></div><% end %>
-<b> <%= "Domain Details".t %></b>
+<h1 class='inpage'><%= "Domain Modifier".t %></h1>
+
 <script>
 DomainEditor = {};
 DomainEditor = {
@@ -22,6 +27,9 @@ DomainEditor = {
 
 </script>
 
+<div class='tree_detail_body'>
+
+<% if flash[:notice] %><div class="inpage_flash_notice"><%= flash[:notice] %></div><% end %>
 <div id='domain_edit' >
 
 <% admin_form_for :domain, @domain_options, :html => {:id => 'domain_form', :onsubmit => 'DomainEditor.submitForm(); return false;' }  do  |f| -%>
@@ -30,6 +38,8 @@ DomainEditor = {
 <% end -%>
 <div align='right'>
     <input type='submit' value='<%= "Update".t %>' onclick='DomainEditor.submitForm();'/>
+</div>
+
 </div>
 
 </div>

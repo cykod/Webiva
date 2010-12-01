@@ -29,34 +29,34 @@ module Content::ContentModelGenerator
 
     # Setup the fields in the model as necessary (required, validation, etc)
     self.content_model_fields.each { |fld| fld.setup_model(cls) }
-    
+
     if !self.identifier_name.blank?
       identifier_func = <<-SRC
         def identifier_name
           @identifier_name ||= variable_replace("#{self.identifier_name.gsub('"','\\"')}",self.attributes.symbolize_keys)
         end
-        SRC
-        
-        cls.class_eval identifier_func, __FILE__, __LINE__
-      elsif self.content_model_fields.length  > 0
-        identifier_func = <<-SRC
+      SRC
+
+      cls.class_eval identifier_func, __FILE__, __LINE__
+    elsif data_field = self.content_model_fields.detect { |fld| fld.data_field? }
+      identifier_func = <<-SRC
         def identifier_name
-          self.send(:#{self.content_model_fields[0].field}).to_s
+          self.send(:#{data_field.field}).to_s
                   end
       SRC
 
-      cls.set_identifier_field self.content_model_fields[0].field
-      
+      cls.set_identifier_field data_field.field
+
       cls.class_eval identifier_func, __FILE__, __LINE__
     else
       identifier_func = <<-SRC
         def identifier_name
           " #" + self.id.to_s 
         end
-SRC
-        
+      SRC
+
       cls.class_eval identifier_func, __FILE__, __LINE__
-        
+
     end
       
       if self.show_tags?

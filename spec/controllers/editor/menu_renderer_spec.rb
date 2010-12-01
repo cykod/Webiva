@@ -32,7 +32,7 @@ describe Editor::MenuRenderer, :type => :controller do
 
     @rnd = generate_page_renderer('menu', menu)
 
-    @rnd.paragraph.should_receive(:page_revision).and_return(page_revision)
+    @rnd.paragraph.should_receive(:page_revision).at_least(:once).and_return(page_revision)
     SiteNode.should_receive(:find_by_id).once.and_return(test_node)
 
     @output = renderer_get @rnd

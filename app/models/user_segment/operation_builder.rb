@@ -37,7 +37,7 @@ class UserSegment::OperationBuilder < HashModel
 
     self.operation_arguments.each_with_index do |type, idx|
       arg = "argument#{idx}"
-      self.send("#{arg}=", opts[arg.to_sym]) if opts[arg.to_sym]
+      self.send("#{arg}=", opts[arg.to_sym]) unless opts[arg.to_sym].nil?
     end
 
     if ! self.condition.blank?

@@ -11,7 +11,7 @@ class WebivaRendererGenerator < Rails::Generator::NamedBase
     @module_class = @module_path.camelcase
     @renderer_class = @renderer_path.camelcase
     
-    @module_name = @module_class.humanize
+    @module_name = @module_class.underscore.humanize.titleize
     @renderer_name = @renderer_path.humanize
     
     @paragraphs = (args||[]).map { |para| para.underscore }

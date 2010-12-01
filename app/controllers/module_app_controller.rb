@@ -36,6 +36,8 @@ class ModuleAppController < ApplicationController
   include SiteNodeEngine::Controller
 
 
+  attr_accessor :visiting_end_user_id
+
   # Specifies actions that shouldn't use the CMS for authentication layout or login
   # (Often used for ajax actions)
   def self.user_actions(names)
@@ -115,8 +117,21 @@ class ModuleAppController < ApplicationController
     get_handlers(:page,:before_request).each do |req|
       cls = req[0].constantize.new(self)
       return false if(!cls.before_request)
-    end    
-    engine = SiteNodeEngine.new(@page,:display => session[:cms_language], :path => path_args)
+    end
+
+    if params['__VER__']
+      @preview = true
+      @revision = @page.page_revisions.find_by_identifier_hash(params['__VER__'])
+      return display_missing_page unless @revision
+      return render :inline => 'Invalid version' unless @revision.revision_type == 'real' || @revision.revision_type == 'temp'
+    elsif @page.is_running_an_experiment?
+      self.log_visitor
+      if session[:domain_log_visitor]
+        @revision = @page.experiment_page_revision session
+      end
+    end
+
+    engine = SiteNodeEngine.new(@page,:display => session[:cms_language], :path => path_args, :revision => @revision, :preview => @preview)
 
     begin 
       @output = engine.run(self,myself)
@@ -125,7 +140,8 @@ class ModuleAppController < ApplicationController
       return
     end
 
-    
+    # Add a new visitor in
+    self.log_visitor
 
     # If it's a redirect, just redirect
     if @output.redirect?
@@ -139,14 +155,21 @@ class ModuleAppController < ApplicationController
     # Else it's something that we have access to,
     # need to display it
     elsif @output.document?
+      begin
         handle_document_node(@output,@page)
-        return false
+      rescue SiteNodeEngine::NoActiveVersionException,ActiveRecord::RecordNotFound, SiteNodeEngine::MissingPageException => e
+        display_missing_page
+        return
+      end
+
+      return false
     elsif @output.page?
         # if we made it here - need to jump over to the application
         get_handlers(:page,:post_process).each do |req|
     	  cls = req[0].constantize.new(self)
     	  cls.post_process @output
         end
+        include_stat_capture if @capture_location
 
         @cms_site_node_engine = engine
         set_robots!
@@ -154,14 +177,63 @@ class ModuleAppController < ApplicationController
     end 
 
   end
-  
-  def process_logging #:nodoc:
-   if Configuration.logging
+
+
+  def include_stat_capture
+    @output.includes[:js] ||= []
+    @output.includes[:js] << "http#{'s' if request.ssl?}://www.google.com/jsapi"
+    @output.includes[:js] << "/javascripts/webalytics.js"
+  end
+
+  def log_visitor
+    return if @logged_visit
+    @logged_visit = true
+    if Configuration.logging
       unless request.bot?
-	DomainLogSession.start_session(myself, session, request)
-	DomainLogEntry.create_entry_from_request(myself, @page, (params[:path]||[]).join('/'), request, session, @output)
+        @capture_location = DomainLogVisitor.log_visitor(cookies,myself,session,request)
+        DomainLogSession.start_session(myself, session, request, @page, @capture_location)
       end
     end
+  end
+
+  def process_logging #:nodoc:
+   if Configuration.logging
+     unless request.bot?
+
+       user = myself
+
+       if session[:visiting_end_user_id]
+         @visiting_end_user_id = session[:visiting_end_user_id]
+         session[:visiting_end_user_id] = nil
+       end
+
+       user = self.process_visiting_user if @visiting_end_user_id
+
+       DomainLogEntry.create_entry_from_request(user, @page, (params[:path]||[]).join('/'), request, session, @output)
+     end
+    end
+  end
+
+  def process_visiting_user #:nodoc:
+    # if a user is logged in they are not visiting
+    return myself if myself.id
+
+    user = EndUser.find_by_id @visiting_end_user_id
+    return myself unless user
+
+    if user.elevate_user_level(EndUser::UserLevel::VISITED) && @output.respond_to?(:user_level)
+      @output.user_level = EndUser::UserLevel::VISITED
+    end
+
+    if session[:domain_log_session]
+      ses = DomainLogSession.find_by_id session[:domain_log_session][:id]
+      if ses && ses.end_user_id.nil?
+        ses.update_attribute(:end_user_id, user.id)
+        ses.domain_log_visitor.update_attribute(:end_user_id, user.id) if ses.domain_log_visitor && ses.domain_log_visitor.end_user_id.nil?
+      end
+    end
+
+    user
   end
 
   def set_robots! #:nodoc:

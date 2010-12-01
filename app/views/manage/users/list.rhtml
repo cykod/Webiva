@@ -4,12 +4,12 @@
 
 <% action_panel do |p| %>
 <% if myself.has_role?('system_admin') -%>
-  <%= p.link "New User".t,:action => 'edit_all', :icon =>'add.gif' %>
+  <%= p.link "New User".t,:action => 'edit_all', :icon =>'add.png' %>
 <% else -%>
-  <%= p.link "New User".t,:action => 'edit', :icon => 'add.gif' %>
+  <%= p.link "New User".t,:action => 'edit', :icon => 'add.png' %>
 <% end -%>
 <% if myself.has_role?('system_admin') -%>
-  <% p.custom do %>
+  <% p.custom :right => true do %>
    Active Company: <select name='active_client' onchange='if(this.value) document.location = "<%= url_for :controller => '/manage/users' %>/?active_client_company=" + this.value;' >
     <option value=''>--Select Client--</option>
     <%= options_from_collection_for_select(@clients,'id','name',@active_client) %>
@@ -19,7 +19,7 @@
 <% end -%>
 <hr/>
 <div class='admin_content'>
-<b><%= sprintf("%s Users", @client.name) %></b><br/><br/>
+<h2><%= sprintf("%s Users", @client.name) %></h2>
 
 <div id='client_users_table'>
 <%= render :partial => 'display_client_users_table' %>

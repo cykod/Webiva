@@ -19,7 +19,9 @@ class SiteNode < DomainModel
           
   belongs_to :site_module,
               :foreign_key => 'node_data'
-              
+
+  belongs_to :experiment, :dependent => :destroy
+
   belongs_to :domain_file,
               :foreign_key => 'node_data'
 
@@ -44,6 +46,22 @@ class SiteNode < DomainModel
 
   # Expires the entire site when save or deleted
   expires_site
+
+  def is_running_an_experiment?
+    self.experiment_id && self.experiment && self.experiment.is_running? && self.experiment.active?
+  end
+
+  def experiment_version(session)
+    return nil unless self.experiment
+    self.experiment.get_version(session)
+  end
+
+  def experiment_page_revision(session)
+    return @experiment_page_revision if @experiment_page_revision
+    version = self.experiment_version(session)
+    return nil unless version
+    @experiment_page_revision = self.page_revisions.first :conditions => {:revision => version.revision, :language => version.language, :revision_type => 'real'}
+  end
 
   def before_validation #:nodoc:
     self.node_type = 'P' if self.node_type.blank?
@@ -438,7 +456,26 @@ class SiteNode < DomainModel
 
     boolean_options :closed
   end
+
+
+  def page_content(limit = 5)
+    return @page_content if @page_content
+
+    content_type_ids = ContentType.find(:all,:select => 'id', :conditions => { :detail_site_node_url => self.node_path }).map(&:id)
+
+    @page_content = ContentNode.find(:all,:conditions => { :content_type_id => content_type_ids },:include => :node, :order => 'created_at DESC', :limit => limit )
+  end
   
+  def can_index?
+    return false if self.index_page == 0
+
+    self.self_and_ancestors.reverse.each do |nd|
+      return false if nd.index_page == 0
+    end
+
+    true
+  end
+
   protected
   
   def after_create #:nodoc:
@@ -498,4 +535,50 @@ class SiteNode < DomainModel
       :path => [ 'page', node_id ] }
   end
 
+  public
+
+  def admin_url
+    self.class.content_admin_url self.id
+  end
+
+  def self.chart_traffic_handler_info
+    {
+      :name => 'Page Traffic',
+      :title => :node_path,
+      :icon => 'traffic_page.png',
+      :url => { :controller => '/emarketing', :action => 'charts', :path => ['traffic'] + self.name.underscore.split('/') }
+    }
+  end
+
+  def self.traffic_scope(from, duration, opts={})
+    scope = DomainLogEntry.valid_sessions.between(from, from+duration).hits_n_visits('site_node_id')
+    scope = scope.scoped(:conditions => {:site_node_id => opts[:target_id]}) if opts[:target_id]
+    scope
+  end
+
+  def self.traffic(from, duration, intervals, opts={})
+    DomainLogGroup.stats(self.name, from, duration, intervals, :type => 'traffic', :target_id => opts[:target_id]) do |from, duration|
+      self.traffic_scope from, duration, opts
+    end
+  end
+
+  def traffic(from, duration, intervals)
+    self.class.traffic from, duration, intervals, :target_id => self.id
+  end
+
+  def link(*paths)
+    SiteNode.link self.node_path, *paths
+  end
+
+  def self.link(*paths)
+    '/' + paths.map{ |p| p && p[0..0] == '/' ? p[1..-1] : p }.reject(&:blank?).join('/')
+  end
+
+  def domain_link(*paths)
+    SiteNode.domain_link self.node_path, *paths
+  end
+
+  def self.domain_link(*paths)
+    Configuration.domain_link(SiteNode.link(*paths))
+  end
 end

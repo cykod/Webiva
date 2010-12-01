@@ -11,6 +11,9 @@
 <%= f.text_field :create_tags, :vertical => true, :label => 'Tags to new imported targets' %>
 <%= f.check_boxes :user_options, [ ['Create VIP Numbers for imported users', 'vip'] ], :vertical => true, :separator => '<br/>' %>
 
-
+<%= f.select :user_list, @segments, {}, :vertical => true, :label => 'Add to user list', 'j-action' => "change", "change" => "#options_user_list_name_sec,create" %>
+<tbody id="options_user_list_name_sec" style="display:none;">
+<%= f.text_field :user_list_name, :vertical => true, :label => 'New user list name' %>
+</tbody>
 
 <% end -%>

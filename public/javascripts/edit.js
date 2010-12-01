@@ -114,7 +114,6 @@ var cmsEdit = {
         cmsEdit.pageUrl = page_url;
 
       if(cmsEdit.pageUrl == 'Domain') cmsEdit.pageUrl = '/';
-        $('cms_goto_page').href = cmsEdit.pageUrl;
     }
     cmsEdit.pageType= page_type;
     cmsEdit.pageId = page_id;
@@ -126,6 +125,7 @@ var cmsEdit = {
     }
     cmsEdit.previousPageType = page_type;
     cmsEdit.previousPageId = page_id;
+    $('cms_goto_page').href = cmsEdit.pageUrl;
   },
 
   setParagraphIndex: function(para_index) {
@@ -328,7 +328,6 @@ var cmsEdit = {
       }
       else {
         return true;
-
       }
     },
 
@@ -688,18 +687,18 @@ var cmsEdit = {
 
   },
 
-  saveAsSend: function(version) {
+  saveAsSend: function(version, name) {
     cmsEdit.hideSaveAs();
     cmsEdit.pageModified=false;
     $('cms_save_changes').disabled = true;
-    cmsEdit.sendChanges('save_as',"version=" + version);
+    var params = "version=" + version
+    if(name) { params += "&name=" + name; }
+    cmsEdit.sendChanges('save_as',params);
   },
 
   sendChanges: function(action,params,cleanup,callback) {
 
     tinyMCE.triggerSave();
-
-
 
     var update_params = cmsEdit._getParagraphOrder();
     update_params += cmsEdit._getParagraphData();
@@ -725,6 +724,15 @@ var cmsEdit = {
                      });
 
 
+  },
+
+  previewChanges: function() {
+    cmsEdit.sendChanges('preview');
+  },
+
+  openPreviewWindow: function() {
+    var url = cmsEdit.editURL + 'goto' + "/" + cmsEdit.pageType + "/" + cmsEdit.pageId + "/" + cmsEdit.revisionId + '?url=' + escape(cmsEdit.pageUrl);
+    openWindow(url, 'edit_preview', null, null, 'yes', 'yes');
   },
 
   _getParagraphOrder: function() {
@@ -936,16 +944,11 @@ var cmsEdit = {
     SCMS.hidePopupDiv('cms_save_as');
   },
 
-  saveAsSpecific: function() {
-    SCMS.hidePopupDiv('cms_save_as');
-    SCMS.setKeyHandler(null);
-    RedBox.showInline('cms_save_as_specific');
-  },
-
   saveAsSpecificSubmit: function(frm) {
     // Get Value
-    var elem = Form.findFirstElement(frm);
+    var elem = frm.version;
     var value = elem.value;
+    var name = frm.name.value;
 
     regexp = /^[0-9]*\.[0-9]{1,2}$/
     if(!regexp.test(value)) {
@@ -954,7 +957,7 @@ var cmsEdit = {
     }
     else {
       cmsEdit.closeBox();
-      cmsEdit.saveAsSend(value);
+      cmsEdit.saveAsSend(value, name);
     }
 
 
@@ -1368,9 +1371,11 @@ var cmsEdit = {
         $('cms_paragraph_display_'+elem_id).innerHTML = "<div class='cms_paragraph_editor_cover'></div>" + html;
 
       cmsEdit.pageChanged();
-    }
+  },
 
-
+  changeVersion: function(version) {
+    SCMS.remoteOverlay(cmsEdit.editURL + 'change_version' + "/" + cmsEdit.pageType + "/" + cmsEdit.pageId + "/" + cmsEdit.revisionId + '?version=' + version);
+  }
 
 }
 

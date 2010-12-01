@@ -213,6 +213,7 @@ module ActiveTable
           search_options.stringify_keys!
           session[:active_table] ||= {}
           session[:active_table][table_name.to_sym] = search_options.to_hash
+
           
         elsif session[:active_table] && session[:active_table][table_name.to_sym]
           search_options = session[:active_table][table_name.to_sym]

@@ -130,42 +130,44 @@ module Content::CoreFeature
           target.lead_source = update_data[:add_source] 
         end 
         
-        ok = target.save
-        
-        if ok && !update_data[:add_tags].blank? && new_object
-          add_tags = update_data[:add_tags].split(",").collect { |tg| tg.strip }.collect do |tg|
-            if tg =~ /^\%\%([a-zA-Z09_\-]+)\%\%$/
-              begin
-                entry.send($1)
-              rescue Exception => e
-                nil
+        if target.save
+          if !update_data[:add_tags].blank? && new_object
+            add_tags = update_data[:add_tags].split(",").collect { |tg| tg.strip }.collect do |tg|
+              if tg =~ /^\%\%([a-zA-Z09_\-]+)\%\%$/
+                begin
+                  entry.send($1)
+                rescue Exception => e
+                  nil
+                end
+              else
+                tg
               end
-            else
-              tg
-            end
-          end.find_all { |tg| !tg.blank? }
+            end.find_all { |tg| !tg.blank? }
           
-          target.tag_names_add(add_tags.join(","))      
-        end
+            target.tag_names_add(add_tags.join(","))      
+          end
         
-        if ok &&  !update_data[:update_tags].blank?
-          update_tags = update_data[:update_tags].split(",").collect { |tg| tg.strip }.collect do |tg|
-            if tg =~ /^\%\%([a-zA-Z09_\-]+)\%\%$/
-              begin
-                entry.send($1)
-              rescue Exception => e
-                nil
+          if !update_data[:update_tags].blank?
+            update_tags = update_data[:update_tags].split(",").collect { |tg| tg.strip }.collect do |tg|
+              if tg =~ /^\%\%([a-zA-Z09_\-]+)\%\%$/
+                begin
+                  entry.send($1)
+                rescue Exception => e
+                  nil
+                end
+              else
+                tg
               end
-            else
-              tg
-            end
-          end.find_all { |tg| !tg.blank? }
+            end.find_all { |tg| !tg.blank? }
           
-          target.tag_names_add(update_tags.join(","))
-        end 
+            target.tag_names_add(update_tags.join(","))
+          end 
         
-        if ok && update_address && address.end_user_id.blank?
-          address.update_attribute(:end_user_id,target.id)
+          if update_address && address.end_user_id.blank?
+            address.update_attribute(:end_user_id,target.id)
+          end
+
+          entry.connected_end_user = target
         end
 
         target

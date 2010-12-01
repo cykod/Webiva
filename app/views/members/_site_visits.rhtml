@@ -1,49 +1,50 @@
 <% @date_format = "%m/%d/%Y".t
    @time_format = "%T".t  
-   @first_session   
-%>
-  
-<% @first = true -%>
-<%= "Total Sessions:".t %> <%= @entry_info[:session_count] %>, <%= "Total Pages:".t %> <%= @entry_info[:page_count] %>
+   @first = true
+-%>
+<%= "Total Sessions:".t %> <%= @sessions.size %>, <%= "Total Pages:".t %> <%= @sessions.inject(0){ |sum,s| sum + s.page_count } %>
 <br/><br/>
 
-<% table_for @entries, [ 'Session','Date Started','Time','Pages','Action'], :class=>'admin_table',:cellspacing => '0' do |entry| %>
+<% table_for @sessions, [ 'Session','Date Started','Time','Pages','User Level','Referrer','Affiliate','Campaign'], :class=>'data_table',:cellspacing => '0' do |entry| %>
 
-<% if entry.is_a?(DomainLogEntry) %>
-<tr>
-<td></td>
-<td></td>
-<td><%= entry.occurred_at.localize @time_format %></td>
-<td>/<%= entry.page_path %></td>
-<td><%= entry.action || '-' %> </td>
-
-   
-
-</td>
-</tr>
-<% else -%>
-</tbody>
 <tbody>
-<tr  class='highlighted_row'>
+<tr class='highlighted_row'>
 <td>
-  <a href='javascript:void(0);' onclick='Element.toggle("session_<%= entry[:session_id] %>");'>Session <%= entry[:session] %></a>
+  <a href='javascript:void(0);' j-action="loader,openclose" openclose="#session_entries_<%= entry.id %>" loader="#session_<%= entry.id %>,<%= url_for url_for :action => 'member_visit_entries', :path => entry.id %>">Session</a>
 </td>
 <td>
-  <%= entry[:occurred_at].localize @date_format %>
-</td> 
+  <%= entry.created_at.localize @date_format %>
+</td>
 <td align='right'>
- <% if entry[:pages] > 1 %>
-   <%= distance_of_time_in_words(entry[:occurred_at],entry[:last_page_at]).capitalize %></td><td align='left'><%= entry[:pages] %> Pages
+ <% if entry.page_count > 1 %>
+   <%= distance_of_time_in_words(entry.created_at,entry.last_entry_at).capitalize %></td><td align="left"><%= entry.page_count %> Pages
 <% else -%>
   </td><td>1 Page
 <% end -%>
 </td>
-<td></td>
-
+<td><%= h EndUser.user_level_options[entry.user_level] || '' %></td>
+<td><%= h entry.domain_log_referrer ? entry.domain_log_referrer.referrer_domain : '' %></td>
+<td><%= h entry.affiliate || '' %></td>
+<td><%= h entry.campaign || '' %></td>
 </tr>
 </tbody>
-<tbody id='session_<%= entry[:session_id] %>' <%= "style='display:none;'" unless @first %>>
-<% @first = false -%>
+
+<tbody id="session_entries_<%= entry.id %>" <%= "style='display:none;'" unless @first %>>
+<% if entry.domain_log_visitor -%>
+<tr><td></td><td colspan="7"><%= render :partial => '/emarketing/visitor_info', :locals => {:visitor => entry.domain_log_visitor} %></td></tr>
 <% end -%>
+<tr>
+<td></td>
+<td colspan="7" id="session_<%= entry.id %>" <%= 'j-loaded="1"' if @first%>>
+<%= render(:partial => 'site_entries', :locals => {:entries => entry.domain_log_entries.find(:all, :order => 'occurred_at DESC')}) if @first -%>
+<%= 'Loading...'.t unless @first -%>
+<% @first = false -%>
+</td>
+</tr>
+</tbody>
 
 <% end -%>
+
+<script>
+JSetup.setup();
+</script>

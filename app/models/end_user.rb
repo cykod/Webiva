@@ -6,9 +6,10 @@ require 'digest/sha1'
 # 0 - Opt-Out
 # 1 - Manually Added
 # 2 - Visited
-# 3 - Registered
-# 4 - Subscribed
+# 3 - Subscribed 
+# 4 - Lead
 # 5 - Conversion
+# 6 - Superstar
 
 
 # Sources:
@@ -73,7 +74,7 @@ class EndUser < DomainModel
   belongs_to :work_address, :class_name => 'EndUserAddress', :foreign_key => :work_address_id
   has_many :addresses, :class_name => 'EndUserAddress', :dependent => :destroy
 
-  has_one :end_user_cache, :dependent => :destroy, :class_name => 'EndUserCache'
+  has_one :end_user_cache, :dependent => :delete, :class_name => 'EndUserCache'
 
   has_many :end_user_cookies, :dependent => :delete_all, :class_name => 'EndUserCookie'
 
@@ -82,7 +83,9 @@ class EndUser < DomainModel
   has_many :end_user_tokens, :dependent => :delete_all, :include => [ :access_token ]
 
   has_many :access_tokens, :through => :end_user_tokens
-  
+
+  has_many :end_user_notes, :order => 'created_at DESC'
+
   has_many :end_user_tags
   has_many :tags, :through => :end_user_tags
   after_save :tag_cache_after_save
@@ -107,13 +110,27 @@ class EndUser < DomainModel
 
   has_options :introduction, ['Mr.','Mrs.','Ms.']
   
-  has_options :user_level, [ [ '0 - Opt-Out', 0 ], 
-                        [ '1 - Added Manually', 1],
-                        [ '2 - Visited', 2],
-                        [ '3 - Registered', 3],
-                        [ '4 - Subscribed', 4],
-                        [ '5 - Converison', 5] ]
-                      
+  module UserLevel
+    OPT_OUT = 0
+    IMPORTED = 1
+    VISITED = 2
+    SUBSCRIBED = 3
+    LEAD = 4
+    CONVERSION = 5
+    HIGH_VALUE = 6
+  end
+
+  has_options :user_level,
+    [['0 - Opt-Out',        UserLevel::OPT_OUT], 
+     ['1 - Added Manually', UserLevel::IMPORTED],
+     ['2 - Visited',        UserLevel::VISITED],
+     ['3 - Subscribed',     UserLevel::SUBSCRIBED],
+     ['4 - Lead',           UserLevel::LEAD],
+     ['5 - Converison',     UserLevel::CONVERSION],
+     ['6 - High-value',     UserLevel::HIGH_VALUE]
+    ]
+
+  # Referred to as  Origin
   has_options :source, [ [ 'Website', 'website' ],
                          [ 'Import', 'import' ],
                          [ 'Referrel', 'referrel' ] ]
@@ -405,6 +422,19 @@ class EndUser < DomainModel
     return usr
   end
 
+
+  # Returns a dingbat representing the user level
+  def user_level_dingbat
+    if self.user_level == 0
+      "&#10061;"
+    elsif self.acknowledged?
+       "&##{10111 + self.user_level};"
+    else
+      "&##{10121 + self.user_level};"
+    end
+  end
+
+
   # Returns the full name of the user
   def name
     if !self.full_name.blank?
@@ -474,10 +504,6 @@ class EndUser < DomainModel
     end
     self.options ||= {}
     
-    if self.user_level < 3 && self.registered?
-      self.user_level = 3
-    end
-    
     self.source = 'import' if self.source.blank?
     self.registered_at = Time.now if self.registered? && self.registered_at.blank?
 
@@ -494,8 +520,50 @@ class EndUser < DomainModel
         self.gender = 'f'
       end
     end
+
+    true
   end
-  
+
+  def self.fetch_user_level(end_user_id)
+    results = self.connection.execute "SELECT user_level FROM end_users WHERE id = #{end_user_id.to_i}"
+    results.each_hash { |row| return row['user_level'].to_i }
+    nil
+  end
+
+  def elevate_user_level(level)
+    self.class.elevate_user_level self.id, level
+  end
+
+  def self.elevate_user_level(end_user_id, user_level)
+    if self.fetch_user_level(end_user_id) < user_level
+      self.connection.execute "UPDATE end_users SET acknowledged = 0, user_level = #{user_level} WHERE id = #{end_user_id} AND user_level < #{user_level}"
+      true
+    else
+      false
+    end
+  end
+
+  def unsubscribe
+    self.class.unsubscribe self.id
+  end
+
+  def self.unsubscribe(end_user_id)
+    if self.fetch_user_level(end_user_id) > 0
+      self.connection.execute "UPDATE end_users SET acknowledged = 0, user_level = 0 WHERE id = #{end_user_id} AND user_level > 0"
+      true
+    else
+      false
+    end
+  end
+
+  def update_user_value(val)
+    self.class.update_user_value self.id, val
+  end
+
+  def self.update_user_value(end_user_id, val)
+    self.connection.execute "UPDATE end_users SET `value` = `value` + #{val} WHERE id = #{end_user_id}"
+  end
+
   def update_editor_login #:nodoc:
     if self.registered? && self.activated? && self.editor?
       editor_login= EditorLogin.find_by_domain_id_and_email(Configuration.domain_id,self.email) || EditorLogin.new
@@ -522,6 +590,7 @@ class EndUser < DomainModel
     if !target
       target = EndUser.new(:email => email)
       target.user_class_id = options[:user_class_id] || UserClass.default_user_class_id
+      target.source = options[:source] if options[:source]
       target.save unless options[:no_create]
     end
     target
@@ -555,7 +624,7 @@ Not doing so could allow a user to change their user profile (for example) and e
     opts.symbolize_keys!
 
     user_class_id = opts.delete(:user_class_id) || UserClass.default_user_class_id
-    target = self.find_target(email, :user_class_id => user_class_id, :no_create => true)
+    target = self.find_target(email, :user_class_id => user_class_id, :no_create => true, :source => opts.delete(:source))
 
     # Don't mess with registered users if no_register is set    
     no_register = opts.delete(:no_register)
@@ -608,6 +677,8 @@ Not doing so could allow a user to change their user profile (for example) and e
   def current_shipping_address
     if self.shipping_address && !self.shipping_address.address.blank?
      self.shipping_address
+    elsif self.billing_address && !self.billing_address.address.blank?
+      self.billing_address
     else
       self.default_address
     end
@@ -808,5 +879,13 @@ Not doing so could allow a user to change their user profile (for example) and e
       self.admin_edit = true if self.email.blank?
       self.save
     end
+  end
+
+  def last_log_entry
+    @last_log_entry ||= (DomainLogEntry.find(:first, :conditions => {:user_id => self.id}, :order => 'occurred_at DESC') || DomainLogEntry.new)
+  end
+
+  def last_session
+    self.last_log_entry.domain_log_session
   end
 end

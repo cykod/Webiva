@@ -12,6 +12,10 @@ describe UserSegment::FieldType do
     UserSegment::FieldType.convert_to(99.0, :integer).should be_nil
     UserSegment::FieldType.convert_to("99", :integer).should == 99
     UserSegment::FieldType.convert_to("1n", :integer).should be_nil
+    UserSegment::FieldType.convert_to([1,2], :integer).should be_nil
+    UserSegment::FieldType.convert_to(true, :integer).should be_nil
+    UserSegment::FieldType.convert_to(false, :integer).should be_nil
+    UserSegment::FieldType.convert_to(Time.now, :integer).should be_nil
   end
 
   it "should convert value to float" do
@@ -24,6 +28,10 @@ describe UserSegment::FieldType do
     UserSegment::FieldType.convert_to("3.54", :float).should == 3.54
     UserSegment::FieldType.convert_to(3.54, :float).should == 3.54
     UserSegment::FieldType.convert_to("1n", :float).should be_nil
+    UserSegment::FieldType.convert_to([1,2], :float).should be_nil
+    UserSegment::FieldType.convert_to(true, :float).should be_nil
+    UserSegment::FieldType.convert_to(false, :float).should be_nil
+    UserSegment::FieldType.convert_to(Time.now, :float).should be_nil
   end
 
   it "should only return string values" do
@@ -34,6 +42,7 @@ describe UserSegment::FieldType do
     UserSegment::FieldType.convert_to(nil, :string).should be_nil
     UserSegment::FieldType.convert_to(0.1, :string).should be_nil
     UserSegment::FieldType.convert_to(Time.now, :string).should be_nil
+    UserSegment::FieldType.convert_to([1,2], :string).should be_nil
   end
 
   it "should convert value to time" do
@@ -41,6 +50,12 @@ describe UserSegment::FieldType do
     UserSegment::FieldType.convert_to("1/1/1990", :datetime).should == time
     time = Time.now
     UserSegment::FieldType.convert_to(time, :datetime).should == time
+    UserSegment::FieldType.convert_to([1,2], :datetime).should be_nil
+    UserSegment::FieldType.convert_to(false, :datetime).should be_nil
+    UserSegment::FieldType.convert_to(true, :datetime).should be_nil
+    UserSegment::FieldType.convert_to(1.2, :datetime).should be_nil
+    time = Time.parse 'not a time'
+    UserSegment::FieldType.convert_to('not a time', :datetime).to_s.should == time.to_s
   end
 
   it "should convert value to boolean" do
@@ -54,6 +69,11 @@ describe UserSegment::FieldType do
     UserSegment::FieldType.convert_to('FALSE', :boolean).should == false
     UserSegment::FieldType.convert_to(0, :boolean).should == false
     UserSegment::FieldType.convert_to('0', :boolean).should == false
+    UserSegment::FieldType.convert_to(100, :boolean).should be_nil
+    UserSegment::FieldType.convert_to(0.1, :boolean).should be_nil
+    UserSegment::FieldType.convert_to(Time.now, :boolean).should be_nil
+    UserSegment::FieldType.convert_to([1,2], :boolean).should be_nil
+    UserSegment::FieldType.convert_to("not a boolean", :boolean).should be_nil
   end
 
   it "should convert value to option" do
@@ -65,6 +85,11 @@ describe UserSegment::FieldType do
     UserSegment::FieldType.convert_to('WeEk', :option, :options => ['day', 'days', 'week', 'weeks']).should == 'week'
     UserSegment::FieldType.convert_to('now', :option, :options => ['day', 'days', 'week', 'weeks']).should be_nil
     UserSegment::FieldType.convert_to('dayss', :option, :options => ['day', 'days', 'week', 'weeks']).should be_nil
+    UserSegment::FieldType.convert_to(1, :option, :options => ['day', 'days', 'week', 'weeks']).should be_nil
+    UserSegment::FieldType.convert_to(true, :option, :options => ['day', 'days', 'week', 'weeks']).should be_nil
+    UserSegment::FieldType.convert_to(false, :option, :options => ['day', 'days', 'week', 'weeks']).should be_nil
+    UserSegment::FieldType.convert_to(0.1, :option, :options => ['day', 'days', 'week', 'weeks']).should be_nil
+    UserSegment::FieldType.convert_to([1,2], :option, :options => ['day', 'days', 'week', 'weeks']).should be_nil
   end
 
   it "should covert all the arguments" do
@@ -99,6 +124,10 @@ describe UserSegment::FieldType do
     UserSegment::FieldType.convert_to(bunnies.id.to_s, :model, :class => Tag).should == bunnies.id
     UserSegment::FieldType.convert_to(poster.id, :model, :class => Tag).should == poster.id
     UserSegment::FieldType.convert_to(98789, :model, :class => Tag).should be_nil
+    UserSegment::FieldType.convert_to(0.9, :model, :class => Tag).should be_nil
+    UserSegment::FieldType.convert_to(true, :model, :class => Tag).should be_nil
+    UserSegment::FieldType.convert_to(false, :model, :class => Tag).should be_nil
+    UserSegment::FieldType.convert_to([1,2], :model, :class => Tag).should be_nil
     UserSegment::FieldType.convert_to('Walker', :model, :class => Tag).should be_nil
   end
 

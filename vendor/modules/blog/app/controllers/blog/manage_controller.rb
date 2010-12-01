@@ -235,18 +235,86 @@ class Blog::ManageController < ModuleController
     @blog = Blog::BlogBlog.find(params[:path][0])
     blog_path(@blog,"Import Blog")
 
-    if request.post? && params[:import] && @file = DomainFile.find_by_id(params[:import][:import_file_id])
+    @import = ImportOptions.new params[:import]
+    @import.wordpress_import_settings = ['comments', 'pages'] unless params[:import]
+
+    if request.post? && @import.valid?
       if params[:commit]
-         @blog.import_file(@file,myself)
+        if @import.import @blog, myself
+          redirect_to :action => 'index', :path => [ @blog.id ]
+        end
+      else
+        redirect_to :action => 'index', :path => [ @blog.id ]
       end
-      redirect_to :action => 'index', :path => [ @blog.id ]
     end
-
-
   end
-  
+
   protected
   
+  class ImportOptions < HashModel
+    attributes :import_file_id => nil, :wordpress_export_file_id => nil, :wordpress_url => nil, :wordpress_username => nil, :wordpress_password => nil, :wordpress_import_settings => [], :rss_url => nil
+
+    domain_file_options :import_file_id, :wordpress_export_file_id
+
+    def validate
+      if self.import_file_id.blank? && self.wordpress_export_file_id.blank? && self.wordpress_url.blank? && self.rss_url.blank?
+        self.errors.add_to_base 'Import settings not specified'
+      elsif ! self.rss_url.blank?
+        self.errors.add(:rss_url, 'is invalid') unless URI::regexp(%w(http https)).match(self.rss_url)
+      elsif self.import_file_id.blank? && self.wordpress_export_file_id.blank? && ! self.wordpress_url.blank?
+        self.errors.add(:wordpress_url, 'is invalid') unless URI::regexp(%w(http https)).match(self.wordpress_url)
+        self.errors.add(:wordpress_username, 'is missing') if self.wordpress_username.blank?
+        self.errors.add(:wordpress_password, 'is missing') if self.wordpress_password.blank?
+      end
+    end
+
+    def wordpress_importer
+      return @wordpress_importer if @wordpress_importer
+      @wordpress_importer = Blog::WordpressImporter.new
+      @wordpress_importer.import_comments = self.wordpress_import_settings.include?('comment')
+      @wordpress_importer.import_pages = self.wordpress_import_settings.include?('pages')
+      @wordpress_importer
+    end
+
+    def rss_importer
+      @rss_importer ||= Blog::RssImporter.new
+    end
+
+    def import(blog, user)
+      if self.import_file
+        blog.import_file(self.import_file, user)
+      elsif ! self.rss_url.blank?
+        self.rss_importer.blog = blog
+        if self.rss_importer.import_feed(self.rss_url) 
+          self.errors.add(:rss_url, 'failed to import feed') unless self.rss_importer.import
+        else
+          self.errors.add(:rss_url, 'is invalid')
+        end
+      elsif self.wordpress_export_file
+        self.wordpress_importer.blog = blog
+        self.wordpress_importer.import_file(self.wordpress_export_file)
+        self.errors.add(:wordpress_export_file_id, self.wordpress_importer.error) unless self.wordpress_importer.import
+      elsif ! self.wordpress_url.blank?
+        self.wordpress_importer.blog = blog
+        unless self.wordpress_importer.import_site(self.wordpress_url, self.wordpress_username, self.wordpress_password)
+          if self.wordpress_importer.error == 'Login failed'
+            self.errors.add(:wordpress_username, 'is invalid')
+            self.errors.add(:wordpress_password, 'is invalid')
+          else
+            self.errors.add(:wordpress_url, 'is invalid')
+            self.errors.add_to_base(self.wordpress_importer.error)
+          end
+        end
+
+        unless self.wordpress_importer.error
+          self.errors.add_to_base(self.wordpress_importer.error) unless self.wordpress_importer.import
+        end
+      end
+
+      self.errors.length > 0 ? false : true
+    end
+  end
+
   def blog_path(blog,path=nil)
     base = ['Content']
     base << 'Site Blogs' if blog.is_user_blog?

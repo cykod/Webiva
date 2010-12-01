@@ -3,15 +3,11 @@
 </script>
 
 <% if myself.client_user.client_admin? && myself.client_user.client.can_add_database? -%>
-<div class='admin_content'>
-<div class='action_panel'>
-  <ul>
-      <li><%= link_to(theme_icon("action","icons/actions/add.gif",:align => 'absmiddle') + " New Domain", :action => 'add') %></li>
-  </ul>
-</div>
-</div>
-<hr/>
+  <% action_panel do |p| %>
+    <%= p.link "New Domain" ,:action => 'add', :icon => 'add.png' %>
+  <% end -%>
 <% end -%>
+<hr/>
 <div class='admin_content'>
 <div id='domains_table'>
   <%= render :partial => 'domains_table' %>

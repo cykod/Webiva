@@ -24,6 +24,7 @@
     <div style='text-align:center; position:absolute; left:0px; top:2px; z-index:100; width:400px; height:20px; color:#000000;' id='completed_percentage'><%= @initialized ? "#{@percentage}%" : 'Calculating Import'.t %></div>
     <div id='completed_bar' style='z-index:1; position:absolute; left:0px; top:0px; width: <%= (@percentage * 4) %>px; height:20px; background-color:#CCCCCC;'></div>
   </div>
+  <div id="import_errors" style="padding-top:10px; color:red;"></div>
 </div>
 <script>
   setTimeout(ImportStatus.monitor,1000);

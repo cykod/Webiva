@@ -15,7 +15,7 @@ class Util::CssParser
     parse_elements = type.include?('elements')
     
     # Now find any style classes that apply to any tag (i.e.: .classnmae { ... } )
-    reg = /^([^{]+)\{[^}]+\}/m
+    reg = /([^{]+)\{[^}]+\}/m
     styles = []
     css.scan(reg) do |match|
       match[0].split(',').each do |itm|
@@ -41,7 +41,7 @@ class Util::CssParser
   def self.parse_full(css)
   
    # Now find any style classes that apply to any tag (i.e.: .classnmae { ... } )
-    reg = /^([^\n{]+)\{([^}]+)\}/m
+    reg = /([^\n{]+)\{([^}]+)\}/m
     full_styles = []
     line = 1
     body  = css

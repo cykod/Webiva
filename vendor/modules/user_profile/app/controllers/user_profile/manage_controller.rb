@@ -7,6 +7,13 @@ class UserProfile::ManageController < ModuleController
   def self.members_view_handler_info 
     { :name => 'Profile', :controller => '/user_profile/manage', :action => 'view' } 
   end
+ 
+  def user
+    entry = UserProfileEntry.find(params[:path][0])
+    redirect_to :controller => '/members', :action => 'view', :path => [ entry.end_user_id ] 
+  end
+
+
   def view 
     @tab = params[:tab].to_i
     @user = EndUser.find(params[:path][0])
@@ -18,11 +25,18 @@ class UserProfile::ManageController < ModuleController
       return render :partial => 'no_profile_type'
     end
 
-    if params[:entry]
-      if @profile_entry.content_model.update_entry(@profile_entry.content_model_entry,params[:entry],@user)
-        flash.now[:notice] = "Edited Profile" 
-      else 
-        @editing_profile = true
+    if params[:profile]
+      if @profile_entry.update_attributes params[:profile].slice(:published, :protected, :url)
+
+        if @profile_entry.content_model && params[:entry]
+          if @profile_entry.content_model.update_entry(@profile_entry.content_model_entry,params[:entry],@user)
+            flash.now[:notice] = "Edited Profile"
+          else
+            @editing_profile = true
+          end
+        else
+          flash.now[:notice] = "Edited Profile"
+        end
       end
     end
 

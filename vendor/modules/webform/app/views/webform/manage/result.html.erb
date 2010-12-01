@@ -1,3 +1,4 @@
+<% if @ajax -%>
 <div class='cms_form'>
 
 <div align="right">
@@ -5,6 +6,9 @@
 </div>
 
 <br/>
+<% else -%>
+<div class="admin_content">
+<% end -%>
 
 <% stat_view do |t| -%>
   <% @result.content_model.content_model_fields.each do |fld| %>
@@ -16,10 +20,9 @@
   <% end -%>
 <% end -%>
 
-<% if @result.reviewed -%>
-  <input type='button' value='Mark as Unread' onclick='WebformResults.mark_as("<%= url_for %>", "0");'/>
-<% else -%>
-  <input type='button' value='Mark as Read' onclick='WebformResults.mark_as("<%= url_for %>", "1");'/>
-<% end -%>
+<% admin_form_for :result, @result, :html => {:onsubmit => @ajax ? "SCMS.updateOverlay('#{url_for :controller => '/webform/manage', :action => 'result', :path => [@result.webform_form.id, @result.id], :table => @table}', Form.serialize(this)); return false;" : nil} do |f| %>
+  <%= hidden_field_tag 'result[reviewed]', @result.reviewed ? 0 : 1 %>
+  <%= f.submit_tag @result.reviewed ? 'Mark as Unread'.t : 'Mark as Read'.t %>
+<% end %>
 
 </div>

@@ -43,12 +43,17 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
         if entry.errors.length == 0 && entry.save
           expire_content(publication.content_model_id)
   
+          user = entry.connected_end_user ? entry.connected_end_user : myself
+
           session['content_model'] ||= {}
           session['content_model'][publication.content_model.table_name] = entry.id
           if publication.update_action_count > 0
-            publication.run_triggered_actions(entry,'create',myself)
+            publication.run_triggered_actions(entry,'create',user)
           end
           
+          self.elevate_user_level(user, @options.user_level) if ! @options.user_level.blank? && @options.user_level > 0
+          self.visiting_end_user_id = user.id
+
           if @options.redirect_page_url
             return redirect_paragraph @options.redirect_page_url
           else
@@ -176,9 +181,14 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
    content_connection,entry_id = page_connection()
    pub_options = paragraph_options(:edit)
    
+     options = {}
    
     if entry_id && entry_id.to_i != 0
-      entry = publication.content_model.content_model.find_by_id(entry_id)
+      publication.each_page_connection_input do |filter_name,fld|
+        conn_type,conn_id = page_connection(filter_name)
+        options[conn_type] = conn_id unless conn_id.blank?
+      end
+      entry = publication.get_filtered_entry(entry_id,options)              
     elsif editor?
       entry = publication.content_model.content_model.find(:first)
     elsif pub_options.allow_entry_creation

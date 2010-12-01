@@ -1,5 +1,5 @@
 <tr <%= highlight_row "user_class",cls.id %> >
-  <td>
+  <td class="first">
   <span id='tools_<%= cls.id %>'>
   <% unless cls.built_in? %>
      <a href='javascript:void(0);' onclick='UserClassEditor.editClass(<%= cls.id %>);'><%= "Edit".t %></a> |

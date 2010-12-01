@@ -102,7 +102,7 @@ class Blog::PageRenderer < ParagraphRenderer
     @options = paragraph_options(:entry_detail)
 
     blog = get_blog
-    return render_paragraph :text => (@options.blog_id > 0 ? '[Configure paragraph]' : '') unless blog
+    return render_paragraph :text => (@options.blog_id.to_i > 0 ? '[Configure paragraph]' : '') unless blog
 
     conn_type, conn_id = page_connection()
     display_string = "#{conn_type}_#{conn_id}_#{myself.user_class_id}"
@@ -115,6 +115,7 @@ class Blog::PageRenderer < ParagraphRenderer
         entry = blog.find_post_by_permalink(conn_id)
       end
 
+      cache[:content_node_id] = entry.content_node.id if entry && entry.content_node
       cache[:output] = blog_entry_detail_feature(:entry => entry,
                                                  :list_page => get_list_page(blog),
                                                  :detail_page => site_node.node_path,
@@ -122,13 +123,15 @@ class Blog::PageRenderer < ParagraphRenderer
       cache[:title] = entry ? entry.title : ''
       cache[:keywords] = (entry && !entry.keywords.blank?) ? entry.keywords : nil
       cache[:entry_id] = entry ? entry.id : nil
+      cache[:comments_ok] = entry ? ! entry.disallow_comments : true
     end
 
     if result.entry_id
       set_page_connection(:content_id, ['Blog::BlogPost',result.entry_id] )
       set_page_connection(:post, result.entry_id )
+      set_page_connection(:comments_ok, result.comments_ok)
       set_title(result.title)
-      set_content_node(['Blog::BlogPost', result.entry_id])
+      set_content_node(result.content_node_id)
       html_include('meta_keywords',result.keywords) if result.keywords 
     else
       return render_paragraph :text => '' if (['', 'category','tag','archive'].include?(conn_id.to_s.downcase)) && site_node.id == @options.list_page_id
@@ -229,16 +232,18 @@ class Blog::PageRenderer < ParagraphRenderer
 
   def get_detail_page
     detail_page =  @options.detail_page_url
+    return nil unless detail_page
     if @options.include_in_path == 'blog_id'
       detail_page += "/#{blog.id}"
     elsif  @options.include_in_path == 'target_id'
       detail_page += "/#{blog.target_id}"
     end
-    detail_page
+    SiteNode.link detail_page
   end
 
   def get_list_page(blog)
     list_page =  @options.list_page_url
+    return nil unless list_page
     if blog
       if @options.include_in_path == 'blog_id'
         list_page += "/#{blog.id}"
@@ -246,6 +251,6 @@ class Blog::PageRenderer < ParagraphRenderer
         list_page += "/#{blog.target_id}"
       end
     end
-    list_page
+    SiteNode.link list_page
   end
 end

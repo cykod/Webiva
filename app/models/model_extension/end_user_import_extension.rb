@@ -80,25 +80,36 @@ module ModelExtension::EndUserImportExtension
       [ 'language', 'Language'.t, ['language' ], :field ],
       [ 'gender', 'Gender'.t, [ 'gender','sex' ], :special ],
       [ 'tags', 'Add Tags'.t, [ 'tags' ], :tags ],
+      [ 'salutation','Salutation'.t,['salutation'],:field],
+      [ 'introduction','Introduction'.t,['introduction'],:field],
       [ 'first_name', 'First Name'.t, ['first name'], :field ],
       [ 'last_name', 'Last Name'.t, ['last name'], :field ],
+      [ 'middle_name','Middle Name'.t, ['middle name'], :field],
+      [ 'suffix','Suffix'.t,['suffix'],:field],
       [ 'name', 'Full Name'.t, ['name'], :special ],
+      [ 'referrer','Referrer'.t,['referrer'],:field],
+      [ 'lead_source','Lead Source'.t,['lead source'],:field],
+      [ 'username','Username'.t,['username'],:field],
       [ 'password', 'Password'.t, ['password'], :special ],
-      [ 'remove_tags', 'Remove Tags'.t, [ 'tags' ], :tags ],
+      [ 'cell_phone','Cell Phone'.t,['cell phone'],:field],
+      [ 'remove_tags', 'Remove Tags'.t, [ 'tags' ], :remove_tags ],
 #      [ 'domain_file_id', 'Image'.t, :special ],
       ['dob', 'Date of Birth'.t, ['date of birth','birth date'], :special ],
       ['vip_number', 'VIP Number'.t, ['vip number','vip'], :field ],
     ].collect do |fld|
-      [ fld[0], fld[1], fld[2] + fld[2].collect { |nm| nm.t }, fld[3] ]
+      [ fld[0], fld[1], (fld[2] + fld[2].map { |nm| [nm.t,nm.gsub(" ",'')]}).flatten, fld[3] ]
     end
     
     # Add in address fields
-    %w(work home billing).each do |address|
+    %w(home work billing).each do |address|
       adr_text = address.humanize
-      %w(company phone fax address city state zip country).each do |field|
+      %w(company phone fax address address_2 city state zip country).each do |field|
         if address == 'work' || field != 'company'
           human_field = adr_text + ' - ' + field.humanize
-          fields << [ address + "_" + field, human_field.t, [ human_field.downcase, human_field.downcase.t ], :address ]
+          fields << [ address + "_" + field, human_field.t, 
+               [ human_field.downcase, human_field.downcase.t ] +
+               (address == 'home' ? [ field.humanize.downcase, field.humanize.downcase.t ] : []),
+          :address ]
 	end
       end
     end
@@ -110,36 +121,47 @@ module ModelExtension::EndUserImportExtension
   def import_csv(filename,data,options={}) #:nodoc:
     actions = data[:actions]
     matches = data[:matches]
-    create = data[:create]
 
     deliminator = options[:deliminator]
-    
-    
+
     opts = options[:options]
     user_opts = opts[:user_options] || {}
-    
+
     page = options[:page].to_i
     page_size = options[:page_size] || 50
-    
+
     import = options[:import] || false
-    
+
     page = 1 if page < 1
-    
+
+    reader_offset = nil
+    reader_limit = nil
     unless import
       reader_offset = (page-1) * page_size
       reader_limit = reader_offset + page_size
     end
-    
+
     entry_errors = []
-    
-    invert_matches = matches.invert
+
     email_field = nil
     reader = CSV.open(filename,"r",deliminator)
     file_fields = reader.shift
     fields = []
-    
+
     user_fields = EndUser.import_fields
+    if SiteModule.module_enabled?('user_profile')
+      user_fields += UserProfileType.import_fields
+    end
     
+    segment = nil
+    if import
+      if opts[:user_list] == 'create'
+        segment = UserSegment.create(:main_page => true, :segment_type => 'custom', :name => opts[:user_list_name], :order_by => 'created', :order_direction => 'DESC') unless opts[:user_list_name].blank?
+      elsif ! opts[:user_list].blank?
+        segment = UserSegment.find_by_id opts[:user_list].to_i
+      end
+    end
+
     file_fields.each_with_index do |fld,idx|
       if actions[idx.to_s] == 'm'
         match = user_fields.detect do |user_fld|
@@ -150,119 +172,132 @@ module ModelExtension::EndUserImportExtension
           if match[0] == 'email'
             email_field = idx
           end
-	end
+        end
       end
     end
-    
+
     parsed_data = []
     idx = 0
-    
+
     opts[:all_tags] ||= ''
     opts[:create_tags] ||= ''
-    
+    uids = []
+
+    opts[:all_tags] = opts[:all_tags].split(',')
+    opts[:create_tags] = opts[:create_tags].split(',')
+    opts[:create_tags] = nil if opts[:create_tags].empty?
+
     new_user_class = UserClass.find_by_id(opts[:user_class_id]) || UserClass.default_user_class
+
     reader.each do |row|
 
       if(row.join.blank?)
         idx+=1
         next
       end
-      
+
       entry_errors = []
       if !reader_offset || idx >= reader_offset
-	entry = EndUser.find_by_email(row[email_field]) unless row[email_field].blank?
-	
-	if import
-	 entry_addresses = {}
-	 
-	 entry_values = {}
-	 entry_method = :update
-	 unless entry
-	   entry_method = :new
-	   entry = EndUser.new(:user_class_id => new_user_class.id, :source => 'import')
-	 end
+        entry = EndUser.find_by_email(row[email_field]) unless row[email_field].blank?
 
-	 
-	 extra_tags = nil
-	 remove_tags = nil
-	 
-	 if opts[:import_mode] == 'normal' ||
-	    ( entry_method == :update  && opts[:import_mode] == 'update' ) ||
-	    ( entry_method == :create && opts[:import_mode] == 'create' )
-	  fields.each do |fld|
-	      value = row[fld[1]].to_s
-	      if fld[4].to_sym == :field
-		entry_values[fld[3]] = value
-	      elsif fld[4].to_sym == :address
-		process_import_address(entry,entry_addresses,fld[3],value)
-	      elsif fld[4].to_sym == :tags
-	        extra_tags = value
-	      elsif fld[4].to_sym == :remove_tags
-	         remove_tags = value
-	      else
-		process_import_field(entry,fld[3],value)
-	      end
-	    end
-	    
-	    entry.attributes = entry_values
-	    entry.valid?
+        if import
+          entry_addresses = {}
 
-            if true # skip validation, allow no email address
-	      entry_addresses.each do |key,adr|
-		adr.save
-		entry.send("#{key}=".to_sym,adr.id)
-	      end
+          entry_profiles = {}
+          entry_values = {}
+          entry_method = :update
+          unless entry
+            entry_method = :new
+            entry = EndUser.new(:user_class_id => new_user_class.id, :source => 'import')
+          end
 
-              if user_opts.include?('vip') &&  entry.vip_number.blank?
+          extra_tags = nil
+          remove_tags = nil
+
+          if opts[:import_mode] == 'normal' ||
+              ( entry_method == :update  && opts[:import_mode] == 'update' ) ||
+              ( entry_method == :new && opts[:import_mode] == 'create' )
+            fields.each do |fld|
+              value = row[fld[1]].to_s
+              if fld[4].to_sym == :field
+                entry_values[fld[3]] = value
+              elsif fld[4].to_sym == :address
+                process_import_address(entry,entry_addresses,fld[3],value)
+              elsif fld[4].to_sym == :tags
+                extra_tags = value
+              elsif fld[4].to_sym == :remove_tags
+                remove_tags = value
+              elsif fld[4].to_sym == :profile
+                process_profile_import(entry,entry_profiles,fld[3],value)
+              else
+                process_import_field(entry,fld[3],value)
+              end
+            end
+
+            entry.attributes = entry_values
+
+            if entry.valid?
+              entry_addresses.each do |key,adr|
+                adr.save
+                entry.send("#{key}=".to_sym,adr.id)
+              end
+
+              if user_opts.include?('vip') && entry.vip_number.blank?
                 entry.vip_number = EndUser.generate_vip()
               end
 
-	      
-	      if(entry.save(false))
-		entry_addresses.each do |key,adr|
-		  if adr.end_user_id != entry.id 
-		    adr.update_attribute(:end_user_id,entry.id)
-		  end
-		end
-		# add
-		
-		
-		if !opts[:all_tags].empty?
-		  entry.tag_names_add(opts[:all_tags])
-		end
-		# Add any create tags
-		if !opts[:create_tags].empty? && entry_method == :new
-		  entry.tag_names_add(opts[:create_tags])
-		end
 
-		if extra_tags
-		  entry.tag_names_add(extra_tags)
-		end
-		
-		if remove_tags
-		  entry.tag_remove(remove_tags, :separator => ',')
-		end
+              if(entry.save(false))
+                uids << entry.id
+                entry_addresses.each do |key,adr|
+                  if adr.end_user_id != entry.id 
+                    adr.update_attribute(:end_user_id,entry.id)
+                  end
+                end
+                # add
+                #
 
-	      end
-	    else
-	     entry_errors << [idx, entry.errors ]
-	    end
-	  end
-	else
-	  act = entry ? 'm' : 'c'
-	  act = 's' if act == 'm' && opts[:import_mode] == 'create'
-	  act = 's' if act == 'c' && opts[:import_mode] == 'update'
-	  
-	  parsed_data << [ act ] + fields.collect do |fld|
-	    row[fld[1]].to_s
-	  end
-	end
-	
-	if block_given?
-	 yield 1,entry_errors
-	end
+                if SiteModule.module_enabled?('user_profile')
+                  if entry_profiles.length > 0
+                    entry_profiles.each do |profile_id,values|
+                      profile_entry = UserProfileEntry.fetch_entry(entry.id,profile_id.to_i)
+                      content_model_entry  = profile_entry.content_model_entry
+                      content_model_entry.attributes = values
+                      content_model_entry.save
+                    end
+                  end
+                end
+
+                tags_to_add = opts[:all_tags]
+                tags_to_add += opts[:create_tags] if opts[:create_tags] && entry_method == :new
+                tags_to_add += extra_tags.split(',') unless extra_tags.blank?
+
+                entry.tag tags_to_add unless tags_to_add.empty?
+
+                if remove_tags
+                  entry.reload unless tags_to_add.empty?
+                  entry.tag_remove(remove_tags, :separator => ',')
+                end
+              end
+            else
+              entry_errors << [idx, entry.email]
+            end
+          end
+        else
+          act = entry ? 'm' : 'c'
+          act = 's' if act == 'm' && opts[:import_mode] == 'create'
+          act = 's' if act == 'c' && opts[:import_mode] == 'update'
+
+          parsed_data << [ act ] + fields.collect do |fld|
+            row[fld[1]].to_s
+          end
+        end
+
+        if block_given?
+          yield 1,entry_errors
+        end
       end
-      
+
       # Exit if we are already over sample limit
       if reader_limit &&  idx >= reader_limit
         break;
@@ -270,15 +305,36 @@ module ModelExtension::EndUserImportExtension
       idx+=1
     end
     reader.close
-    
+
+    segment.add_ids uids if segment
+
     if import
       return entry_errors
     else
       return fields, parsed_data
     end
-  
+
   end
-  
+
+
+  def process_profile_import(entry,entry_profiles,field,value) #:nodoc:
+    return if value.blank?
+    content_model_field_cache DataCache.local_cache('end_user_import_extension:content_model_field_cache') || {}
+    if field =~ /user_profile_field_([0-9]+)_([0-9]+)/
+      user_profile_type_id = $1.to_i
+      user_profile_column_id = $2.to_i
+      content_model_field_cache[user_profile_column_id] ||= ContentModelField.find_by_id(user_profile_column_id)
+
+
+      if content_field = content_model_field_cache[user_profile_column_id]
+        if !content_field.field.blank?
+          entry_profiles[user_profile_type_id] ||= {}
+          entry_profiles[user_profile_type_id][content_field.field] = value
+        end
+      end
+    end
+    DataCache.put_local_cache 'end_user_import_extension:content_model_field_cache', content_model_field_cache
+  end
 
 
  

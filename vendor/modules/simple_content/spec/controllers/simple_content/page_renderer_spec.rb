@@ -12,7 +12,7 @@ describe SimpleContent::PageRenderer, :type => :controller do
 
   it "should render page structured_view" do
     @rnd = generate_page_renderer('structured_view')
-    @rnd.should_receive(:render_paragraph).with(:nothting => true)
+    @rnd.should_receive(:render_paragraph).with(:nothing => true)
     renderer_get @rnd
   end
 

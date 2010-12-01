@@ -167,6 +167,8 @@ PublicationEditor = {
 }
 
 </script>
+<hr/>
+<div class='admin_content tab_container'>
 <% ajax_tabs [ 'Fields', 'Options','Triggered Actions'], 'Fields' do |t| -%>
 
 <% t.tab do %>
@@ -215,7 +217,7 @@ PublicationEditor = {
   <div id='triggered_actions'>
     <%= render :partial => 'triggered_actions' %>
   </div>
-  <%= link_to "New Action".t , { :controller => '/triggered_action/index', :action => 'index', :callback => 'PublicationEditor.commitAction', :trigger => 'publication', :trigger_id => @publication.id  }, :popup => ['new_action', 'height=450,width=700' ], :id => 'file_link', :class => 'ajax_link'  %>
+  <%= link_to "New Action".t , { :controller => '/triggered_action/index', :action => 'index', :callback => 'PublicationEditor.commitAction', :trigger => 'publication', :trigger_id => @publication.id  }, :popup => ['new_action', 'height=550,width=800,scrollbars=yes' ], :id => 'file_link', :class => 'ajax_link'  %>
 </div>
 <% end -%>
 
@@ -225,3 +227,5 @@ PublicationEditor = {
   <div id='publication_preview' style='display:none;'>
   
   </div>
+
+</div>

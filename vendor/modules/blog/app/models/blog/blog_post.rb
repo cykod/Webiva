@@ -51,7 +51,7 @@ class Blog::BlogPost < DomainModel
   end
   
   content_node :container_type => :content_node_container_type,  :container_field => Proc.new { |post| post.content_node_container_id },
-  :preview_feature => '/blog/page_feature/blog_post_preview'
+  :preview_feature => '/blog/page_feature/blog_post_preview', :push_value => true
 
   def revision
     @revision ||= self.active_revision ? self.active_revision.clone : Blog::BlogPostRevision.new
@@ -88,6 +88,10 @@ class Blog::BlogPost < DomainModel
     return @comments_count 
   end
 
+  def approved_comments_count
+    @approved_comments_count ||= self.comments.with_rating(1).count
+  end
+
   def self.paginate_published(page,items_per_page,blog_ids = [])
     if blog_ids.length > 0
       Blog::BlogPost.paginate(page,
@@ -110,8 +114,9 @@ class Blog::BlogPost < DomainModel
       if permalink.blank? && self.active_revision
         date = self.published_at || Time.now
         permalink_try_partial = date.strftime("%Y-%m-") + self.active_revision.title.downcase.gsub(/[ _]+/,"-").gsub(/[^a-z+0-9\-]/,"")
+        permalink_try_partial = permalink_try_partial[0..59].gsub(/\-$/,"")
         idx = 2
-        permalink_try = permalink_try_partial[0..60]
+        permalink_try = permalink_try_partial
         
         while(Blog::BlogPost.find_by_permalink(permalink_try,:conditions => ['id != ?',self.id || 0] ))
           permalink_try = permalink_try_partial + '-' + idx.to_s
@@ -120,7 +125,7 @@ class Blog::BlogPost < DomainModel
         
         self.permalink = permalink_try
       elsif 
-        self.permalink = self.permalink.to_s.gsub(/[^a-z+0-9\-]/,"")
+        self.permalink = self.permalink.to_s.gsub(/[^a-z+0-9\-]/,"")[0..63]
       end
   end
 
@@ -180,7 +185,7 @@ class Blog::BlogPost < DomainModel
   end
   
   def preview
-    self.revision.preview.blank? ? self.body_content : self.preview_content
+    self.revision.preview
   end
 
   def self.get_content_options

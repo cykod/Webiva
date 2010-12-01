@@ -2,7 +2,7 @@
 
 class MembersController < CmsController # :nodoc: all
 
-  permit 'editor_members', :only => [ :index, :create, :edit, :view, :delete_member ]
+  permit 'editor_members', :except => [:lookup_autocomplete]
 
   layout 'manage'
   
@@ -12,7 +12,8 @@ class MembersController < CmsController # :nodoc: all
   
   # need to include 
   include ActiveTable::Controller   
-  
+  include MembersHelper
+
   protected 
 
   def segmentations
@@ -40,7 +41,7 @@ class MembersController < CmsController # :nodoc: all
     if self.search_results
       self.search.users
     elsif self.segment
-      pages, users = self.segment.paginate self.search.page, :per_page => 25, :include => opts[:include]
+      pages, users = self.segment.paginate self.search.page, :per_page => opts[:limit] || 10, :include => opts[:include]
       users
     else
       EndUser.find(:all, :conditions => 'client_user_id IS NULL', :offset => opts[:offset], :limit => opts[:limit], :order => self.class.module_options.order(opts), :include => opts[:include])
@@ -70,13 +71,16 @@ class MembersController < CmsController # :nodoc: all
   end
 
   def handle_table_actions
-    if request.post? && params[:table_action] && params[:user].is_a?(Hash)
-      if params[:table_action] == 'delete'
-        EndUser.destroy(params[:user].keys)
+    active_table_action('user') do |act,uids| 
+      uids = uids.map(&:to_i)
+      if act == 'delete'
+        EndUser.destroy(uids)
       else
-        update_users = EndUser.find(:all,:conditions => [ 'end_users.id IN (' + params[:user].keys.collect { |uid| DomainModel.connection.quote(uid) }.join(",") + ")" ])
+        update_users = EndUser.find(:all,:conditions => { :id => uids })
         
-        case params[:table_action]
+        case act
+        when 'acknowledge'
+          update_users.map { |usr| usr.update_attribute(:acknowledged,true) }
         when 'add_tags'
           update_users.each do |user|
             user.tag_names_add(params[:added_tags]) if user
@@ -91,10 +95,19 @@ class MembersController < CmsController # :nodoc: all
           end
         when 'add_users'
           custom_segment = UserSegment.find params[:user_segment_id]
-          custom_segment.add_ids params[:user].keys.collect { |uid| uid.to_i } if custom_segment && custom_segment.segment_type == 'custom'
+          custom_segment.add_ids uids if custom_segment && custom_segment.segment_type == 'custom'
         when 'remove_users'
-          custom_segment = UserSegment.find params[:user_segment_id]
-          custom_segment.remove_ids(params[:user].keys.collect { |uid| uid.to_i }) if custom_segment && custom_segment.segment_type == 'custom'
+          custom_segment = UserSegment.find params[:path][0]
+          custom_segment.remove_ids(uids) if custom_segment && custom_segment.segment_type == 'custom'
+        when 'quick_edit'
+          quick_edit_fields = [ :referrer,:user_class_id,:user_level,:source,:lead_source ]
+          fields = params[:edit].slice(*quick_edit_fields)
+          quick_edit_fields.each { |fld| fields.delete(fld) if fields[fld].blank? }
+          update_vip = params[:edit][:vip]
+          update_users.each do |usr|
+            usr.vip_number = EndUser.generate_vip if update_vip
+            usr.update_attributes(fields)
+          end
         end
       end
     end
@@ -105,7 +118,8 @@ class MembersController < CmsController # :nodoc: all
 
     @email_targets_table_columns = [
       ActiveTable::IconHeader.new('check', :width => '16'),
-      ActiveTable::StaticHeader.new('', :width => '24'),
+      ActiveTable::OrderHeader.new('user_level',:label => 'Lvl', :width => '24'),
+      ActiveTable::StaticHeader.new('Edit', :width => '24'),
       ActiveTable::StaticHeader.new('Image', :width => '70'),
       ActiveTable::StaticHeader.new('Name'),
       ActiveTable::OrderHeader.new('email')
@@ -114,7 +128,7 @@ class MembersController < CmsController # :nodoc: all
     @fields = []
     end_user_only = true
     if self.segment && self.segment.fields
-      @fields = self.segment.fields
+      @fields = self.segment.fields.length > 0 ? self.segment.fields : self.class.module_options.fields
       end_user_only = false
     else self.class.module_options && self.class.module_options.fields
       @fields = self.class.module_options.fields
@@ -194,7 +208,8 @@ class MembersController < CmsController # :nodoc: all
       handle_table_actions
     end
 
-    @active_table_output = email_targets_table_generate params, :per_page => 25, :include => [:user_class, :domain_file]
+    params[email_targets_table_name] = params[:email_targets_table]
+    @active_table_output = email_targets_table_generate params, :include => [:user_class, :domain_file]
 
     @handlers_data = UserSegment.get_handlers_data(@active_table_output.data(&:id), @fields)
 
@@ -217,6 +232,8 @@ class MembersController < CmsController # :nodoc: all
     segmentations
 
     display_targets_table(false)
+
+
   end
 
    active_table :user_segments_table,
@@ -272,7 +289,7 @@ class MembersController < CmsController # :nodoc: all
   end
 
   class Options < HashModel
-    attributes :fields => [], :order_by => 'created', :order_direction => 'DESC'
+    attributes :fields => ['created', 'profile', 'source', 'lead_source', 'tag'], :order_by => 'created', :order_direction => 'DESC'
 
     def validate
       if self.fields
@@ -645,13 +662,22 @@ class MembersController < CmsController # :nodoc: all
   end
   
   def member_visits
-    @user = EndUser.find_by_id(params[:path][0]) 
-    @entry_info,@entries = DomainLogEntry.find_user_sessions(@user)
+    @user = EndUser.find_by_id(params[:path][0])
+    @sessions = DomainLogEntry.user_sessions @user.id
     render :partial => 'site_visits'
+  end
+
+  def member_visit_entries
+    @session = DomainLogSession.find params[:path][0]
+    render :partial => 'site_entries', :locals => {:entries => @session.domain_log_entries.find(:all, :order => 'occurred_at DESC')}
   end
 
   def add_tags_form
     render :partial => 'add_tags_form'
+  end
+
+  def quick_edit_form
+    render :partial => 'quick_edit_form'
   end
   
   def remove_tags_form
@@ -707,6 +733,21 @@ class MembersController < CmsController # :nodoc: all
 
   def generate_vip
     @vip_number = EndUser.generate_vip
+  end
+
+  def note
+    @user = EndUser.find params[:path][0]
+    @note = params[:path][1] ? @user.end_user_notes.find(params[:path][1]) : @user.end_user_notes.build(:admin_user_id => myself.id)
+
+    if request.post? && params[:note]
+      if @note.update_attributes params[:note]
+        @note = @user.end_user_notes.build(:admin_user_id => myself.id)
+      end
+    end
+
+    @notes = @user.end_user_notes.find :all
+
+    render :partial => 'note'
   end
 
   private

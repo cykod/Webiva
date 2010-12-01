@@ -7,7 +7,7 @@ class Webform::PageFeature < ParagraphFeature
      <cms:field>
       <div class='item'>
         <cms:error><div class='error'><cms:value/></div></cms:error>
-        <div class='label'><cms:label/><cms:required>*</cms:required>:</div>
+        <div class='label'><cms:label/>:</div>
         <div class='field'><cms:control/></div>
       </div>
      </cms:field>

@@ -71,8 +71,8 @@ class MemberExportWorker <  Workling::Base #:nodoc:all
     domain_file = DomainFile.save_temporary_file filename, :name => sprintf("%s_%d.%s",'Email_Targets'.t,Time.now.strftime("%Y_%m_%d"),'csv')
 
     results[:domain_file_id] = domain_file.id
-    results[:entries] = @members.length
-    results[:type] = 'csv'
+    results[:entries] = idx
+    results[:type] = 'text/csv'
     results[:completed] = 1
 
     Workling.return.set(args[:uid],results)

@@ -857,15 +857,16 @@ class CmsUnstyledForm < StyledForm
 
  
   
-  generate_styled_fields('form_options',
+  generate_styled_fields('unstyled_form_options',
                           field_helpers + %w(label_field label_option_field country_select collection_select select radio_buttons grouped_check_boxes grouped_radio_buttons grouped_select check_boxes) - %w(check_box radio_button hidden_field) +  %w(access_control filemanager_image filemanager_folder filemanager_file price_classes price_range color_field date_field datetime_field upload_image upload_document unsorted_selector content_selector multi_content_selector image_list end_user_selector autocomplete_field ordered_selection_list ordered_array)) do 
       options[:output]
   end
-  
-  def form_options(tag,field,output,options) #:nodoc:
+
+  def unstyled_form_options(tag,field,output,options) #:nodoc:
+    options = options.symbolize_keys
     options[:class] = !options[:class].blank? ? tag.to_s + '_input ' + options[:class].to_s : tag.to_s + '_input'
     {
-      :output => output.call( {:class => options[:class] })
+      :output => output.call( {:class => options[:class], :required => nil, :noun => nil, :label => nil })
     }
   end
   

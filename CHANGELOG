@@ -1,3 +1,25 @@
+1.00.0RC1 - 2010-11-29
+----------------------
+- New Page, Content, Affiliate, Referrer, Statistics pages
+- New Back End Design
+- User Notes Support
+- Added A/B Experiments
+- Added Webalytics support, Location lookup
+- New Marketing Dashboard
+- Added Wordpress import
+- Added jquery to backend
+- Removed less support
+- File Manager waiting updates
+- Changed default DOCTYPE to HTML5
+- User Profile module enhancements: list, profile editing
+- Robots.txt support
+- Sitemap.xml support
+- Added Theme Builder
+- New Marketing Dashboard
+- User Level auto elevation
+- File Manager Bug Fixes
+
+
 0.99.1 - 2010-08-16
 -------------------
 - Fix to quick_install.rb script

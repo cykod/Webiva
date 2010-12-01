@@ -89,7 +89,7 @@ class ContentModelSegmentField < UserSegment::FieldHandler
 
   def self.field_output(user, handler_data, field)
     info = UserSegment::FieldHandler.display_fields[field]
-    return unless info
+    return unless info && handler_data[user.id]
     display_field = info[:display_field]
     handler_data[user.id].collect do |data|
       self.content_model.field(display_field).content_display(data, :excerpt)

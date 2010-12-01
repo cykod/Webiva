@@ -158,9 +158,7 @@ class ContentPublication < DomainModel
 
   def each_page_connection_input
     self.content_publication_fields.each do |fld|
-      fld.filter_variables.each do |filter_var|
-        yield fld.content_model_field.field.to_sym,fld
-      end
+      yield fld.content_model_field.field.to_sym,fld
     end
   end
 
@@ -171,17 +169,27 @@ class ContentPublication < DomainModel
         info[:inputs] ||= {}
         info[:inputs][fld.content_model_field.field.to_sym] = []
 
-        fld.filter_variables.each do |filter_var|
+
+        if fld.content_model_field.is_type?('content/core_field/belongs_to')
+          if fld.content_model_field.relation_class == EndUser
+            info[:inputs][fld.content_model_field.field.to_sym] <<
+            [ "filter_#{fld.content_model_field.relation_name}".to_sym, fld.content_model_field.relation_name, :user_target]
+          end
           info[:inputs][fld.content_model_field.field.to_sym] <<
+            [ "filter_#{fld.content_model_field.field}".to_sym, "#{fld.content_model_field.relation_name} ID", :path]
+        else
+          fld.filter_variables.each do |filter_var|
+            info[:inputs][fld.content_model_field.field.to_sym] <<
             [ filter_var.to_sym, filter_var.to_s.humanize, :path ]
+          end
         end
-        
       end
     end
 
 
+    # Disable publication outputs for now
     self.content_publication_fields.each do |fld|
-      if fld.options.page_connection
+      if false && fld.options.filter_options.include?('connection')
         info[:outputs] ||= []
         info[:outputs] << [fld.content_model_field.field.to_sym,
                            fld.content_model_field.name,
@@ -289,9 +297,9 @@ class ContentPublication < DomainModel
 
       tags = (options[:tags]||[]).find_all() { |elm| !elm.blank? }
       if tags.length > 0
-        filter[:conditions] << 'content_tags.id IN (?)'
+        filter[:conditions] << 'content_tag_tags.content_tag_id IN (?)'
         filter[:values] << tags
-        filter[:joins] << "INNER JOIN content_tags ON (`#{content_model.table_name}`.id = content_tags.id)"
+        filter[:joins] << "INNER JOIN content_tag_tags ON (`#{content_model.table_name}`.id = content_tag_tags.content_id AND content_tag_tags.content_type = #{content_model.connection.quote(content_model.table_name.classify)})"
       end
     end
 

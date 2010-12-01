@@ -23,8 +23,12 @@ class Webform::PageRenderer < ParagraphRenderer
           @captcha.validate_object(@result, :skip => ! @options.captcha)
           if @result.save
             @options.deliver_webform_results(@result)
-            paragraph.run_triggered_actions(@result.webform_form,'submitted',myself)
+            user = @result.connected_end_user ? @result.connected_end_user : myself
+            paragraph.run_triggered_actions(@result,'submitted',user)
             @saved = true
+
+            self.elevate_user_level(user, @options.user_level) if @options.user_level
+            self.visiting_end_user_id = user.id if user && user.id
 
             return redirect_paragraph :site_node => @options.destination_page_id if @options.destination_page_id
           end

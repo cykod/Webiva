@@ -6,10 +6,11 @@ class Webform::PageController < ParagraphController
   editor_for :display, :name => "Display", :feature => :webform_page_display
 
   class FormOptions < HashModel
-    attributes :webform_form_id => nil, :destination_page_id => nil, :email_to => nil, :captcha => false
+    attributes :webform_form_id => nil, :destination_page_id => nil, :email_to => nil, :captcha => false, :user_level => nil
 
     page_options :destination_page_id
     boolean_options :captcha
+    integer_options :user_level
 
     validates_presence_of :webform_form_id
 
@@ -17,7 +18,8 @@ class Webform::PageController < ParagraphController
          fld(:webform_form_id, :select, :options => :webform_form_options),
          fld(:destination_page_id, :select, :options => :destination_page_options),
          fld(:email_to, :text_area, :rows => 4),
-         fld(:captcha, :radio_buttons, :options => [ ['Yes'.t,true],['No'.t,false]], :label => 'Require Captcha')
+         fld(:captcha, :radio_buttons, :options => [ ['Yes'.t,true],['No'.t,false]], :label => 'Require Captcha'),
+         fld(:user_level, :select, :options => :user_level_options)
          )
 
     def self.destination_page_options
@@ -42,6 +44,10 @@ class Webform::PageController < ParagraphController
 
     def options_partial
       "/application/triggered_options_partial"
+    end
+
+    def self.user_level_options
+      [['--Select User Level--', nil]] + EndUser.user_level_select_options.select { |lvl| lvl[1] >= 3 && lvl[1] <= 5 }
     end
   end
 

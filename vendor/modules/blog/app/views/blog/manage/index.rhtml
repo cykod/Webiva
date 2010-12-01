@@ -11,8 +11,11 @@ var PostEditor = {
 }
 </script>
 
-<% action_panel do |p| -%>
-  <%= p.link "Post a new Entry",   :action => 'post', :path => @blog.id, :icon => 'add.gif' %>
+<% action_panel :more => true do |p| -%>
+  <%= p.link "Post a new Entry",   :action => 'post', :path => @blog.id, :icon => 'add.png' %>
+<% end -%>
+
+<% more_action_panel do |p| -%>
   <%= p.link "Blog Categories",  :controller => 'categories', :path => @blog.id, :icon => 'edit.gif' %>
   <%= p.link "Configure Blog", :action => 'configure', :path => @blog.id, :icon => 'configure.gif' if myself.has_role?('blog_config') %>
   <%= p.link "Import Entries", :action => "import", :path => @blog.id, :icon => "upload.gif" if myself.has_role?('blog_config') %>

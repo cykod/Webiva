@@ -67,7 +67,7 @@ class UserSegment::FieldType
   end
 
   # converts a string to the correct type
-  # supported types are :integer, :float, :double, :date, :datetime, :option, :boolean, :model
+  # supported types are :integer, :float, :double, :date, :datetime, :option, :boolean, :model, :array
   def self.convert_to(value, type, opts={})
     return value if value.nil?
 
@@ -81,35 +81,51 @@ class UserSegment::FieldType
     when :date, :datetime
       begin
         return value if value.is_a?(Time)
-        return Time.parse(value)
+        return Time.parse(value) unless value.is_a?(Array)
       rescue
       end
     when :option
-      value = value.downcase if value.is_a?(String)
-      value = opts[:options].find do |o|
-        if o.is_a?(Array)
-          o[1] == value
-        else
-          o == value
+      unless value.is_a?(Array)
+        value = value.downcase if value.is_a?(String)
+        value = opts[:options].find do |o|
+          if o.is_a?(Array)
+            o[1] == value
+          else
+            o == value
+          end
         end
-      end
 
-      return value[1] if value.is_a?(Array)
-      return value
+        return value[1] if value.is_a?(Array)
+        return value
+      end
     when :boolean
       return value if value.is_a?(TrueClass) || value.is_a?(FalseClass)
       value = value.downcase if value.is_a?(String)
       return true if value == 1 || value == '1' || value == 'true'
       return false if value == 0 || value == '0' || value == 'false'
     when :model
-      options = self.model_options(opts)
-      value = value.to_i if options.size > 0 && options[0].is_a?(Array) && options[0][1].is_a?(Integer)
-      if options[0].is_a?(Array)
-        values = options.rassoc(value)
-        return values[1] if values
-      else
-        return value if options.include?(value)
+      if value.is_a?(String) || value.is_a?(Integer)
+        options = self.model_options(opts)
+        value = value.to_i if options.size > 0 && options[0].is_a?(Array) && options[0][1].is_a?(Integer)
+        if options[0].is_a?(Array)
+          values = options.rassoc(value)
+          return values[1] if values
+        else
+          return value if options.include?(value)
+        end
       end
+    when :array
+      if value.is_a?(Array)
+        options = self.model_options(opts)
+        value.delete_if { |v| v == '' }
+        value = value.collect { |v| v.to_i } if options.size > 0 && options[0].is_a?(Array) && options[0][1].is_a?(Integer)
+        if options[0].is_a?(Array)
+          value.each { |v| return nil unless options.rassoc(v) }
+        else
+          value.each { |v| return nil unless options.include?(v) }
+        end
+        return value
+      end      
     end
 
     nil
@@ -156,6 +172,8 @@ class UserSegment::FieldType
           value = value.inject(0) { |a,b| a + b } / value.size
         when 'count'
           value = value.size
+        else
+          value = info[:handler].send(info[:display_method], value) if info[:display_method] && info[:handler].respond_to?(info[:display_method])
         end
       else # index_by
         value = data.send(display_field)
@@ -169,7 +187,7 @@ class UserSegment::FieldType
         v
       end
 
-      value = value.map(&:to_s).reject(&:blank?).join(', ')
+      value = value.map(&:to_s).reject(&:blank?).sort.uniq.join(', ')
     end
 
     value = value.strftime(DEFAULT_DATETIME_FORMAT.t) if value.is_a?(Time)

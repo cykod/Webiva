@@ -29,7 +29,7 @@ describe EndUserSegmentType do
     end
 
     it "should return users using based on source" do
-      @type.select_options.length.should == 2
+      @type.select_options.length.should == 3
       @type.is(EndUser, :id, :source, 'import').count.should == 2
       @type.is(EndUser, :id, :source, 'site').count.should == 1
     end

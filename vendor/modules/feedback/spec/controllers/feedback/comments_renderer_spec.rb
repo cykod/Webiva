@@ -75,8 +75,8 @@ describe Feedback::CommentsRenderer, :type => :controller do
     inputs = {}
     @rnd = generate_comments_renderer(options, inputs)
 
-    @page_revision = ''
-    @rnd.paragraph.should_receive(:page_revision).twice().and_return(@page_revision)
+    @page_revision = PageRevision.new
+    @rnd.paragraph.should_receive(:page_revision).any_number_of_times.and_return(@page_revision)
     @page_revision.should_receive(:revision_container_type).and_return('TestTarget')
     @page_revision.should_receive(:revision_container_id).and_return(15)
 
@@ -113,8 +113,8 @@ describe Feedback::CommentsRenderer, :type => :controller do
     inputs = {}
     @rnd = generate_comments_renderer(options, inputs)
 
-    @page_revision = ''
-    @rnd.paragraph.should_receive(:page_revision).twice().and_return(@page_revision)
+    @page_revision = PageRevision.new
+    @rnd.paragraph.should_receive(:page_revision).any_number_of_times.and_return(@page_revision)
     @page_revision.should_receive(:revision_container_type).and_return('TestTarget')
     @page_revision.should_receive(:revision_container_id).and_return(15)
 

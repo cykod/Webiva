@@ -245,8 +245,8 @@ module Content
       elsif options[:format] && options[:format] == 'simple'
         simple_format(h(val))
       else
-        if options[:limit]
-          Content::Field.snippet(h(val),options[:limit].to_i,options[:omission] || '...')
+        if options[:snippet]
+          Content::Field.snippet(h(val),options[:snippet].to_i,options[:omission] || '...')
         else
           h val
         end
@@ -572,13 +572,29 @@ module Content
         end
       end,
       :conditions => Proc.new do |field_name,fld,options|
-        val = options[(field_name + "_options").to_sym]
+        val = options[(field_name + "_options").to_sym] if options[(field_name + "_options").to_sym] != [""]
+
+        # Handle cases where we get the object id or target sent in (mostly for belongs_to)
+        val = options[(field_name + "_id").to_sym] if val.blank?
+        val = options[field_name.to_sym] if val.blank?
+        if val && val.kind_of?(DomainModel)
+          val = val.id ? val.id : 0
+        end
+
         val  = [ val ] unless val.is_a?(Array)
         val = val.reject(&:blank?)
         val.length == 0 ? nil :{ :conditions =>  "#{fld.escaped_field} IN (?)", :values => [ val ] }
       end ,
       :fuzzy =>  Proc.new do |field_name,fld,options|
-        val =  options[(field_name + "_options").to_sym]
+        val = options[(field_name + "_options").to_sym] if options[(field_name + "_options").to_sym] != [""]
+
+        # Handle cases where we get the object id or target sent in (mostly for belongs_to)
+        val = options[(field_name + "_id").to_sym] if val.blank?
+        val = options[field_name.to_sym] if val.blank?
+        if val && val.kind_of?(DomainModel)
+          val = val.id ? val.id : 0
+        end
+
         val  = [ val ] unless val.is_a?(Array)
         val = val.reject(&:blank?)
         val.length == 0 ? nil : { :score =>  "IF(#{fld.escaped_field} IN (" + val.map { |elm| DomainModel.quote_value(elm) }.join(",") + "),1,0)" }

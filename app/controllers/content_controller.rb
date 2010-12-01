@@ -15,6 +15,9 @@ class ContentController < ModuleController #:nodoc: all
 
   before_filter :check_view_permission, :only => [ 'view', 'entry' ]
   before_filter :check_edit_permission, :only => [ 'add_tags_form','remove_tags_form','edit_entry' ]
+
+  cms_admin_paths 'content',
+    'Content' => { :action =>'index'}
   
   register_handler :content, :fields, "Content::CoreField"
   register_handler :content, :publication, "Content::CorePublication"
@@ -34,6 +37,10 @@ class ContentController < ModuleController #:nodoc: all
 
   register_handler :structure, :wizard, 'Wizards::SimpleSite'
   register_handler :structure, :wizard, 'Wizards::MembersSetup'
+
+  register_handler :chart, :traffic, 'ContentNode'
+  register_handler :chart, :traffic, 'SiteNode'
+  register_handler :chart, :traffic, 'DomainLogReferrer'
 
   def index
     @content_models,@content_actions = CmsController.get_content_models_and_actions
@@ -56,7 +63,7 @@ class ContentController < ModuleController #:nodoc: all
       end
     end
     
-    cms_page_info('Content','content') 
+    cms_page_path [],'Content'
   end
 
   def custom
@@ -339,7 +346,7 @@ class ContentController < ModuleController #:nodoc: all
   
     @content_model = ContentModel.find(content_id)
     
-    @fields, fields_valid = @content_model.process_fields(params[:model_fields].map { |idx| params[:field][idx] })
+    @fields, fields_valid = @content_model.process_fields((params[:model_fields]||[]).map { |idx| params[:field][idx] })
     
     if request.post? && fields_valid
        worker_key = MigrationHandlerWorker.async_do_work( :content_model_id =>  @content_model.id,

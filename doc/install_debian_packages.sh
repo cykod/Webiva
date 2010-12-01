@@ -185,6 +185,15 @@ cd $WEBIVA_BASE_DIR
 
 if [ ! -f $WEBIVA_DIR ]; then
     sudo -u $DEV_USER git clone git://github.com/cykod/Webiva.git
+
+    cd $WEBIVA_DIR
+
+    ANSWER=n
+    echo ""
+    read -p "Do you want to use the Webiva development branch? (y/n): " ANSWER
+    if [ $ANSWER = 'y' ]; then
+	sudo -u $DEV_USER git checkout --track -b development origin/development
+    fi
 fi
 
 cd $WEBIVA_DIR

@@ -2,33 +2,110 @@
 
 class EmarketingController < CmsController # :nodoc: all
   include ActionView::Helpers::DateHelper
+  include ActionView::Helpers::NumberHelper
 
   layout 'manage'
+
+  cms_admin_paths 'marketing',
+    'Marketing' => { :action => 'index' }
   
   permit ['editor_visitors','editor_members','editor_mailing'], :only => :index
   permit 'editor_visitors', :except => :index
 
   def index
-    cms_page_info('E-marketing','e_marketing')
-    
-    
+    cms_page_path [],'Marketing'
+
     @subpages = [
-       [ "Visitor Statistics", :editor_visitors, "emarketing_statistics.gif", { :action => 'visitors' }, 
+       [ "Visitor Statistics", :editor_visitors, "traffic_visitors.png", { :action => 'visitors' }, 
           "View and Track Visitors to your site" ],
-       [ "Real Time Statistics", :editor_visitors, "emarketing_statistics.gif", { :action => 'stats' }, 
-          "View Real Time Visits to your site" ],
-       [ "Subscriptions", :editor_mailing,"emarketing_subscriptions.gif", { :controller => '/subscription' },
-          "Edit Newsletters and Mailing Lists Subscriptions" ],
-       [ "Email Templates", :editor_mailing,"emarketing_templates.gif", { :controller => '/mail_manager', :action => 'templates' },
-          "Edit Mail Templates" ]
-          
-        ]
-    
+       [ "Real Time Statistics", :editor_visitors, "traffic_realtime.png", { :action => 'stats' }, 
+          "View Real Time Visits to your site" ]
+    ]
+
+    get_handler_info(:chart, :traffic).each do |handler|
+      @subpages << [handler[:name], :editor_visitors, handler[:icon] || 'traffic_page.png', handler[:url], handler[:description] || handler[:name]]
+    end
+
+    require_js 'protovis/protovis-r3.2'
+    require_js 'protovis/protovis-d3.2'
+    require_js 'tipsy/jquery.tipsy'
+    require_js 'protovis/tipsy'
+    require_js 'charts/sources'
+    require_css 'tipsy/tipsy.css'
+
+    @site_traffic = {
+      :today => DomainLogEntry.traffic(Time.now.at_midnight, 1.day, 1),
+      :yesterday => DomainLogEntry.traffic(1.day.ago.at_midnight, 1.day, 1),
+      :this_week => DomainLogEntry.traffic(Time.now.at_beginning_of_week, 1.week, 1)
+    }
+
+    referrer_sources(false)
+
+    @subpages << ['Affiliate Traffic', :editor_visitors, 'traffic_visitors.png', {:action => 'affiliates'}, 'View Affiliate Traffic']
+
+    @subpages << ['Experiments', :editor_visitors, 'traffic_visitors.png', {:controller => '/experiment', :action => 'index'}, 'View Experiments Results']
   end
-  
+
+
+  def referrer_sources(display=true)
+    interval = 3
+
+    @date = params[:date] ? Time.parse(params[:date]) : Time.now - (interval-1).days
+    case params[:direction]
+    when 'prev'
+      @date -= 1.day
+    when 'next'
+      @date += 1.day
+    end
+
+    @groups = DomainLogSource.traffic(@date.at_midnight, 1.day, interval)
+    @sources = DomainLogSource.sources.reverse
+
+    @traffic = @groups.collect do |group|
+      hits = 0
+      visits = 0
+      subscribers = 0
+      leads = 0
+      conversions = 0
+      total_value = 0
+
+      stats = group.domain_log_stats.index_by(&:target_id)
+
+      group.domain_log_stats.each do |stat|
+        hits += stat.hits.to_i
+        visits += stat.visits.to_i
+        subscribers += stat.subscribers.to_i
+        leads += stat.leads.to_i
+        conversions += stat.conversions.to_i
+        total_value += stat.total_value.to_f
+      end
+
+      { :started_at => group.started_at,
+        :ended_at => group.ended_at,
+        :duration => group.duration,
+        :total_value => total_value,
+        :hits => hits,
+        :visits => visits,
+        :user_levels => [(visits - (subscribers + leads + conversions)), subscribers, leads, conversions],
+        :sources => @sources.collect { |source| stats[source[:id]] ? stats[source[:id]].visits : 0 }
+      }
+    end
+
+    if display
+      render :json => {
+        :date => @date.strftime('%F'),
+        :user_levels => @traffic.collect{|t| t[:user_levels][1..-1]},
+        :sources => @traffic.collect{|t| t[:sources]},
+        :total_values => @traffic.collect{|t| t[:total_value].to_f > 0.0 ? number_to_currency(t[:total_value]) : ''},
+        :days => @traffic.collect{|t| t[:started_at].strftime('%A')},
+        :dates => @traffic.collect{|t| t[:started_at].strftime('%m/%d/%Y')}
+      }
+    end
+  end
+
  include ActiveTable::Controller   
   active_table :visitor_table,
-                DomainLogSession,
+                DomainLogVisitor,
                 [ ActiveTable::StaticHeader.new('user', :label => 'Who'),
                   ActiveTable::DateRangeHeader.new('created_at', :label => 'When'),
                   ActiveTable::StaticHeader.new('page_count', :label => 'Pages'),
@@ -37,13 +114,8 @@ class EmarketingController < CmsController # :nodoc: all
   
   def visitor_table_output(opts)
      option_hash = 
-        { :order => 'created_at DESC'
+        { :order => 'updated_at DESC'
         }
-     if(session[:visitor_exclude_anon].to_i == 1) 
-      option_hash[:conditions] =  'end_user_id is not null'
-     end
-
-
      @active_table_output = visitor_table_generate opts, option_hash
   end  
   
@@ -54,7 +126,7 @@ class EmarketingController < CmsController # :nodoc: all
   end
   
   def visitors
-    cms_page_info([ ['E-marketing',url_for(:action => 'index') ], 'Visitors' ],'e_marketing')
+    cms_page_path ['Marketing'], 'Visitors'
     visitor_table_output params
     
     google = Configuration.google_analytics
@@ -76,53 +148,164 @@ class EmarketingController < CmsController # :nodoc: all
   end
   
   def visitor_detail
-    session_id = params[:path][0]
+    visitor_id = params[:path][0]
     
-    @entry = DomainLogEntry.find_by_domain_log_session_id(session_id,:order => 'occurred_at DESC')
-    if @entry && @entry.user
-      @user = @entry.user
+    @entry = DomainLogVisitor.find_by_id(visitor_id)
+    if @entry && @entry.end_user
+      @user = @entry.end_user
     end
     
-    @entry_info,@entries = DomainLogEntry.find_anonymous_session(session_id)
+    @sessions = @entry.session_details
     
     render :partial => 'visitor_detail'
   end
   
-  def site_statistics
-    conditions = '1'
-  
-    @stats = DefaultsHashObject.new(
-      { 
-        :unique_ips => DomainLogSession.count('ip_address',:distinct => true,:conditions => conditions),
-        :unique_sessions => DomainLogEntry.count('domain_log_session_id',:distinct => true,:conditions => conditions),
-        :registered_users => DomainLogEntry.count('user_id',:distinct => true,:conditions => conditions + " AND user_id IS NOT NULL"),
-        :anonymous_users => DomainLogSession.count('ip_address',:distinct => true,:conditions => conditions + " AND end_user_id IS NULL"),
-        :total_hits => DomainLogEntry.count(:conditions => conditions)
-      }
-    )
-    
-    
-    @page_stats = DomainLogEntry.find(:all,
-                :group => 'node_path',
-                :select => 'node_path, COUNT(*) as views',
-                :order => 'views DESC')
-                
-                
-    render :partial => 'site_statistics'
+  def stats
+    cms_page_path ['Marketing'], 'Real Time Statistics'
+    require_js 'emarketing.js'
   end
 
-  def stats
-    cms_page_info([ ['E-marketing',url_for(:action => 'index') ], 'Real Time Statistics' ],'e_marketing')
+  def charts
+    @stat_type = params[:path][0]
+    @handler, @format = params[:path][1..-1].join('/').split('.')
+    if @handler =~ /\/(\d+)$/
+      @target_id = $1.to_i
+      @handler.sub!("/#{@target_id}", '')
+    end
+    @type_id = params[:type_id] ? params[:type_id].to_i : nil
+    @type_id = nil if @type_id == 0
 
-    require_js 'raphael/raphael-min.js'
-    require_js 'raphael/g.raphael.js'
-    require_js 'raphael/g.line.js'
-    require_js 'raphael/g.bar.js'
-    require_js 'raphael/g.dot.js'
-    require_js 'raphael/g.pie.js'
-    require_js 'emarketing.js'
+    @chart_info = get_handler_info(:chart, @stat_type, @handler)
 
-    @onload = 'RealTimeStatsViewer.onLoad();'
+    raise 'No chart found' unless @chart_info
+
+    @when = params[:when] || 'today'
+    @all_fields = params[:all]
+
+    @from = Time.now.at_midnight
+    @duration = 1.day
+    @interval = 1
+
+    @when_options = [['Today', 'today'], ['Yesterday', 'yesterday'], ['This Week', 'week'], ['Last Week', 'last_week'], ['This Month', 'month'], ['Last Month', 'last_month']]
+
+    case @when
+    when 'today'
+      @from = Time.now.at_midnight
+      @duration = 1.day
+    when 'yesterday'
+      @from = Time.now.at_midnight.yesterday
+      @duration = 1.day
+    when 'week'
+      @from = Time.now.at_beginning_of_week
+      @duration = 1.week
+    when 'last_week'
+      @from = Time.now.at_beginning_of_week - 1.week
+      @duration = 1.week
+    when 'month'
+      @from = Time.now.at_beginning_of_month
+      @duration = 1.month
+    when 'last_month'
+      @from = Time.now.at_beginning_of_month - 1.month
+      @duration = 1.month
+    end
+
+    groups = @chart_info[:class].send(@stat_type, @from, @duration, @interval, :target_id => @target_id, :type_id => @type_id)
+    @group = groups[0]
+    @stats = @target_id ? @group.target_stats : @group.domain_log_stats
+    @stats.delete_if { |stat| stat.target.nil? }
+    @title = @chart_info[:title] || :title
+
+    if @format == 'json'
+      data = {:from => @from, :duration => @duration, :stat_type => @stat_type, :when => @when, :target_id => @target_id, :type_id => @type_id}
+      if @all_fields
+        data[:columns] = ['Visitors', 'Hits', 'Subscribers', 'Leads', 'Conversions']
+        data[:data] = @stats.collect { |stat| [stat.visits, stat.hits, stat.subscribers, stat.leads, stat.conversions] }
+      else
+        data[:columns] = ['Visitors', 'Hits']
+        data[:data] = @stats.collect { |stat| [stat.visits, stat.hits] }
+      end
+      return render :json => data
+    elsif @format == 'csv'
+      report = StringIO.new
+      csv_data = FasterCSV.generate do |writter|
+        writter << ['Title', 'Visitors', 'Hits', 'Subscribers', 'Leads', 'Conversions']
+        @stats.each do |stat|
+          writter << [stat.target.send(@title), stat.visits, stat.hits, stat.subscribers, stat.leads, stat.conversions]
+        end
+      end
+      return send_data csv_data, :type => 'text/csv; charset=iso-8859-1; header=present', :disposition => "attachment; filename=stats.csv"
+    end
+
+    if @chart_info[:type_options]
+      @type_options = @chart_info[:type_options].is_a?(Symbol) ? @chart_info[:class].send(@chart_info[:type_options]) : @chart_info[:type_options]
+    end
+
+    cms_page_path ['Marketing'], @chart_info[:name]
+
+    require_js 'protovis/protovis-r3.2.js'
+    require_js 'tipsy/jquery.tipsy.js'
+    require_js 'protovis/tipsy.js'
+    require_css 'tipsy/tipsy.css'
+    require_js 'charts.js'
+  end
+
+  def affiliates
+    @affiliate = params[:affiliate]
+    @campaign = params[:campaign]
+    @origin = params[:origin]
+    @display = params[:display]
+    @affiliate = nil if @affiliate.blank?
+    @campaign = nil if @campaign.blank?
+    @origin = nil if @origin.blank?
+    @display = nil if @display.blank?
+
+    @stat_type = 'affiliate'
+
+    @when = params[:when] || 'today'
+    @all_fields = params[:all]
+
+    @from = Time.now.at_midnight
+    @duration = 1.day
+    @interval = 1
+
+    @when_options = [['Today', 'today'], ['Yesterday', 'yesterday'], ['This Week', 'week'], ['Last Week', 'last_week'], ['This Month', 'month'], ['Last Month', 'last_month']]
+
+    case @when
+    when 'today'
+      @from = Time.now.at_midnight
+      @duration = 1.day
+    when 'yesterday'
+      @from = Time.now.at_midnight.yesterday
+      @duration = 1.day
+    when 'week'
+      @from = Time.now.at_beginning_of_week
+      @duration = 1.week
+    when 'last_week'
+      @from = Time.now.at_beginning_of_week - 1.week
+      @duration = 1.week
+    when 'month'
+      @from = Time.now.at_beginning_of_month
+      @duration = 1.month
+    when 'last_month'
+      @from = Time.now.at_beginning_of_month - 1.month
+      @duration = 1.month
+    end
+
+    groups = DomainLogSession.affiliate @from, @duration, @interval, :affiliate => @affiliate, :campaign => @campaign, :origin => @origin, :display => @display
+    @group = groups[0]
+    @stats = @group.domain_log_stats
+    @stats.delete_if { |stat| stat.target.nil? }
+
+    @displays = [['Affiliate', 'affiliate'], ['Campaign', 'campaign'], ['Origin', 'origin']]
+    @affiliates, @campaigns, @origins = DomainLogSession.get_affiliates
+
+    cms_page_path ['Marketing'], 'Affiliates'
+
+    require_js 'protovis/protovis-r3.2.js'
+    require_js 'tipsy/jquery.tipsy.js'
+    require_js 'protovis/tipsy.js'
+    require_css 'tipsy/tipsy.css'
+    require_js 'charts.js'
   end
 
   def real_time_stats_request
@@ -140,7 +323,7 @@ class EmarketingController < CmsController # :nodoc: all
     @entries.map! do |entry|
       last_occurred_at = entry.occurred_at.to_i
 
-      { :id => entry.domain_log_session.id,
+      { :id => entry.domain_log_session.domain_log_visitor_id || '#',
 	:occurred => entry.occurred_at.to_i,
 	:occurred_at => entry.occurred_at.strftime('%I:%M:%S %p'),
 	:url => entry.url,
@@ -160,30 +343,21 @@ class EmarketingController < CmsController # :nodoc: all
   def real_time_charts_request
     range = (params[:range] || 5).to_i
     intervals = (params[:intervals] || 10).to_i
-    update_only = (params[:update] || 0).to_i == 1
+    update_only = params[:update]
+    site_node_id = params[:site_node_id]
 
     now = Time.now
     now = now.to_i - (now.to_i % range.minutes)
-    to = now
-    from = now - range.minutes
+    from = now - (range*intervals).minutes
 
-    uniques = []
-    hits = []
-    labels = []
-    (1..intervals).each do |interval|
-      conditions = ['occurred_at between ? and ?', Time.at(from), Time.at(now)]
-      uniques << DomainLogEntry.count('ip_address', :distinct => true, :joins => :domain_log_session, :conditions => conditions)
-      hits << DomainLogEntry.count(:all, :conditions => conditions)
-      labels << Time.at(now).strftime('%I:%M')
-      now = from
-      from -= range.minutes
-      break if update_only
+    groups = []
+    if site_node_id
+      site_node = SiteNode.find_by_id site_node_id
+      groups = site_node.traffic(Time.at(from), range.minutes, intervals) if site_node
+    else
+      groups = DomainLogEntry.traffic Time.at(from), range.minutes, intervals
     end
 
-    from = to - (range*intervals).minutes
-
-    format = '%b %e, %Y %I:%M%P'
-    data = { :range => range, :from => Time.at(from).strftime(format), :to => Time.at(to).strftime(format), :uniques => uniques, :hits => hits, :labels => labels }
-    return render :json => data
+    return render :json => DomainLogGroup.traffic_chart_data(groups, :desc => true, :update_only => update_only).merge(:range => range)
   end
 end

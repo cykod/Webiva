@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + "/../spec_helper"
 describe MembersController do
   integrate_views
 
-  reset_domain_tables :end_users, :user_subscriptions, :user_subscription_entries, :tags, :mail_templates, :end_user_addresses, :tag_notes, :end_user_tags, :market_segments, :user_segments, :user_segment_caches
+  reset_domain_tables :end_users, :user_subscriptions, :user_subscription_entries, :tags, :mail_templates, :end_user_addresses, :tag_notes, :end_user_tags, :market_segments, :user_segments, :user_segment_caches, :end_user_note
 
   describe "editor tests" do
     before(:each) do
@@ -399,7 +399,7 @@ describe MembersController do
 
     it "should be able to remove users from a custom segment" do
       @segment3.last_count.should == 2
-      post 'display_targets_table', :table_action => 'remove_users', :user_segment_id => @segment3.id, :user => {@user4.id => @user4.id}
+      post 'display_targets_table', :table_action => 'remove_users', :path => [@segment3.id], :user => {@user4.id => @user4.id}
       @segment3.reload
       @segment3.last_count.should == 1
     end
@@ -429,5 +429,18 @@ describe MembersController do
     mock_editor
     post 'options', :commit => 1, :options => {:order_by => 'created', :order_direction => 'DESC', :fields => ['gender']}
     controller.class.module_options.fields.should == ['gender']
+  end
+
+  it "should be able to leave notes about users" do
+    mock_editor
+    user = EndUser.push_target 'user1@test.dev'
+
+    assert_difference 'EndUserNote.count', 1 do
+      post 'note', :path => [user.id], :note => {:note => 'New note message'}
+    end
+
+    note = EndUserNote.find :last
+    note.end_user_id.should == user.id
+    note.note.should == 'New note message'
   end
 end

@@ -6,7 +6,9 @@
                     :class => 'active_table',
                     :width => '100%',
                     :next => @search.user_segment && @search.terms ? 'more' : '&gt;',
-                    :actions => [['Add Tags','js','MemberEditor.addTags();'],
+                    :actions => [['Acknowledge','acknowledge','Mark the selected entries as acknowledged?'],
+                                 ['Quick Edit','js','MemberEditor.quickEdit();'],
+                                 ['Add Tags','js','MemberEditor.addTags();'],
                                  ['Remove Tags','js','MemberEditor.removeTags();'],
                                  segment_action
                                 ],
@@ -17,6 +19,9 @@
   <td nowrap='1'>
     <%= entry_checkbox 'user',t.id %>
   </td>
+  <td valign='center' align='center'>
+    <div style='font-size:18px;'><%= t.user_level_dingbat %></div>
+  </td>
   <td align='center' nowrap='1'>
     <%= t.editor? ? '' : link_to(theme_image_tag('icons/actions/edit.gif'), :action => 'edit', :path => [ t.id, @segment ? @segment.id : nil ].compact) %>
   </td>
@@ -26,23 +31,17 @@
     %>
   </td>
   <td>
-    <%= t.editor? ? h(t.name) : link_to(t.name, user_url) %>
+    <a href="javascript:void(0);" onclick="SCMS.remoteOverlay('<%= url_for :action => 'note', :path => t.id %>');"><%= theme_image_tag('icons/table_actions/comment.gif') %></a>
+    <%= link_to(t.name, user_url) %>
   </td>
   <td>
     <%= email = t.email.blank? ? 'No Email'.t : t.email
-        t.editor? ? h(email) : link_to(email, user_url) 
+        link_to(email, user_url) 
     %>
   </td>
 
-  <% if @fields -%>
-    <% @fields.each do |field| -%>
-      <%=
-          info = UserSegment::FieldHandler.display_fields[field.to_sym]
-          next unless info
-          value = info[:handler].field_output(t, @handlers_data[info[:handler].to_s], field.to_sym)
-          "<td align='center'>#{value}</td>"
-      %>
-    <% end -%>
+  <% display_segment_fields(t) do |field, output| -%>
+    <td align='center'><%= output %></td>
   <% end -%>
 </tr>  
 

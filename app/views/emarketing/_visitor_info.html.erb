@@ -1,0 +1,5 @@
+IP Address: <%= visitor.ip_address %>, <%= visitor.ip_address_name %>
+<% if visitor.has_location? %>
+  ( <%= visitor.location_display %>
+  <%= link_to 'Location Estimate', "http://maps.google.com/maps?ll=#{visitor.latitude},#{visitor.longitude}", :target => '_blank' if visitor.latitude %> )
+<% end -%>

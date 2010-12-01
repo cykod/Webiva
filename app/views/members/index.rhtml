@@ -20,6 +20,16 @@
       SCMS.remoteOverlay("<%= url_for :action => 'add_tags_form' %>");
     },
 
+    quickEdit: function() {
+      SCMS.remoteOverlay("<%= url_for :action => 'quick_edit_form' %>");
+    },
+
+    quickEditSubmit: function(args) {
+      this.tableAction('quick_edit',args);
+      RedBox.close();
+    },
+
+
     removeTags: function() {
       var user_ids = [];
       var elements = $('email_targets_table_update_form').getInputs();
@@ -145,53 +155,66 @@
   }
 </script>
 
-<% action_panel :handler => 'members' do |p| -%>
-  <%= p.link "Add a user",:icon => 'add.gif', :action => 'create' %>
-  <%= p.link "Import Email Targets",:icon => 'upload.gif', :controller => :member_import %>
-  <%= p.link "Download Visible Targets",:icon => 'download.gif', :controller => :member_export, :action => 'index', :path => @segment ? @segment.id : nil %>
+<% action_panel :handler => 'members', :more => true do |p| -%>
+  <%= p.link "Add a user",:icon => 'add.png', :action => 'create' %>
+<% end -%>
+
+<% more_action_panel :handler => 'members' do |p| -%>
+  <%= p.link "Import People",:icon => 'upload.gif', :controller => :member_import %>
+  <%= p.link "Download Current List",:icon => 'download.gif', :controller => :member_export, :action => 'index', :path => @segment ? @segment.id : nil %>
   <%= p.link "Tag List", :icon => 'show.gif', :action => 'tags' %>
   <%= p.link "Access Tokens", :icon => 'access.gif', :controller => '/access_token' if myself.has_role?('editor_access_tokens') %>
   <%= p.link "User Lists", :icon => 'access.gif', :action => 'segments' %>
 <% end -%>
 
+
+
 <hr/>
 
-<div class="user_segments" style="float:right; width: 560px; text-align:right; padding:5px;">
+<div class='action_area'>
+
+
+<div class="user_segments" style="float:right; width: 580px; text-align:right; padding:5px;">
 <%= form_tag %>
 <% if @segment && @segment.last_ran_at -%>
    <a onclick="MemberEditor.refreshUserList();" href="javascript:void(0);">Refresh</a> 
    <% if @segment.segment_type == 'filtered' -%>
      | <a onclick="MemberEditor.editUserList();" href="javascript:void(0);">Edit Filter</a>
    <% end -%>
-   | <a href="<%= url_for :action => 'edit_segment', :path => @segment.id %>">Edit</a>
+   | <a href="<%= url_for :action => 'edit_segment', :path => @segment.id %>"><%= theme_image_tag('icons/actions/edit.gif') %></a>
+     <a href="<%= url_for :action => 'edit_segment', :path => @segment.id %>">Edit</a>
 <% else -%>
+  <a href='<%=  url_for :action => 'options' %>'><%= theme_image_tag('icons/actions/edit.gif') %></a>
+
   <a href="<%= url_for :action => 'options' %>">Edit</a>
 <% end -%>
-<%= select_tag :user_segment_id, options_for_select([['Everyone', nil]] + @segmentations.collect { |seg| [seg.list_name, seg.id] }, (@segment ? @segment.id : nil)), :onchange => 'MemberEditor.changeSegments();', :id => 'user_segments_user_segment_id', :style => 'width:400px;' %>
+<%= select_tag :user_segment_id, options_for_select([['Everyone', nil]] + @segmentations.collect { |seg| [seg.list_name, seg.id] }, (@segment ? @segment.id : nil)), :onchange => 'MemberEditor.changeSegments();', :id => 'user_segments_user_segment_id', :style => 'min-width:400px;' %>
 <br/>
 <% if @segment && @segment.last_ran_at -%>
 <span id="user_segment_info" style="font-size:11px;">
 <%= "%d users found, " / @segment.last_count %><%= 'last updated on %s' / @segment.last_ran_at.strftime(DEFAULT_DATETIME_FORMAT.t) %>
-</span>
-<br/>
+</span> | 
 <% end -%>
 <a href="<%= url_for :action => 'create_segment' %>">Create a User List</a>
 </form>
 </div>
 
-<div class="member_search" style="padding:5px; width:320px;">
-<%= form_tag %>
-<%= text_field_tag :terms, @search.terms, :id => 'members_search_terms' %>
-<%= submit_tag 'Search'.t %>
+
+<div class="member_search">
+<%= form_tag '', :class => 'admin_form' %>
+  <h2>
+      <%= theme_image_tag('framework/filemanager_search.gif', :align => 'baseline') -%>    
+       Search 
+<%= text_field_tag :terms, @search.terms, :id => 'members_search_terms', :class => 'text_field' %>
+<%= submit_tag 'Search'.t, :class => 'button_link' %>
+</h2>
 </form>
 <%= "<a href='#{url_for}'>Clear search</a>" if @search.terms %>
 </div>
 
-<hr style="clear:both;"/>
 
-<script>
-  <%= active_table_javascript %>
-</script>
+</div>
+
 <div id='targets_table'>
   <%= render :partial => 'targets_table' %>
 </div>  

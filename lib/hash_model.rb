@@ -374,4 +374,18 @@ class HashModel
     end
   end
 
+  def self.run_worker(method, parameters={}, attributes={})
+     DomainModelWorker.async_do_work(:class_name => self.to_s,
+                                     :domain_id => DomainModel.active_domain_id,
+                                     :params => parameters,
+                                     :method => method,
+                                     :language => Locale.language_code,
+                                     :attributes => attributes,
+                                     :hash_model => true
+                                     )
+  end
+
+  def run_worker(method, parameters={})
+    self.class.run_worker(method, parameters, self.attributes)
+  end
 end

@@ -18,10 +18,12 @@
   <%= t.created_at.strftime(DEFAULT_DATETIME_FORMAT.t) %>
 </td>
 <td nowrap='1' align='right'>
-<%= t.page_count %>
+<%= t.last_session.page_count  if t.last_session%>
 </td>
 <td nowrap='1' align='right'>
-<%= (t.length.to_i / 60).floor  %> Minutes
+<% if t.last_session %>
+<%= (t.last_session.length.to_i / 60).floor  %> Minutes
+<% end -%>
 </td>
 </tr>
 <% end -%>

@@ -173,6 +173,8 @@ class UserSegment::Field < HashModel
         "\"#{arg}\""
       elsif arg.is_a?(Time)
         "\"#{arg.strftime('%m/%d/%Y %H:%M:%S')}\""
+      elsif arg.is_a?(Array)
+        '[' + arg.collect{ |v| v.is_a?(String) ? "\"#{v}\"" : v.to_s }.join(',') + ']'
       else
         arg.to_s
       end
