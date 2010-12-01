@@ -49,7 +49,9 @@
   <%= render :partial => '/file/still_downloading' %>
 
   <h1><%= render_webiva_title(@cms_page_info[:title].is_a?(Array) ? @cms_page_info[:title][-1] : @cms_page_info[:title]) %></h1>
-
+  <% if @cms_titlebar_handlers && @cms_titlebar_handlers.length > 0 -%>
+    <%= @cms_titlebar_handlers.map { |h| h.titlebar_html }.join("") -%>
+  <% end -%>
   <%= render :partial => '/layouts/wizard_top' if @wizard %>
     <div id='cms_<%=@cms_page_info[:section]%>_content'>
     <%= yield %>
