@@ -78,4 +78,31 @@ describe DomainLogSource do
       source[:source_handler].should == 'domain_log_source/type_in'
     end
   end
+
+  describe "Sessions" do
+    before(:each) do
+      @page = SiteVersion.default.root_node.push_subpage('')
+      @visitor = Factory(:domain_log_visitor)
+      @session = {:domain_log_visitor => {:id => @visitor.id}}
+      @request = mock :session_options => {:id => 'xxxxxxx'}, :remote_ip => '127.0.0.1', :referrer => '', :parameters => {}
+      @myself = EndUser.new
+    end
+
+    it "should not set the source if ignored" do
+      assert_difference 'DomainLogSession.count', 1 do
+        DomainLogSession.start_session(@myself, @session, @request, @page, true)
+      end
+      ses = DomainLogSession.last
+      ses.domain_log_source_id.should be_nil
+    end
+
+    it "should set the source if not ignored" do
+      assert_difference 'DomainLogSession.count', 1 do
+        DomainLogSession.start_session(@myself, @session, @request, @page, false)
+      end
+      ses = DomainLogSession.last
+      source = DomainLogSource.find_by_name 'Type-in'
+      ses.domain_log_source_id.should == source.id
+    end
+  end
 end
