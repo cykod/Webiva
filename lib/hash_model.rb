@@ -43,7 +43,7 @@ class HashModel
       hsh.each do |atr,val|
         attr_accessor atr.to_sym
         
-        if atr.to_s =~ /_(id|number)$/ 
+        if atr.to_s =~ /_(id)$/ 
           int_opts << atr.to_sym
         end
       end
@@ -249,7 +249,7 @@ class HashModel
     
     vars.each do |key|
       val = hsh[key.to_sym]
-      if key.to_s =~ /_(id|number)$/ 
+      if key.to_s =~ /_(id)$/ 
         val = val.blank? ? nil : val.to_i
       end
       
