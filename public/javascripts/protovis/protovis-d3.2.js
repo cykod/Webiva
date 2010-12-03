@@ -231,10 +231,13 @@ pv.extend = function(f) {
   return new g();
 };
 
+var nativeSupport = false;
 try {
   eval("pv.parse = function(x) x;"); // native support
-} catch (e) {
+  nativeSupport = true;
+} catch (e) {}
 
+if(!nativeSupport) {
 /**
  * @private Parses a Protovis specification, which may use JavaScript 1.8
  * function expresses, replacing those function expressions with proper

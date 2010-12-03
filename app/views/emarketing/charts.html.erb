@@ -42,7 +42,7 @@ chart_top = @stats.size > 3 ? ((@stats.size - 3) * 3) : 0
 </div>
 </div>
 
-<script type="text/javascript">
+<script type="text/javascript+protovis">
 
 <% if @all_fields -%>
 var data = [<%= @stats.collect { |stat| "[#{stat.visits}, #{stat.hits}, #{stat.subscribers}, #{stat.leads}, #{stat.conversions}]" }.join(', ') %>];

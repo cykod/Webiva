@@ -166,25 +166,25 @@ WebivaBarChart = function(opts) {
     /* The bars. */
     var bar = vis.add(pv.Panel)
        .data(dataTable)
-       .left(function() x(this.index))
+       .left(function() {return x(this.index);})
        .width(x.range().band)
        .add(pv.Bar)
-       .data(function(d) d.data)
+       .data(function(d) {return d.data;})
        .bottom(0)
        .height(y)
-       .left(function() this.index * x.range().band / barsPerRow)
+       .left(function() {return this.index * x.range().band / barsPerRow;})
        .width(x.range().band / barsPerRow)
        .fillStyle(colors.by(pv.index))
        .textStyle(fontColor)
        .font(font)
-       .text(function(d) d + (columns ? ' ' + columns[this.index] : ''))
+       .text(function(d) {return d + (columns ? ' ' + columns[this.index] : '');})
        .event("mouseover", pv.Behavior.tipsy({gravity: "s", fade: true}));
   
     if(columns) {
       /* The legend. */
       vis.add(pv.Bar)
          .data(columns)
-         .top(function() this.index * 14 + marginTop)
+         .top(function() {return this.index * 14 + marginTop;})
          .height(12)
          .left(legendX)
          .width(12)
@@ -195,7 +195,7 @@ WebivaBarChart = function(opts) {
          .textAlign("left")
          .textStyle(fontColor)
          .font(font)
-         .text(function() columns[this.index])
+         .text(function() {return columns[this.index];})
          .events("all")
          .event("click", function() {sort(this.index); draw(true);});
      }
@@ -208,8 +208,8 @@ WebivaBarChart = function(opts) {
          .textAlign("center")
          .textStyle(fontColor)
          .font(font)
-         .text(function() truncate(dataTable[this.parent.index].label, 25))
-         .title(function() dataTable[this.parent.index].label)
+         .text(function() {return truncate(dataTable[this.parent.index].label, 25);})
+         .title(function() {return dataTable[this.parent.index].label;})
          .events("all")
          .event("click", function() {gotoUrl(dataTable[this.parent.index].url);});
     }
@@ -223,9 +223,9 @@ WebivaBarChart = function(opts) {
     vis.add(pv.Rule)
         .data(y.ticks(numTicks))
         .bottom(y)
-        .strokeStyle(function(d) d ? "rgba(255,255,255,.3)" : "#000")
+        .strokeStyle(function(d) {return d ? "rgba(255,255,255,.3)" : "#000";})
         .add(pv.Rule)
-        .left(function(d) d ? -2 : 0)
+        .left(function(d) {return d ? -2 : 0;})
         .width(5)
         .strokeStyle(fontColor)
         .anchor("left").add(pv.Label)
@@ -303,25 +303,25 @@ WebivaBarChart = function(opts) {
     /* The bars. */
     var bar = vis.add(pv.Panel)
        .data(dataTable)
-       .top(function() y(this.index))
+       .top(function() {return y(this.index);})
        .height(y.range().band)
        .add(pv.Bar)
-       .data(function(d) d.data)
-       .top(function() this.index * y.range().band / barsPerRow)
+       .data(function(d) {return d.data;})
+       .top(function() {return this.index * y.range().band / barsPerRow;})
        .height(y.range().band / barsPerRow)
        .left(0)
        .width(x)
        .fillStyle(colors.by(pv.index))
        .textStyle(fontColor)
        .font(font)
-       .text(function(d) d + (columns ? ' ' + columns[this.index] : ''))
+       .text(function(d) {return d + (columns ? ' ' + columns[this.index] : '');})
        .event("mouseover", pv.Behavior.tipsy({gravity: "w", fade: true}));
   
     if(columns) {
       /* The legend. */
       vis.add(pv.Bar)
          .data(columns)
-         .top(function() this.index * 14 + marginTop)
+         .top(function() {return this.index * 14 + marginTop;})
          .height(12)
          .left(legendX)
          .width(12)
@@ -332,7 +332,7 @@ WebivaBarChart = function(opts) {
          .textAlign("left")
          .textStyle(fontColor)
          .font(font)
-         .text(function() columns[this.index])
+         .text(function() {return columns[this.index];})
          .events("all")
          .event("click", function() {sort(this.index); draw(true);});
      }
@@ -354,8 +354,8 @@ WebivaBarChart = function(opts) {
          .textAlign("right")
          .textStyle(fontColor)
          .font(font)
-         .text(function() truncate(dataTable[this.parent.index].label, 40))
-         .title(function() dataTable[this.parent.index].label)
+         .text(function() {return truncate(dataTable[this.parent.index].label, 40);})
+         .title(function() {return dataTable[this.parent.index].label;})
          .events("all");
     }
 
@@ -368,7 +368,7 @@ WebivaBarChart = function(opts) {
     vis.add(pv.Rule)
         .data(x.ticks(numTicks))
         .left(x)
-        .strokeStyle(function(d) d ? "rgba(255,255,255,.3)" : "#000")
+        .strokeStyle(function(d) {return d ? "rgba(255,255,255,.3)" : "#000";})
         .add(pv.Rule)
         .bottom(0)
         .height(5)
