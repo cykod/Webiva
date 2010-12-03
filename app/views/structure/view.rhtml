@@ -9,7 +9,7 @@
 
 <% action_panel :handler => 'structure', :more => true do |p| -%>
   <%= p.link('Wizards',:icon => 'configure.gif',:action => 'wizards', :version => @version.id ) if @wizard_list.length > 0 -%>
-  <%= p.link 'Add Site Elements',:id => 'show_add_elements_button',:hidden => true, :icon => 'add.png', :url => 'javascript:StructureEditor.showElementInfo(false);' %>
+  <%= p.link 'Add Site Elements',:id => 'show_add_elements_button',:hidden => true, :icon => 'add.png', :url => 'javascript:StructureEditor.showElementInfo(false);' if permit?('editor_structure')   %>
 <% end -%>
 
 <% more_action_panel do |p| %>
@@ -20,7 +20,7 @@ if @show_archived == 'hide'
    p.link 'Hide Archived', :icon => 'show.gif', :url => '?archived=hide&version='  +@version.id.to_s
  end
   %>
- <%= p.link 'Quick Edit', :icon => 'edit.gif', :url => {:action => 'pages', :path => @version.id} %>
+ <%= p.link 'Quick Edit', :icon => 'edit.gif', :url => {:action => 'pages', :path => @version.id} if permit?('editor_structure')   %>
 
 <% end -%>
 
@@ -57,7 +57,7 @@ if @show_archived == 'hide'
 
 <div class='tree_detail' id='add_elements'>
   <h1 class='inpage'>Edit Your Site</h1>
-  <h2>Click on a page name to view and edit</h2>
+  <h2>Click on a page to view and edit</h2>
 
 <% if permit?('editor_structure') %>
 <div class='tree_detail_body'>
