@@ -44,7 +44,7 @@ class DomainLogSession < DomainModel
       tracking = Tracking.new(request)
       session[:user_referrer] = tracking.referrer_domain if tracking.referrer_domain
       session[:domain_log_visitor] ||= {}
-      ses = self.session(session[:domain_log_visitor][:id],request.session_options[:id], user, request.remote_ip, true, tracking, site_node, ignore)
+      ses = self.session(session[:domain_log_visitor][:id],request.session_options[:id], user, request.remote_ip, true, tracking, site_node, ignore, session)
       session[:domain_log_session] = { :id => ses.id, :end_user_id => user.id }
     end
   end
@@ -56,7 +56,7 @@ class DomainLogSession < DomainModel
   end
   
 #  validates_uniqueness_of :session_id
-  def self.session(visitor_id,session_id,user,ip_address,save_entry=true,tracking=nil,site_node=nil,ignore=true)
+  def self.session(visitor_id,session_id,user,ip_address,save_entry=true,tracking=nil,site_node=nil,ignore=true,full_session=nil)
     user = user.id if user.is_a?(EndUser)
     returning (self.find_by_session_id(session_id) || self.new(:session_id => session_id, :ip_address => ip_address)) do |ses|
 
@@ -79,6 +79,12 @@ class DomainLogSession < DomainModel
         :affiliate_data => tracking.affiliate_data} if tracking && ses.id.nil?
 
       ses.attributes = {:end_user_id => user}
+
+      unless ignore
+        source = DomainLogSource.get_source ses, full_session if full_session
+        ses.domain_log_source_id = source[:id] if source
+      end
+
       ses.save if save_entry
     end 
 
