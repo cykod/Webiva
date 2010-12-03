@@ -46,12 +46,13 @@ namespace :webiva do
 
   desc "Webiva Module deployment"
   task :modules_install do
-	(webiva_modules||[]).each do |mod|
-          execute = []
-          execute << "cd #{deploy.release_path}/vendor/modules"
-          execute << "git clone #{module_repository}#{mod}.git #{mod.downcase}"
-          run execute.join(" && ")
-        end
+    set :webiva_modules, [] if ! exists?(:webiva_modules)
+    (webiva_modules||[]).each do |mod|
+      execute = []
+      execute << "cd #{deploy.release_path}/vendor/modules"
+      execute << "git clone #{module_repository}#{mod}.git #{mod.downcase}"
+      run execute.join(" && ")
+    end
   end 
 
 
