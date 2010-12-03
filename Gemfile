@@ -42,12 +42,18 @@ group :development do
   gem 'rubyforge', '2.0.3'
 end
 
+# For now, the rspec gems need to be present at all times (even during
+# deployment) since we have a lib/tasks/rspec.rake file present, and rake will
+# break if the gem isn't loaded. I believe rspec 2.x will remove this
+# dependency and allow us to put these gems back in the :test group, excluding
+# them from deployment.
+gem 'rspec', '1.3.0'
+gem 'rspec-rails', '1.3.2'
+
 group :test do
   gem 'cucumber', '0.6.2'
   gem 'cucumber-rails', '0.2.4'
   gem 'factory_girl', '1.2.3'
-  gem 'rspec', '1.3.0'
-  gem 'rspec-rails', '1.3.2'
   gem 'selenium-client', '1.2.18'
   gem 'webrat', '0.6.0'
 end
