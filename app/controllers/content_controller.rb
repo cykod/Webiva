@@ -34,6 +34,7 @@ class ContentController < ModuleController #:nodoc: all
   register_handler :user_segment, :fields, 'EndUserCacheSegmentField'
   register_handler :user_segment, :fields, 'EndUserTagSegmentField'
   register_handler :user_segment, :fields, 'UserSubscriptionEntrySegmentField'
+  register_handler :user_segment, :fields, 'EndUserTokenSegmentField'
 
   register_handler :structure, :wizard, 'Wizards::SimpleSite'
   register_handler :structure, :wizard, 'Wizards::MembersSetup'
