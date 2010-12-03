@@ -100,6 +100,8 @@ Rails::Initializer.run do |config|
   config.gem "json"
   config.gem "httparty"
   config.gem "fastercsv"
+  config.gem "httparty"
+  config.gem "resthome"
 
   if RAILS_ENV == 'test'
     config.gem 'factory_girl',:source => 'http://gemcutter.org'

@@ -10,9 +10,8 @@ DAYS_AGO = ARGV[2]
 DOMAIN_ID = 3
 start_time = Time.now.utc
 
-class MyRobotsWebService < ActiveWebService
+class MyRobotsWebService < RESTHome
   attr_accessor :authenticity_token
-  attr_accessor :cookies
   attr_accessor :user
   attr_accessor :shop_resource
 
@@ -34,96 +33,89 @@ class MyRobotsWebService < ActiveWebService
   end
 
   route :webalytics, '/webalytics'
-  route :home, '/', :return => :handle_response
-  route :about_us, '/about-us', :return => :handle_response
-  route :faqs, '/faqs', :return => :handle_response
-  route :contact, '/contact-us', :return => :handle_response
-  route :add_contact, '/contact-us', :return => :handle_response, :resource => 'entry_1'
-  route :shop, '/shop', :return => :handle_response
-  route :cart, '/shop/cart', :return => :handle_response
-  route :checkout, '/shop/checkout', :return => :handle_response
-  route :register, '/shop/checkout', :method => :post, :return => :handle_response, :resource => 'register'
-  route :shipping, '/shop/checkout/address', :method => :post, :return => :handle_response, :resource => 'shipping_address'
-  route :payment, '/shop/checkout/payment', :method => :post, :return => :handle_response, :resource => 'payment'
-  route :processing, '/shop/checkout/processing', :return => :handle_response
-  route :success, '/shop/success', :return => :handle_response
+  route :home, '/'
+  route :about_us, '/about-us'
+  route :faqs, '/faqs'
+  route :contact, '/contact-us'
+  route :add_contact, '/contact-us', :resource => 'entry_1'
+  route :shop, '/shop'
+  route :cart, '/shop/cart'
+  route :checkout, '/shop/checkout'
+  route :register, '/shop/checkout', :method => :post, :resource => 'register'
+  route :shipping, '/shop/checkout/address', :method => :post, :resource => 'shipping_address'
+  route :payment, '/shop/checkout/payment', :method => :post, :resource => 'payment'
+  route :processing, '/shop/checkout/processing'
+  route :success, '/shop/success'
 
-  route :butler_bots, '/shop/butler-bots', :return => :handle_response
+  route :butler_bots, '/shop/butler-bots'
 
-  route :belly_bot, '/shop/butler-bots/belly-bot', :return => :handle_response
-  route :bubblegum_bot, '/shop/butler-bots/bubblegum-bot', :return => :handle_response
-  route :peapod_alien_bot, '/shop/butler-bots/peapod-alien-bots', :return => :handle_response
-  route :waving_walter, '/shop/butler-bots/waving-walter', :return => :handle_response
+  route :belly_bot, '/shop/butler-bots/belly-bot'
+  route :bubblegum_bot, '/shop/butler-bots/bubblegum-bot'
+  route :peapod_alien_bot, '/shop/butler-bots/peapod-alien-bots'
+  route :waving_walter, '/shop/butler-bots/waving-walter'
 
-  route :add_belly_bot, '/shop/butler-bots/belly-bot', :return => :handle_response, :resource => 'shop'
-  route :add_bubblegum_bot, '/shop/butler-bots/bubblegum-bot', :return => :handle_response, :resource => 'shop'
-  route :add_peapod_alien_bot, '/shop/butler-bots/peapod-alien-bots', :return => :handle_response, :resource => 'shop'
-  route :add_waving_walter, '/shop/butler-bots/waving-walter', :return => :handle_response, :resource => 'shop'
+  route :add_belly_bot, '/shop/butler-bots/belly-bot', :resource => 'shop'
+  route :add_bubblegum_bot, '/shop/butler-bots/bubblegum-bot', :resource => 'shop'
+  route :add_peapod_alien_bot, '/shop/butler-bots/peapod-alien-bots', :resource => 'shop'
+  route :add_waving_walter, '/shop/butler-bots/waving-walter', :resource => 'shop'
 
-  route :robo_pets, '/shop/robo-pets', :return => :handle_response
+  route :robo_pets, '/shop/robo-pets'
 
-  route :bird_bot, '/shop/robo-pets/bird-bot', :return => :handle_response
-  route :froggy_bot, '/shop/robo-pets/froggy-bot', :return => :handle_response
-  route :kitty_bot, '/shop/robo-pets/kitty-bot', :return => :handle_response
-  route :neon_sheep_bot, '/shop/robo-pets/neon-sheep-bot', :return => :handle_response
-  route :puppy_bot, '/shop/robo-pets/puppy-bot', :return => :handle_response
+  route :bird_bot, '/shop/robo-pets/bird-bot'
+  route :froggy_bot, '/shop/robo-pets/froggy-bot'
+  route :kitty_bot, '/shop/robo-pets/kitty-bot'
+  route :neon_sheep_bot, '/shop/robo-pets/neon-sheep-bot'
+  route :puppy_bot, '/shop/robo-pets/puppy-bot'
 
-  route :add_bird_bot, '/shop/robo-pets/bird-bot', :return => :handle_response, :resource => 'shop'
-  route :add_froggy_bot, '/shop/robo-pets/froggy-bot', :return => :handle_response, :resource => 'shop'
-  route :add_kitty_bot, '/shop/robo-pets/kitty-bot', :return => :handle_response, :resource => 'shop'
-  route :add_neon_sheep_bot, '/shop/robo-pets/neon-sheep-bot', :return => :handle_response, :resource => 'shop'
-  route :add_puppy_bot, '/shop/robo-pets/puppy-bot', :return => :handle_response, :resource => 'shop'
+  route :add_bird_bot, '/shop/robo-pets/bird-bot', :resource => 'shop'
+  route :add_froggy_bot, '/shop/robo-pets/froggy-bot', :resource => 'shop'
+  route :add_kitty_bot, '/shop/robo-pets/kitty-bot', :resource => 'shop'
+  route :add_neon_sheep_bot, '/shop/robo-pets/neon-sheep-bot', :resource => 'shop'
+  route :add_puppy_bot, '/shop/robo-pets/puppy-bot', :resource => 'shop'
 
-  route :destructo_line, '/shop/destructo-line', :return => :handle_response
+  route :destructo_line, '/shop/destructo-line'
 
-  route :black_bot, '/shop/destructo-line/black-bot', :return => :handle_response
-  route :bombing_bot, '/shop/destructo-line/bombing-bot', :return => :handle_response
-  route :map_manbot, '/shop/destructo-line/map-manbot', :return => :handle_response
+  route :black_bot, '/shop/destructo-line/black-bot'
+  route :bombing_bot, '/shop/destructo-line/bombing-bot'
+  route :map_manbot, '/shop/destructo-line/map-manbot'
 
-  route :add_black_bot, '/shop/destructo-line/black-bot', :return => :handle_response, :resource => 'shop'
-  route :add_bombing_bot, '/shop/destructo-line/bombing-bot', :return => :handle_response, :resource => 'shop'
-  route :add_map_manbot, '/shop/destructo-line/map-manbot', :return => :handle_response, :resource => 'shop'
+  route :add_black_bot, '/shop/destructo-line/black-bot', :resource => 'shop'
+  route :add_bombing_bot, '/shop/destructo-line/bombing-bot', :resource => 'shop'
+  route :add_map_manbot, '/shop/destructo-line/map-manbot', :resource => 'shop'
 
-  route :vintage_bots, '/shop/vintage-bots', :return => :handle_response
+  route :vintage_bots, '/shop/vintage-bots'
 
-  route :blue_bot, '/shop/vintage-bots/blue-bot', :return => :handle_response
-  route :family_bots, '/shop/vintage-bots/family-bots', :return => :handle_response
-  route :femm_bot, '/shop/vintage-bots/femm-bot', :return => :handle_response
-  route :green_googles_bot, '/shop/vintage-bots/green-googles-bot', :return => :handle_response
-  route :vintage_color_bot, '/shop/vintage-bots/vintage-color-bot', :return => :handle_response
-  route :windup_gray_bot, '/shop/vintage-bots/windup-gray-bot', :return => :handle_response
+  route :blue_bot, '/shop/vintage-bots/blue-bot'
+  route :family_bots, '/shop/vintage-bots/family-bots'
+  route :femm_bot, '/shop/vintage-bots/femm-bot'
+  route :green_googles_bot, '/shop/vintage-bots/green-googles-bot'
+  route :vintage_color_bot, '/shop/vintage-bots/vintage-color-bot'
+  route :windup_gray_bot, '/shop/vintage-bots/windup-gray-bot'
 
-  route :add_blue_bot, '/shop/vintage-bots/blue-bot', :return => :handle_response, :resource => 'shop'
-  route :add_family_bots, '/shop/vintage-bots/family-bots', :return => :handle_response, :resource => 'shop'
-  route :add_femm_bot, '/shop/vintage-bots/femm-bot', :return => :handle_response, :resource => 'shop'
-  route :add_green_googles_bot, '/shop/vintage-bots/green-googles-bot', :return => :handle_response, :resource => 'shop'
-  route :add_vintage_color_bot, '/shop/vintage-bots/vintage-color-bot', :return => :handle_response, :resource => 'shop'
-  route :add_windup_gray_bot, '/shop/vintage-bots/windup-gray-bot', :return => :handle_response, :resource => 'shop'
+  route :add_blue_bot, '/shop/vintage-bots/blue-bot', :resource => 'shop'
+  route :add_family_bots, '/shop/vintage-bots/family-bots', :resource => 'shop'
+  route :add_femm_bot, '/shop/vintage-bots/femm-bot', :resource => 'shop'
+  route :add_green_googles_bot, '/shop/vintage-bots/green-googles-bot', :resource => 'shop'
+  route :add_vintage_color_bot, '/shop/vintage-bots/vintage-color-bot', :resource => 'shop'
+  route :add_windup_gray_bot, '/shop/vintage-bots/windup-gray-bot', :resource => 'shop'
 
-  route :eyeclops, '/shop/eyeclops', :return => :handle_response
+  route :eyeclops, '/shop/eyeclops'
 
-  route :eyeclops_bots, '/shop/eyeclops/eyeclops-bots', :return => :handle_response
-  route :eyeclops_googly_bots, '/shop/eyeclops/googly-eyed-bots', :return => :handle_response
+  route :eyeclops_bots, '/shop/eyeclops/eyeclops-bots'
+  route :eyeclops_googly_bots, '/shop/eyeclops/googly-eyed-bots'
 
-  route :add_eyeclops_bots, '/shop/eyeclops/eyeclops-bots', :return => :handle_response, :resource => 'shop'
-  route :add_eyeclops_googly_bots, '/shop/eyeclops/googly-eyed-bots', :return => :handle_response, :resource => 'shop'
+  route :add_eyeclops_bots, '/shop/eyeclops/eyeclops-bots', :resource => 'shop'
+  route :add_eyeclops_googly_bots, '/shop/eyeclops/googly-eyed-bots', :resource => 'shop'
 
-  route :vintage_bots_2, '/shop/vintage-bots-2', :return => :handle_response
+  route :vintage_bots_2, '/shop/vintage-bots-2'
 
-  route :vintage_bots_2_bots, '/shop/vintage-bots-2/vintage-bots', :return => :handle_response
+  route :vintage_bots_2_bots, '/shop/vintage-bots-2/vintage-bots'
 
-  route :add_vintage_bots_2_bots, '/shop/vintage-bots-2/vintage-bots', :return => :handle_response, :resource => 'shop'
+  route :add_vintage_bots_2_bots, '/shop/vintage-bots-2/vintage-bots', :resource => 'shop'
 
 
   def initialize
     self.base_uri = "http://myrobots.com"
-  end
-
-  def save_cookies
-    @cookies ||= {}
-    @response.headers.to_hash['set-cookie'].collect { |cookie| cookie.split("\; ")[0].split('=') }.each do |c|
-      @cookies[c[0]] = c[1]
-    end
   end
 
   def save_auth_token
@@ -137,8 +129,8 @@ class MyRobotsWebService < ActiveWebService
     end
   end
 
-  def handle_response(response)
-    save_cookies
+  def parse_response!
+    super
     save_auth_token
     update_ip
   end
@@ -146,7 +138,6 @@ class MyRobotsWebService < ActiveWebService
   def build_options!(options)
     super
     options[:headers] ||= {}
-    options[:headers]['cookie'] = @cookies.to_a.collect{|c| "#{c[0]}=#{c[1]}"}.join('; ') + ';' if @cookies
     if options[:body]
       options[:body]['authenticity_token'] = @authenticity_token
 
