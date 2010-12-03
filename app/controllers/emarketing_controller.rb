@@ -9,8 +9,7 @@ class EmarketingController < CmsController # :nodoc: all
   cms_admin_paths 'marketing',
     'Marketing' => { :action => 'index' }
   
-  permit ['editor_visitors','editor_members','editor_mailing'], :only => :index
-  permit 'editor_visitors', :except => :index
+  permit 'editor_visitors'
 
   def index
     cms_page_path [],'Marketing'

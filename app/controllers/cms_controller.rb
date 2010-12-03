@@ -61,7 +61,7 @@ class CmsController < ApplicationController
         menu.item(10,'content',nil,:controller => '/content')
         menu.item(20,'files',['editor_files'],:controller => '/file')
         menu.item(30,'people',['editor_members'],:controller => '/members')
-        menu.item(40,'marketing',['editor_visitors','editor_content','editor_mailing'],:controller => '/emarketing')
+        menu.item(40,'marketing',['editor_visitors'],:controller => '/emarketing')
         menu.item(50,'mail',['editor_mailing'],:controller => '/mail_manager')
         menu.item(60,'options',['editor_design_templates','editor_permissions','editor_site_management','editor_editors','editor_emails'],:controller => '/options')
         menu.item(100,'system',['system_admin','client_admin'],:controller => '/manage/system') 
