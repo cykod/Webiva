@@ -85,7 +85,7 @@ class EmarketingController < CmsController # :nodoc: all
         :total_value => total_value,
         :hits => hits,
         :visits => visits,
-        :user_levels => [(visits - (subscribers + leads + conversions)), subscribers, leads, conversions],
+        :user_levels => [(visits - (subscribers + leads + conversions)), conversions, leads, subscribers],
         :sources => @sources.collect { |source| stats[source[:id]] ? stats[source[:id]].visits : 0 }
       }
     end
