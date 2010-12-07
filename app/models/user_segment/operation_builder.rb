@@ -69,6 +69,7 @@ class UserSegment::OperationBuilder < HashModel
       if self.parent.nil? || self.parent.user_segment_field.handler == handler
         options = []
         handler[:class].user_segment_fields.each do |field, values|
+          next if values[:combined_only] && self.parent.nil?
           options << ['-  ' + values[:name], field.to_s] unless seen_options[field.to_s]
           seen_options[field.to_s] = 1
         end
