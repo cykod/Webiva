@@ -16,20 +16,32 @@ class DomainLogEntrySegmentField < UserSegment::FieldHandler
 
     register_operation :is, [['Site Node', :model, {:class => DomainLogEntrySegmentField::SiteNodeType}]]
 
-    def self.is(cls, group_field, field, action)
-      cls.scoped(:conditions => ["#{field} = ?", action])
+    def self.is(cls, group_field, field, node)
+      cls.scoped(:conditions => ["#{field} = ?", node])
+    end
+
+    register_operation :count, [['Site Node', :model, {:class => DomainLogEntrySegmentField::SiteNodeType}], ['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]], :complex => true
+
+    def self.count(cls, group_field, field, node, operator, value)
+      cls.scoped(:select => "#{group_field}, COUNT(#{field}) as #{field}_count", :conditions => ["#{field} = ?", node], :group => group_field, :having => "#{field}_count #{operator} #{value}")
     end
   end
 
   class ContentNodeType < UserSegment::FieldType
     def self.select_options
-      ContentNodeValue.find(:all, :conditions => ['link IS NOT NULL'], :select => 'DISTINCT content_node_id, link').collect { |v| [v.link, v.content_node_id] }.sort { |a, b| a[0] <=> b[0] }
+      ContentNodeValue.find(:all, :conditions => ['link IS NOT NULL'], :select => 'DISTINCT content_node_id, link', :limit => 10000).collect { |v| [v.link, v.content_node_id] }.sort { |a, b| a[0] <=> b[0] }
     end
 
     register_operation :is, [['Content', :model, {:class => DomainLogEntrySegmentField::ContentNodeType}]]
 
     def self.is(cls, group_field, field, action)
       cls.scoped(:conditions => ["#{field} = ?", action])
+    end
+
+    register_operation :count, [['ContentNodeType', :model, {:class => DomainLogEntrySegmentField::ContentNodeType}], ['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]], :complex => true
+
+    def self.count(cls, group_field, field, node, operator, value)
+      cls.scoped(:select => "#{group_field}, COUNT(#{field}) as #{field}_count", :conditions => ["#{field} = ?", node], :group => group_field, :having => "#{field}_count #{operator} #{value}")
     end
   end
 
