@@ -26,10 +26,10 @@ FileUploader = {
 
     for(var i=0; i<files.length; i++) {
       var file = files[i];
-      file.reader = new FileReader();
+      file.reader = null;
       file.content = null;
       file.error = null;
-      file.progress = {loaded: 0, percentage: 0, total: 0};
+      file.progress = null;
       FileUploader.files.push(file);
     }
 
@@ -38,8 +38,10 @@ FileUploader = {
 
   read: function() {
     for(var i=0; i<FileUploader.files.length; i++) {
-      var file = FileUploader.files[i];
-      (function(file) {
+      (function() {
+        var file = FileUploader.files[i];
+        file.reader = new FileReader();
+        file.progress = {loaded: 0, percentage: 0, total: 0};
         if(file.reader.addEventListener) {
           file.reader.addEventListener('loadend', function(e) { FileUploader.loadEnd(file, e); }, false);
           file.reader.addEventListener('error', function(e) { FileUploader.loadError(file, e); }, false);
@@ -50,7 +52,7 @@ FileUploader = {
           file.reader.onprogress = function(e) { FileUploader.loadProgress(file, e); };
         }
         file.reader.readAsBinaryString(file);
-       })(file);
+       })();
     }
   },
 
