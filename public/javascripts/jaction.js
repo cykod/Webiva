@@ -57,7 +57,7 @@
       updateform: function(sel) {
         var settings = sel ? sel.split(",") : [];
         var url = settings.length > 0 ? settings[0] : document.location.pathname;
-        var container = settings.length > 1 ? settings[1] : $j(this[0].form).parent();
+        var container = settings.length > 1 ? $j(settings[1]) : $j(this[0].form).parent();
         var frm = settings.length > 2 ? $j(settings[2]) : $j(this[0].form);
         $j(this[0]).change(function() {
           container.load(url, frm.serializeArray());
@@ -68,7 +68,7 @@
         var settings = sel ? sel.split(",") : [];
         var url = settings[0];
         var frm = $j(this[0]);
-        var container = settings.length > 1 ? settings[1] : frm.parent();
+        var container = settings.length > 1 ? $j(settings[1]) : frm.parent();
 
         $j(this[0]).submit(function() {
           var data = frm.serializeArray();
