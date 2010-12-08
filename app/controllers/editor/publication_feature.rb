@@ -47,6 +47,8 @@ def display_feature(publication,data)
    webiva_custom_feature(publication.feature_name) do |c|
       c.expansion_tag('entry') { |tag|  tag.locals.entry = data[:entry]  }
 
+      c.value_tag('entry:id') { |tag| tag.locals.entry.id }
+
       c.define_tag "next" do |tag|
        if data[:offset]
         data[:max] = data[:publication].get_filtered_count(data[:filter_options]) unless data[:max]
