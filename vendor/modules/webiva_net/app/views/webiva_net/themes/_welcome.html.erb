@@ -1,0 +1,20 @@
+
+
+<div class='cms_form'>
+<p align="right"><a href="javascript:void(0);" onclick="RedBox.close();">[x] close</a></p>
+
+<h1>Welcome to Webiva!</h2>
+<p style='width:600px;'>This is your Dashboard, you can configure your dashboard to show you the information you want to see. Click on the logo in the top left to return to your dashboard at any time. (This popup will disappear once you add another page to your site)</p>
+<br/>
+<a style='display:block; float:left;padding-right:20px;' href='<%= url_for(:controller => '/structure', :action => 'wizard', :path => [ 'webiva_net', 'simple_site_wizard'], :version => '1')  %>'>
+  <%= image_tag "/components/webiva_net/images/setup_a_site.png"  %>
+<a style='display:block; float:left; padding-right:20px;' href='http://www.webiva.net/doc/tutorials' target='_blank' >
+  <%= image_tag "/components/webiva_net/images/goto_tutorials.png" %>
+</a>
+<a style='display:block; float:left;' href='javascript:void(0);' onclick='RedBox.close();'>
+  <%= image_tag "/components/webiva_net/images/i_know_what_to_do.png" %>
+</a>
+
+<div class='clear'></div>
+
+</div>
