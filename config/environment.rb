@@ -151,15 +151,17 @@ ActionMailer::Base.logger = nil unless Rails.env == 'development'
 
 # Copy Assets over
 
+old_dir = Dir.pwd
+Dir.chdir "#{RAILS_ROOT}/public/components"
 Dir.glob("#{RAILS_ROOT}/vendor/modules/[a-z]*") do |file|
   if file =~ /\/([a-z0-9_-]+)\/{0,1}$/
     mod_name = $1
-    if File.directory?(file + "/public") && ! File.exists?("#{RAILS_ROOT}/public/components/#{mod_name}")
-      FileUtils.symlink(file + "/public", "#{RAILS_ROOT}/public/components/#{mod_name}")
+    if File.directory?(file + "/public") && ! File.exists?(mod_name)
+      FileUtils.symlink("../../vendor/modules/#{mod_name}/public", mod_name)
     end
   end
 end
-
+Dir.chdir old_dir
 
 ActionMailer::Base.logger = nil unless Rails.env == 'development'
 
