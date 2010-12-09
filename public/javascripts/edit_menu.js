@@ -70,6 +70,9 @@ cmsMenuEdit = {
       title + "</span></div>");
       cmsMenuEdit.selectEntry(index);
       $('cms_link_to_url_dest').focus();
+
+      $('cms_create_item').blur();
+
       cmsMenuEdit.lastIndex++;
       cmsMenuEdit.recreateSortables();
       
