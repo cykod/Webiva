@@ -37,7 +37,7 @@ class DomainFile < DomainModel
   
   @@img_file_extensions = %w(gif jpg png jpeg bmp tif)
   @@thm_file_extensions = %w(pdf)
-  @@public_file_extensions = %w(swf flv mov js htc ico mp3 css)
+  @@public_file_extensions = %w(swf flv mov js htc ico mp3 css m4v ogg)
   
   cattr_accessor :public_file_extensions
   
