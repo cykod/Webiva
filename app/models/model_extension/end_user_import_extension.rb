@@ -144,8 +144,16 @@ module ModelExtension::EndUserImportExtension
     entry_errors = []
 
     email_field = nil
-    reader = CSV.open(filename,"r",deliminator)
-    file_fields = reader.shift
+    reader = nil
+
+    file_fields = nil
+    begin
+      reader = CSV.open(filename,"r",deliminator)
+      file_fields = reader.shift
+    rescue CSV::IllegalFormatError => e
+      reader = CSV.open(filename,"r",deliminator, ?\r)
+      file_fields = reader.shift
+    end
     fields = []
 
     user_fields = EndUser.import_fields

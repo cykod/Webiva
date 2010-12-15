@@ -20,8 +20,9 @@ class MemberImportWorker <  Workling::Base #:nodoc:all
     file = DomainFile.find_by_id args[:csv_file]
     filename = file.filename
 
-    count = -1
-    CSV.open(filename,"r",args[:deliminator]).each do |row|
+    reader, header = open_csv(filename,args[:deliminator])
+    count = 0  
+    reader.each do |row|
       count += 1 if !row.join.blank?
     end
     count = 1 if count < 1
@@ -41,4 +42,18 @@ class MemberImportWorker <  Workling::Base #:nodoc:all
     results[:completed] = true
     Workling.return.set(args[:uid],results)
   end
+
+  def open_csv(filename,deliminator = ',')
+    reader = nil
+    header = []
+    begin 
+      reader = CSV.open(filename,"r",deliminator)
+      header = reader.shift
+    rescue Exception => e
+      reader = CSV.open(filename,"r",deliminator,?\r)
+      header = reader.shift
+    end
+    return [ reader,header ]
+  end
+
 end

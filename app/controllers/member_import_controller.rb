@@ -82,9 +82,9 @@ class MemberImportController < WizardController # :nodoc: all
         redirect_to :action => :index, :bad => true
         return
       end
-    rescue Exception => e
-      redirect_to :action => :index, :bad => true
-      return
+    #rescue Exception => e
+    #  redirect_to :action => :index, :bad => true
+    #  return
     end
     
     session[:member_import_wizard][:fields] ||= {}
@@ -232,31 +232,31 @@ class MemberImportController < WizardController # :nodoc: all
   
   
   private
+
+  def open_csv(filename,deliminator = ',')
+    reader = nil
+    header = []
+    begin 
+      reader = CSV.open(filename,"r",deliminator)
+      header = reader.shift
+    rescue Exception => e
+      reader = CSV.open(filename,"r",deliminator,?\r)
+      header = reader.shift
+    end
+    return [ reader,header ]
+  end
   
   def valid_csv(filename,deliminator = ',')
-      begin
-        reader = CSV.open(filename,"r",deliminator) 
-      rescue Exception => err
-        raise err.to_s
-        return false
-      end
-      reader.close
-      return true
+    reader,header = open_csv(filename,deliminator)
+    return reader
   end
   
   def csv_fields(filename,deliminator = ',')
-    begin 
-      reader = CSV.open(filename,"r",deliminator)
-      fields = reader.shift.collect do |fld|
-        fld.to_s.strip
-      end 
-    rescue Exception => e
-      return false
+    reader,header = open_csv(filename,deliminator)
+    if reader
+      fields = header.map(&:to_s).map(&:strip)
+      reader.close
+      return fields
     end
-    reader.close
-    
-    return fields
   end
-  
-  
 end
