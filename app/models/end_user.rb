@@ -15,7 +15,7 @@ require 'digest/sha1'
 # Sources:
 # website
 # import
-# referrel
+# referral
 
 =begin rdoc
 EndUser's are the primary user class inside of Webiva and 
@@ -130,10 +130,10 @@ class EndUser < DomainModel
      ['6 - High-value',     UserLevel::HIGH_VALUE]
     ]
 
-  # Referred to as  Origin
+  # Referred to as Origin
   has_options :source, [ [ 'Website', 'website' ],
                          [ 'Import', 'import' ],
-                         [ 'Referrel', 'referrel' ] ]
+                         [ 'Referral', 'referral' ] ]
 
   if CMS_EDITOR_LOGIN_SUPPORT 
    after_save :update_editor_login
@@ -156,7 +156,9 @@ class EndUser < DomainModel
   def validate #:nodoc:
     if self.registered? && !self.hashed_password && (!self.password || self.password.empty?)
       errors.add(:password, 'is missing')
-    end  
+    end
+
+    self.errors.add(:referral, 'is invalid') if @referral && ! self.source_user
   end
 
   def validate_password(pw) #:nodoc:
@@ -887,5 +889,19 @@ Not doing so could allow a user to change their user profile (for example) and e
 
   def last_session
     self.last_log_entry.domain_log_session
+  end
+
+  def referral
+    @referral
+  end
+
+  def referral=(ref)
+    ref = ref.to_s.strip
+    return if ref.blank?
+    @referral = ref
+    self.source_user = EndUser.find_by_membership_id @referral
+    self.source_user ||= EndUser.find_by_username @referral
+    self.source_user ||= EndUser.find_by_email @referral
+    self.source = 'referral' if self.source_user
   end
 end
