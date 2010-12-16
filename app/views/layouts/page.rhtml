@@ -14,6 +14,8 @@
 <% if @robots.length > 0 %>
  <meta name='ROBOTS' content='<%= @robots.join(',') %>'/>
 <% end -%>
+
+<script>var AUTH_TOKEN = "<%= form_authenticity_token.to_s %>";</script>
       
  <%= javascript_include_tag 'swfobject' %>
 <%= @output.includes[:head_html].join("\n") if @output.includes[:head_html] -%>
