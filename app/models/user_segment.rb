@@ -378,6 +378,14 @@ class UserSegment < DomainModel
         next unless display_fields[field]
         next if seen_options[field.to_s]
         options << ['-  ' + values[:name], field.to_s]
+
+        if values[:display_methods]
+          values[:display_methods].each do |name, method|
+            field_method = "#{field}_#{method}"
+            options << ['-  ' + name, field_method]
+          end
+        end
+
         seen_options[field.to_s] = 1
       end
 
@@ -405,6 +413,13 @@ class UserSegment < DomainModel
         next if seen_options[field.to_s]
         options << ['-  ' + values[:name], field.to_s]
         seen_options[field.to_s] = 1
+
+        if values[:sort_methods]
+          values[:sort_methods].each do |name, method|
+            field_method = "#{field}_#{method}"
+            options << ['-  ' + name, field_method]
+          end
+        end
       end
 
       unless options.empty?
