@@ -61,17 +61,15 @@ class Editor::ActionController < ParagraphController #:nodoc:all
 
     validates_presence_of :experiment_id
 
-#    options_form(
-#                 fld(:experiment_id, :select, :options => :experiment_options),
-#                 fld(:type, :select, :options => :type_options),
-#                 fld(:delay_for, :text_field, :size => 5, :unit => 'seconds')
-#                 )
-
     def manual_js
-      self.experiment_id ? "onclick=\"WebivaExperiment.finished(#{self.experiment_id});\"" : ''
+      self.experiment_id ? "WebivaExperiment.finished(#{self.experiment_id});" : ''
     end
 
-    @@type_options = [['Automatic', 'automatic'], ['Delayed', 'delayed'], ['Manual', 'manual']]
+    def onclick_js
+      self.experiment_id ? "onclick=\"return WebivaExperiment.onclick(#{self.experiment_id}, this);\"" : ''
+    end
+
+    @@type_options = [['Automatic', 'automatic'], ['Delayed', 'delayed'], ['Manual', 'manual'], ['Onclick', 'onclick']]
     def self.type_options
       @@type_options
     end
