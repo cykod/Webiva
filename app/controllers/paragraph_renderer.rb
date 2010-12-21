@@ -951,6 +951,9 @@ an integer representing the number of seconds to keep the element in the cache.
   end
   
  
-
+  def run_triggered_actions(trigger_name, data, user=nil)
+    user ||= myself
+    paragraph.run_triggered_actions(data, trigger_name, user, session)
+  end
  
 end

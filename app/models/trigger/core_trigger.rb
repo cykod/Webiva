@@ -26,6 +26,10 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
         { :name => :post_back,
           :description => 'Setup a Post Back',
           :options_partial => '/triggered_action/post_back'
+        },
+        { :name => :experiment,
+          :description => 'Experiment conversion',
+          :options_partial => '/triggered_action/experiment'
         }
       ]
 
@@ -192,6 +196,28 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
         path += '?' + uri.query if uri.query
         http.request_post(path, body, 'Content-Type' => content_type)
       end
+    end
+  end
+
+  class ExperimentTrigger < Trigger::TriggerBase
+    class ExperimentOptions < HashModel
+      attributes :experiment_id => nil
+      validates_presence_of :experiment_id
+
+      options_form(
+                   fld(:experiment_id, :select, :options => :experiment_options)
+                   )
+
+      def experiment_options
+        Experiment.select_options_with_nil
+      end
+    end
+
+    options 'Experiment Options', ExperimentOptions
+
+    def perform(data={}, user=nil)
+      return unless self.session
+      Experiment.success! options.experiment_id, self.session
     end
   end
 end

@@ -5,6 +5,8 @@
 # and  Trigger::TriggeredActionHandler for more information
 class Trigger::TriggerBase 
 
+  attr_accessor :session
+
   def initialize(ta) #:nodoc:
     @triggered_action = ta
   end

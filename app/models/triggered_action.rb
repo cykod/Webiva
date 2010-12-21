@@ -46,7 +46,8 @@ class TriggeredAction < DomainModel
   end
   
   # Performs this action
-  def perform(data = {},user = nil)
+  def perform(data = {},user = nil,session = nil)
+    triggered_action_class.session = session
     triggered_action_class.perform(data,user)
   end
   
