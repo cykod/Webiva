@@ -8,8 +8,6 @@ captcha_time_id = "captcha_time_#{captcha.captcha_code}"
   var captcha_time = document.getElementById("<%= captcha_time_id %>");
   if(captcha_time) {
     captcha_time.value = parseInt(captcha_time.value, 10) + 5;
-  } else {
-    setTimeout(function() { <%= captcha_time_id %>_update(); }, 1000);
   }
 }
 setTimeout(function() { <%= captcha_time_id %>_update(); }, 5000);
