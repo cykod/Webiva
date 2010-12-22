@@ -312,6 +312,12 @@ describe Experiment do
         end
       end
       
+      assert_difference 'TriggeredAction.count', 0 do
+        assert_difference 'PageParagraph.count', -1 do
+          @exp.end_experiment!
+          @exp.save
+        end
+      end
     end
 
     it "should added the experiment paragraph to the conversion page" do
@@ -326,6 +332,13 @@ describe Experiment do
           end
         end
       end      
+
+      assert_difference 'TriggeredAction.count', 0 do
+        assert_difference 'PageParagraph.count', -3 do
+          @exp.end_experiment!
+          @exp.save
+        end
+      end
     end
 
     it "should added the experiment paragraph to the conversion page and setup the webform triggers" do
@@ -342,7 +355,14 @@ describe Experiment do
             end
           end
         end
-      end      
+      end
+
+      assert_difference 'TriggeredAction.count', -3 do
+        assert_difference 'PageParagraph.count', -3 do
+          @exp.end_experiment!
+          @exp.save
+        end
+      end
     end
   end
 end
