@@ -75,6 +75,15 @@ class WebivaCaptcha
     handler_info[:class]
   end
 
+  def self.captcha_error_message
+    return nil unless Configuration.options.captcha_handler
+
+    handler_info = get_handler_info(:webiva, :captcha, Configuration.options.captcha_handler)
+    return nil unless handler_info
+
+    handler_info[:error_message]
+  end
+
   module HandlerSupport
     attr_reader :controller, :session, :params
 
@@ -130,7 +139,7 @@ class WebivaCaptcha
     def self.append_features(mod) #:nodoc:
       super
       mod.send(:attr_accessor, :captcha_invalid)
-      mod.send(:validate, Proc.new { |elm| elm.errors.add(:captcha) if elm.captcha_invalid })
+      mod.send(:validate, Proc.new { |elm| elm.errors.add(:captcha, WebivaCaptcha.captcha_error_message) if elm.captcha_invalid })
     end
   end
 end

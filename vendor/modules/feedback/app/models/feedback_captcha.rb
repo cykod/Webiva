@@ -7,8 +7,7 @@ class FeedbackCaptcha
 
   def self.webiva_captcha_handler_info
     { 
-      :name => 'Feedback Captcha',
-      :class => 'FeedbackCaptcha'
+      :name => 'Feedback Captcha'
     }
   end
 

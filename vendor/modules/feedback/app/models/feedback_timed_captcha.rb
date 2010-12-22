@@ -5,7 +5,7 @@ class FeedbackTimedCaptcha
   def self.webiva_captcha_handler_info
     { 
       :name => 'Feedback Timed Captcha',
-      :class => 'FeedbackTimedCaptcha'
+      :error_message => 'requires javascript to be enabled'
     }
   end
 
