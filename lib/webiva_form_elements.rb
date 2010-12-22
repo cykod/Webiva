@@ -730,8 +730,8 @@ module WebivaFormElements
   end
  
   # Selector that lets you pick a page by id
-  def page_selector(field,opts = {})
-    self.select(field,[['--Select Page--'.t,nil]] + SiteNode.page_options,opts)
+  def page_selector(field,opts = {}, html_options={})
+    self.select(field,[['--Select Page--'.t,nil]] + SiteNode.page_options,opts,html_options)
   end
  
   # Selector that lets you pick a page by url

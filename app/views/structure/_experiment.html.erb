@@ -27,7 +27,12 @@ submitExperimentForm = function(frm, update) {
     <% end -%>
   <% end -%>
   <%= f.header 'Optional' %>
-  <%= f.page_selector :conversion_site_node_id %>
+  <%= f.page_selector :conversion_site_node_id, {}, :label => 'Conversion Page', :onchange => 'submitExperimentForm(this.form);', :description => 'Select the same page for additional options' %>
+
+  <% if @experiment.conversion_site_node_id == @experiment.experiment_container_id -%>
+    <%= f.yes_no :webform_conversion, :description => 'Trigger a conversion if the form is submitted' %>
+  <% end -%>
+
   <%= f.spacer %>
   <%= f.cancel_submit_buttons "Cancel", "Submit", { :onclick => 'RedBox.close(); return false;' } %>
 <% end -%>
