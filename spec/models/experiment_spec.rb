@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + "/../spec_helper"
 
 describe Experiment do
 
-  reset_domain_tables :experiment, :experiment_version, :experiment_user, :site_node, :site_version, :domain_log_visitor, :domain_log_session
+  reset_domain_tables :experiment, :experiment_version, :experiment_user, :site_node, :site_version, :domain_log_visitor, :domain_log_session, :page_revision, :page_paragraph, :triggered_action
 
   def get_session
     return @session if @session
@@ -297,5 +297,52 @@ describe Experiment do
     @exp.versions[0].weight.should == 34
     @exp.versions[1].weight.should == 33
     @exp.versions[2].weight.should == 33
+  end
+
+  describe "Conversion Page" do
+    it "should added the experiment paragraph to the conversion page" do
+      @conversion_page = SiteVersion.default.root.push_subpage('conversion')
+      home_page = SiteVersion.default.root.pages.find_by_title('')
+      @exp = Experiment.new :experiment_container => home_page, :language => 'en', :conversion_site_node => @conversion_page
+      assert_difference 'ExperimentVersion.count', 3 do
+        assert_difference 'Experiment.count', 1 do
+          assert_difference 'PageParagraph.count', 1 do
+            @exp.update_attributes :name => 'Test', :versions => [{:revision => '0.01', :weight => ''}, {:revision => '0.02', :weight => ''}, {:revision => '0.03', :weight => ''}]
+          end
+        end
+      end
+      
+    end
+
+    it "should added the experiment paragraph to the conversion page" do
+      home_page = SiteVersion.default.root.pages.find_by_title('')
+      home_page.new_revision { |rv| rv.revision = 0.02 }
+      home_page.new_revision { |rv| rv.revision = 0.03 }
+      @exp = Experiment.new :experiment_container => home_page, :language => 'en', :conversion_site_node => home_page, :webform_conversion => false
+      assert_difference 'ExperimentVersion.count', 3 do
+        assert_difference 'Experiment.count', 1 do
+          assert_difference 'PageParagraph.count', 3 do
+            @exp.update_attributes :name => 'Test', :versions => [{:revision => '0.01', :weight => ''}, {:revision => '0.02', :weight => ''}, {:revision => '0.03', :weight => ''}]
+          end
+        end
+      end      
+    end
+
+    it "should added the experiment paragraph to the conversion page and setup the webform triggers" do
+      home_page = SiteVersion.default.root.pages.find_by_title('')
+      home_page.live_revisions.first.push_paragraph '/webform/page', 'form'
+      home_page.new_revision { |rv| rv.revision = 0.02; rv.push_paragraph '/webform/page', 'form' }
+      home_page.new_revision { |rv| rv.revision = 0.03; rv.push_paragraph '/webform/page', 'form' }
+      @exp = Experiment.new :experiment_container => home_page, :language => 'en', :conversion_site_node => home_page, :webform_conversion => true
+      assert_difference 'ExperimentVersion.count', 3 do
+        assert_difference 'Experiment.count', 1 do
+          assert_difference 'PageParagraph.count', 3 do
+            assert_difference 'TriggeredAction.count', 3 do
+              @exp.update_attributes :name => 'Test', :versions => [{:revision => '0.01', :weight => ''}, {:revision => '0.02', :weight => ''}, {:revision => '0.03', :weight => ''}]
+            end
+          end
+        end
+      end      
+    end
   end
 end

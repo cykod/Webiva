@@ -196,10 +196,10 @@ class Experiment < DomainModel
       self.remove_experiment_conversion_paragraph old_site_node if old_site_node != self.experiment_container
     end
 
-    if ! self.same_page?
+    if self.conversion_site_node && ! self.same_page?
       if self.finished?
         self.remove_experiment_conversion_paragraph self.conversion_site_node
-      elsif self.started?
+      else
         self.add_experiment_conversion_paragraph self.conversion_site_node
       end
     end
