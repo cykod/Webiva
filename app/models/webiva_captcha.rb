@@ -1,4 +1,32 @@
 
+=begin rdoc
+Captcha Handlers require 4 basic methods
+
+class MyCaptcha
+  # returns the result of validate. by default is true
+  def valid?; @valid; end
+
+  # test to see if the user passed captcha
+  def validate
+    @valid = self.params[:captcha_text] == self.captcha_phrase
+  end
+
+  # returns the captcha image to display
+  def render(options={}); nil; end
+
+  # returns the html to insert into the form
+  def generate(options={})
+    if self.controller.send(:myself).id
+      nil
+    else
+      self.generate_phrase((options[:length] || 6).to_i)
+      self.controller.send(:render_to_string, :partial => self.partial, :locals => {:captcha => self, :options => options})
+    end
+  end
+end
+
+=end
+
 class WebivaCaptcha
   include HandlerActions
 
@@ -45,6 +73,15 @@ class WebivaCaptcha
     return nil unless handler_info
 
     handler_info[:class]
+  end
+
+  def self.captcha_error_message
+    return nil unless Configuration.options.captcha_handler
+
+    handler_info = get_handler_info(:webiva, :captcha, Configuration.options.captcha_handler)
+    return nil unless handler_info
+
+    handler_info[:error_message]
   end
 
   module HandlerSupport
@@ -102,7 +139,7 @@ class WebivaCaptcha
     def self.append_features(mod) #:nodoc:
       super
       mod.send(:attr_accessor, :captcha_invalid)
-      mod.send(:validate, Proc.new { |elm| elm.errors.add(:captcha) if elm.captcha_invalid })
+      mod.send(:validate, Proc.new { |elm| elm.errors.add(:captcha, WebivaCaptcha.captcha_error_message) if elm.captcha_invalid })
     end
   end
 end
