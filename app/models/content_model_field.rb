@@ -243,4 +243,24 @@ class ContentModelField < DomainModel
   def assign(entry,values)
     self.module_class.assign(entry,values)
   end
+
+  def after_save
+    self.add_has_many_relationship if self.field_type == 'belongs_to' && self.field_options['add_has_many']
+  end
+
+  def add_has_many_relationship
+    return if self.relation_name == 'end_user' || self.relation_name == 'other'
+
+    table_name = self.content_model.table_name
+    plural_name = table_name.sub /^cms_/, ''
+    singular_name = plural_name.singularize
+    field_id = "#{singular_name}_id"
+    cm = ContentModel.find_by_table_name self.relation_class.table_name
+    return if cm.content_model_fields.detect { |fld| fld.field_type == 'has_many_simple' && fld.field == field_id }
+
+    options = Content::Field::FieldOptions.new :relation_class => table_name.classify, :relation_name => plural_name, :relation_singular => singular_name, :foreign_key => self.field
+
+    next_position = cm.content_model_fields.maximum(:position) + 1
+    cm.content_model_fields.create :name => plural_name.titleize, :field => field_id, :field_type => 'has_many_simple', :field_options => options.to_h, :field_module => 'content/core_field', :position => next_position
+  end
 end

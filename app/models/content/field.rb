@@ -63,6 +63,7 @@ module Content
         belongs_class_name = options[:belongs_to]
         if ContentModel.relationship_classes.detect { |cls| cls[1] == belongs_class_name }
           field_opts['relation_class'] = belongs_class_name.camelcase
+          field_opts['add_has_many'] = options[:add_has_many].blank? ? false : true
         else
           field_opts['relation_class'] = nil
         end 
@@ -886,9 +887,9 @@ module Content
   end
   
   class FieldOptions < HashModel #:nodoc:all
-    attributes :required => false, :options => [], :relation_class => nil, :unique => false, :regexp => false, :regexp_code => '', :regexp_message => 'is not formatted correctly', :on => '', :off => '', :on_description => '', :hidden => false, :exclude => false, :relation_name => nil, :relation_singular => nil, :folder_id => nil
+    attributes :required => false, :options => [], :relation_class => nil, :unique => false, :regexp => false, :regexp_code => '', :regexp_message => 'is not formatted correctly', :on => '', :off => '', :on_description => '', :hidden => false, :exclude => false, :relation_name => nil, :relation_singular => nil, :folder_id => nil, :add_has_many => false, :foreign_key => nil
     
-    boolean_options :required, :unique, :regexp, :hidden, :exclude
+    boolean_options :required, :unique, :regexp, :hidden, :exclude, :add_has_many
 
     def validate
       if !self.regexp_code.blank?

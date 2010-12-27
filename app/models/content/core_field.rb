@@ -111,8 +111,13 @@ class Content::CoreField < Content::FieldHandler
                          :dynamic_fields => [:user_id ],
                          :index => true,
                        },
-                       { :name => :has_many, 
-                         :description => 'Has Many Relationship',
+                       { :name => :has_many,
+                         :description => 'Container',
+                         :representation => :none,
+                         :relation => :plural
+                       },
+                       { :name => :has_many_simple,
+                         :description => 'Has Many',
                          :representation => :none,
                          :relation => :plural
                        },
@@ -834,6 +839,109 @@ class Content::CoreField < Content::FieldHandler
         nil
       end
     end
+
+    def filter_display_options(pub_field,f)
+      mdl  =  pub_field.content_model_field.content_model_relation
+      if mdl
+        f.header("Exposed Filter Display Options",:description => 'If the filter is exposed, the options below control how the options are displayed') + 
+          form_display_options(pub_field,f)
+      end
+    end
+    
+    
+    def site_feature_value_tags(c,name_base,size=:full,options = {})
+      tag_name = @model_field.feature_tag_name
+      local = options[:local] || 'entry'
+      
+      relation_name = @model_field.relation_name
+      if @model_field.relation_class == EndUser
+        c.expansion_tag("#{name_base}:#{tag_name}") do |t|
+          entry =  t.locals.send(local)
+          users =  entry.send(relation_name) if entry
+          if entry && relation
+            if t.single?
+              users.map(&:full_name).join(t.attr['separator']||", ")
+            else
+              c.each_local_value(users,t,'user')
+            end
+            t.locals.user =  t.locals.send(local).send(relation_name)
+          else
+            nil
+          end
+        end
+        c.user_details_tags("#{name_base}:#{tag_name}",:local => :user)
+      else
+        sub_local = "sub_#{local}"
+
+        c.define_tag("#{name_base}:#{tag_name}") do |t|
+          entry =  t.locals.send(local)
+          relation = entry.send(relation_name) if entry
+          if entry && relation
+            if t.single?
+              relation.map(&:identifier_name).join(t.attr['separator']||", ")
+            else
+              c.each_local_value(relation,t,sub_local)
+            end
+          end
+        end
+
+        # don't go too far down the rabbit hole
+        if !options[:subfeature]
+          if @cm_relation = @model_field.content_model_relation
+            @cm_relation.content_model_fields.each do |fld|
+              fld.site_feature_value_tags(c,"#{name_base}:#{tag_name}",:full,:local => sub_local,:subfeature => true)
+            end
+          end
+        end
+      end
+
+    end
+  end
+
+  class HasManySimpleField < Content::Field #:nodoc:all 
+    field_options
+
+    setup_model  do |cls,fld|
+      if fld.model_field.field_options['relation_name'] && fld.model_field.field_options['relation_class'] && fld.model_field.field_options['foreign_key']
+        cls.has_many fld.model_field.field_options['relation_name'], :class_name => fld.model_field.field_options['relation_class'], :foreign_key => fld.model_field.field_options['foreign_key']
+      end
+    end
+
+    filter_setup :include
+
+    table_header :static
+
+    display_options_variables :control, :group_by_id, :filter_by_id, :filter, :order_by_id
+
+    def form_field(f,field_name,field_opts,options={}); end
+    
+    def content_display(entry,size=:full,options={})
+      if !@model_field.field_options['relation_class'].blank?
+        begin
+          h(entry.send(@model_field.field_options['relation_name']) ? entry.send(@model_field.field_options['relation_name']).map(&:identifier_name).join(", ") : '')
+        rescue Exception => e
+          "Invalid Content Model"
+        end
+      end
+    end
+
+    def assign_value(entry,value)
+      if @model_field.relation_class
+        entry.send("#{@model_field.field_options['relation_singular']}_ids=",value)
+      end
+    end
+    
+    def assign(entry,values)
+      if @model_field.relation_class
+        entry.send("#{@model_field.field_options['relation_singular']}_ids=",values["#{@model_field.field_options['relation_singular']}_ids".to_sym ])
+      end
+    end
+
+    def default_field_name
+      "#{@model_field.field_options['relation_singular']}_ids"
+    end
+
+    def form_display_options(pub_field,f); end
 
     def filter_display_options(pub_field,f)
       mdl  =  pub_field.content_model_field.content_model_relation

@@ -19,6 +19,7 @@
      <%= f.text_area :options_text, :cols => 60, :rows => 4,:vertical => true, :label => 'Available Options (One per line or Text Value;;db_safe_value)' %>
   <% when :belongs_to -%>
      <%= f.select :belongs_to, ContentModel.relationship_classes, :label => 'Belongs to' %>
+     <%= f.check_boxes :add_has_many, [['Add has many relationship to the model', true]], :single => true %>
  <% when :has_many -%>
      <%= f.select :belongs_to, ContentModel.relationship_classes, :label => 'Has Many', :description => 'Changing relationship model will destroy existing connections'  %>
  <% when :on_off_value -%>
