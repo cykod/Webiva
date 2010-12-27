@@ -925,30 +925,15 @@ class Content::CoreField < Content::FieldHandler
       end
     end
 
-    def assign_value(entry,value)
-      if @model_field.relation_class
-        entry.send("#{@model_field.field_options['relation_singular']}_ids=",value)
-      end
-    end
+    def assign_value(entry,value); end
     
-    def assign(entry,values)
-      if @model_field.relation_class
-        entry.send("#{@model_field.field_options['relation_singular']}_ids=",values["#{@model_field.field_options['relation_singular']}_ids".to_sym ])
-      end
-    end
+    def assign(entry,values); end
 
-    def default_field_name
-      "#{@model_field.field_options['relation_singular']}_ids"
-    end
+    def default_field_name; end
 
     def form_display_options(pub_field,f); end
 
     def filter_display_options(pub_field,f)
-      mdl  =  pub_field.content_model_field.content_model_relation
-      if mdl
-        f.header("Exposed Filter Display Options",:description => 'If the filter is exposed, the options below control how the options are displayed') + 
-          form_display_options(pub_field,f)
-      end
     end
     
     

@@ -261,6 +261,6 @@ class ContentModelField < DomainModel
     options = Content::Field::FieldOptions.new :relation_class => table_name.classify, :relation_name => plural_name, :relation_singular => singular_name, :foreign_key => self.field
 
     next_position = cm.content_model_fields.maximum(:position) + 1
-    cm.content_model_fields.create :name => plural_name.titleize, :field => field_id, :field_type => 'has_many_simple', :field_options => options.to_h, :field_module => 'content/core_field', :position => next_position
+    cm.content_model_fields.create :name => plural_name.titleize, :field => field_id, :field_type => 'has_many_simple', :field_options => options.to_h.stringify_keys, :field_module => 'content/core_field', :position => next_position
   end
 end
