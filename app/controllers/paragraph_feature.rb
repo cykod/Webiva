@@ -1788,7 +1788,7 @@ block is non-nil
     def define_content_model_fields_value_tags(prefix,content_model_fields,options = {})
       c = self
       content_model_fields.each do |fld|
-        fld.site_feature_value_tags(c,prefix,:full,:local => local)
+        fld.site_feature_value_tags(c,prefix,:full,:local => 'entry')
       end
     end
 

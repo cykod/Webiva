@@ -118,9 +118,16 @@ class ContentModelField < DomainModel
 
   # Return the actual class if this field has a relation
   def relation_class
+    cls = self.relation_class_name
+    cls.constantize if cls
+  end
+
+
+  # Return the actual class if this field has a relation
+  def relation_class_name
     if !self.field_options['relation_class'].blank?
       begin
-        return self.field_options['relation_class'].constantize
+        return self.field_options['relation_class']
       rescue Exception => e
         return nil
       end

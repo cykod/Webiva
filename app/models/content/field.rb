@@ -645,7 +645,9 @@ module Content
         conditions.length > 0 ? { :conditions => conditions.join(" AND "), :values => values } : nil
 
       end                
-    }    
+    }   
+
+    def filter_variables; []; end
     
     
     # Sets up filter methods compatible with this field. 

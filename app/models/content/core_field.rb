@@ -852,6 +852,8 @@ class Content::CoreField < Content::FieldHandler
     def site_feature_value_tags(c,name_base,size=:full,options = {})
       tag_name = @model_field.feature_tag_name
       local = options[:local] || 'entry'
+
+      c.value_tag("#{name_base}:#{tag_name}:id") { |t| entry = t.locals.send(local); entry.id if entry }
       
       relation_name = @model_field.relation_name
       if @model_field.relation_class == EndUser
@@ -907,11 +909,11 @@ class Content::CoreField < Content::FieldHandler
       end
     end
 
-    filter_setup :include
+    #filter_setup :include
 
     table_header :static
 
-    display_options_variables :control, :group_by_id, :filter_by_id, :filter, :order_by_id
+    #display_options_variables :control, :group_by_id, :filter_by_id, :filter, :order_by_id
 
     def form_field(f,field_name,field_opts,options={}); end
     
@@ -941,6 +943,8 @@ class Content::CoreField < Content::FieldHandler
       tag_name = @model_field.feature_tag_name
       local = options[:local] || 'entry'
       
+      c.value_tag("#{name_base}:#{tag_name}:id") { |t| entry = t.locals.send(local); entry.id if entry }
+
       relation_name = @model_field.relation_name
       if @model_field.relation_class == EndUser
         c.expansion_tag("#{name_base}:#{tag_name}") do |t|
