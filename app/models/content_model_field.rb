@@ -252,7 +252,7 @@ class ContentModelField < DomainModel
     return if self.relation_name == 'end_user' || self.relation_name == 'other'
 
     table_name = self.content_model.table_name
-    plural_name = table_name.sub /^cms_/, ''
+    plural_name = "#{self.field.sub(/_id$/,'')}_#{table_name.sub(/^cms_/, '')}"
     singular_name = plural_name.singularize
     field_id = "#{singular_name}_id"
     cm = ContentModel.find_by_table_name self.relation_class.table_name
