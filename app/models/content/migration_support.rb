@@ -102,8 +102,10 @@ module Content::MigrationSupport  #:nodoc:
         field_name_prefix = field[:name].downcase.gsub(/[^a-z0-9]+/,"_")[0..20].singularize
         # use an index if necessary, (e.g. blog_2, etc if necessary )
         field_name_index = 1
-        if field_name_prefix == 'id'
-          field_name_prefix = 'fld_id'
+
+        @reserved_names ||= %w(id accept callback categorie action attributes application connection database dispatcher display drive errors format host key layout load link new, notify open public quote render request records responses save scope send session system template test timeout to_s type visits)
+        if @reserved_names.include?(field_name_prefix)
+          field_name_prefix = "fld_#{field_name_prefix}"
         end
         field_name_try = field_name_prefix
         
