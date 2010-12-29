@@ -9,7 +9,7 @@ class Blog::PageFeature < ParagraphFeature
       <cms:entry>
         <div class='blog_entry'>
           <cms:image align='left' border='10' size='preview' shadow='1' />
-          <h3><cms:detail_link><cms:title/></cms:detail_link></h3>
+          <h2><cms:detail_link><cms:title/></cms:detail_link></h2>
           <cms:preview/>
           <cms:more><cms:detail_link>Read More...</cms:detail_link><br/><br/></cms:more>
           <div class='blog_info'>
@@ -65,7 +65,7 @@ class Blog::PageFeature < ParagraphFeature
       <cms:entry>
         <div class='blog_entry'>
           <cms:image align='left' border='10' size='preview' shadow='1' />
-          <h3><cms:title/></h3>
+          <h1><cms:title/></h1>
           <cms:body/>
         </div>
           <cms:embedded_media>
