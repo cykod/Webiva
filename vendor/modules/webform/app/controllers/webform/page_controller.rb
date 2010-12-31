@@ -18,7 +18,7 @@ class Webform::PageController < ParagraphController
          fld(:webform_form_id, :select, :options => :webform_form_options),
          fld(:destination_page_id, :select, :options => :destination_page_options),
          fld(:email_to, :text_area, :rows => 4),
-         fld(:captcha, :radio_buttons, :options => [ ['Yes'.t,true],['No'.t,false]], :label => 'Require Captcha'),
+         fld(:captcha, :yes_no, :label => 'Require Captcha'),
          fld(:user_level, :select, :options => :user_level_options)
          )
 
