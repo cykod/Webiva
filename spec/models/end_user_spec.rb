@@ -34,8 +34,8 @@ describe EndUser do
     @user1 = EndUser.push_target("test1@webiva.com")
     @user1.update_attributes( :first_name=> 'User', :user_level => 1, :last_name => '2', :language => 'en' ,:registered => 1)
 
-    @validation = @user1.validate
-    @validation.should have_at_least(1).error_on(:password)
+    @user1.valid?
+    @user1.should have(1).error_on(:password)
 
   end
   it 'should update verification string on initial password set' do
