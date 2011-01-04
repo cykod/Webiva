@@ -47,7 +47,7 @@
 <% end -%>
 <% unless @partial_page || @output.partial -%>
 
-  <% if @google_analytics[:enabled] == 'enabled'  -%>
+  <% if @google_analytics && @google_analytics[:enabled] == 'enabled'  -%>
 <script type='text/javascript'>
   var _gaq = _gaq || [];
   _gaq.push(['_setAccount', '<%= @google_analytics[:code] %>']);

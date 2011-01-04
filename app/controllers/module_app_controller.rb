@@ -36,7 +36,9 @@ class ModuleAppController < ApplicationController
   include SiteNodeEngine::Controller
 
 
-  attr_accessor :visiting_end_user_id
+  attr_accessor :visiting_end_user_id, :server_error
+
+  hide_action :server_error, :visiting_end_user_id
 
   # Specifies actions that shouldn't use the CMS for authentication layout or login
   # (Often used for ajax actions)
@@ -266,7 +268,7 @@ class ModuleAppController < ApplicationController
       set_robots!
       render :template => '/page/index', :layout => 'page', :status => "404 Not Found"
       return  
-    rescue SiteNodeEngine::MissingPageException => e
+    rescueg SiteNodeEngine::MissingPageException => e
       render :text => "Page Not Found", :layout => false, :status => "404 Not Found"
       return  
     end
@@ -275,8 +277,9 @@ class ModuleAppController < ApplicationController
   def rescue_action_in_public(exception) #:nodoc:
     super
     begin
-      page,path_args = find_page_from_path(["500"],DomainModel.active_domain[:site_version_id])
-      engine = SiteNodeEngine.new(page,:display => session[:cms_language], :path => path_args)
+      @server_error = exception
+      @page,path_args = find_page_from_path(["500"],DomainModel.active_domain[:site_version_id])
+      engine = SiteNodeEngine.new(@page,:display => session[:cms_language], :path => path_args)
       @output = engine.run(self,myself,:error_page => true)
       set_robots!
       render :template => '/page/index', :layout => 'page', :status => 500

@@ -85,6 +85,9 @@ class CmsController < ApplicationController
       end
       if exception.is_a?(ActiveRecord::RecordNotFound)
         @error_message = "The record you were looking for could not be found"
+      elsif exception.is_a?(ActionController::InvalidAuthenticityToken)
+        @error_message = 'The form you submitted expired, reloading page'
+        headers['Refresh'] = '3; URL=' + request.url
       else
         super
         @error_message = 'There was a problem processing your request'
@@ -98,7 +101,6 @@ class CmsController < ApplicationController
     rescue Exception => e
       render :text => 'There was an error processing your request', :status => 500
     end
-    
   end
   
      
