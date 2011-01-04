@@ -29,7 +29,7 @@ describe HashModel do
     @model.valid?
     @model.page_id.should == 5
     @model.defaults[:page_id].should == 50
-    @model.page_number.should == 4
+    @model.page_number.should == '4'
     @model.defaults[:page_number].should == 80
   end
 
@@ -40,7 +40,7 @@ describe HashModel do
     @model = @cls.new :page_id => '5', :page_number => '4', :page_value => '3'
     @model.valid?
     @model.page_id.should == 5
-    @model.page_number.should == 4
+    @model.page_number.should == '4'
     @model.page_value.should == 3
   end
 

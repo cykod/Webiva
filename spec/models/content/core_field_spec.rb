@@ -62,7 +62,7 @@ describe Content::Field do
       
       # We should have ID + all the fields we tried to add in
       # except for has many and header- b/c that doesn't actually create a field
-      @cm.content_model.columns.length.should == (cmfs.length-1) 
+      @cm.content_model.columns.length.should == (cmfs.length-2) 
       
       fdata = fixture_file_upload("files/rails.png",'image/png')
       @image_file = DomainFile.create(:filename => fdata)

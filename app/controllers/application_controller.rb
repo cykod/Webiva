@@ -392,7 +392,9 @@ class ApplicationController < ActionController::Base
 
   
   def rescue_action_in_public(exception,display = true) # :nodoc:
-    
+    return  render(:text => 'Page not found', :status => :not_found) if exception.is_a?(ActionController::RoutingError)
+    return if exception.is_a?(ActionController::InvalidAuthenticityToken)
+
     deliverer = self.class.read_inheritable_attribute(:exception_data)
     data = case deliverer
            when nil then {}
@@ -535,5 +537,5 @@ class ApplicationController < ActionController::Base
     return @rails_root if @rails_root
     @rails_root = Pathname.new(RAILS_ROOT).cleanpath.to_s
   end  
-  
+
 end

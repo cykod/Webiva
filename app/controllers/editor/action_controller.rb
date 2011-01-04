@@ -10,6 +10,8 @@ class Editor::ActionController < ParagraphController #:nodoc:all
 
   editor_for :experiment, :name => 'Experiment Conversion'
 
+  editor_for :server_error, :name => 'Server Error', :no_options => true, :feature => :editor_action_server_error
+
   user_actions [:exp]
 
   def exp
