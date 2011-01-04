@@ -537,7 +537,8 @@ class EndUser < DomainModel
   end
 
   def self.elevate_user_level(end_user_id, user_level)
-    if self.fetch_user_level(end_user_id) < user_level
+    level = self.fetch_user_level(end_user_id)
+    if level && level < user_level
       self.connection.execute "UPDATE end_users SET acknowledged = 0, user_level = #{user_level} WHERE id = #{end_user_id} AND user_level < #{user_level}"
       true
     else
