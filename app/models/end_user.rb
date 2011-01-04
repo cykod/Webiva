@@ -527,7 +527,8 @@ class EndUser < DomainModel
   end
 
   def self.fetch_user_level(end_user_id)
-    results = self.connection.execute "SELECT user_level FROM end_users WHERE id = #{end_user_id.to_i}"
+    end_user_id = end_user_id.to_i
+    results = self.connection.execute "SELECT user_level FROM end_users WHERE id = #{self.connection.quote end_user_id}"
     results.each_hash { |row| return row['user_level'].to_i }
     nil
   end
@@ -537,9 +538,13 @@ class EndUser < DomainModel
   end
 
   def self.elevate_user_level(end_user_id, user_level)
+    return unless end_user_id
+
+    end_user_id = end_user_id.to_i
+    user_level = user_level.to_i
     level = self.fetch_user_level(end_user_id)
     if level && level < user_level
-      self.connection.execute "UPDATE end_users SET acknowledged = 0, user_level = #{user_level} WHERE id = #{end_user_id} AND user_level < #{user_level}"
+      self.connection.execute "UPDATE end_users SET acknowledged = 0, user_level = #{self.connection.quote user_level} WHERE id = #{self.connection.quote end_user_id} AND user_level < #{self.connection.quote user_level}"
       true
     else
       false
@@ -551,8 +556,9 @@ class EndUser < DomainModel
   end
 
   def self.unsubscribe(end_user_id)
+    end_user_id = end_user_id.to_i
     if self.fetch_user_level(end_user_id) > 0
-      self.connection.execute "UPDATE end_users SET acknowledged = 0, user_level = 0 WHERE id = #{end_user_id} AND user_level > 0"
+      self.connection.execute "UPDATE end_users SET acknowledged = 0, user_level = 0 WHERE id = #{self.connection.quote end_user_id} AND user_level > 0"
       true
     else
       false
@@ -564,7 +570,9 @@ class EndUser < DomainModel
   end
 
   def self.update_user_value(end_user_id, val)
-    self.connection.execute "UPDATE end_users SET `value` = `value` + #{val} WHERE id = #{end_user_id}"
+    end_user_id = end_user_id.to_i
+    val = val.to_i
+    self.connection.execute "UPDATE end_users SET `value` = `value` + #{self.connection.quote val} WHERE id = #{self.connection.quote end_user_id}"
   end
 
   def update_editor_login #:nodoc:
