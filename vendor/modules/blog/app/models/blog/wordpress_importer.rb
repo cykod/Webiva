@@ -44,6 +44,7 @@ class Blog::WordpressImporter
     xml.gsub!(/<\/?atom:.*?>/, '')
     xml.gsub!("& ","&amp; ")
     xml.gsub!(/<wp:postmeta>.*?<\/wp:postmeta>/m, '')
+    xml.gsub!(/\/\/\s*<!\[CDATA\[(.*?)\/\/\s*\]\]/m, '\1')
   end
 
   def rss_header
@@ -122,7 +123,7 @@ class Blog::WordpressImporter
       quote = $1
       src = $2
       file = nil
-      file = self.folder.add(src) if src =~ /^http/
+      file = self.folder.add(src) if src =~ /^http/ && src.length < 200
       if file
         self.images[src] = file
         "src=#{quote}#{file.editor_url}#{quote}"
