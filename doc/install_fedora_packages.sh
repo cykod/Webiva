@@ -22,7 +22,7 @@ fi
 
 yum -y install mysql-server mysql rubygem-rails ruby-mysql ruby-rdoc ruby-devel ruby-imagesize rubygem-tlsmail libxslt libxslt-devel gcc ImageMagick-devel gcc-c++ apr-devel httpd-devel git mysql-devel memcached
 
-gem install passenger starling fastthread daemons
+gem install passenger starling fastthread daemons httparty fastercsv resthome --no-rdoc --no-ri
 
 passenger-install-apache2-module
 

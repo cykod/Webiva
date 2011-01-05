@@ -36,7 +36,7 @@ if [ ! -f /usr/bin/gem ]; then
     exit
 fi
 
-/usr/bin/gem install starling fastthread daemons httparty fastercsv --no-rdoc --no-ri
+/usr/bin/gem install starling fastthread daemons httparty fastercsv resthome --no-rdoc --no-ri
 
 echo "# Set this to yes to enable memcached.
 ENABLE_MEMCACHED=yes" > /etc/default/memcached
