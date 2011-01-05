@@ -65,16 +65,19 @@ class ContentNodeSearch < HashModel
 						  )
     @results.map! do |node|
       content_description =  node.content_description(language)
-
-      { 
-	:title => node.title,
-	:subtitle => content_description || node.content_type.content_name,
-	:url => node.link,
-	:preview => node.preview,
-	:excerpt => node.excerpt,
-	:node => node
-      }
-    end
+      if(!node.link.blank? && node.content_type) 
+        { 
+          :title => node.title,
+          :subtitle => content_description || node.content_type.content_name,
+          :url => node.link,
+          :preview => node.preview,
+          :excerpt => node.excerpt,
+          :node => node
+        }
+      else 
+        nil
+      end
+    end.compact
 
     # taken from DomainModel.paginate, makes using the pagelist_tag easier
     [{ :pages => (@total_results.to_f / self.per_page.to_f).ceil,
