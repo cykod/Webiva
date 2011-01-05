@@ -63,7 +63,7 @@ class ContentNodeSearch < HashModel
 						  :limit => self.per_page,
 						  :offset => offset
 						  )
-    @results.map! do |node|
+    @results = @results.map do |node|
       content_description =  node.content_description(language)
       if(!node.link.blank? && node.content_type) 
         { 
