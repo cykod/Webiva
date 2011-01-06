@@ -268,7 +268,7 @@ class ModuleAppController < ApplicationController
       set_robots!
       render :template => '/page/index', :layout => 'page', :status => "404 Not Found"
       return  
-    rescueg SiteNodeEngine::MissingPageException => e
+    rescue SiteNodeEngine::MissingPageException => e
       render :text => "Page Not Found", :layout => false, :status => "404 Not Found"
       return  
     end
