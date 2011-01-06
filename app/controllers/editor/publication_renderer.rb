@@ -63,7 +63,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
         end
       else
         if publication.view_action_count > 0
-          publication.run_triggered_actions(entry,'view',myself)
+          publication.run_triggered_actions(myself,'view',myself)
         end
       end
     end
@@ -253,7 +253,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
       end
     else
       if publication.view_action_count > 0
-    	  publication.run_triggered_actions(entry,'view',myself) 
+    	  publication.run_triggered_actions(myself,'view',myself) 
       end
     end
     
@@ -271,7 +271,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
   
     publication = paragraph.content_publication
     if publication.view_action_count > 0
-    	publication.run_triggered_actions(entry,'view',myself) 
+    	publication.run_triggered_actions(myself,'view',myself) 
     end
 
     options = paragraph.data || {}
@@ -315,7 +315,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
       
     end
     if publication && publication.view_action_count > 0
-	    publication.run_triggered_actions(entry,'view',myself) 
+	    publication.run_triggered_actions(myself,'view',myself) 
     end
     
     target_string = publication.content_model_id.to_s
