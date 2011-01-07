@@ -15,7 +15,7 @@ class Feed::GenericFeedEater
       timeout(@timeout_seconds) do
         uri = URI.parse(@url)
         raise "Invalid URL" unless uri.is_a?(URI::HTTP) || uri.is_a?(URI::HTTPS)
-        @response_string = Net::HTTP.get(uri)
+        @response_string = self.get(uri)
       end
     rescue TimeoutError
       @error = "Timeout"
@@ -41,4 +41,12 @@ class Feed::GenericFeedEater
     @output    
   end
 
+  def get(uri)
+    Net::HTTP.start(uri.host, uri.port) do |http|
+      req = Net::HTTP::Get.new(uri.request_uri)
+      req.basic_auth uri.user, uri.password if uri.user
+      response = http.request(req)
+      response.body.to_s
+    end
+  end
 end
