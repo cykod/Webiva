@@ -48,6 +48,7 @@ class Editor::SearchRenderer < ParagraphRenderer #:nodoc:all
       @pages[:path] << '?'
       @pages[:path] << [:q, :per_page, :type].map { |ele| ! params[ele].blank? ? (ele.to_s + '=' + CGI.escape(params[ele])) : nil }.compact.join('&')
 
+      self.update_search_stats
     end
 
     render_paragraph :feature => :search_page_search_results
@@ -122,5 +123,18 @@ class Editor::SearchRenderer < ParagraphRenderer #:nodoc:all
     end
 
     @search.valid?
+  end
+
+  def update_search_stats
+    return unless @search.page == 1
+
+    stats_handler = Configuration.options.search_stats_handler
+    return if stats_handler.blank?
+
+    handler_info = get_handler_info(:webiva, :search_stats, stats_handler) unless stats_handler.blank?
+    return unless handler_info
+
+    visitor = DomainLogVisitor.find_by_id session[:domain_log_visitor][:id]
+    handler_info[:class].update_search_stats(myself, visitor, @search)
   end
 end

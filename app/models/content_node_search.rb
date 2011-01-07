@@ -1,5 +1,7 @@
 
 class ContentNodeSearch < HashModel
+  attr_reader :total_results
+
   attributes :terms => nil, :per_page => 10, :content_type_id => nil, :page => 1, :max_per_page => 50, :protected_results => false
 
   integer_options :per_page, :page, :content_type_id, :max_per_page
