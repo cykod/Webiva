@@ -38,6 +38,13 @@ class Blog::BlogBlog < DomainModel
        :title => 'Edit Blog Entry'.t}
   end
 
+  def content_categories
+    self.blog_categories
+  end
+
+  def content_category_nodes(category_id)
+    ContentNode.all :conditions => {:node_type => 'Blog::BlogPost', :content_type_id => self.content_type.id, 'blog_posts_categories.blog_category_id' => category_id}, :joins => 'JOIN blog_posts_categories ON blog_post_id = node_id'
+  end
 
   def paginate_posts_by_category(page,cat,items_per_page)
     Blog::BlogPost.paginate(page,

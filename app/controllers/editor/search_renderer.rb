@@ -26,8 +26,7 @@ class Editor::SearchRenderer < ParagraphRenderer #:nodoc:all
 
   def search_results
     @options = paragraph_options(:search_results)
-
-    return render_paragraph :inline => 'Search results page not set' unless @options.search_results_page_url
+    @options.search_results_page_id = site_node.id
 
     if editor?
       @search = self.content_search_node
@@ -102,7 +101,7 @@ class Editor::SearchRenderer < ParagraphRenderer #:nodoc:all
 
   def content_search_node
     return @search if @search
-    @search = ContentNodeSearch.new :per_page => @options.default_per_page, :max_per_page => @options.max_per_page, :page => 1
+    @search = ContentNodeSearch.new :per_page => @options.default_per_page, :max_per_page => @options.max_per_page, :page => 1, :content_type_id => @options.content_type_id
     @search.set_protected_result myself
     @search
   end
@@ -116,10 +115,11 @@ class Editor::SearchRenderer < ParagraphRenderer #:nodoc:all
     return false unless self.searched
 
     @search.terms = params[:q]
-    @search.page = params[:page] if params[:page]
-    @search.per_page = params[:per_page] if params[:per_page]
+    @search.page = params[:page].to_i if params[:page]
+    @search.per_page = params[:per_page].to_i if params[:per_page]
+    @search.category_id = params[:category].to_i unless params[:category].blank?
     if @search.content_type_id.nil?
-      @search.content_type_id = params[:type] if params[:type]
+      @search.content_type_id = params[:type].to_i if params[:type]
     end
 
     @search.valid?
@@ -127,6 +127,7 @@ class Editor::SearchRenderer < ParagraphRenderer #:nodoc:all
 
   def update_search_stats
     return unless @search.page == 1
+    return if @search.terms.blank?
 
     stats_handler = Configuration.options.search_stats_handler
     return if stats_handler.blank?

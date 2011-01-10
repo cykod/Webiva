@@ -2,7 +2,7 @@
 class ContentNodeSearch < HashModel
   attr_reader :total_results
 
-  attributes :terms => nil, :per_page => 10, :content_type_id => nil, :page => 1, :max_per_page => 50, :protected_results => false
+  attributes :terms => nil, :per_page => 10, :content_type_id => nil, :page => 1, :max_per_page => 50, :protected_results => false, :category_id => nil
 
   integer_options :per_page, :page, :content_type_id, :max_per_page
   boolean_options :protected_results
@@ -51,12 +51,35 @@ class ContentNodeSearch < HashModel
     @language = language
   end
 
+  def content_type
+    @content_type ||= ContentType.find_by_id self.content_type_id
+  end
+
+  def categories
+    return @categories if @categories
+    @categories = []
+    return @categories unless self.content_type
+    return @categories unless self.content_type.container
+    return @categories unless self.content_type.container.respond_to?(:content_categories)
+    @categories = self.content_type.container.content_categories
+  end
+
+  def category_options
+    [['All'.t, nil]] + self.categories.collect { |c| [c.name, c.id] }
+  end
+
+  def category_content_node_ids
+    return unless self.category_id
+    self.content_type.container.content_category_nodes(self.category_id).collect(&:id)
+  end
+
   def frontend_search
     return [@results, @total_results] if @results
 
     conditions = {:search_result => 1}
     conditions[:content_type_id] = self.content_type_id if self.content_type_id
     conditions[:protected_result] = 0 if self.protected_results.blank?
+    conditions[:content_node_id] = self.category_content_node_ids if self.category_id
 
     offset = (self.page - 1) * self.per_page
 
