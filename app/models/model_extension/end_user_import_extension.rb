@@ -327,7 +327,7 @@ module ModelExtension::EndUserImportExtension
 
   def process_profile_import(entry,entry_profiles,field,value) #:nodoc:
     return if value.blank?
-    content_model_field_cache DataCache.local_cache('end_user_import_extension:content_model_field_cache') || {}
+    content_model_field_cache = DataCache.local_cache('end_user_import_extension:content_model_field_cache') || {}
     if field =~ /user_profile_field_([0-9]+)_([0-9]+)/
       user_profile_type_id = $1.to_i
       user_profile_column_id = $2.to_i
