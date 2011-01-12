@@ -40,6 +40,7 @@ gem 'treetop', '1.4.3'
 group :development do
   gem 'ghost', '0.2.8'
   gem 'rubyforge', '2.0.3'
+  gem 'ruby-debug', '0.10.4'
 end
 
 # For now, the rspec gems need to be present at all times (even during
