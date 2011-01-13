@@ -263,6 +263,7 @@ class Configuration < DomainModel
     :general_activation_template_id => nil,
     :general_activation_url => nil,
     :search_handler => nil,
+    :search_stats_handler => nil,
     :site_timezone => nil,
     :captcha_handler => nil,
     :skip_default_feature_css => false
@@ -272,12 +273,15 @@ class Configuration < DomainModel
     boolean_options :skip_default_feature_css
 
     def validate #:nodoc:
-       if !search_handler.blank?
-         self.errors.add(:search_handler,'is not valid') unless get_handler_values(:webiva,:search).include?(search_handler)
-       end
-       if !captcha_handler.blank?
-         self.errors.add(:captcha_handler,'is not valid') unless get_handler_values(:webiva,:captcha).include?(captcha_handler)
-       end
+      if !search_handler.blank?
+        self.errors.add(:search_handler,'is not valid') unless get_handler_values(:webiva,:search).include?(search_handler)
+      end
+      if !search_stats_handler.blank?
+         self.errors.add(:search_stats_handler,'is not valid') unless get_handler_values(:webiva,:search_stats).include?(search_stats_handler)
+      end
+      if !captcha_handler.blank?
+        self.errors.add(:captcha_handler,'is not valid') unless get_handler_values(:webiva,:captcha).include?(captcha_handler)
+      end
     end
 
     def one_line_address(separator = " | ")

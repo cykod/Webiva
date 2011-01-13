@@ -12,6 +12,7 @@
     <%= f.text_area :company_address, :rows => 4, :cols =>40, :description => 'Company business address used for CAN-SPAM Compliance'  %>
     <%= f.text_field :page_title_prefix, :description => 'Default prefix to use before page titles'  %>
     <%= f.select :search_handler, @search_handler_options -%>
+    <%= f.select :search_stats_handler, @search_stats_handler_options -%>
     <%= f.select :captcha_handler, @captcha_handler_options -%>
     <%= f.select :site_timezone,  [['--Use Default--',nil]] + ActiveSupport::TimeZone.all.map { |z| [z.to_s,z.name ] } -%>
     <%= f.radio_buttons :skip_default_feature_css, [['Yes'.t,true],['No'.t,false]],
