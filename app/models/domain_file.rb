@@ -800,7 +800,8 @@ class DomainFile < DomainModel
     
   # Return the size of the actual image
   def image_size(size=nil) 
-    return nil unless self.file_type == 'img' || self.file_type == 'thm'
+    return nil unless (self.file_type == 'img' || self.file_type == 'thm')
+    size = nil if size.blank?
     size=size.to_sym if size
     size = nil unless size && (@@image_sizes[size] || DomainFileSize.custom_sizes[size])
     size ||= :original
