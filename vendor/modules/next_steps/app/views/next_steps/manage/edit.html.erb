@@ -1,0 +1,10 @@
+<div class='admin_content'>
+  <% admin_form_for :step, @step do |f| -%>
+    <%= f.text_field :action_text, :required => true %>
+    <%= f.text_field :description_text, :required => true %>
+    <p>You must enter either a page or a document.</p>
+    <%= f.page_selector :page %>
+    <%= f.filemanager_file :document_id %>
+    <%= f.cancel_submit_buttons 'Cancel', 'Submit Step' %>
+  <% end -%>
+</div>

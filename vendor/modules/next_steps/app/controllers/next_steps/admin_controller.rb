@@ -16,6 +16,15 @@ class NextSteps::AdminController < ModuleController
 
   permit 'next_steps_config'
 
+  content_model :steps
+  
+  def self.get_steps_info
+    [ { :name => 'Next Steps',
+        :permission => :next_steps_manage,
+        :url => { :controller => 'next_steps/manage'}
+    } ]
+  end
+
   public 
  
   # def options

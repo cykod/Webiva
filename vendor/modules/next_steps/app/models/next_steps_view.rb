@@ -4,9 +4,9 @@
 #   t.timestamps
 # end
 class NextStepsView < DomainModel
-  belongs_to :step_1, :foreign_key => 'next_steps_step_id_1' :class_name => 'NextStepsStep'
-  belongs_to :step_2, :foreign_key => 'next_steps_step_id_2' :class_name => 'NextStepsStep'
-  belongs_to :step_3, :foreign_key => 'next_steps_step_id_3' :class_name => 'NextStepsStep'
+  belongs_to :step_1, :foreign_key => 'next_steps_step_id_1', :class_name => 'NextStepsStep'
+  belongs_to :step_2, :foreign_key => 'next_steps_step_id_2', :class_name => 'NextStepsStep'
+  belongs_to :step_3, :foreign_key => 'next_steps_step_id_3', :class_name => 'NextStepsStep'
   
   validates_presence_of :headline
 end
