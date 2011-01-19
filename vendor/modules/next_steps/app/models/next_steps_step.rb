@@ -4,10 +4,6 @@
 #   t.timestamps
 # end
 class NextStepsStep < DomainModel
-  has_many :next_steps_views, :foreign_key => :next_steps_step_id_1
-  has_many :next_steps_views, :foreign_key => :next_steps_step_id_2
-  has_many :next_steps_views, :foreign_key => :next_steps_step_id_3
-  
   validates_presence_of :action_text, :description_text
   
   has_domain_file :document_id
@@ -15,6 +11,14 @@ class NextStepsStep < DomainModel
   def validate
     if document_id.nil? && page.empty?
       errors.add_to_base("You need to enter either a page link or a document.")
+    end
+  end
+  
+  def to_s
+    if action_text && description_text
+      "#{action_text} | #{description_text}"
+    else
+      action_text || description_text
     end
   end
 end

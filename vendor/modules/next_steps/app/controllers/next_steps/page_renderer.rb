@@ -3,20 +3,14 @@ class NextSteps::PageRenderer < ParagraphRenderer
   features '/next_steps/page_feature'
 
   paragraph :view
-
-  def view
-
-    # Any instance variables will be sent in the data hash to the 
-    # next_steps_page_view_feature automatically
-  
-    render_paragraph :feature => :next_steps_page_view
-  end
   
   def view
+    @options = paragraph_options(:view)
+    @step_options = NextStepsStep.all.collect{|s| [s.to_s, s.id] }
     @steps = []
-    @steps << NextStepsStep.find(paragraph_options(:step_1)) if paragraph_options(:step_1) 
-    @steps << NextStepsStep.find(paragraph_options(:step_2)) if paragraph_options(:step_2)
-    @steps << NextStepsStep.find(paragraph_options(:step_3)) if paragraph_options(:step_3)
+    @steps << NextStepsStep.find(@options.step_1) unless @options.step_1.empty? 
+    @steps << NextStepsStep.find(@options.step_2) unless @options.step_2.empty?
+    @steps << NextStepsStep.find(@options.step_3) unless @options.step_3.empty?
     
     render_paragraph :feature => :next_steps_page_view
   end

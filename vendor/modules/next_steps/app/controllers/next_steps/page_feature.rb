@@ -1,42 +1,38 @@
 class NextSteps::PageFeature < ParagraphFeature
 
   feature :next_steps_page_view, :default_feature => <<-FEATURE
+  <div id="next" class="opt">
+    <h4>Next Steps</h4>
+    <h5><cms:title /></h5>
+    <ul>
     <cms:steps>
-      <div class="steps">
         <cms:step>
-          <a href="<cms:step:page/>">
-          
-          </a>
+          <li>
+            <cms:document_present>
+              <cms:document_link><cms:action_text /></cms:document_link>
+            </cms:document_present>
+            <cms:page_present>
+              <cms:page_link><cms:action_text /></cms:page_link>
+            </cms:page_present>
+            <span><cms:description_text /></span>
+          </li>
         </cms:step>
-      </div>
     </cms:steps>
-    <cms:no_steps>Invalid Next Steps</cms:no_steps>
+    </ul>
+    <cms:no_steps>Please select at least one feature.</cms:no_steps>
+  </div>
+
   FEATURE
 
   def next_steps_page_view_feature(data)
     webiva_feature(:next_steps_page_view, data) do |c|
       c.loop_tag('step') { |t| data[:steps] }
-      c.define_expansion_tag('')
-      
-      
-      
-    #   c.expansion_tag('steps') {  |t| data[:steps] }
-    #   c.expansion_tag('responded') {  |t| data[:state] == 'responded'}
-    #   c.value_tag('responded:graph') do |t|
-    #     data[:steps].results_graph(data[:options].graph_width, data[:options].graph_height)
-    #   end
-    #   c.h_tag('question') { |t| data[:steps].question }
-    #   c.field_tag('form:response',
-    #     :control => :radio_buttons,
-    #     :separator => '<br/>') { |t| data[:steps].answer_options }
-    #   c.submit_tag('form:submit',:default => 'Submit')
-    # end
-  end
-
-
-  def next_steps_page_view_feature(data)
-    webiva_feature(:next_steps_page_view,data) do |c|
-      # c.define_tag ...
+      c.expansion_tag('page_present') { |t| ! t.locals.step[:page].empty? }
+      c.expansion_tag('document_present') { |t| ! t.locals.step[:page].empty? }
+      c.link_tag('page') { |t| t.locals.step[:page] }
+      c.link_tag('document') { |t| t.locals.step[:document] }
+      c.attribute_tags('step',%w(action_text description_text page)) { |t| t.locals.step }
+      c.value_tag('title') { |t| data[:options].title }
     end
   end
 
