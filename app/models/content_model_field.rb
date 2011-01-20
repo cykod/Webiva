@@ -119,7 +119,7 @@ class ContentModelField < DomainModel
   # Return the actual class if this field has a relation
   def relation_class
     cls = self.relation_class_name
-    cls.constantize if cls
+    cls.constantize if cls && cls.to_s.downcase != 'other'
   end
 
 
