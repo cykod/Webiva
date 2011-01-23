@@ -128,8 +128,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
       elsif entry_id.to_i == -5 && content_connection && content_connection.to_sym == :entry_id
         fld = publication.content_model.content_model_fields.find_by_id(pub_options.url_field)
         if fld
-          options[:conditions] = " `#{publication.content_model.table_name}`.`#{fld.field}` = ? "
-          options[:values] = [ connection_entry_id ]
+          options[:conditions] = [ " `#{publication.content_model.table_name}`.`#{fld.field}` = ? ", connection_entry_id ]
           entry = publication.get_filtered_entry(:first,options)
         end
       else
