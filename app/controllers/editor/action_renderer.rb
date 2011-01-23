@@ -149,9 +149,13 @@ class Editor::ActionRenderer < ParagraphRenderer #:nodoc:all
 
   def server_error
     @request_url = request.url
-    @server_error = self.controller.server_error
-    return render_paragraph :feature => :editor_action_server_error if editor?
-    return render_paragraph :nothing => true unless @server_error
-    render_paragraph :feature => :editor_action_server_error, :status => 500
+    if !editor?
+      @server_error = self.controller.server_error
+      return render_paragraph :feature => :editor_action_server_error if editor?
+      return render_paragraph :nothing => true unless @server_error
+      render_paragraph :feature => :editor_action_server_error, :status => 500
+    else
+      render_paragraph :text => 'Server Error Paragraph'
+    end
   end
 end
