@@ -101,13 +101,14 @@ class ContentNode < DomainModel
     end
 
     
-    opts.slice(:published,:sticky,:promoted,:content_url_override).each do |key,opt|
+    opts.slice(:published,:sticky,:promoted,:content_url_override,:published_at).each do |key,opt|
       val = item.resolve_argument(opt)
       val = false if val.blank?
       self.send("#{key}=",val)
     end
 
     self.updated_at = Time.now
+    self.published_at ||= Time.now if self.published?
     
     if opts[:user_id]
       user_id = item.resolve_argument(opts[:user_id])
@@ -171,9 +172,9 @@ class ContentNode < DomainModel
         if(self.node.respond_to?(:content_node_body))
           cnv.body = Util::TextFormatter.text_plain_generator( node.content_node_body(lang))
         else
-          cnv.body =Util::TextFormatter.text_plain_generator( node.attributes.values.select { |val| val.is_a?(String) }.join("\n\n") )
+          cnv.body = Util::TextFormatter.text_plain_generator( node.attributes.values.select { |val| val.is_a?(String) }.join("\n\n") )
         end
-        
+
         if type_preload
           cnv.title = node.send(type_preload.title_field)
           cnv.link = self.link

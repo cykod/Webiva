@@ -75,6 +75,7 @@ class HashModel
   def self.current_integer_opts; []; end
   def self.current_boolean_opts; []; end
   def self.current_float_opts; []; end
+  def self.current_date_opts; []; end
   def self.current_integer_array_opts; []; end
 
   def self.integer_options(*objs)
@@ -126,6 +127,15 @@ class HashModel
 
     objs.uniq!
     class << self; self end.send(:define_method,"current_float_opts") do
+      objs
+    end
+  end
+  
+  def self.date_options(*objs)
+    objs = current_date_opts + objs
+
+    objs.uniq!
+    class << self; self end.send(:define_method,"current_date_opts") do
       objs
     end
   end
@@ -337,8 +347,18 @@ class HashModel
       end
       self.instance_variable_set "@#{opt.to_s}",val
     end
-    
-    
+    date_opts = self.class.current_date_opts
+    date_opts.each do |opt|
+      val = self.send(opt)
+      if val.is_a?(String)
+        val = nil if val.blank?
+        begin
+          val = Time.parse(val) if val
+        rescue
+        end
+        self.instance_variable_set "@#{opt.to_s}",val
+      end
+    end
   end
      
   def self.self_and_descendants_from_active_record
