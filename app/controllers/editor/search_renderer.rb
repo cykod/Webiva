@@ -130,11 +130,10 @@ class Editor::SearchRenderer < ParagraphRenderer #:nodoc:all
     return unless @search.page == 1
     return if @search.terms.blank?
 
-    stats_handler = Configuration.options.search_stats_handler
-    return if stats_handler.blank?
+    return if Configuration.options.search_stats_handler.blank?
 
-    handler_info = get_handler_info(:webiva, :search_stats, stats_handler) unless stats_handler.blank?
-    return unless handler_info
+    handler_info = get_handler_info(:webiva, :search_stats, Configuration.options.search_stats_handler)
+    return unless handler_info && handler_info[:class]
 
     visitor = DomainLogVisitor.find_by_id session[:domain_log_visitor][:id]
     handler_info[:class].update_search_stats(myself, visitor, @search)
