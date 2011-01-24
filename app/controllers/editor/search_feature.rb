@@ -70,6 +70,9 @@ class Editor::SearchFeature < ParagraphFeature #:nodoc:all
       context.expansion_tag('search_box:has_categories') { |t| ! data[:search].categories.empty? }
       context.define_tag('search_box:category') { |t| select_tag(:category, options_for_select(data[:search].category_options, t.locals.form.category_id), t.attr) }
 
+      context.define_tag('search_box:published_after') { |t| text_field_tag(:published_after, t.locals.form.published_after, t.attr) }
+      context.define_tag('search_box:published_before') { |t| text_field_tag(:published_before, t.locals.form.published_before, t.attr) }
+    
       context.submit_tag('search_box:submit', :default => 'Submit')
   end
 

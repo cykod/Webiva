@@ -81,7 +81,7 @@ class ContentNodeSearch < HashModel
     conditions[:content_type_id] = self.content_type_id if self.content_type_id
     conditions[:protected_result] = 0 if self.protected_results.blank?
     conditions[:content_node_id] = self.category_content_node_ids if self.category_id && self.content_type_id
-    conditions['content_nodes.published_at'] = self.published_after..self.published_before if self.published_after && self.published_before
+    conditions['content_nodes.published_at'] = self.published_after_date..self.published_before_date if self.published_after_date && self.published_before_date
 
     offset = (self.page - 1) * self.per_page
 
@@ -115,7 +115,7 @@ class ContentNodeSearch < HashModel
       :first => offset+1,
       :last => offset + @results.length
       }
-    [@page, @results]
+    [@pages, @results]
   end
 
   def backend_search

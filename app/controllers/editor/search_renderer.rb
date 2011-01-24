@@ -121,7 +121,8 @@ class Editor::SearchRenderer < ParagraphRenderer #:nodoc:all
     if @search.content_type_id.nil?
       @search.content_type_id = params[:type].to_i if params[:type]
     end
-
+    @search.published_after = params[:published_after]
+    @search.published_before = params[:published_before]
     @search.valid?
   end
 
