@@ -79,7 +79,7 @@ class ContentNodeSearch < HashModel
     conditions = {:search_result => 1}
     conditions[:content_type_id] = self.content_type_id if self.content_type_id
     conditions[:protected_result] = 0 if self.protected_results.blank?
-    conditions[:content_node_id] = self.category_content_node_ids if self.category_id
+    conditions[:content_node_id] = self.category_content_node_ids if self.category_id && self.content_type_id
 
     offset = (self.page - 1) * self.per_page
 
