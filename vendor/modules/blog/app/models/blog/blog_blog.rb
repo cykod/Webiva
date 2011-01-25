@@ -47,19 +47,33 @@ class Blog::BlogBlog < DomainModel
   end
 
   def paginate_posts_by_category(page,cat,items_per_page)
+    cat = [ cat] unless cat.is_a?(Array)
+
+    category_ids = self.blog_categories.find(:all,:conditions => { :name => cat },:select=>'id').map(&:id)
+
+    category_ids = [ 0] if category_ids.length == 0
+
     Blog::BlogPost.paginate(page,
-                            :include => [ :active_revision, :blog_categories ],
+                            :include => [ :active_revision ],
+                            :joins => [ :blog_posts_categories ],
                             :order => 'published_at DESC',
-                            :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ? AND blog_posts.blog_blog_id=? AND blog_categories.name = ?",Time.now,self.id, cat],
+                            :conditions => [ "blog_posts.status = \"published\" AND blog_posts.published_at < ? AND blog_posts.blog_blog_id=? AND blog_posts_categories.blog_category_id in (?)",Time.now,self.id, category_ids],
                             :per_page => items_per_page)
   end                       
 
 
-  def paginate_posts_by_tag(page,cat,items_per_page)
+  def paginate_posts_by_tag(page,tag,items_per_page)
+
+    tag = [ tag ] unless tag.is_a?(Array)
+
+    tag_ids = ContentTag.find(:all,:conditions => { :name => tag },:select => 'id').map(&:id)
+    tag_ids = [ 0 ] if tag_ids.length == 0
+
     Blog::BlogPost.paginate(page,
-                            :include => [ :active_revision, :content_tags ],
+                            :include => [ :active_revision ],
+                            :joins => [ :content_tag_tags ],
                             :order => 'published_at DESC',
-                            :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ? AND blog_posts.blog_blog_id=? AND content_tags.name = ?",Time.now,self.id,cat],
+                            :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ? AND blog_posts.blog_blog_id=? AND content_tag_tags.content_tag_id in (?)",Time.now,self.id,tag_ids],
                             :per_page => items_per_page)
   end
 

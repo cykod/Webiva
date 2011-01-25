@@ -45,11 +45,6 @@ class Blog::PageRenderer < ParagraphRenderer
       end
     end
 
-    if !@options.category.blank?
-      list_type ='category'
-      list_type_identifier = @options.category
-    end
-
     if list_type == 'category'
       list_type_identifier = list_type_identifier.to_s.gsub("+"," ")
       set_page_connection(:category, list_type_identifier)
@@ -61,6 +56,14 @@ class Blog::PageRenderer < ParagraphRenderer
     display_string = "#{page}_#{type_hash}"
 
     result = renderer_cache(Blog::BlogPost, display_string) do |cache|
+      if !@options.category.blank? && @options.limit_by == "category"
+        list_type ='category'
+        list_type_identifier = @options.category.split(",").map(&:strip).reject(&:blank?)
+      elsif !@options.category.blank? && @options.limit_by == "tag"
+        list_type = 'tag'
+        list_type_identifier = @options.category.split(",").map(&:strip).reject(&:blank?)
+      end
+
       blog = get_blog
       return render_paragraph :text => (@options.blog_id.to_i > 0 ? '[Configure paragraph]' : '') unless blog || @options.blog_id == -1
 
