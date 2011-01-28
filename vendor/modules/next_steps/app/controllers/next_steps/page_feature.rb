@@ -27,9 +27,9 @@ class NextSteps::PageFeature < ParagraphFeature
   def next_steps_page_view_feature(data)
     webiva_feature(:next_steps_page_view, data) do |c|
       c.loop_tag('step') { |t| data[:steps] }
-      c.link_tag('page') { |t| t.locals.step[:page] }
       c.expansion_tag('page_present') { |t| ! t.locals.step[:page].blank? }
       c.expansion_tag('document_present') { |t| ! t.locals.step[:document].blank? }
+      c.link_tag('page') { |t| SiteNode.find_page(t.locals.step[:page]).link }
       c.link_tag('document') { |t| t.locals.step[:document] }
       c.attribute_tags('step',%w(action_text description_text page)) { |t| t.locals.step }
       c.value_tag('title') { |t| data[:options].title }
