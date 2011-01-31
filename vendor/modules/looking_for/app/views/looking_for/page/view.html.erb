@@ -1,0 +1,9 @@
+<div class='cms_form'>
+  <%  paragraph_options_form_for :view do |f| -%>
+    <%= f.text_field :title %>
+    <%= f.select :location_1, LookingForLocation.all.collect{|s| [s.to_s, s.id] }, {:include_blank => true, :selected => @options.location_1.to_i } %>
+    <%= f.select :location_2, LookingForLocation.all.collect{|s| [s.to_s, s.id] }, {:include_blank => true, :selected => @options.location_2.to_i } %>
+    <%= f.select :location_3, LookingForLocation.all.collect{|s| [s.to_s, s.id] }, {:include_blank => true, :selected => @options.location_3.to_i } %>
+    
+  <% end -%>
+</div>

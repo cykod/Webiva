@@ -1,0 +1,7 @@
+<% action_panel do |p| -%>
+  <%= p.link "Create a New Location", :action => 'edit', :icon => 'add.gif' -%>
+<% end -%>
+
+<div class="admin_content">
+  <%= active_table_render :location_table -%>
+</div>

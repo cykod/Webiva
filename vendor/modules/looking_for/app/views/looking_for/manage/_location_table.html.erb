@@ -1,0 +1,11 @@
+<% active_table_for :locations_table, @table,
+     :actions => [['Delete','delete','Delete the selected locations?']] do |location| -%>
+  <% active_tr 'locations', location.id do |tr| -%>
+   <td><%= tr.checkbox -%></td>
+   <td><%= link_to h(location.action_text), :action => 'edit', :path => [ location.id ] -%></td>
+   <td><%= link_to h(location.description_text), :action => 'edit', :path => [ location.id ] -%></td>
+    <td><%= link_to location.page, location.page -%></td>
+    <td><%= link_to location.document.name, location.document.url if location.document -%></td>
+    <td><%= location.created_at.to_s(:short) -%></td>
+  <% end -%>
+<% end -%>
