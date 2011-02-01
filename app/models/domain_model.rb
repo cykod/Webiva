@@ -106,6 +106,8 @@ class DomainModel < ActiveRecord::Base
   # [:window_size]
   #   Size of page window - passed through to pagination hash (used by CmsHelper#admin_pagination for example
   def self.paginate(page,args = {})
+    page = page.to_i
+    page = 1 if page < 1
     args = args.clone.symbolize_keys!
     window_size =args.delete(:window) || 2
     
@@ -115,7 +117,7 @@ class DomainModel < ActiveRecord::Base
     count_args = args.slice( :conditions, :joins, :include, :distinct, :having)
 
     if args.delete(:large)
-      offset = args[:offset] = page_size * page
+      offset = args[:offset] = page_size * (page-1)
       args[:limit] = page_size + 1
 
       items = self.find(:all,args)
