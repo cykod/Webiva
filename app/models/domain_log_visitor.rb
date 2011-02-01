@@ -84,6 +84,7 @@ class DomainLogVisitor < DomainModel
      if cookies[:v] && session[:domain_log_visitor] && session[:domain_log_visitor][:id] && session[:domain_log_visitor][:loc].blank?
        dlv =  DomainLogVisitor.find_by_visitor_hash(cookies[:v])
        if dlv
+         location ||= {}
          location[:country] = 'UN' if location[:country].blank?
          dlv.update_attributes(location.slice(:latitude,:longitude,:country,:region,:city))
          session[:domain_log_visitor][:loc] = location[:country]

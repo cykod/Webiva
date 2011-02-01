@@ -92,20 +92,20 @@ class Blog::BlogPost < DomainModel
     @approved_comments_count ||= self.comments.with_rating(1).count
   end
 
-  def self.paginate_published(page,items_per_page,blog_ids = [])
+  def self.paginate_published(page,items_per_page,blog_ids = [],options = {})
     if blog_ids.length > 0
-      Blog::BlogPost.paginate(page,
+      Blog::BlogPost.paginate(page, {
                               :include => [ :active_revision, :blog_categories ],
                               :order => 'published_at DESC',
                               :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ? AND blog_posts.blog_blog_id IN (?)",Time.now,blog_ids],
-                              :per_page => items_per_page)
+                              :per_page => items_per_page }.merge(options))
 
     else
-      Blog::BlogPost.paginate(page,
+      Blog::BlogPost.paginate(page, {
                               :include => [ :active_revision, :blog_categories ],
                               :order => 'published_at DESC',
                               :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ?",Time.now],
-                              :per_page => items_per_page)
+                              :per_page => items_per_page }.merge(options))
     end
     
   end

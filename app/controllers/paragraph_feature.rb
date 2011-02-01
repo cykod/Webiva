@@ -1551,7 +1551,8 @@ block is non-nil
         define_tag(prefix + 'middle') { |tag| ( !tag.locals.first && !tag.locals.last ) ? tag.expand : '' }
         define_tag(prefix + 'not_middle') { |tag| (tag.locals.first || tag.locals.last)  ? tag.expand : '' }
         define_tag(prefix + 'multiple') { |tag| ( (tag.locals.index + (tag.attr['offset'] || 0).to_i ) % (tag.attr['value'] || 2).to_i ) == 0 ? tag.expand : '' }
-  
+        define_tag(prefix + 'before') { |tag| (tag.locals.index < tag.attr['index'].to_i)  ? tag.expand : '' }
+        define_tag(prefix + 'after') { |tag| (tag.locals.index > tag.attr['index'].to_i)  ? tag.expand : '' }
     end    
     
     # Called inside of a loop_tag for a customized iteratation over a list

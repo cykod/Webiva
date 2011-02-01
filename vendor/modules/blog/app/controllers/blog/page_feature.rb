@@ -143,12 +143,18 @@ class Blog::PageFeature < ParagraphFeature
       categories = tag.locals.entry.blog_categories(true).collect(&:name)
       categories = categories[0..tag.attr['limit'].to_i] if tag.attr['limit']
       if categories.length > 0
-	categories.map! { |cat| "<a href='#{SiteNode.link(data[:list_page], 'category', CGI::escape(cat))}'>#{h cat}</a>" } unless tag.attr['no_link']
-	categories.join(", ")
+        tag.locals.categories = categories
+        categories = categories.map { |cat| "<a href='#{SiteNode.link(data[:list_page], 'category', CGI::escape(cat))}'>#{h cat}</a>" } unless tag.attr['no_link']
+      	categories.join(", ")
       else 
-	nil
+      	nil
       end
     end
+
+    c.loop_tag('entry:categories:category') { |t| t.locals.categories }
+    c.link_tag('entry:categories:category:') { |t| SiteNode.link(data[:list_page], 'category', CGI::escape(t.locals.category)) }
+    c.value_tag('entry:categories:category:name') { |t| t.locals.category }
+    c.value_tag('entry:categories:category:escaped_name') { |t| CGI::escape(t.locals.category) }
 
     c.value_tag('entry:tags') do |tag|
       tags = tag.locals.entry.content_tags(true)

@@ -113,8 +113,23 @@ class DomainModel < ActiveRecord::Base
     page_size = 20 if page_size <= 0
 
     count_args = args.slice( :conditions, :joins, :include, :distinct, :having)
-    
-    if page_size.is_a?(Integer)
+
+    if args.delete(:large)
+      offset = args[:offset] = page_size * page
+      args[:limit] = page_size + 1
+
+      items = self.find(:all,args)
+
+
+      if items.length == page_size + 1
+        pages = page + 1
+        total = pages * page_size
+        items = items[0..page_size-1]
+      else
+        pages = page
+        total = pages * page_size
+      end
+    elsif page_size.is_a?(Integer)
       
       if args[:group]
         count_by = args[:group]
@@ -134,14 +149,18 @@ class DomainModel < ActiveRecord::Base
       
       args[:offset] = offset
       args[:limit] = page_size
+
+      items = self.find(:all,args)
     else
+      offset = 0
       total_count = 0
       page = 1
       pages = 1
+
+      items = self.find(:all,args)
     end
 
-    items = self.find(:all,args)
-
+   
     [ { :pages => pages, 
         :page => page, 
         :window_size => window_size, 

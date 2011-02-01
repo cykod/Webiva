@@ -36,25 +36,29 @@ class Blog::PageController < ParagraphController
                         :inputs => [[:category, 'Selected Category', :blog_category_id]]
  
   class EntryListOptions < HashModel
-    attributes :blog_id => 0, :items_per_page => 10, :detail_page => nil, :include_in_path => nil,:blog_target_id => nil, :category => nil, :limit_by => 'category', :blog_ids => []
+    attributes :blog_id => 0, :items_per_page => 10, :detail_page => nil, :list_page_id => nil, :include_in_path => nil,:blog_target_id => nil, :category => nil, :limit_by => 'category', :blog_ids => [], :skip_total => false
 
     integer_array_options :blog_ids
+
+    boolean_options :skip_total
 
     def detail_page_id
       self.detail_page
     end
 
     integer_options :blog_id, :items_per_page, :detail_page
-    page_options :detail_page_id
+    page_options :detail_page_id, :list_page_id
 
     options_form(fld(:blog_id, :select, :options => :blog_options),
-		 fld(:detail_page, :page_selector,:description => 'Leave blank to use canonical content url'),
+		 fld(:detail_page, :page_selector,   :description => 'Leave blank to use canonical content url'),
+     fld(:list_page_id, :page_selector,  :description => 'Leave blank to use the current page as the list page'),
    	 fld(:items_per_page, :select, :options => (1..50).to_a),
      fld('Advanced Options',:header),
      fld(:blog_target_id, :select, :options => :blog_target_options, :description => 'Advanced use only'),
      fld(:blog_ids, :ordered_array, :options => :blog_name_options, :label => 'For multiple blogs',:description => 'Leave blank to show all blogs'),
      fld(:limit_by,:radio_buttons,:label => 'Limit to',:options => [[ 'Categories','category'],['Tags','tag']]),
-     fld(:category,:text_field,:label => "Limit to",:description => "Comma separated list of categories or tags")
+     fld(:category,:text_field,:label => "Limit to",:description => "Comma separated list of categories or tags"),
+     fld(:skip_total, :yes_no, :description => "Set to yes for paragraphs without pagination or for blogs\n with a large number (>1000) of posts to speed rendering")
 		 )
 
     def blog_target_options; Blog::BlogTarget.select_options_with_nil; end

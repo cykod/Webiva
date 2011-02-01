@@ -46,7 +46,7 @@ class Blog::BlogBlog < DomainModel
     ContentNode.all :conditions => {:node_type => 'Blog::BlogPost', :content_type_id => self.content_type.id, 'blog_posts_categories.blog_category_id' => category_id}, :joins => 'JOIN blog_posts_categories ON blog_post_id = node_id'
   end
 
-  def paginate_posts_by_category(page,cat,items_per_page)
+  def paginate_posts_by_category(page,cat,items_per_page,options = {})
     cat = [ cat] unless cat.is_a?(Array)
 
     category_ids = self.blog_categories.find(:all,:conditions => { :name => cat },:select=>'id').map(&:id)
@@ -54,15 +54,15 @@ class Blog::BlogBlog < DomainModel
     category_ids = [ 0] if category_ids.length == 0
 
     Blog::BlogPost.paginate(page,
-                            :include => [ :active_revision ],
+                            { :include => [ :active_revision ],
                             :joins => [ :blog_posts_categories ],
                             :order => 'published_at DESC',
                             :conditions => [ "blog_posts.status = \"published\" AND blog_posts.published_at < ? AND blog_posts.blog_blog_id=? AND blog_posts_categories.blog_category_id in (?)",Time.now,self.id, category_ids],
-                            :per_page => items_per_page)
+                            :per_page => items_per_page }.merge(options))
   end                       
 
 
-  def paginate_posts_by_tag(page,tag,items_per_page)
+  def paginate_posts_by_tag(page,tag,items_per_page,options = {})
 
     tag = [ tag ] unless tag.is_a?(Array)
 
@@ -70,14 +70,14 @@ class Blog::BlogBlog < DomainModel
     tag_ids = [ 0 ] if tag_ids.length == 0
 
     Blog::BlogPost.paginate(page,
-                            :include => [ :active_revision ],
+                            { :include => [ :active_revision ],
                             :joins => [ :content_tag_tags ],
                             :order => 'published_at DESC',
                             :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ? AND blog_posts.blog_blog_id=? AND content_tag_tags.content_tag_id in (?)",Time.now,self.id,tag_ids],
-                            :per_page => items_per_page)
+                            :per_page => items_per_page}.merge(options))
   end
 
-  def paginate_posts_by_month(page,month,items_per_page)
+  def paginate_posts_by_month(page,month,items_per_page,options = {})
     begin
       if month =~ /^([a-zA-Z]+)([0-9]+)$/
         tm = Time.parse($1 + " 1 " + $2)
@@ -88,20 +88,20 @@ class Blog::BlogBlog < DomainModel
       return nil,[]
     end
 
-    Blog::BlogPost.paginate(page,
+    Blog::BlogPost.paginate(page, {
 			    :include => [ :active_revision, :blog_categories ],
 			    :order => 'published_at DESC',
 			    :conditions =>   ["blog_posts.status = \"published\" AND blog_posts.published_at < ? AND blog_posts.blog_blog_id=? AND blog_posts.published_at BETWEEN ? AND ?",Time.now,self.id,tm.at_beginning_of_month,tm.at_end_of_month],
-			    :per_page => items_per_page)
+			    :per_page => items_per_page }.merge(options))
 
   end
 
-  def paginate_posts(page,items_per_page)
-    Blog::BlogPost.paginate(page,
+  def paginate_posts(page,items_per_page,options = {})
+    Blog::BlogPost.paginate(page, {
                             :include => [ :active_revision ], 
                             :order => 'published_at DESC',
                             :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ?  AND blog_blog_id=?",Time.now,self.id],
-                            :per_page => items_per_page)          
+                            :per_page => items_per_page }.merge(options))          
 
   end
 

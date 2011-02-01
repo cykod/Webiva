@@ -91,7 +91,7 @@ class DomainLogGroup < DomainModel
       :duration => duration.to_i
     }
 
-    attributes[:expires_at] = 5.minutes.since if (started_at + duration) > Time.now
+    attributes[:expires_at] = 15.minutes.since if (started_at + duration) > Time.now
     group = DomainLogGroup.create attributes
 
     results.each do |result|

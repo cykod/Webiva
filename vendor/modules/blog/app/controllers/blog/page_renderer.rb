@@ -76,22 +76,22 @@ class Blog::PageRenderer < ParagraphRenderer
       if blog
         case list_type.to_s
         when 'category':
-          pages,entries =  blog.paginate_posts_by_category(page,list_type_identifier,items_per_page)
+          pages,entries =  blog.paginate_posts_by_category(page,list_type_identifier,items_per_page,:large => @options.skip_total)
         when 'tag':
-          pages,entries = blog.paginate_posts_by_tag(page,list_type_identifier,items_per_page)
+          pages,entries = blog.paginate_posts_by_tag(page,list_type_identifier,items_per_page,:large => @options.skip_total)
         when 'archive':
-          pages,entries = blog.paginate_posts_by_month(page,list_type_identifier,items_per_page)
+          pages,entries = blog.paginate_posts_by_month(page,list_type_identifier,items_per_page,:large => @options.skip_total)
         else
-          pages,entries = blog.paginate_posts(page,items_per_page)
+          pages,entries = blog.paginate_posts(page,items_per_page,:large => @options.skip_total)
         end
       else
-        pages,entries = Blog::BlogPost.paginate_published(page,items_per_page,@options.blog_ids)
+        pages,entries = Blog::BlogPost.paginate_published(page,items_per_page,@options.blog_ids,:large => @options.skip_total)
       end
 
       cache[:output] = blog_entry_list_feature(:blog => blog,
 					       :entries => entries,
 					       :detail_page => detail_page,
-					       :list_page => site_node.node_path,
+					       :list_page => @options.list_page_url || site_node.node_path,
 					       :pages => pages,
 					       :type => list_type,
 					       :identifier => list_type_identifier)
