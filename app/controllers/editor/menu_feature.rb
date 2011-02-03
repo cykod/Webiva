@@ -37,7 +37,7 @@ class Editor::MenuFeature < ParagraphFeature #:nodoc:all
       return item[:selected]
     elsif item[:link] == '/'
       return url == '/'
-    elsif url.starts_with?(item[:link])
+    elsif url.ends_with?(item[:link])
       return true
     else
       return false
