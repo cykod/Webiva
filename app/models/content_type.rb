@@ -83,13 +83,15 @@ class ContentType < DomainModel
 
   # Link for a specific piece of content
   def content_link(obj)
-    if !(path = self.detail_site_node_url).blank?
+    if !(path = self.detail_site_node_url).blank? && path != "#"
       if self.container && self.container.respond_to?(:content_detail_link_url)
         self.container.content_detail_link_url(path,obj)
       else
         val = obj.send(url_field).to_s
         "#{path}/#{val}"
       end
+    elsif !(path = self.list_site_node_url).blank?
+      path
     else
       nil
     end
