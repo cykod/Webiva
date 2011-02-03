@@ -100,7 +100,7 @@ class ContentModelType < DomainModel
 
     def #{target_relation_name}
       if  @#{relations_name}_cache
-        #{class_name}.find(:all,:conditions => { :id => @#{relations_name}_cache }  )
+        "#{class_name}".constantize.find(:all,:conditions => { :id => @#{relations_name}_cache }  )
       else
          #{target_relation_name}_dbs
       end
@@ -121,6 +121,8 @@ class ContentModelType < DomainModel
     def #{target_relation_name}_after_save
       if @#{relations_name}_cache 
         set_content_through_collection(#{model_field.content_model_id},#{model_field.id},"#{class_name}",:"#{relations_name}", @#{relations_name}_cache)
+         @#{relations_name}_cache = nil
+        #{target_relation_name}_dbs.reload
       end
     end
 EOF
