@@ -9,7 +9,7 @@ class NextSteps::ManageController < ModuleController
     [:check, :action_text, :description_text, :page, "Document", :created_at]
   
   def display_steps_table(display=true)
-    active_table_action('step') do |act,pid|
+    active_table_action('steps') do |act,pid|
       case act
       when 'delete': NextStepsStep.destroy(pid)
       end
