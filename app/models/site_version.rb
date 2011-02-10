@@ -79,5 +79,14 @@ class SiteVersion < DomainModel
     nd.child_cache_set(new_child_cache)
     nd
   end
-  
+
+  def copy(new_name)
+    new_version = SiteVersion.create :name => new_name, :default_version => false
+    new_root = new_version.site_nodes.new :node_type => 'R', :title => ''
+    new_root.copying = true
+    new_root.save
+    new_root.copy_modifiers self.root
+    self.root.children.each { |child| new_root.copy(child, :children => true) }
+    new_version
+  end
 end
