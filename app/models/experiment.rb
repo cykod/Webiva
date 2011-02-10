@@ -23,8 +23,8 @@ class Experiment < DomainModel
 
   def min_versions
     return @min_versions if @min_versions
-    @min_versions = self.started? ? self.versions.size : 2
-    @min_versions = 2 if @min_versions < 2
+    @min_versions = self.started? ? self.versions.size : 1
+    @min_versions = 1 if @min_versions < 1
     @min_versions
   end
 
