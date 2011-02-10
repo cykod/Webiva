@@ -388,8 +388,9 @@ class Editor::AuthController < ParagraphController #:nodoc:all
 
     default_options :login_type => 'email',:success_page => nil, :forward_login => 'no',:failure_page => nil, :features => []
     integer_options :success_page, :failure_page
+    page_options :success_page, :failure_page
     validates_presence_of :forward_login
-
+    
     options_form(fld(:login_type, :select, :options => :login_type_options),
 		 fld(:success_page, :select, :options => :page_options, :label => 'Destination Page'),
 		 fld(:failure_page, :select, :options => :page_options, :label => 'Failure Page'),
@@ -452,11 +453,11 @@ class Editor::AuthController < ParagraphController #:nodoc:all
   
   class EnterVipOptions < HashModel
     default_options :success_page => nil, :already_registered_page => nil, :login_even_if_registered => false, :add_tags => ''
-    
     validates_presence_of :success_page, :login_even_if_registered
 
     integer_options :success_page
     boolean_options :login_even_if_registered
+    page_options :success_page
   end
 
   def missing_password
@@ -472,6 +473,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
     default_options :email_template => nil, :reset_password_page => nil
     
     integer_options :email_template, :reset_password_page
+    page_options :reset_password_page
     
     validates_presence_of :email_template, :reset_password_page
   end
@@ -492,6 +494,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
          :success_message => 'Thank you, your email has been added to our list', :partial_post => 'yes'
     
     integer_options :user_subscription_id, :destination_page_id
+    page_options :destination_page_id
   end
   
   class SplashOptions < HashModel
@@ -499,7 +502,8 @@ class Editor::AuthController < ParagraphController #:nodoc:all
     validates_presence_of :splash_page_id, :cookie_name 
     
     integer_options :splash_page_id
-
+    page_options :splash_page_id
+    
     options_form(fld(:splash_page_id, :select, :options => :page_options),
 		 fld(:cookie_name, :text_field, :description => 'Name of the splash page cooke (should be different for each splash page')
 		 )

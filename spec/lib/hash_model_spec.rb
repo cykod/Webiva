@@ -9,7 +9,7 @@ describe HashModel do
     @cls
   end
 
-  reset_domain_tables :site_nodes, :domain_files
+  reset_domain_tables :site_nodes, :site_version, :domain_files
 
   it "should return nil for any undefined attribute or method" do
     @model = HashModel.new nil
@@ -121,6 +121,7 @@ describe HashModel do
     @model.valid?
     @model.page_id.should == node.id
     @model.page_url.should == '/blog'
+    @cls.current_page_opts.should == [:page_id]
   end
 
   it "should be able to validate data" do
@@ -152,5 +153,24 @@ describe HashModel do
 
     FieldOptions.human_name.should == 'Field Options'
     FieldOptions.human_attribute_name(:page_id).should == 'Page'
+  end
+  
+  describe "Page Options" do
+    before(:each) do
+      @about = SiteVersion.current.root.push_subpage 'about'
+      @version2 = SiteVersion.current.copy "test"
+
+      @cls = create_hash_model_class(false, :page_id => nil)
+      @cls.page_options :page_id
+    end
+    
+    it "should be able to change page options to a different site version" do
+      @model = @cls.new :page_id => @about.id
+      @model.page_id.should == @about.id
+      @about2 = @version2.site_nodes.find_by_title 'about'
+      @about2.should_not be_nil
+      @model.fix_page_options @version2
+      @model.page_id.should == @about2.id
+    end
   end
 end

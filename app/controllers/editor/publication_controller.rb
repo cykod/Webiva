@@ -35,7 +35,7 @@ class Editor::PublicationController < ParagraphController #:nodoc:all
     default_options :redirect_page_id => nil, :options => [], :success_text => nil, :redirect_page => nil, :user_level => nil
     page_options :redirect_page_id
     integer_options :user_level
-
+    
     def redirect_page_id
       (@redirect_page || @redirect_page_id).to_i
     end
@@ -113,8 +113,9 @@ class Editor::PublicationController < ParagraphController #:nodoc:all
   end
   
   class AdminListOptions < HashModel
-      default_options :edit_page => nil
-      integer_options :edit_page
+    default_options :edit_page => nil
+    integer_options :edit_page
+    page_options :edit_page
   end
   
   def list
@@ -133,7 +134,8 @@ class Editor::PublicationController < ParagraphController #:nodoc:all
     default_options :detail_page => nil, :tags => [], :per_page => nil
 
     integer_options :per_page
-      integer_options :detail_page
+    integer_options :detail_page
+    page_options :detail_page
   end
   
   

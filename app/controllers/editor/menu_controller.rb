@@ -67,6 +67,7 @@ class Editor::MenuController < ParagraphController #:nodoc:all
       
     boolean_options :include_path
     integer_options :levels, :root_page
+    page_options :root_page
     validates_presence_of :root_page
     validates_presence_of :levels
     integer_array_options :included, :excluded
@@ -157,7 +158,8 @@ class Editor::MenuController < ParagraphController #:nodoc:all
     attributes :root_page => nil
   
     integer_options :root_page
-
+    page_options :root_page
+    
      options_form(
 	  fld(:root_page, :select, :options => :page_options)
 	  )
@@ -171,7 +173,8 @@ class Editor::MenuController < ParagraphController #:nodoc:all
     attributes :root_page => nil
 
     integer_options :root_page
-
+    page_options :root_page
+    
      options_form(
 	  fld(:root_page, :select, :options => :page_options)
 	  )
