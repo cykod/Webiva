@@ -588,7 +588,10 @@ class SiteNode < DomainModel
     node.site_node_modifiers.each do |mod|
       attrs = mod.attributes
       %w(id site_node_id position).each { |fld| attrs.delete(fld) }
-      self.site_node_modifiers.create attrs
+      new_mod = self.site_node_modifiers.new attrs
+      new_mod.copying = true
+      new_mod.save
+      new_mod.copy_live_revisions mod
     end
   end
   
@@ -614,5 +617,10 @@ class SiteNode < DomainModel
     node.children.each { |child| nd.copy(child, opts) } if opts[:children]
     
     nd
+  end
+  
+  def fix_page_options(from_version, opts={})
+    
+    self.children.each { |child| child.fix_page_options(from_version, opts) } if opts[:children]
   end
 end
