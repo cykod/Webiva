@@ -320,4 +320,8 @@ class PageRevision < DomainModel
     para.save
     para
   end
+  
+  def fix_paragraph_options(from_version, to_version, opts={})
+    self.page_paragraphs.each { |para| para.fix_paragraph_options(from_version, to_version, opts) }
+  end
 end

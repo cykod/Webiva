@@ -597,7 +597,6 @@ class SiteNode < DomainModel
   
   def copy(node, opts={})
     attrs = node.attributes
-    %w(lft rgt id parent_id site_version_id).each { |fld| attrs.delete(fld) }
     nd = SiteNode.new attrs
     nd.site_version_id = self.site_version_id
     nd.copying = true
@@ -613,14 +612,17 @@ class SiteNode < DomainModel
     end
 
     nd.move_to_child_of(self)
-
+    
+    nd.save
+    
     node.children.each { |child| nd.copy(child, opts) } if opts[:children]
     
     nd
   end
   
-  def fix_page_options(from_version, opts={})
-    
-    self.children.each { |child| child.fix_page_options(from_version, opts) } if opts[:children]
+  def fix_paragraph_options(from_version, opts={})
+    self.live_revisions.each { |rev| rev.fix_paragraph_options(from_version, self.site_version, opts) }
+    self.site_node_modifiers.each { |mod| mod.fix_paragraph_options(from_version, self.site_version, opts) }
+    self.children.each { |child| child.fix_paragraph_options(from_version, opts) } if opts[:children]
   end
 end

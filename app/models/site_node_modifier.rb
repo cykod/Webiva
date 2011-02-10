@@ -222,6 +222,10 @@ class SiteNodeModifier < DomainModel
     end
   end
 
+  def fix_paragraph_options(from_version, to_version, opts={})
+    self.page_revisions.find(:all, :conditions => {:revision_type => 'real', :active => true}).each { |rev| rev.fix_paragraph_options(from_version, to_version, opts) }
+  end
+
   protected
 
   def apply_modifier_template!(engine,page_information)

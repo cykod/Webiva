@@ -87,6 +87,7 @@ class SiteVersion < DomainModel
     new_root.save
     new_root.copy_modifiers self.root
     self.root.children.each { |child| new_root.copy(child, :children => true) }
+    new_root.fix_paragraph_options self, :children => true
     new_version
   end
 end
