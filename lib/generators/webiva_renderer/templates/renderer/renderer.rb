@@ -8,6 +8,7 @@ class <%= module_class %>::<%= renderer_class %>Renderer < ParagraphRenderer
 
 <%- paragraphs.each do |paragraph| -%>
   def <%= paragraph %>
+    @options = paragraph_options :<%= paragraph %>
 
     # Any instance variables will be sent in the data hash to the 
     # <%= module_path %>_<%= renderer_path %>_<%= paragraph %>_feature automatically
