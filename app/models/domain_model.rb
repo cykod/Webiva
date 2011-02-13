@@ -189,18 +189,17 @@ class DomainModel < ActiveRecord::Base
   # which will run all the triggered actions associated with this object
   def self.has_triggered_actions
     has_many :triggered_actions, :as => :trigger, :conditions => 'comitted = 1', :dependent => :destroy
-    
-    self.module_eval(<<-SRC)
-    def run_triggered_actions(data = {},trigger_name = nil,user = nil,session = nil)
-      if (trigger_name.to_s == 'view' && self.view_action_count > 0) || (trigger_name.to_s != 'view' && self.update_action_count > 0)
-        actions = trigger_name ?  self.triggered_actions.find(:all,:conditions => ['action_trigger=?',trigger_name]) :  self.triggered_actions
-        actions.each do |act|
-          act.perform(data,user,session)
-        end
-      end
-    end    
-    SRC
   end
+
+  def run_triggered_actions(data = {},trigger_name = nil,user = nil,session = nil)
+    if (trigger_name.to_s == 'view' && self.view_action_count > 0) || (trigger_name.to_s != 'view' && self.update_action_count > 0)
+      actions = trigger_name ?  self.triggered_actions.find(:all,:conditions => ['action_trigger=?',trigger_name]) :  self.triggered_actions
+      actions.each do |act|
+        act.perform(data,user,session)
+      end
+    end
+  end    
+
 
   # Activates a specific domain as the active domain 
   # 
