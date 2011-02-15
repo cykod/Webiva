@@ -244,6 +244,15 @@ class PageParagraph < DomainModel
     end
   end
 
+  def fix_paragraph_options(from_version, to_version, opts={})
+    options = paragraph_options
+    return unless options
+    if options.fix_page_options(to_version)
+      self.data = options.to_h(:skip => true)
+      self.save
+    end
+  end
+
   private
 
   def link_canonical_content_type!(opts,opt,override)

@@ -73,6 +73,7 @@ class HashModel
   end
   
   def self.current_integer_opts; []; end
+  def self.current_page_opts; []; end
   def self.current_boolean_opts; []; end
   def self.current_float_opts; []; end
   def self.current_integer_array_opts; []; end
@@ -159,7 +160,30 @@ class HashModel
         EOF
       end
     end
-    #self.integer_options(*atrs)
+
+    if atrs[0].is_a?(Array)
+      atrs = current_page_opts + atrs[0]
+    else
+      atrs = current_page_opts + atrs
+    end
+    atrs.uniq!
+    
+    class << self; self end.send(:define_method,"current_page_opts") do
+      atrs
+    end
+  end
+
+  def fix_page_options(to_version)
+    return false if self.class.current_page_opts.empty?
+
+    self.class.current_page_opts.each do |fld|
+      nd = SiteNode.find_by_id(send(fld))
+      next unless nd
+      new_node = to_version.site_nodes.find_by_node_path(nd.node_path)
+      self.instance_variable_set "@#{fld}", new_node ? new_node.id : nil
+    end
+
+    true
   end
 
   def self.registered_options_form_fields()
@@ -274,8 +298,8 @@ class HashModel
     to_h.slice( *@passed_hash.keys )
   end
   
-  def to_h
-    self.valid?
+  def to_h(opts={})
+    self.valid? unless opts[:skip]
     hsh = {}
     
     self.instance_variables.each do |var|
