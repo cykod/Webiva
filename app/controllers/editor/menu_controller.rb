@@ -133,7 +133,7 @@ class Editor::MenuController < ParagraphController #:nodoc:all
 
     if @menu.is_locked? && ! request.post?
       included = @menu.included || []
-      @elem_ids.each do |elm|
+      (@elem_ids||[]).each do |elm|
         unless included.include?(elm)
           @menu.excluded << elm
           @preview.each { |item| item[:excluded] = true if item[:node_id] == elm }
