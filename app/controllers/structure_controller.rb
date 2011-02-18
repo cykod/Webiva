@@ -612,7 +612,7 @@ class StructureController < CmsController  # :nodoc: all
       [ page.node_path, page.id ]
     end
     
-    @redirect_details = @node.redirect_detail
+    @redirect_details = @node.redirect_detail || @node.create_redirect_detail
     render :partial => 'redirect_element_info'
   end
   
