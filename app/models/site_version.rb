@@ -13,7 +13,8 @@ class SiteVersion < DomainModel
 
   validates_presence_of :name
 
-
+  attr_accessor :copy_site_version_id
+  
   has_many :site_nodes,:order => 'lft', :dependent => :destroy
 
   # Returns the default site Version (or creates one automatically)
@@ -79,5 +80,20 @@ class SiteVersion < DomainModel
     nd.child_cache_set(new_child_cache)
     nd
   end
-  
+
+  def copy_site_version
+    @copy_site_version ||= SiteVersion.find_by_id(@copy_site_version_id) if @copy_site_version_id
+  end
+
+  def copy(new_name)
+    new_version = SiteVersion.create :name => new_name, :default_version => false
+    return new_version unless new_version.id
+    new_root = new_version.site_nodes.new :node_type => 'R', :title => ''
+    new_root.copying = true
+    new_root.save
+    new_root.copy_modifiers self.root
+    self.root.children.each { |child| new_root.copy(child, :children => true) }
+    new_root.fix_paragraph_options self, :children => true
+    new_version
+  end
 end

@@ -18,9 +18,11 @@ class SiteNodeModifier < DomainModel
   include SiteAuthorizationEngine::Target
   access_control :access
 
-  attr_accessor :created_by_id
+  attr_accessor :created_by_id, :copying
  
   def before_create #:nodoc:
+    return if @copying
+    
     if opts = self.modifier_options
       opts.initial_options
       self.modifier_data = opts.to_hash
@@ -63,6 +65,8 @@ class SiteNodeModifier < DomainModel
 
 
   def after_create
+    return if @copying
+
     if self.modifier_type == 'F' || self.modifier_type == 'framework'
       self.page_revisions.create( :language => Configuration.languages[0], :revision => '0.01' , :active => true, :created_by_id => self.created_by_id )
     end
@@ -207,6 +211,19 @@ class SiteNodeModifier < DomainModel
                              :order => "language=#{PageRevision.quote_value(language)} DESC"
                             )
 
+  end
+
+  def copy_live_revisions(mod)
+    mod.page_revisions.find(:all, :conditions => {:revision_type => 'real', :active => true}).each do |rev|
+      tmp_rev = rev.create_temporary
+      tmp_rev.revision_container = self
+      tmp_rev.save
+      tmp_rev.make_real
+    end
+  end
+
+  def fix_paragraph_options(from_version, to_version, opts={})
+    self.page_revisions.find(:all, :conditions => {:revision_type => 'real', :active => true}).each { |rev| rev.fix_paragraph_options(from_version, to_version, opts) }
   end
 
   protected

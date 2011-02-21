@@ -109,11 +109,20 @@ class StructureController < CmsController  # :nodoc: all
     @version = SiteVersion.find_by_id(params[:site_version]) || SiteVersion.new
 
     if params[:version] 
-      @version.attributes = params[:version].slice(:name)
-      if @version.save
-        session[:site_version_override] = @version.id
-        render(:update) { |page| page.redirect_to :action => 'index', :version => @version.id }
-        return
+      @version.attributes = params[:version].slice(:name, :copy_site_version_id)
+      
+      if @version.valid?
+        if @version.copy_site_version
+          @version = @version.copy_site_version.copy(@version.name)
+        else
+          @version.save
+        end
+        
+        if @version.id
+          session[:site_version_override] = @version.id
+          render(:update) { |page| page.redirect_to :action => 'index', :version => @version.id }
+          return
+        end
       end
     end
     render :partial => 'site_version'
@@ -603,7 +612,7 @@ class StructureController < CmsController  # :nodoc: all
       [ page.node_path, page.id ]
     end
     
-    @redirect_details = @node.redirect_detail
+    @redirect_details = @node.redirect_detail || @node.create_redirect_detail
     render :partial => 'redirect_element_info'
   end
   
