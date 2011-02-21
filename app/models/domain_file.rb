@@ -1417,15 +1417,12 @@ class DomainFile < DomainModel
 
   def self.download_response(uri)
     uri = URI.parse(uri) if uri.is_a?(String)
-    if uri.scheme == 'https'
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = true
-      http.start do |http|
-        request = Net::HTTP::Get.new(uri.path)
-        http.request(request)
-      end
-    else
-      Net::HTTP.get_response(uri)
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = uri.scheme == 'https'
+    http.start do |http|
+      request = Net::HTTP::Get.new(uri.request_uri)
+      request.initialize_http_header({"User-Agent" => "Webiva"})
+      http.request(request)
     end
   end
 
