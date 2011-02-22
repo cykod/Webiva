@@ -101,7 +101,7 @@ Rails::Initializer.run do |config|
   config.gem "httparty"
   config.gem "fastercsv"
   config.gem "httparty"
-  config.gem "resthome"
+  config.gem "resthome", '>= 7.1.0'
 
   if RAILS_ENV == 'test'
     config.gem 'factory_girl',:source => 'http://gemcutter.org'
