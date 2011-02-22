@@ -1562,4 +1562,92 @@ class DomainFile < DomainModel
       self.response ? self.response['content-type'] : nil
     end
   end
+  
+  def self.export_to_csv(obj, opts={})
+    tmp_path = "#{RAILS_ROOT}/tmp/export/"
+    FileUtils.mkpath(tmp_path)
+    filename  = "#{tmp_path}#{DomainModel.active_domain_id.to_s}_#{obj.class.to_s.underscore}.csv"
+
+    entries = 0
+    CSV.open(filename,'w') do |writer|
+      entries = yield writer
+    end
+    entries = 0 unless entries.is_a?(Integer)
+
+    file_type = opts[:file_type] || obj.class.to_s
+    domain_file = DomainFile.save_temporary_file filename, :name => sprintf("%s-%s_%s.%s",file_type,obj.name,Time.now.strftime("%Y_%m_%d"),'csv')
+
+    { :filename => filename,
+      :domain_file_id => domain_file.id,
+      :type => 'text/csv',
+      :entries => entries,
+      :completed => 1
+    }
+  end
+  
+  class ImportException < Exception
+  end
+  
+  def self.import_from_csv(filename, opts={})
+    filename = filename.filename if filename.is_a?(DomainFile)
+    delimiter = opts[:delimiter] || ','
+    uid = opts[:uid]
+    skip_header = opts[:skip_header] || true
+    validate = opts[:validate]
+    
+    results = uid ? Workling.return.get(uid) : {}
+
+    results[:initialized] = false
+    results[:imported] = 0
+    results[:entries] = -1
+    results[:valid] = true
+    Workling.return.set(uid, results) if uid
+
+    count = 0
+    reader = CSV.open(filename, "r", delimiter)
+    reader.shift if skip_header
+    reader.each_with_index do |row, idx|
+      next if row.join.blank?
+
+      if validate
+        begin
+          yield row, :validate => true
+        rescue ImportException => e
+          results[:row] = skip_header ? idx + 2 : idx + 1
+          results[:error] = e.message
+          results[:valid] = false
+          Workling.return.set(uid, results) if uid
+          return results
+        end
+      end
+
+      count += 1
+    end
+    count = 1 if count < 1
+
+    results[:initialized] = true
+    results[:entries] = count
+    Workling.return.set(uid, results) if uid
+
+    reader = CSV.open(filename, "r", delimiter)
+    reader.shift if skip_header
+    reader.each_with_index do |row, idx|
+      next if row.join.blank?
+
+      begin
+        yield row, :validate => false
+      rescue ImportException => e
+        results[:row] = skip_header ? idx + 2 : idx + 1
+        results[:error] = e.message
+        results[:valid] = false
+        Workling.return.set(uid, results) if uid
+        return results
+      end  
+
+      results[:imported] += 1
+      Workling.return.set(uid, results) if uid && (results[:imported] % 10) == 0
+    end
+
+    results
+  end
 end

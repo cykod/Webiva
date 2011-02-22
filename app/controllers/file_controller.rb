@@ -460,4 +460,19 @@ class FileController < CmsController # :nodoc: all
       render :nothing => true
     end
   end
+  
+  def import_status
+    return render(:nothing => true) unless session[:import_worker_key]
+
+    results = Workling.return.get session[:import_worker_key]
+
+    if results
+      @completed = results[:processed] || results[:completed]
+      @failed = results[:valid] === false
+      session[:import_worker_key] = nil if @completed || @failed
+      render :json => results.slice(:initialized, :imported, :entries, :row, :error).merge(:completed => @completed, :failed => @failed)
+    else
+      render :json => {:completed => false, :failed => false, :initialized => false, :imported => 0, :entries => -1}
+    end
+  end
 end
