@@ -1,3 +1,15 @@
+1.00.0 - 2011-02-24
+-------------------
+- Bug Fixes
+- Experiements of 1
+- Site Tree Copying
+- Blog multi-category and multi-tag lists
+- Better custom content filter and relationship support
+- Basic auth support for generic feed eater
+- Timed captcha in feedback
+- Better chrome support
+- Updated TinyMCE
+
 1.00.0RC1 - 2010-11-29
 ----------------------
 - New Page, Content, Affiliate, Referrer, Statistics pages
