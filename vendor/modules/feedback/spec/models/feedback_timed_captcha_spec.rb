@@ -62,7 +62,7 @@ describe FeedbackTimedCaptcha do
     @captcha_session.size.should == 1
     @params[:captcha_time] = @captcha.get_time + 5
     @server_time = 5.seconds.since
-    Time.should_receive(:now).and_return(@server_time)
+    Time.should_receive(:now).at_least(:once).and_return(@server_time)
     @captcha.validate.should be_true
     @captcha.valid?.should be_true
   end
