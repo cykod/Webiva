@@ -137,7 +137,7 @@ class ContentNodeSearch < HashModel
 
       { 
 	:title => node.title,
-	:subtitle => content_description || node.content_type.content_name,
+	:subtitle => content_description || (node.content_type && node.content_type.content_name),
 	:url => node.link,
 	:link => node.link,
 	:preview => node.preview,
