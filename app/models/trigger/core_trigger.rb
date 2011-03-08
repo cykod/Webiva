@@ -64,7 +64,7 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
     
     def perform(action_data={},user = nil)
     
-      data_vars = action_data.is_a?(DomainModel) ? action_data.triggered_attributes :  (action_data.is_a?(Hash) ? action_data : {})
+      data_vars = action_data.is_a?(DomainModel) ? action_data.triggered_attributes :  (action_data.is_a?(Hash) ? action_data : (action_data.respond_to?(:to_hash) ? action_data.to_hash : {}))
       data_vars.symbolize_keys!
     
       # Find out who we are emailing

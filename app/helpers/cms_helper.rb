@@ -94,7 +94,7 @@ SEARCH_WIDGET
       <li #{"class='selected'" if selected == item.identifier }>
           <a href='#{url_for(item.url)}'>
              <div class='menu_image menu_image_#{item.identifier}'><div></div></div>
-             <div class='menu_item_text'>#{h(item.name)}</div>
+             <div class='menu_item_text'>#{h(item.name.t)}</div>
           </a>
       </li>
       EOF

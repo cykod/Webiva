@@ -156,6 +156,9 @@ describe HashModel do
   end
   
   describe "Page Options" do
+
+    reset_domain_tables :page_paragraphs, :page_revisions
+
     before(:each) do
       @about = SiteVersion.current.root.push_subpage 'about'
       @version2 = SiteVersion.current.copy "test"

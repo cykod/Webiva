@@ -10,7 +10,7 @@
         <a href='<%= url_for :controller => "/account" %>'><%= "My Account".t %></a>
         <a href='<%= url_for :controller => '/manage/access', :action => 'logout' %>'><%= "Logout".t %></a>
         <div id='cms_header_return'>
-          <a href='/'>&#10038; View Site</a> 
+          <a href='/'>&#10038; <%= "View Site".t %></a> 
           <% if @cms_return_to_site_url -%> |
             <a href='<%= h @cms_return_to_site_url -%>'>&#10038; Return to site</a>
           <% end -%>

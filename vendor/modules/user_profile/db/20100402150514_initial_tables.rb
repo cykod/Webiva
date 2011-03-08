@@ -18,7 +18,7 @@ class InitialTables < ActiveRecord::Migration
       t.integer :user_profile_type_id
       t.integer :end_user_id
       t.string :url
-      t.boolean :published, :default => false
+      t.boolean :published, :default => true
       t.boolean :protected, :default => false
       t.integer :content_model_id
     end
