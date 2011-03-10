@@ -11,7 +11,6 @@ class NextSteps::PageRenderer < ParagraphRenderer
     @steps << NextStepsStep.find(@options.step_1) unless @options.step_1.blank? 
     @steps << NextStepsStep.find(@options.step_2) unless @options.step_2.blank?
     @steps << NextStepsStep.find(@options.step_3) unless @options.step_3.blank?
-    
     render_paragraph :feature => :next_steps_page_view
   end
 
