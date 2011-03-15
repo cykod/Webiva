@@ -26,6 +26,7 @@ class ModuleAppController < ApplicationController
   helper :page
   helper :module_app
 
+  skip_before_filter :verify_authenticity_token
 
   before_filter :handle_page
   
@@ -34,7 +35,6 @@ class ModuleAppController < ApplicationController
 
   before_filter :nocache
   include SiteNodeEngine::Controller
-
 
   attr_accessor :visiting_end_user_id, :server_error
 
@@ -118,9 +118,12 @@ class ModuleAppController < ApplicationController
     # if we made it here - need to jump over to the application
     get_handlers(:page,:before_request).each do |req|
       cls = req[0].constantize.new(self)
-      return false if(!cls.before_request)
+      return false unless cls.before_request
     end
 
+    self.request_forgery_protection_token ||= :authenticity_token
+    verify_authenticity_token
+    
     if params['__VER__']
       @preview = true
       @revision = @page.page_revisions.find_by_identifier_hash(params['__VER__'])
