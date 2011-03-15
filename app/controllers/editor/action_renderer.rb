@@ -94,6 +94,7 @@ class Editor::ActionRenderer < ParagraphRenderer #:nodoc:all
 
       return render_paragraph :nothing => true unless session[:domain_log_visitor] && session[:cms_language]
       return render_paragraph :nothing => true if @options.type == 'manual'
+      return render_paragraph :nothing => true unless @options.experiment
 
       @exp_user = @options.experiment.get_user session
 
