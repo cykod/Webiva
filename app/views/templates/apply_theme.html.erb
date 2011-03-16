@@ -1,0 +1,9 @@
+<div class="admin_content">
+
+<% admin_form_for :site_template, @site_template do |f| -%>
+<%= f.custom_field('Features', :value => "<label>" + check_box_tag('features', '1', true) + " apply site features to existing paragraphs.</lable>") %>
+<%= f.spacer %>
+<%= f.cancel_submit_buttons %>
+<% end -%>
+
+</div>

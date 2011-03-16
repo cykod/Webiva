@@ -1,0 +1,47 @@
+<%
+form_options[:html] ||= {}
+form_options[:html][:multipart] = true
+form_options[:html][:onsubmit] = '$("upload_form").hide(); $("uploading").show();'
+-%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<%= javascript_include_tag "/javascripts/prototype.js" %>
+<style>
+* {
+  padding: 0;
+  margin: 0;
+  font-size: 12px;
+}
+</style>
+</head>
+<body>
+
+<div id="upload_form">
+<% cms_unstyled_form_for :file, file, form_options do |f| -%>
+
+<div class="buttons">
+Upload a file
+<label><%= f.radio_button :from, 'computer', :onclick => "$('from_url').hide(); $('from_file').show();" %> from computer</label>
+<label><%= f.radio_button :from, 'web', :onclick => "$('from_file').hide(); $('from_url').show();" %> from web</label>
+</div>
+
+<%= hidden_field_tag :upload, 1 %>
+<%= f.hidden_field :object %>
+<%= f.hidden_field :field %>
+<div id="from_url" <%= 'style="display:none;"' unless file.from == 'web' %>>
+<%= f.text_field :url, :value => 'http://' %>
+<%= f.submit 'Fetch'.t %>
+</div>
+<div id="from_file" <%= 'style="display:none;"' unless file.from == 'computer' %>>
+<%= f.file_field :file_id, :onchange => 'this.form.submit();' %>
+</div>
+<% end -%>
+</div>
+
+<div id="uploading" style="display:none;">
+Please wait file is uploading...
+</div>
+
+</body>
+</html>

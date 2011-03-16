@@ -5,11 +5,16 @@ class Editor::MenuRenderer < ParagraphRenderer #:nodoc:all
   features '/editor/menu_feature'
   
  def build_automenu_data(root,levels,excluded,page_path='',included=nil,locked=0)
-    page = root.is_a?(SiteNode) ?  root : SiteNode.find_by_id(root)
+    if root.is_a?(SiteNode)
+      page = root
+    else
+       page = SiteNode.find_by_id(root)
+       page = page.nested_pages if page
+    end
     return [] unless page
     
     data = []
-    page.children.each do |page|
+    page.child_cache.each do |page|
       page.menu.each do |pg|
         if (!included || locked <= 0 || included.include?(pg.id)) && !excluded.include?(pg.id)
           rev = pg.active_revision(paragraph.language)
@@ -54,16 +59,14 @@ class Editor::MenuRenderer < ParagraphRenderer #:nodoc:all
     
     if(opts[:root_page] && opts[:levels]) 
       lock_level =@@lock_level_hash[opts[:lock_level]] || 0
-      
+     
       data = { :url =>  request_path,
                :menu => build_automenu_data(opts[:root_page],opts[:levels],opts[:excluded] || [],page_path,lock_level > 0 ? opts[:included] : nil,lock_level)
              }
              
       data[:edit] = true if editor?
-      
+
       render_paragraph :text => menu_feature(data)
-      
-      require_js('menu') if @include_menu_js
     else
       render_paragraph :text => '[Please Configure Automenu]'.t
     end
@@ -111,7 +114,6 @@ class Editor::MenuRenderer < ParagraphRenderer #:nodoc:all
     
 
     render_paragraph :text => menu_feature(data)
-    require_js('menu') if @include_menu_js
   end
   
 
@@ -202,6 +204,26 @@ class Editor::MenuRenderer < ParagraphRenderer #:nodoc:all
     end
    end
    info
+  end
+
+  paragraph :page_title 
+
+  def page_title
+    conn_type,conn_data = page_connection
+    if conn_type == :title
+      @title = conn_data
+    end
+
+    unless @title
+      rev = revision
+      if rev
+        @title = rev.title.to_s.empty? ? site_node.title.humanize.capitalize : rev.title
+      else
+        @title = site_node.title.humanize
+      end
+    end
+      
+    render_paragraph :text => page_title_feature
   end
   
   def bread_crumbs

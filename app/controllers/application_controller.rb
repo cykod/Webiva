@@ -21,7 +21,7 @@ class ApplicationController < ActionController::Base
   hide_action :get_handler_instance, :get_handler_instances, :get_handler_options, :get_handler_values, :get_handlers, :h, :vh, :tag
   hide_action :auto_discovery_link_tag, :cdata_section, :content_tag, :escape_once, :get_handler_info
   hide_action :image_path, :image_tag, :javascript_include_tag, :javascript_path, :jvh, :path_to_image, :path_to_javascript
-  hide_action :path_to_stylesheet, :render_output, :simple_captcha_valid?, :stylesheet_link_tag, :stylesheet_path
+  hide_action :path_to_stylesheet, :render_output, :stylesheet_link_tag, :stylesheet_path
   
   
   before_filter :check_ssl
@@ -94,6 +94,7 @@ class ApplicationController < ActionController::Base
         opts[:path] = [ opts[:path] ]
       end
     end
+    opts.delete(:path) if opts[:path] && opts[:path] == [ nil ]
     super
   end
 
@@ -101,6 +102,21 @@ class ApplicationController < ActionController::Base
 
 
   protected
+
+  # Checks if a parameter exists in parms, then the session, otherwise sets it to the
+  # default value, sets the session and returns the value
+  #
+  # Used primarily for toggles on the backend (like archived in structure)
+  def handle_session_parameter(parameter_name,default_val = nil,options = {})
+
+    parameter_name = parameter_name.to_sym
+    # Show return to be explicit what we are doing (setting session value & returning)
+    if params.has_key?(parameter_name)
+      return session[parameter_name] = params[parameter_name]
+    else
+      return session[parameter_name] || default_val
+    end
+  end
 
   def clear_cache #:nodoc:
     DataCache.reset_local_cache
@@ -143,6 +159,13 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  # Helper method to tell the browser not to cache a page
+  def set_cache_buster
+    response.headers["Cache-Control"] = "no-cache, no-store, max-age=0, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "Fri, 01 Jan 1990 00:00:00 GMT"
+  end
+
   # helper method to redirect a user to the access denied page
   # call from a controller method with :
   #
@@ -161,7 +184,7 @@ class ApplicationController < ActionController::Base
     # Cancel out of domain activations
     # if we are testing
     if RAILS_ENV == 'test' || RAILS_ENV == 'cucumber' || RAILS_ENV == 'selenium'
-      DomainModel.activate_domain(Domain.find(CMS_DEFAULTS['testing_domain']).attributes,'production',false)
+      DomainModel.activate_domain(Domain.find(CMS_DEFAULTS['testing_domain']).get_info,'production',false)
       return true
     else 
       domain = request.domain(5)
@@ -247,10 +270,16 @@ class ApplicationController < ActionController::Base
     
   end   
 
+  @@ignored_session_keys = [:domain, :cms_language, :domain_version]
+  def session_safe_clear
+    session.delete_if do |k,v|
+      ! @@ignored_session_keys.include?(k)
+    end
+  end
+
   # Convenience method to log a user in 
   # sets the session and remember cookie 
   def process_login(usr,remember = false)
-    session.clear
     session[:user_id] = usr.id
     session[:user_model] = usr.class.to_s
     reset_myself
@@ -267,7 +296,7 @@ class ApplicationController < ActionController::Base
     session[:user_id] = nil
     session[:user_model] = nil
     reset_myself
-    session.clear
+    session_safe_clear
     myself
   end
   
@@ -332,8 +361,6 @@ class ApplicationController < ActionController::Base
     redirect_to(:controller => "/manage/access", :action => "login")
   end
 
-  include SimpleCaptcha::ControllerHelpers
-
   def debug_raise(obj) # :nodoc:
     raise render_to_string(:inline =>  '<%= debug object -%>', :locals => { :object => obj})
   end
@@ -365,7 +392,9 @@ class ApplicationController < ActionController::Base
 
   
   def rescue_action_in_public(exception,display = true) # :nodoc:
-    
+    return  render(:text => 'Page not found', :status => :not_found) if exception.is_a?(ActionController::RoutingError)
+    return if exception.is_a?(ActionController::InvalidAuthenticityToken)
+
     deliverer = self.class.read_inheritable_attribute(:exception_data)
     data = case deliverer
            when nil then {}
@@ -439,9 +468,12 @@ class ApplicationController < ActionController::Base
   # Handles a front-end file upload by turning an uploaded file into a domain file id
   def handle_file_upload(parameters,key,options = {}) 
     
-    if !parameters[key].to_s.empty?
+    if !parameters[key].to_s.empty? && DomainFile.available_file_storage > 0
       image_folder  = options[:folder] || Configuration.options.default_image_location
-      file = DomainFile.create(:skip_transform => true,:filename => parameters[key],:parent_id => image_folder,:creator_id => myself.id )
+      file = DomainFile.create(:filename => parameters[key],
+                               :parent_id => image_folder,
+                               :creator_id => myself.id,
+                               :process_immediately => true)
       if file.id
         parameters[key] = file.id 
       else
@@ -460,11 +492,12 @@ class ApplicationController < ActionController::Base
     
     if parameters[key.to_s + "_clear"].to_s == '0'
       parameters[key] = nil
-    elsif !parameters[key].to_s.empty?
+    elsif !parameters[key].to_s.empty? && DomainFile.available_file_storage > 0
       image_folder  = options[:folder] || Configuration.options.default_image_location
       file = DomainFile.create(:filename => parameters[key],
                                :parent_id => image_folder,
-                               :creator_id => myself.id)
+                               :creator_id => myself.id,
+                               :process_immediately => true)
       if file.file_type == 'img'
         parameters[key] = file.id
       else
@@ -476,7 +509,23 @@ class ApplicationController < ActionController::Base
     end  
     parameters.delete(key.to_s + "_clear")
   end 
-  
+
+  def send_domain_file(df, opts={})
+    df = DomainFile.find_by_id(df) if df.is_a?(Integer)
+    return false unless df
+
+    df.filename # copy locally
+    return false unless File.exists?(df.filename)
+
+    opts[:stream] = true unless opts.key?(:stream)
+    opts[:type] ||= df.mime_type
+    opts[:disposition] ||= 'attachment'
+    opts[:filename] ||= df.name
+
+    send_file(df.filename, opts)
+    true
+  end
+
   private
 
   def sanitize_backtrace(trace) # :nodoc:
@@ -488,5 +537,5 @@ class ApplicationController < ActionController::Base
     return @rails_root if @rails_root
     @rails_root = Pathname.new(RAILS_ROOT).cleanpath.to_s
   end  
-  
+
 end

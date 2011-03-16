@@ -1,0 +1,10 @@
+xml.instruct!
+
+xml.urlset "xmlns" => "http://www.sitemaps.org/schemas/sitemap/0.9" do
+  urls.each do |url, info|
+    xml.url do
+      xml.loc Configuration.domain_link url
+      xml.lastmod info[:updated_at].strftime('%Y-%m-%d')
+    end
+  end
+end

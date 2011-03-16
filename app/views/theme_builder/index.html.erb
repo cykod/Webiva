@@ -1,0 +1,13 @@
+<div class='admin_content'>
+
+<% admin_form_for :parser, @parser do |f| -%>
+  <%= f.header 'Upload a HTML File' %>
+  <%= f.filemanager_file :html_file_id %>
+  <%= f.custom_field '', :value => 'OR' %>
+  <%= f.header 'Import a Web Page', :description => CMS_DEFAULTS['theme_builder_validate'] ? "Inorder for us to import your web page. You must add a webiva.html to the root of your domain.\nEx: http://www.test.com/webiva.html" : '' %>
+  <%= f.text_field(:url) %>
+  <%= f.spacer %>
+  <%= f.submit_tag 'Submit' %>
+<% end -%>
+
+</div>

@@ -52,7 +52,7 @@ SCMS = {
 	customPopup: function(txt,title) {
 	 var performActionText = title ? title : "Action"
 
-	overlib(txt,CAPTION,"&nbsp;" + performActionText, STICKY,BELOW,OFFSETX,0,OFFSETY,12,WIDTH,300,
+	overlib(txt,CAPTION,"&nbsp;" + performActionText, STICKY,BELOW,OFFSETX,0,OFFSETY,12,WIDTH,340,
                              FGCLASS,'cms_popup_text',BGCLASS,'cms_popup_bg',CAPTIONFONTCLASS,'cms_popup_caption',
 		                      MOUSEOFF,CLOSETEXT,'');
 
@@ -111,25 +111,26 @@ SCMS = {
 		var row = selected_td.parentNode;
 		var tbody = row.parentNode;
 
-		var tabs = getChildElements(row); // 0, T1-Tn, Extra
-		var contents = getChildElements(tbody); // Header, T1-Tn
+		var tabs = row ? getChildElements(row) : []; // 0, T1-Tn, Extra
+		var contents = tbody ? getChildElements(tbody) : []; // Header, T1-Tn
 
 		var i=0;
 		for(i=1;i<contents.length;i++) {
 			Element.hide(contents[i]);
 		}
-		for(i=1;i<tabs.length-1;i++) {
-			if(tabs[i] != selected_td) {
-				tabs[i].className = 'normal';
+		for(i=1;i<tabs.length;i++) {
+			if(tabs[i-1] != selected_td) {
+				tabs[i-1].className = 'normal';
 
 			}
 			else {
-				tabs[i].className = 'selected';
-				Element.show(contents[i]);
+				tabs[i-1].className = 'selected';
+                                if(contents.length > i ) {
+                                  Element.show(contents[i]);
+                                }
 			}
 
 		}
-
 	},
 
 
@@ -588,12 +589,10 @@ SCMS = {
 
 
   highlightRow: function(row) {
-      //new Effect.Morph(row,{ style: "color: #FF0000; background-color: #CCCCCC;", duration: 0.4, queue: {scope: tools_id }});
       $(row).addClassName('highlighted_row');
   },
 
   lowlightRow: function(row,callback) {
-      //new Effect.Morph(row,{ style: "color: #000000; background-color: #FFFFFF;", duration: 0.4, queue: {scope: tools_id } });
       $(row).removeClassName('highlighted_row');
 
       if(callback == undefined)
@@ -890,4 +889,11 @@ Object.toQueryString = function (object) {
                  return result;
                };
 
-
+if(typeof JQuery != 'undefined') {
+  jQuery(document).ajaxSend(function(event, request, settings) {
+    if(typeof(AUTH_TOKEN) == "undefined") return;
+    // settings.data is a serialized string like "foo=bar&baz=boink" (or null)
+    settings.data = settings.data || "";
+    settings.data += (settings.data ? "&" : "") + "authenticity_token=" + encodeURIComponent(AUTH_TOKEN);
+  });
+}

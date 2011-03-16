@@ -1,0 +1,68 @@
+
+<script>
+OperationBuilder = {
+  updateOperations: function() {
+    <%= remote_function :url => url_for(:action => 'update_builder', :operation => 1), :submit => 'builder', :update => 'operation' %>;
+    OperationBuilder.updateExpression();
+  },
+
+  updateExpression: function() {
+    <%= remote_function :url => url_for(:action => 'update_builder', :expression => 1), :submit => 'builder', :update => 'expression' %>;
+  },
+
+  appendExpression: function() {
+    <%= remote_function :url => url_for(:action => 'update_builder', :commit => 1), :submit => 'builder' %>;
+  },
+
+  appendOptionsText: function(expr) {
+    with(window.opener) { setTimeout(function(){UserSegment.<%= @segment ? 'replaceOptionsText' : 'appendOptionsText' %>(expr);}, 1); }
+    setTimeout(function(){window.close();}, 1);
+  }
+}
+</script>
+
+<% cms_unstyled_form_for :builder, @builder, :html => {:id => 'builder', :onsubmit => 'OperationBuilder.appendExpression(); return false;', :class => "admin_form"} do |f| -%>
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr>
+<td class="heading"><%= @segment ? 'Edit the filter'.t : 'Create a filter' %></td>
+<td class="heading" align="right"><a href="javascript:void(0)" onclick='openWindow("/website/members/builder_help" ,"operationBuilderHelper",750,600,"yes","yes");'>Filter Glossary ?</a></td>
+</tr>
+<tr><th colspan="2"><div style="padding:5px 0 5px 0;"><%= 'Condition #%s' / '1' %></div></th></tr>
+<tr><td colspan="2" class="spacer"></td></tr>
+
+<tr>
+<td width="240">
+<%= f.radio_buttons :operator, [['Show me accounts with', nil], ['Do not show me accounts with', 'not']], :label => '', :separator => '<br/><br/>' %>
+<%
+@last_operator_text = @builder.operator == 'not' ? 'Do not show me accounts with'.t : 'Show me accounts with'.t
+%>
+</td>
+<td valign="middle">
+  <%= f.grouped_select :field, @builder.field_group_options, {}, :onchange => 'OperationBuilder.updateOperations();' %><br/><br/>
+</td>
+</tr>
+
+<tbody id="operation" class="operation">
+  <% if @builder.operation_options.length > 0 -%>
+    <%= render :partial => 'operation_form_operation', :locals => {:builder => @builder, :form_id => 'builder'} %>
+  <% end -%>
+</tbody>
+
+<tr>
+<td colspan="2" id="expression" style="padding: 0 15px 0 10px;">
+<%= render :partial => 'operation_form_expression' %>
+</td>
+</tr>
+
+<tr>
+<td colspan="2" align="right" style="padding: 10px;">
+<%= f.cancel_submit_buttons 'Close', (@segment ? 'Update Filter' : 'Add to Filter'), {:onclick => 'window.close();'} %>
+</td>
+</tr>
+
+</table>
+
+<% end -%>
+
+<%= observe_form 'builder', :frequency => 1, :function => 'OperationBuilder.updateExpression();' %>

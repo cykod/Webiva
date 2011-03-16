@@ -72,8 +72,10 @@ class ContentImportController < WizardController # :nodoc: all
       redirect_to :action => 'index'; return
       return
     end
-    
-    filename = session[:content_import_wizard][:index][:filename]
+
+    file = DomainFile.find_by_id(session[:content_import_wizard][:index][:csv_file])
+    filename = file.filename
+
     @deliminator = @@deliminators[session[:content_import_wizard][:index][:field_deliminator]]
 
     @available_fields = csv_fields(filename,@deliminator)
@@ -138,8 +140,9 @@ class ContentImportController < WizardController # :nodoc: all
   
     @content_model = ContentModel.find(content_id)
  
-  
-    filename = session[:content_import_wizard][:index][:filename]
+    file = DomainFile.find_by_id(session[:content_import_wizard][:index][:csv_file])
+    filename = file.filename
+
     @deliminator = @@deliminators[session[:content_import_wizard][:index][:field_deliminator]]
     
     @content_fields = [ContentModelField.new(:field => 'id', :name => 'Identifier'.t)] + @content_model.content_model_fields
@@ -153,14 +156,15 @@ class ContentImportController < WizardController # :nodoc: all
     if request.post?
       # Posting? Do it Do it
       
-      worker_args = { :domain_id => DomainModel.active_domain_id,
-                                                 :content_model_id => content_id, 
-                                                 :filename => filename,
-                                                 :deliminator => @deliminator,
-                                                 :data => session[:content_import_wizard][:fields]
-                                                }
-      worker_key =  ContentImportWorker.async_do_work(worker_args)
-      session[:content_import_worker_key] = worker_key
+      worker_args = {
+        :domain_id => DomainModel.active_domain_id,
+        :csv_file => session[:content_import_wizard][:index][:csv_file],
+        :content_model_id => content_id, 
+        :deliminator => @deliminator,
+        :data => session[:content_import_wizard][:fields]
+      }
+
+      session[:content_import_worker_key] =  ContentImportWorker.async_do_work(worker_args)
       # Start a worker that will create any necessary fields
       # and actually import the data
       
@@ -204,12 +208,12 @@ class ContentImportController < WizardController # :nodoc: all
     if session[:content_import_worker_key]
       begin 
         results = Workling.return.get(session[:content_import_worker_key]) || { }
-        @initialized = true
-        @completed = results[:completed]
-        @entries = results[:entries]
-        @imported = results[:imported]
+        @initialized = results[:initialized] || false
+        @completed = results[:completed] || false
+        @entries = results[:entries] || 0
+        @imported = results[:imported] || 0
 	
-        if @initialized
+        if @initialized && @entries > 0
           @percentage = (@imported.to_f / (@entries.to_i < 1 ? 1 : @entries) *100).to_i
           if @entries < 1
             @entries = 1
@@ -221,7 +225,7 @@ class ContentImportController < WizardController # :nodoc: all
         end
 	
 	if @completed
-          session[:content_import_worker_key]
+          session[:content_import_worker_key] = nil
         end
       rescue Exception => e
         raise e

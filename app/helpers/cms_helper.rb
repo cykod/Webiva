@@ -6,8 +6,8 @@ module CmsHelper
 
 
   def webiva_search_widget # :nodoc:
-   output = form_tag({ :controller => '/search'},:style => 'display:inline;') 
-   js = <<-SEARCH_WIDGET
+    output = form_tag({ :controller => '/search'},:id => 'search_widget_form', :style => 'display:inline;')
+    js = <<-SEARCH_WIDGET
   <input type='text' name='search' size='20' id='search_widget' value='Search Webiva' />
   
   <div class='autocomplete' id='search_widget_autocomplete' style='display:none; width:500px;'>
@@ -87,6 +87,42 @@ SEARCH_WIDGET
     output + js.html_safe
   end
 
+
+  def render_webiva_menu(menu,selected) 
+    return '' unless menu
+    menu.items.map do |item|
+      <<-EOF
+      <li #{"class='selected'" if selected == item.identifier }>
+          <a href='#{url_for(item.url)}'>
+             <div class='menu_image menu_image_#{item.identifier}'><div></div></div>
+             <div class='menu_item_text'>#{h(item.name.t)}</div>
+          </a>
+      </li>
+      EOF
+    end.join("\n")
+  end
+
+  def render_webiva_breadcrumbs(page_info)
+    if page_info[:title].is_a?(Array) && page_info[:title].length > 0 
+      breadcrumbs = page_info[:title][0..-2]
+      breadcrumbs.map do |itm|
+        render_webiva_title(itm) + " &gt; "
+      end.join
+    else
+      nil
+    end
+  end
+
+  def render_webiva_title(item)
+    if item.is_a?(Array) && item[1]
+      link_to h( item.length > 2 ? sprintf(item[0].t,*item[2..-1]) : item[0].t), item[1]
+    elsif item.is_a?(Array)
+      h(sprintf(item[0].t,*item[2..-1])) 
+    else
+      h item.t
+    end
+  end
+
   def member_url(user_id)
     url_for(:controller => '/members',:action => 'view', :path => [user_id])
   end
@@ -152,9 +188,9 @@ images/icons/actions directory of the current theme.
 
 =end 
    def action_panel(options = {},&block)  # :yields: ActionPanelBuilder.new
-      safe_concat("<div class='admin_content'><ul class='action_panel'>")
+      safe_concat("<ul class='action_panel' id='action_panel'>")
       
-      apb = ActionPanelBuilder.new(self)
+      apb = ActionPanelBuilder.new(self, :directory => 'title_actions')
       yield apb
       
       if options[:handler]
@@ -174,17 +210,51 @@ images/icons/actions directory of the current theme.
           end
         end
       end
-      
-      
-      
-      
-      safe_concat("</ul></div>")
+      if options[:more]
+        safe_concat(apb.link('more', { :url => 'javascript:void(0);',:icon => 'add.png', :id => 'more_actions_link' },
+                             :"j-action" => 'slidetoggle,swap', :swap => '#less_actions_link,#more_actions_link', :slidetoggle => '#more_actions_panel'))
+
+        safe_concat(apb.link('less', { :url => 'javascript:void(0);',:icon => 'remove.png', :id => 'less_actions_link', :hidden => true },
+                             :"j-action" => 'slidetoggle,swap', :swap => '#more_actions_link,#less_actions_link', :slidetoggle => '#more_actions_panel'))
+      end
+      safe_concat("</ul>")
    end   
+
+   def more_action_panel(options = {},&block)
+     concat("<div style='display:none;' id='more_actions_panel'>")
+     concat("<h2>More Actions <a class='title_link' href=\"javascript:void(0);\" j-action='slideup,swap' swap='#more_actions_link,#less_actions_link' slideup=\"#more_actions_panel\">(close actions)</a></h2>")
+     concat("<ul>")
+      
+      apb = ActionPanelBuilder.new(self, :directory => 'actions')
+      yield apb
+
+      if options[:handler]
+        handlers = get_handler_info('action_panel',options[:handler])
+
+        if handlers
+          handlers.each do |handler|
+            (handler[:links] || []).each do |link|
+              opts = link.clone
+              name = opts.delete(:link)
+              role = opts.delete(:role)
+
+              if !role || myself.has_role?(role)
+                concat(apb.link(name,opts))
+              end
+            end
+          end
+        end
+      end
+
+
+      concat('</ul></div>')
+   end
 
    # This class usually isn't instantiated directly, see CmsHelper#action_panel for usage
    class ActionPanelBuilder 
-      def initialize(ctrl) #:nodoc:
+      def initialize(ctrl, options = {}) #:nodoc:
         @ctrl = ctrl
+        @b_opts = options
       end
     
       # Creates a link in the action panel
@@ -201,17 +271,23 @@ images/icons/actions directory of the current theme.
         icon = opts.delete(:icon)
         txt = txt.t unless opts.delete(:no_translate)
         right = "class='right'" if opts.delete(:right)
-        
+        if link_id= opts.delete(:id)
+          id = " id='#{link_id}'" 
+        end
+        hide = ' style="display:none;"' if opts.delete(:hidden)
         if options[:url]
           opts = options[:url]
         end
-        icon =  @ctrl.theme_icon("action","icons/actions/" + icon) if icon
-        return ("<li #{right}>".html_safe + @ctrl.send(:link_to,icon.to_s + @ctrl.send(:h,txt),opts,html_options) + "</li>".html_safe)
+        icon =  @ctrl.theme_icon("action","icons/#{@b_opts[:directory]}/" + icon) if icon
+        return "<li #{right}#{id}#{hide}>".html_safe + @ctrl.send(:link_to,icon.to_s + @ctrl.send(:h,txt),opts,html_options) + "</li>".html_safe
       end
       
       # Adds a custom item to the action panel (accepts a block)
-      def custom(&block)
-        @ctrl.safe_concat("<li>")
+      def custom(options = {},&block )
+        opts = options.clone
+        right = " class='right'" if opts.delete(:right)
+
+        @ctrl.safe_concat("<li#{right}>")
         yield 
         @ctrl.safe_concat("</li>")
       end
@@ -221,16 +297,17 @@ images/icons/actions directory of the current theme.
     # This class usually isn't instantiated directly, see CmsHelper#ajax_tabs for usage
     class AjaxTabBuilder
       include ActionView::Helpers::TextHelper
-      def initialize(view,tab_cnt,selected) # :nodoc:
+      def initialize(view,tab_cnt,selected,opts={}) # :nodoc:
         @view = view
         @tab_num = 0
         @selected = selected
-        @tab_cnt = tab_cnt		
+        @tab_cnt = tab_cnt
+        @opts = opts
       end
       
       # Creates a tab inside of the ajax_tabs
       def tab(&block)
-        @view.safe_concat("<tr #{'style="display:none;"' unless @tab_num  == @selected}><td class='content' colspan='#{@tab_cnt+2}' >")
+        @view.safe_concat("<tr #{'style="display:none;"' unless @tab_num  == @selected}><td class='content' colspan='#{@tab_cnt+1}' >")
         @tab_num +=1;
         yield block
         @view.safe_concat("</td></tr>")
@@ -239,7 +316,7 @@ images/icons/actions directory of the current theme.
       # Creates a tab inside of ajax_tabs and wraps the content of that tab in a table
       # Useful for cms_form_for and tabled_form_for
       def tabled_tab(&block)
-        @view.safe_concat("<tr #{'style="display:none;"' unless @tab_num  == @selected}><td class='content' colspan='#{@tab_cnt+2}' ><table>")
+        @view.safe_concat("<tr #{'style="display:none;"' unless @tab_num  == @selected}><td class='content' colspan='#{@tab_cnt+1}' ><table>")
         @tab_num +=1;
         yield block
         @view.safe_concat("</table></td></tr>")
@@ -299,7 +376,7 @@ is clicked, so any sort of preload code will need to do it's own checking to ver
 content isn't already loaded.
 =end   
    def ajax_tabs(options,selected,&block)   # :yields: ActionTabBuilder.new
-     safe_concat("<table class='ajax_tabs' cellpadding='0' cellspacing='0'><tr><td class='normal'>&nbsp;</td>")
+     safe_concat("<table class='ajax_tabs' cellpadding='0' cellspacing='0'><tr>")
      selected_id = nil
      options.each_with_index do |opt,idx|
        js= '' 
@@ -312,7 +389,7 @@ content isn't already loaded.
        safe_concat("<td #{opt==selected ? 'class="selected"' : 'class="normal"'}> <a class='ajax_link' onclick='SCMS.select_tab(this); #{js}' href='javascript:void(0);'>#{opt.t}</a></td>")
      end
      safe_concat("<td class='extra'> &nbsp; </td>	</tr>")
-     yield AjaxTabBuilder.new(self,options.length,selected_id)
+     yield AjaxTabBuilder.new(self,options.length,selected_id) if block_given?
      safe_concat("</table>")
    end
    
@@ -512,7 +589,7 @@ See ActiveTable for usage examples
      The name of the element to update, defaults to [name]
 =end
   def active_table_for(name,active_table_output,options={},&block)
-    options = options.clone 
+    options = options.symbolize_keys
 
     pagination = active_table_output.paging
     objects = active_table_output.data
@@ -520,6 +597,9 @@ See ActiveTable for usage examples
 
     table_actions = options.delete(:actions)
     more_actions = options.delete(:more_actions)
+
+    next_link_text = options.delete(:next) || '&gt;'
+    previous_link_text = options.delete(:previous) || '&lt;'
 
     options[:class] ||= "active_table"
 
@@ -556,7 +636,9 @@ See ActiveTable for usage examples
       form ='form'
     end
 
-    safe_concat("<#{form} id='#{name}_update_form' method='post'>");
+    wrapper_opts = { }
+    wrapper_opts[:style] = "display:block;" if options[:width]
+    safe_concat("<div  #{wrapper_opts.collect { |key,val| "#{key}='#{val}'" }.join(' ')} class='active_table_wrapper'><#{form} id='#{name}_update_form' method='post'>");
 
     yield(nil) if(form_elements)
     # Initial Tabl Tag     
@@ -661,9 +743,9 @@ EOF
         if(table_actions && table_actions.length > 0)
           safe_concat(table_actions.collect { |act|
                    if act[1] == 'js'
-                     "<input type='submit' value='#{vh act[0].t}' onclick='if(ActiveTable.countChecked(\"#{name}\") > 0) { #{jvh act[2]}; } return false;'/>"
+                     "<input class='button_link' type='submit' value='#{vh act[0].t}' onclick='if(ActiveTable.countChecked(\"#{name}\") > 0) { #{jvh act[2]}; } return false;'/>"
                    else
-                     "<input type='submit' value='#{vh act[0].t}' onclick='ActiveTable.action(\"#{act[1]}\",\"#{act[2] ? jvh(act[2]) : ''}\", \"#{name}\", \"#{refresh_url}\",\"#{update_element}\"); return false;'/>"
+                     "<input class='button_link' type='submit' value='#{vh act[0].t}' onclick='ActiveTable.action(\"#{act[1]}\",\"#{act[2] ? jvh(act[2]) : ''}\", \"#{name}\", \"#{refresh_url}\",\"#{update_element}\"); return false;'/>"
                    end
                  }.join(" "))  
         end
@@ -695,7 +777,7 @@ EOF
         initial = true
         if(pagination[:page] > 1)
           initial = false
-          safe_concat( "<li class='first highlight'><a href='javascript:void(0);' onclick='ActiveTable.page(#{pagination[:page]-1},\"#{name}\",\"#{refresh_url}\",\"#{update_element}\");')'>&lt;</a></li>")
+          safe_concat( "<li class='first highlight'><a href='javascript:void(0);' onclick='ActiveTable.page(#{pagination[:page]-1},\"#{name}\",\"#{refresh_url}\",\"#{update_element}\");')'>#{previous_link_text}</a></li>")
         end
         safe_concat(pagination[:pages].collect  {  |number| 
                  first = true if initial
@@ -710,7 +792,7 @@ EOF
                  
                }.to_s )
         if(pagination[:page] < pagination[:pages_count])
-          safe_concat( "<li class='highlight'><a href='javascript:void(0);' onclick='ActiveTable.page(#{pagination[:page]+1},\"#{name}\",\"#{refresh_url}\",\"#{update_element}\");')'>&gt;</a></li>")
+          safe_concat( "<li class='highlight'><a href='javascript:void(0);' onclick='ActiveTable.page(#{pagination[:page]+1},\"#{name}\",\"#{refresh_url}\",\"#{update_element}\");')'>#{next_link_text}</a></li>")
         end
         safe_concat('</ul>')
       end
@@ -718,7 +800,7 @@ EOF
     else
       safe_concat("<tbody><tr><td colspan='#{columns.length}'><div align='center'>#{"No Entries".t}</div></td></tr></tbody>")
     end
-    safe_concat('</table></form>')
+    safe_concat('</table></form></div>')
     safe_concat("<script>ActiveTable.checkAll(\"#{name}\",false);</script>")
   end
 
@@ -726,7 +808,7 @@ EOF
   # adding an additional pages that match the name
   # see app/views/options/index.rhtml and OptionsController#index for an example
  def subpage_display(name,pages)
-    output = "<table class='action_icon_table'><tr>"
+    output = "<table align='center' class='action_icon_table'><tr>"
     
     idx = -1
     
@@ -742,21 +824,74 @@ EOF
     html = pages.collect do |pg|
       idx += 1
       if myself.has_role?(pg[1].to_s)
-        pg_html = <<-OUTPUT
-          <td><a href='#{url_for pg[3]}' onmouseover='SCMS.show_hide("subpage_#{idx}","subpage_none");' onmouseout='SCMS.show_hide("subpage_none","subpage_#{idx}");'>#{theme_image_tag "actions/" + pg[2]}<br/>#{pg[0].t}</a></td>
+        icon_html = <<-OUTPUT
+          <td class='icon'><a href='#{url_for pg[3]}' j-action='toggler' toggler="#subpage_#{idx},#subpage_none">#{theme_image_tag "actions/" + pg[2]}</a></td>
         OUTPUT
-        help = "<div class='action_icon_mouseover' id='subpage_#{idx}' style='display:none;'>#{h(pg[4])}</div>"
-        [ pg_html, help ]
+        pg_html = <<-OUTPUT
+          <td class='txt'><a href='#{url_for pg[3]}'  j-action='toggler' toggler="#subpage_#{idx},#subpage_none">#{pg[0].t.gsub("\n","<br/>")}</a></td>
+        OUTPUT
+        help = "<div class='action_icon_mouseover' id='subpage_#{idx}' style='display:none;'><div class='action_icon_mouseover_body'>#{h(pg[4])}</div></div>"
+        [ icon_html, pg_html, help ]
       else 
         [ '','' ]
       end
     end
     
          
-    output +=  html.map { |elm| elm[0] }.join
-    output += "</table><div class='action_icon_mouseover' id='subpage_none'></div>"
-    output += html.map { |elm| elm[1] }.join
+    output +=  html.map { |elm| elm[0] }.join + "</tr><tr>"
+    output +=  html.map { |elm| elm[1] }.join + "</tr>"
+    output += "</table><div align='center'><div class='action_icon_mouseover' id='subpage_none'><div class='action_icon_mouseover_body'></div></div>"
+    output += html.map { |elm| elm[2] }.join + '</div>'
     output
   end
+
+  class WizardSteps
+    def initialize(wizard_step,wizard_max_step,opts={}) 
+      @wizard_step = wizard_step
+      @wizard_max_step = wizard_max_step
+      @options = opts
+    end
+    
+    def step(number,txt,url = {})
+    
+      tag = @options[:tag] || 'span'
+      css_class = @options[:class] || 'large_ajax_link_selected'
+      if number == @wizard_step
+        "<#{tag} class='#{css_class}'>#{txt}</#{tag}>"
+      elsif number <= @wizard_max_step
+        
+        "<#{tag}><a href='#{url}'>#{txt}</a></#{tag}>"
+      else
+        "<#{tag}>#{txt}</#{tag}>"
+      end
+    end
+    
+  end
   
+  def wizard_steps(wizard_step,wizard_max_step,opts={}) 
+    yield WizardSteps.new(wizard_step,wizard_max_step,opts)
+  end
+
+  # Load a remote script over http or https as necessary
+  def remote_script(script)
+    prefix =  request.ssl? ? 'https://' : 'http://'
+    "<script src='#{prefix}#{vh script}'></script>"
+  end
+
+  # Load a remote stylesheet over http or https as necessary
+  def remote_stylesheet(stylesheet)
+    prefix =  request.ssl? ? 'https://' : 'http://'
+    "<link href='#{prefix}#{vh stylesheet}' rel='stylesheet' type='text/css' />"
+
+  end
+
+  def button_link(icon,text,url,options = {})
+    opt = options.clone
+    alternative = " button_link_alternative" if opt.delete(:alternative)
+    content_tag(:a,image_tag(theme_src('icons/actions/' + icon),:align => 'absmiddle') + text.t,
+                options.merge(:class => "button_link#{alternative}", :href => url_for(url)))
+  end
+
+
+ 
 end

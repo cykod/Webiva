@@ -1,7 +1,5 @@
 # Settings specified here will take precedence over those in config/environment.rb
 
-
-
 Webiva::Application.configure do
 
   # The test environment is used exclusively to run your application's

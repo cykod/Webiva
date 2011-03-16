@@ -1,0 +1,81 @@
+<script>
+UserEditEditor = {
+   featureIdx: <%= @options.user_edit_features.length -%>,
+
+  
+  submitForm: function() {
+    var arr = Sortable.sequence('user_edit_features');
+    $('user_edit_features_order').value = arr.join(",");
+
+  },
+  
+ 
+  addFeature: function(feature) {
+    if(feature) {
+      var index = UserEditEditor.featureIdx++;
+      new Ajax.Updater('user_edit_features',
+                      "<%= url_for :action => 'add_user_edit_feature', :paragraph => @paragraph.id %>",
+                      { parameters: { feature_handler: feature, index: index },
+                        insertion: 'bottom',
+                        evalScripts: true,
+                        onComplete: function(req) {
+                          UserEditEditor.recreateFeatureSortables();
+                        } });
+    
+    }
+  
+  },
+  
+  recreateFeatureSortables: function() {
+    Sortable.create("user_edit_features",{ tag: "div", handle: "handle" } ); 
+  },
+  
+  removeFeature: function(idx) {
+    Element.remove($('user_edit_feature_' + idx));
+  }
+
+}
+
+</script>
+
+
+
+<div class='cms_form'>
+<% paragraph_options_form_for  'User Edit Account Options', :user_edit_account, @options do |f| %>
+<% tabled_ajax_tabs ['Options','Fields','Edit Features','Actions'],'Options' do |t| %>
+<% t.tabled_tab do %>
+   <%= f.header 'Registration Control' -%>
+   <%= f.select :mail_template_id, [['--Select Template--'.t,nil]] + MailTemplate.select_options %>
+   <%= f.page_selector :success_page_id, :required => true %>
+   <%= f.header 'User Account Options' -%>
+   <%= f.select :user_class_id, UserClass.options, :label => 'User Profile' %>
+   <%= f.radio_buttons :modify_profile, [['Yes'.t,'modify'],['No'.t,'keep']], :label => 'Modify Profile', :description => 'Modify profile of existing user?' %>
+   <%= f.text_field :add_tags, :description => 'Tag Names to add on edit account' %>
+   <%= f.country_select :country, :label => 'Default Country' %>
+   <%= f.select :access_token_id, [['--Select Access Token--', nil]] + AccessToken.user_token_options %>
+   <%= f.select :user_level, @options.class.user_level_options %>
+<% end -%>
+<% t.tabled_tab do %>
+   <%= f.ordered_array :required_fields, @options.available_field_options %>
+  <%= f.ordered_array :optional_fields, @options.available_optional_field_options, :description => "Users fields must appear in required or optional fields\n or they will not modify the user" %>
+
+ <%= f.ordered_array :address_required_fields, @options.available_address_field_options, :description => "All address fields are available but the above must be filled out" %>
+
+ <%= f.ordered_array :work_address_required_fields, @options.available_address_field_options(true), :description => "All address fields are available but the above must be filled out" %> 
+ <%= f.select :content_publication_id, @options.publication_options %>
+ <%= f.select :content_publication_user_field, @options.publication_field_options() if @options.publication %>
+ <%= f.ordered_array :include_subscriptions, UserSubscription.select_options %>
+<% end -%>
+<% t.tab do %>
+   <%= render :partial => 'user_edit_features' -%>
+<% end -%>
+<% t.tab do %>
+  <div id='cms_triggered_actions'>
+    <%= render :partial => '/editor/includes/actions' %>
+  </div>
+<% end -%>
+<% end -%>
+
+
+<% end -%>
+</div>

@@ -5,10 +5,13 @@ class Editor::MenuController < ParagraphController #:nodoc:all
   
   # Make sure we are the editor for menu and automenu paragraphs as well as site maps 
   editor_header "Navigation Paragraphs", :paragraph_navigation
-  editor_for :automenu, :name => 'Automatic Menu', :features => ['menu'], :inputs => [ [ :path, 'Page Path',:integer ] ]
-  editor_for :menu, :name => 'Links Menu', :features => ['menu']
-  editor_for :site_map, :name => 'Site Map', :features => ['site_map']
-  editor_for :bread_crumbs, :name => 'Bread Crumbs', :features => ['bread_crumb']
+  editor_for :automenu, :name => 'Automatic Menu', :feature => 'menu', 
+                        :inputs => [ [ :path, 'Page Path',:integer ] ]
+  editor_for :menu, :name => 'Links Menu', :feature => 'menu'
+  editor_for :site_map, :name => 'Site Map', :feature => 'site_map'
+  editor_for :bread_crumbs, :name => 'Bread Crumbs', :feature => 'bread_crumb'
+
+  editor_for :page_title, :name => "Page Title", :inputs => [ [ :title,"Page Title",:title_str]], :feature => :page_title, :no_options => true
 
   def menu
   
@@ -60,12 +63,18 @@ class Editor::MenuController < ParagraphController #:nodoc:all
   end
   
   class AutomenuOptions < HashModel
-      default_options :root_page => nil, :levels => nil, :excluded => [],:lock_level => 'no', :included => [], :include_path => false
+    default_options :root_page => nil, :levels => nil, :excluded => [],:lock_level => 'no', :included => [], :include_path => false
       
-      boolean_options :include_path
-      integer_options :levels, :root_page
-      validates_presence_of :root_page
-      validates_presence_of :levels
+    boolean_options :include_path
+    integer_options :levels, :root_page
+    page_options :root_page
+    validates_presence_of :root_page
+    validates_presence_of :levels
+    integer_array_options :included, :excluded
+
+    def is_locked?
+      self.lock_level != 'no'
+    end
   end
   
   def build_preview(root,levels,excluded,cur_level=1)
@@ -82,8 +91,9 @@ class Editor::MenuController < ParagraphController #:nodoc:all
         elsif rev &&  !rev.title.blank? 
           title = rev.title
         else
-          title = pg.title.humanize
+          title = pg.title.humanize 
         end
+        title = "[blank]".t if title.blank?
         children,subelem_ids =  levels > 1 ? build_preview(pg,levels-1,excluded,cur_level+1) : [ nil,[]] 
         mnu << { :title => title,
           :node_id => pg.id,
@@ -98,14 +108,9 @@ class Editor::MenuController < ParagraphController #:nodoc:all
   
   def automenu
     data = params[:menu] || @paragraph.data
-    data[:excluded] = ( data[:excluded] || []).collect { |elm| elm.to_i }.uniq
-    data[:root_page] = data[:root_page].to_i if data[:root_page]
-    data[:levels] = (data[:levels] || 0).to_i 
     @menu = AutomenuOptions.new(data)
 
     @preview, @elem_ids = build_preview(data[:root_page],data[:levels].to_i,data[:excluded] || []) if data[:root_page]
-    
-
     
     @pages = [['---Select Page---'.t,'']] + SiteNode.page_and_group_options("Site Root".t)
     @levels = [ ["1 Level",1] ] + 
@@ -125,15 +130,20 @@ class Editor::MenuController < ParagraphController #:nodoc:all
         return
       end
     end
-    
-    if @menu.lock_level == 'yes' && !request.post?
+
+    if @menu.is_locked? && ! request.post?
       included = @menu.included || []
-      @elem_ids.each { |elm| @menu.excluded << elm if !included.include?(elm) }
+      (@elem_ids||[]).each do |elm|
+        unless included.include?(elm)
+          @menu.excluded << elm
+          @preview.each { |item| item[:excluded] = true if item[:node_id] == elm }
+        end
+      end
       @menu.excluded.uniq!
     end    
     
     @excluded = @menu.excluded
-    
+
     render :action => 'automenu'
   end
   
@@ -148,7 +158,8 @@ class Editor::MenuController < ParagraphController #:nodoc:all
     attributes :root_page => nil
   
     integer_options :root_page
-
+    page_options :root_page
+    
      options_form(
 	  fld(:root_page, :select, :options => :page_options)
 	  )
@@ -162,7 +173,8 @@ class Editor::MenuController < ParagraphController #:nodoc:all
     attributes :root_page => nil
 
     integer_options :root_page
-
+    page_options :root_page
+    
      options_form(
 	  fld(:root_page, :select, :options => :page_options)
 	  )

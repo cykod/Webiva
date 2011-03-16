@@ -11,8 +11,8 @@ class TemplatesController < CmsController # :nodoc: all
   
   cms_admin_paths 'options', 
       'Options' => { :controller => 'options' },
-      "Design Templates" => { :controller => 'templates' },
-      "Site Features" => { :action => 'features' }
+      "Themes" => { :controller => 'templates' },
+      "Paragraph Themes" => { :action => 'features' }
 
    include SiteNodeEngine::Controller
   
@@ -31,61 +31,149 @@ class TemplatesController < CmsController # :nodoc: all
    include ActiveTable::Controller   
    active_table :site_templates_table,
                 SiteTemplate,
-                [ ActiveTable::StringHeader.new('name'),
-                  ActiveTable::OptionHeader.new('template_type', :label => 'Type',:options => :type_options),
-                  ActiveTable::OrderHeader.new('IF(parent_id,parent_id,id), parent_id, name',:label => 'Parent'),
-                  ActiveTable::StringHeader.new('description'),
-                  ActiveTable::IconHeader.new('',:width => '15')
+                [ hdr(:icon, ''),
+                  hdr(:string, 'name'),
+                  hdr(:options, 'template_type', :label => 'Type',:options => :type_options),
+                  hdr(:order, 'IF(parent_id,parent_id,id), parent_id, name',:label => 'Parent'),
+                  hdr(:string, 'description'),
+                  hdr(:static, ''), # Create child theme
+                  hdr(:static, '')  # Apply theme
                 ]
   def type_options; SiteTemplate.template_type_select_options; end
 
   public
   # List of current templates in the site
   def index
-    templates_table(false)
-    
-    cms_page_path [ "Options" ], "Design Templates" 
-    
+    cms_page_path [ "Options" ], "Themes" 
+
+    display_site_templates_table(false)
+
     render :action => 'index'
   end
   
-  def templates_table(render_partial = true)
+  def display_site_templates_table(display=true)
+    active_table_action 'template' do |act,ids|
+      case act
+      when 'delete'
+        SiteTemplate.destroy ids
+      end
+    end
+
     @active_table_output = site_templates_table_generate params, :order => 'IF(parent_id,parent_id,id), parent_id, name ', :per_page => 20
   
-    render :partial => 'templates_table' if render_partial
+    render :partial => 'templates_table' if display
   end
-  
-  # Delete the template given by templates_id
-  def delete_template
+
+  def create_bundle
+    @bundler = WebivaBundler.new params[:bundler]
+    @templates = params[:template]
+
+    @templates.delete_if { |k,v| t = SiteTemplate.find(v); t.nil? || t.parent_id } if @templates
+    @templates = nil if @templates && @templates.empty?
+
+    if @templates
+      @site_template = SiteTemplate.find @templates.values[0]
+      @bundler.name ||= @site_template.name
+      @bundler.author ||= myself.name unless myself.name == 'Administrative User'
+    end
+
+    if request.post? && @templates
+      if params[:commit]
+        if @bundler.valid?
+          SiteTemplate.find(@templates.values).each do |template|
+            @bundler.export_object template
+          end
+          bundle = @bundler.export
+          render :update do |page|
+            page << 'RedBox.close();'
+            page.redirect_to bundle.url
+          end
+          return
+        end
+      end
+    end
+
+    render :partial => 'create_bundle'
+  end
+
+  def import_bundle
+    cms_page_path [ "Options", "Themes" ], "Import Webiva Bundle"
+
+    if params[:key]
+      @processing = true
+      processor = Workling.return.get(params[:key])
+      if processor && processor[:processed]
+        session[:webiva_bundler_worker_key] = nil
+        flash[:notice] = 'Webiva bundle import finished'.t
+        redirect_to :action => 'index'
+      else
+        headers['Refresh'] = '5; URL=' + url_for(:key => params[:key])
+      end
+      return
+    end
+
+    @bundler = WebivaBundler.new params[:bundler]
+    @bundler.importing = true
+
+    if params[:bundler]
+      if @bundler.valid?
+        if params[:commit]
+          session[:webiva_bundler_worker_key] = @bundler.run_worker
+          redirect_to :action => 'import_bundle', :key => session[:webiva_bundler_worker_key]
+        elsif params[:select]
+          # nothing to do
+        else
+          redirect_to :action => 'index'
+        end
+      end
+    end
+  end
+
+  def apply_theme
+    cms_page_path [ "Options", "Themes" ], "Apply Theme"
+
     @site_template = SiteTemplate.find(params[:path][0])
-    @site_template.destroy
-    #flash[:notice] = 'Deleted Template: "%s"' / @site_template.name
-    templates_table
+
+    if request.post?
+      if params[:commit]
+        @site_template.apply_to_site SiteVersion.current, :features => params[:features]
+        flash[:notice] = 'Applied %s theme' / @site_template.name
+      end
+      redirect_to :action => 'index'
+    end
   end
 
   def new
     @site_template = SiteTemplate.new(params[:site_template])
     
-    cms_page_path ['Options','Design Templates'], 'Create Site Template'
+    cms_page_path ['Options','Themes'], 'Create a Theme'
     
     if(request.post?)
-      if params[:path][0]
-        parent = SiteTemplate.find(params[:path][0])
-        @site_template.parent_id = parent.id
-        @site_template.domain_file_id = parent.domain_file_id
-        @site_template.template_html = parent.template_html
-      end
-      if @site_template.save
-        redirect_to :action => 'edit', :path => @site_template.id
-        return
+      if params[:commit]
+        if params[:path][0]
+          parent = SiteTemplate.find(params[:path][0])
+          @site_template.parent_id = parent.id
+          @site_template.domain_file_id = parent.domain_file_id
+          @site_template.template_html = parent.template_html
+        end
+
+        if @site_template.save
+          if @site_template.parent_template
+            @site_template.parent_template.site_template_zones.each do |zone|
+              @site_template.site_template_zones.create :name => zone.name, :position => zone.position
+            end
+          end
+
+          return redirect_to :action => 'edit', :path => @site_template.id
+        end
+      else
+        return redirect_to :action => 'index'
       end
     end
-    render :action => 'new'
-
   end
 
   def edit
-  	session[:templates_view_modifier] = @display_view = params[:view] || session[:templates_view_modifier] || 'advanced'
+    session[:templates_view_modifier] = @display_view = params[:view] || session[:templates_view_modifier] || 'advanced'
     @site_template = SiteTemplate.find(params[:path][0])
     if params[:version] && !params[:version].blank?
       flash[:template_version_load] = params[:version]
@@ -94,9 +182,9 @@ class TemplatesController < CmsController # :nodoc: all
     end
     
     if flash[:template_version_load]
-       @site_template.load_version(flash[:template_version_load])
+      @site_template.load_version(flash[:template_version_load])
     end
-    cms_page_path ['Options','Design Templates'], [ 'Edit %s',nil,@site_template.name]
+    cms_page_path ['Options','Themes'], [ 'Edit %s',nil,@site_template.name]
     
     if @display_view == 'advanced'
       if @site_template.parent_id
@@ -105,27 +193,27 @@ class TemplatesController < CmsController # :nodoc: all
       else
         @tabs = ['options','translation','edit'] 
         @files = [ ["Template HTML",'template_html','html' ],
-                   [ "Design Styles",'style_design','css' ],
-                   [ "Structural Styles", 'style_struct','css' ]]
+          [ "Design Styles",'style_design','css' ],
+          [ "Structural Styles", 'style_struct','css' ]]
         @files << [ "HTML Header",'head','html' ]  unless @site_template.template_type == 'mail'
       end
     else
+      @files = []
       @tabs = ['options']
       @tabs << 'translation' unless @site_template.parent_id
     end
 
     @zones=@site_template.site_template_zones
-  	@languages = Configuration.languages
-	  @options = DefaultsHashObject.new(@site_template.options[:values])
-	  
-	  @design_styles = @site_template.design_style_details('en')
-	  @default_design_styles = Util::CssParser.default_styles(@design_styles);
-	  
-	  @struct_styles = @site_template.structural_style_details('en')
-	  @default_struct_styles = Util::CssParser.default_styles(@struct_styles);
-	  
+    @languages = Configuration.languages
+    @options = DefaultsHashObject.new(@site_template.options[:values])
+    
+    @design_styles = @site_template.design_style_details('en')
+    @default_design_styles = Util::CssParser.default_styles(@design_styles);
+    
+    @struct_styles = @site_template.structural_style_details('en')
+    @default_struct_styles = Util::CssParser.default_styles(@struct_styles);
+    
     require_js('edit_area/edit_area_loader')
-	  
   end
   
   # Get the default feature data,
@@ -135,7 +223,7 @@ class TemplatesController < CmsController # :nodoc: all
     
     txt = SiteFeature.default_feature(@feature_type)
   
-    render :text => txt;
+    render :text => txt
   end
   
   def refresh_styles
@@ -145,39 +233,40 @@ class TemplatesController < CmsController # :nodoc: all
     @refresh_type = params[:type]
     if  @refresh_type == 'style_design' 
       @design_styles = @site_template.design_style_details('en')
-	    @default_design_styles = Util::CssParser.default_styles(@design_styles);
+      @default_design_styles = Util::CssParser.default_styles(@design_styles);
     else	  
-	    @struct_styles = @site_template.structural_style_details('en')
-	    @default_struct_styles = Util::CssParser.default_styles(@struct_styles);  
-	   end
+      @struct_styles = @site_template.structural_style_details('en')
+      @default_struct_styles = Util::CssParser.default_styles(@struct_styles);  
+    end
   end
 
   def update
     @selected_language = params[:selected_language].to_s
     @site_template = SiteTemplate.find(params[:path][0])
     
-    @site_template.set_localization(params[:localize_values],params[:translate],params[:translation])
-
     @site_template.attributes = params[:site_template]
-    @site_template.modified_at= Time.now
-    @site_template.modified_by=myself.id
+    @site_template.modified_at = Time.now
+    @site_template.modified_by = myself.id
 
     @parsing_errors = @site_template.update_zones_and_options
-    
-    if(@site_template.parent_template)
+
+    # if child template
+    if @site_template.parent_template
       @site_template.save
     
       parent = @site_template.parent_template
       parent.update_zones_and_options
+      parent.update_option_values nil
       parent.save
+      parent.update_feature_options
     else
       @site_template.update_option_values(params[:options])
+      @site_template.set_localization(params[:localize_values], params[:translate], params[:translation])
       @site_template.save
-      
       @site_template.update_feature_options
     end
 
- 	  @site_template.update_zone_order!(params[:zone_order].to_s.split(",")) if params[:zone_order]
+    @site_template.update_zone_order!(params[:zone_order].to_s.split(",")) if params[:zone_order]
 	
     expire_site
     
@@ -232,8 +321,8 @@ class TemplatesController < CmsController # :nodoc: all
               [ :check, 
                 hdr(:string,'site_features.name'),
                 hdr(:string,'site_features.category'),
-                :feature_type,
-                hdr(:options,'site_template_id',:options => :site_template_names),
+                hdr(:string,:feature_type,:label => 'Paragraph Theme Type'),
+                hdr(:options,'site_template_id',:options => :site_template_names, :label => 'Theme'),
                 hdr(:date_range,'site_features.updated_at')                
               ]
               
@@ -253,6 +342,10 @@ class TemplatesController < CmsController # :nodoc: all
 
     active_table_action('feature') do |act,fids|
       SiteFeature.find(fids).map(&:destroy) if act == 'delete'
+      if act == 'theme'
+        site_template_id = params[:site_template_id].to_i
+        SiteFeature.update_all "site_template_id = #{site_template_id}", {:id => fids}
+      end
     end
     @tbl = features_table_generate params, :order => 'site_features.category,site_features.name', :include => :site_template
     
@@ -260,12 +353,16 @@ class TemplatesController < CmsController # :nodoc: all
   end  
   
   def features
-    cms_page_path [ "Options", "Design Templates" ], "Site Features"
-    display_features_table @tbl
+    cms_page_path [ "Options", "Themes" ], "Paragraph Themes"
+    display_features_table false
   end
-  
+
+  def select_theme
+    render :partial => 'select_theme'
+  end
+
   def new_feature
-    cms_page_path [ "Options", "Design Templates", "Site Features"], "Create a feature"
+    cms_page_path [ "Options", "Themes", "Paragraph Themes"], "Create a feature"
     @feature = SiteFeature.new
     @features = ParagraphRenderer.get_editor_features + ParagraphRenderer.get_component_features + ContentPublication.get_publication_features
     
@@ -280,8 +377,13 @@ class TemplatesController < CmsController # :nodoc: all
   def feature(popup=false,data={})
     @feature = SiteFeature.find_by_id(params[:path][0]) || SiteFeature.new(:feature_type => @paragraph.feature_type.to_s, :name => @paragraph.feature_type.to_s.humanize)
     
-    if !@feature.id
+    if ! @feature.id
       @feature.body = SiteFeature.default_feature(@paragraph.feature_type)
+    end
+
+    if params[:copy_feature_id]
+      @feature = @feature.clone
+      @feature.name += " (Copy)".t
     end
     
     if params[:version] && !params[:version].blank?
@@ -291,11 +393,10 @@ class TemplatesController < CmsController # :nodoc: all
     end
     
     if flash[:feature_version_load]
-       @feature.load_version(flash[:feature_version_load])
+      @feature.load_version(flash[:feature_version_load])
     end
     
-    
-    cms_page_path [ "Options", "Design Templates", "Site Features"], [ '"%s" Feature', nil, @feature.name ] 
+    cms_page_path [ "Options", "Themes", "Paragraph Themes"], '"%s" Paragraph Theme' / @feature.name
     
     details = @feature.feature_details
     # [ Human Name, feature_name, Renderer, Publication ]
@@ -304,7 +405,6 @@ class TemplatesController < CmsController # :nodoc: all
     begin
       @doc = details[2].document_feature(details[1],data,self,details[3])
     rescue Exception => e
-      raise e
       @doc = nil
     end
     
@@ -313,15 +413,13 @@ class TemplatesController < CmsController # :nodoc: all
     @style_details = @feature.style_details
     @reload_url = "?"
     
-    
     if @site_template = @feature.site_template
-	    @design_styles = @site_template.design_style_details('en')
-	    @default_design_styles = Util::CssParser.default_styles(@design_styles)
+      @design_styles = @site_template.design_style_details('en')
+      @default_design_styles = Util::CssParser.default_styles(@design_styles)
     else
       @default_design_styles = []
-	  end
+    end
 	  
-    
     require_js('edit_area/edit_area_loader')
     require_js('highlight/highlight.pack.js')
     require_css('/javascripts/highlight/styles/default.css')
@@ -345,7 +443,7 @@ class TemplatesController < CmsController # :nodoc: all
     
     if params[:version] && !params[:version].blank?
       flash[:feature_version_load] = params[:version]
-      redirect_to :action => 'popup_feature',:path => [ params[:path][0] ], :para_index => @paragraph_index, :paragraph_id => @paragraph_id
+      redirect_to :action => 'popup_feature',:path => [ params[:path][0] ].compact, :para_index => @paragraph_index, :paragraph_id => @paragraph_id
       return
     end  
     
@@ -363,12 +461,11 @@ class TemplatesController < CmsController # :nodoc: all
     @style_details = @feature.style_details(true)
   
     if @site_template = @feature.site_template
-	    @design_styles = @site_template.design_style_details('en')
-	    @default_design_styles = Util::CssParser.default_styles(@design_styles)
+      @design_styles = @site_template.design_style_details('en')
+      @default_design_styles = Util::CssParser.default_styles(@design_styles)
     else
       @default_design_styles = []
-	  end
-	  
+    end
   end
   
   def save_feature
@@ -380,17 +477,22 @@ class TemplatesController < CmsController # :nodoc: all
     @feature.admin_user = myself
     @feature.validate_xml = true unless params[:ignore_xml_errors] # Require valid XML or a an override
     if @feature.save
-        @saved = true
-        @return = params[:return]
-        if @paragraph_index
-          @available_features = SiteFeature.single_feature_type_hash(@feature.site_template_id,@feature.feature_type)
-        end
-        
-        expire_site
-    elsif @feature.errors.on(:invalid_html)
-        @invalid_html = true
-    end
-    
-  end
+      if @feature.site_template
+        @feature.site_template.reload
+        @feature.site_template.update_zones_and_options
+        @feature.site_template.update_option_values nil
+        @feature.site_template.save
+        @feature.site_template.update_feature_options @feature.id
+      end
+      @saved = true
+      @return = params[:return]
+      if @paragraph_index
+        @available_features = SiteFeature.single_feature_type_hash(@feature.site_template_id,@feature.feature_type)
+      end
 
+      expire_site
+    elsif @feature.errors.on(:body)
+      @invalid_html = true
+    end
+  end
 end

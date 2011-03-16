@@ -48,7 +48,8 @@ class ContentModel < DomainModel
   end
 
   # Resave all the models to create content nodes
-  def recreate_all_content_nodes #:nodoc
+  # called via a worker
+  def recreate_all_content_nodes(args={ })
     if self.create_nodes?
       self.model_class(true).find_in_batches do |group|
         group.each {  |mdl| mdl.save_content(nil) }
@@ -92,13 +93,13 @@ class ContentModel < DomainModel
   end
   
    # Return a list of content fields with their modules added in
-  def self.content_fields
-    returning fields = [] do
-      get_handler_info(:content,:fields).each do |info|
-        fields.concat(info[:class].fields)
-      end
+  def self.content_fields(opts={})
+    fields = []
+    get_handler_info(:content,:fields).each do |info|
+      fields.concat(info[:class].fields)
     end
-    
+    fields = fields.reject { |info| ! info[:simple] } if opts[:simple]
+    fields
   end
   
    # Return a hash of content fields with their modules added in
@@ -111,8 +112,13 @@ class ContentModel < DomainModel
   end
 
   # Returns a select-friendly list of available content field types
-  def self.content_field_options
-    self.content_fields.collect { |fld| [ fld[:description].t, fld[:name] ] }
+  def self.content_field_options(opts={})
+    self.content_fields(opts).collect { |fld| [ fld[:description].t, "#{fld[:module]}::#{fld[:name]}" ] }
+  end
+
+  # Returns a select-friendly list of available content field types without relation's
+  def self.simple_content_field_options
+    self.content_field_options(:simple => true)
   end
   
   # Returns all the ContentModelField's of this content model (including a field for the id)
@@ -182,7 +188,7 @@ class ContentModel < DomainModel
     field_class = dynamic_fields_class(module_info)
     
     # return the class and the calling method
-    if field_class && field_class.dynamic_field_hash[field_info.to_sym]
+    if field_info && field_class && field_class.dynamic_field_hash[field_info.to_sym]
       field_method = "dynamic_#{field_info}_value"
       [ field_class, field_method ]
     else
@@ -199,7 +205,7 @@ class ContentModel < DomainModel
   # Returns a select-friendly list of available relationship classes
   def self.relationship_classes
     content_models = ContentModel.find(:all,:order => 'name')
-    clses = [ [ 'User', 'end_user' ] ] + content_models.collect { |mdl| [ mdl.name, mdl.table_name ] }
+    clses = [ [ 'User', 'end_user' ], ['(Other)', 'other'] ] + content_models.collect { |mdl| [ mdl.name, mdl.table_name ] }
   end
 
   def destroy_linked_content #:nodoc:
@@ -226,7 +232,7 @@ class ContentModel < DomainModel
   # Given a set of parameters, modifies the attributes as necessary
   # for the fields
   def entry_attributes(parameters)
-    parameters = parameters.clone
+    parameters = parameters ? parameters.clone : { }
     self.content_model_fields.each do |fld|
       fld.modify_entry_parameters(parameters)
     end
@@ -240,6 +246,17 @@ class ContentModel < DomainModel
     else
       return entry.update_attributes(entry_attributes(parameters))
     end
+  end
+
+  # render an edit form from the fields
+  def edit_form(f,options = {})
+    options= options.clone
+    except=options.delete(:except).to_i
+    self.content_model_fields.map do |fld|
+      if fld.id != except
+        fld.form_field(f)
+      end
+    end.compact.join
   end
   
   # Checks a list of content_model_fields given a list of ids

@@ -7,5 +7,6 @@
 <%= f.text_field :gallery_category, :label => 'Category', :description => 'Only show galleries from the entered category' %>
 <%= f.text_field :description_string %>
 <%= f.select :autosort, [ ['No Sorting','no'],['Description','asc'],['Description (reverse)','desc' ]] %>
+<%= f.radio_buttons :include_javascript, [['Yes',true],['No',false]], :description => "Include gallery javascript and CSS" %>
 <% end -%>
 </div>

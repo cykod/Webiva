@@ -4,9 +4,9 @@ class Blog::ManageController < ModuleController
   
   permit 'blog_writer', :except => [ :configure] 
 
-  permit 'blog_config', :only => [ :configure, :delete ]
+  permit 'blog_config', :only => [ :configure, :delete, :import ]
 
-  before_filter :check_view_permission, :except => [ :configure, :delete  ]
+  before_filter :check_view_permission, :except => [ :configure, :delete, :display_blog_list_table, :list, :generate_mail, :generate_mail_generate, :import ]
 
   component_info 'Blog'
   
@@ -18,13 +18,13 @@ class Blog::ManageController < ModuleController
    include ActiveTable::Controller   
    active_table :post_table,
                 Blog::BlogPost,
-                [ ActiveTable::IconHeader.new('', :width=>10),
-                  ActiveTable::StringHeader.new('blog_post_revisions.title',:label => 'Post Title'),
-                  ActiveTable::OptionHeader.new('blog_posts.status',:label => 'Status',:options => Blog::BlogPost.status_select_options ),
-                  ActiveTable::DateRangeHeader.new('blog_posts.published_at',:label => 'Published At',:datetime => true ),
-                  ActiveTable::StringHeader.new('blog_posts.permalink',:label => 'Permalink'),
-                  ActiveTable::DateRangeHeader.new('blog_posts.updated_at',:label => 'Updated At',:datetime => true ),
-                  ActiveTable::OptionHeader.new('blog_posts_categories.blog_category_id', :label => 'Category', :options => :generate_categories, :display => 'select' )
+                [ hdr(:icon, '', :width=>10),
+                  hdr(:string, 'blog_post_revisions.title', :label => 'Post Title'),
+                  hdr(:options, 'blog_posts.status', :label => 'Status', :options => Blog::BlogPost.status_select_options ),
+                  :published_at,
+                  :permalink,
+                  :updated_at,
+                  hdr(:options, 'blog_posts_categories.blog_category_id', :label => 'Category', :options => :generate_categories, :display => 'select' )
                 ]
                 
   def self.mail_manager_generator_handler_info
@@ -36,16 +36,15 @@ class Blog::ManageController < ModuleController
   
   active_table :generate_post_table,
                 Blog::BlogPost,
-                [ ActiveTable::IconHeader.new('', :width=>20),
-                  ActiveTable::StringHeader.new('blog_blogs.name',:label=> 'Blog'),
-                  ActiveTable::StringHeader.new('blog_post_revisions.title',:label => 'Post Title'),
-                  ActiveTable::DateRangeHeader.new('blog_posts.published_at',:label => 'Published At',:datetime => true ),
-                  ActiveTable::DateRangeHeader.new('blog_posts.update_at',:label => 'Updated At',:datetime => true )
+                [ hdr(:icon, '', :width=>20),
+                  hdr(:string, 'blog_blogs.name', :label=> 'Blog'),
+                  hdr(:string, 'blog_post_revisions.title', :label => 'Post Title'),
+                  :published_at,
+                  :updated_at
                 ]
+
   def display_generate_post_table(display=true)
-    
       @tbl = generate_post_table_generate params, :order => 'blog_posts.published_at DESC',:joins => [ :active_revision, :blog_blog ]
-      
       render :partial =>'generate_post_table' if display
   end
   
@@ -55,13 +54,13 @@ class Blog::ManageController < ModuleController
   end
   
   def generate_mail_generate
-    @post = Blog::BlogPost.find_by_id(params[:post_id],:include => :active_revision)
+    @post = Blog::BlogPost.find(params[:post_id])
 
     @align = params[:opts][:align] == 'left' ? 'left' : 'right'
     @padding = params[:opts][:align] == 'left' ? 'padding:0 10px 10px 0;' : 'padding:0 0 10px 0px;'
-    @img = "<img class='blog_image' src='#{@post.active_revision.domain_file.url(:small)}' align='#{@align}' style='#{@padding}'>" if params[:opts][:align] != 'none' && @post.active_revision.domain_file
+    @img = "<img class='blog_image' src='#{@post.domain_file.url(:small)}' align='#{@align}' style='#{@padding}'>" if params[:opts][:align] != 'none' && @post.domain_file
     
-    @title = "<h1 class='blog_title'>#{h(@post.active_revision.title)}</h1>"
+    @title = "<h1 class='blog_title'>#{h(@post.title)}</h1>"
 
     @post_content = "<div class='blog_entry'>"
     
@@ -71,7 +70,7 @@ class Blog::ManageController < ModuleController
       @post_content += @img.to_s + @title
     end
     @post_content += "\n<div class='blog_body'>"
-    @post_content += @post.active_revision.body + "</div><div class='blog_clear' style='clear:both;'>&nbsp;</div></div>"
+    @post_content += @post.body_content + "</div><div class='blog_clear' style='clear:both;'>&nbsp;</div></div>"
   end
             
                 
@@ -80,59 +79,46 @@ class Blog::ManageController < ModuleController
   end
 
   def post_table(display=true)
-     @blog = Blog::BlogBlog.find(params[:path][0]) unless @blog
 
-      if(request.post? && params[:table_action] && params[:post].is_a?(Hash)) 
-      
-      case params[:table_action]
-      when 'delete':
-        params[:post].each do |entry_id,val|
-          Blog::BlogPost.destroy(entry_id.to_i)
-        end
-      when 'publish':
-        params[:post].each do |entry_id,val|
-          entry = Blog::BlogPost.find(entry_id)
-          unless (entry.status == 'published' && entry.published_at && entry.published_at < Time.now) 
-              entry.status = 'published'
-              entry.published_at = Time.now
-              entry.save
-          end
-        end
+    active_table_action(:post) do |act,eids| 
+      entries = Blog::BlogPost.find(eids)
+      case act
+      when 'delete': entries.map(&:destroy)
+      when 'publish': entries.map(&:publish!)
+      when 'unpublish': entries.map(&:unpublish!)
+      when 'duplicate': entries.map(&:duplicate!)
       end
     end
-    
-    @active_table_output = post_table_generate params, :joins => [ :active_revision ], :include => [ :blog_categories ], 
-                            :order => 'blog_posts.updated_at DESC', :conditions => ['blog_posts.blog_blog_id = ?',@blog.id ]
 
-    
+    @active_table_output = post_table_generate params, :joins => [ :active_revision ], :include => [ :blog_categories ], 
+      :order => 'blog_posts.updated_at DESC', :conditions => ['blog_posts.blog_blog_id = ?',@blog.id ]
+
+
     render :partial => 'post_table' if display
   end
 
   def index 
-     @blog = Blog::BlogBlog.find(params[:path][0])
      blog_path(@blog)
   
      post_table(false)
   end
   
   def mail_template
-     @blog = Blog::BlogBlog.find(params[:path][0])
-     @entry = @blog.blog_posts.find(params[:path][1],:include => :active_revision) 
+     @entry = @blog.blog_posts.find(params[:path][1])
      
      
-     @mail_template = MailTemplate.create(:name => @blog.name + ":" + @entry.active_revision.title, 
-                                       :subject => @entry.active_revision.title,
-                                       :body_html => @entry.active_revision.body,
-                                       :generate_text_body => true,
-                                       :body_type => 'html,text')
+     @mail_template = MailTemplate.create(:name => @blog.name + ":" + @entry.title, 
+					  :subject => @entry.title,
+					  :body_html => @entry.body,
+					  :generate_text_body => true,
+					  :body_type => 'html,text')
                                        
     redirect_to :controller => '/mail_manager',:action => 'edit_template', :path => @mail_template.id
   
   end
 
   def post
-     @blog = Blog::BlogBlog.find(params[:path][0])
-     @entry = @blog.blog_posts.find(params[:path][1],:include => :active_revision) if params[:path][1]
+     @entry = @blog.blog_posts.find(params[:path][1]) if params[:path][1]
 
       @header = <<-EOF
         <script>
@@ -142,50 +128,36 @@ class Blog::ManageController < ModuleController
                                  }
         </script>
       EOF
-      @header += "<script src='/javascripts/cms_form_editor.js' type='text/javascript'></script>"
-
+      require_js('cms_form_editor')
 
      if @entry
-       @revision = @entry.active_revision.clone
-       blog_path(@blog,[ 'Edit Entry: %s', nil, @revision.title ])
-
-       @selected_category_ids = params[:categories] || @entry.category_ids
-      
+       blog_path(@blog,[ 'Edit Entry: %s', nil, @entry.title ])
      else
-       cms_page_info [ ["Content",url_for(:controller => '/content') ], [ "%s",url_for(:action => 'index', :path => @blog.id),@blog.name], 'Post New Entry' ], "content"
        blog_path(@blog,"Post New Entry")
-
        @entry = @blog.blog_posts.build()
-       @revision = Blog::BlogPostRevision.new()
-
-       @selected_category_ids = params[:categories] || []
      end
+     @selected_category_ids = params[:categories] || @entry.category_ids
 
-     @revision.author = myself.name if @revision.author.blank?
+     @entry.author = myself.name if @entry.author.blank?
 
-     if request.post? && params[:revision]
-        @revision.attributes = params[:revision]
+     if request.post? && params[:entry]
         @entry.attributes = params[:entry]
-        @revision.end_user_id = myself.id
 
         case params[:update_entry][:status]
-        when 'draft':
-          @entry.make_draft
-        when 'publish_now' # if we want to publish the article now
-          @entry.publish_now
+        when 'draft':       @entry.make_draft
+        when 'publish_now': @entry.publish_now
+        when 'preview':     @entry.make_preview
         when 'post_date'
-          @entry.publish(params[:entry_update][:published_at])
+          @entry.publish(params[:entry][:published_at].blank? ? Time.now : (params[:entry][:published_at]))
         end
     
-        if(@entry.valid? && @revision.valid?)
-            @entry.save_revision!(@revision)
+        if @entry.save
+          @entry.set_categories!(params[:categories])
+          @blog.send_pingbacks(@entry)
 
-            @entry.set_categories!(params[:categories])
-
-            redirect_to :action => 'index', :path => @blog.id 
-            return 
+          redirect_to :action => 'index', :path => @blog.id 
+          return 
         end
-
      end
 
      @categories = @blog.blog_categories
@@ -204,8 +176,6 @@ class Blog::ManageController < ModuleController
   end
 
   def add_category
-      @blog = Blog::BlogBlog.find(params[:path][0])
-
       @category = @blog.blog_categories.create(:name => params[:name])
 
       if @category.id
@@ -244,13 +214,12 @@ class Blog::ManageController < ModuleController
                 Blog::BlogBlog,
                 [ :check,
                   hdr(:string,'blog_blogs.name',:label=> 'Blog'),
-                  hdr(:date_range,'blog_blogs.created_at',:label => 'Created At',:datetime => true )
+                  :created_at
                 ]
   
   def display_blog_list_table(display=true)
-  
     active_table_action('blog') do |act,bids|
-      Blog::BlogBlog.destroy(bids) if bids
+      Blog::BlogBlog.destroy(bids) if act == 'delete'
     end
   
     @tbl = blog_list_table_generate params, :order => 'blog_blogs.created_at DESC', :conditions => ['is_user_blog=1']
@@ -258,12 +227,94 @@ class Blog::ManageController < ModuleController
   end
   
   def list
-    cms_page_path ['Content'],'Site Blogs'
-    display_blog_list_table(false) 
+    cms_page_path ['Content'], 'Site Blogs'
+    display_blog_list_table(false)
   end
-  
+
+  def import
+    @blog = Blog::BlogBlog.find(params[:path][0])
+    blog_path(@blog,"Import Blog")
+
+    @import = ImportOptions.new params[:import]
+    @import.wordpress_import_settings = ['comments', 'pages'] unless params[:import]
+
+    if request.post? && @import.valid?
+      if params[:commit]
+        if @import.import @blog, myself
+          redirect_to :action => 'index', :path => [ @blog.id ]
+        end
+      else
+        redirect_to :action => 'index', :path => [ @blog.id ]
+      end
+    end
+  end
+
   protected
   
+  class ImportOptions < HashModel
+    attributes :import_file_id => nil, :wordpress_export_file_id => nil, :wordpress_url => nil, :wordpress_username => nil, :wordpress_password => nil, :wordpress_import_settings => [], :rss_url => nil
+
+    domain_file_options :import_file_id, :wordpress_export_file_id
+
+    def validate
+      if self.import_file_id.blank? && self.wordpress_export_file_id.blank? && self.wordpress_url.blank? && self.rss_url.blank?
+        self.errors.add_to_base 'Import settings not specified'
+      elsif ! self.rss_url.blank?
+        self.errors.add(:rss_url, 'is invalid') unless URI::regexp(%w(http https)).match(self.rss_url)
+      elsif self.import_file_id.blank? && self.wordpress_export_file_id.blank? && ! self.wordpress_url.blank?
+        self.errors.add(:wordpress_url, 'is invalid') unless URI::regexp(%w(http https)).match(self.wordpress_url)
+        self.errors.add(:wordpress_username, 'is missing') if self.wordpress_username.blank?
+        self.errors.add(:wordpress_password, 'is missing') if self.wordpress_password.blank?
+      end
+    end
+
+    def wordpress_importer
+      return @wordpress_importer if @wordpress_importer
+      @wordpress_importer = Blog::WordpressImporter.new
+      @wordpress_importer.import_comments = self.wordpress_import_settings.include?('comment')
+      @wordpress_importer.import_pages = self.wordpress_import_settings.include?('pages')
+      @wordpress_importer
+    end
+
+    def rss_importer
+      @rss_importer ||= Blog::RssImporter.new
+    end
+
+    def import(blog, user)
+      if self.import_file
+        blog.import_file(self.import_file, user)
+      elsif ! self.rss_url.blank?
+        self.rss_importer.blog = blog
+        if self.rss_importer.import_feed(self.rss_url) 
+          self.errors.add(:rss_url, 'failed to import feed') unless self.rss_importer.import
+        else
+          self.errors.add(:rss_url, 'is invalid')
+        end
+      elsif self.wordpress_export_file
+        self.wordpress_importer.blog = blog
+        self.wordpress_importer.import_file(self.wordpress_export_file)
+        self.errors.add(:wordpress_export_file_id, self.wordpress_importer.error) unless self.wordpress_importer.import
+      elsif ! self.wordpress_url.blank?
+        self.wordpress_importer.blog = blog
+        unless self.wordpress_importer.import_site(self.wordpress_url, self.wordpress_username, self.wordpress_password)
+          if self.wordpress_importer.error == 'Login failed'
+            self.errors.add(:wordpress_username, 'is invalid')
+            self.errors.add(:wordpress_password, 'is invalid')
+          else
+            self.errors.add(:wordpress_url, 'is invalid')
+            self.errors.add_to_base(self.wordpress_importer.error)
+          end
+        end
+
+        unless self.wordpress_importer.error
+          self.errors.add_to_base(self.wordpress_importer.error) unless self.wordpress_importer.import
+        end
+      end
+
+      self.errors.length > 0 ? false : true
+    end
+  end
+
   def blog_path(blog,path=nil)
     base = ['Content']
     base << 'Site Blogs' if blog.is_user_blog?
@@ -285,5 +336,7 @@ class Blog::ManageController < ModuleController
       end
     end
   end
+
+
 
 end

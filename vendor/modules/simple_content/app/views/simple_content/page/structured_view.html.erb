@@ -1,0 +1,81 @@
+<div class='cms_form'>
+<% if @options.simple_content_model -%>
+
+<script>
+
+update_simple_content_model = function() {
+  $('structured_view_skip').value = 1;
+  $('structured_view_form').onsubmit();
+}
+
+simple_content_win = null;
+
+edit_simple_content_model = function(para_index) {
+  var params = $H({ para_index: para_index });
+  simple_content_win = openWindow("<%= url_for :controller => '/simple_content/manage', :action => 'popup_model', :path => [@options.simple_content_model.id] %>" + "?" + Object.toQueryString(params),'SimpleContentModel_<%= @options.simple_content_model.id %>',900,600,'yes','yes');
+  simple_content_win.focus();
+}
+
+<% if @options.simple_content_model.content_model_fields.length == 0 && myself.has_role?('simple_content_manager') -%>
+  edit_simple_content_model('<%= @paragraph_index %>');
+<% end -%>
+
+</script>
+
+  <% if myself.has_role?('simple_content_manager') -%>
+    <div align="right"><a href="javascript:void(0);" onclick="edit_simple_content_model('<%= @paragraph_index %>')">edit</a></div>
+  <% end -%>
+
+  <%  paragraph_options_form_for '%s Options' / @options.simple_content_model.name, :structured_view do |f| -%>
+    <% cms_subfields_for :simple_content_data, @options.data_model do |sf| -%>
+      <% @options.content_model.content_publication_fields.each do |field| -%>
+        <%= field.form_field(sf, :editor => true) %>
+      <% end -%>
+    <% end -%>
+    <input type="hidden" name="skip" value="0" id="structured_view_skip" />
+  <% end -%>
+
+<% else -%>
+
+  <% if @simple_content_model -%>
+
+    <h3><%= 'Structured View Options'.t %></h3>
+
+    <% if SimpleContentModel.count > 0 %>
+      <% cms_unstyled_form_for :structured_view, @options, :html => {:id => 'structured_view_form', :onsubmit => "cmsEdit.submitParagraphData(this,'#{url_for :action => 'structured_view'}',#{@paragraph.id},#{@paragraph_index}); return false;"} do |f| -%>
+        <table>
+        <tr><td colspan="2"><h4><%= 'Select an existing simple content model'.t %></h4></td></tr>
+        <tr>
+        <td><%= f.select(:simple_content_model_id, @options.class.simple_content_model_options, :label => '') %></td>
+        <td><%= f.submit 'Select' %></td>
+        </tr>
+        </table>
+      <% end -%>
+      <br/>
+    <% end -%>
+
+    <% cms_unstyled_form_for :simple_content_model, @simple_content_model, :html => {:id => 'structured_view_form', :onsubmit => "cmsEdit.submitParagraphData(this,'#{url_for :action => 'structured_view'}',#{@paragraph.id},#{@paragraph_index}); return false;"} do |f| -%>
+      <table>
+      <tr><td colspan="2"><h4><%= 'Create a new simple content model'.t %></h4></td></tr>
+      <% if error_message = f.output_error_message('Name',:name) -%>
+        <%= "<tr><td colspan='2' class='error'>#{error_message}</td></tr>" %>
+      <% end -%>
+      <tr>
+      <td><%= f.text_field :name %></td>
+      <td><%= f.submit 'Create' %></td>
+      </tr>
+      </table>
+    <% end -%>
+
+    <br/>
+    <hr/>
+      <a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.closeBox();'><%= "Cancel".t %></a>
+
+  <% else -%>
+    <%  paragraph_options_form_for :structured_view do |f| -%>
+      <%= f.select(:simple_content_model_id, @options.class.simple_content_model_options) %>
+    <% end -%>
+  <% end -%>
+
+<% end -%>
+</div>

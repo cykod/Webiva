@@ -69,7 +69,13 @@ class DomainFileSize < DomainModel
       "0px X opx"
     end
   end
-  
+
+  def self.valid_size?(size)
+    return false if size.blank?
+    return true if DomainFile.image_sizes_hash[size.to_sym]
+    return true if self.custom_sizes[size.to_sym]
+    false
+  end
   
   def self.custom_sizes
     custom_size_hash = DataCache.get_cached_container("Config",'DomainFileSize')  unless RAILS_ENV == 'test'

@@ -1,0 +1,31 @@
+<%
+traffic = traffic[0]
+stat = traffic.domain_log_stats[0]
+conversions = stat.conversions.to_i + stat.leads.to_i + stat.subscribers.to_i
+%>
+<div class="session_traffic">
+
+<br/>
+
+<h2><%= 'Total Hits'.t %></h2>
+<div class="stat"><%= number_with_delimiter(stat.hits || 0) %></div>
+<br/>
+<br/>
+<br/>
+
+<h2><%= 'Visitors'.t %></h2>
+<div class="stat"><%= number_with_delimiter(stat.visits || 0) %></div>
+<br/>
+<br/>
+<br/>
+
+<h2><%= 'Conversions'.t %></h2>
+<div class="stat"><%= number_with_delimiter(conversions) %></div>
+<br/>
+<br/>
+<br/>
+
+<h2><%= 'Revenue'.t %></h2>
+<div class="stat"><%= number_to_currency(stat.total_value || 0) %></div>
+
+</div>

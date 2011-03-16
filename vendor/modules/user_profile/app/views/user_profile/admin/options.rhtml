@@ -1,0 +1,12 @@
+<% action_panel :handler => 'members' do |p| -%>
+  <%= p.link "Add a profile",:icon => 'add.gif', :action => :edit_profile_type %>
+<% end -%>
+
+<hr/> 
+<div class='admin_content'>
+
+<div id='user_profile_table'>
+  <%= render :partial => 'user_profile_table' %>
+</div>
+
+</div>

@@ -19,6 +19,8 @@ module ModelExtension::ContentNodeExtension
     #   string representing the class that is the ContentType container for this class
     # [:container_field]
     #   symbol with the name of the attribute that is the belong_to foreign key for the container
+    # [:push_value]
+    #   set to true to immediately push the content node value - should only be done for admin only content models
     def content_node(options = {})
       attr_accessor :content_node_skip
       after_save :content_node_save
@@ -76,6 +78,10 @@ module ModelExtension::ContentNodeExtension
   
   module InstanceMethods
 
+    def content_node_link
+      self.content_node.link if self.content_node
+    end
+
     def content_node_save #:nodoc:
       # Only save if we aren't already inside of save_content
       save_content(nil,{},true) if(!content_node_skip)
@@ -107,8 +113,11 @@ module ModelExtension::ContentNodeExtension
 
         opts = self.content_node_type_options
         
-        title_field = (opts[:title_field] || 'name').to_s
-        url_field = (opts[:url_field] || 'id').to_s
+        title_field = (opts[:title_field] || 'name')
+        url_field = (opts[:url_field] || 'id')
+
+        title_field = title_field.call(self) if title_field.is_a?(Proc)
+        url_field = url_field.call(self) if url_field.is_a?(Proc)
         
         # Get the name of the content
         content_name = self.resolve_argument(opts[:content_name],:name)
@@ -118,22 +127,21 @@ module ModelExtension::ContentNodeExtension
                            :container => self, 
                            :content_name => content_name,
                            :content_type => content_type,
-                           :title_field => title_field,
-                           :url_field => url_field,
+                           :title_field => title_field.to_s,
+                           :url_field => url_field.to_s,
                            :search_results => opts[:search] )
       end
     end
 
     def content_node_type_update #:nodoc:
       opts = self.content_node_type_options
-       
-       title_field = (opts[:title_field] || 'name').to_s
-       url_field = (opts[:url_field] || 'id').to_s
-       
+
        # Get the name of the content
        content_name = self.resolve_argument(opts[:content_name],:name)
-      
-      if !self.content_type || content_name != self.content_type.content_name
+
+       if !self.content_type
+        self.content_node_type_create
+      elsif content_name != self.content_type.content_name
         self.content_type.update_attributes(:content_name => content_name)
       end
 

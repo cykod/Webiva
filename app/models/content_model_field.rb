@@ -10,22 +10,39 @@ class ContentModelField < DomainModel
   belongs_to :content_model
 
   has_many :content_relations, :dependent => :delete_all
+
+  named_scope :core_fields, lambda { |name|
+    { :conditions => { :field_module => 'content/core_field',
+                       :field_type => name } }
+  }
   
 #  acts_as_list
 
   def before_validation
-    self.field_module ||= 'content/core_field'
     self.name = self.name.to_s.strip
   end
   
   def validate
-    self.errors.add(:field_options,'are invalid') unless field_options_model.valid?
+    if self.module_class
+      self.errors.add(:field_options,'are invalid') unless field_options_model.valid?
+    end
   end
 
-  
   serialize :field_options
-  
-  
+
+  def field_type=(type)
+    return unless type
+
+    vals = type.to_s.split('::')
+    if vals.length == 2
+      self.field_module = vals[0]
+      write_attribute :field_type, vals[1]
+    else
+      self.field_module ||= 'content/core_field'
+      write_attribute :field_type, type.to_s
+    end
+  end
+
   def text_value(data)
     if self.module_class
       content_display(data)
@@ -36,6 +53,7 @@ class ContentModelField < DomainModel
   
   def module_class
     return @module_class if @module_class
+    return nil unless self.field_type && self.field_module
     field_class = self.field_type + "_field"
     cls = "#{self.field_module.classify}::#{field_class.classify}".constantize
     @module_class ||= cls.new(self)
@@ -60,6 +78,10 @@ class ContentModelField < DomainModel
   end
 
   def data_field?;  self.module_class.data_field?; end
+
+  def required?
+    self.field_options['required']
+  end
   
   def form_field(f,options={})
     options.symbolize_keys!
@@ -70,7 +92,7 @@ class ContentModelField < DomainModel
     field_size = options.delete(:size).to_i
     field_size = 40 if field_size == 0 
     
-    required = self.field_options['required'] || false
+    required = self.required?
     
     label = options.delete(:label) || self.name
     noun = options.delete(:noun) || label
@@ -96,9 +118,16 @@ class ContentModelField < DomainModel
 
   # Return the actual class if this field has a relation
   def relation_class
+    cls = self.relation_class_name
+    cls.constantize if cls && cls.to_s.downcase != 'other'
+  end
+
+
+  # Return the actual class if this field has a relation
+  def relation_class_name
     if !self.field_options['relation_class'].blank?
       begin
-        return self.field_options['relation_class'].constantize
+        return self.field_options['relation_class']
       rescue Exception => e
         return nil
       end
@@ -121,11 +150,19 @@ class ContentModelField < DomainModel
   end
   
   def content_display(entry,size=:full,options={})
-    self.module_class.content_display(entry,size,options)
+    self.module_class.content_display(entry,size,options.symbolize_keys)
   end
 
   def content_value(entry)
     self.module_class.content_value(entry)
+  end
+
+  def content_export(entry)
+    self.module_class.content_export(entry)
+  end
+
+  def content_import(entry,value)
+    self.module_class.content_import(entry,value)
   end
   
   def filter_variables
@@ -212,5 +249,25 @@ class ContentModelField < DomainModel
   
   def assign(entry,values)
     self.module_class.assign(entry,values)
+  end
+
+  def after_save
+    self.add_has_many_relationship if self.field_type == 'belongs_to' && self.field_options['add_has_many']
+  end
+
+  def add_has_many_relationship
+    return if self.relation_name == 'end_user' || self.relation_name == 'other'
+
+    table_name = self.content_model.table_name
+    plural_name = "#{self.field.sub(/_id$/,'')}_#{table_name.sub(/^cms_/, '')}"
+    singular_name = plural_name.singularize
+    field_id = "#{singular_name}_id"
+    cm = ContentModel.find_by_table_name self.relation_class.table_name
+    return if cm.content_model_fields.detect { |fld| fld.field_type == 'has_many_simple' && fld.field == field_id }
+
+    options = Content::Field::FieldOptions.new :relation_class => table_name.classify, :relation_name => plural_name, :relation_singular => singular_name, :foreign_key => self.field
+
+    next_position = cm.content_model_fields.maximum(:position) + 1
+    cm.content_model_fields.create :name => plural_name.titleize, :field => field_id, :field_type => 'has_many_simple', :field_options => options.to_h.stringify_keys, :field_module => 'content/core_field', :position => next_position
   end
 end

@@ -1,0 +1,35 @@
+  <div id='upload_progress' style='display:none;' ></div>
+  <div id='upload_action'>
+    <%= form_tag({:action => 'upload'}, :onsubmit => "FileEditor.startUpload(this); FileEditor.hideDetails(); return true;", :enctype => 'multipart/form-data', :id => 'file_upload_form', :target => 'UploadTarget') %>
+    <div style='float:left; padding-top:3px;'>
+      <h2>
+        <%= theme_image_tag('framework/filemanager_upload_file.gif',:align =>'baseline') -%>    
+        <%= "Upload File".t %>&nbsp;
+      </h2>
+    </div>
+    <div style='float:left; position:relative;'>
+      <input type='hidden' name='X-Progress-ID' id='upload_identifier' value=''/>
+      <input type='hidden' id='upload_file_parent_id' name='upload_file[parent_id]' value='<%= @folder.id %>'/>
+
+      <div class='filemanager_file_input'> 
+        <input type='button' value='Upload' class="button_link" />
+        <%= file_field 'upload_file','filename', :id => 'file_column', :class=>'file_input_hidden', :onchange => "FileEditor.selectedChange(); FileEditor.startUpload(this.form); FileEditor.hideDetails(); FileUploader.files = new Array(); this.form.submit();" %>
+      </div>
+
+      <div style='float:left; padding:6px 0 0 2px;'>
+        <label for='replace_same'><input type='checkbox' name='replace_same' id='replace_same' checked='checked'/> <%= "Replace matching files".t %></label>
+        &nbsp;
+        <label for='extract_archive'><input type='checkbox' name='extract_archive' id='extract_archive' checked='checked'/> <%= "Extract Archived Files".t %></label>
+      </div>
+
+      <div class='clear'></div>
+
+    </div>
+
+    <div id='upload_status_area'></div>
+    <script>$('file_column').value = '';</script>
+
+  </form>
+  </div>
+
+  <iframe id="UploadTarget" name="UploadTarget" src="" style="width:0px;height:0px;border:0"></iframe>

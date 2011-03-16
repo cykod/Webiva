@@ -7,8 +7,8 @@ class EndUserActions < ActiveRecord::Migration
       t.datetime :created_at    
       t.string :target_type
       t.integer :target_id
-      t.string :controller
-      t.string :action
+      t.string :controller, :limit => 64
+      t.string :action, :limit => 128
       t.string :path
       t.text :data
     end

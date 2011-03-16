@@ -32,7 +32,7 @@ describe Editor::MenuRenderer, :type => :controller do
 
     @rnd = generate_page_renderer('menu', menu)
 
-    @rnd.paragraph.should_receive(:page_revision).and_return(page_revision)
+    @rnd.paragraph.should_receive(:page_revision).at_least(:once).and_return(page_revision)
     SiteNode.should_receive(:find_by_id).once.and_return(test_node)
 
     @output = renderer_get @rnd
@@ -56,16 +56,7 @@ describe Editor::MenuRenderer, :type => :controller do
 
     SiteNode.should_receive(:find_by_id).with(root_node.id).and_return(root_node)
 
-    root_node.children.each do |test_node|
-      test_node.should_receive(:menu).and_return([test_node])
-      test_node.should_receive(:active_revision).and_return(page_revision)
-      test_node.should_receive(:is_a?).with(SiteNode).and_return(test_node)
-    end
-
-    test1.children.each do |test_node|
-      test_node.should_receive(:menu).and_return([test_node])
-      test_node.should_receive(:active_revision).and_return(page_revision)
-    end
+    root_node.should_receive(:nested_pages).at_least(:once)
 
     @output = renderer_get @rnd
     @output.status.should == '200 OK'
@@ -87,11 +78,8 @@ describe Editor::MenuRenderer, :type => :controller do
     @rnd.paragraph.should_receive(:language).any_number_of_times.and_return('en')
 
     SiteNode.should_receive(:find_by_id).with(root_node.id).and_return(root_node)
+    root_node.should_receive(:nested_pages).at_least(:once)
 
-    root_node.children.each do |test_node|
-      test_node.should_receive(:menu).and_return([test_node])
-      test_node.should_receive(:active_revision).and_return(page_revision)
-    end
 
     @output = renderer_get @rnd
     @output.status.should == '200 OK'
@@ -113,19 +101,9 @@ describe Editor::MenuRenderer, :type => :controller do
     @rnd.paragraph.should_receive(:language).any_number_of_times.and_return('en')
 
     SiteNode.should_receive(:find_by_id).with(root_node.id).and_return(root_node)
+    root_node.should_receive(:nested_pages)
 
-    root_node.children.each do |test_node|
-      test_node.should_receive(:menu).and_return([test_node])
-      test_node.should_receive(:active_revision).and_return(page_revision)
-      test_node.should_receive(:is_a?).with(SiteNode).and_return(test_node)
-    end
-
-    test1.children.each do |test_node|
-      test_node.should_receive(:menu).and_return([test_node])
-      test_node.should_receive(:active_revision).and_return(page_revision) unless test_node.id == test2.id
-      test_node.should_receive(:is_a?).with(SiteNode).and_return(test_node) unless test_node.id == test2.id
-    end
-
+  
     @output = renderer_get @rnd
     @output.status.should == '200 OK'
   end

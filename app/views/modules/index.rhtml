@@ -1,38 +1,87 @@
+<script type='text/javascript'>
+ModuleEditor = {
+
+updateButtons: function() {
+  $$('.activators').each(function(elm) {
+    if(elm.checked && elm.dependencies && elm.dependencies!='') {
+      elm.dependencies.split(",").each(function(dep) {
+         if($('elem_mod_' + dep) &&$('elem_mod_' + dep).className == 'activators'  ) {
+            if(!$('elem_mod_' + dep).checked) {
+              $('elem_mod_' + dep).checked = true; 
+            }
+         }
+      });
+    }
+   });
+
+  var sel = $$('.activators').select(function(elm) { return elm.checked });
+  var unsel = $$('.deactivators').select(function(elm) { return elm.checked });
+  $('activate_button').disabled = sel.length == 0
+  $('deactivate_button').disabled = unsel.length == 0;
+
+},
+
+confirmDeactivation: function() {
+  return confirm('Are you sure you want to deactivate the selected modules? (Your site my no longer operate properly)')
+}
+
+
+}
+</script>
+
+
 <div class='admin_content'>
 <% if @available_modules.length == 0 %>
   <div align='center'><b><%= "No Available Modules".t %></b></div>
 
 <% else %>
 
+<%= form_tag '' -%>
   <% table_for @available_modules, ['Name','Status','Activate','Deactivate','Dependencies','Description'], :class=>'active_table',:width => '100%' do |t| %>
-  <tr <%= highlight_row "mod",t[:module] %> >
+  <tr id='elem_mod_<%= t[:module] -%>_row'   onmouseover='SCMS.highlightRow(this);'  onmouseout='SCMS.lowlightRow(this);' onclick='SCMS.clickRow("mod","<%= t[:module] -%>"); ModuleEditor.updateButtons(); '>
     <td nowrap='1'>
-      <% if %w(active initialized).include?(t[:status]) && "#{t[:name].to_s.camelcase}::AdminController".constantize.method_defined?('options') %>
-        <%= link_to t[:name].to_s, { :action => 'edit', :path => t[:module] } %>
+      <% if (t[:status] == 'active' || t[:status] == 'initialized') && "#{t[:name].to_s.camelcase}::AdminController".constantize.method_defined?('options') %>
+        <b><%= link_to t[:name].underscore.titleize, { :action => 'edit', :path => t[:module] } %></b>
+      <% elsif t[:status] == 'active' -%>
+          <b><%= t[:name].underscore.titleize %></b>
       <% else -%>
-          <%= t[:name].to_s %>
+          <%= t[:name].underscore.titleize %>
       <% end -%>
     </td>
     <td nowrap='1'><%= t[:status].humanize.t %></td>
     <% if t[:status] == 'available' %>
-      <td nowrap='1'>
-        <%= link_to 'Activate', { :action => 'update_module',  :mod => t[:module], :status => 'active' }, { :method => :post } %>
+      <td nowrap='1' align='center'>
+        <input type='checkbox' class='activators'  id='elem_mod_<%= t[:module] -%>' name='modules[activate][]' value="<%= t[:module] -%>" onclick='this.checked = !this.checked;'/>
+        <script>
+          $('elem_mod_<%= t[:module] -%>').dependencies = '<%= t[:dependencies].join(",") -%>';
+        </script>
       </td><td></td>
     <% elsif t[:status] == 'active' || t[:status] == 'initialized' %>
       <td></td>
-      <td nowrap='1'>
-      <%= link_to 'Deactivate', { :action => 'update_module', :mod => t[:module], :status => 'unavailable'  }, { :method => :post, :confirm => "Are you sure you want to deactivate this module? You will lose any data associated with it's functionality." } %></td>
+      <td nowrap='1' align='center'>
+        <input type='checkbox' class='deactivators'id='elem_mod_<%= t[:module] -%>'  name='modules[deactivate][]' value="<%= t[:module] -%>" onclick='this.checked = !this.checked;'/>
     <% else %>
       <td></td><td></td>
     <% end -%>
     <td nowrap='1'>
        <%= t[:dependencies].map { |dep| SiteModule.module_enabled?(dep) ? dep.humanize : "<span class='error'>#{dep.humanize}</span>"}.to_sentence %>
     </td>
+
     <td width='100%'><%= t[:description].t %></td>
     
   </tr>
-  
+  <% if t == @available_modules.last -%>
+  <tr>
+    <td></td>
+    <td></td>
+    <td><input type='submit' id='activate_button' name='activate' value='<%= "Activate".t -%>' disabled='disabled'/></td>
+    <td><input type='submit' id='deactivate_button' name='deactivate' value='<%= "Deactivate".t -%>' disabled='disabled' onclick='return ModuleEditor.confirmDeactivation();' /></td>
+
+  </tr>
   <% end -%>
+<% end -%>  
+
+</form> 
 
 <% end -%> 
 

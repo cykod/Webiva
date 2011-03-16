@@ -1,0 +1,22 @@
+<div class='cms_form'>
+
+<% admin_form_for :segment, @segment, :html => {:onsubmit => 'MemberEditor.updateUserList(this); return false;'} do |f| -%>
+<%= f.grouped_select :order_by, UserSegment.order_by_group_options %>
+<%= f.radio_buttons :order_direction, UserSegment.order_direction_select_options %>
+  <% if @segment.segment_type == 'filtered' -%>
+    <% f.custom_field 'Filter' do %>
+      <div><a href="javascript:void(0)" onclick='openWindow("<%= url_for(:action => "builder", :path => @segment.id) %>" ,"operationBuilder",550,500,"yes","yes");'><%= @segment.id ? 'Edit filter'.t : 'Create a filter'.t %></a></div>
+
+      <div>
+        <%= "<div style='padding: 2px 0 2px 0' class='error'>#{f.output_error_message('Filter', :segment_options_text)}</div>" if @segment.errors[:segment_options_text] %>
+        <%= text_area_tag 'segment[segment_options_text]', @segment.segment_options_text, :rows => 8, :style => 'width:400px;' %>
+      </div>
+      <div align="right"><a href="javascript:void(0)" onclick='openWindow("<%= url_for(:action => "builder_help", :path => @segment.id) %>" ,"operationBuilderHelper",750,600,"yes","yes");'><%= 'What is a filter?'.t %></a></div>
+    <% end %>
+  <% end -%>
+
+<%= f.spacer %>
+<%= f.cancel_submit_buttons 'Cancel', (@segment.id ? 'Save' : 'Create') %>
+<% end -%>
+
+</div>

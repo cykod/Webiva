@@ -54,9 +54,9 @@ class EditController < ModuleController # :nodoc: all
     revision.make_real()
   end
   
-  def save_temporary_revision_as(revision,version)
+  def save_temporary_revision_as(revision,version,name=nil)
     revision.updated_by = myself
-    revision.make_new_version(version)
+    revision.make_new_version(version, name)
   end
   
   
@@ -84,7 +84,9 @@ class EditController < ModuleController # :nodoc: all
           @real_revision =@page.page_revisions.find(passed_revision_id)
           page_revision_id=@real_revision.id
         else
-          @real_revision = @page.page_revisions.find(:first,:conditions => 'revision_type = "real"',
+          conditions = { :revision_type => 'real' }
+          conditions[:revision] = params[:version] if params[:version] 
+          @real_revision = @page.page_revisions.find(:first,:conditions => conditions,
                                               :order => "language=#{Configuration.connection.quote(passed_revision_id)} DESC, active DESC, revision DESC, id DESC")
           page_revision_id = @real_revision.id
         end
@@ -126,7 +128,7 @@ class EditController < ModuleController # :nodoc: all
       if mod.modifier_type == 'template'
         if mod.modifier_data && mod.modifier_data[:template_id]
           current_template = SiteTemplate.find_by_id(mod.modifier_data[:template_id],:select => 'id,parent_id')
-          current_template_id = current_template.parent_id || mod.modifier_data[:template_id]
+          current_template_id = current_template.parent_id || mod.modifier_data[:template_id] if current_template
         end 
       elsif mod.modifier_type == 'page' && page.node_type == 'P'
         page_list << [ page, current_template_id ]
@@ -196,14 +198,16 @@ class EditController < ModuleController # :nodoc: all
                         ]
     @available_paragraph_types = @paragraph_types.clone
     @available_paragraph_types += [ ['builtin', 'code', 'Code Paragraph',nil,[]],
-                                    ['builtin', 'textile', 'Textile Paragraph',nil,[]],
-                                    ['builtin', 'markdown', 'Markdown Paragraph',nil,[]] ]
+                                    ['builtin', 'markdown', 'Markdown Paragraph',nil,[]],
+                                    ['builtin', 'textile', 'Textile Paragraph',nil,[]] ]
     @paragraph_types << @available_paragraph_types[-3] if myself.has_role?('paragraph_code')
     @paragraph_types << @available_paragraph_types[-2] if myself.has_role?('paragraph_textile')
     @paragraph_types << @available_paragraph_types[-1] if myself.has_role?('paragraph_markdown')
 
     editor_paragraph_types = ParagraphController.get_editor_paragraphs
-    editor_paragraph_types.sort { |elm1,elm2| elm1[0] <=> elm2[0] }
+    editor_paragraph_types.sort! { |elm1,elm2| elm1[0] <=> elm2[0] }
+    editor_paragraph_types.each { |elm| elm[2].sort! { |a,b| a[2] <=> b[2] } }
+
     last_type = nil
     editor_paragraph_types.each do |type|
       @available_paragraph_types += type[2]
@@ -214,17 +218,17 @@ class EditController < ModuleController # :nodoc: all
         last_type = type[0]
       end
     end
-    
 
     module_paragraphs =  SiteModule.get_module_paragraphs
-    module_paragraphs.sort { |elm1,elm2| elm1[0] <=> elm2[0] }
     last_type = nil
-    module_paragraphs.each do |header_type,type|
-      @available_paragraph_types += type[2]
+    module_paragraphs.to_a.sort{ |a,b| a[0] <=> b[0] }.each do |type|
+      type = type[1]
+      paras = type[2].sort { |a,b| a[2] <=> b[2] }
+      @available_paragraph_types += paras
       
       if myself.has_role?('paragraph_module') && (!type[1] || myself.has_role?(type[1].to_s))
         @paragraph_types << type[0] if(last_type != type[0])
-        @paragraph_types += type[2]
+        @paragraph_types += paras
         last_type = type[0]
       end
     end
@@ -233,20 +237,16 @@ class EditController < ModuleController # :nodoc: all
     @available_paragraph_types += content_paragraphs 
     @paragraph_types +=  content_paragraphs  if myself.has_role?('paragraph_content')
 
-    
     @paragraph_hash = {}
     @available_paragraph_types.each do |para| 
       if para.is_a?(Array) && para.length == 2
         nil
       elsif para.is_a?(Array) && !para[5] 
-        @paragraph_hash[para[1]] = para 
+        @paragraph_hash["#{para[3]}_#{para[1]}"] = para 
       else
-        @paragraph_hash["#{para[1]}_#{para[5]}" ] = para 
+        @paragraph_hash["#{para[3]}_#{para[1]}_#{para[5]}" ] = para 
       end
     end
-    
-    
-    
   end
   
   def get_site_features
@@ -260,7 +260,7 @@ class EditController < ModuleController # :nodoc: all
     get_container
     edit_page_info(@container_type,@container_id,params[:path][2],true)
     
-    @design_styles = SiteTemplate.css_design_styles(@output.css_site_template_id,@revision.language).map { |elm| elm.to_s[1..-1] }
+    @design_styles = SiteTemplate.css_design_styles(@output.css_site_template_id,@revision.language)
 
 
     generate_paragraph_types
@@ -276,7 +276,7 @@ class EditController < ModuleController # :nodoc: all
 
 
 
-    @version = SiteVersion.default
+    @version = @site_node.site_version
     
     @site_root = @version.nested_pages()
     
@@ -338,7 +338,17 @@ class EditController < ModuleController # :nodoc: all
   
   end
   
-  
+  def goto
+    get_container
+    @site_node = @container_cls.find_page(@container_id)
+    @page_revision = @site_node.page_revisions.find(params[:path][2])
+    @page_revision.update_attribute(:identifier_hash, PageRevision.generate_hash) unless @page_revision.identifier_hash
+    @url = params[:url] || @site_node.node_path
+    @url += "?__VER__=#{@page_revision.identifier_hash}" if @site_node.is_a?(SiteNode)
+    @url = Configuration.domain_link @url
+    redirect_to @url
+  end
+
   def add_paragraph 
     get_container
     edit_page_info(@container_type,@container_id,params[:path][2],false)
@@ -390,13 +400,15 @@ class EditController < ModuleController # :nodoc: all
     generate_paragraph_types
     
     version = params[:version]
+    version_name = params[:name]
+
     get_container
     edit_page_info(@container_type,@container_id,params[:path][2],false)
   
     sort_paragraphs(params[:zone] || {})
     update_paragraphs(params[:paragraph] || {})
     
-    save_temporary_revision_as(@revision,version)
+    save_temporary_revision_as(@revision,version,version_name)
     @old_revision=@revision
     
     edit_page_info(params[:path][0] == 'page' ? 'site_node' : 'site_node_modifier',
@@ -407,7 +419,23 @@ class EditController < ModuleController # :nodoc: all
     render :action => 'save_changes'
   end
 
+  def preview
+    save_changes_helper(false)
+    get_container
+
+    render :update do |page|
+      page << "$('cms_saving_icon').style.visibility='hidden';"
+      page << "cmsEdit.openPreviewWindow();"
+    end
+  end
   
+  def change_version
+    get_container
+    @version = params[:version]
+    @site_node = @container_cls.find_page(@container_id)
+    @page_revision = @site_node.page_revisions.find(params[:path][2])
+    render :partial => 'change_version'
+  end
   
   def backup_changes
     raise 'NotOk'
@@ -554,17 +582,9 @@ class EditController < ModuleController # :nodoc: all
     # output the page, go through each block, and get the variables
     edit_page_info(@container_type,@container_id,params[:path][2],false)
     
-    variable_names = []
-    @output.html  do |blk| 
-     if blk.is_a?(Hash) && blk[:variable]
-      variable_names << blk[:variable]
-     end
-    end
-    
     @options = DefaultsHashObject.new(@revision.variables || {})
-    @variables = (@site_template.options[:options] || []).find_all do |opt|
-      variable_names.include?(opt[0]) ? true : false
-    end
+
+    @variables = @site_template.options[:options]
     
     render :partial => 'page_variables'
   end
@@ -592,7 +612,7 @@ class EditController < ModuleController # :nodoc: all
     @page = @container_cls.find(@container_id)
     @revision = @page.page_revisions.find(params[:path][2])
     
-    @paragraphs = @revision.page_paragraphs
+    @paragraphs = @revision.full_page_paragraphs # include paras 
     
 #    if @page.is_a?(SiteNode) || true
     @outputs = {
@@ -607,10 +627,12 @@ class EditController < ModuleController # :nodoc: all
                 [ 0, 'Page', :page_arg_2, "Argument #3 - " + @page.node_path + "/xxx/yyy/ZZZ", :path ]
 
               ],
-      :title => [ [  0, 'Page Title', :title, 'Page Title', :title ]],
-                   :user => [ [ 0, 'User ID', :user_id, 'User ID', :user ] ],
-                   :target => [ [ 0, 'Active User', :user_target, 'User', :target ] ],                   
-                   :user_class => [ [0, 'User Profile', :user_class_id, 'User Profile', :user_class ] ]
+      :title => [ [  0, 'Page Title Full', :title, 'Page Title', :title ]],
+      :title_str => [ [  0, 'Page Title String', :title_str, 'Page Title', :title_str ]],
+      :user => [ [ 0, 'User ID', :user_id, 'User ID', :user ] ],
+      :target => [ [ 0, 'Active User', :user_target, 'User', :target ] ],                   
+      :user_target => [ [ 0, 'Active User Target', :user_target, 'User', :user_target ] ],                   
+      :user_class => [ [0, 'User Profile', :user_class_id, 'User Profile', :user_class ] ]
                  }
 #    else
 #      @outputs = {}
@@ -622,14 +644,17 @@ class EditController < ModuleController # :nodoc: all
         para_info = para.editor_info
         
         info = para.content_publication.page_connections
+
+        # Map all the available outputs
         if info[:outputs]
-          info[:output].each do |pout|
+          info[:outputs].each do |pout|
             @outputs[pout[2]] ||= []
             @outputs[pout[2]] << [ para.identity_hash || para.id.to_s, para_info[:name]] + pout
           end
         end
 
-        if info[:inputs]
+        # But only those inputs for the current page
+        if info[:inputs] && para.page_revision_id == @revision.id
           selected_input = (para.connections||{})[:inputs] || {}
           info[:inputs].each do |key,input|
 
@@ -649,12 +674,14 @@ class EditController < ModuleController # :nodoc: all
         
         if info[:outputs]
           info[:outputs].each do |pout|
+            output_name = para.page_revision_id == @revision.id ? info[:name] : "(#{para.page_revision.node_path}) #{info[:name]}"
             @outputs[pout[2]] ||= []
-            @outputs[pout[2]] << [para.identity_hash || para.id.to_s, info[:name]] + pout
+            @outputs[pout[2]] << [para.identity_hash || para.id.to_s, output_name] + pout
           end
         end 
-        
-        if info[:inputs]
+       
+
+        if info[:inputs] && para.page_revision_id == @revision.id
           if info[:inputs].is_a?(Array)
             selected = (para.connections||{})[:inputs] || {}
             selected_value = selected[:input].map(&:to_s).join("|") if  selected[:input]
@@ -677,7 +704,6 @@ class EditController < ModuleController # :nodoc: all
                 :input => input,
                 :selected => selected_value }
             end
-          
           end
         end
       end

@@ -12,12 +12,15 @@ class ContentImportWorker <  Workling::Base #:nodoc:all
     results = { }
  
     dmn = Domain.find(args[:domain_id])
-    DomainModel.activate_domain(dmn.attributes,'migrator',false)
+    DomainModel.activate_domain(dmn.get_info,'migrator',false)
     
     results[:completed] = false
 
+    file = DomainFile.find_by_id args[:csv_file]
+    filename = file.filename
+
     count = -1
-    CSV.open(args[:filename],"r",args[:deliminator]).each do |row|
+    CSV.open(filename,"r",args[:deliminator]).each do |row|
       count += 1 if !row.join.blank?
     end
     count = 1 if count < 1
@@ -26,16 +29,16 @@ class ContentImportWorker <  Workling::Base #:nodoc:all
     
     content_model = ContentModel.find(args[:content_model_id])
     
-     results[:initialized] = true
+    results[:initialized] = true
     results[:imported] = 0
-    content_model.import_csv(args[:filename],args[:data],:import => true,:deliminator => args[:deliminator]) do |imported,errors|
+    Workling.return.set(args[:uid],results)
+    content_model.import_csv(filename,args[:data],:import => true,:deliminator => args[:deliminator]) do |imported,errors|
       results[:imported] += imported
       Workling.return.set(args[:uid],results)
     end
     
     results[:completed] = true
     Workling.return.set(args[:uid],results)
-    
   end
 end
 

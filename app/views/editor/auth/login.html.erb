@@ -1,0 +1,57 @@
+<script>
+LoginEditor = {
+   featureIdx: <%= @options.login_features.length -%>,
+
+  
+  submitForm: function() {
+    var arr = Sortable.sequence('login_features');
+    $('login_features_order').value = arr.join(",");
+
+  },
+  
+ 
+  addFeature: function(feature) {
+    if(feature) {
+      var index = LoginEditor.featureIdx++;
+      new Ajax.Updater('login_features',
+                      "<%= url_for :action => 'add_login_feature', :paragraph => @paragraph.id %>",
+                      { parameters: { feature_handler: feature, index: index },
+                        insertion: 'bottom',
+                        evalScripts: true,
+                        onComplete: function(req) {
+                          LoginEditor.recreateFeatureSortables();
+                        } });
+    
+    }
+  
+  },
+  
+  recreateFeatureSortables: function() {
+    Sortable.create("login_features",{ tag: "div", handle: "handle" } ); 
+  },
+  
+  removeFeature: function(idx) {
+    Element.remove($('login_feature_' + idx));
+  }
+
+}
+
+</script>
+
+
+
+<div class='cms_form'>
+<% paragraph_options_form_for  'Login Options', :login, @options do |f| %>
+<% tabled_ajax_tabs ['Options','Login Features'],'Options' do |t| %>
+
+<% t.tabled_tab do %>
+   <%= render :partial => '/application/options_partial', :locals => @options.options_locals(f) -%>
+<% end -%>
+
+<% t.tab do %>
+  <%= render :partial => 'login_features' -%>
+<% end -%>
+
+<% end -%>
+<% end -%>
+</div>

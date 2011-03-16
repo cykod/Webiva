@@ -1,0 +1,15 @@
+<% active_table_for :client_users_table, @active_table_output,
+                    :refresh_url => url_for(:action => 'display_client_users_table'),
+                    :class => 'active_table',                    
+                    :update => 'client_users_table' do |usr| %>
+
+<tr <%= highlight_row "client_user",usr.id %>>
+        <td><%= link_to theme_icon(:table,'icons/actions/edit.gif'), :action => myself.has_role?('system_admin') ? "edit_all" : "edit", :path => usr %></td>
+        <td><%= link_to usr.username, :action => myself.has_role?('system_admin') ? "edit_all" : "edit", :path => usr %></td>
+        <td align="center">
+          <%= usr.system_admin? ? 'System Admin'.t : (usr.client_admin? ? "Yes".t : "No".t) %>
+        </td>
+        <td><%= link_to(theme_icon(:table,'icons/actions/delete.gif'),{:action => "destroy", :path => usr}, :method => 'post', :confirm => 'Are you sure?') unless usr.id == myself.client_user.id %></td>
+</tr>
+
+<% end -%>

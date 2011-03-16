@@ -1,0 +1,19 @@
+
+<div class='cms_form'>
+  <div align='right'>
+  <% if @version.id %>
+  <% if @version.can_delete? %>
+    <a href='javascript:void(0);' onclick='StructureEditor.deleteVersion(<%= @version.id %>);'>Delete Tree</a>
+  <% else %>
+    Cannot delete an active tree
+  <% end -%>
+<% end -%>
+  </div>
+  <h2><%= @version.id ? "Edit Site Tree" : "Create New Site Tree" %></h2>
+  <% admin_form_for :version, @version, :html => { :onsubmit => "SCMS.updateOverlay('#{url_for :action => 'site_version',:site_version => @version.id}',Form.serialize(this)); return false;" } do |f| %>
+      <%= f.text_field :name %>
+      <%= f.select :copy_site_version_id, SiteVersion.select_options_with_nil unless @version.id %>
+      <%= f.cancel_submit_buttons "Cancel","Submit", { :onclick => "RedBox.close(); return false;" } %>
+  <% end -%>
+
+</div>

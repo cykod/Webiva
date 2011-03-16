@@ -63,8 +63,12 @@
 
 </script>
 
-<% action_panel do |p| -%>
-  <%= p.link 'Add Entry',:icon => 'add.gif', :action => 'edit_entry',:path => @content_model.id if @content_model.can_edit?(myself) %> 
+<% action_panel :more => true do |p| -%>
+  <%= p.link 'Add Entry',:icon => 'add.png', :action => 'edit_entry',:path => @content_model.id if @content_model.can_edit?(myself) %> 
+<% end -%>
+
+
+<% more_action_panel do |p| -%>
   <%= p.link 'Import',:icon => 'upload.gif', :controller => '/content_import',:path => @content_model.id if @content_model.can_edit?(myself) %>  
   <%= p.link 'Download',:icon => 'download.gif', :controller => '/content_export',:path => @content_model.id %>  
   <%= p.link 'Configure',:icon => 'configure.gif', :action => 'configure',:path => @content_model.id if myself.has_role?(:editor_content_configure) %>  

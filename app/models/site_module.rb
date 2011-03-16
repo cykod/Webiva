@@ -1,10 +1,15 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 class SiteModule < DomainModel
-  has_many :site_nodes, :dependent => :destroy
+#  has_many :site_nodes, :dependent => :destroy
   has_many :page_paragraphs, :dependent => :destroy
   
   serialize :options
+
+  has_options :status, [['Initializing','initializing'],
+                       ['Inititalized','initialized'],
+                       ['Active','active'],
+                       ['Available','available']]
   
   def get_renderers
     renderers = []
@@ -50,10 +55,11 @@ class SiteModule < DomainModel
   end
   
   def self.module_enabled?(md)
-    enabled_modules.include?(md.to_s)
+    enabled_modules.include?(md.to_s.underscore.downcase)
   end
 
   
+
   
   def self.enabled_modules
     mds = DataCache.get_cached_container("Modules","Active")
@@ -80,9 +86,13 @@ class SiteModule < DomainModel
       end
     end
   end
+
+  def after_save
+    DataCache.put_local_cache(:site_modules_active,nil)
+  end
   
   def self.enabled_modules_info
-    self.find(:all,:conditions => 'status = "active"')
+    DataCache.local_cache(:site_modules_active) || DataCache.put_local_cache(:site_modules_active, self.find(:all,:conditions => 'status = "active"'))
   end
 
   def self.initialized_modules_info
@@ -182,12 +192,78 @@ class SiteModule < DomainModel
       mdl.expire_site
     end
   end
+
+  def self.generate_deactivation_list(mod_list)
+    domain = Domain.find_by_id(DomainModel.active_domain_id)
+    all_modules =  DomainModule.all_modules(domain)
+
+    mods = enabled_modules.map do |mod|
+      all_modules.detect {  |md| md[:module] == mod }
+    end.compact
+
+    deactivated_list = mod_list.select do |mod|
+      all_modules.detect {  |md| md[:module] == mod }
+    end.compact
+   
+
+    # Go through each of the enabled modules and make
+    # sure that any modules that have dependences are ok
+    mods.each do |mod_info|
+      # return if we have dependencies that aren't going to be deactivated as well
+      if mod_info[:dependencies]
+        mod_info[:dependencies].each do |dep|
+          if deactivated_list.include?(dep) && !deactivated_list.include?(mod_info[:module])
+            return false
+          end
+        end
+      end
+      mod_info[:module]
+    end
+
+    deactivated_list
+  end
   
-  
-  def self.activate_module(domain,name)
+  def self.generate_activation_list(mod_list)
+    domain = Domain.find_by_id(DomainModel.active_domain_id)
+    all_modules =  DomainModule.all_modules(domain)
+
+    mods = mod_list.map do |mod|
+      all_modules.detect {  |md| md[:module] == mod }
+    end.compact
+
+    if mods.length != mod_list.length
+      return false
+    end
+
+    # return an activation list if everything is kosher,
+    # otherwise return false
+    prepend_list = []
+    activation_list = mods.map do |mod_info|
+      if !mod_info[:status] == 'available'
+        return false
+      end
+      
+      # return if we have dependencies that aren't activated or going to be activated
+      # otherwise add the dependencies to the beginning of the prepend list
+      if mod_info[:dependencies]
+        mod_info[:dependencies].each do |dep|
+          if  mod_list.include?(dep)
+            prepend_list << dep
+          elsif !SiteModule.module_enabled?(dep)
+            return false
+          end
+        end
+      end
+      mod_info[:module]
+    end
+    
+    (prepend_list.reverse + activation_list).uniq
+  end
+
+  def self.activate_module(domain,name,opts={})
     mod = SiteModule.find_by_name(name) || SiteModule.new(:name => name)
-    available = DomainModule.all_modules(domain).detect { |md| md[:module] == name }
-    if available && available[:status] == 'available'
+    available = DomainModule.module_info(domain,name) 
+    if available && (available[:status] == 'available' || opts[:force])
       available[:dependencies].each do |depend|
         return nil if !SiteModule.module_enabled?(depend)
       end
@@ -197,18 +273,44 @@ class SiteModule < DomainModel
 
     return nil
   end
-  
-  def self.deactivate_module(domain,name)
-    mod = SiteModule.find_by_name(name)
-    if(mod && (mod.status == 'active' || mod.status == 'initialized'))
+
+
+  # Activate a list of modules, checks dependencies for each module
+  # 
+  def self.activate_modules(mod_list)
+    domain = Domain.find_by_id(DomainModel.active_domain_id)
+    all_modules =  DomainModule.all_modules(domain)
+
+    mod_list.map do |name|
       available = DomainModule.all_modules(domain).detect { |md| md[:module] == name }
       if available && available[:status] == 'available'
-        mod.update_attribute(:status,'available')
-        DataCache.expire_container("Handlers")
-      else
-        mod.destroy
+        available[:dependencies].each do |depend|
+          return nil if !SiteModule.module_enabled?(depend) && !mod_list.include?(depend)
+        end
+        mod = SiteModule.find_by_name(name) || SiteModule.new(:name => name)
+        mod.status = 'initializing'
+        mod.save
+        mod.id
+      end
+    end.compact
+  end
+
+  
+  def self.deactivate_modules(names)
+    domain = Domain.find_by_id(DomainModel.active_domain_id)
+    all_modules =  DomainModule.all_modules(domain)
+    names.each do |name|
+      mod = SiteModule.find_by_name(name)
+      if(mod && (mod.status == 'active' || mod.status == 'initialized'))
+        available =all_modules.detect { |md| md[:module] == name }
+        if available && available[:status] == 'available'
+          mod.update_attribute(:status,'available')
+        else
+          mod.destroy
+        end
       end
     end
+    expire_site
   end
 
   def display_name
@@ -227,6 +329,31 @@ class SiteModule < DomainModel
     self.find_by_name(name)
   end
 
+  def options_url
+    if(admin_controller_class.method_defined?('options'))
+      {  :controller => self.admin_controller, 
+         :action => 'options'}
+    else
+      nil
+    end
+  end
+
+  def post_initialization!
+    if  self.status == 'initialized' 
+      self.admin_controller_class.content_node_type_generate
+      if ( self.admin_controller_class.method_defined?('options') ||
+           self.admin_controller_class.respond_to?('module_options') )
+        if self.admin_controller_class.respond_to?('module_options')
+          opts = self.admin_controller_class.module_options
+          if opts.valid?
+            self.update_attribute(:status,'active')
+          end
+        end 
+      else
+        self.update_attribute(:status,'active')
+      end
+    end
+  end
   
   protected
   
@@ -311,6 +438,13 @@ class SiteModule < DomainModel
     end
     
     modules
+  end
+
+  def self.migrate_domain_components(params = { })
+    # do some sanitization on the activation list just in case
+    list = params[:activation_list].map { |mod| mod.gsub(/[^0-9a-zA-Z_\-]+/,'')}
+    ok = `cd #{RAILS_ROOT};rake cms:migrate_domain_components DOMAIN_ID=#{DomainModel.active_domain_id} COMPONENT=#{list.join(',')}`
+    expire_site
   end
 
   def migrate_domain_component(params = {})

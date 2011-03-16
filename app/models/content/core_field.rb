@@ -54,12 +54,14 @@ class Content::CoreField < Content::FieldHandler
                        { :name => :image,
                           :description => 'Image',
                           :representation => :integer,
-                          :relation => true
+                          :relation => true,
+                          :simple => true
                        },
                        { :name => :document,
                           :description => 'Document',
                           :representation => :integer,
-                          :relation => true
+                          :relation => true,
+                          :simple => true
                        },
                        {  :name => :options,
                           :description => 'Options',
@@ -106,17 +108,27 @@ class Content::CoreField < Content::FieldHandler
                          :description => 'Belongs to Relationship',
                          :representation => :integer,
                          :relation => true,
-                         :dynamic_fields => [:user_id ]
+                         :dynamic_fields => [:user_id ],
+                         :index => true,
                        },
-                       { :name => :has_many, 
-                         :description => 'Has Many Relationship',
+                       { :name => :has_many,
+                         :description => 'Container',
+                         :representation => :none,
+                         :relation => :plural
+                       },
+                       { :name => :has_many_simple,
+                         :description => 'Has Many',
                          :representation => :none,
                          :relation => :plural
                        },
                        { :name => :header, 
                          :description => 'Header',
                          :representation => :none,
-                       }       
+                       },
+                       { :name => :site_node,
+                         :description => 'Page URL',
+                         :representation => :string
+                       }
                      ]  
                      
 
@@ -173,7 +185,7 @@ class Content::CoreField < Content::FieldHandler
     setup_model :required
     table_header :string
     
-    content_display :html # Default to non-escaped value
+    content_display :code # Default to non-escaped value
     filter_setup :like, :not_empty
     
     def form_field(f,field_name,field_opts,options={})
@@ -183,6 +195,12 @@ class Content::CoreField < Content::FieldHandler
   end  
   
   class EditorField < Content::CoreField::HtmlField #:nodoc:all
+    content_display :html
+    setup_model(:required) do |cls,fld| 
+      unless cls.superclass == HashModel
+       cls.before_save() { |entry|  entry.send("#{fld.model_field.field}=",ContentFilter.wysiwyg_replace_images(entry.send(fld.model_field.field).to_s) )  }
+      end
+    end
     # Everything the same as StringField that we want to display an editor area
     def form_field(f,field_name,field_opts,options={})
       f.editor_area field_name, field_opts.merge(options)
@@ -215,24 +233,31 @@ class Content::CoreField < Content::FieldHandler
       f.select field_name, Content::CoreField::UsStateField.states_select_options
     end
     
-    has_options :states,["AL","AK","AR","AS","AZ","CA","CO","CT","DC","DE","FL","FM","GA","GU","HI","IA","ID","IL", "IN","KS","KY","LA","MA","MD","ME","MH","MI","MN","MO","MP","MS","MT","NC","ND","NE","NH","NJ","NM","NV", "NY","OH","OK","OR","PA","PR","PW","RI","SC","SD","TN","TX","UT","VA","VI","VT","WA","WI","WV","WY" ]
+    has_options :states,["AL","AK","AR","AS","AZ","CA","CO","CT","DC","DE","FL","FM","GA","GU","HI","IA","ID","IL", "IN","KS","KY","LA","MA","MD","ME","MH","MI","MN","MO","MP","MS","MT","NC","ND","NE","NH","NJ","NM","NV", "NY","OH","OK","OR","PA","PR","PW","RI","SC","SD","TN","TX","UT","VA","VI","VT","WA","WI","WV","WY" ].map { |st| [ st, st ] }
     
     filter_setup :like, :not_empty  
   end
   
   class ImageField < Content::Field #:nodoc:all
-    field_options :required
+    field_options :required, :folder_id
     table_header :has_relation
     filter_setup :not_empty, :empty
     
     
     setup_model :required do |cls,fld|
-      if fld.model_field.field_options['relation_name']
-        cls.belongs_to fld.model_field.field_options['relation_name'].to_sym, :class_name => 'DomainFile', :foreign_key => fld.model_field.field
-        cls.domain_file_column(fld.model_field.field)
+      if cls.superclass != HashModel
+        if fld.model_field.field_options['relation_name']
+          cls.belongs_to fld.model_field.field_options['relation_name'].to_sym, :class_name => 'DomainFile', :foreign_key => fld.model_field.field
+          cls.domain_file_column(fld.model_field.field)
+        end
       end
     end
-    
+
+    def setup_hash_model(cls)
+      return unless cls.superclass == HashModel
+      cls.domain_file_options @model_field.field.to_sym
+    end
+
     def form_field(f,field_name,field_opts,options={})
       if options[:editor]
         f.filemanager_image field_name, field_opts.merge(options)
@@ -250,6 +275,24 @@ class Content::CoreField < Content::FieldHandler
         ''
       end    
     end
+
+    def content_export(entry)
+      domain_file = entry.send(@model_field.field_options['relation_name'])
+      if domain_file
+        domain_file.file_path
+      else
+        ''
+      end    
+    end
+
+    def content_import(entry,value)
+      unless value.blank?
+        domain_file = DomainFile.find_by_file_path(value)
+        if domain_file
+          entry.send("#{@model_field.field}=",domain_file.id)
+        end
+      end
+    end
     
     def modify_entry_parameters(parameters)
       key = @model_field.field
@@ -257,17 +300,21 @@ class Content::CoreField < Content::FieldHandler
         parameters[key] = nil
       elsif parameters[key].is_a?(String)
         parameters[key] = parameters[key].to_i
-      elsif !parameters[key].is_a?(Integer) &&  !parameters[key].blank? 
-        image_folder  = Configuration.options.default_image_location || 1
-        file = DomainFile.create(:filename => parameters[key],
+      elsif !parameters[key].is_a?(Integer) && !parameters[key].blank?
+        if DomainFile.available_file_storage > 0
+          image_folder  = @model_field.field_options['folder_id'] || Configuration.options.default_image_location || 1
+          file = DomainFile.create(:filename => parameters[key],
                                  :parent_id => image_folder)
-        if @model_field.field_type == 'document' 
-          parameters[key] = file.id
-        elsif @model_field.field_type == 'image' && file.file_type == 'img'
-         parameters[key] = file.id
+          if @model_field.field_type == 'document' 
+            parameters[key] = file.id
+          elsif @model_field.field_type == 'image' && file.file_type == 'img'
+            parameters[key] = file.id
+          else
+            parameters.delete(key)
+            file.destroy
+          end
         else
           parameters.delete(key)
-          file.destroy
         end
       elsif !parameters[key].is_a?(Integer)
          parameters.delete(key)
@@ -295,7 +342,7 @@ class Content::CoreField < Content::FieldHandler
         end
       end
 
-      c.image_tag("#{name_base}:#{tag_name}") { |t| t.locals.entry.send(fld.relation_name) }
+      c.image_tag("#{name_base}:#{tag_name}") { |t| t.locals.send(local).send(fld.relation_name) }
     end
   end
   
@@ -329,17 +376,17 @@ class Content::CoreField < Content::FieldHandler
         end
       end
       c.value_tag("#{name_base}:#{tag_name}_type") do |t|
-        df = t.locals.entry.send(fld.relation_name)
+        df = t.locals.send(local).send(fld.relation_name)
         df ? df.extension : nil
       end
 
       c.value_tag("#{name_base}:#{tag_name}_filename") do |t|
-        df = t.locals.entry.send(fld.relation_name)
+        df = t.locals.send(local).send(fld.relation_name)
         df ? df.name.to_s[0..(t.attr['limit'] || 40).to_i]  : nil
       end
       
       c.link_tag("#{name_base}:#{tag_name}") do |t|
-        df = t.locals.entry.send(fld.relation_name)
+        df = t.locals.send(local).send(fld.relation_name)
         if df
           df.url
         else
@@ -463,7 +510,7 @@ class Content::CoreField < Content::FieldHandler
       if !val.is_a?(Array)
          f.object.send("#{field_name}=",val.to_s.split("\n"))
       end
-      f.check_boxes field_name,  @model_field.content_model.content_model.send(@model_field.field + "_select_options") , field_opts.merge(options)
+      f.check_boxes field_name, available_options, field_opts.merge(options)
     end
     
     def content_display(entry,size=:full,options={})
@@ -474,7 +521,11 @@ class Content::CoreField < Content::FieldHandler
       output = []
       val.each { |vl|  output << opts[vl] if opts[vl] }
       separator = options[:separator] || ', '
-      h output.join(separator)    
+      output.map! { |itm| h itm.to_s } 
+      output = output.map { |itm| "#{options[:pre]}#{itm}" } if options[:pre]
+      output = output.map { |itm| "#{itm}#{options[:post]}" } if options[:post]
+
+      output.join(separator)    
     end
     filter_setup :not_empty, :multiple_like
   end
@@ -516,7 +567,11 @@ class Content::CoreField < Content::FieldHandler
     
     def content_display(entry,size=:full,options = {})
       dt = entry.send(@model_field.field)
-      dt ? dt.localize(options[:format] || DEFAULT_DATETIME_FORMAT) : ''
+      begin
+        dt ? dt.localize(options[:format] || DEFAULT_DATETIME_FORMAT) : ''
+      rescue Exception => e
+        ''
+      end
     end
     
   
@@ -534,10 +589,13 @@ class Content::CoreField < Content::FieldHandler
 
     display_options_variables :control, :group_by_id
     
-    filter_setup :not_empty
+    filter_setup :not_empty, :options
 
     
-    
+    def available_options(atr={ })
+      opts = @available_opts ||=  @model_field.relation_class.select_options(:limit => 100)
+    end
+
     def form_field(f,field_name,field_opts,options={})
       if cls = @model_field.relation_class
         if options[:group_by_id] && mdl_field = ContentModelField.find_by_id(options[:group_by_id])
@@ -605,7 +663,7 @@ class Content::CoreField < Content::FieldHandler
       
       relation_name = @model_field.relation_name
       if @model_field.relation_class == EndUser
-        c.expansion_tag("#{name_base}:#{relation_name}") do |t|
+        c.expansion_tag("#{name_base}:#{tag_name}") do |t|
           entry =  t.locals.send(local)
           if entry
             t.locals.user =  t.locals.send(local).send(relation_name)
@@ -613,9 +671,31 @@ class Content::CoreField < Content::FieldHandler
             nil
           end
         end
-        c.user_details_tags("#{name_base}:#{relation_name}",:local => :user)
+        c.user_tags("#{name_base}:#{tag_name}",:local => :user)
       else
-        #raise 'Unsupported'
+        sub_local = "sub_#{local}"
+
+        c.define_tag("#{name_base}:#{tag_name}") do |t|
+          entry =  t.locals.send(local)
+          relation = entry.send(relation_name)
+          if entry && relation
+            if t.single?
+              relation.identifier_name
+            else
+              t.locals.send("#{sub_local}=",relation)
+              t.expand
+            end
+          end
+        end
+
+        # don't go too far down the rabbit hole
+        if !options[:subfeature]
+          if @cm_relation = @model_field.content_model_relation
+            @cm_relation.content_model_fields.each do |fld|
+              fld.site_feature_value_tags(c,"#{name_base}:#{tag_name}",:full,:local => sub_local)
+            end
+          end
+        end
       end
 
     end
@@ -660,7 +740,7 @@ class Content::CoreField < Content::FieldHandler
           opts = { :conditions => conditions,:order => order_by, :group_by_id => options[:group_by_id] }
           opt_hsh = cls.hash_hash(opts)
           
-          available_options =  cls.cache_fetch(opt_hsh,'select_options_grouped')
+          available_options =  cls.cache_fetch_list(opt_hsh+'select_options_grouped')
 
           if !available_options
             all_elems = cls.find(:all,:conditions => conditions, :order => order_by)
@@ -670,7 +750,7 @@ class Content::CoreField < Content::FieldHandler
             end
             available_options = available_options.to_a.sort { |a,b| a[0] <=> b[0] }
 
-            cls.cache_put(opt_hsh,available_options,'select_options_grouped')
+            cls.cache_put_list(opt_hsh+"select_options_grouped",available_options)
           end
 
           control = :grouped_check_boxes
@@ -678,7 +758,7 @@ class Content::CoreField < Content::FieldHandler
         else
           opts = { :conditions => conditions,:order => order_by }
           opt_hsh = cls.hash_hash(opts)
-          available_options = cls.cache_fetch(opt_hsh,'select_options')
+          available_options = cls.cache_fetch_list(opt_hsh + 'select_options')
           
           if !available_options
             available_options = cls.select_options(opts)
@@ -686,7 +766,7 @@ class Content::CoreField < Content::FieldHandler
               available_options.sort! { |a,b| a[0].downcase <=> b[0].downcase }
             end
 
-            cls.cache_put(opt_hsh,available_options,'select_options')
+            cls.cache_put_list(opt_hsh + 'select_options',available_options)
           end
 
 
@@ -768,6 +848,146 @@ class Content::CoreField < Content::FieldHandler
       end
     end
     
+    
+    def site_feature_value_tags(c,name_base,size=:full,options = {})
+      tag_name = @model_field.feature_tag_name
+      local = options[:local] || 'entry'
+
+      c.value_tag("#{name_base}:#{tag_name}:id") { |t| entry = t.locals.send(local); entry.id if entry }
+      
+      relation_name = @model_field.relation_name
+      if @model_field.relation_class == EndUser
+        c.expansion_tag("#{name_base}:#{tag_name}") do |t|
+          entry =  t.locals.send(local)
+          users =  entry.send(relation_name) if entry
+          if entry && relation
+            if t.single?
+              users.map(&:full_name).join(t.attr['separator']||", ")
+            else
+              c.each_local_value(users,t,'user')
+            end
+            t.locals.user =  t.locals.send(local).send(relation_name)
+          else
+            nil
+          end
+        end
+        c.user_details_tags("#{name_base}:#{tag_name}",:local => :user)
+      else
+        sub_local = "sub_#{local}"
+
+        c.define_tag("#{name_base}:#{tag_name}") do |t|
+          entry =  t.locals.send(local)
+          relation = entry.send(relation_name) if entry
+          if entry && relation
+            if t.single?
+              relation.map(&:identifier_name).join(t.attr['separator']||", ")
+            else
+              c.each_local_value(relation,t,sub_local)
+            end
+          end
+        end
+
+        # don't go too far down the rabbit hole
+        if !options[:subfeature]
+          if @cm_relation = @model_field.content_model_relation
+            @cm_relation.content_model_fields.each do |fld|
+              fld.site_feature_value_tags(c,"#{name_base}:#{tag_name}",:full,:local => sub_local,:subfeature => true)
+            end
+          end
+        end
+      end
+
+    end
+  end
+
+  class HasManySimpleField < Content::Field #:nodoc:all 
+    field_options
+
+    setup_model  do |cls,fld|
+      if fld.model_field.field_options['relation_name'] && fld.model_field.field_options['relation_class'] && fld.model_field.field_options['foreign_key']
+        cls.has_many fld.model_field.field_options['relation_name'], :class_name => fld.model_field.field_options['relation_class'], :foreign_key => fld.model_field.field_options['foreign_key']
+      end
+    end
+
+    #filter_setup :include
+
+    table_header :static
+
+    #display_options_variables :control, :group_by_id, :filter_by_id, :filter, :order_by_id
+
+    def form_field(f,field_name,field_opts,options={}); end
+    
+    def content_display(entry,size=:full,options={})
+      if !@model_field.field_options['relation_class'].blank?
+        begin
+          h(entry.send(@model_field.field_options['relation_name']) ? entry.send(@model_field.field_options['relation_name']).map(&:identifier_name).join(", ") : '')
+        rescue Exception => e
+          "Invalid Content Model"
+        end
+      end
+    end
+
+    def assign_value(entry,value); end
+    
+    def assign(entry,values); end
+
+    def default_field_name; end
+
+    def form_display_options(pub_field,f); end
+
+    def filter_display_options(pub_field,f)
+    end
+    
+    
+    def site_feature_value_tags(c,name_base,size=:full,options = {})
+      tag_name = @model_field.feature_tag_name
+      local = options[:local] || 'entry'
+      
+      c.value_tag("#{name_base}:#{tag_name}:id") { |t| entry = t.locals.send(local); entry.id if entry }
+
+      relation_name = @model_field.relation_name
+      if @model_field.relation_class == EndUser
+        c.expansion_tag("#{name_base}:#{tag_name}") do |t|
+          entry =  t.locals.send(local)
+          users =  entry.send(relation_name) if entry
+          if entry && relation
+            if t.single?
+              users.map(&:full_name).join(t.attr['separator']||", ")
+            else
+              c.each_local_value(users,t,'user')
+            end
+            t.locals.user =  t.locals.send(local).send(relation_name)
+          else
+            nil
+          end
+        end
+        c.user_details_tags("#{name_base}:#{tag_name}",:local => :user)
+      else
+        sub_local = "sub_#{local}"
+
+        c.define_tag("#{name_base}:#{tag_name}") do |t|
+          entry =  t.locals.send(local)
+          relation = entry.send(relation_name) if entry
+          if entry && relation
+            if t.single?
+              relation.map(&:identifier_name).join(t.attr['separator']||", ")
+            else
+              c.each_local_value(relation,t,sub_local)
+            end
+          end
+        end
+
+        # don't go too far down the rabbit hole
+        if !options[:subfeature]
+          if @cm_relation = @model_field.content_model_relation
+            @cm_relation.content_model_fields.each do |fld|
+              fld.site_feature_value_tags(c,"#{name_base}:#{tag_name}",:full,:local => sub_local,:subfeature => true)
+            end
+          end
+        end
+      end
+
+    end
   end
 
 
@@ -801,6 +1021,38 @@ class Content::CoreField < Content::FieldHandler
     end    
   end
   
+  class SiteNodeField < Content::Field #:nodoc:all
+    field_options :required
+    setup_model :required do |cls,fld|
+       cls.has_options fld.model_field.field.to_sym, fld.available_options.clone
+    end
+    content_display :text
+
+    def active_table_header
+      ActiveTable::OptionHeader.new(@model_field.field, :label => @model_field.name, :options =>self.available_options)
+    end
+  
+    def available_options(atr={})
+      SiteNode.page_url_options
+    end
+    
+    
+    def form_field(f,field_name,field_opts,options={})
+      f.select field_name, [['--Select--',nil]] + available_options , field_opts.merge(options)
+    end
+    
+    filter_setup
+
+    def site_feature_value_tags(c,name_base,size=:full,options={})
+      local = options[:local]
+      tag_name = @model_field.feature_tag_name
+      fld = @model_field
+      c.link_tag "#{name_base}:#{tag_name}" do |t|
+        t.locals.send(local).send(tag_name)
+      end
+    end
+  end
+
   def self.dynamic_current_value(entry,fld,state = {}) #:nodoc:
     Time.now
   end
@@ -847,10 +1099,11 @@ class Content::CoreField < Content::FieldHandler
   
   def self.dynamic_page_connection_value(entry,fld,state = {}) #:nodoc:
     val = state[:page_connection]
-    if fld.content_model_field.field_type == 'options' # validate input if it's an option
-      fnd = fld.content_model_field.module_class.options
-      val = fnd ? val : ''
+    if fld.field_type == 'options' # validate input if it's an option
+      fnd = fld.module_class.options.map { |elm| elm[1] }
+      val = fnd.include?(val) ? val : ''
     end
+    val
   end
   
 end

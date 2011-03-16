@@ -31,9 +31,14 @@ LockEditor = {
 
 
 </script>
-<b><%= "Lock Information".t %></b>
-<br/>
-<br/>
+<ul class='page_detail_buttons'>
+  <li class='icon'><a href='javascript:void(0);' onclick='StructureEditor.deleteModifier("mod_<%= @mod.id %>");' 
+   title='<%= vh "Delete Lock".t %>'><%= image_tag(theme_src('icons/header_actions/delete_page.png')) %></a>
+  </li>
+</ul>
+<h1 class='inpage'><%= "Lock Information".t %></h1>
+<div class='tree_detail_body'>
+
 <div id='lock_view'>
 <table class='admin_form'>
   <tr>
@@ -88,9 +93,9 @@ LockEditor = {
   <%= f.page_selector :redirect, :label => 'On Lockout Redirect Users To:', :vertical => true %>
   <%= f.check_boxes :options, [ [ 'Override Previous Locks','override' ] ], :label => '',:vertical => true %>
   
-  <%= f.cancel_submit_buttons 'Cancel','Update', { :onclick=>'LockEditor.hideEdit();' } , { :onclick=>'LockEditor.submitForm();' } -%>
+  <%= f.cancel_submit_buttons 'Cancel','Update', { :onclick=>'LockEditor.hideEdit();' } , { } -%>
 <% end -%>
 
-
+</div>
 
 </div>

@@ -1,0 +1,107 @@
+<style>
+body {
+  color: #3B648C;
+  font-weight: bold;
+  font-size: 11px;
+}
+
+a {
+  color: #3B648C;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a span.inverse_blue {
+  color: #fff;
+  background-color: #3B648C;
+  padding: 0 2px 0 2px;
+  text-decoration: none;
+}
+
+select {
+  width: 265px;
+}
+
+select.condition {
+  width: 140px;
+}
+
+th {
+  text-align: left;
+  padding: 2px 0 2px 5px;
+  background-color: #eee;
+  font-size: 12px;
+}
+
+td {
+  padding-left: 10px;
+}
+
+td.spacer {
+  height: 15px;
+  padding: 0;
+  margin: 0;
+  font-size: 0;
+}
+
+td.heading {
+  color: #fff;
+  background-color: #7098B3;
+  font-size: 15px;
+  padding: 3px 10px 3px 10px;
+}
+
+td.heading a {
+  color: #fff;
+  font-size: 11px;
+  font-weight: normal;
+  text-decoration: none;
+}
+
+ul.arguments {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+ul.arguments li {
+  padding: 6px 0 6px 0;
+}
+
+</style>
+
+<% if @filter.nil? && @segment.nil? && @builder.field.nil? -%>
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr>
+<td class="heading"><%= 'Select or create a filter'.t %></td>
+</tr>
+<tr><th><div style="padding:5px 0 5px 0;"><%= 'Popular filters'.t %></div></th></tr>
+<tr><td class="spacer"></td></tr>
+<tr><td>
+<% UserSegment.find(:all, :order => 'updated_at DESC', :limit => 10).each do |segment| -%>
+<div style="padding-bottom:6px;"><a href="<%= url_for :controller => 'members', :action => 'builder', :path => segment.id, :copy => '1' %>"><%= segment.name %></a></div>
+<% end -%>
+</td></tr>
+<tr><td class="spacer"></td></tr>
+
+<tr><th><div style="padding:5px 0 5px 0;"><%= 'Custom filter'.t %></div></th></tr>
+<tr><td class="spacer"></td></tr>
+<tr><td><a href="<%= url_for :controller => 'members', :action => 'builder', :filter => 'custom' %>"><%= 'Create a custom filter &gt;&gt;'.t %></a></td></tr>
+<tr><td class="spacer"></td></tr>
+
+<tr><th><div style="padding:5px 0 5px 0;"><%= 'Pre-built filters'.t %></th></tr>
+<tr><td class="spacer"></td></tr>
+<tr><td>
+<% UserSegment::OperationBuilder.prebuilt_filters_options.each do |filter| -%>
+  <div style="padding-bottom:6px;"><a href="<%= url_for :controller => 'members', :action => 'builder', :filter => filter[1] %>"><%= filter[0] %></a></div>
+<% end -%>
+</td>
+</tr>
+</table>
+<% else -%>
+  <%= render :partial => 'operation_form' %>
+<% end -%>

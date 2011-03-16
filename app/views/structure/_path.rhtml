@@ -9,7 +9,8 @@
 <% end -%>
 
 <% if path.node_type == 'R' %>
-<%= theme_image_tag("icons/menu/white.gif") -%>  
+  <% # theme_image_tag("icons/menu/white.gif") 
+-%>  
   <% elsif path.child_cache.length > 0 -%>
 
 <%= theme_image_tag(path.closed ? "icons/menu/last_closed.gif" : "icons/menu/last_open.gif", :class => "line_icon", :id => "toggle_#{path.id}", :onclick => "StructureEditor.toggleVisible(this);") -%>
@@ -21,45 +22,48 @@
 
 <% case path.node_type 
    when "R"
-   	node_icon = "icons/domain.gif"
+   	node_icon = "domain_node"
    	node_title_click = "StructureEditor.domainPopup('#{path.id}')"
    when "P"   	
-   	node_icon = "icons/page.gif"
+   	node_icon = "page_node"
    	node_title_click = "StructureEditor.pagePopup('#{path.id}')"
    when "M"
-   	node_icon = "icons/module.gif"
+   	node_icon = "module_node"
    	node_title_click = "StructureEditor.modulePopup('#{path.id}')"
    when "D"
-   	node_icon = "icons/document.gif"
+   	node_icon = "document_node"
    	node_title_click = "StructureEditor.filePopup('#{path.id}')"
    when "J"
-   	node_icon = "icons/redirect.gif"
+   	node_icon = "redirect_node"
    	node_title_click = "StructureEditor.redirectPopup('#{path.id}')"
    when "G"
-   	node_icon = "icons/group.gif"
+   	node_icon = "group_node"
    	node_title_click = "StructureEditor.groupPopup('#{path.id}')"
    end
  -%>
-   
 
 <% path.site_node_modifiers.each do |mod| -%>
-   <% if mod.modifier_type  != 'page' -%>
+   <% if mod.modifier_type.to_s  != 'page' -%>
      <% if @display_modifiers == 'show'  -%>
         <%= render :partial => 'site_node_modifier', :locals => { :mod => mod } %>
     <% end -%>
    <% else -%>
      <span class="mod_node" >
-        <%= theme_image_tag node_icon,
-             :class => "node_handle_icon",
+        <%= tag('span',
+             :class => "site_node node_handle_icon #{node_icon}",
              :id => "node_handle_#{path.id}" ,
              :onclick => "StructureEditor.selectNode('node',#{path.id});",
-             :ondblclick => "document.location = '#{url_for(:controller => 'edit', :action =>'page', :path => ['page',path.id ])}';"  %>
-    </span>
+             :ondblclick => path.node_type == 'P' ? "document.location = '#{url_for(:controller => 'edit', :action =>'page', :path => ['page',path.id,@view_language])}';" : nil)  %></span>
+            </span>
   <% end -%>
 <% end -%>
    
-   
-<a href='javascript:void(0);' class='node_title'  id='node_title_<%= path.id %>' ondblclick="StructureEditor.editPageTitle(<%= path.id %>)" onclick="<%= "StructureEditor.selectNode('node',#{path.id});" %>"><%= path.node_type == 'R' ? Configuration.domain : (path.node_type == 'G' ? path.title : "/" + path.title) %></a>
+<%= link_to path_name_helper(path),
+            "javascript:void(0);",
+            :id => "node_title_#{path.id}",
+            :class => 'node_title',
+            :ondblclick => "StructureEditor.editPageTitle(#{path.id},true)",
+            :onclick => "StructureEditor.selectNode('node',#{path.id});" %>
 <span class='node_title_edit' id='node_title_edit_<%= path.id %>' style='display:none;'></span>
 		
 
@@ -78,9 +82,7 @@ StructureEditor.addedNode(<%= path.id %>);
 </script>
    
 </span>
-
-	<br/>
-	<div id='children_<%= path.id %>' class='node_children' <%= 'style="display:none;"' if path.closed %>>
+<div id='children_<%= path.id %>' class='node_children <%= "node_children_first" if path.node_type == 'R' %>' <%= 'style="display:none;"' if path.closed %>>
 		<% if path.child_cache.length > 0 -%>
 		<%= render :partial => "path",  :locals => { :paths => path.child_cache } %>
 		<% end -%>

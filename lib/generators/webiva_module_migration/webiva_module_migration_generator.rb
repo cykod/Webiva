@@ -8,7 +8,7 @@ class WebivaModuleMigrationGenerator < Rails::Generator::NamedBase
   
   def manifest 
     @module_name = @name.underscore
-    @name = args.shift
+    @name = args.shift.underscore
     record do |m|
       m.directory "/vendor/modules/#{@module_name}"
       
@@ -18,6 +18,10 @@ class WebivaModuleMigrationGenerator < Rails::Generator::NamedBase
       
     end
  
+  end
+
+  def banner
+    "Usage: #{$0} #{spec.name} <module name> <migration file name>"
   end
 
   private  

@@ -194,7 +194,7 @@ describe StructureController do
 
       @rev.title.should be_blank
 
-      put(:update_revision, { :revision => @rev.id, :revision_edit => { :title => 'New Revision Title' }})
+      put(:update_revision, { :revision_id => @rev.id, :revision_edit => { :title => 'New Revision Title' }})
 
       @rev.reload
       @rev.title.should == 'New Revision Title'
@@ -215,5 +215,81 @@ describe StructureController do
   end
 
 
+  describe "Index Page" do
+    it "should render the index page" do
+      get 'index'
+    end
 
+    it "should render the index page" do
+      get 'index', :archived => 'show'
+    end
+
+    it "should render the index page" do
+      get 'index', :modules => 'show'
+    end
+
+    it "should render the index page" do
+      get 'index', :modifiers => 'show'
+    end
+  end
+
+  describe "Wizards" do
+    it "should render the wizards page" do
+      get 'wizards', :version => 1
+    end
+
+    it "should render the simple site wizard" do
+      get 'wizard', :path => ['wizards', 'simple_site'], :version => 1
+      response.should render_template('structure/wizard')
+    end
+
+    it "should not run the wizard" do
+      post 'wizard', :path => ['wizards', 'simple_site'], :version => 1, :wizard => {}
+      response.should redirect_to(:controller => '/structure', :action => 'wizards', :version => 1)
+    end
+
+    it "should not run the wizard" do
+      post 'wizard', :path => ['wizards', 'simple_site'], :version => 1, :wizard => {}, :commit => 1
+      response.should render_template('structure/wizard')
+    end
+
+    it "should run the wizard" do
+      post 'wizard', :path => ['wizards', 'simple_site'], :version => 1, :wizard => {:name => 'Test.dev', :pages => ['Home', 'About', 'News']}, :commit => 1
+      response.should redirect_to(:controller => '/structure', :version => 1)
+    end
+  end
+
+  describe 'Versions' do
+    it "should be able to render site_version" do
+      get 'site_version', :site_version => 1
+    end
+
+    it "should be able to create site_version" do
+      assert_difference 'SiteVersion.count', 1 do
+        post 'site_version', :version => {:name => 'New Version'}
+      end
+    end
+  end
+
+  describe 'Multi Page Editor' do
+    # Test all the permutations of an active table
+    it "should handle site nodes list" do
+      controller.should handle_active_table(:site_nodes_table) do |args|
+        post 'display_site_nodes_table', {:path => [SiteVersion.current.id]}.merge(args)
+      end
+    end
+
+    it "should be able to render edit_page_revision" do
+      @rev = @home_page.active_revision('en')
+      get 'edit_page_revision', :path => [@home_page.id, @rev.id]
+    end
+
+    it "should be able to create site_version" do
+      @rev = @home_page.active_revision('en')
+      post 'edit_page_revision', :path => [@home_page.id, @rev.id], :revision => {:title => 'My New Title'}
+
+      @rev.reload
+      @rev.title.should == 'My New Title'
+    end
+  end
 end

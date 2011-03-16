@@ -11,12 +11,12 @@ module EscapeHelper
 
    def jvh(txt)
      #escape_javascript(txt.to_s).gsub('<','\u003C')
-     txt.gsub("&amp;","&#34;").gsub("'","&#39;").gsub('"',"&#34;").gsub('<','\u003C').gsub("\n","\\n")
+     txt.gsub("&amp;","&#34;").gsub("'","&#39;").gsub('"',"&#34;").gsub('<','\u003C').gsub("\n","\\n").gsub("\xE2\x80\xA8", '\u2028').gsub("\xE2\x80\xA9", '\u2029')
 
    end
 
    def jh(txt)
-    escape_javascript(txt.to_s).gsub('<','\u003C')
+    escape_javascript(txt.to_s).gsub('<','\u003C').gsub("\xE2\x80\xA8", '\u2028').gsub("\xE2\x80\xA9", '\u2029')
    end
    
    def vh(txt)

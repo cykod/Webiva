@@ -30,7 +30,7 @@ module StyledFormBuilderGenerator #:nodoc:
                   args << opts
                 end
               end
-              super(field,*args)
+              self.send("#{fld}_original",field,*args)
             end
             
             # We are going to mutate this in the options_func
@@ -62,6 +62,11 @@ module StyledFormBuilderGenerator #:nodoc:
           display_only = options[:display]  || false
           name = options[:name] || class_name.underscore 
           
+	  pre = pre.blank? ? '' : pre.gsub(/([\"\#])/, '\\\\\1')
+	  post = post.blank? ? '' : post.gsub(/([\"\#])/, '\\\\\1')
+	  pre_cmd = pre.blank? ? '' : "safe_concat(\"#{pre}\")"
+	  post_cmd = post.blank? ? '' : "safe_concat(\"#{post}\")"
+
           names = [ [ name, 'form_tag(options.delete(:url) || {}, options.delete(:html) || {})'] ]
           names << [ 'remote_' + name, 'form_tag(options.delete(:url) || {},(options[:html]||{}).merge({:onsubmit => "new Ajax.Updater(\'#{options[:update]}\',this.action,{ evalsScripts: true, parameters: Form.serialize(this) }); return false;"}))' ]  unless display_only || options[:no_remote]
           names.each do |nm|
@@ -70,9 +75,9 @@ module StyledFormBuilderGenerator #:nodoc:
                 raise ArgumentError, "Missing block" unless block_given?
                 options = args.last.is_a?(Hash) ? args.pop : {}
                 #{"safe_concat(" + nm[1] + ")" unless display_only}
-                safe_concat('#{pre}')
+                #{pre_cmd}
                 fields_for(object_name, *(args << options.merge(:builder => #{class_name})), &proc)
-                safe_concat('#{post.gsub("'","\\'")}')
+                #{post_cmd}
                 #{"safe_concat('</form>')" unless display_only}
               end
             END_SRC
@@ -91,8 +96,10 @@ module StyledFormBuilderGenerator #:nodoc:
 		    class_name = self.to_s
 		    display_only = options[:display]  || false
 		    name = options[:name] || class_name.underscore
-		    pre_cmd = pre.blank? ? '' : "safe_concat(\"#{pre.gsub(/[\'\"\#]/, '\\\1')}\")"
-		    post_cmd = post.blank? ? '' : "safe_concat(\"#{post.gsub(/[\'\"\#]/, '\\\1')}\")"
+		    pre = pre.blank? ? '' : pre.gsub(/([\"\#])/, '\\\\\1')
+		    post = post.blank? ? '' : post.gsub(/([\"\#])/, '\\\\\1')
+		    pre_cmd = pre.blank? ? '' : "safe_concat(\"#{pre}\")"
+		    post_cmd = post.blank? ? '' : "safe_concat(\"#{post}\")"
 		    src = <<-END_SRC 
 			    def #{name}_for(object_name,*args,&proc)
 				    raise ArgumentError, "Missing block" unless block_given?
@@ -214,7 +221,16 @@ module EnhancedFormElements
       return country_options
     end
     
-    
+    def country_select(field,options={})
+      select_options = options.clone
+      priority_countries = select_options.delete(:priority_countries) || ['United States']
+      choices = translated_countries_for_select priority_countries
+      obj_val = @object.send(field) if @object
+      name = "#{@object_name}[#{field}]"
+      opts = @template.options_for_select(choices,obj_val)
+      select_tag(name,opts,select_options)
+    end
+
     # Overrides default by adding a submit_button class
     def submit_tag(name,options = {}) 
       options[:class] ||= 'submit_button'
@@ -300,6 +316,10 @@ module EnhancedFormElements
         opts = @template.options_for_select(choices,obj_val[idx-1])
         labels[idx-1].to_s + select_tag(name,opts,html_options)
       end.join(separator)
+    end
+
+    def yes_no(field,opts = {}) 
+      radio_buttons(field,[['Yes'.t,true],['No'.t,false]],opts)
     end
 
     # Displays multiple selects, with grouped options
@@ -465,11 +485,7 @@ module EnhancedFormElements
     # Output the error message for a specific field given a label and the field
     def output_error_message(label,field)
       return nil unless @object && @object.errors
-      begin
-        errs = @object.errors[field]
-      rescue Exception =>e
-        raise @object.errors.inspect + errs.inspect
-      end
+      errs = @object.errors.on(field)
       if errs.is_a?(Array)
         label = label.gsub(/\:$/,'') # get rid of ending : if there
         opts = errs.pop if errs.last.is_a?(Hash)
@@ -487,10 +503,8 @@ module EnhancedFormElements
         
         return label + " " + emit_label(errs)
       end
-      
       nil
     end  
- 
 
 end
 
@@ -683,7 +697,7 @@ class TabledForm < StyledForm
   end
 
   generate_styled_fields('form_options',
-                         (field_helpers + %w(label_field label_option_field country_select collection_select select radio_buttons check_box check_boxes grouped_check_boxes grouped_radio_buttons grouped_select ) - %w(radio_button hidden_field))) do 
+                         (field_helpers + %w(label_field label_option_field country_select collection_select select radio_buttons check_boxes grouped_check_boxes grouped_radio_buttons grouped_select ) - %w(radio_button hidden_field))) do 
                           field(@options)
                           end
                           
@@ -775,7 +789,7 @@ class TabledDisplayForm < TabledForm
   def select(field,tag_values,options = {}) #:nodoc:
 	label_option_field(field,tag_values,options)
   end
-  
+
   generate_form_for('<table  class="styled_table">','</table>', :display => true)
   generate_fields_for('<table  class="styled_table">','</table>',:name => 'tabled_display_fields', :display => true)
   
@@ -815,7 +829,7 @@ class CmsForm < TabledForm
 
   include WebivaFormElements
   generate_styled_fields('form_options',
-                          %w(access_control filemanager_image filemanager_folder filemanager_file price_classes price_range color_field date_field time_zone_select datetime_field upload_image upload_document unsorted_selector content_selector multi_content_selector image_list end_user_selector autocomplete_field ordered_selection_list ordered_array)) do 
+                         %w(add_page_selector access_control filemanager_image filemanager_folder filemanager_file price_classes price_range color_field date_field time_zone_select datetime_field upload_image upload_document unsorted_selector content_selector multi_content_selector image_list end_user_selector autocomplete_field ordered_selection_list ordered_array captcha)) do 
                           field(@options)
                           end
 
@@ -844,15 +858,16 @@ class CmsUnstyledForm < StyledForm
 
  
   
-  generate_styled_fields('form_options',
+  generate_styled_fields('unstyled_form_options',
                           field_helpers + %w(label_field label_option_field country_select collection_select select radio_buttons grouped_check_boxes grouped_radio_buttons grouped_select check_boxes) - %w(check_box radio_button hidden_field) +  %w(access_control filemanager_image filemanager_folder filemanager_file price_classes price_range color_field date_field datetime_field upload_image upload_document unsorted_selector content_selector multi_content_selector image_list end_user_selector autocomplete_field ordered_selection_list ordered_array)) do 
       options[:output]
   end
-  
-  def form_options(tag,field,output,options) #:nodoc:
+
+  def unstyled_form_options(tag,field,output,options) #:nodoc:
+    options = options.symbolize_keys
     options[:class] = !options[:class].blank? ? tag.to_s + '_input ' + options[:class].to_s : tag.to_s + '_input'
     {
-      :output => output.call( {:class => options[:class] })
+      :output => output.call( {:class => options[:class], :required => nil, :noun => nil, :label => nil })
     }
   end
   

@@ -3,10 +3,15 @@
 <% cms_form_for :blog, @blog, :html => { :class => 'admin_form' } do |f| -%>
 <%= f.text_field :name %>
 <%= f.select :site_template_id, @site_templates %>
+<%= f.select :content_filter, Blog::BlogBlog.filter_options, :description => 'Only the Full HTML filter uses WYSIWYG Editor' %>
+<%= f.filemanager_folder :folder_id %>
 <%= f.text_field :html_class, :description => 'HTML Class to wrap blog posts in WYSIWYG Editor (optional)' %>
   <%= f.access_control :edit_permission, 'Limit which admins can edit this blog',  :description => 'User must also have Blog Writer permission' %>
+<%= f.check_boxes :trackback, [['Send pingbacks when a post is published.', true]], :label => 'Pingbacks', :single => true %>
+<%= f.select :content_model_id, ContentModel.select_options_with_nil %>
+<%= f.select :content_publication_id, @blog.content_model ? @blog.content_model.content_publications.select_options_with_nil : [["--Select %s--" / 'Content publication', nil]] %>
+<%= f.spacer %>
 <%= f.submit_tag 'Update' %>
 <% end -%>
-
 
 </div>

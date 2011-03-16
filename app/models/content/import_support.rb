@@ -30,7 +30,7 @@ def export_xml(output,options = {})
      end
      self.content_model.find(:all,options).each_with_index do |row,idx|
     	writer << [ row.id ] + fields.collect do |fld|
-	      fld.text_value(row)
+	      fld.content_export(row)
     	end
      end
   end
@@ -90,8 +90,11 @@ def export_xml(output,options = {})
         matched_conditions << "`#{match.field}` = ?"
       end
     end
-    matched_conditions = matched_conditions.join(" OR ")
+    matched_conditions = matched_conditions.join(" OR ") 
+    # "Dummy
     
+    model_fields = self.content_model_fields.index_by(&:field)
+
     mdl = self.content_model
     parsed_data = []
     idx = 0
@@ -104,41 +107,37 @@ def export_xml(output,options = {})
       end
       
       if !reader_offset || idx >= reader_offset
-	      existing_entry = nil
-	      if matched_identifiers.length > 0
-	       matched_values = matched_identifiers.map do |ident|
-	         row[ident[0]]
-	       end
-	       existing_entry = mdl.find(:first, :conditions => [ matched_conditions ] + matched_values)
-	      end
-	      act = existing_entry ? existing_entry.id : 'c'
-	      # If we are doing an import,
-	      # All fields should be 'm'
-	      if import
-	       entry_values = {}
-	       fields.each do |fld|
-	          entry_values[fld[3]] = row[fld[1]].to_s.strip
-	        end
-	        
-	        if existing_entry 
-	         if !existing_entry.update_attributes(entry_values)
-	           entry_errors << [idx, !existing_entry.errors ]
-	         end
-	        else
-	         if !(new_entry = mdl.create(entry_values))
-	           entry_errors << [idx, new_entry.errors ]
-	         end
-	        end
-	      else
-	        parsed_data << [ act ] + fields.collect do |fld|
-	          row[fld[1]].to_s
-	        end
-	      end
-	
-	      if block_given?
-	       yield 1,entry_errors
-	      end
+        existing_entry = nil
+        entry_errors = []
+        if matched_identifiers.length > 0
+          matched_values = matched_identifiers.map do |ident|
+            row[ident[0]]
+          end
+          existing_entry = mdl.find(:first, :conditions => [ matched_conditions ] + matched_values)
+        end
+        act = existing_entry ? existing_entry.id : 'c'
+        # If we are doing an import,
+        # All fields should be 'm'
+        if import
+          existing_entry ||= mdl.new
+          fields.each do |fld|
+            if model_fields[fld[3]]
+              model_fields[fld[3]].content_import(existing_entry,row[fld[1]].to_s.strip)
             end
+          end
+          if !existing_entry.save
+            entry_errors << [idx, existing_entry.errors ]
+          end
+        else
+          parsed_data << [ act ] + fields.collect do |fld|
+            row[fld[1]].to_s
+          end
+        end
+	
+        if block_given?
+          yield 1,entry_errors
+        end
+      end
       
       # Exit if we are already over sample limit
       if reader_limit &&  idx >= reader_limit
@@ -165,6 +164,13 @@ def export_xml(output,options = {})
          ['First Name','end_user.first_name'],
          ['Last Name','end_user.last_name'],
          ['Middle Name','end_user.middle_name'],
+         ['Full Name','end_user.full_name'],
+         ['Suffix','end_user.suffix'],
+         ['Lead Source','end_user.lead_source'],
+         ['Referrer','end_user.referrer'],
+         ['Salutation','end_user.salutation'],
+         ['Username','end_user.username'],
+         ['Membership ID','end_user.membership_id'],
          ['Phone','address.phone'],
          ['Address - Street Number','address.address'],
          ['Address - line 2','address.address_2'],

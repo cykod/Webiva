@@ -6,7 +6,7 @@ development:
   password: test
   host: localhost
   encoding: utf8
-  pool: 8
+  pool: 10
 
 # Warning: The database defined as 'test' will be erased and
 # re-generated from your development database when you run 'rake'.
@@ -19,7 +19,7 @@ test:
   password: test
   host: localhost
   encoding: utf8
-  pool: 8
+  pool: 10
 
 production:
   adapter: mysql
@@ -29,4 +29,4 @@ production:
   password: test 
   host: localhost
   encoding: utf8
-  pool: 8
+  pool: 10

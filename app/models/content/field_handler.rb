@@ -13,7 +13,13 @@ class Content::FieldHandler
     module_name = self.to_s.underscore
 
     # Add in the module name    
-    field_info.each { |fld| fld[:module] = module_name }
+    field_info.each do |fld|
+      fld[:module] = module_name
+
+      if ! fld.has_key?(:simple)
+        fld[:simple] = fld.has_key?(:relation) ? false : true
+      end
+    end
     
     # Create the fields class method
     cls = class << self; self; end

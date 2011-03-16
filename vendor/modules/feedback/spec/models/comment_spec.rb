@@ -11,7 +11,6 @@ describe Comment do
   it "should require name and comment" do
     @comment = Comment.new
     @comment.valid?
-    @comment.should have(1).errors_on(:name)
     @comment.should have(1).errors_on(:comment)
     @comment.should have(1).errors_on(:target_type)
     @comment.should have(1).errors_on(:target_id)
@@ -29,12 +28,6 @@ describe Comment do
     @comment.save.should be_true
     @comment.posted_at.should_not be_nil
     @comment.name = @user.name
-  end
-
-  it "if captcha_invalid is invalid do not save comment" do
-    @comment = Comment.new :name => 'Test', :comment => 'Test Comment', :target_type => 'test', :target_id => 1, :captcha_invalid => true
-    @comment.save.should_not be_true
-    @comment.should have(1).error
   end
 
 end

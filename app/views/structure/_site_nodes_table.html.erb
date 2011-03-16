@@ -1,0 +1,22 @@
+<% active_table_for :site_nodes_table, @active_table_output,
+                    :refresh_url => url_for(:action => 'display_site_nodes_table', :path => @version.id, :language => @language),
+                    :update => 'site_nodes_table' do |t| %>
+<tr <%= highlight_row 'site_node',t.id %> >
+<%
+    revision = t.active_revision(@language)
+    revision = PageRevision.new(:title => '(No translation)'.t) unless revision && revision.language == @language
+-%>
+
+  <td>
+    <% if revision.id -%>
+      <a href="javascript:void(0);" onclick="SCMS.remoteOverlay('<%= url_for :action => 'edit_page_revision', :path => [t.id, revision.id] %>');"><%= t.node_path %></a>
+    <% else -%>
+      <%= t.node_path %>
+    <% end -%>
+  </td>
+  <td><%= h truncate(revision.title, :length => 80) %></td>
+  <td><%= h truncate(revision.menu_title, :length => 30) %></td>
+  <td><%= h truncate(revision.meta_description, :length => 80) %></td>
+  <td><%= h truncate(revision.meta_keywords, :length => 80) %></td>
+</tr>
+<% end -%>

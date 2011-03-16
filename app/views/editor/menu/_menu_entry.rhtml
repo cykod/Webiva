@@ -1,7 +1,7 @@
 <div class='cms_menu_item' id='cms_menu_item_<%= @item_index %>' style='padding-left: <%= level * 10 %>px' >
 
                 
-    <span class="cms_menu_handle"><img src='<%= theme_src("/images/icons/menu_entry.gif") %>' onclick='cmsMenuEdit.selectEntry(<%= @item_index %>)' align='absmiddle' /></span>
+    <span class="cms_menu_handle"><img src='<%= theme_src("/images/icons/paragraph_move.gif") %>' onclick='cmsMenuEdit.selectEntry(<%= @item_index %>)' align='absmiddle' /></span>
     <span id="cms_item_title_<%= @item_index %>" class='cms_ajax_link' onclick="cmsMenuEdit.entryMenu(<%= @item_index %>)">
         <%= item[:title] %>
     </span>

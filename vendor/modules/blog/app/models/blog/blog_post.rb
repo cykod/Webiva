@@ -13,24 +13,73 @@ class Blog::BlogPost < DomainModel
   has_many :blog_posts_categories
   has_many :blog_categories, :through => :blog_posts_categories
   
+  validates_presence_of :title
 
   validates_length_of :permalink, :allow_nil => true, :maximum =>  64
-  
 
-  has_options :status, [ [ 'Draft','draft'], ['Published','published']] 
+  validates_datetime :published_at, :allow_nil => true
+   
+  has_options :status, [ [ 'Draft','draft'],['Preview','preview'], ['Published','published']] 
 
   has_many :comments, :as => :target
+
+  include Feedback::PingbackSupport
 
   cached_content :update => :blog_blog, :identifier => :permalink
   # Add cached content support, but make sure we update the blog cache element
   
   has_content_tags
+
+  def data_model
+    return @data_model if @data_model
+    return nil unless self.blog_blog && self.blog_blog.content_model
+    @data_model = self.blog_blog.content_model.content_model.find_by_id self.data_model_id if self.data_model_id
+    @data_model = self.blog_blog.content_model.content_model.new unless @data_model
+    @data_model
+  end
+
+  def data_model=(opts)
+    self.data_model.attributes = opts
+  end
+
+  def validate
+    if self.status == 'published'  && !self.published_at.is_a?(Time)
+      self.errors.add(:published_at,'is invalid')
+    end
+
+    self.errors.add_to_base('%s is invalid' / self.blog_blog.content_model.name) if self.data_model && ! self.data_model.valid?
+  end
   
-  content_node :container_type => 'Blog::BlogBlog', :container_field => 'blog_blog_id',
-  :preview_feature => '/blog/page_feature/blog_post_preview'
+  content_node :container_type => :content_node_container_type,  :container_field => Proc.new { |post| post.content_node_container_id },
+  :preview_feature => '/blog/page_feature/blog_post_preview', :push_value => true, :published_at => :published_at
+
+  def revision
+    @revision ||= self.active_revision ? self.active_revision.clone : Blog::BlogPostRevision.new
+  end
+
+  # Special permalink for targeted blogs
+  def target_permalink
+    if self.blog_blog.targeted_blog
+      "#{self.blog_blog.targeted_blog.url}/#{self.permalink}"
+    else
+      self.permalink
+    end
+  end
 
   def content_node_body(language)
     self.active_revision.body_html if self.active_revision
+  end
+
+  def content_node_container_type
+    self.blog_blog.is_user_blog? ? "Blog::BlogTarget" : 'Blog::BlogBlog'
+  end
+
+  def content_node_container_id
+    self.blog_blog.is_user_blog? ? 'blog_target_id' : 'blog_blog_id'
+  end
+
+  def blog_target_id
+    self.blog_blog.blog_target_id
   end
 
   def comments_count
@@ -39,12 +88,35 @@ class Blog::BlogPost < DomainModel
     return @comments_count 
   end
 
+  def approved_comments_count
+    @approved_comments_count ||= self.comments.with_rating(1).count
+  end
+
+  def self.paginate_published(page,items_per_page,blog_ids = [],options = {})
+    if blog_ids.length > 0
+      Blog::BlogPost.paginate(page, {
+                              :include => [ :active_revision, :blog_categories ],
+                              :order => 'published_at DESC',
+                              :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ? AND blog_posts.blog_blog_id IN (?)",Time.now,blog_ids],
+                              :per_page => items_per_page }.merge(options))
+
+    else
+      Blog::BlogPost.paginate(page, {
+                              :include => [ :active_revision, :blog_categories ],
+                              :order => 'published_at DESC',
+                              :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ?",Time.now],
+                              :per_page => items_per_page }.merge(options))
+    end
+    
+  end
+
   def generate_permalink!
       if permalink.blank? && self.active_revision
         date = self.published_at || Time.now
         permalink_try_partial = date.strftime("%Y-%m-") + self.active_revision.title.downcase.gsub(/[ _]+/,"-").gsub(/[^a-z+0-9\-]/,"")
+        permalink_try_partial = permalink_try_partial[0..59].gsub(/\-$/,"")
         idx = 2
-        permalink_try = permalink_try_partial[0..60]
+        permalink_try = permalink_try_partial
         
         while(Blog::BlogPost.find_by_permalink(permalink_try,:conditions => ['id != ?',self.id || 0] ))
           permalink_try = permalink_try_partial + '-' + idx.to_s
@@ -53,14 +125,13 @@ class Blog::BlogPost < DomainModel
         
         self.permalink = permalink_try
       elsif 
-        self.permalink = self.permalink.to_s.gsub(/[^a-z+0-9\-]/,"")
+        self.permalink = self.permalink.to_s.gsub(/[^a-z+0-9\-]/,"")[0..63]
       end
   end
 
   def category_ids
     self.blog_categories.collect(&:id)
   end
-
 
   def set_categories!(category_ids)
     categories_to_delete = []
@@ -91,31 +162,42 @@ class Blog::BlogPost < DomainModel
     self.blog_categories.reload
 
   end
-  
-  def preview
-    self.active_revision.preview.blank? ? self.active_revision.body : self.active_revision.preview
+
+
+  [ :title, :media_file_id, :domain_file_id, :body, :end_user_id, :keywords,
+    :author, :embedded_media, :preview_title, :preview ].each do |fld|
+    class_eval("def #{fld}; self.revision.#{fld}; end")
+    class_eval("def #{fld}=(val); self.revision.#{fld} = val; end")
+    end
+
+  def name
+     self.revision.title
   end
 
-  def title
-    self.active_revision.title
-  end 
+  [ :domain_file, :preview_content, :end_user,:media_file, :body_content ].each do |fld|
+    class_eval("def #{fld}; self.revision.#{fld}; end")
+  end
 
-  def image
-    self.active_revision.domain_file
-  end
-  
-  def media_file
-    self.active_revision.media_file
-  end
+  def image; self.revision.domain_file; end
 
   def self.get_content_description 
     "Blog Post".t 
   end
+  
+  def preview
+    self.revision.preview
+  end
 
   def self.get_content_options
-    self.find(:all,:order => 'title',:include => 'active_revision').collect do |item|
-      [ item.active_revision.title,item.id ]
+    self.find(:all,:order => 'title',:include => 'revision').collect do |item|
+      [ item.revision.title,item.id ]
     end
+  end
+
+  include ActionView::Helpers::TextHelper
+
+  def generate_preview
+   self.revision.preview =  truncate(Util::TextFormatter.text_plain_generator(self.revision.body),:length => 140 )
   end
 
   def self.comment_posted(blog_id)
@@ -123,27 +205,35 @@ class Blog::BlogPost < DomainModel
     DataCache.expire_content("Blog")
     DataCache.expire_content("BlogPost")
   end
-  
-  def save_revision!(revision)
-    self.reload(:lock => true) if self.id
-    Blog::BlogPostRevision.transaction do
-      self.active_revision.update_attribute(:status,'old') if self.id && self.active_revision
-      
-      self.save if !self.id
 
-      revision.status = 'active'
-      revision.blog_post = self
-      
-      revision.save
 
-      # make the new revision the active revision
-      self.active_revision = revision
-      self.generate_permalink!
-      self.save
+  def before_save
+    if self.data_model
+      self.data_model.save
+      self.data_model_id = self.data_model.id
     end
+
+    self.active_revision.update_attribute(:status,'old') if self.active_revision
+    @revision = @revision.clone
+
+    @revision.status = 'active'
+    @revision.blog_blog = self.blog_blog
+    @revision.blog_post_id = self.id if self.id
+    @revision.save
+
+    self.blog_post_revision_id = @revision.id
+    self.generate_permalink!
   end
-  
-  
+
+  def after_create
+    @revision.update_attribute(:blog_post_id,self.id)
+    @revision= nil
+  end
+
+  def after_update
+    @revision = nil
+  end
+
   def publish_now
     # then unless it's already published, set it to published and update the published_at time
     unless(self.status == 'published' && self.published_at && self.published_at < Time.now) 
@@ -152,13 +242,51 @@ class Blog::BlogPost < DomainModel
     end
   end
   
+  def publish!
+    if self.publish_now
+      self.save
+    end
+  end
+
+  def unpublish!
+    self.status ='draft'
+    self.save
+  end
+  
   def publish(tm)
     self.status = 'published'
     self.published_at = tm
   end
   
+  def preview!
+    self.status = 'preview'
+    self.save
+  end
+
+  def duplicate!
+    new_post = self.clone
+
+      [:media_file_id, :domain_file_id, :body, :end_user_id, :keywords,
+    :author, :embedded_media, :preview_title, :preview ].each do |fld|
+        new_post.send("#{fld}=",self.send(fld))
+    end
+    new_post.created_at = nil
+    new_post.updated_at = nil
+    new_post.title = "(COPY) " + self.title.to_s
+    new_post.permalink = nil
+    new_post.published_at = nil
+    new_post.status = 'draft'
+    new_post.save
+    new_post
+  end
+
+
   def make_draft
     self.status = 'draft'  
+  end
+
+  def make_preview
+    self.status = 'preview'
   end
   
   def published?

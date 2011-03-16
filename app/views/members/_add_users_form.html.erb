@@ -1,0 +1,41 @@
+<div class='cms_form'>
+<% if @segment.id -%>
+<script>
+MemberEditor.addUsersToListTableAction(<%= @segment.id %>);
+</script>
+<% end -%>
+
+<h3>Add Users to List</h3>
+<% cms_unstyled_form_for :segment, @segment, :html => {:id => 'user_segment_form', :onsubmit => 'MemberEditor.addUsersToListSubmit(this); return false;', :class => "admin_form"} do |f| -%>
+<ul style="list-style: none;">
+<% if @segments.size > 0 -%>
+<li>
+<label><%= radio_button_tag 'choice', 'existing', :checked => true %> Existing Segment</label>
+</li>
+
+<li style="padding:5px 0 10px 25px">
+<%= f.select :id, options_for_select(@segments.collect { |s| [s.name, s.id]}) %>
+</li>
+
+<li>
+<label><%= radio_button_tag 'choice', 'new' %> New Segment</label>
+</li>
+
+<% else -%>
+<%= hidden_field_tag 'choice', 'new' %>
+<% end -%>
+
+<li style="padding:5px 0 5px 25px;">
+Name <%= f.text_field :name %>
+</li>
+<li style="padding:5px 0 5px 25px;">
+Order By <%= f.select :order_by, UserSegment.order_by_options %>
+</li>
+
+<li style="text-align:right; padding-right: 10px;">
+<%= f.cancel_submit_buttons 'Close', 'Submit', {:onclick => 'SCMS.closeOverlay();'} %>
+</li>
+</ul>
+<% end -%>
+
+</div>

@@ -130,7 +130,7 @@ class ParagraphController < CmsController
     if request.post?
       if opts.valid?
         @paragraph.data = opts.to_h
-        @paragraph.site_feature_id = params[:site_feature_id]
+        @paragraph.site_feature_id = params[:site_feature_id] if params.has_key?(:site_feature_id)
         @paragraph.save
         render_paragraph_update
         return true
@@ -161,6 +161,9 @@ class ParagraphController < CmsController
       @container_cls = @container_type.camelcase.constantize
       @page = @container_cls.find(params[:path][1])
       @site_node = @container_type == 'site_node' ? @page : @page.site_node
+      @version = @site_node.site_version
+      SiteVersion.override_current(@version)
+      
       @revision = @page.page_revisions.find(params[:path][2])
       @paragraph = @revision.page_paragraphs.find(params[:path][3])
       @paragraph_index = params[:path][4].to_i
@@ -206,8 +209,8 @@ class ParagraphController < CmsController
 =end  
   def self.editor_for(paragraph,args = {})
     editors = self.get_editor_for || []
-    args[:features] = [ args[:feature] ] if args[:feature]
-    args[:feature] = args[:features][0] if args[:features].is_a?(Array)
+    args[:features] = [ args[:feature].to_s ] if args[:feature]
+    args[:feature] = args[:features][0].to_s if args[:features].is_a?(Array)
     args[:name] ||= paragraph.to_s.titleize
     editors << [ paragraph, args ]
     sing = class << self; self; end

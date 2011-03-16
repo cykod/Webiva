@@ -1,5 +1,5 @@
 <div class='admin_content'>
-<% cms_form_for :user_options, @user, :html => {:class => 'admin_form' } do |f| %>
+  <% cms_form_for :user_options, @user, :html => {:class => 'admin_form', :autocomplete => 'off' } do |f| %>
 
 <%= f.text_field :email %>
 <%= f.text_field :first_name %>
@@ -12,6 +12,6 @@
 <%= f.password_field :password %>
 <%= f.password_field :password_confirmation, :label => 'Confirm' %>
 
-<%= f.submit_cancel_tags 'Submit','Cancel', {}, { :onclick => "document.location='#{url_for :action => 'index' }'; return false;" } %>
+<%= f.cancel_submit_buttons %>
 <% end -%>
 </div>

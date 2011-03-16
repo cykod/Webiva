@@ -23,21 +23,27 @@ FileEditor = {
 	nodeSelected: null,
 	loadRequest:0,
   iconLoadRequest:0,
-  
+
+  updateAvailableStorage: function() {
+    <%= remote_function :url => { :action => "update_storage" } %>;
+  },
+
   view: function(view_type) {
     if(view_type == 'list') {
         $('view_icon').className = 'image_icon';
         $('view_list').className = 'image_icon_selected';
         FileEditor.display = 'list';
-        $('file_manager').className = 'file_manager_list';
+        $('file_manager').className = 'file_manager_list clearfix';
         FileEditor.updateIconSizes();
+        $j(window).resize();
     }
     else if(view_type == 'icon') {
         $('view_icon').className = 'image_icon_selected';
         $('view_list').className = 'image_icon';
         FileEditor.display = 'icon';
-        $('file_manager').className = 'file_manager_icon';
+        $('file_manager').className = 'file_manager_icon clearfix';
         FileEditor.updateIconSizes();
+        $j(window).resize();
     }
   },
   
@@ -63,6 +69,7 @@ FileEditor = {
       if(selectedSize != FileEditor.iconSizeName) {
         FileEditor.reloadThumbImages(selectedSize);
       }
+        $j(window).resize();
     }
     
     
@@ -239,22 +246,30 @@ FileEditor = {
 		
 	
 	},
-	
-	createSizeSlider:function() {
 
-		                         var slider = new Control.Slider('size_slider', 'size_slider_container', 
+  showSizeSlider:function() {
+    $j('#slider_wrapper').show();
+           var slider = new Control.Slider('size_slider', 'size_slider_container', 
 					 { 
 					 increment:16,
 					 range:$R(FileEditor.minIconSize,FileEditor.maxIconSize),
 					 alignX: 0, 
 					 alignY: 0,
+           minimum: 0,
+           increment: 1,
+           maximum: 84,
 					 sliderValue: FileEditor.iconSize,
 					 values: FileEditor.iconSizes,
 					 onChange: function(v) {  FileEditor.adjustIconSize(v.toFixed(),true); } ,
 					 onSlide:  function(v) {  FileEditor.adjustIconSize(v.toFixed(),false); } 
 					 });	
-	                                 
+
+
+          },
 	
+	createSizeSlider:function() {
+       $j('#slider_wrapper').hover(function() {}, function() { $j(this).hide(); });
+       $j('#view_slider').click(function() { FileEditor.showSizeSlider(); });
 	},
 	
 	// Draggable & Droppable Functions 
@@ -262,7 +277,8 @@ FileEditor = {
 	fmCreateDraggable: function (elem) {
     if(elem && elem.id != '') { 
       var draggable = new Draggable(elem.id,
-      { handle: 'handle_' + elem.id,
+          { 
+        handle: 'handle_wrapper_' + SCMS.getElemNum(elem.id),
         revert:true,
         scroll: window,
         starteffect: FileEditor.iconStartDrag,
@@ -289,42 +305,44 @@ FileEditor = {
   },	
   
   iconStartDrag: function(elem) {
+    $(elem).addClassName('fm_dragging');
     var elem_id = SCMS.getElemNum(elem);
     
     if(FileEditor.selectedItems.indexOf(elem_id)==-1) {
       FileEditor.clearHighlight();
-  		new Effect.Opacity('handle_item_' + elem_id,{duration:0.25,from:1.0,to:0.50});
+      $j('#handle_item_' + elem_id).stop().fadeTo(250,0.5);
     } else if(FileEditor.selectedItems.length > 1)  {
       FileEditor.selectedItems.each(function(elm) {
-        new Effect.Opacity('handle_item_' + elm,{duration:0.25,from:1.0,to:0.20});
+        $j('#handle_item_' + elm).stop().fadeTo(250,0.5);
         Droppables.remove('item_' + elm);
       });
       var cnt = elem.select('.fm_item_count')[0];
       cnt.innerHTML = FileEditor.selectedItems.length + " Items";
       cnt.show();
     } else {
-        new Effect.Opacity('handle_item_' + elem_id,{duration:0.25,from:1.0,to:0.50});
+      $j('#handle_item_' + elem_id).stop().fadeTo(250,0.5);
     }
-    
+
 	},
 	
 	iconStopDrag: function(elem) {
-	 var elem_id = SCMS.getElemNum(elem);
-   FileEditor.cancelSelect = true; 
+   $(elem).removeClassName('fm_dragging');
+   clearTimeout(FileEditor.cancelSelectTimer);
    
+	 var elem_id = SCMS.getElemNum(elem);
+      
     if(FileEditor.selectedItems.indexOf(elem_id)==-1) {
       if($('handle_item_' + elem_id))
-    		new Effect.Opacity('handle_item_' + elem_id,{duration:0.25,from:0.50,to:1.0});
+        $j('#handle_item_' + elem_id).stop().fadeTo(25,1.0);
     } else if(FileEditor.selectedItems.length > 1)  {
+      FileEditor.cancelSelect = true; 
       FileEditor.selectedItems.each(function(elm) {
-        if($('handle_item_' + elm))
-      		new Effect.Opacity('handle_item_' + elm,{duration:0.25,from:0.20,to:1.0});
+        $j('#handle_item_' + elm).stop().fadeTo(25,1.0);
       });
       FileEditor.recreateFolderDroppables();
     } 
     else {
-      if($('handle_item_' + elem_id))
-    		new Effect.Opacity('handle_item_' + elem_id,{duration:0.25,from:0.50,to:1.0});
+      $j('#handle_item_' + elem_id).stop().fadeTo(25,1.0);
     }
     var cnt = elem.select('.fm_item_count')[0];
     if(cnt) cnt.hide();
@@ -348,23 +366,23 @@ FileEditor = {
   deleteRevision: function(revision_id) {
     if(confirm('<%= jh "Delete this revision?".t %>')) {
       var req = $H({ revision_id: revision_id });
-  		new Ajax.Request('<%= url_for :controller => "file", :action => "delete_revision" %>',
-				{ parameters : req.toQueryString() + FileEditor.sizeParameters() });                 
-		}
+      FileEditor.processRequest('<%= url_for :controller => "file", :action => "delete_revision" %>',
+                                req.toQueryString() + FileEditor.sizeParameters());
+    }
   },
   
   extractRevision: function(revision_id) {
     if(confirm('<%= jh "Extract this revision into it's own file?".t %>')) {
       var req = $H({ revision_id: revision_id });
-		  new Ajax.Request('<%= url_for :controller => "file", :action => "extract_revision" %>',
-			  { parameters : req.toQueryString() + FileEditor.sizeParameters() });                 
-		}
+      FileEditor.processRequest('<%= url_for :controller => "file", :action => "extract_revision" %>',
+                                req.toQueryString() + FileEditor.sizeParameters());
+    }
   }, 
   
   copyFile: function(file_id) {
     var req = $H({ file_id: file_id });
-		new Ajax.Request('<%= url_for :controller => "file", :action => "copy_file" %>',
-			{ parameters : req.toQueryString() + FileEditor.sizeParameters() });                 
+    FileEditor.processRequest('<%= url_for :controller => "file", :action => "copy_file" %>',
+                              req.toQueryString() + FileEditor.sizeParameters());
   },
   
   
@@ -374,9 +392,9 @@ FileEditor = {
     
     if(drag_details.id == drop_details.id) return false;
     if(confirm("Replace '" + drop_details.name + "' with the file '" + drag_details.name + "' ?")) {
-      	var req = $H({ file_id: drop_details.id, replace_id: drag_details.id });
-    		new Ajax.Request('<%= url_for :controller => "file", :action => "replace_file" %>',
-					{ parameters : req.toQueryString() + FileEditor.sizeParameters() });               
+      var req = $H({ file_id: drop_details.id, replace_id: drag_details.id });
+      FileEditor.processRequest('<%= url_for :controller => "file", :action => "replace_file" %>',
+				req.toQueryString() + FileEditor.sizeParameters());
     }
   },
 	
@@ -399,7 +417,7 @@ FileEditor = {
   
 	
 	createTreeFolderDroppable: function(elem) {
-		var dropTitle = getChild(elem,'node_line');
+		var dropTitle = $(elem).select('.node_line')[0];
 		
 		return Droppables.add(dropTitle.id, { 
 			hoverclass:'node_accept',
@@ -424,7 +442,7 @@ FileEditor = {
 		FileEditor.selectTreeNode(null);
 		elem.saved_bg = elem.style.backgroundImage;
 		elem.style.backgroundImage = 'none';
-		var droppable = getChild(elem,'node_line');
+		var droppable= $(elem).select('.node_line')[0];
 		Droppables.remove(droppable.id);
 	},
 	
@@ -437,7 +455,7 @@ FileEditor = {
 	
 	// Tree Related Functions
 	refreshNodeView: function(nodeDiv) {
-		var updateDiv = getChild(nodeDiv,'node_children');
+		var updateDiv = $(nodeDiv).select('.node_children')[0];
 	
 		var elems = getChildElementsByClass(updateDiv,'node');
 		
@@ -481,7 +499,7 @@ FileEditor = {
 	  var moved_folder = $('node_element_' + moved_folder_id);
 	  var dest_folder = $('node_element_' + dest_folder_id);
 	  
-	  var dest_children = getChild(dest_folder,'node_children');
+    var dest_children =  $(dest_folder).select('.node_children')[0];
 	  
 	  var moved_folder_parent_children = moved_folder.parentNode;
 	  var moved_folder_parent = moved_folder_parent_children.parentNode;
@@ -522,7 +540,10 @@ FileEditor = {
 	
 	selectTreeNode: function(folder_id) {
 		FileEditor.gotoFolder(folder_id);
-	
+	  if(folder_id && folder_id != 1)
+      FileEditor.selectedItems = [ folder_id ];
+    else
+      FileEditor.selectedItems = [];
 	},
 	
 	highlightTreeFolder:function(folder_id) {
@@ -603,6 +624,8 @@ FileEditor = {
 									$('file_manager').style.visibility='visible';
 									setTimeout("FileEditor.recreateElementDraggables();",50);
 									setTimeout("FileEditor.recreateFolderDroppables();",50);
+                  FileEditor.adjustDetailHeight();
+
 								}
 							}
 						});
@@ -696,41 +719,45 @@ FileEditor = {
   	
   	
   	
-  	deleteSelected: function() {
+  	deleteSelected: function(file_ids) {
   	  if(confirm('<%= jh "Are you sure you want to delete the selected item(s)?" %>')) {
-  	      var itms = FileEditor.selectedItems;
+          var loadParent = null
+          if(file_ids && file_ids[0] == FileEditor.nodeSelected) {
+                loadParent = SCMS.getElemNum($('node_element_' + FileEditor.nodeSelected).parentNode);
+          }
+  	      var itms = file_ids ? file_ids : FileEditor.selectedItems;
   	      var req = $H({ 'file_id[]' : itms });
-		      new Ajax.Request('<%= url_for :controller => "file", :action => "delete_files" %>',
-					      {  parameters : req.toQueryString()  + FileEditor.sizeParameters(),
-					         onComplete: function(response) {
-					            FileEditor.clearHighlight();  
-					            itms.each(function(item_id) { FileEditor.removeItem(item_id); });
-					            FileEditor.hideDetails();
-					         } });               
-			}
+              FileEditor.processRequest('<%= url_for :controller => "file", :action => "delete_files" %>',
+	                                req.toQueryString()  + FileEditor.sizeParameters(),
+	                                function(response) {
+			                  FileEditor.clearHighlight();  
+					  itms.each(function(item_id) {FileEditor.removeItem(item_id);});
+					  FileEditor.hideDetails();
+					  FileEditor.updateAvailableStorage();
+                                          if(loadParent)
+	                                    FileEditor.gotoFolder(loadParent);
+					});
+          }
   	},
 	
-	
+      folderArchive: function(id) {
+      if(confirm('Create a zip of this folder? (This may take some time, you will need to reload this folder to view the archive)')) {
+         new Ajax.Request("<%= url_for :action => 'folder_archive' %>", { parameters: 'folder_id=' + id });
+      }
+      
+      },
     
     // File Upload Functions
     selectedChange: function() {
     	var filename = $('file_column').value;
-    	$('upload_extra').checked='false';
     	Element.hide('upload_status_area');
     	var compressed_extensions = ['.gz','.zip','.tar'];
-    	if(compressed_extensions.indexOf(SCMS.get_file_extension(filename)) != -1) {
-	    	new Effect.Appear('upload_extra', { duration: 0.5 } );
-    	}
-    	else {
-    		Element.hide('upload_extra');
-    	}
-    	$('upload_button').disabled = false;
-
     },
 
     uploadProgressID: null,
     
     startUpload:function(form) {
+        FileEditor.selectUpload();
         var uuid = "";
 	for (i = 0; i < 32; i++) { uuid += Math.floor(Math.random() * 16).toString(16); }
         form.action = "<%= url_for :action => 'upload' -%>?X-Progress-ID=" + uuid;
@@ -743,7 +770,14 @@ FileEditor = {
         setTimeout("FileEditor.uploadProgress()",100);
     },
 
-   
+    switchFileProcessor: function(file_id,processor) {
+      if(confirm("<%= 'Are you sure you want to switch the storage processor on this file?' %>")) {
+         new Ajax.Request('<%= url_for :action => "switch_processor" %>',
+                        { parameters: "file_id=" + file_id + '&file_processor=' + processor }
+                         );
+      }
+    
+    },
 
     uploadProgress: function()  {
       var progress_url = "/website/file/progress?X-Progress-ID=" + FileEditor.uploadProgressID;
@@ -790,7 +824,6 @@ FileEditor = {
 
     manageUploads: function(errors) {
       $('file_column').value = '';
-      Element.hide('upload_extra');
       if(errors) {
       	alert(errors);
       }
@@ -811,6 +844,14 @@ FileEditor = {
             });    
       new Ajax.Request( '<%= url_for :controller => "file", :action => "file_manager_update" %>',
                         { parameters: params.toQueryString()  + FileEditor.sizeParameters() }   );
+    },
+
+    processingFile: function(processingKey) {
+
+    var params = $H({ processing_key: processingKey
+            });    
+      new Ajax.Request( '<%= url_for :controller => "file", :action => "processing_file" %>',
+                        { evalScripts:true, parameters: params.toQueryString() }   );
     },
     // Utility Functions
     
@@ -874,9 +915,8 @@ FileEditor = {
     },
     
     nameChangeApply: function(file_id) {
-      
       var params = Form.serialize('fm_file_name_form_form') + "&file_id=" + file_id + FileEditor.sizeParameters();
-      new Ajax.Request("<%= url_for :action => 'rename_file' %>",{ parameters: params });
+      FileEditor.processRequest("<%= url_for :action => 'rename_file' %>", params);
     },
     
     
@@ -900,19 +940,14 @@ FileEditor = {
     makeFilePublic: function(file_id) {
     if(confirm("<%= 'Are you sure you want to make this file freely accessible via the web?'.t %>")) {
         var file_info = $('item_' + file_id).file_info;
-        new Ajax.Request('<%= url_for :action => "make_public" %>',
-                        { parameters: "file_id=" + file_id + FileEditor.sizeParameters()  }
-                         );
-
+        FileEditor.processRequest('<%= url_for :action => "make_public" %>', "file_id=" + file_id + FileEditor.sizeParameters());
       }
     },
 
     makeFilePrivate: function(file_id) {
       if(confirm("<%= jh 'Are you sure you want to make this file private? It will not be accessible via the web unless a file element is created.'.t %>")) {
         var file_info = $('item_' + file_id).file_info;
-        new Ajax.Request('<%= url_for :action => "make_private" %>',
-                        { parameters: "file_id=" + file_id + FileEditor.sizeParameters()  }
-                         );
+        FileEditor.processRequest('<%= url_for :action => "make_private" %>', "file_id=" + file_id + FileEditor.sizeParameters());
       }
     },
     
@@ -973,7 +1008,7 @@ FileEditor = {
               alert('<%= "Private files cannot be added to pages. Use the File Element from the page structure instead.".t %>');
             }
             else {
-              <%= @callback || 'callback'%>('<%= @field %>',info.file_type,file_id,info.name,info.editor_url,info.thumb_url,info.name);
+              <%= @callback || 'callback'%>('<%= @field %>',info.file_type,file_id,info.name,info.editor_url,info.thumb_editor_url,info.name);
               setTimeout('window.close();',20);
             }
           }
@@ -1042,20 +1077,24 @@ FileEditor = {
 	      var params = $H({ file_id: file_id });
 	      
       	new Ajax.Request("<%= url_for :action => 'load_details' %>",
-					    { parameters: params.toQueryString() + FileEditor.sizeParameters() }
+            { parameters: params.toQueryString() + FileEditor.sizeParameters(),
+onComplete: function(req) {  FileEditor.adjustDetailHeight();} }
 				    );
 				    
 				FileEditor.selecting = null;
 	    },
     
     
-    showDetails: function() { $('file_manager_details').style.visibility='visible'; },
+    showDetails: function() { 
+                   $('file_manager_details').style.visibility='visible'; 
+                                 
+                 },
     showDetailsLoading: function() {
-      $('file_manager_body').innerHTML = 'Loading Details...';
+      $('file_manager_body').innerHTML = '<div class="tree_detail_body">Loading Details...</div>';
       FileEditor.showDetails();
     },
     hideDetails: function() { $('file_manager_details').style.visibility='hidden'; },
-    
+
     selecting: null,
     
     fileClick:function(event) {
@@ -1084,20 +1123,28 @@ FileEditor = {
         FileEditor.callbackFile(elem_id);
       }
     },
-    
+
+    adjustDetailHeight: function() {
+                          $j('#element_info').css('min-height',$j('#file_manager_body').height() - 28); 
+
+    },
+
     
     showSelection:function(elements,finalized) {
       if(elements.length > 0) {
         FileEditor.showDetails();
-        $('file_manager_body').innerHTML = "<b>" + elements.length + " <%= jh 'Files & Folders Selected'.t %>:</b><br/>";
-        $('file_manager_body').innerHTML += elements.map(function(elm) { 
+        html = "<div class='tree_detail_body'>" 
+        html += "<b>" + elements.length + " <%= jh 'Files & Folders Selected'.t %>:</b><br/>";
+        html += elements.map(function(elm) { 
           var txt =  $('item_' + elm).file_info.short_name;
           if($('item_' + elm).file_info.file_type == 'fld')
             txt = "<i>" + txt + " (Folder)</i>"
           return txt;
           }).join(",<br/>");
         if(finalized) {
-          $('file_manager_body').innerHTML += "<br/><br/><button onclick='FileEditor.deleteSelected(); return false;'>Delete Selected Files</button>";
+          html += "<br/><br/><button class='button_link' onclick='FileEditor.deleteSelected(); return false;'>Delete Selected Files</button>";
+          $('file_manager_body').innerHTML = html;
+          FileEditor.adjustDetailHeight();
         }
       }
       else {
@@ -1113,8 +1160,7 @@ FileEditor = {
     saveFile: function(file_id,contents) {
       var params = $H({file_id: file_id,
                       contents: contents});
-      new Ajax.Request("<%= url_for :action=>'edit_file' %>",
-                        { parameters: params.toQueryString() });
+      FileEditor.processRequest("<%= url_for :action=>'edit_file' %>", params.toQueryString());
     },
     
     selectFile:function(file_id) {
@@ -1165,6 +1211,11 @@ FileEditor = {
       
       var pos = $('element_info').cumulativeOffset();
       var dim = $('element_info').getDimensions();
+      if($('file_pagination')) {
+        var elem_height = $('file_pagination').getDimensions().height + 20;
+        pos[1] += elem_height;
+        dim.height -= elem_height;
+      }
       if(FileEditor.dragX > pos[0] && FileEditor.dragY > pos[1] &&
          FileEditor.dragX < (pos[0] + dim.width) &&  FileEditor.dragY < (pos[1] + dim.height) ) {
         // If we don't have a control key held down
@@ -1336,8 +1387,6 @@ FileEditor = {
      // Search Functions
 
      selectSearch: function() {
-        $('folder_action_area').hide();
-        $('search_action_area').show();
         $('search_search').focus();                                                                     
         if(this.searchRun) {
          $('filemanager_files').hide();
@@ -1347,10 +1396,9 @@ FileEditor = {
      },
 
      selectUpload: function() {
-        $('folder_action_area').show();
-        $('search_action_area').hide();
         $('filemanager_files').show();
         $('filemanager_search').hide();
+        $j('#search_search').select().focus();
      },
 
      searchRun: false,
@@ -1373,20 +1421,33 @@ FileEditor = {
      
      disableDragbox: function() {
        FileEditor.dragDisabled = true;
-     }
+     },
      
+     showProcessing: function() {
+       SCMS.overlay("<%= jh render :partial => '/file/processing_file' %>");
+     },
 
-  
+     closeProcessing: function() {
+       SCMS.closeOverlay();
+     },
+
+     processRequest: function(url, params, onComplete) {
+       FileEditor.showProcessing();
+       new Ajax.Request(url, {parameters: params, onComplete: function(response) {if(onComplete) {onComplete(response);} FileEditor.closeProcessing();}});
+     }
 };
 
 //if the browser is IE4+
-document.onselectstart=new Function ("return false")
-
+document.onselectstart=new Function ("return false");
 Event.observe(window,'load',FileEditor.init);
-Event.observe(window,'resize',FileEditor.onResize);
-Event.observe(window,'mousemove',FileEditor.dragBox);
-Event.observe(window,'mouseup',FileEditor.endDrag);
-Event.observe(window,'mousedown',FileEditor.startDrag);
-</script>
+
+// Can't use Event.observe b/c we want the return value to
+// prevent highlighting
+window.onresize = FileEditor.onResize;
+window.onmousemove = FileEditor.dragBox;
+window.onmouseup =  FileEditor.endDrag;
+window.onmousedown = FileEditor.startDrag;
+
+$j(document).ready(function() { $j('#search_search').select().focus(); });
 
 </script>

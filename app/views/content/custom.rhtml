@@ -1,26 +1,34 @@
-<div class='admin_content'>
-
-  <div class='action_panel'>
-  <ul>
-    <li><a href='<%= url_for :action => 'new' %>'><%= theme_icon("action","icons/actions/add.gif",:align => 'absmiddle' ) %><%= "Create a New Custom Content Model".t %></a></li>
-  </ul>
-  </div>
-
-  <div class='clear'></div>
-</div>
-<hr/>
+<% action_panel do |p| %>
+  <%= p.link "Create a new Custom Content Model", :action => "new", :icon => "add.png" %>
+<% end -%> 
 
 <div class='admin_content'>
 
-<% table_for @content_models, ['Name','Entries','Description','Publications' ,'Fields'], :class => 'active_table', :style=>'width:100%;' do |mdl| %>
+<div class='active_table_wrapper'>
+
+<% table_for @content_models, ['Name','Entries','Description','Publications' ,'Fields'], :class => 'active_table'  do |mdl| %>
 <tr <%= highlight_row "tools",mdl.id %>>
-  <td><%= link_to mdl.name, :action => 'view',:path => mdl.id %></td>
-  <td align='center' style='width:30px;'><%= mdl.content_model.count %></td>
+  <td>
+    <% if mdl.table_name -%>
+    <%= link_to mdl.name, :action => 'view',:path => mdl.id %>
+  <% else -%>
+    <%= link_to "INVALID MODEL: #{mdl.name} (Destroy)", :action => 'destroy', :path => mdl.id %>
+  <% end -%>
+  
+  </td>
+  <td align='center' style='width:30px;'><%= mdl.table_name ?  mdl.content_model.count : "INVALID" %></td>
   <td><%= mdl.description %></td>
-  <td style='width:60px;' align='center'><a href='<%=  url_for :action => 'publications',:path => mdl.id %>'><%= theme_image_tag 'icons/table_actions/publications.gif' %></a></td>
-  <td style='width:60px;' align='center'><a href='<%=  url_for :action => 'edit',:path => mdl.id %>'><%= theme_image_tag 'icons/table_actions/edit.gif' %></a></td>
+  <% unless !mdl.table_name -%>
+  <td style='width:60px;' align='center'>
+    <a href='<%=  url_for :action => 'publications',:path => mdl.id %>'><%= theme_image_tag 'icons/table_actions/publications.gif' %></a>
+  </td>
+  <td style='width:60px;' align='center'>
+    <a href='<%=  url_for :action => 'edit',:path => mdl.id %>'><%= theme_image_tag 'icons/table_actions/edit.gif' %></a>
+  </td>
+<% end -%>
   
 <% end -%>
 </table>
+</div>
 
 </div>

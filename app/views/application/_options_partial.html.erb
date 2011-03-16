@@ -9,6 +9,8 @@
          else 
             opts = options.send(opts) 
          end
+        elsif opts.is_a?(Proc)
+          opts = opts.call
         end
         f.send(field.field_type,field.name,opts,field_options) -%>
   <% else -%>

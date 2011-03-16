@@ -2,7 +2,7 @@ class AddSystemProblems < ActiveRecord::Migration
   def self.up
     create_table "system_issues", :force => true do |t|
       t.column :reported_at, :datetime
-      t.column :reporting_domain, :string
+      t.column :reporting_domain, :string, :limit => 80
       
       t.column :reporter_user_type, :string
       t.column :reporter_user_id, :integer
@@ -17,7 +17,7 @@ class AddSystemProblems < ActiveRecord::Migration
       
       t.column :reproducible, :boolean, :default => false
       
-      t.column :location, :string
+      t.column :location, :string, :limit => 160
       t.column :behavior, :text
       t.column :expected_behavior, :text
     end

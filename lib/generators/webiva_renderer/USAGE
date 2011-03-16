@@ -1,0 +1,9 @@
+Webiva Renderer Options:
+    <module path>/<render path>      Required, directory name of the module in vendor/modules/... and the name of the renderer.
+    [<paragraphs>]                   Optional, names of the paragraphs to create.
+
+Example:
+    ./script/generate webiva_renderer blog/page recent_posts post
+
+    This will create a Blog::PageRenderer with 2 paragraphs, recent_posts and post.
+

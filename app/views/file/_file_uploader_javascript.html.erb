@@ -1,0 +1,234 @@
+<script>
+
+FileUploader = {
+  files: null,
+  uploadForm: null,
+  uploadPlace: null,
+
+  canSupportDragDrop: function() {
+    return window.FileReader != null;
+  },
+
+  drop: function(event) {
+    event.preventDefault();
+    if(FileUploader.files != null) { alert( '<%= "Please wait for upload to finsih".t %>' ); return; }
+
+    var dt = event.dataTransfer;
+    var files = dt.files;
+    if(files == null || files.length <= 0) { return; }
+
+    FileUploader.files = new Array();
+
+    if(FileEditor) {
+      FileEditor.startUpload(this);
+      FileEditor.hideDetails();
+    }
+
+    for(var i=0; i<files.length; i++) {
+      var file = files[i];
+      file.reader = null;
+      file.content = null;
+      file.error = null;
+      file.progress = null;
+      FileUploader.files.push(file);
+    }
+
+    FileUploader.read();
+  },
+
+  read: function() {
+    for(var i=0; i<FileUploader.files.length; i++) {
+      (function() {
+        var file = FileUploader.files[i];
+        file.reader = new FileReader();
+        file.progress = {loaded: 0, percentage: 0, total: 0};
+        if(file.reader.addEventListener) {
+          file.reader.addEventListener('loadend', function(e) { FileUploader.loadEnd(file, e); }, false);
+          file.reader.addEventListener('error', function(e) { FileUploader.loadError(file, e); }, false);
+          file.reader.addEventListener('progress', function(e) { FileUploader.loadProgress(file, e); }, false);
+        } else {
+          file.reader.onloadend = function(e) { FileUploader.loadEnd(file, e); };
+          file.reader.onerror = function(e) { FileUploader.loadError(file, e); };
+          file.reader.onprogress = function(e) { FileUploader.loadProgress(file, e); };
+        }
+        file.reader.readAsBinaryString(file);
+       })();
+    }
+  },
+
+  loadEnd: function(file, event) {
+    file.content = file.reader.result;
+    if(file.content == null && file.error == null) {
+      file.error = 'No data loaded';
+    }
+    FileUploader.upload();
+  },
+
+  loadProgress: function(file, event) {
+    if (event.lengthComputable) {
+      file.progress.loaded = event.loaded;
+      file.progress.total = event.total;
+      file.progress.percentage = Math.round((event.loaded * 100) / event.total);
+    }
+  },
+
+  loadError: function(file, event) {
+    switch(event.target.error.code) {
+      case event.target.error.NOT_FOUND_ERR:
+        file.error = 'File not found!';
+      break;
+      case event.target.error.NOT_READABLE_ERR:
+        file.error = 'File not readable!';
+      break;
+      case event.target.error.ABORT_ERR:
+        file.error = 'File read aborted!';
+      break;
+      default:
+        file.error = 'Read error.';
+    }
+  },
+
+  canUpload: function() {
+    if(FileUploader.files == null) { return false; }
+
+    for(var i=0; i<FileUploader.files.length; i++) {
+      var file = FileUploader.files[i];
+      if(file.content == null && file.error == null) { return false; }
+    }
+
+    return true;
+  },
+
+  upload: function() {
+    try {
+      FileUploader._upload();
+    } catch(err) {
+      body = null;
+      delete(xhr);
+      alert( '<%= "Upload failed out of memory, try sending less files or use file upload form.".t %>' );
+      FileEditor.finishedProcessing();
+      FileUploader.reset();
+      return;
+    }
+  },
+
+  _upload: function() {
+    if(FileUploader.canUpload() == false) { return; }
+
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function(){
+      if(xhr.readyState == 4) {
+        var data = $j.parseJSON(xhr.responseText);
+        FileEditor.uploadFinished( data.processing_key );
+      }
+    }
+
+    xhr.upload.addEventListener("progress", function(e) {
+      var received = Number(e.position);
+      var size = Number(e.totalSize);
+      if(size > 0) {
+        var percent = Math.round(100 * received / size);
+        var width = percent * 4;
+        if(percent == 100) {
+          $('upload_progress').innerHTML = "<%= 'Writing File...'.t -%>";
+        } else {
+          percent = percent + "%"
+          var progress_html  = "<div class='progress_bar'><div class='progress' style='width:" + width + "px;'></div>";
+          progress_html += "<div class='progress_indicator'>" + percent + "</div></div>";
+          $('upload_progress').innerHTML = progress_html;
+        }
+      }
+    }, false );
+
+    var canSendAsBinary = xhr.sendAsBinary != null;
+
+    var frm = $j('#' + FileUploader.uploadForm);
+    xhr.open('POST', frm.attr('action'), true );
+    var boundary = '---------------------------';
+    for(var i=0; i<25; i++) {
+      boundary += Math.floor(Math.random()*10).toString();
+    }
+
+    var body = '';
+    body += '--' + boundary + "\r\n";
+    body += "Content-Disposition: form-data; name=\"format\"\r\n\r\n";
+    body += "json\r\n";
+
+    var values = frm.serializeArray();
+    for(var i=0; i<values.length; i++) {
+      var value = values[i];
+      body += '--' + boundary + "\r\n";
+      body += "Content-Disposition: form-data; name=\"" + value.name + "\"\r\n\r\n";
+      body += value.value + "\r\n";
+    }
+
+    if(! canSendAsBinary) {
+      body += '--' + boundary + "\r\n";
+      body += "Content-Disposition: form-data; name=\"upload_file[encoding]\"\r\n\r\n";
+      body += "base64\r\n";
+    }
+
+    var numErrors = 0;
+    var totalFiles = FileUploader.files.length;
+    while(FileUploader.files.length > 0) {
+      var file = FileUploader.files.pop();
+      if(file.error) { numErrors++; continue; }
+
+      body += '--' + boundary + "\r\n";
+      body += "Content-Disposition: form-data; name=\"upload_file[filename][]\"; filename=\"" + file.name + "\"\r\n";
+      if(! canSendAsBinary) {
+        body += "Content-Transfer-Encoding: base64\r\n";
+      }
+
+      contentType = 'application/octet-stream';
+      if(file.type && file.type != "") {
+        contentType = file.type;
+      }
+
+      body += "Content-Type: " + contentType + "\r\n\r\n";
+      body += canSendAsBinary ? file.content : window.btoa(file.content);
+      body += "\r\n";
+      delete(file);
+    }
+
+    body += '--' + boundary;
+    body += '--';
+
+    if(numErrors > 0 && numErrors == totalFiles) {
+      alert( "Problem reading files" );
+      return;
+    }
+
+    xhr.setRequestHeader('content-type', 'multipart/form-data; boundary=' + boundary);
+    // Firefox 3.6 provides a feature sendAsBinary ()
+    if(canSendAsBinary) {
+      xhr.sendAsBinary(body);
+    // Chrome 7 sends data but you must use the base64_decode on the PHP side
+    } else {
+      xhr.send(body);
+    }
+
+    body = null;
+    delete(xhr);
+  },
+
+  reset: function() {
+    FileUploader.files = null;
+  },
+
+  init: function(formName, place) {
+    if(! FileUploader.canSupportDragDrop) { return; }
+
+    FileUploader.uploadForm = formName;
+
+    FileUploader.uploadPlace = document.getElementById(place);
+    FileUploader.uploadPlace.addEventListener("dragover", function(event) {
+                                                            event.stopPropagation();
+                                                            event.preventDefault();
+                                                          }, true);
+
+    FileUploader.uploadPlace.addEventListener("drop", function(e) { FileUploader.drop(e); }, false);
+  }
+}
+
+</script>

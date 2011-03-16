@@ -7,7 +7,7 @@ module HandlerActions
     base.extend(ClassMethods)
   end
   
-  def get_handlers(component,handler,initialized=false)
+  def get_handlers(component,handler=nil,initialized=false)
     self.class.get_handlers(component,handler,initialized)
   end
   
@@ -40,9 +40,8 @@ module HandlerActions
   
   module  ClassMethods
 
-    def get_handlers(component,handler,initialized = false)
-      component = component.to_sym; handler = handler.to_sym
-      handlers = DataCache.get_cached_container("Handlers","Active") unless initialized || RAILS_ENV == 'development'
+    def get_handlers(component,handler=nil,initialized = false)
+      handlers = DataCache.get_cached_container("Handlers","Active") unless initialized || RAILS_ENV != 'production'
       unless handlers
         mods = initialized ? SiteModule.initialized_modules_info :  SiteModule.enabled_modules_info
         handlers = {}
@@ -68,16 +67,29 @@ module HandlerActions
         end
         DataCache.put_container("Handlers","Active",handlers)  unless initialized || RAILS_ENV == 'development'
       end
-      return (handlers[component]||{})[handler] || []
 
+      if handler
+        (handlers[component.to_sym]||{})[handler.to_sym] || []
+      else
+        (handlers[component.to_sym] || {}).values.inject([]) { |a,b| a.concat(b) }
+      end
     end
-    
+
     def get_handler_options(component,handler_name,initialized=false)
       handlers = get_handlers(component,handler_name,initialized)
       handlers.collect do |handler|
         cls = handler[0].constantize
-        [ cls.send("#{component}_#{handler_name}_handler_info")[:name].t, handler[0].underscore ]
-      end
+
+        if block_given?
+          if yield handler, cls
+            [ cls.send("#{component}_#{handler_name}_handler_info")[:name].t, handler[0].underscore ]
+          else
+            nil
+          end
+        else
+          [ cls.send("#{component}_#{handler_name}_handler_info")[:name].t, handler[0].underscore ]
+        end
+      end.compact
     end
     
     def get_handler_info(component,handler_name,identifier=nil,initialized=false)

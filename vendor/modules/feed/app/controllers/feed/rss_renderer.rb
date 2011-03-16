@@ -9,37 +9,53 @@ class Feed::RssRenderer < ParagraphRenderer
   paragraph :rss_auto_discovery, :cache => true
   
   def feed
-    @options = (paragraph.data || {}).symbolize_keys
+    paragraph_data = (paragraph.data || {}).symbolize_keys
     
-    @handler_info = get_handler_info(:feed,:rss,@options[:feed_type])
+    @handler_info = get_handler_info(:feed,:rss,paragraph_data[:feed_type])
 
     
-    if(!@handler_info || !@options[:feed_identifier])
+    if ! @handler_info
       data_paragraph :text => 'Reconfigure RSS Feed'.t
       return
     end
     
-    @handler = @handler_info[:class].new(@options[:feed_identifier],@options)
+    handler_options_class = nil
+    begin
+      handler_options_class = "#{@handler_info[:class_name]}::Options".constantize
+    rescue
+    end
+
+    if handler_options_class.nil?
+      data_paragraph :text => 'Reconfigure RSS Feed'.t
+      return
+    end
+
+    @options = handler_options_class.new(paragraph_data)
+    @handler = @handler_info[:class].new(@options)
+
+    results = renderer_cache(nil,site_node.id.to_s, :skip => @options.timeout <= 0, :expires => @options.timeout*60) do |cache|
+      data = @handler.get_feed
+      data[:self_link] = Configuration.domain_link site_node.node_path
+      if @handler_info[:custom]
+	cache[:output] = render_to_string(:partial => @handler_info[:custom],:locals => { :data => data})
+      else
+	cache[:output] = render_to_string(:partial => '/feed/rss/feed',:locals => { :data => data })
+      end
+    end
 
     headers['Content-Type'] = 'text/xml'
-    
-    data = @handler.get_feed()
-    if @handler_info[:custom]
-      data_paragraph :text => render_to_string(:partial => @handler_info[:custom],:locals => { :data => data})
-    else
-      data_paragraph  :text => render_to_string(:partial => '/feed/rss/feed',:locals => { :data => data })
-    end
+    data_paragraph :text => results.output
   end
   
   feature :rss_feed_view, :default_feature => <<-FEATURE
     <div class='rss_feed'>
     <cms:feed>
-      <h2><a <cms:href/>><cms:title/></a></h2>
+      <h2><cms:link><cms:title/></cms:link></h2>
       <cms:description/>
       <cms:items>
         <cms:item>
           <div class='rss_feed_item'>
-          <h2><a <cms:href/>><cms:title/></a></h2>
+          <h3><cms:link><cms:title/></cms:link></h3>
           <cms:content/>
           </div>
         </cms:item>
@@ -50,13 +66,16 @@ class Feed::RssRenderer < ParagraphRenderer
     </cms:no_feed>    
     </div>
   FEATURE
+
+
+  include ActionView::Helpers::DateHelper
   
-  def rss_feed_view_feature(feature,data)
-   parser_context = FeatureContext.new do |c|
+  def rss_feed_view_feature(data)
+    webiva_feature(:rss_feed_view,data) do |c|
     c.define_tag('feed') { |tag| data[:feed].blank? ? nil : tag.expand }
     c.define_tag('no_feed') { |tag| data[:feed].blank? ? tag.expand : nil }
     
-    c.define_value_tag('feed:href') { |tag|  "href='#{data[:feed].channel.link}'" }
+    c.define_link_tag('feed:') { |t| data[:feed].channel.link }
     c.define_value_tag('feed:title') { |tag| data[:feed].channel.title }
     c.define_value_tag('feed:description') { |tag| 
         data[:feed].channel.description 
@@ -88,16 +107,22 @@ class Feed::RssRenderer < ParagraphRenderer
         txt = tag.locals.item.description.to_s.sub(data[:read_more],"[<a href='#{tag.locals.item.link}'>Read More..</a>]")
       end
      }
-    c.define_value_tag('feed:items:item:href') { |tag| "href='#{tag.locals.item.link}'" }
+    c.define_link_tag('feed:items:item:') { |t| t.locals.item.link }
     c.define_value_tag('feed:items:item:title') { |tag| tag.locals.item.title }
     c.define_value_tag('feed:items:item:author') { |tag| tag.locals.item.author }
     c.define_value_tag('feed:items:item:categories') { |tag| tag.locals.item.categories.map { |cat| cat.content }.join(", ") }
     c.define_value_tag('feed:items:item:description') { |tag| tag.locals.item.description }
+    c.date_tag('feed:items:item:date') { |t| t.locals.item.date } 
+
+
+
+    c.value_tag('feed:items:item:ago') { |t| 
+       distance_of_time_in_words_to_now(t.locals.item.date).gsub('about','').strip if t.locals.item.date }
+
      
     
    end
    
-   parse_feature(feature,parser_context) 
   end
   
   
@@ -105,51 +130,37 @@ class Feed::RssRenderer < ParagraphRenderer
     
     options = Feed::RssController::ViewRssOptions.new(paragraph.data || {})
     
-    if options.rss_url.blank?
-      render_paragraph :text => 'Configure Paragraph'
-      return
-    end
+    return render_paragraph :text => 'Configure Paragraph' if options.rss_url.blank?
     
-    target_string = 'ViewRss'
-    display_string = "#{paragraph.id}"
-  
-    feature_output = nil
-    valid_until,feature_output = DataCache.get_content("Feed",target_string,display_string) if !editor?
-    
-    if !feature_output || Time.now > valid_until
-      begin
-        http = open(options.rss_url)
-        response = http.read
-        rss_feed = RSS::Parser.parse(response,false)
-      rescue Exception => e
-        valid_until = Time.now + 5.minutes
-        DataCache.put_content('Feed',target_string,display_string,[ valid_until, '' ]) if !editor?
-        render_paragraph :text => ''
-        return
-      end
-      data = { :feed => rss_feed, :items => options.items, :category => options.category, :read_more => options.read_more } 
+    result = renderer_cache(nil,options.rss_url, :expires => options.cache_minutes.to_i.minutes) do |cache|
+      rss_feed = delayed_cache_fetch(FeedParser,:delayed_feed_parser,{ :rss_url => options.rss_url },options.rss_url, :expires => options.cache_minutes.to_i.minutes)
+      return render_paragraph :text => '' if !rss_feed
 
-      feature_output =  rss_feed_view_feature(get_feature('rss_feed_view'),data) 
-      valid_until = Time.now + options.cache_minutes.to_i.minutes
-      
-      DataCache.put_content('Feed',target_string,display_string,[ valid_until, feature_output ]) if !editor?
+      data = { :feed => rss_feed[:feed], :items => options.items, :category => options.category, :read_more => options.read_more } 
+      cache[:output] =  rss_feed_view_feature(data) 
+      logger.warn('In Renderer Cache')
     end
-    
-    render_paragraph :text => feature_output
+
+    render_paragraph :text => result.output
   end
   
   def rss_auto_discovery
     @options = paragraph.data || {}
     
     if !@options[:module_node_id].blank? && @options[:module_node_id].to_i > 0
-      @nodes = [ SiteNode.find_by_id(@options[:module_node_id]) ]
+      @nodes = [ SiteNode.find_by_id(@options[:module_node_id]) ].compact
     else
       @nodes = SiteNode.find(:all,:conditions =>  ['node_type = "M" AND module_name = "/feed/rss"' ],:include => :page_modifier)
     end
     
     output = @nodes.collect do |nd|
-          "<link rel='alternate' type='application/rss+xml' title='#{vh nd.page_modifier.modifier_data[:feed_title]}' href='#{vh nd.node_path}' />"
-      end.join("\n")
+      if nd.page_modifier 
+        nd.page_modifier.modifier_data ||= {}
+        "<link rel='alternate' type='application/rss+xml' title='#{vh nd.page_modifier.modifier_data[:feed_title]}' href='#{vh nd.node_path}' />"
+      else
+        nil
+      end
+    end.compact.join("\n")
     
     include_in_head(output)
     render_paragraph :nothing => true

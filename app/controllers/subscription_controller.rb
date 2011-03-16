@@ -7,8 +7,7 @@ class SubscriptionController < CmsController # :nodoc: all
   permit ['editor_mailing','editor_content']
 
   cms_admin_paths 'e_marketing',
-                  'Emarketing' => { :controller => '/emarketing' },
-                  'Tell-a-Friend' => {:action => 'tell_friends' }
+                  'Emarketing' => { :controller => '/emarketing' }
 
   include ActiveTable::Controller
   active_table :subscription_table, UserSubscription,
@@ -40,8 +39,12 @@ class SubscriptionController < CmsController # :nodoc: all
         
     new_sub = @subscription.id ? false : true;
     if request.post? && params[:subscription]
-      if @subscription.update_attributes(params[:subscription])
-        flash[:notice] = (( new_sub ? 'Created' : 'Edited' ) + ' subscription "%s"') / @subscription.name
+      if params[:commit]
+        if @subscription.update_attributes(params[:subscription])
+          flash[:notice] = (( new_sub ? 'Created' : 'Edited' ) + ' subscription "%s"') / @subscription.name
+          redirect_to :action => 'index'
+        end
+      else
         redirect_to :action => 'index'
       end
     end 
@@ -116,96 +119,6 @@ class SubscriptionController < CmsController # :nodoc: all
   
   end
   
-  active_table :email_friend_table, EmailFriend,
-                [ ActiveTable::IconHeader.new('',:width => 10),
-                  ActiveTable::StringHeader.new('from_name'),
-                  ActiveTable::StringHeader.new('end_users.email', :label => 'User'),
-                  ActiveTable::StringHeader.new('to_email'),
-                  ActiveTable::StringHeader.new('site_url'),
-                  ActiveTable::DateRangeHeader.new('sent_at')
-                ]
-  
-  def tell_friends
-    cms_page_path [ 'Emarketing'],'Tell-a-Friend'
-    
-    display_email_friend_table(false)
-  end
-  
-  def display_email_friend_table(display = true)
-    
-    @tbl = email_friend_table_generate params, :order => 'sent_at DESC', :include => :end_user
-    
-    render :partial => 'email_friend_table' if display
   
   end
-  
-  def email_friend
-    @entry = EmailFriend.find_by_id(params[:path][0])
     
-    render :partial => 'email_friend'
-  end
-  
-  active_table :email_friend_group_table, EmailFriend,
-                [ ActiveTable::StringHeader.new('site_url'),
-                  ActiveTable::NumberHeader.new('count'),
-                  ActiveTable::DateRangeHeader.new('sent_at')
-                ]  
-    
-  def tell_friends_group
-    cms_page_path [ 'Emarketing','Tell-a-Friend'],'Statistics'
-
-    display_email_friend_group_table(false) 
-      
-  end
-  
- def tell_friends_download_all
-   @tbl = email_friend_table_generate params, :order => 'sent_at DESC', :include => :end_user, :all => 1
-    
-    output = ''
-    
-    CSV::Writer.generate(output) do |csv|
-      csv << [ 'From Name', 'From Email', 'To Email', 'Site Url', 'Sent At' ]
-      @tbl[1].each { |t|  csv << [ t.from_name,t.end_user ? t.end_user.email : '-', t.to_email, t.site_url,t.sent_at.strftime(DEFAULT_DATETIME_FORMAT.t) ] } 
-    end
-    
-    
-    send_data(output,
-      :stream => true,
-      :type => "text/csv",
-	    :disposition => 'attachment',
-	    :filename => "send_to_friend_statistics.csv"
-	    )
-  
-  end  
-  
-  def download_group_data
-    @tbl = email_friend_group_table_generate params,:order => 'sent_at DESC', :group => 'site_url',:select => 'COUNT(*) as count, site_url,MAX(sent_at) as sent_max, MIN(sent_at) as sent_min', :count_by => 'site_url', :all => 1
-    
-    output = ''
-    CSV::Writer.generate(output) do |csv|
-      csv << [ 'Site Url', 'Count','Sent Between' ]
-      @tbl[1].each { |t|  csv << [ t.count,t.site_url, "#{t.sent_min ? Time.parse(t.sent_min).strftime(DEFAULT_DATE_FORMAT.t) : '-'} - #{t.sent_max ? Time.parse(t.sent_max).strftime(DEFAULT_DATE_FORMAT.t) : '-'}" ] }
-    end
-    
-    
-    send_data(output,
-      :stream => true,
-      :type => "text/csv",
-	    :disposition => 'attachment',
-	    :filename => "send_to_friend_statistics.csv"
-	    )
-  end
-    
-  def display_email_friend_group_table(display=true)
-  
-    @tbl =email_friend_group_table_generate params, :order => 'sent_at DESC', :group => 'site_url',:select => 'COUNT(*) as count, site_url,MAX(sent_at) as sent_max, MIN(sent_at) as sent_min', :count_by => 'site_url'
-    
-    render :partial => 'email_friend_group_table' if display
-  end
-  
-  def view_email
-    @email = EmailFriend.find_by_id(params[:path][0])
-    render :partial => 'email_friend'
-  end
-  
-end

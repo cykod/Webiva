@@ -1,0 +1,98 @@
+1.00.0 - 2011-02-24
+-------------------
+- Bug Fixes
+- Experiements of 1
+- Site Tree Copying
+- Blog multi-category and multi-tag lists
+- Better custom content filter and relationship support
+- Basic auth support for generic feed eater
+- Timed captcha in feedback
+- Better chrome support
+- Updated TinyMCE
+
+1.00.0RC1 - 2010-11-29
+----------------------
+- New Page, Content, Affiliate, Referrer, Statistics pages
+- New Back End Design
+- User Notes Support
+- Added A/B Experiments
+- Added Webalytics support, Location lookup
+- New Marketing Dashboard
+- Added Wordpress import
+- Added jquery to backend
+- Removed less support
+- File Manager waiting updates
+- Changed default DOCTYPE to HTML5
+- User Profile module enhancements: list, profile editing
+- Robots.txt support
+- Sitemap.xml support
+- Added Theme Builder
+- New Marketing Dashboard
+- User Level auto elevation
+- File Manager Bug Fixes
+
+
+0.99.1 - 2010-08-16
+-------------------
+- Fix to quick_install.rb script
+
+
+0.99.0 - 2010-08-13
+-------------------
+- Support for import / export templates
+- Multiple site tree (Site Version) support
+- Multi-server local file support
+- New User list functionality with custom filtering
+- Blog content model support
+- Blog multi-blog support
+- Less support in Design & Structural styles
+- Quotas and Limits on Clients and Databases
+- Fix Client User / Client support
+- Lightweight template support
+- Theme Library Support
+- Added spellchecker in WYSIWYG Paragraphs
+- Simple site builder site wizard
+- Members setup wizard
+- More bug fixes then you can shake a stick at
+
+
+0.9.20 - 2010-05-08
+-------------------
+- support for inline file upload widget
+- added user profile module
+- blog module overhaul
+- targeted user blog overhaul w/ canonical content
+- content model edit form support
+- title page connections, simple title paragraph type
+- editor overhaul
+- automatic user profile image updating
+- generic feed paragraph fixes
+- SiteNodeEngine refactor
+- menu.js fix
+- renderer_cache rework to support includes
+- simple content module included
+- webform module included
+- support for default css files for site features
+- better rcov support
+- support for oauth, other autentication mechanisms
+- bounce support capability for emails
+
+
+
+0.9.10 - 2010-03-01
+-------------------
+- View account paragraph
+- Custom content system filter list paragraph fixes
+- Custom content system detail paragraph fixes
+- Various Blog bug fixes (publication date/etc) and initial Spec's
+- New Edit account paragraph (stylable with site features)
+- Pingback support in feedback module (and dashboard widgets)
+- Content Node Paragraph
+- Replaced simple captcha with handlers Feedback module captcha system 
+- Fixed session logging issues
+
+0.9.00 - 2010-02-01
+-------------------
+
+Initial public release
+

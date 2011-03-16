@@ -4,11 +4,9 @@
 
   <%= f.radio_buttons :active, [['Site is active',true ],['Site is inactive',false]] ,  :label => '',:single => true, :description => 'If the site is inactive only the /website admin interface will be accessible' %>
 
-  <%= f.text_field :name, :label => 'Domain Name', :description => 'WARNING: changing the domain name could disable access to this site' %>
-  
-
-  <%= f.check_boxes :primary, [['Primary site domain',true ]] ,  :label => 'Primary domain',:single => true, :description => 'The primary domain will be the one from which emails will be sent' %>
-
+  <% unless @dmn.primary -%>
+    <%= f.text_field :name, :label => 'Domain Name', :description => 'WARNING: changing the domain name could disable access to this site' %>
+  <% end -%>
 
   <%= f.radio_buttons :www_prefix, [['Use www. prefix',true ],['No www. prefix',false]] ,  :label => 'WWW Prefix',:single => true %>
 
@@ -16,7 +14,7 @@
   
   <%= f.check_boxes :restricted, [['Restrict site access to logged in users only',true ]] ,  :label => 'Restrict Access',:single => true, :description => "Users will need to log in via the /website url to access the front end of the site\nOther users will see the inactive message" %>
 
-  <%= f.select :site_version_id, SiteVersion.select_options, :label => 'Active Version', :description => 'This is the version of the site that will display on this domain name' %>
+  <%= f.select :site_version_id, SiteVersion.select_options, :label => 'Active Site Tree', :description => 'This is the site tree that will display on this domain name' %>
 
   <%= f.text_area :inactive_message, :rows => 6, :description => 'This message will be displayed to users when the site is inactive (HTML is permitted)' %>
 

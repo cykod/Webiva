@@ -1,0 +1,34 @@
+<script>
+ThemeBuilderFetch = {
+  updateStatus: function() {
+    $j.getJSON("<%= url_for :action => 'fetch_status' %>", function(data) {
+      if(data.running) {
+        if(data.processed) {
+          if(data.successful) {
+            document.location = "<%= url_for :action => 'zones' %>";
+          } else {
+            $j("#fetch_status").html("<span style='color:red;'><%= "Failed to fetch HTML file %s" / "<a target='_blank' href='#{@theme_url}'>#{@theme_url}</a>" %><br/><br/><a href='<%= url_for :action => 'index' %>'><%= 'Go back to Theme Builder' %></a>");
+          }
+          return;
+        } else {
+          $j("#fetch_status").html("<%= 'Fetching %s<br/><span class=\'small\'>(Please wait, this process may take several minutes)</span>' / @theme_url %>");
+        }
+      }
+      setTimeout(function() { ThemeBuilderFetch.updateStatus(); }, 5000);
+    });
+  }
+}
+
+</script>
+
+<div class='admin_content'>
+
+<div id="fetch_status" align="center" class="large">
+<%= 'Waiting for fetch process to start.'.t %>
+</div>
+
+</div>
+
+<script>
+$j(document).ready(function() { ThemeBuilderFetch.updateStatus(); });
+</script>

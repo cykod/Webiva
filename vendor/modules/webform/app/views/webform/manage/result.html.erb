@@ -1,0 +1,28 @@
+<% if @ajax -%>
+<div class='cms_form'>
+
+<div align="right">
+<a onclick="SCMS.closeOverlay();" href="javascript:void(0);">[x] close</a>
+</div>
+
+<br/>
+<% else -%>
+<div class="admin_content">
+<% end -%>
+
+<% stat_view do |t| -%>
+  <% @result.content_model.content_model_fields.each do |fld| %>
+  <% if fld.is_type?('/content/core_field/header')  %>
+    <%= t.header fld.name %>
+  <% else -%>
+    <%= t.raw fld.name, fld.content_display(@result.data_model,:form) %>
+  <% end -%>
+  <% end -%>
+<% end -%>
+
+<% admin_form_for :result, @result, :html => {:onsubmit => @ajax ? "SCMS.updateOverlay('#{url_for :controller => '/webform/manage', :action => 'result', :path => [@result.webform_form.id, @result.id], :table => @table}', Form.serialize(this)); return false;" : nil} do |f| %>
+  <%= hidden_field_tag 'result[reviewed]', @result.reviewed ? 0 : 1 %>
+  <%= f.submit_tag @result.reviewed ? 'Mark as Unread'.t : 'Mark as Read'.t %>
+<% end %>
+
+</div>

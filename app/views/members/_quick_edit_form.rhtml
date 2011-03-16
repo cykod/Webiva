@@ -1,0 +1,16 @@
+<div class='cms_form admin_form'>
+<h3><%= "Quick Edit Users".t %></h3>
+<p><%= "Modify multiple users at the same time".t %></p>
+<% admin_form_for :edit, nil, :html => { :id => 'quick_edit_form' } do |f| %>
+  <%= f.select :user_level, [['-',nil ]] +  EndUser.user_level_select_options %>
+  <%= f.select :user_class_id, [['-',nil]] + UserClass.options %>
+  <%= f.select :source, [['-',nil]]  + EndUser.source_select_options, :label => 'Origin' %>
+  <%= f.text_field :referrer %>
+  <%= f.text_field :lead_source %>
+  <%= f.check_boxes :vip, [['Generate a VIP #', true]], :single => true %>
+
+  <%= f.spacer %>
+  <%= f.cancel_submit_buttons "Cancel", "Update", { :onclick => "RedBox.close(); return false;" }, { :onclick => "MemberEditor.quickEditSubmit($('quick_edit_form').serialize()); return false;" } %>
+<% end -%>
+
+</div>

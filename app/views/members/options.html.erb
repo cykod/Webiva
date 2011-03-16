@@ -1,0 +1,8 @@
+
+<% admin_form_for :options, @options do |f| -%>
+<%= f.select :order_by, @options.order_by_options %>
+<%= f.radio_buttons :order_direction, UserSegment.order_direction_select_options %>
+<%= f.ordered_array :fields, @options.fields_options, :label => 'Fields to Display' %>
+<%= f.spacer %>
+<%= f.cancel_submit_buttons 'Cancel', 'Save' %>
+<% end -%>

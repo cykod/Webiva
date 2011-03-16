@@ -1,6 +1,54 @@
-<div class='admin_content'>
-<br/>
+<script>
+SourcesCharts = {
+  chart: null,
+  date: "<%= @date.strftime('%F') %>",
+  start: "<%= @date.strftime('%F') %>",
+  today: "<%= Time.now.strftime('%m/%d/%Y') %>",
 
-<%= subpage_display :emarketing, @subpages %>
+  next: function() {
+    $j.getJSON("<%= url_for :action => 'referrer_sources' %>", {date: SourcesCharts.date, direction: 'next'}, function(res) {SourcesCharts.load(res);});
+  },
+
+  prev: function() {
+    $j.getJSON("<%= url_for :action => 'referrer_sources' %>", {date: SourcesCharts.date, direction: 'prev'}, function(res) {SourcesCharts.load(res);});
+  },
+
+  load: function(data) {
+    SourcesCharts.date = data.date;
+    SourcesCharts.chart.load(data);
+
+    if(SourcesCharts.date == SourcesCharts.start) {
+      $j('#chart_next_day_button').hide();
+    } else {
+      $j('#chart_next_day_button').show();
+    }
+
+    for(var i=0; i<data.total_values.length; i++) {
+      if(data.dates[i] == SourcesCharts.today) {
+        $j('#chart_day' + (i+1)).html('&#9734; ' + data.days[i]);
+      } else {
+        $j('#chart_day' + (i+1)).html(data.days[i]);
+      }
+      $j('#chart_date' + (i+1)).html(data.dates[i]);
+      $j('#chart_value' + (i+1)).html(data.total_values[i] == '' ? '&nbsp;' : data.total_values[i]);
+    }
+
+    SourcesCharts.chart.draw();
+  }
+}
+</script>
+
+<div class='admin_content'>
+
+<div align="center">
+<div style="display:inline-block; width:1100px;">
+<%= render :partial => 'referrer_sources' %>
+</div>
+</div>
+
+<br/>
+<br/>
+<br/>
+<%= subpage_display :marketing, @subpages %>
 
 </div>

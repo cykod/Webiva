@@ -11,27 +11,21 @@ redirectSelectFunc = function() {
 
 </script>
 <% if permit?('editor_structure') %>
-
-<div align='right'>
-  <a href='javascript:void(0);' onclick='StructureEditor.nodeDelete(<%= @node.id %>,"<%= jh "Are you sure you want to delete this redirect?" .t %>");'><%= "Delete Redirect".t %></a>
-</div>  
-
+<ul class='page_detail_buttons'>
+   <li class='icon'><a href='javascript:void(0);'  title='<%= vh 'Delete Redirect'.t%>' onclick='StructureEditor.nodeDelete(<%= @node.id %>,"<%= jh "Are you sure you want to delete this redirect?" .t %>");'><%= image_tag(theme_src('icons/header_actions/delete_page.png')) %></a></li>
+ </ul>
 <% end -%>
 
+<h1 class='inpage'><%= "Redirect Details:".t %> <a href='<%= @node.node_path %>'><%=@node.node_path %></a></h1>
 
-
-
+<div class='tree_detail_body'>
 
 <% if permit?('editor_structure') %>
-
 
   
   
 <div id='redirect_display_fields' <%= hide_if @display_edit_form %> >
-  
-<b><%= "Redirect Details".t %></b><br/>
-<br/>
-  
+   
   <% link_edit_form_for  :redirect, @redirect_details, :styled_form => { :onclick => 'Element.show("redirect_edit_fields"); Element.hide("redirect_display_fields");', :classname => "ajax_link redirect_information_link" } do |f| -%>
 
   <%= f.radio_buttons :redirect_type, RedirectDetail.redirect_type_select_options, :default => 'None Selected', :label => 'Redirect To' %>
@@ -45,10 +39,7 @@ redirectSelectFunc = function() {
   <% end -%>
   </div>
   <div id='redirect_edit_fields' <%= hide_unless @display_edit_form %> >
-  <b><%= "Edit Redirect".t %></b>
-  <br/>
-  <br/>
-  
+
   <% remote_tabled_form_for :redirect, @redirect_details, 
      :update => 'element_info', 
      :method => 'post', 
@@ -62,10 +53,6 @@ redirectSelectFunc = function() {
   <% end -%>
   
 <% else %>
-
-<b> Redirect Details </b><br/>
-<br/>
-
   <% tabled_display_form_for :redirect, @redirect_details  do |f| -%>
   
   <%= f.radio_buttons :redirect_type, RedirectDetail.redirect_type_select_options, :default => 'None Selected', :label => 'Redirect To' %>

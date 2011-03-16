@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<%= stylesheet_link_tag '/stylesheets/theme_builder.css' %>
+<% if @parser.css_file -%>
+<link href="<%= url_for :action => 'css', :path => @parser.html_file_id %>" media="screen" rel="stylesheet" type="text/css" />
+<% end -%>
+
+<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js'></script>
+<script src='https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js'></script>
+<script>
+   $j = jQuery.noConflict();
+</script>
+<script src="/javascripts/theme_builder.js" type="text/javascript"></script>
+
+<%= @parser.editor_css(@parser.head) %>
+
+</head>
+<body>
+<%= @parser.html %>
+
+<div id="webiva-theme-builder">  
+<script type="text/javascript">
+ThemeBuilder.disableEvents();
+ThemeBuilder.resetBlockLevelEvents();
+</script>
+
+<div id="webiva-theme-builder-panels">
+</div>
+
+<div id="webiva-theme-builder-select-zone-panel" style="display:none;">
+<h5 class="webiva-theme-builder-zone-name">Zone</h5>
+<button onclick="ThemeBuilder.addZone();"/>Select</button>
+<div class="webiva-theme-builder-zone-tag"></div>
+</div>
+
+</body>
+</html>

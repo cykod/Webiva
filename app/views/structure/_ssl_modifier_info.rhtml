@@ -1,1 +1,10 @@
-<b> <%= "SSL Details".t %></b>
+<ul class='page_detail_buttons'>
+
+  <li class='icon'><a href='javascript:void(0);'  title='<%= vh 'Delete SSL'.t%>' onclick='StructureEditor.deleteModifier("mod_<%= @mod.id %>");'><%= image_tag(theme_src('icons/header_actions/delete_page.png')) %></a></li>
+</ul>
+
+
+<h1 class='inpage'><%= "SSL Modifier Details".t %></h1>
+<div class='tree_detail_body'>
+  <p><%= "All pages affected by this modifier will be served under https. To display correctly the Domain must have SSL Support".t %></p>
+</div>

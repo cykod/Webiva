@@ -16,7 +16,7 @@ class DomainModelWorker <  Workling::Base #:nodoc:all
     
     logger.warn("Running: #{args[:class_name]} #{args[:entry_id]} #{args[:method]}")
     # Don't Save connection
-    DomainModel.activate_domain(domain.attributes,'production',false)
+    DomainModel.activate_domain(domain.get_info,'production',false)
     if(args[:language]) 
       language = args[:language]
       Locale.set(language)
@@ -25,22 +25,31 @@ class DomainModelWorker <  Workling::Base #:nodoc:all
     class_name = args[:class_name]
     cls = class_name.constantize
 
-    result_hash = { :processed => false, :successful => true }
-    Workling.return.set(args[:uid], results)
+    results = { :processed => false, :successful => true }
+    Workling.return.set(jobkey, results)
 
-    if (args[:entry_id].blank?)
-      cls.send(args[:method],args[:params] || {})
+    params = args[:params] || {}
+    params[:uid] = jobkey
+
+    if args[:hash_model]
+      entry = cls.new args[:attributes]
+      ret_val = entry.send(args[:method], params)
+      results.merge!(ret_val) if ret_val.is_a?(Hash)
+    elsif args[:entry_id].blank?
+      ret_val = cls.send(args[:method], params)
+      results.merge!(ret_val) if ret_val.is_a?(Hash)
     else
       entry = cls.find_by_id(args[:entry_id])
       if entry
-          entry.send(args[:method],args[:params] || {})
+        ret_val = entry.send(args[:method], params)
+        results.merge!(ret_val) if ret_val.is_a?(Hash)
       else
-        result_hash[:successful] = false
+        results[:successful] = false
       end
     end
     
-    result_hash[:processed] = true
-    Workling.return.set(args[:uid], results)
+    results[:processed] = true
+    Workling.return.set(jobkey, results)
     
   end
   

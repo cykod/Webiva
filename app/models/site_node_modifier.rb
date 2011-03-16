@@ -12,14 +12,28 @@ class SiteNodeModifier < DomainModel
   has_many :page_revisions, :dependent => :destroy, :order => "revision DESC, language", 
   				:as => :revision_container
 
+  has_many :ordered_revisions, :dependent => :destroy, :order => "revision DESC, page_revisions.id DESC", 
+  				:as => :revision_container, :class_name => 'PageRevision'
+
   include SiteAuthorizationEngine::Target
   access_control :access
+
+  attr_accessor :created_by_id, :copying
  
   def before_create #:nodoc:
+    return if @copying
+    
     if opts = self.modifier_options
       opts.initial_options
       self.modifier_data = opts.to_hash
     end
+  end
+
+  def new_revision
+    rv = self.ordered_revisions.first.create_temporary
+    yield rv
+    rv.make_real
+    rv
   end
 
   # Returns the name of the modifier class
@@ -34,7 +48,11 @@ class SiteNodeModifier < DomainModel
       nil
     end
   end
-  
+
+  def options
+    @options ||= self.modifier_options
+  end
+
   def self.find_page(page_id)
     self.find_by_id(page_id)
   end 
@@ -47,8 +65,10 @@ class SiteNodeModifier < DomainModel
 
 
   def after_create
+    return if @copying
+
     if self.modifier_type == 'F' || self.modifier_type == 'framework'
-      self.page_revisions.create( :language => Configuration.languages[0], :revision => '0.01' , :active => true)
+      self.page_revisions.create( :language => Configuration.languages[0], :revision => '0.01' , :active => true, :created_by_id => self.created_by_id )
     end
   end
   
@@ -86,6 +106,10 @@ class SiteNodeModifier < DomainModel
     else
       type
     end
+  end
+
+  def before_save
+    self.modifier_data = @options.to_hash if @options
   end
 
   private
@@ -180,6 +204,27 @@ class SiteNodeModifier < DomainModel
 
   end
 
+  def active_language_revision(language)
+    # Get the first real, active revisions from this framework that's available
+    self.page_revisions.find(:first,
+                             :conditions => "revision_type = 'real' AND active=1",
+                             :order => "language=#{PageRevision.quote_value(language)} DESC"
+                            )
+
+  end
+
+  def copy_live_revisions(mod)
+    mod.page_revisions.find(:all, :conditions => {:revision_type => 'real', :active => true}).each do |rev|
+      tmp_rev = rev.create_temporary
+      tmp_rev.revision_container = self
+      tmp_rev.save
+      tmp_rev.make_real
+    end
+  end
+
+  def fix_paragraph_options(from_version, to_version, opts={})
+    self.page_revisions.find(:all, :conditions => {:revision_type => 'real', :active => true}).each { |rev| rev.fix_paragraph_options(from_version, to_version, opts) }
+  end
 
   protected
 
@@ -217,20 +262,16 @@ class SiteNodeModifier < DomainModel
     page_information[:domain] = self.modifier_data[:limit_to_domain] unless page_information[:domain]
   end
 
+
   def apply_modifier_framework!(engine,page_information)
-    # Get the first real, active revisions from this framework that's available
-    rev = self.page_revisions.find(:first,
-                                  :conditions => "revision_type = 'real' AND active=1",
-                                  :order => "language=#{PageRevision.quote_value(engine.language)} DESC"
-                                  )
-    # If there's a valid revision     
+    rev = active_language_revision(engine.language)
+       # If there's a valid revision     
     if rev
       
       # Use this as the revision, unless we have a one already
       engine.revision = rev unless engine.revision
-      engine.revision.variables ||= {}
       (rev.variables||{}).each do |var,value|
-        engine.revision.variables[var] = value if engine.revision.variables[var].blank?
+        engine.revision.display_variables[var] = value if engine.revision.display_variables[var].blank?
       end
       
       # Go through the paragraphs in reverse order (as each is added to the beginning of the list)

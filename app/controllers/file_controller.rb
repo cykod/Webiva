@@ -4,11 +4,15 @@ require 'mime/types'
 
 class FileController < CmsController # :nodoc: all
 
-  permit "editor_files"
+  permit "editor_files", :except => [:export_status, :export_file]
 
   layout "manage"
   
   before_filter :calculate_image_size
+
+
+  cms_admin_paths 'files', 
+    'Files' => { :action => 'index' }
 
   protected  
 
@@ -46,8 +50,7 @@ class FileController < CmsController # :nodoc: all
   public
 
   def index
-  
-    cms_page_info "Files &amp; Images", "files_and_images"
+    cms_page_path [], "Files"
     
     folder_id = params[:path][0] if params[:path]
     
@@ -71,8 +74,6 @@ class FileController < CmsController # :nodoc: all
     @page = params[:page] || 1
     
     require_js('edit_area/edit_area_loader')
-	  
-   
   end
   
   def load_folder
@@ -174,19 +175,36 @@ class FileController < CmsController # :nodoc: all
   
   def upload
   
-    dir,file_name = DomainFile.save_uploaded_file(params[:upload_file][:filename])
+    folder = DomainFile.find_by_id params[:upload_file][:parent_id]
+    folder = nil unless folder.folder?
+
+    if DomainFile.available_file_storage > 0 && folder
+      encoding = params[:upload_file][:encoding]
+
+      filenames = params[:upload_file][:filename]
+      filenames = [filenames] unless filenames.is_a?(Array)
+
+      domain_file_ids = filenames.collect do |filename|
+        @upload_file = DomainFile.create(:filename => filename, :parent_id => folder.id, :encoding => encoding, :creator_id => myself.id, :skip_transform => true, :skip_post_processing => true)
+        @upload_file.id
+      end.compact
     
-    worker_key = FileWorker.async_do_work(:filename => file_name,
-                                          :domain_id => DomainModel.active_domain_id,
-                                          :parent_id => params[:upload_file][:parent_id],
-                                          :creator_id => myself.id,
-                                          :tmp_dir => dir,
-                                          :extract_archive => params[:extract_archive],
-                                          :replace_same => params[:replace_same]
-                                        )
-    @processing_key  = session[:upload_file_worker] = worker_key
-    respond_to_parent do 
-      render :action => 'upload.rjs'
+      worker_key = FileWorker.async_do_work(:domain_file_ids => domain_file_ids,
+                                            :domain_id => DomainModel.active_domain_id,
+                                            :extract_archive => params[:extract_archive],
+                                            :replace_same => params[:replace_same]
+                                            )
+      @processing_key  = session[:upload_file_worker] = worker_key
+
+      return render :json => {:processing_key => @processing_key} if params[:format] == 'json'
+
+      respond_to_parent do 
+        render :action => 'upload.rjs'
+      end
+    else
+      respond_to_parent do 
+        render :action => 'upload_failed.rjs'
+      end
     end
   end
 
@@ -230,14 +248,29 @@ class FileController < CmsController # :nodoc: all
       
     render :nothing => true
   end
-  
+
+  def processing_file
+    @processing_key = params[:processing_key]
+    return render :nothing => true unless @processing_key
+
+    processor =  @processing_key ? Workling.return.get(@processing_key) : nil
+    @processed = processor && processor[:processed]
+    if @processed
+      @file = DomainFile.find_by_id processor[:domain_file_id]
+      session[:replace_file_worker] = nil
+      session[:extract_file_worker] = nil
+    end
+  end
+
   def replace_file
     @file = DomainFile.find_by_id(params[:file_id].to_i)
-    
     @replace = DomainFile.find_by_id(params[:replace_id].to_i)
-    
-    if @file && @replace
-      @replaced = @file.replace(@replace)
+
+    if @file && @replace && @file.id != @replace.id && ! @file.folder? && ! @replace.folder?
+      worker_key = @file.run_worker(:replace_file, :replace_id => @replace.id)
+      @processing_key  = session[:replace_file_worker] = worker_key
+    else
+      render :nothing => true
     end
   end
   
@@ -253,7 +286,12 @@ class FileController < CmsController # :nodoc: all
   
   def extract_revision
     @revision = DomainFileVersion.find_by_id(params[:revision_id].to_i)
-    @file = @revision.extract
+    if @revision
+      worker_key = @revision.run_worker(:extract_file)
+      @processing_key  = session[:extract_file_worker] = worker_key
+    else
+      render :nothing => true
+    end
   end
   
   def copy_file
@@ -273,7 +311,7 @@ class FileController < CmsController # :nodoc: all
       
       gallery_folder = Configuration.options.gallery_folder.to_i == parent_folder.id
       
-      @folder = parent_folder.children.create(:name => name,:file_type => 'fld',:special => gallery_folder ? 'gallery' : '')
+      @folder = parent_folder.children.create(:creator_id => myself.id, :name => name,:file_type => 'fld',:special => gallery_folder ? 'gallery' : '')
       @parent_id = parent_folder.id
       if gallery_folder
         @folder.create_gallery(:name => name, :occurred_at => Time.now)
@@ -285,8 +323,9 @@ class FileController < CmsController # :nodoc: all
   end
   
   def delete_file
-    file_id = params[:file_id].to_i
-    
+    file_id = params[:file_id]
+    render :nothing => true unless file_id
+
     file = DomainFile.find(file_id)
     file.destroy
     render :nothing => true
@@ -294,9 +333,21 @@ class FileController < CmsController # :nodoc: all
   
   def delete_files
     file_id = params[:file_id]
-    
+    render :nothing => true unless file_id
+
     files = DomainFile.find(file_id)
-    files.each { |fl| fl.destroy }
+    dirs = []
+    files.each do |fl|
+      dirs += fl.storage_directories
+    end
+
+    key = DomainFile::LocalProcessor.set_directories_to_delete dirs
+    url = "/website/transmit_file/delete/#{DomainModel.active_domain_id}/#{key}"
+    Server.send_to_all url
+    DomainFile::LocalProcessor.clear_directories_to_delete key
+
+    files.each { |fl| fl.disable_destroy_remote; fl.destroy }
+
     render :nothing => true
   end
   
@@ -331,7 +382,6 @@ class FileController < CmsController # :nodoc: all
   def switch_processor
     file = DomainFile.find(params[:file_id].to_i)
     
-    #file.update_processor(:processor => params[:file_processor] )
     DomainModel.run_worker('DomainFile',file.id,:update_processor,{ :processor => params[:file_processor] })
     file.processor_status = 'processing'
     
@@ -347,7 +397,8 @@ class FileController < CmsController # :nodoc: all
     domain_file = DomainFile.find(file_id)
     filename = domain_file.filename(size)
     mime_types =  MIME::Types.type_for(filename) 
-    
+    mime_types = ['application/x-gzip'] if domain_file.name =~ /\.webiva$/
+
     send_file(filename,
               :type => mime_types[0] ? mime_types[0].to_s : 'text/plain',
               :disposition => 'inline',
@@ -375,6 +426,53 @@ class FileController < CmsController # :nodoc: all
       render :partial => 'edited_file'
     else
       render :partial => 'edit_file'
+    end
+  end
+
+  def update_storage
+  end
+
+  def export_status
+    return render(:nothing => true) unless session[:download_worker_key]
+
+    results = Workling.return.get session[:download_worker_key]
+
+    @completed = false
+    if results
+      @completed = results[:processed] || results[:completed]
+    end
+    @failed = @completed && results[:domain_file_id].blank?
+
+    session[:download_worker_key] = nil if @failed
+
+    render :json => {:completed => @completed, :failed => @failed}
+  end
+
+  def export_file
+    return render(:nothing => true) unless session[:download_worker_key]
+
+    results = Workling.return.get session[:download_worker_key]
+    session[:download_worker_key] = nil
+
+    if results
+      send_domain_file results[:domain_file_id], :type => results[:type]
+    else
+      render :nothing => true
+    end
+  end
+  
+  def import_status
+    return render(:nothing => true) unless session[:import_worker_key]
+
+    results = Workling.return.get session[:import_worker_key]
+
+    if results
+      @completed = results[:processed] || results[:completed]
+      @failed = results[:valid] === false
+      session[:import_worker_key] = nil if @completed || @failed
+      render :json => results.slice(:initialized, :imported, :entries, :row, :error).merge(:completed => @completed, :failed => @failed)
+    else
+      render :json => {:completed => false, :failed => false, :initialized => false, :imported => 0, :entries => -1}
     end
   end
 end

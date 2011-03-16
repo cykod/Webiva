@@ -1,0 +1,23 @@
+<script>
+<%= active_table_javascript %>
+</script>
+
+<table class='mini_table' width='100%'>
+<tr><th>Webform</th><th>Name</th><th>Posted</th>
+<% if ! options.new_results -%>
+  <th>Reviewed</th>
+<% end -%>
+</tr>
+<% results.each do |result| -%>
+<tr>
+<td><a href='javascript:void(0);' onclick='SCMS.remoteOverlay("<%= url_for :controller => '/webform/manage', :action => 'result', :path => [result.webform_form.id, result.id] %>");'><%= h result.name %></a></td>
+<td><a href="<%= url_for :controller => '/webform/manage', :action => 'results', :path => [result.webform_form.id] %>"><%= h result.webform_form.name %></a></td>
+<td><%= distance_of_time_in_words_to_now(result.posted_at) %></td>
+
+<% if ! options.new_results -%>
+  <td><%= result.reviewed ? 'Yes'.t : 'No'.t %></td>
+<% end -%>
+
+</tr>
+<% end -%>
+</table>

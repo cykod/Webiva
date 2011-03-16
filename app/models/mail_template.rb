@@ -47,6 +47,10 @@ class MailTemplate < DomainModel
  belongs_to :site_template
  
  has_options :template_type, [['Site Template','site'],['Campaign Template','campaign']]
+
+ process_file_instance :body_html, :body_html_display
+
+ 
  
  attr_reader :prepared_body
  
@@ -55,7 +59,9 @@ class MailTemplate < DomainModel
  attr_accessor :attachment_list
  attr_accessor :create_type
  attr_accessor :master_template_id
- 
+ attr_accessor :mailing_handler
+ attr_accessor :webiva_message_id
+
  @@text_regexp = /\%\%(\w+)\%\%/
  @@html_regexp = /\<span\s+(class=\"mceNonEditable\"\s*|alt=\"cmsField\"\s*){2}\>\<span.*?alt=\"([^\"]+)\".*?\<\/span\>\<\/span\>/
  @@href_regexp = /\<a([^\>]+?)href\=(\'|\")([^\'\"]+)(\'|\")([^\>]*?)\>/mi
@@ -92,7 +98,10 @@ class MailTemplate < DomainModel
     Util::TextFormatter.text_formatted_generator(html)
  end
  
- 
+ def before_validation #:nodoc:
+   self.language ||= Configuration.languages[0]
+ end
+
  def validate_on_create #:nodoc:
   if self.create_type
     case create_type
@@ -103,7 +112,17 @@ class MailTemplate < DomainModel
     end
   end
  end  
- 
+
+ def validate
+   if self.template_type == 'campaign' && self.id
+     if self.body_format == 'html'
+       errors.add(:body_type, 'is invalid. (Campaign template types can be text or both.)')
+     else
+       errors.add(:body_text, 'is missing. (Campaign template types require a text version.)') if self.body_text.blank? || self.body_text.strip.blank?
+     end
+   end
+ end
+
  def render_subject(vars) #:nodoc:
   subject.gsub(@@text_regexp) do |mtch|
         vars[$1]  || invalid_variable($1)
@@ -221,7 +240,7 @@ class MailTemplate < DomainModel
  
  def get_links #:nodoc:
     links = []
-    body_html.scan(@@href_regexp) do |mtch|
+    (body_html_display || body_html).scan(@@href_regexp) do |mtch|
       href = $3
       if !(href =~ /^[a-zA-Z0-9]+\:.*$/)
         links << href
@@ -235,7 +254,7 @@ class MailTemplate < DomainModel
  def prepare_to_send #:nodoc:
   if !@prepared_body
     @prepared_body = {}
-    @prepared_body[:html] ||= body_html if is_html
+    @prepared_body[:html] ||= body_html_display || body_html if is_html
     @prepared_body[:text] ||= body_text if is_text
     
     # Replace any of the HTML type variables
@@ -287,7 +306,7 @@ class MailTemplate < DomainModel
       if src[0..0] == '/'
         src = "http://" + Configuration.full_domain + src
       end
-     "<img#{$1} src='#{src}'#{$5}>"
+     "<img#{$1}src='#{src}'#{$5}>"
     end
   end
  end
@@ -336,11 +355,13 @@ class MailTemplate < DomainModel
   prepare_to_send
   unsubscribe_var ="track_unsubscribe:link"
   if is_html
-    unsubscribe_html =  "<br/><br/><font face='arial,sans-serif' size='1'><div align='center' class='unsubscribe_link'><a target='_blank' href='%%#{unsubscribe_var}%%'>#{'Unsubscribe your email'.t}</a>  #{'from any future %s mailings.' / Configuration.domain}</div></font>"
+    unsubscribe_html =  "<br/><br/><font face='arial,sans-serif' size='1'><div align='center' class='unsubscribe_link'><a target='_blank' href='%%#{unsubscribe_var}%%'>#{'Unsubscribe your email'.t}</a>  #{'from any future %s mailings.' / Configuration.domain}"
+    unsubscribe_html << "<br/>" + Configuration.options.one_line_address + "</div></font>"
     @prepared_body[:html] += unsubscribe_html
   end
   if is_text
     unsubscribe_text = "\n\n#{'To unsubscribe from any future %s mailings, goto:' / Configuration.domain }%%#{unsubscribe_var}%%"
+    unsubscribe_text << "\n" + Configuration.options.one_line_address
     @prepared_body[:text] += unsubscribe_text
   end
   
@@ -351,7 +372,7 @@ class MailTemplate < DomainModel
   prepare_to_send
   if is_html
     links = []
-    @prepared_body[:html] ||= body_html
+    @prepared_body[:html] ||= body_html_display || body_html
     @prepared_body[:html].gsub!(@@href_regexp) do |mtch|
       whole_match = $&
       href=$3
@@ -442,6 +463,14 @@ class MailTemplate < DomainModel
    return doc.to_html
  end
  
+ def additional_headers(variables={})
+   headers = {'X-Webiva-Domain' => DomainModel.active_domain_name}
+   headers['X-Webiva-Handler'] = self.mailing_handler if self.mailing_handler
+   headers['X-Webiva-Message-Id'] = self.webiva_message_id if self.webiva_message_id
+   headers['Reply-to'] = variables['system:reply_to'] if variables['system:reply_to']
+   headers
+ end
+
  private
 
  def transform_tag(tag,styles) #:nodoc:

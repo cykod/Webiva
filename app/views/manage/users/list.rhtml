@@ -1,11 +1,15 @@
+<script>
+  <%= active_table_javascript %>
+</script>
+
 <% action_panel do |p| %>
 <% if myself.has_role?('system_admin') -%>
-  <%= p.link "New User".t,:action => 'edit_all', :icon =>'add.gif' %>
+  <%= p.link "New User".t,:action => 'edit_all', :icon =>'add.png' %>
 <% else -%>
-  <%= p.link "New User".t,:action => 'edit', :icon => 'add.gif' %>
+  <%= p.link "New User".t,:action => 'edit', :icon => 'add.png' %>
 <% end -%>
 <% if myself.has_role?('system_admin') -%>
-  <% p.custom do %>
+  <% p.custom :right => true do %>
    Active Company: <select name='active_client' onchange='if(this.value) document.location = "<%= url_for :controller => '/manage/users' %>/?active_client_company=" + this.value;' >
     <option value=''>--Select Client--</option>
     <%= options_from_collection_for_select(@clients,'id','name',@active_client) %>
@@ -15,32 +19,10 @@
 <% end -%>
 <hr/>
 <div class='admin_content'>
-<b><%= sprintf("%s Users", @client.name) %></b><br/><br/>
+<h2><%= sprintf("%s Users", @client.name) %></h2>
 
-
-
-<table class='active_table' cellpadding='0' cellspacing='0'>
-    <tr>
-        <th>Username</th>
-        <th>Administrator</th>
-        <th>Delete</th>
-    </tr>
-<% @users.each do |usr| -%>    
-    <tr>
-        <td><%= link_to theme_icon(:table,'icons/actions/edit.gif'),  :action => myself.has_role?('system_admin') ? "edit_all" : "edit", :path => usr %>
-            <%= link_to usr.username, :action => 'edit_all', :path => usr %></td>
-        <td align="center">
-            <% if usr.system_admin? -%>
-              <%= 'System Admin'.t -%>
-            <% else -%>
-              <%= usr.client_admin? ? "Yes":"No" %>
-            <% end -%>
-        </td>
-          <td><%= link_to theme_icon(:table,'icons/actions/delete.gif'),{:action => "destroy", :path => usr}, :method => 'post', :confirm => 'Are you sure?' %> </td>
-    </tr>
-<% end -%>
-
-</table>
-
+<div id='client_users_table'>
+<%= render :partial => 'display_client_users_table' %>
+</div>
 
 </div>

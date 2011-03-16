@@ -6,6 +6,7 @@ class Feed::AdminController < ModuleController
                               :access => :public 
                               
   register_handler :feed, :rss, "Feed::ContentRssHandler"
+  register_handler :feed, :rss, "Feed::ContentNodeRssHandler"
 
   module_for :rss, 'RSS Feed', :description => 'Add a RSS Feed to your site'
   module_for :data_output, 'Data Feed', :description => 'Add a Content Data feed to your site'
@@ -15,45 +16,45 @@ class Feed::AdminController < ModuleController
   layout false
 
   def rss
-      @node = SiteNode.find_by_id_and_module_name(params[:path][0],'/feed/rss')
-  
-      handlers = get_handler_info(:feed,:rss) || []
-      
-      @feed_types = [['--Select Feed Type--'.t,'']] +  handlers.collect do |handler|
-        [ handler[:name], handler[:identifier] ]
-      end
-      feed_ids(false)
-      
-      if request.post? && params[:options] && @options.valid?
-        @page_modifier.update_attribute(:modifier_data,@options.to_h)
-        expire_site
-        flash.now[:notice] = 'Updated Options'
-      end
+    @node = SiteNode.find_by_id_and_module_name(params[:path][0],'/feed/rss')
+
+    @feed_types = [['--Select Feed Type--'.t,'']] + get_handler_options(:feed, :rss)
+
+    rss_options(false)
+
+    if request.post? && params[:options] && @options.valid?
+      @page_modifier.update_attribute(:modifier_data,@options.to_h)
+      expire_site
+      flash.now[:notice] = 'Updated Options'
+    end
   end
-  
-  def feed_ids(display=true)
+
+  def rss_options(display=true)
     @node = SiteNode.find_by_id_and_module_name(params[:path][0],'/feed/rss') unless @node
 
     @page_modifier = @node.page_modifier
 
-    @options = RssModuleOptions.new(params[:options] || @page_modifier.modifier_data || {})
-    
-    if @options.feed_type && (@handler = get_handler_info(:feed,:rss,@options.feed_type))
-      @feed_ids = [['--Select Feed--'.t,'']] + @handler[:class].get_feed_options
+    feed_type = params[:options] ? params[:options][:feed_type] : nil
+    if feed_type.nil?
+      feed_type = @page_modifier.modifier_data ? @page_modifier.modifier_data[:feed_type] : nil
     end
+
+    options_data = {}
+    options_data.merge!(@page_modifier.modifier_data.symbolize_keys) if @page_modifier.modifier_data
+    options_data.merge!(params[:options].symbolize_keys) if params[:options]
+    @options = self.rss_handler_options_class(feed_type).new(options_data)
     
-    render :partial => 'feed_ids' if display
-  end
-  
-  class RssModuleOptions < HashModel
-    default_options :feed_type => nil, :feed_identifier => nil, :feed_title => nil
-    
-    validates_presence_of :feed_type, :feed_identifier, :feed_title
+    render :partial => 'rss_options' if display
   end
 
+  class RssModuleOptions < HashModel
+    attributes :feed_type => nil, :feed_title => nil, :timeout => 1
+    
+    validates_presence_of :feed_type, :feed_title
+    integer_options :timeout
+  end
 
   def data_output
-      
     @node = SiteNode.find_by_id_and_module_name(params[:path][0],'/feed/data_output') unless @node
 
     @page_modifier = @node.page_modifier
@@ -64,18 +65,15 @@ class Feed::AdminController < ModuleController
       @page_modifier.update_attribute(:modifier_data,@options.to_h)
       expire_site
       flash.now[:notice] = 'Updated Options'
-     end
+    end
     
 
-      @data_publications = [['--Select Data Publication--',nil]] + ContentPublication.find_select_options(:all,:conditions => { :publication_type => 'data' })
-      
-      if @options.data_publication_id.to_i > 0
-        @pub = ContentPublication.find_by_id(@options.data_publication_id)
-        @site_features = [['--Use Default Site Feature--',nil]] + SiteFeature.find_select_options(:all,:conditions => ['feature_type = ?',@pub.feature_name]) if @pub
-      end
-      
-
-        
+    @data_publications = [['--Select Data Publication--',nil]] + ContentPublication.find_select_options(:all,:conditions => { :publication_type => 'data' })
+    
+    if @options.data_publication_id.to_i > 0
+      @pub = ContentPublication.find_by_id(@options.data_publication_id)
+      @site_features = [['--Use Default Site Feature--',nil]] + SiteFeature.find_select_options(:all,:conditions => ['feature_type = ?',@pub.feature_name]) if @pub
+    end
   end
   
   class DataOutputModuleOptions < HashModel
@@ -85,4 +83,19 @@ class Feed::AdminController < ModuleController
     
     validates_presence_of :data_publication_id
   end
+
+  protected
+
+  def rss_handler_info(feed_type)
+    return nil unless feed_type
+    @handler ||= get_handler_info(:feed, :rss, feed_type)
+  end
+
+  def rss_handler_options_class(feed_type=nil)
+    return RssModuleOptions unless feed_type
+    info = self.rss_handler_info(feed_type)
+    return RssModuleOptions unless info
+    "#{info[:class_name]}::Options".constantize
+  end
+
 end

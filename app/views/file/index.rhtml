@@ -1,187 +1,95 @@
-<div id='fm_dragbox' style='display:none;'></div>
-<%= render :partial => 'file_javascript' %>
-
-
-
-
-<div class='admin_content'>
-
-
-<div id='folder_action_area'>
-
-  <div class='action_area_content' id='files_upload_area'  style='float:left;' >
-    <div id='upload_progress' style='display:none;' >
-        
-    </div>
-    <div id='upload_action'>
-  
-    <iframe id="UploadTarget" name="UploadTarget" src="" style="width:0px;height:0px;border:0"></iframe>
-    <%= form_tag({:action => 'upload'}, :onsubmit => "this.target = 'UploadTarget'; FileEditor.startUpload(this); FileEditor.hideDetails(); return true;", :enctype => 'multipart/form-data') %>
-        <%= theme_image_tag('framework/filemanager_upload_file.gif') -%>    
-        <%= "Upload New File:".t %>
-            <input type='hidden' name='X-Progress-ID' id='upload_identifier' value=''/>
-            <input type='hidden' id='upload_file_parent_id' name='upload_file[parent_id]' value='<%= @folder.id %>'/>
-            <%= file_field 'upload_file','filename', :id => 'file_column', :onchange => 'FileEditor.selectedChange();' %>
-            <%= submit_tag "Upload".t, :id => 'upload_button' %>
-            <label for='replace_same'><input type='checkbox' name='replace_same' id='replace_same' checked='checked'/><%= "Replace matching files".t %></label>
-            <div id='upload_status_area'>
-                  
-            </div>
-            <script>
-              $('file_column').value = '';
-              $('upload_button').disabled = true;
-            </script>
-    <span id='upload_extra' style='display:none;'>
-            <label for='extract_archive'><input type='checkbox' name='extract_archive' id='extract_archive'/><%= "Extract Archived Files".t %></label>
-    </span>
-
-    </form>
-
-    </div>
-  </div>
-  
-
-   <div class='action_area_content'  style='float:right'>
-     <a href='javascript:void(0);' onclick='FileEditor.selectSearch();'>
-       <%= theme_image_tag('framework/filemanager_search_files.gif') -%>
-             Search Files
-       </a>
-   </div>
-   <div style='float:right;'>
-      <%= theme_image_tag('framework/filemanager_search_separator.gif') -%>&nbsp;&nbsp;
-  </div>
-<div style='clear:both'></div>
- 
-
+<div id="available_file_storage" align="right" style="padding-right:20px;">
+<%= render :partial => 'available_file_storage' %>
 </div>
-
-<div id='search_action_area' style='display:none;'>
-
-<div class='action_area_content'  style='float:left;' >
- <a href='javascript:void(0);' onclick='FileEditor.selectUpload();'>
-       <%= theme_image_tag('framework/filemanager_upload_file.gif') -%>
-             Upload Files
-       </a>
-</div>
- <div style='float:left;'>
-&nbsp;&nbsp;
-      <%= theme_image_tag('framework/filemanager_search_separator.gif') -%>
-  </div>
-<div class='action_area_content' style='float:right'>
-<% cms_unstyled_form_for :search, :html => { :onsubmit => 'FileEditor.runSearch(this); return false;' } do |f| %>
-<div class='text_field_control'>
-  Search For: <%= f.text_field :search,:size => 40 %>
-  Order: <%= f.select :order, @order_options %>
-</select>
-  <%= f.submit_tag 'Search' %>
-</div>
-<% end -%>
-</div>
-
-<div style='clear:both'></div>
-
-
-</div>
-
-</div>
-
 
 <hr/>
 
+<div id='fm_dragbox' style='display:none;'></div>
+<%= render :partial => 'file_javascript' %>
+<%= render :partial => 'file_uploader_javascript' %>
+
+<div class='action_area'>
+  <div id='folder_action_area' class='block_left' >
+    <%= render :partial => 'file_upload_area' %>
+  </div>
+
+
+  <div class='block_right'>
+    <%= render :partial => 'file_search_bar' %>
+  </div>
+ </div>
+ <div class='clear'></div>
 
 <div id='filemanager_files'>
 
-<table width='100%' id='columned_table' cellpadding='0' cellspacing='0'>
-<tbody>
-  <tr>
-	<th id='columned_tree_header_small' height='22' ><%= "Folders".t %>
-
- <div style='float:right;'>
-          <a  onclick='FileEditor.createFolder();'><img align='absmiddle' src='<%= theme_src("framework/filemanager_new_folder.gif") %>' /></a>
+  <div class='tree_container file_tree_container'>
+    <h2>
+      Folders
+      <%= link_to image_tag(theme_src('icons/header_actions/create_folder.png'), :align => 'right'), 'javascript:FileEditor.createFolder();' %> 
+    </h2>
+    <div class='tree_container_body'>
+      <%= render :partial => 'file_tree', :locals => { :folders => [@root_folder] } %>
+    </div>
   </div>
-  
-</th>
-	<td class='columned_tree_spacer' height='22' >&nbsp;</td>
-	<th id='columned_tree_detail_header'  height='22'>
-	  <div style='float:left;' id='folder_title'><%= render :partial => 'folder_title',:locals => { :folder => @folder } %></div>
-    <div style='clear:both;'></div>
-  </th>
-  <td class='columned_tree_spacer' >&nbsp;</td>
-  <td rowspan='3' valign='top' width='300' class='columned_elem'>
-    <div class='columned_tree_area' id='file_manager_details' style='visibility:hidden;'  >
-      <div class='columned_tree_header'><%= "Details".t %></div>
-      <div class='columned_tree_body' id='file_manager_body'>
-        Loading Details..
+
+  <div class='tree_detail file_tree_detail'>
+
+    <div  id='file_manager_details' style='position:absolute;right:10px;width:290px;' >
+      <h2><%= "File Details".t %></h2>
+      <div id='file_manager_body'>
       </div>
     </div>
-  </td>
-</tr>
-<tr>
-	<td width='150' class='columned_elem' style='overflow:auto' valign='top' rowspan='2'>
-		<%= render :partial => 'file_tree', :locals => { :folders => [@root_folder] } %>
-	</td>
-	<td class='columned_tree_spacer' rowspan='2' >&nbsp;</td>
-        <td height='40'>
-           <div id='file_manager_interface'>
-          
-             
-             <div class='toolbar_icon'>
-               <a class='image_icon_selected' id='view_icon' href='javascript:void(0);' onclick='FileEditor.view("icon");'><%= theme_image_tag('framework/filemanager_icons.gif') -%></a>
-             </div>
-             <div class='toolbar_separator'></div>
-             <div class='toolbar_icon'>
-               <a class='image_icon' id='view_list' href='javascript:void(0);' onclick='FileEditor.view("list");'><%= theme_image_tag('framework/filemanager_list.gif') -%></a>
-             </div>
-
-             <div class='toolbar_separator'></div>
-             <div class='toolbar_icon'>
-               <div class='slider_container'
-                    <div class='slider_box' id='size_slider_container'>
-                      <div class='slider' id='size_slider'></div>
-                    </div>
-               </div>
-             </div>
-             <div class='toolbar_icon'>&nbsp;&nbsp;</div>
-             <div class='toolbar_separator'></div>
-
-             <% if @popup && !@mce %>
-               <div class='toolbar_icon_link'>
-                 <a href='javascript:void(0);' onclick='FileEditor.clearSelection();'><%= "Clear Selection".t %></a>
-               </div>
-               <div class='toolbar_separator'></div>
-             <% end -%>
-  
-
-	     <div style='float:right;padding-top:12px;' id='folder_order'>
-	       <%= render :partial => 'folder_order' %>
-	     </div>
-
-             <div style='clear:both;'></div>
-
+    <div style='position:relative; margin-right:310px;'>
+      <div id='slider_wrapper' style='display:none;'>
+        <div class='slider_container' id='slider_container'>
+          <div class='slider_box' id='size_slider_container'>
+            <div class='slider' id='size_slider'><div class='slider_cursor'></div></div>
           </div>
+        </div>
+      </div>
 
-        </td>
-	<td class='columned_tree_spacer' rowspan='2'>&nbsp;</td>
-	
-</tr>
-<tr>
-  <td class='columned_elem'  valign='top' id='element_info' >
-    <div class='file_manager_icon' id='file_manager'>
-      <%= render :partial => "folder_details", :locals => { :folder => @folder }	 %>
+      <h2>  <div class='block_left' id='folder_title'><%= render :partial => 'folder_title',:locals => { :folder => @folder } %></div>  
+        <ul class='page_detail_buttons' style='position:relative; top:-5px;'>
+          <li>
+            <span  id='folder_order'>
+              <%= render :partial => 'folder_order' %>
+            </span>
+          </li>
+          <li><a class='image_icon_selected' id='view_icon' href='javascript:void(0);' onclick='FileEditor.view("icon");'><%= theme_image_tag('framework/filemanager_icons.png') -%></a></li>
+          <li><a class='image_icon' id='view_list' href='javascript:void(0);' onclick='FileEditor.view("list");'><%= theme_image_tag('framework/filemanager_list.png') -%></a></li>
+          <li style='position:relative;'><a class='image_icon' id='view_slider' href='javascript:void(0);'><%= theme_image_tag('framework/filemanager_slider.png') -%></a>
+          </li>
+          <% if @popup && !@mce %>
+            <li>
+              <a href='javascript:void(0);' onclick='FileEditor.clearSelection();'><%= "Clear Selection".t %></a>
+            </li>
+          <% end -%>
+        </ul>
+
+
+
+        <div style='clear:both;'></div>
+      </h2>
+
+      <div class='tree_detail_body' id='element_info'>
+          <div class='file_manager_icon clearfix' id='file_manager' >
+            <%= render :partial => "folder_details", :locals => { :folder => @folder }	 %>
+          </div>
+          <div class='clear'></div>
+      </div>
+
+
     </div>
-    <div style='clear:both;'></div>
-  </td>
-
-</tr>
-</tbody>
-</table>
-
-</div>
+  </div>
+</div> <!-- end #filemanager_files -->
 
 <div id='filemanager_search' style='display:none;'>
   <%= render :partial => 'file_search' %>
 </div>
 
+<script>
+$j(document).ready(function() { FileUploader.init('file_upload_form', 'element_info'); });
+</script>
 
 
 

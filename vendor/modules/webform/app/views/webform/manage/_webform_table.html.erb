@@ -1,0 +1,18 @@
+<% current_time = Time.now %>
+<% active_table_for :webform_table, @active_table_output,
+                    :refresh_url => url_for(:action => 'webform_table'),
+                    :style => 'width:100%',
+                    :more_actions => [['Delete','delete','Are you sure you want to delete the webforms?']] do |t| %>
+<tr <%= highlight_row 'webform',t.id %> >
+  <td align='left' nowrap='1'><%= entry_checkbox "webform", t.id %></td>
+  <td align='center' valign='baseline'><%= link_to theme_image_tag('icons/table_actions/edit.gif'), :action => 'edit', :path => [t.id] %></td>
+  <td align="center"><%= sparkline_tag(t.past_10_days, :type => 'bar', :line_color => 'black') %></td>
+  <td><a href='<%= url_for(:action => 'results', :path => [t.id]) %>'><%= t.name %></a></td>
+  <td align="center"><%= t.total_results %></td>
+  <td align="center"><%= t.new_results %></td>
+  <td align="center"><%= t.created_at ? t.created_at.strftime(DEFAULT_DATETIME_FORMAT.t) : '-' %></td>
+  <td align="center"><%= t.updated_at ? t.updated_at.strftime(DEFAULT_DATETIME_FORMAT.t) : '-' %></td>
+</tr>
+
+
+<% end -%>

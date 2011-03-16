@@ -6,14 +6,26 @@ class MailManagerController < CmsController # :nodoc: all
   
   permit 'editor_mailing'
   
-   cms_admin_paths "e_marketing",
-                   "E-marketing" =>   { :controller => '/emarketing' },
-                   "Mail Templates" =>  { :controller => '/mail_manager', :action => 'templates' },
-                   "Marketing Campaigns" => { :controller => 'campaigns', :action => 'index' }
+   cms_admin_paths "mail",
+                   "Mail" =>   { :action => 'index' },
+                   "Mail Templates" =>  { :controller => '/mail_manager', :action => 'templates' }
                 
+
+
+  def index
+    cms_page_path [], "Mail"
+
+    @subpages =  [ 
+      [ "Subscriptions", :editor_mailing,"mail_subscriptions.png", { :controller => '/subscription' },
+          "Edit Newsletters and Mailing Lists Subscriptions" ],
+      [ "Email Templates", :editor_mailing,"mail_templates.png", { :controller => '/mail_manager', :action => 'templates' },
+        "Edit Mail Templates" ]
+          
+      ]
+
+
+  end
   
-  
-  include ActiveTable::Controller
   
   active_table :mail_templates_table, MailTemplate,
   [ :check,:check,:name,:subject,
@@ -54,14 +66,14 @@ class MailManagerController < CmsController # :nodoc: all
   
   
   def templates
-    cms_page_path [ "E-marketing" ], "Mail Templates"
+    cms_page_path [ "Mail" ], "Mail Templates"
     
     display_mail_templates_table(false)
   end
   
   
   def add_template
-    cms_page_path [ "E-marketing", "Mail Templates" ], 'Add Template'
+    cms_page_path [ "Mail", "Mail Templates" ], 'Add Template'
     
     @mail_template = MailTemplate.new(:language => Configuration.languages[0])
     @mail_template.create_type = 'blank' unless @mail_template.create_type
@@ -74,7 +86,7 @@ class MailManagerController < CmsController # :nodoc: all
     end
     
     
-    @design_templates = [['--Select a Design Template--','']] + SiteTemplate.find_select_options(:all, :order => 'name',:conditions => 'template_type="mail"')
+    @design_templates = [['--Select a Mail Theme--','']] + SiteTemplate.find_select_options(:all, :order => 'name',:conditions => 'template_type="mail"')
     @master_templates = [['--Select a Master Template--','']] + MailTemplate.find_select_options(:all,:order => 'name',:conditions => 'master = 1')
     
   end
@@ -85,43 +97,41 @@ class MailManagerController < CmsController # :nodoc: all
   end
   
   def edit_template
-  
-    if params[:path][1]
-      @campaign = MarketCampaign.find(params[:path][1])
+    if params[:return] && params[:return_id]
+      @handler_info = get_handler_info(:mail_template, :edit, params[:return])
+      logger.error("mail_template edit handler #{params[:return]}(#{params[:return_id]}) not found") unless @handler_info
     end
   
     template_id = params[:path][0]
-    @mail_template = MailTemplate.find_by_id(template_id) || MailTemplate.new(:body_type => 'html')
     
     @design_templates = [['--No Design Template--','']] + SiteTemplate.find_select_options(:all,:order => 'name',:conditions => 'template_type = "mail"')
     
-    if @campaign
-      cms_page_path [ 'E-marketing', 'Marketing Campaigns' ], "Edit Mail Template"
+    if @handler_info && @handler_info[:class].respond_to?(:mail_template_cms_path)
+      cms_page_path *@handler_info[:class].mail_template_cms_path(self)
     else
-      cms_page_path [ "E-marketing" ,"Mail Templates" ], "Edit Mail Template"
+      cms_page_path [ "Mail" ,"Mail Templates" ], "Edit Mail Template"
     end
     
-    @mail_template = MailTemplate.find_by_id(template_id) || MailTemplate.new(:body_type => 'html', :template_type => @campaign ? 'campaign' : 'site')
-    
+    @mail_template = MailTemplate.find_by_id(template_id) || MailTemplate.new(:body_type => 'text,html', :template_type => @handler_info && @handler_info[:template_type] ? @handler_info[:template_type] : 'site')
+
     if request.post?
       if save_template
         DataCache.expire_content("Mailing")
-        if @campaign
-          @campaign.update_attribute(:mail_template_id,@mail_template.id)
-          redirect_to :controller => 'campaigns', :action => 'message', :path => [ @campaign.id ]
+        if @handler_info
+          if redirect_url = @handler_info[:class].mail_template_save(@mail_template, self)
+            redirect_to redirect_url
+          end
         else
-          redirect_to :action => 'templates'
+          if @mail_template.template_type == 'campaign'
+            redirect_to :action => 'templates', :show_campaign => 1
+          else
+            redirect_to :action => 'templates'
+          end
         end
       end
     end
-  
-    if @campaign
-      setup_campaign_steps
-      @campaign_step =  3
-    end
-    
+
     @generate_handlers = get_handler_info(:mail_manager,:generator)
-     
   end
   
   def refresh_template
@@ -133,6 +143,7 @@ class MailManagerController < CmsController # :nodoc: all
   def send_test_template
     @mail_template = MailTemplate.new(params[:mail_template])
     
+    @mail_template.pre_process_file_instance_body_html
     @mail_template.replace_image_sources
     @mail_template.replace_link_hrefs
     
@@ -171,14 +182,10 @@ class MailManagerController < CmsController # :nodoc: all
   private
 
   def save_template
-    
-    params[:mail_template][:body_type] = (params[:mail_template][:body_type] || []).join(",")
-    
-    attach= params[:mail_template].delete(:attachments)
+    attach = params[:mail_template].delete(:attachments)
     attachments = []
     attach.split(',').each { |ath|  attachments << ath if ath && ath != '' } if attach
     params[:mail_template][:attachments] = attachments.length 
-    
     
     if @mail_template.update_attributes(params[:mail_template])
       DataCache.expire_content("Mailing")

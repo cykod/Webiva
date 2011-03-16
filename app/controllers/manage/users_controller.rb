@@ -3,55 +3,63 @@
 class Manage::UsersController < CmsController # :nodoc: all
 
   # need to be at least a client admin
-  permit 'client_admin'
-
-  before_filter :validate_admin
-  def validate_admin
-    unless myself.client_user.system_admin?
-      redirect_to :controller => '/manage/system'
-      return false
-    end
-    
-  end
-
+  permit ['system_admin','client_admin']
   layout "manage"
 
-  def index
-    cms_page_info [ ["System",url_for(:controller => '/manage/system',:action => 'index') ], 
-                    "Client Users"
-                 ],"system"
-    
-    if myself.client_user.system_admin?
-      session[:active_client_company] ||= myself.client_user.client_id 
+  # need to include 
+   include ActiveTable::Controller   
+   active_table :client_users_table,
+                ClientUser,
+                [ hdr(:icon, '', :width=>10),
+                  hdr(:string, :username),
+                  hdr(:static, 'Administrator'),
+                  hdr(:static, 'Delete')
+                ]
+
+  def display_client_users_table(display=true)
+    if self.system_admin?
+      session[:active_client_company] ||= self.client_user.client_id 
       session[:active_client_company] = params[:active_client_company] if params[:active_client_company]
       
       @active_client = session[:active_client_company]
       @client = Client.find(@active_client)
       @clients = Client.find(:all,:order => 'name')
-    else 
-      @client = myself.client_user.client
+      @active_table_output = client_users_table_generate params, :conditions => ['client_id = ?', @client.id], :order => 'username'
+    else
+      @client = self.client
+      @active_table_output = client_users_table_generate params, :conditions => ['client_id = ? and system_admin != 1', @client.id], :order => 'username'
     end
-  
-    @users = @client.client_users.find(:all, :order => 'username')
-    
+
+    render :partial => 'display_client_users_table' if display
+  end
+
+  def index
+    cms_page_info [ ["System",url_for(:controller => '/manage/system',:action => 'index') ], 
+                    "Client Users"
+                 ],"system"
+
+    display_client_users_table(false)
+
     render :action => 'list'
   end
   
   def edit
+    return redirect_to :action => 'edit_all', :path => params[:path] if self.system_admin?
+
     cms_page_info [ ["System",url_for(:controller => '/manage/system',:action => 'index') ], 
                     [ "Client Users", url_for(:action => 'index') ],
                     "Edit User"
                  ],"system"
   
-    @client_user = myself.client_user.client.client_users.find_by_id(params[:path][0]) || myself.client_user.client.client_users.new
-    @create_user = @client_user.id ?  false : true
-    
+    @client_user = self.client.client_users.find_by_id(params[:path][0]) || self.client.client_users.new(:client_admin => false, :system_admin => false)
+    @create_user = @client_user.id.nil?
+
+    return redirect_to :action => 'index' if @client_user.id && @client_user.system_admin? || @client_user.client_id != self.client.id
+
     if request.post?
       if params[:commit]
         params[:client_user][:client_admin] = false unless params[:client_user][:client_admin]
-        del params[:client_user][:system_admin] if params[:client_user][:system_admin]
-        params[:client_user][:client_id] = myself.client_user.client_id
-        if @client_user.update_attributes(params[:client_user])
+        if @client_user.update_attributes(params[:client_user].slice(:username, :password, :domain_database_id, :client_admin))
           redirect_to :action => 'index'
           return
         end
@@ -63,13 +71,15 @@ class Manage::UsersController < CmsController # :nodoc: all
   end
   
   def edit_all
+    return redirect_to :action => 'edit', :path => params[:path] unless self.system_admin?
+
     cms_page_info [ ["System",url_for(:controller => '/manage/system',:action => 'index') ], 
                     [ "Client Users", url_for(:action => 'index') ],
                     "Edit User"
                  ],"system"
      # edit all func is only for system admins
     permit 'system_admin' do
-      @client_user = ClientUser.find_by_id(params[:path][0]) || ClientUser.new(:client_id => session[:active_client_company])
+      @client_user = ClientUser.find_by_id(params[:path][0]) || ClientUser.new(:client_id => session[:active_client_company], :client_admin => false, :system_admin => false)
       @create_user = @client_user.id ?  false : true
     
       
@@ -94,13 +104,14 @@ class Manage::UsersController < CmsController # :nodoc: all
   end
 
   def destroy
-
-    if myself.has_role?('system_admin')
-      @client_user = ClientUser.find(:first, :conditions => ['id = ?',params[:path][0]]);
-
+    if self.system_admin?
+      @client_user = ClientUser.find_by_id params[:path][0]
     else
-      @client_user = myself.client_user.client.client_users.find(:first, :conditions => ['id = ?',params[:path][0]]);
+      @client_user = self.client.client_users.find_by_id params[:path][0]
+      @client_user = nil if @client_user && @client_user.system_admin?
     end
+
+    @client_user = nil if @client_user && @client_user.id == self.client_user.id
 
     if @client_user && request.post?
       if @client_user.destroy
@@ -109,6 +120,10 @@ class Manage::UsersController < CmsController # :nodoc: all
     end
 
     redirect_to :action => 'index'
-
   end
+
+  protected
+
+  include Manage::SystemController::Base
+
 end

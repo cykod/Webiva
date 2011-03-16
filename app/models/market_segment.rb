@@ -9,67 +9,59 @@ class MarketSegment < DomainModel
   belongs_to :user_subscription
   
   has_options :segment_type,
-               [ [ 'Subscription', 'subscription' ],
-                 [ 'Registered Members', 'members' ] ,
-                 [ 'Content Model', 'content_model'] ]
+               [['Subscription', 'subscription'],
+                ['User List', 'user_segment'],
+                ['Content Model', 'content_model'],
+                ['Everyone', 'everyone']]
                  
-                 
+
+  named_scope :with_segment_type, lambda { |segment_type| {:conditions => {:segment_type => segment_type}} }
+  named_scope :for_campaign, lambda { |campaign| campaign.id ? {:conditions => ['market_campaign_id IS NULL OR market_campaign_id = ?', campaign.id]} : {:conditions => 'market_campaign_id IS NULL'} }
+  named_scope :order_by_name, :order => :name
+
    def save_segment
     self.market_campaign_id ? 'yes' : 'no'
    end
    
    def options_model(val = nil)
     case self.segment_type
-    when 'subscription': 
+    when 'subscription'
       SubscriptionOptions.new(val || self.options)
-    when 'members': 
-      MembersOptions.new(val || self.options)
-    when 'content_model': 
+    when 'content_model'
       ContentModelOptions.new(val || self.options)
-    when 'custom':
-      CustomModelOptions.new(val || self.options)
+    when 'user_segment'
+      UserSegmentOptions.new(val || self.options)
     else
       DefaultsHashObject.new
     end
-   
    end
 
-   def self.create_custom(campaign,user_ids)
-     self.create(:options => {  :user_ids => user_ids }, :segment_type => 'custom', :name => "#{campaign.name} Custom Segment", :market_campaign_id => campaign.id )
-   end
-
-   class CustomModelOptions < HashModel #:nodoc:all
-     default_options :user_ids => []
-
-     integer_array_options :user_ids
-   end
-   
    class SubscriptionOptions < HashModel #:nodoc:all
-      default_options :user_subscription_id => nil
-      
-      validates_presence_of :user_subscription_id
+     default_options :user_subscription_id => nil
+
+     validates_presence_of :user_subscription_id
    end
    
-   class MembersOptions < HashModel #:nodoc:all
-      default_options :filter_profiles => nil, :filter_tags => nil, :tags_type => 'any', :affected_profiles => nil, :affected_tags => :nil
-      
-      validates_presence_of
+   class UserSegmentOptions < HashModel #:nodoc:all
+     default_options :user_segment_id => nil
+
+     validates_presence_of :user_segment_id
    end
    
    class ContentModelOptions < HashModel #:nodoc:all
-    default_options :content_model_id => nil,:email_field => nil
-    
-    validates_presence_of :content_model_id, :email_field
+     default_options :content_model_id => nil,:email_field => nil
+
+     validates_presence_of :content_model_id, :email_field
    end
    
    def available_fields
     case self.segment_type
-    when 'subscription':
+    when 'subscription'
       vars = [ 
         [ 'Email'.t,'email', [ 'email','e-mail','e mail' ] ],
         [ 'Name'.t, 'name', [ 'name', 'name'.t ] ]
       ]
-    when 'members':
+    when 'user_segment', 'everyone'
       vars = [
         [ 'Email'.t,'email', [ 'email','e-mail','e mail' ] ],
         [ 'Full Name'.t, 'name', [ 'name', 'name'.t, 'full name'.t  ] ],
@@ -95,7 +87,6 @@ class MarketSegment < DomainModel
     vars << [ 'View Online Link'.t,'view_online', [ 'view_online' ,'view online', 'view_online_link', 'view online link']]
     vars << [ 'Unsubscribe Url'.t,'unsubscribe_href', [ 'unsubscribe_url','unsubscribe url','unsubscribe_url' ] ]
     vars << [ 'View Online Url'.t,'view_online_href', [ 'view_online_url' ,'view online url', 'view_online_href', 'view online href']]
-    
    end
    
    def target_count(options = {})
@@ -116,180 +107,102 @@ class MarketSegment < DomainModel
       self.send(self.segment_type + '_target_entries',options)
    end
    
-   def target_find(options = {})
-      options = options.clone
-      options.symbolize_keys!
-    if self.segment_type == 'members'
-      self.send('members_target_find',options)
-    else
-      raise 'Invalid Find'
-    end
-   end
-   
    def content_model
-    return nil unless self.options[:content_model_id]
-    mdl = ContentModel.find_by_id(self.options[:content_model_id])
-    mdl
+     return @content_model if @content_model
+     return nil unless self.options[:content_model_id]
+     @content_model = ContentModel.find_by_id(self.options[:content_model_id])
    end
    
+   def user_segment
+     return @user_segment if @user_segment
+     return nil unless self.options[:user_segment_id]
+     @user_segment = UserSegment.find_by_id(self.options[:user_segment_id])
+   end
+
+   def self.push_everyone_segment
+     MarketSegment.first(:conditions => {:segment_type => 'everyone'}) || MarketSegment.create(:name => 'Everyone', :segment_type => 'everyone', :options => {})
+   end
+
+   def data_model_class
+     case self.segment_type
+     when 'subscription'
+       UserSubscriptionEntry
+     when 'user_segment'
+       EndUser
+     when 'everyone'
+       EndUser
+     when 'content_model'
+       self.content_model.content_model
+     else
+       nil
+     end
+   end
+
    private
 
-
-   def custom_target_count(options={ })
-     opts = self.options_model
-     if opts.user_ids.length > 0
-       EndUser.count(:conditions => { :id => opts.user_ids })
-     else
-       0
-     end
-   end
-
-   def custom_target_list(options)
-     opts = self.options_model
-     if opts.user_ids.length > 0
-       EndUser.find(:all,:conditions => { :id => opts.user_ids },:select => 'end_users.email,end_users.id,end_users.full_name,end_users.first_name,end_users.last_name,end_users.middle_name').map {  |elm| [ elm.email,elm.name ]}
-     else
-       []
-     end
-   end
-
-   def custom_target_entries(options)
-     opts = self.options_model
-     if opts.user_ids.length > 0
-       EndUser.find(:all,:conditions => { :id => opts.user_ids }).map {  |elm| [ elm.email,elm, elm.id ]}
-     else
-       []
-     end
-   end
-   
    def subscription_target_count(options={})
-    self.user_subscription.active_subscriptions.count()
+     return 0 unless self.user_subscription
+     self.user_subscription.active_subscriptions.count()
    end
    
    # Return the subscription list,
-   # Stop at 1000
    def subscription_target_list(options)
-    self.user_subscription.active_subscriptions.find(:all,options).collect { |sub| [ sub.email, sub.name ] }
+     return [] unless self.user_subscription
+     self.user_subscription.active_subscriptions.find(:all,options).collect { |sub| [ sub.email, sub.name ] }
    end
    
    def subscription_target_entries(options)
-    if self.user_subscription.require_registered_user?
-      self.user_subscription.active_subscriptions.find(:all,options).collect { |entry| [ entry.email, entry.end_user, entry.id ] }
-    else
-      self.user_subscription.active_subscriptions.find(:all,options).collect { |entry| [ entry.email, entry, entry.id ] } 
-    end
+     return [] unless self.user_subscription
+     if self.user_subscription.require_registered_user?
+       self.user_subscription.active_subscriptions.find(:all,options).collect { |entry| [ entry.email, entry.end_user, entry.id ] }
+     else
+       self.user_subscription.active_subscriptions.find(:all,options).collect { |entry| [ entry.email, entry, entry.id ] } 
+     end
    end
    
    def content_model_target_count(options={})
-      mdl = ContentModel.find_by_id(self.options[:content_model_id])
-      mdl.content_model.count
+     return 0 unless self.content_model
+     self.content_model.count
    end
    
    def content_model_target_list(options)
-      mdl = ContentModel.find_by_id(self.options[:content_model_id])
-      email_field = self.options[:email_field]
-      mdl.content_model.find(:all,options).collect { |sub| [ sub.send(email_field), sub.identifier_name ] }
+     return [] unless self.content_model
+     email_field = self.options[:email_field]
+     self.content_model.find(:all,options).collect { |sub| [ sub.send(email_field), sub.identifier_name ] }
    end
    
    def content_model_target_entries(options)
-    mdl = ContentModel.find_by_id(self.options[:content_model_id])
-    email_field = self.options[:email_field]
-    mdl.content_model.find(:all,options).collect { |entry| [ entry.send(email_field), entry, entry.id  ] }
+     return [] unless self.content_model
+     email_field = self.options[:email_field]
+     self.content_model.find(:all,options).collect { |entry| [ entry.send(email_field), entry, entry.id  ] }
+   end
+
+   def user_segment_target_count(options={})
+     return 0 unless self.user_segment
+     self.user_segment.last_count
    end
    
-   
-   def member_target_affected_tag_names
-      self.options ||= {}
-      affected_tags =(self.options[:affected_tags].split(",") + [ 0 ]).collect { |pid| quote_value(pid) }.join(",")
-      affected_tag_names = Tag.find(:all, :conditions => "tags.id IN (#{affected_tags})").collect { |tag| tag.name }
+   def user_segment_target_list(options)
+     return [] unless self.user_segment
+     self.user_segment.batch_users(options).collect { |sub| [ sub.email, sub.name ] }
    end
    
-   def members_target_count(opts={})
-   opts = opts.clone
-
-   options.symbolize_keys!
-    
-    conditions = options[:conditions] || '1'
-    conditions = [conditions] unless conditions.is_a?(Array)
-
-    if opts[:conditions] 
-      new_conds = opts[:conditions]
-      new_conds = [new_conds] unless new_conds.is_a?(Array)
-    
-      conditions[0] += " AND (" + new_conds[0] + ")"
-      conditions += new_conds[1..-1]
-  
+   def user_segment_target_entries(options)
+     return [] unless self.user_segment
+     self.user_segment.batch_users(options).collect { |entry| [ entry.email, entry, entry.id  ] }
    end
-   opts[:conditions] = conditions  
 
-   if options[:tags].is_a?(Array) && options[:tags].length > 0
-    
-      case options[:tags_select]
-      when 'all':
-        opts[:all] = options[:tags]
-        EndUser.count_tagged_with(opts)
-      when 'not_any':
-        opts[:any] = options[:tags]
-        EndUser.count_not_tagged_with(opts)
-      when 'not_all':
-        opts[:all] = options[:tags]
-        EndUser.count_not_tagged_with(opts)
-      else 
-        opts[:any] = options[:tags]
-        EndUser.count_tagged_with(opts)
-      end
-    else
-      EndUser.count(:id,opts)
-    end
-
+   def everyone_target_count(options={})
+     EndUser.count :conditions => 'client_user_id IS NULL'
    end
    
-   def members_target_find(opts)
-    opts = opts.clone
-    options.symbolize_keys!
-  
-    conditions = options[:conditions] || '1'
-    conditions = [conditions] unless conditions.is_a?(Array)
-
-    if opts[:conditions] 
-      conditions = [conditions] unless conditions.is_a?(Array)
-      new_conds = opts[:conditions]
-      new_conds = [new_conds] unless new_conds.is_a?(Array)
-    
-      conditions[0] += " AND (" + new_conds[0] + ")"
-      conditions += new_conds[1..-1]
-  
-    end
-    opts[:conditions] = conditions  
-
-  
-    if options[:tags].is_a?(Array) && options[:tags].length > 0
-      case options[:tags_select]
-        when 'all':
-          opts[:all] = options[:tags]
-          EndUser.find_tagged_with(opts)
-        when 'not_any':
-          opts[:any] = options[:tags]
-          EndUser.find_not_tagged_with(opts)
-        when 'not_all':
-          opts[:all] = options[:tags]
-          EndUser.find_not_tagged_with(opts)
-        else 
-          opts[:any] = options[:tags]
-          EndUser.find_tagged_with(opts)
-      end
-    else
-      opts[:include] = :tag_cache
-      EndUser.find(:all,opts)
-    end
-  end   
-  
-   def members_target_list(options)
-    members_target_find(options).collect { |usr| [ usr.email, usr.name ] }
+   def everyone_target_list(options)
+     scope = EndUser.scoped(:conditions => 'client_user_id IS NULL')
+     scope.find(:all, options).collect { |sub| [ sub.email, sub.name ] }
    end
    
-   def members_target_entries(options)
-    members_target_find(options).collect { |usr| [ usr.email, usr, usr.id ] }
-    
+   def everyone_target_entries(options)
+     scope = EndUser.scoped(:conditions => 'client_user_id IS NULL')
+     scope.find(:all, options).collect { |entry| [ entry.email, entry, entry.id  ] }
    end
 end

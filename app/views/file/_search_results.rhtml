@@ -1,3 +1,10 @@
+<a href='javascript:void(0);' onclick='FileEditor.selectUpload();'>&lt; Back to File Manager</a>
+<div align='right'>
+<% cms_unstyled_form_for :search  do |f| %>
+  <%= f.select :order, @order_options %>
+<% end -%>
+</div>
+
 <% @results.each do |file| -%>
   <%= render :partial => 'search_item', :locals => { :file => file } %>
 <% end -%>

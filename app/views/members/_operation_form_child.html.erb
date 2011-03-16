@@ -1,0 +1,26 @@
+
+<% cms_unstyled_fields_for form_id, builder do |f| -%>
+
+<tr>
+<td width="240">
+<% if condition == 'with' -%>
+  <%= f.radio_buttons :operator, [['Show me accounts with', nil], ['Do not show me accounts with', 'not']], :label => '', :separator => '<br/><br/>' %>
+  <br/>
+<% else -%>
+  <span style="padding-left:10px;"><%= builder.previous_operator == 'not' ? 'Do not show me accounts with'.t : 'Show me accounts with'.t  %></span>
+  <br/><br/><br/>
+<% end -%>
+
+</td>
+<td valign="middle">
+  <%= f.grouped_select :field, builder.field_group_options, {}, :onchange => 'OperationBuilder.updateOperations();' %><br/><br/><br/>
+</td>
+</tr>
+
+  <% if builder.operation_options.length > 0 -%>
+    <div class="operation">
+    <%= render :partial => 'operation_form_operation', :locals => {:builder => builder, :form_id => form_id} %>
+    </div>
+  <% end -%>
+
+<% end -%>

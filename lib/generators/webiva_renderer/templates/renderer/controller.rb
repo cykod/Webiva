@@ -8,8 +8,13 @@ class <%= module_class %>::<%= renderer_class %>Controller < ParagraphController
 
 <%- paragraphs.each do |paragraph| -%>
   class <%= paragraph.camelcase %>Options < HashModel
+    # Paragraph Options
+    # attributes :success_page_id => nil
 
+    options_form(
+                 # fld(:success_page_id, :page_selector) # <attribute>, <form element>, <options>
+                 )
   end
-<%- end -%>
 
+<%- end -%>
 end

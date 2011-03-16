@@ -1,0 +1,14 @@
+
+<% admin_form_for :profile, @profile_entry, :html => { :onsubmit => "ProfileData.editProfile(); return false;", :id => "profiles" } do |f| -%>
+  <%= hidden_field_tag "profile_type_id", @profile_entry.user_profile_type_id %>
+  <%= f.check_boxes :published, [["allow other users to see this profile", true]], :single => true %>
+
+  <% if @profile_entry.content_model -%>
+    <% cms_subfields_for :entry, @profile_entry.content_model_entry do |sf| -%>
+      <%= @profile_entry.user_profile_type.content_model.edit_form(sf,:except =>  @profile_entry.user_profile_type.content_model_field_id) %>
+    <% end -%>
+    <%= f.submit_tag @profile_entry.content_model_entry.id ? 'Update' : 'Create' %> 
+  <% else -%>
+    <%= f.submit_tag 'Update' %> 
+  <% end -%>
+<% end -%>

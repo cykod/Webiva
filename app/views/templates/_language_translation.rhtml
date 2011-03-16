@@ -19,8 +19,8 @@
     <%= h trans[0] %>
    </td>
    <td>
-    <input name='translate[<%= lang %>][<%= idx %>]' type='hidden' value='<%= h trans[0] %>' />
-    <input name='translation[<%= lang %>][<%= idx %>]' type='text' size='16' value='<%= h trans[1][lang].to_s %>' />
+    <%= hidden_field_tag "translate[#{lang}][#{idx}]", trans[0] %>
+    <%= text_field_tag "translation[#{lang}][#{idx}]", trans[1][lang], :size => 16 %>
  </td>
  <% end -%>
 </table>

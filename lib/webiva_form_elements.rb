@@ -206,11 +206,13 @@ module WebivaFormElements
     txt = @object.send(field)
     
     options = options.clone
+    tpl = options.delete(:template)
+    filter = options.delete(:content_filter) || 'full_html'
+
+    return self.send(:text_area,field,options) unless filter == 'full_html'
+
     options[:class] = 'cmsFormMceEditor'
     options[:style] = 'width:100%;' unless options[:style]
-    tpl = options.delete(:template)
-      
-    
 
     txtarea = self.send(:text_area,field,options)
     
@@ -560,7 +562,7 @@ module WebivaFormElements
     end
     
     
-    link_txt = link_to('+Add Image'.t, "/website/file/popup?select=file&callback=image_list_#{obj_name}_#{field}.attachFile&thumb_size=thumb", :popup => ['file_manager', 'height=400,width=600,resizable=yes,scrollbars=yes' ])
+    link_txt = link_to('+Add Image'.t, "/website/file/popup?select=img&callback=image_list_#{obj_name}_#{field}.attachFile&thumb_size=thumb", :popup => ['file_manager', 'height=500,width=900,resizable=yes,scrollbars=yes' ])
     
      <<-JAVASCRIPT
         <script type='text/javascript'>
@@ -670,7 +672,7 @@ module WebivaFormElements
        <<-JAVASCRIPT
         <span class='data text_field_control'><input type='text' style='width:280px;' id='#{field_id}' name='#{field_name}' class='text_field' value='#{h value}' onkeyup="if($('#{id_field_id}_temp').value != this.value) { $('#{id_field_id}').value=''; $('#{ok_icon_id}').style.visibility='hidden'; }" />
     <input type='hidden' name='#{id_field_name}' value='#{id_value}' id='#{id_field_id}'/>
-    <input type='hidden' value='' id='#{id_field_id}_temp'/>
+    <input type='hidden' value='#{h value}' id='#{id_field_id}_temp'/>
     <img src='#{@template.controller.theme_src('icons/ok.gif')}' id='#{ok_icon_id}' style='#{"visibility:hidden;" unless usr}' /></span>
     <div class='autocomplete' id='#{field_id}_autocomplete' style='display:none;' ></div>
     
@@ -723,10 +725,13 @@ module WebivaFormElements
   
   end
   
+  def root_page_selector(field,opts = {})
+    self.select(field,SiteNode.page_options('--Add to site root--'.t),opts)
+  end
  
   # Selector that lets you pick a page by id
-  def page_selector(field,opts = {})
-    self.select(field,[['--Select Page--'.t,nil]] + SiteNode.page_options,opts)
+  def page_selector(field,opts = {}, html_options={})
+    self.select(field,[['--Select Page--'.t,nil]] + SiteNode.page_options,opts,html_options)
   end
  
   # Selector that lets you pick a page by url
@@ -739,16 +744,30 @@ module WebivaFormElements
   # Accepts a list of opts like select and radio_buttons does
   def ordered_array(field,opts,options={})
     objects = @object.send(field)
-    
-    # options for select doesn't support disabled arguments, so ryo
-    select_options = ([['--Select--'.t,nil]] + opts).map do |opt|
-      opt_disabled = objects.include?(opt[1]) ? 'disabled="disabled"' : ''
-      "<option value='#{opt[1]}' #{opt_disabled}>#{h(opt[0])}</option>"
-    end.join
 
+    select_options = ''
     opts_hash = {}
-    opts.each { |elm| opts_hash[elm[1]] = elm[0].to_s }
-    
+
+    if options[:grouped]
+      # options for select doesn't support disabled arguments, so ryo
+      select_options = opts.map do |section|
+        group_options = section[1].map do |opt|
+          opts_hash[opt[1]] = opt[0].to_s
+          opt_disabled = objects.include?(opt[1]) ? 'disabled="disabled"' : ''
+          "<option value='#{opt[1]}' #{opt_disabled}>#{h(opt[0])}</option>"
+        end.join
+        "<optgroup label=\"#{h section[0]}\">#{group_options}</optgroup>"
+      end.join
+      select_options = "<option value=''>" + '--Select--'.t + "</option>#{select_options}"
+    else
+      # options for select doesn't support disabled arguments, so ryo
+      select_options = ([['--Select--'.t,nil]] + opts).map do |opt|
+        opts_hash[opt[1]] = opt[0].to_s
+        opt_disabled = objects.include?(opt[1]) ? 'disabled="disabled"' : ''
+        "<option value='#{opt[1]}' #{opt_disabled}>#{h(opt[0])}</option>"
+      end.join
+    end
+
     obj_name = @object_name.to_s.gsub(/\[|\]/,"_");
     idx=-1
     existing_options = objects.map do |elm|
@@ -876,8 +895,6 @@ HTML
     existing_options = @object.send(field).map do |elm|
       idx+=1
       <<-TXT
- <input type='hidden' name='#{@object_name}[#{field}][][#{id_field}]' value='' />
- #{"<input type='hidden' name='#{@object_name}[#{field}][][#{position_field}]' value='' />" if sortable}
       <div class='ordered_selection_list_item' id='#{obj_name}_#{field}_element_#{elm.send(id_field)}'>
 <div class='ordered_selection_list_remove'><a href='javascript:void(0);' onclick='OrderedList.delete("#{obj_name}_#{field}", "#{elm.send(id_field)}");'>X</a></div>
            #{h elm.name}
@@ -955,6 +972,7 @@ TXT
 </script>
       <select name='#{obj_name}_#{field}_select' id='#{obj_name}_#{field}_select'>#{select_options}</select>
       <button  id='#{obj_name}_#{field}_add'  onclick='OrderedList.add("#{obj_name}_#{field}","#{@object_name}[#{field}]","#{id_field}","#{position_field}"); return false;' >Add</button><br/>
+       <input type='hidden' name='#{@object_name}[#{field}][][#{id_field}]' value='' />
       <div class='ordered_selection_list' id='#{obj_name}_#{field}_selector' #{"style='display:none;'" if objects.length == 0}>
         #{existing_options}
       </div>
@@ -1000,5 +1018,51 @@ HTML
     output += "</div>"
 
   end
-    
+
+  def captcha(field, captcha, options={})
+    captcha.generate(options)
+  end
+
+
+  def add_page_selector(field,options={ })
+
+    self.select_original("#{field}_id",SiteNode.page_options('--Add to Site Root--'.t)) +
+      " / " +
+      self.text_field_original("#{field}_subpage",:size => 10, :disabled => !@object.send("#{field}_existing").blank?) + 
+    "<br/>" + 
+    self.check_boxes_original("#{field}_existing", [["Add to an existing page",true]], :single => true, :onclick => " $('#{object_name}_#{field}_subpage').disabled = this.checked")
+  end
+
+  def inline_file_upload(field, options={})
+    options[:width] ||= '100%'
+    options[:height] ||= 50
+    options[:frameborder] ||= 0
+    options[:marginwidth] ||= 0
+    options[:marginheight] ||= 0
+    options[:name] = "#{@object_name}_#{field}_frame"
+    options[:id] = options[:name]
+
+    url = options.delete(:url)
+    url += "?upload=1&file[object]=#{@object_name}&file[field]=#{field}"
+    url += '&' + options.delete(:params).collect { |k,v| "#{k}=#{CGI::escape(v)}" }.join('&') if options[:params]
+
+    value = @object.send(field)
+    preview = ''
+    unless value.blank?
+      file_field = field.to_s.sub /_id$/, ''
+      file = @object.send(file_field)
+      preview = "<img src='#{file.thumbnail_url('standard/', :thumb)}' /> #{file.name}"
+    end
+
+    output = hidden_field field
+    output += "<span class='inline_file_preview' id='#{object_name}_#{field}_preview'"
+    output += ' style="display:none;"' if value.blank?
+    output += "><span id='#{object_name}_#{field}_preview_content'>#{preview}</span> "
+    output += content_tag :a, 'clear'.t, {:class => 'inline_file_clear', :href => 'javascript:void(0);', :onclick => "$('#{object_name}_#{field}').value = ''; $('#{object_name}_#{field}_preview_content').innerHTML = ''; $('#{object_name}_#{field}_preview').hide(); $('#{object_name}_#{field}_frame').show(); $('#{object_name}_#{field}_frame').src = $('#{object_name}_#{field}_frame').src;"}
+    output += "</span>"
+    output += "<iframe src='#{url}' "
+    output += options.collect { |k,v| "#{k}='#{v}'" }.join(' ')
+    output += ' style="display:none;"' unless value.blank?
+    output += '></iframe>'
+  end
 end

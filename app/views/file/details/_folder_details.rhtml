@@ -1,15 +1,17 @@
-
-<%= render :partial => '/file/details/file_name', :locals => {:file => file } %>
 <div id='details_<%= file.id -%>'>
+<div class='tree_detail_body'>
+<%= render :partial => '/file/details/file_name', :locals => {:file => file } %>
 
 <div id='fm_file_actions'  >
   <% if file.file_type_match(@select) -%>
-    <button onclick='FileEditor.callbackFile(<%= file.id %>);'>Select</button>
+    <button class='button_link' onclick='FileEditor.callbackFile(<%= file.id %>);'>Select</button>
   <% end -%>
-  <button class='last' onclick='FileEditor.deleteSelected([<%= file.id  %>]);'>Delete</button>  
+    <button class='button_link' onclick='FileEditor.folderArchive(<%= file.id %>);'>Create Archive</button> 
+    <button  class='button_link' class='last' onclick='FileEditor.deleteSelected([<%= file.id  %>]);'>Delete</button>  
   <div style='clear:both;'></div>
 </div>
 
+</div>
 
 <% ajax_tabs ['Folder Details'], 'Folder Details' do |t| %>
 <% t.tab do -%>

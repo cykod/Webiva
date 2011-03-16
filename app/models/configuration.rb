@@ -40,7 +40,13 @@ class Configuration < DomainModel
   # Get a configuration HashModel by class either using values or pull it from the configurations table
   def self.get_config_model(mdl,values = nil)
     key=  mdl.to_s.underscore
-    mdl.new(values || get(key) || {})
+
+    if values
+      mdl.new((get(key)||{ }).symbolize_keys.merge((values || {}).symbolize_keys)) 
+    else
+      mdl.new(get(key)||{})
+    end
+
   end
   
   # Put a configuration HashModel into the configurations table 
@@ -79,7 +85,7 @@ class Configuration < DomainModel
   # domain that's missing form the cache
   def self.fetch_domain_configuration(domain_name)
     cfg = DataCache.get_domain_info(domain_name)
-    return cfg[0] if cfg 
+    return cfg[0] if cfg
 
     dmn = Domain.find_by_name(domain_name)
     # Handle domain level redirects
@@ -96,12 +102,27 @@ class Configuration < DomainModel
     end
     # Otherwise cache the database to avoid a req on the domain
     # table
-    cfg = dmn.attributes
-    cfg.symbolize_keys!
-    DataCache.set_domain_info(domain_name,[cfg])
-    cfg
+    cfg = dmn.get_info
+
+    # return nothing if the domain is inactive   
+    if cfg[:domain_database][:inactive]
+      DataCache.set_domain_info(domain_name,[nil])
+      nil
+    else
+      DataCache.set_domain_info(domain_name,[cfg])
+      cfg
+    end
   end
-  
+
+  def self.system_module_configuration(mod)
+    config = DomainModel.active_domain[:domain_database][:config]
+    if config && config['modules'] && config['modules'][mod]
+      config['modules'][mod]
+    else
+      nil
+    end
+  end
+
   # Return the google analytics code 
   # TODO: move safely into configuration
   def self.google_analytics
@@ -141,11 +162,11 @@ class Configuration < DomainModel
     return img if img
 
     if gender.to_s == 'm'
-       img = DomainFile.find_by_id(self.options.missing_male_image_id)
+      img = DomainFile.find_by_id(self.options.missing_male_image_id) if self.options.missing_male_image_id
     elsif gender.to_s == 'f'
-      img = DomainFile.find_by_id(self.options.missing_female_image_id)
+      img = DomainFile.find_by_id(self.options.missing_female_image_id) if self.options.missing_female_image_id
     end
-    img ||= DomainFile.find_by_id(self.options.missing_image_id)
+    img ||= DomainFile.find_by_id(self.options.missing_image_id) if self.options.missing_image_id
     
     
     DataCache.put_local_cache("missing_image_#{gender}",img)
@@ -242,14 +263,29 @@ class Configuration < DomainModel
     :general_activation_template_id => nil,
     :general_activation_url => nil,
     :search_handler => nil,
-    :site_timezone => nil
+    :search_stats_handler => nil,
+    :site_timezone => nil,
+    :captcha_handler => nil,
+    :skip_default_feature_css => false
 
     integer_options :default_image_location, :gallery_folder,:user_image_folder, :missing_image_id, :missing_male_image_id, :missing_female_image_id
 
+    boolean_options :skip_default_feature_css
+
     def validate #:nodoc:
-       if !search_handler.blank?
-         self.errors.add(:search_handler,'is not valid') unless get_handler_values(:webiva,:search).include?(search_handler)
-       end
+      if !search_handler.blank?
+        self.errors.add(:search_handler,'is not valid') unless get_handler_values(:webiva,:search).include?(search_handler)
+      end
+      if !search_stats_handler.blank?
+         self.errors.add(:search_stats_handler,'is not valid') unless get_handler_values(:webiva,:search_stats).include?(search_stats_handler)
+      end
+      if !captcha_handler.blank?
+        self.errors.add(:captcha_handler,'is not valid') unless get_handler_values(:webiva,:captcha).include?(captcha_handler)
+      end
+    end
+
+    def one_line_address(separator = " | ")
+      self.company_address.to_s.split("\n").map(&:strip).join(separator)
     end
   end
 

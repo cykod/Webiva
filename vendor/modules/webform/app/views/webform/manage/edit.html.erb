@@ -1,0 +1,94 @@
+<script>
+
+FieldEditor = {
+  fieldIndex: <%= @content_model.content_model_fields.length %>,
+  
+  // Sortable Functions
+  createFieldSortables:function() {
+     Sortable.create('pub_fields', 
+              { 
+                tag: 'div',      
+                constraint: 'vertical', 
+                handle: 'handle',       
+                dropOnEmpty:true,
+                onUpdate: FieldEditor.updateSortables });
+  },
+  
+  updateSortables: function() {
+    idx = 1;
+    $$('.sortable_field').each( function(ele) { ele.value = idx; idx++; } );
+  },
+  
+  // Option Functions
+  closeOptions: function(field_id) {
+    Element.hide('options_' + field_id);
+  },
+  
+  toggleOptions: function(field_id) {
+    Element.toggle('options_' + field_id);
+  
+  
+  },
+
+  updateName: function(field_id,value) {
+    $('field_name_' + field_id).innerHTML = value.escapeHTML();
+  },
+  
+  // Fields Functions
+  addField: function() {
+    params = Form.serialize('add_field_form');
+    FieldEditor.fieldIndex+=1;
+    params += "&field_index=" + FieldEditor.fieldIndex;
+    new Ajax.Updater('pub_fields',
+                      '<%= url_for :action => "new_field" %>',
+                     { parameters: params,
+                       insertion: Insertion.Bottom,
+                       evalScripts: true,
+                       onComplete: function(req) {
+                          FieldEditor.createFieldSortables();
+                          
+                        }}
+                     );
+  },
+  
+  deleteField: function(field_idx,field_id) {
+    if(confirm("<%= jh 'Remove this field?'.t %>")) {
+      Element.remove("elem_field_" + field_idx);
+    }
+  }
+}
+</script>
+
+<% action_panel do |p| -%>
+  <%= p.link "Configure Webform", :action => 'configure', :path => @content_model.id, :icon => 'edit.gif' %>
+<% end -%>
+<hr/>
+
+<div class='admin_content admin_form'>
+
+<h2><%= 'Add/Remove Webform Fields'.t %></h2>
+<br/>
+
+<% form_for :add_field, :html => { :onsubmit => 'FieldEditor.addField(); return false;', :id => 'add_field_form' } do |f| %>
+  <%= f.select :field_type, @field_types %>  <%= "Name:".t %>
+  <%= f.text_field :name %>
+  <input type='submit' value='<%= "Add Field" %>'/>
+<% end -%>
+
+<% cms_unstyled_form_for :content_model, @content_model, :html => { :id => 'content_model' } do |f| %>
+
+  <div id='pub_fields' style='padding:10px;'>
+  <% @content_model.content_model_fields.each_with_index do |fld,index| %>
+    <%= render :partial => 'edit_field', :locals => { :fld => fld, :field_index => index} %>
+  <% end -%>
+  </div>
+
+  <input type='submit' value='<%= jh "Save".t %>' />
+
+  <script>
+    FieldEditor.createFieldSortables();
+  </script>
+
+<% end -%>
+</div>
+

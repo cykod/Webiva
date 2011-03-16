@@ -17,7 +17,7 @@ class Feed::PageRenderer < ParagraphRenderer
       logger.error('Refetching Feed')
       if !@output
         if editor?
-          return render_paragraph :text => @output.error
+          return render_paragraph :text => "Error Fetching Feed"
         else
           cache[:output] = ''
         end

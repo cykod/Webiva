@@ -1,9 +1,8 @@
 			<ul id='zones_example' class='horizontal_sortable_example'>
-				<li><%= "Main Content".t %></li>
-				<li><%= "Main Menu".t %></li>
-				<li><%= "Primary Sidebar".t %></li>
-				<li><%= "Second Sidebar".t %> </li>
-				<li class='last'><%= "Extra Zones...".t %></li>
+        <li class='first'>Drag zones<br/>to reorder</li>
+        <% (1..15).each do |z| %>
+             <li><%= z %></li>
+        <% end -%>
 			</ul>			
 		<div style='clear:both;'></div>
 			<ul id='zones' class='horizontal_sortable'>

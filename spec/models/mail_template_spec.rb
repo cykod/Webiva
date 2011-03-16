@@ -79,7 +79,7 @@ describe MailTemplate do
     it 'should create correct links' do
       @image = DomainFile.find_by_name('rails.png')
       @image_path = Configuration.domain_link(@image.prefix)
-      @body_html = "<p>This is the image: <img src=\"%s\" \/>" % @image_path
+      @body_html = "<p>This is the image: <img src='%s' \/>" % @image_path
       @tmpl = MailTemplate.create({:name=>"Test Template Image",
                                     :template_type=>"site",
                                     :category=>"test cat",

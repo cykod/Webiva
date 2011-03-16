@@ -1,0 +1,46 @@
+<div class='admin_content'>
+
+<% if @processing -%>
+<div align="center">
+<br/>
+<br/>
+<h4><%= 'Importing webiva bundle.'.t %></h4>
+<br/>
+<br/>
+<img src="<%= theme_src 'loading.gif' %>" border="0"/>
+</div>
+<% elsif @bundler.name -%>
+  <div style="float:left; width:300px;">
+  <% stat_view do |f| -%>
+    <%= f.header "Webiva Bundle Info" %>
+    <%= f.row 'Name', @bundler.name %>
+    <%= f.row 'Author', @bundler.author %>
+    <%= f.row 'Description', @bundler.description %>
+    <%= f.row 'License', @bundler.license %>
+  <% end -%>
+
+    <% admin_form_for :bundler, @bundler do |f| -%>
+      <%= f.hidden_field :bundle_file_id %>
+      <%= f.hidden_field :thumb_id %>
+      <%= f.check_boxes :replace_same, [['Replace matching bundle elements', true]], :single => true, :label => '' %>
+      <%= f.spacer %>
+      <%= f.cancel_submit_buttons 'Cancel', 'Import' %>
+    <% end -%>
+
+  </div>
+  <div style="float:left; padding-left:30px;">
+  <table cellspacing='0' cellpadding='0' class='stat_viewer '>
+  <tr><td class='header'><b><%= 'Preview'.t %></b></td></tr>
+  <tr><td style="padding:15px;"><%= @bundler.thumb ? @bundler.thumb.image_tag : '' %></td></tr>
+  </table>
+  </div>
+  <div class="clear"></div>
+
+<% else -%>
+  <% admin_form_for :bundler, @bundler do |f| -%>
+    <%= f.filemanager_file :bundle_file_id %>
+    <%= f.submit_tag 'Submit', :name => 'select' %>
+  <% end -%>
+<% end -%>
+
+</div>

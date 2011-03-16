@@ -10,6 +10,9 @@ class ParagraphRenderer < ParagraphFeature
   class ParagraphRedirect #:nodoc:all
       attr_accessor :paction
       attr_accessor :args
+      attr_accessor :user_level
+      attr_accessor :user_value
+
       def initialize(args)
         @args = args
       end
@@ -20,7 +23,7 @@ class ParagraphRenderer < ParagraphFeature
       @rnd = rnd
       @render_args = args
     
-      @includes= {}
+      @includes = {}
     end
     attr_reader :rnd
     attr_reader :render_args
@@ -30,7 +33,10 @@ class ParagraphRenderer < ParagraphFeature
     attr_accessor :paction
     attr_accessor :paction_data
     attr_accessor :content_nodes
-    
+    attr_accessor :paragraph_id
+    attr_accessor :user_level
+    attr_accessor :user_value
+
     def method_missing(method,args)
       @rnd.send(method)
     end
@@ -61,7 +67,7 @@ class ParagraphRenderer < ParagraphFeature
       @page_connections = page_connections
       @page_title = page_title
     end
-    
+
     attr_accessor :output
     attr_accessor :includes
     attr_accessor :page_connections
@@ -165,7 +171,22 @@ class ParagraphRenderer < ParagraphFeature
     end
   end 
 
-  
+  def elevate_user_level(user, user_level)
+    user.elevate_user_level(user_level) if user && user.id
+    @paragraph_user_level = user_level
+  end
+
+  def unsubscribe_user(user)
+    user.unsubscribe if user && user.id
+    @paragraph_user_level = user_level
+  end
+
+  def set_user_value(user, val)
+    user.update_user_value(val) if user && user.id
+    @paragraph_user_value ||= 0.0
+    @paragraph_user_value += val.to_f
+  end
+
   attr_reader :user_class
   attr_reader :language
   attr_reader :controller
@@ -174,15 +195,14 @@ class ParagraphRenderer < ParagraphFeature
   def initialize(user_class,ctrl,para,site_node,revision,opts = {}) #:nodoc:
     @user_class = user_class
     @language = opts[:language]
+    @preview_mode = opts[:preview]
     @controller = ctrl
     @site_node = site_node
     @revision = revision
     @para = para
     @opts = opts 
-    
-    @js_includes = []
-    @css_includes = []
-    @head_html = []
+
+    @includes = {}
     @page_connections = {}
     @paction = nil
     @paction_data = nil
@@ -285,9 +305,16 @@ class ParagraphRenderer < ParagraphFeature
   # Sets a content node associated with this paragraph, 
   # used by the editor to display edit links
   def set_content_node(obj)
-    if myself.editor?
-      @content_node_list ||= []
+    @content_node_list ||= []
+    if obj.is_a?(Fixnum)
       @content_node_list << obj
+    elsif obj.is_a?(ContentNode)
+      @content_node_list << obj.id
+    elsif obj.is_a?(DomainModel)
+      @content_node_list << obj.content_node.id
+    elsif obj.is_a?(Array)
+      cn = ContentNode.fetch(obj[0],obj[1])
+      @content_node_list << cn.id if cn
     end
   end
   
@@ -413,15 +440,27 @@ class ParagraphRenderer < ParagraphFeature
     end
   end 
   
-  # Includes the specified javascript file when the page is rendered
+  def html_set_attribute(part, value={})
+    @includes[part.to_sym] ||= {}
+    @includes[part.to_sym].merge! value
+  end
+
+  def html_include(part, value=[])
+    @includes[part.to_sym] ||= []
+    value = [value] unless value.is_a?(Array)
+    @includes[part.to_sym] += value
+  end
+
+   # Includes the specified javascript file when the page is rendered
   # uses the standard rails javascript_include_tag syntax
   def require_js(js)
+    @includes[:js] ||= []
     if js.is_a?(Array)
       js.each { |fl| require_js(fl) }
     else
       js.downcase!
       js += ".js" unless js[-3..-1] == '.js'
-      @js_includes << js
+      @includes[:js] << js
     end
   end
   
@@ -443,22 +482,92 @@ class ParagraphRenderer < ParagraphFeature
                          :page_revision => self.paragraph.page_revision.id,
                          :paragraph => self.paragraph.id)
     paragraph_action_url(opts)
-  end    
+  end
+
+  def insert_page_connection_hash!(output,replacement)
+    output.gsub!(replacement,page_connection_hash)
+  end
+
+  # Returns a hash of the page connections and stores them safely in the
+  # session for an ajax call
+  def page_connection_hash
+    return @page_connection_hash if @page_connection_hash
+    conns = self.paragraph.page_connections || {}
+    output_hsh = {}
+    conns.each do |key,val|
+      output_hsh[key] = page_connection_hash_helper(val)
+    end
+    hash_hash = DomainModel.hash_hash(output_hsh)
+    session[:page_connection_hash] ||= {}
+    session[:page_connection_hash][paragraph.id.to_s + "_" + hash_hash] = output_hsh
+
+    @page_connection_hash = hash_hash
+  end
+
+  def set_page_connection_hash(conns) #:nodoc:
+    output_hash = {}
+    conns.each do |key,val|
+      output_hash[key] = set_page_connection_hash_helper(val)
+    end
+    self.paragraph.page_connections = output_hash
+  end
+
+  def page_connection_hash_helper(val) #:nodoc:
+    if val.is_a?(Array)
+       val.map { |sval| page_connection_hash_helper(sval) }
+    elsif val.kind_of?(Hash)
+       output = {}
+       val.each { |key,sval| output[key] = page_connection_hash_helper(sval) }
+       output
+    elsif val.kind_of?(DomainModel)
+      { :domain_model_hash => true, :cls => val.class.to_s, :id => val.id  }
+    elsif val.kind_of?(HashModel)
+      { :hash_model_hash => true, :cls => val.class.to_s, :attr => val.to_hash }
+    else
+      val
+    end
+  end
+
+
+  def set_page_connection_hash_helper(val) # :nodoc:
+    if val.is_a?(Hash)
+      if val[:domain_model_hash]
+        if val[:cls]=='EndUser' && val[:id].blank?
+          myself
+        else
+          val[:cls].constantize.find(val[:id])
+        end
+      elsif val[:hash_model_hash]
+        val[:cls].constantize.new(val[:attr])
+      else
+        output = {}
+        val.each { |key,sval| output[key] = set_page_connection_hash_helper(sval) }
+       output
+      end
+    elsif val.is_a?(Array)
+      val.map { |sval| set_page_connection_hash_helper(sval) }
+    else
+      val
+    end
+  end
+
  
   # Includes the specified css file when the page is rendered
   # uses the standard rails stylesheet_link_tag syntax
   def require_css(css)
+    @includes[:css] ||= []
     if css.is_a?(Array)
-      @css_includes += css
+      @includes[:css] += css
     else
-      @css_includes << css
+      @includes[:css] << css
     end
   end
    
   # Includes some custom html code in the head of the document
   # if you want to use javascript you must explicitly include the <script>..</script> tags
   def include_in_head(html)
-    @head_html << html
+    @includes[:head_html] ||= []
+    @includes[:head_html] << html
   end
 
   def form_authenticity_token #:nodoc:
@@ -475,20 +584,23 @@ class ParagraphRenderer < ParagraphFeature
   
   # Return state of the renderer, include current user, and controller, allowing for override
   def renderer_state(override={ })
-    {:user => myself, :renderer => self, :controller => @controller }.merge(override)
+    conn_type,conn_id = page_connection
+    {:user => myself, :renderer => self, :controller => @controller, :page_connection => conn_id }.merge(override)
   end
   
   def output #:nodoc:
     if @paragraph_output.is_a?(ParagraphOutput) || @paragraph_output.is_a?(CachedOutput)
-      @paragraph_output.includes[:css] = @css_includes if @css_includes.length > 0
-      @paragraph_output.includes[:js] = @js_includes if @js_includes.length > 0
-      @paragraph_output.includes[:head_html] = @head_html if @head_html.length > 0
+      @paragraph_output.includes = @includes
       @paragraph_output.page_connections = @page_connections
       @paragraph_output.paction = @paction
       @paragraph_output.page_title = @page_title
       @paragraph_output.content_nodes = @content_node_list
+      @paragraph_output.user_level = @paragraph_user_level if @paragraph_output.is_a?(ParagraphOutput)
+      @paragraph_output.user_value = @paragraph_user_value if @paragraph_output.is_a?(ParagraphOutput)
     elsif @paragraph_output.is_a?(ParagraphRedirect)
       @paragraph_output.paction = @paction
+      @paragraph_output.user_level = @paragraph_user_level
+      @paragraph_output.user_value = @paragraph_user_value
     end
     @paragraph_output 
   end
@@ -564,6 +676,15 @@ For example:
    # Each page will be cached separately
    renderer_cache(Blog::BlogPost,page) { |cache| ... }
 
+=== Included css and javascript
+
+Renderer cached will automatically cache any javascript and css includes 
+(i.e. require_css / require_js ) that have been included by the end of the
+block, so you can put your includes inside of your renderer_cache block 
+(or even inside of the feature if necessary) and they will get pulled in
+correctly
+
+
 === Expiration
 
 The only option current supported in the options hash is :expires which should be
@@ -572,12 +693,13 @@ an integer representing the number of seconds to keep the element in the cache.
 =end
   def renderer_cache(obj=nil,display_string=nil,options={ },&block)
     expiration = options[:expires] || 0
-    display_string = "#{paragraph.id}_#{display_string}"
+    display_string = "#{paragraph.id}_#{paragraph.language}_#{display_string}"
     result = nil
 
-    unless editor? || options[:skip]
+    unless editor? || options[:skip] || @preview_mode
       if obj.nil?
-        result = DataCache.get_content("Paragraph",paragraph.id.to_s,display_string)
+        paragraph_cache_id = paragraph.id == -1 ? "Mod#{site_node.id}" : paragraph.id.to_s
+        result = DataCache.get_content("Paragraph",paragraph_cache_id,display_string)
       elsif obj.is_a?(Array)
         cls = obj[0].is_a?(String) ? obj[0].constantize : obj[0]
         result = cls.cache_fetch(display_string,obj[1])
@@ -589,16 +711,18 @@ an integer representing the number of seconds to keep the element in the cache.
     end
     
     if result
+      @includes = result[:cached_includes].clone
       return DefaultsHashObject.new(result)
     else
       result = DefaultsHashObject.new(result)
       yield result
 
       output = result.to_hash
+      output[:cached_includes] = @includes.clone
 
-      unless editor? || options[:skip]
+      unless editor? || options[:skip] || @preview_mode
         if obj.nil?
-          DataCache.put_content("Paragraph",paragraph.id.to_s,display_string,output,expiration)
+          DataCache.put_content("Paragraph",paragraph_cache_id,display_string,output,expiration)
         elsif obj.is_a?(Array)
           cls.cache_put(display_string,output,obj[1],expiration)
         elsif obj.is_a?(ActiveRecord::Base)
@@ -613,7 +737,45 @@ an integer representing the number of seconds to keep the element in the cache.
 
   end
   
-  
+
+  # Fetch a element from the remote cache
+  def delayed_cache_fetch(obj,method,args={},display_string=nil,options={ })
+    expiration = options[:expires] || 120 # Default to two minutes
+    display_string = "#{paragraph.id}_#{display_string}"
+    result = nil
+ 
+    result, expired_at = DataCache.get_remote("Paragraph",paragraph.id.to_s,display_string)
+    now = Time.now
+    if result && expired_at && expired_at > now
+      return DefaultsHashObject.new(result)
+    end
+
+    remote_args = args.merge( :remote_type => 'Paragraph', :remote_target => paragraph.id.to_s, :display_string => display_string, :expiration => expiration )
+
+    if editor?
+      logger.warn("Running Editor Delayed worker: #{display_string}")
+      result = obj.send(method, remote_args)
+      if result
+        return DefaultsHashObject.new(result)
+      else
+        return nil
+      end
+    end
+
+    # if we don't have an expired or we are expired and not in the editor
+    # kick of the worker and put the current results in the cache to be updated
+    if !result || !expiration || expired_at <= now
+      DataCache.put_remote("Paragraph",paragraph.id.to_s,display_string,[ result, now + expiration.to_i.seconds ])
+      logger.warn("Running Delayed worker: #{display_string}")
+      if obj.is_a?(Class)
+        DomainModel.run_worker(obj.to_s,nil,method,remote_args)
+      else
+        DomainModel.run_worker(obj.class.to_s,obj.id,method,remote_args)
+      end
+    end
+    
+    return result if result
+  end
 
   
   def self.get_editor_features #:nodoc:
@@ -789,6 +951,9 @@ an integer representing the number of seconds to keep the element in the cache.
   end
   
  
-
+  def run_triggered_actions(trigger_name, data, user=nil)
+    user ||= myself
+    paragraph.run_triggered_actions(data, trigger_name, user, session)
+  end
  
 end

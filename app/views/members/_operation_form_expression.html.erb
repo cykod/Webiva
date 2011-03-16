@@ -1,0 +1,5 @@
+
+<% cms_unstyled_fields_for :builder, @builder do |f| -%>
+<div style="padding:10px 0 2px 0;">Filter (readonly)</div>
+<%= f.text_area_tag :expr, @builder.to_expr, :style => 'width:100%; height: 100px;', :readonly => true, :wrap => 'off' %>
+<% end -%>

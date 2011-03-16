@@ -1,0 +1,5 @@
+
+page << "$('#{file.object}_#{file.field}').value = #{file.file_id};"
+page.hide "#{file.object}_#{file.field}_frame"
+page.replace_html "#{file.object}_#{file.field}_preview_content", "<img src='#{file.file.thumbnail_url('standard/', :thumb)}' /> #{file.file.name}"
+page.show "#{file.object}_#{file.field}_preview"

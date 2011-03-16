@@ -64,16 +64,26 @@ namespace "cms" do
       domain_dir = File.join(dir,'domains',dmn.database)
       FileUtils.mkpath(domain_dir)
       
-      dmn_yaml = "#{RAILS_ROOT}/config/sites/#{dmn.database}.yml"
-      dmn_file = YAML.load_file(dmn_yaml)
+      dmn_file = dmn.get_info[:domain_database][:options]
       dmn_cfg = dmn_file['migrator']
       
       # backup database
       cms_backup_dump_db(dmn_cfg,File.join(domain_dir,'domain.sql'))
       # backup config file
-      FileUtils.cp(dmn_yaml,File.join(domain_dir,'domain.yml'))
-      
-      cms_backup_file_store(dmn.file_store,domain_dir)
+      File.open(File.join(domain_dir,'domain.yml'),"w") do |fd|
+        YAML.dump(dmn_file, fd)
+      end
+
+      if ENV['COPY_LOCAL']
+        # Copy all the files locally
+        dmn.execute do
+          DomainFile.find_in_batches(:conditions => 'file_type != "fld"') { |files| files.each { |file| file.filename } }
+        end
+
+      end
+
+      cms_backup_file_store(dmn.file_store,domain_dir) unless ENV['SKIP_FILES']
+
       puts("...Done")
     end
   
@@ -121,8 +131,34 @@ namespace "cms" do
 	  
 	  FileUtils.rm("#{RAILS_ROOT}/backup/#{backup_dir}.tar.gz")
 	rescue Exception => e
-	 raise "Error FTPing files:" + e.to_s
+	 raise "Error FTPing files: " + e.to_s
 	end
+      when 's3'
+        begin
+          require 'right_aws'
+
+          @s3 = RightAws::S3.new backup_cfg['access_key_id'], backup_cfg['secret_access_key'], :connections => :dedicated
+          @bucket = @s3.bucket(backup_cfg['bucket'])
+          @bucket = @s3.bucket(backup_cfg['bucket'], true) unless @bucket # create the bucket
+
+          puts("Transmitting Backup file data...\n")
+          File.open("#{RAILS_ROOT}/backup/#{backup_dir}.tar.gz") do |file|
+            @bucket.put("#{backup_dir}.tar.gz", file, {}, 'private')
+          end
+          puts("Done Transmitting Files\n")
+
+          objects = @bucket.keys.sort do |a, b|
+            a.last_modified <=> b.last_modified
+          end
+
+          backup_limit = (backup_cfg['limit'] || 10).to_i + 1
+          objects[0..-backup_limit].each do |obj|
+            puts "Deleting #{obj.name}"
+            obj.delete
+          end
+        rescue Exception => e
+          raise "Error copying files to s3: " + e.to_s
+        end
       else
         raise 'Invalid Backup server type'
       end

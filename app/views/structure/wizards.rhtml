@@ -1,0 +1,9 @@
+
+<div class='admin_content'>
+
+<% @wizard_list.each do |wizard| -%>
+  <h2><%= link_to wizard[:name], wizard[:url].merge(:version=> @version.id) -%></h2>
+<%= simple_format(wizard[:description]) -%>
+<br/>
+<% end -%>
+</div>

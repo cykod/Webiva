@@ -1,0 +1,17 @@
+<% current_time = Time.now %>
+<% active_table_for :experiments_table, @active_table_output,
+                    :more_actions => [['Delete', 'delete', 'Are you sure you want to delete these experiments?']],
+                    :style => 'width:100%' do |t| %>
+<tr <%= highlight_row 'experiment',t.id %>>
+  <td align='left' nowrap='1'><%= entry_checkbox "experiment", t.id %></td>
+  <td><%= link_to t.name, :action => 'versions', :path => t.id %></td>
+  <td align='center'><%= t.display_status %></td>
+  <td align='center'><%= t.page_title ? t.page_title : '-' %></td>
+  <td align='center'><%= t.conversion_title ? t.conversion_title : '-' %></td>
+  <td align='center'><%= t.note %></td>
+  <td align='center'><%= t.started_at ? t.started_at.localize(DEFAULT_DATETIME_FORMAT.t) : '-' %></td>
+  <td align='center'><%= t.ended_at ? t.ended_at.localize(DEFAULT_DATETIME_FORMAT.t) : '-' %></td>
+  <td align='center'><%= t.created_at ? t.created_at.localize(DEFAULT_DATETIME_FORMAT.t) : '-' %></td>
+</tr>
+
+<% end -%>

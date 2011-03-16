@@ -31,7 +31,7 @@ class UserClass < DomainModel
   
   def self.create_built_in_classes #:nodoc:
     @@built_in_classes.each do |idx,cls|
-      UserClass.find_by_id(idx) || UserClass.create(:id => idx, :name => cls[1], :built_in => true, :editor => cls[3])
+      UserClass.find_by_id(idx) || UserClass.create(:name => cls[1], :built_in => true, :editor => cls[3]).update_attribute(:id,idx)
     end  
   end
   

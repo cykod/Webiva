@@ -1,0 +1,16 @@
+<% current_time = Time.now %>
+<% active_table_for :webform_result_table, @active_table_output,
+                    :refresh_url => url_for(:action => 'webform_result_table', :path => [@webform.id]),
+                    :style => 'width:100%',
+                    :actions => [['Mark as Read', 'mark'], ['Mark as Unread', 'unmark']],
+                    :more_actions => [['Delete','delete','Are you sure you want to delete the results?']] do |t| %>
+<tr <%= highlight_row 'result',t.id %> >
+  <td align='left' nowrap='1'><%= entry_checkbox "result", t.id %></td>
+  <td align='center'><%= t.reviewed? ? 'Yes'.t : 'No'.t %></td>
+  <td><a onclick='SCMS.remoteOverlay("<%= url_for(:action => 'result', :path => [@webform.id, t.id], :table => 'webform_result_table_update_form') %>")' href='javascript:void(0);'><%= t.name %></a></td>
+  <td><%= t.content_model.content_snippet(t.data_model) %></td>
+  <td align="center"><%= t.posted_at ? t.posted_at.strftime(DEFAULT_DATETIME_FORMAT.t) : '-' %></td>
+</tr>
+
+
+<% end -%>

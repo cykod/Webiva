@@ -76,15 +76,24 @@ class ContentNode < DomainModel
   belongs_to :author,:class_name => 'EndUser',:foreign_key => 'author_id'
   belongs_to :last_editor,:class_name => 'EndUser',:foreign_key => 'last_editor_id'
   belongs_to :content_type
-  has_many :content_node_values
-  
-  
+  has_many :content_node_values, :dependent => :delete_all
+
+  named_scope :from_content do |node_type,node_id|
+    { :conditions => { :node_type => node_type, :node_id => node_id } }
+  end
+
+  def self.fetch(node_type,node_id)
+    self.from_content(node_type,node_id).first
+  end
+
   def update_node_content(user,item,opts={}) #:nodoc:
     opts = opts.symbolize_keys
     if self.content_type_id.blank?
       if opts[:container_type] # If there is a container field
-        container_type = opts.delete(:container_type)
-        container_id = item.send(opts.delete(:container_field))
+        container_type = item.resolve_argument(opts.delete(:container_type))
+        container_field = opts.delete(:container_field)
+        container_id = item.send(container_field.is_a?(Proc) ? container_field.call(item) : container_field)
+
         self.content_type = ContentType.find_by_container_type_and_container_id(container_type,container_id)
       else
         self.content_type = ContentType.find_by_content_type(item.class.to_s)
@@ -92,13 +101,14 @@ class ContentNode < DomainModel
     end
 
     
-    opts.slice(:published,:sticky,:promoted,:content_url_override).each do |key,opt|
+    opts.slice(:published,:sticky,:promoted,:content_url_override,:published_at).each do |key,opt|
       val = item.resolve_argument(opt)
       val = false if val.blank?
       self.send("#{key}=",val)
     end
 
     self.updated_at = Time.now
+    self.published_at ||= Time.now if self.published?
     
     if opts[:user_id]
       user_id = item.resolve_argument(opts[:user_id])
@@ -115,6 +125,10 @@ class ContentNode < DomainModel
       self.last_editor_id = user_id if user_id
     end
     self.save
+
+    if opts[:push_value]
+      generate_content_values!
+    end
   end
 
 
@@ -123,10 +137,18 @@ class ContentNode < DomainModel
   def admin_url
     if self.content_type
       if self.content_type.container
-        self.content_type.container.content_admin_url(self.node_id)
+        if self.content_type.container.respond_to?(:content_admin_url)
+          self.content_type.container.content_admin_url(self.node_id)
+        else
+          raise "#{self.content_type.container_type} needs to define content admin url"
+        end
       else
         cls =self.content_type.content_type.constantize
-        cls.content_admin_url(self.node_id)
+        if cls.respond_to?(:content_admin_url)
+          cls.content_admin_url(self.node_id)
+        else
+          raise "#{cls.to_s} needs to define content admin url"
+        end
       end
     else
       nil
@@ -150,12 +172,12 @@ class ContentNode < DomainModel
         if(self.node.respond_to?(:content_node_body))
           cnv.body = Util::TextFormatter.text_plain_generator( node.content_node_body(lang))
         else
-          cnv.body =Util::TextFormatter.text_plain_generator( node.attributes.values.select { |val| val.is_a?(String) }.join("\n\n") )
+          cnv.body = Util::TextFormatter.text_plain_generator( node.attributes.values.select { |val| val.is_a?(String) }.join("\n\n") )
         end
-        
+
         if type_preload
           cnv.title = node.send(type_preload.title_field)
-          cnv.link = self.content_url_override || type_preload.content_link(node)
+          cnv.link = self.link
           cnv.search_result = type_preload.search_results? ? (self.node.respond_to?(:content_search_results?) ? self.node.send(:content_search_results?) : true ) : false
           cnv.protected_result = type_preload.protected_results? ?  (self.node.respond_to?(:content_protected_results?) ? self.node.send(:content_protected_results?) : true ) : false
         else
@@ -169,9 +191,15 @@ class ContentNode < DomainModel
     end
   end
 
+  def link(type_preload = nil)
+    type_preload ||= self.content_type
+    return "#" unless type_preload
+    node ? (self.content_url_override || type_preload.content_link(node)) : ''
+  end
+
   def title
-    if self.content_type
-      tlt = node.send(content_type.title_field)
+    if self.content_type && node
+      node.send(content_type.title_field)
     else
       "Unknown"
     end
@@ -183,6 +211,10 @@ class ContentNode < DomainModel
     else
       nil
     end
+  end
+
+  def self.batch_find(node_ids)
+    self.find(:all,:conditions => { :id => node_ids },:include => :node)
   end
 
 
@@ -209,5 +241,38 @@ class ContentNode < DomainModel
     ContentNodeValue.search language, query, options
   end
 
+  def self.chart_traffic_handler_info
+    {
+      :name => 'Content Traffic',
+      :url => { :controller => '/emarketing', :action => 'charts', :path => ['traffic'] + self.name.underscore.split('/') }, :icon => 'traffic_content.png',
+      :type_options => :traffic_type_options
+    }
+  end
 
+  def self.traffic_type_options
+    ContentType.select_options_with_nil
+  end
+
+  def self.traffic_scope(from, duration, opts={})
+    scope = DomainLogEntry.valid_sessions.between(from, from+duration).hits_n_visits('content_node_id')
+    if opts[:target_id]
+      scope = scope.scoped(:conditions => {:content_node_id => opts[:target_id]})
+    elsif opts[:type_id]
+      scope = scope.scoped(:joins => :content_node, :conditions => ['`content_nodes`.content_type_id = ?', opts[:type_id]])
+    else
+      scope = scope.content_only
+    end
+    scope
+  end
+
+  def self.traffic(from, duration, intervals, opts={})
+    stat_type = opts[:type_id] ? "traffic_content_type_#{opts[:type_id]}" : 'traffic'
+    DomainLogGroup.stats(self.name, from, duration, intervals, :type => stat_type, :target_id => opts[:target_id]) do |from, duration|
+      self.traffic_scope from, duration, opts
+    end
+  end
+
+  def traffic(from, duration, intervals)
+    self.class.traffic from, duration, intervals, :target_id => self.id
+  end
 end

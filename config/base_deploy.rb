@@ -36,7 +36,7 @@ namespace :webiva do
 	    run "cd #{deploy.release_path}; rake -f #{deploy.release_path}/Rakefile cms:migrate_domain_dbs"
 	    run "cd #{deploy.release_path}; rake -f #{deploy.release_path}/Rakefile cms:migrate_domain_components"
             run "cd #{deploy_to}/current; ./script/background.rb start; true"
-	    sudo "nohup /etc/init.d/memcached restart"
+	    sudo "nohup /etc/init.d/memcached restart; true"
     end
 
    deploy.restart
@@ -46,12 +46,13 @@ namespace :webiva do
 
   desc "Webiva Module deployment"
   task :modules_install do
-	(webiva_modules||[]).each do |mod|
-          execute = []
-          execute << "cd #{deploy.release_path}/vendor/modules"
-          execute << "git clone #{module_repository}#{mod}.git #{mod.downcase}"
-          run execute.join(" && ")
-        end
+    set :webiva_modules, [] if ! exists?(:webiva_modules)
+    (webiva_modules||[]).each do |mod|
+      execute = []
+      execute << "cd #{deploy.release_path}/vendor/modules"
+      execute << "git clone #{module_repository}#{mod}.git #{mod.downcase}"
+      run execute.join(" && ")
+    end
   end 
 
 

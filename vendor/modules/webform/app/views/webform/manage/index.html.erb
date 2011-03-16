@@ -1,0 +1,16 @@
+<script>
+<%=  active_table_javascript %>
+</script>
+
+<% action_panel do |p| -%>
+  <%= p.link "Create a new Webform", :action => 'create', :icon => 'add.gif' %>
+<% end -%>
+
+<hr/>
+
+
+<div class='admin_content'>
+<div id='webform_table'>
+<%= render :partial => 'webform_table' %>
+</div>
+</div>

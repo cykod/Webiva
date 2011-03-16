@@ -1,0 +1,30 @@
+<script>
+  UserProfileTypeEditor = {
+    update: function(content_model_id) {
+
+       var params = { content_model_id: content_model_id };
+       new Ajax.Updater('content_fields',"<%= url_for :action => 'content_model_fields' %>",
+                         { parameters: params } );
+    }
+  }
+</script>
+
+<div class='admin_content'>
+<% admin_form_for :user_profile_type, @profile_type do |f| -%>
+   <tbody>
+    <%= f.text_field :name, :value => (@profile_type.name if @profile_type)  %>
+
+    <%= f.select :content_model_id, ContentModel.select_options_with_nil, {}, :label => 'Content Model',  
+        :onchange => 'UserProfileTypeEditor.update(this.value);' %>
+    </tbody>
+    <tbody id='content_fields'>
+      <%= render :partial => 'content_model_fields' if @profile_type.content_model  %>
+    </tbody>
+    <%= f.ordered_selection_list :user_classes, UserClass, :options => UserClass.select_options, :label => 'Affected User Classes',:id_field=> 'id', :sortable => false   %>
+
+  <tbody>
+    <%= f.cancel_submit_buttons "Cancel","Submit" %>
+  </tbody>
+
+<% end %>
+</div>

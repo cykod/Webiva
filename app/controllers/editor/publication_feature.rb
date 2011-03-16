@@ -18,9 +18,12 @@ class Editor::PublicationFeature < ParagraphFeature #:nodoc:all
     size = pub_options[:field_size] || nil;
 
     webiva_custom_feature(publication.feature_name,data) do |c|
-      c.form_for_tag("form","entry_#{publication.id}",:enctype => data[:multipart] ? 'multipart/form-data' : nil)  do |tag|
-        data[:entry]
+      c.form_for_tag("form","entry_#{publication.id}",:html => { :enctype => data[:multipart] ? 'multipart/form-data' : nil } )  do |tag|
+        data[:submitted] ? nil : data[:entry]
       end
+
+      c.expansion_tag('submitted') { |t|  data[:submitted] }
+      c.value_tag('submitted:success_text') { |t| data[:options].success_text}
 
       c.define_tag 'edit_butt' do |tag|
         button_label = tag.single? ?  (pub_options[:button_label].blank?  ? 'Edit' : pub_options[:button_label] ) : tag.expand
@@ -43,6 +46,8 @@ def display_feature(publication,data)
 
    webiva_custom_feature(publication.feature_name) do |c|
       c.expansion_tag('entry') { |tag|  tag.locals.entry = data[:entry]  }
+
+      c.value_tag('entry:id') { |tag| tag.locals.entry.id }
 
       c.define_tag "next" do |tag|
        if data[:offset]
@@ -73,7 +78,7 @@ def display_feature(publication,data)
       c.define_tag("previous:offset") { |tag| tag.locals.offset }
       c.link_tag("previous:") { |tag| data[:page_href] + "/" + tag.locals.offset.to_s }
 
-      c.define_publication_field_tags("entry",publication)
+      c.define_publication_field_tags("entry",publication,:local => :entry)
 
       c.link_tag("return") { |tag| data[:return_page] }
    end
@@ -112,8 +117,9 @@ def display_feature(publication,data)
          fld.content_model_field.site_feature_value_tags(c,'entry',:full)
        end
      end
+     
 
-     c.publication_filter_fields_tags("filter","filter_#{paragraph.id}", publication) { |t| [ data[:filter], data[:searching]] }
+     c.publication_filter_form_tags("filter","filter_#{paragraph.id}", publication) { |t| [ data[:filter], data[:searching]] }
      
     c.pagelist_tag('pages') { |t| data[:pages] }
    end

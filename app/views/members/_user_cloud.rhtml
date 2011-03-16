@@ -1,7 +1,7 @@
 <%  all_tags = Tag.find(:all,:include => :tag_note).index_by(&:name)
     cloud = []
-      EndUser.cloud(EndUser.tags_count(:order => 'name'), %w(10 12 14 16 20)) do |tg, font_size|
-        cloud << [tg,font_size]
+      EndUser.tag_cloud(%w(10 12 14 16 20)).each do |tag|
+        cloud << [tag[:name], tag[:size]]
       end
   %>
   

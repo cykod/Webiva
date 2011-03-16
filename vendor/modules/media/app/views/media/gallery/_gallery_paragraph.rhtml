@@ -46,10 +46,12 @@
   </form>
 <% end -%>
 
+<% if options.include_javascript %>
 <script>
 <% if images.length > 0 %>
 <%= render :partial => '/media/gallery/gallery_image_info', :locals => { :images => images, :gallery => gallery } %>
 <% end -%>
 </script>
+<% end -%> 
 <% end -%>
 <%= feature_output %>

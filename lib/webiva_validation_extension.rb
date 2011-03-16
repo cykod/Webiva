@@ -60,7 +60,7 @@ module ClassMethods
     from = Time.parse_datetime(configuration.delete(:from))
     to = Time.parse_datetime(configuration.delete(:to))
     validates_each(attr_names, configuration) do |record, attr_name, value|
-      before_cast = record.send("#{attr_name}_before_type_cast")
+      before_cast = record.is_a?(HashModel) ? record.send(attr_name) : record.send("#{attr_name}_before_type_cast")
       next if allow_nil and (before_cast.nil? or before_cast == '')
       next if before_cast.is_a?(Time)
       next if before_cast.is_a?(String) &&  before_cast =~  /^([0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{1,2}\:[0-9]{2}\:[0-9]{2})$/

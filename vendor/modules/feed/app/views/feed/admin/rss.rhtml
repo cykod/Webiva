@@ -1,7 +1,7 @@
 <script>
   RssEditor = {
     updateFeedIds: function(val) {
-      new Ajax.Updater('feed_ids','<%= url_for :action => 'feed_ids', :path => @node.id %>', 
+      new Ajax.Updater('rss_options','<%= url_for :action => 'rss_options', :path => @node.id %>', 
                         { parameters: Form.serialize('feed_form') } );
 
     }
@@ -9,25 +9,35 @@
   }
 
 </script>
-<% if flash[:notice] %>
-<div align='center'>
-  Updated Options
-</div>
+<% if permit?('editor_structure') %>
+<ul class='page_detail_buttons'>
+  <li class='icon'><a href='javascript:void(0);'  title='<%= vh 'Delete RSS Module'.t%>' onclick='StructureEditor.nodeDelete(<%= @node.id %>,"<%= jh "Are you sure you want to remove this RSS module?" .t %>");'><%= image_tag(theme_src('icons/header_actions/delete_page.png')) %></a></li>
+</ul>  
 <% end -%>
-<div align='right'>
-  <a href='javascript:void(0);' onclick='StructureEditor.nodeDelete(<%= @node.id %>,"<%= jh "Are you sure you want to delete this RSS Module?" .t %>");'><%= "Remove RSS Module".t %></a>
-</div>  
-<b> <%= "RSS Options:".t %> <%= @node.node_path %></b><br/><br/>
 
-<% remote_cms_form_for :options, @options, :update => 'element_info',:html => {:id => 'feed_form', :class => 'admin_form' }, :url => { :action => 'rss', :path => @node.id } do |f| -%>
-<tbody>
-  <%= f.text_field :feed_title, :description => 'Title of the RSS Feed.' %>
-  <%= f.select :feed_type, @feed_types, {}, :onchange => 'RssEditor.updateFeedIds(this.value);' %>
-</tbody>
-<tbody id='feed_ids'>
-  <%= render :partial => 'rss_feed_elements', :locals => {:f => f } if @handler %>
-</tbody>
-<tbody>
-  <%= f.submit_tag 'Update Options' %>
-</tbody>
-<% end -%>
+
+<h1 class='inpage'> <%= "RSS Options:".t %> <a href='<%= h @node.node_path %>'><%= @node.node_path %></a></h1>
+
+<div class='tree_detail_body'>
+
+  <% if flash[:notice] %>
+    <div class='inpage_flash_notice'>
+      Updated Options
+    </div>
+  <% end -%>
+
+  <% remote_cms_form_for :options, @options, :update => 'element_info',:html => {:id => 'feed_form', :class => 'admin_form' }, :url => { :action => 'rss', :path => @node.id } do |f| -%>
+    <tbody>
+      <%= f.text_field :feed_title, :description => 'Title of the RSS Feed.' %>
+      <%= f.text_field :timeout, :label => 'Expire Feed'.t, :description => 'Number of minutes to cache a feed'.t %>
+      <%= f.select :feed_type, @feed_types, {}, :onchange => 'RssEditor.updateFeedIds(this.value);' %>
+    </tbody>
+    <tbody id='rss_options'>
+      <%= render :partial => 'rss_options' if @handler %>
+    </tbody>
+    <tbody>
+      <%= f.submit_tag 'Update Options' %>
+    </tbody>
+  <% end -%>
+
+</div>

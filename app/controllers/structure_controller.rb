@@ -4,12 +4,17 @@ class StructureController < CmsController  # :nodoc: all
 
   public
   
-  permit ['editor_structure','editor_structure_advanced'], :except => [ :index, :element_info ]
+  permit ['editor_structure','editor_structure_advanced'], :except => [ :index, :element_info, :wizards, :wizard ]
   permit ['editor_website','editor_structure','editor_structure_advanced'], :only => [:index, :element_info]
+
+
+  permit ['editor_structure_advanced'], :only => [:wizards, :wizard]
 
   helper :application
   
-  
+  cms_admin_paths 'website',
+       'Website' => { :action => 'index' }
+
   
   def index 
     session[:structure_view_modifiers] = @display_modifiers= params[:modifiers] ||
@@ -22,15 +27,17 @@ class StructureController < CmsController  # :nodoc: all
     session[:show_archived] = @show_archived = params[:archived] ||
       session[:show_archived] || 'hide'
 
+     @site_version_override = params[:version] 
+
+    @version = SiteVersion.find_by_id(@site_version_override) 
+    @version ||= SiteVersion.current
+
     
     if !myself.has_role?('editor_structure_advanced')
       @display_modifiers = session[:structure_view_modifiers] = 'hide'
       @display_modules = session[:structure_view_modules] = 'hide'
     end
     
-    
-  
-    @version = SiteVersion.default
     
     @closed = cookies[:structure].to_s.split("|").map(&:to_i)
 
@@ -45,10 +52,91 @@ class StructureController < CmsController  # :nodoc: all
       @active_modules = SiteModule.structure_modules
     end
     
-    cms_page_info 'Website', 'website',myself.has_role?('editor_structure_advanced') ? 'CMSStructure.popup();' : nil
+    @wizard_list = get_handlers(:structure,:wizard) if myself.has_role?('editor_structure_advanced')
+    @wizard_list ||= []
+
+    require_js 'protovis/protovis-r3.2.js'
+    require_js 'tipsy/jquery.tipsy.js'
+    require_js 'protovis/tipsy.js'
+    require_css 'tipsy/tipsy.css'
+    require_js 'charts.js'
+    require_js 'emarketing.js'
+
+    view_language
+
+    cms_page_path [], 'Website'
+    #'website',myself.has_role?('editor_structure_advanced') ? 'CMSStructure.popup();' : nil
     render :action => 'view', :layout => "manage"
   end
 
+
+  def wizards
+    @version = SiteVersion.find(params[:version]) 
+    cms_page_path [[ "Website",url_for(:controller => '/structure', :action => 'index', :version => @version.id) ]],"Wizards"
+
+    @wizard_list = get_handler_info(:structure,:wizard) if myself.has_role?('editor_structure_advanced')
+    @wizard_list ||= []
+    @wizard_list = @wizard_list.select { |info| myself.has_role?(info[:permit]) }
+    @wizard_list.delete_if { |info| info[:class] == Wizards::SimpleSite } if SiteModule.module_enabled?('webiva_net')
+   end
+
+  def wizard
+    @version = SiteVersion.find_by_id(params[:version])
+    SiteVersion.override_current(@version)
+
+    @wizard_info = get_handler_info(:structure, :wizard, params[:path].join('/'))
+
+    @the_wizard = @wizard_info[:class].new params[:wizard]
+
+    @the_wizard.set_defaults(params) unless params[:wizard]
+
+    return redirect_to(@the_wizard.setup_url) unless @the_wizard.can_run_wizard?
+
+    cms_page_path [["Website", url_for(:controller => '/structure', :action => 'index', :version => @version.id)], ["Wizards", url_for(:controller => '/structure', :action => 'wizards', :version => @version.id)]], '%s Wizard' / @wizard_info[:name]
+
+    if request.post?
+      if ! params[:commit] 
+        redirect_to :controller => '/structure', :action => 'wizards', :version => @version.id
+      elsif @the_wizard.valid?
+        @the_wizard.run_wizard
+        flash[:notice] = '%s Wizard Finished' / @wizard_info[:name]
+        redirect_to :controller => '/structure', :version => @version.id
+      end
+    end
+  end
+
+  def site_version
+    @version = SiteVersion.find_by_id(params[:site_version]) || SiteVersion.new
+
+    if params[:version] 
+      @version.attributes = params[:version].slice(:name, :copy_site_version_id)
+      
+      if @version.valid?
+        if @version.copy_site_version
+          @version = @version.copy_site_version.copy(@version.name)
+        else
+          @version.save
+        end
+        
+        if @version.id
+          session[:site_version_override] = @version.id
+          render(:update) { |page| page.redirect_to :action => 'index', :version => @version.id }
+          return
+        end
+      end
+    end
+    render :partial => 'site_version'
+  end
+
+  def delete_tree
+    @version = SiteVersion.find(params[:version_id])
+
+    if @version && @version.can_delete?
+      @version.destroy
+    end
+
+    render :nothing => true
+  end
  
   def move_node
     node_id = params[:node_id]
@@ -86,8 +174,10 @@ class StructureController < CmsController  # :nodoc: all
     modifier_type = params[:modifier_type]
     
     node = SiteNode.find(parent_id)
-    md = node.add_modifier(modifier_type)
-    
+    md = node.add_modifier(modifier_type, :created_by_id => myself.id)
+
+    view_language
+
     render :partial => 'site_node_modifier', :locals => { :mod => md }
   end
   
@@ -102,6 +192,8 @@ class StructureController < CmsController  # :nodoc: all
     
     @new_node = @node.duplicate!(parent)
     
+    view_language
+
     render :partial => 'path', :locals => { :paths => [@new_node] }    
   end
   
@@ -109,7 +201,9 @@ class StructureController < CmsController  # :nodoc: all
     parent_node = SiteNode.find(params[:parent_id])
     node_type = params[:node_type]  
     title = params[:title] || 'enter_title'
-    
+
+    view_language
+
     if(node_type == 'M')
       module_name = params[:module_name] 
       
@@ -117,6 +211,7 @@ class StructureController < CmsController  # :nodoc: all
       
         node = SiteNode.new({ :node_type => node_type,
                               :title => title,
+                              :created_by_id => myself.id,
                               :site_version_id => parent_node.site_version_id,
                               :module_name => module_name })
       else
@@ -125,16 +220,13 @@ class StructureController < CmsController  # :nodoc: all
       end
     else
       node = SiteNode.new({ :node_type => node_type,
+                            :created_by_id => myself.id,
                             :site_version_id => parent_node.site_version_id,
                             :title => title })
     end
     
     node.save
     node.move_to_child_of(parent_node)
-    
-    if node_type == 'P'
-      node.page_revisions[0].update_attributes(:created_by => myself)
-    end
     
     render :partial => 'path', :locals => { :paths => [node] }
     
@@ -145,6 +237,8 @@ class StructureController < CmsController  # :nodoc: all
     
     node = SiteNode.find(node_id)
     node.destroy
+
+    expire_site
     
     render :nothing => true
   end
@@ -153,6 +247,8 @@ class StructureController < CmsController  # :nodoc: all
     modifier_id = params[:modifier_id]
     mod = SiteNodeModifier.find(modifier_id)
     mod.destroy
+
+    expire_site
     
     render :nothing => true
   end
@@ -165,6 +261,8 @@ class StructureController < CmsController  # :nodoc: all
     mod.position = node.site_node_modifiers.last.position + 1
     node.site_node_modifiers << mod
     mod.move_to_top
+
+    expire_site
     
     render :nothing => true
     
@@ -237,14 +335,14 @@ class StructureController < CmsController  # :nodoc: all
   def element_info
   	node_type = params[:node_type]
   	node_id = params[:node_id]
-  	
-  	element_info_display(node_type,node_id)
+
+   	element_info_display(node_type,node_id)
   end
   
   
   # Update a revision information
   def update_revision
-    @revision = PageRevision.find(params[:revision])
+    @revision = PageRevision.find(params[:revision_id])
     
     @revision.update_attributes(params[:revision_edit])
   
@@ -254,10 +352,16 @@ class StructureController < CmsController  # :nodoc: all
     @revision_info = @node.language_revisions(@languages)
     
     expire_site
+    view_language
+    info = @revision_info.detect { |rev| rev[0] == @view_language }
 
-    info = @revision_info.detect { |elm| elm[1] == @revision }
+    @active_revision_info = [ @revision.language, @revision,info[2]]
     
-    render :partial => 'revision_info', :locals => { :info => [ @revision.language, @revision,info[2]] }
+    if @node.is_a?(SiteNode)
+      render :partial => 'page_element_info'
+    else
+      render :partial => 'framework_modifier_info'
+    end
   end
   
   def update_site_node_options
@@ -272,60 +376,186 @@ class StructureController < CmsController  # :nodoc: all
     
     @node.update_attributes(node_arr)
     
+    update_revision
     
-    render :partial => 'site_node_options'
+    # render :partial => 'site_node_options'
   
   end
   
   def create_revision
-    revision_id = params[:revision_create][:from_revision_id]
+    revision_id = params[:revision_create][:from_revision_id] if params[:revision_create]
     language = params[:language]
   
-    
-    @revision = PageRevision.find(revision_id)
-    @new_revision = @revision.clone
-    @new_revision.language = language
-    @new_revision.revision_type = 'real'
-    @new_revision.active= false
-    @new_revision.save
-    
-    @revision.page_paragraphs.each do |para|
-      new_para = para.clone
-      new_para.page_revision_id=@new_revision.id
-      new_para.save
+    if revision_id
+      @revision = PageRevision.find(revision_id)
+      @new_revision = @revision.create_translation(language)
+    else
+      if params[:framework_id]
+        @node = SiteNodeModifier.find(params[:framework_id])
+      else
+        @node = SiteNode.find(params[:node_id])
+      end
+      
+      @new_revision = @node.page_revisions.create(:language => language,
+                                  :revision_type => 'real',
+                                  :active => false)
+      
     end
-    
+
     
     @languages = Configuration.languages
     
     if @new_revision.revision_container.is_a?(SiteNode)
       @node = @new_revision.revision_container
       @revision_info = @node.language_revisions(@languages)
-      render :partial => 'revision_info', :locals => { :info => [ @new_revision.language, @new_revision ] }
+      @active_revision_info =  [ @new_revision.language, @new_revision, @new_revision  ]
+
+      render :partial => 'page_element_info'
     else
       @mod =  @new_revision.revision_container
       @node = @mod.site_node
       @revision_info = @mod.language_revisions(@languages)
-      render :partial => 'framework_revision_info', :locals => { :info => [ @new_revision.language, @new_revision ] }
+      @active_revision_info =  [ @new_revision.language, @new_revision,  @new_revision ] 
+      render :partial => 'framework_modifier_info'
     end
     
     expire_site
   
   end
+
+  # need to include 
+  include ActiveTable::Controller
+  active_table :site_nodes_table,
+               SiteNode,
+               [ hdr(:string, 'node_path', :label => 'Url'),
+                 hdr(:static, 'Title'),
+                 hdr(:static, 'Menu Title'),
+                 hdr(:static, 'Meta Description'),
+                 hdr(:static, 'Meta Keywords')
+               ]
+
+  def pages
+    display_site_nodes_table(false)
+    cms_page_path [[ "Website",url_for(:controller => '/structure', :action => 'index', :version => @version.id) ]], "Edit Pages"
+  end
+
+  def display_site_nodes_table(display=true)
+    @version ||= SiteVersion.find_by_id(params[:path][0]) || SiteVersion.current
+    @languages ||= Configuration.languages
+    @language ||= params[:language] || 'en'
+
+    active_table_action 'site_node' do |act,ids|
+    end
+
+    @active_table_output = site_nodes_table_generate params, :conditions => ['site_version_id = ? AND node_type = ?', @version.id, 'P'], :order => 'node_path', :per_page => 20
   
-  
+    render :partial => 'site_nodes_table' if display
+  end
+
+  def edit_page_revision
+    @node = SiteNode.find params[:path][0]
+    @version = @node.site_version
+    @revision = @node.page_revisions.find params[:path][1]
+    @language = @revision.language
+
+    if request.post? && params[:revision]
+      @revision.updated_by = myself
+      if @revision.update_attributes params[:revision]
+        expire_site
+        render :update do |page|
+          page << 'RedBox.close();'
+          page << 'PageEditor.refreshList();'
+        end
+        return
+      end
+    end
+
+    render :partial => 'edit_page_revision'
+  end
+
+  def experiment
+    view_language
+
+    @container = SiteNode.find params[:path][0]
+
+    @new = params[:new]
+    if @new
+      @experiment = Experiment.new(:experiment_container => @container)
+    else
+      @experiment = @container.experiment || Experiment.new(:experiment_container => @container)
+    end
+
+    @experiment.language = @view_language
+    @experiment.page_revision_options = @container.page_revisions.find(:all, :conditions => {:revision_type => 'real', :language => @view_language}, :select => 'revision, version_name, active', :order => :revision).collect { |r| ["#{r.active ? '*' : ''} #{r.revision} #{r.version_name}".strip, r.revision] }
+
+    if request.post? && params[:experiment]
+      @experiment.num_versions = params[:num_versions].to_i
+      @experiment.attributes = params[:experiment]
+      if params[:update] && @experiment.save
+        @container.update_attribute :experiment_id, @experiment.id
+
+        p_element_info @container, false
+
+        render :update do |page|
+          page << 'RedBox.close();'
+          page.replace_html 'element_info', :partial => 'page_element_info'
+        end
+        return
+      end
+    end
+
+    render :partial => 'experiment'
+  end
+
+  def update_experiment
+    view_language
+
+    @experiment = Experiment.find params[:path][0]
+    @experiment.language = @view_language
+
+    @container = @experiment.experiment_container
+
+    return render :nothing => true unless @container
+
+    if params[:start]
+      @experiment.start! params[:start_time]
+    elsif params[:restart]
+      @experiment.restart! params[:end_time], :start_time => params[:start_time], :reset => params[:reset]
+    elsif params[:stop]
+      @experiment.end_experiment! params[:end_time]
+    elsif params[:hide]
+      @container.update_attribute(:experiment_id, nil) if @experiment.finished?
+    else params[:select] && params[:version_id]
+      version_id = params[:version_id].to_i
+      @experiment.end_experiment! unless @experiment.finished?
+      @version = @experiment.versions.find { |v| v.id == version_id }
+      PageRevision.activate_page_revision(@experiment.experiment_container, @version.page_revision.id) if @version && @version.page_revision
+    end
+
+    p_element_info @container
+  end
+
   protected
+
+  def view_language
+    @view_language = params[:language] || Configuration.languages[0]
+    @view_language = Configuration.languages[0] unless Configuration.languages.include?(@view_language)
+  end
+
   def element_info_display(node_type,node_id)
-	if node_type == 'node' 
-  		node = SiteNode.find(node_id)
-  		node_func = node.node_type.downcase + '_element_info'
-  		return self.send(node_func,node)
-  	elsif node_type == 'mod'
-  		mod = SiteNodeModifier.find(node_id)
-  		mod_func = mod.modifier_type.downcase + '_modifier_info'
-  		return self.send(mod_func,mod)
-  	end
-  	render :nothing => true
+    view_language
+
+
+    if node_type == 'node' 
+      node = SiteNode.find(node_id)
+      node_func = node.node_type.downcase + '_element_info'
+      return self.send(node_func,node)
+    elsif node_type == 'mod'
+      mod = SiteNodeModifier.find(node_id)
+      mod_func = mod.modifier_type.downcase + '_modifier_info'
+      return self.send(mod_func,mod)
+    end
+    render :nothing => true
   end
   
   # Domain Element Information
@@ -339,17 +569,25 @@ class StructureController < CmsController  # :nodoc: all
   end
   
   # Page Element Information
-  def p_element_info(node)
+  def p_element_info(node, display=true)
    @languages = Configuration.languages
     @revision_info = node.language_revisions(@languages)
+    @active_revision_info = @revision_info.detect { |rev| rev[0] == @view_language }
     @node = node
     
-    render :partial => 'page_element_info'
+    render :partial => 'page_element_info' if display
   end
 
   # Group Element Information
   def g_element_info(node)
     @node = node
+
+    @node_options = @node.node_options
+    if request.post? && params[:group]
+      @node_options = @node.set_node_options(params[:group])
+      flash.now[:notice] = 'Updated Group Options'.t
+    end
+
     render :partial => 'group_element_info'
   end
   
@@ -374,7 +612,7 @@ class StructureController < CmsController  # :nodoc: all
       [ page.node_path, page.id ]
     end
     
-    @redirect_details = @node.redirect_detail
+    @redirect_details = @node.redirect_detail || @node.create_redirect_detail
     render :partial => 'redirect_element_info'
   end
   
@@ -407,6 +645,7 @@ class StructureController < CmsController  # :nodoc: all
     
     @languages = Configuration.languages
     @revision_info = mod.language_revisions(@languages)
+    @active_revision_info = @revision_info.detect { |rev| rev[0] == @view_language }
     
   	render :partial => 'framework_modifier_info'
   end
@@ -470,6 +709,7 @@ class StructureController < CmsController  # :nodoc: all
     @mod = mod
     @domain_options = SiteNodeModifier::DomainModifierOptions.new(params[:domain] || @mod.modifier_data)
     if request.post?
+      flash.now[:notice] = 'Updated Domain Options'.t
     
       @mod.modifier_data = @domain_options.to_h
       @mod.save 

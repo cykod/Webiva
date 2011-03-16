@@ -46,7 +46,8 @@ describe Editor::AuthFeature, :type => :view do
     @login_user = EndUser.new
 
     data = { :login_user => @login_user,
-             :type => @options.login_type
+             :type => @options.login_type,
+             :options => @options
            }
   
     @output = @feature.login_feature(data)
@@ -58,7 +59,6 @@ describe Editor::AuthFeature, :type => :view do
              :state => 'missing_password'
            }
   
-    @feature.should_receive(:url_for).and_return('')
     @output = @feature.missing_password_feature(data)
     @output.should include('missing_password[email]')
   end
@@ -82,5 +82,14 @@ describe Editor::AuthFeature, :type => :view do
   
     @output = @feature.email_list_feature(data)
     @output.should include('test@test.dev')
+  end
+
+  it "should display view_account feature" do
+    @user = EndUser.new :first_name => 'First', :last_name => 'Last'
+
+    data = { :user => @user }
+  
+    @output = @feature.view_account_feature(data)
+    @output.should include('First Last')
   end
 end

@@ -1,0 +1,18 @@
+
+<% if permit?('editor_structure') %>
+
+  <% remote_form_for :revision_create, 
+      :update => "element_info",
+      :method => 'post', 
+      :url =>  { :action => 'create_revision', :language  => @view_language,:node_id => @node.id  } do  |f| -%>
+    <input type='submit' value='<%= "Create Page".t %>' /> 
+    <% if (available_revisions =  @revision_info.find_all { |inf| inf[1] }.collect { |inf| [ inf[0].upcase, inf[1].id ] }).length > 0  -%>
+       From 
+       <%= f.select :from_revision_id, available_revisions %>
+    <% end -%>
+  <% end -%>
+<% else %>
+  <%= "No Existing Revision".t %>
+<% end -%>
+
+

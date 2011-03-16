@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + "/../spec_helper"
 describe MembersController do
   integrate_views
 
-  reset_domain_tables :end_user, :user_subscriptions, :user_subscription_entries, :tags, :mail_templates, :end_user_addresses, :tag_notes, :end_user_tags, :market_segments
+  reset_domain_tables :end_users, :user_subscriptions, :user_subscription_entries, :tags, :mail_templates, :end_user_addresses, :tag_notes, :end_user_tags, :market_segments, :user_segments, :user_segment_caches, :end_user_note
 
   describe "editor tests" do
     before(:each) do
@@ -43,9 +43,6 @@ describe MembersController do
       it "should render nothing with empty string" do
 	controller.should_receive(:render).with(:nothing => true)
 	@output = get 'lookup_autocomplete', :member => ''
-
-	controller.should_receive(:render).with(:nothing => true)
-	@output = get 'lookup_autocomplete', :member => ' '
       end
 
       it "should lookup by first_name" do
@@ -233,58 +230,33 @@ describe MembersController do
 
     describe "handle end_user table actions" do
       it "should be able to delete a user" do
-	@output = post 'display_targets_table', :table_action => 'delete', :user => {@user1.id => 1}
+	@output = post 'display_targets_table', :table_action => 'delete', :user => {@user1.id => @user1.id}
 	@deleted_user = EndUser.find_by_id @user1.id
 	@deleted_user.should be_nil
       end
 
       it "should be able to add tags to users" do
-	@output = post 'display_targets_table', :table_action => 'add_tags', :user => {@user1.id => 1}, :added_tags => 'new_tag'
+	@output = post 'display_targets_table', :table_action => 'add_tags', :user => {@user1.id => @user1.id}, :added_tags => 'new_tag'
 	@user1.reload
-	@user1.tag_names.include?('new_tag').should be_true
+	@user1.tag_names.include?('New_tag').should be_true
       end
 
       it "should be able to remove tags to users" do
 	@user1.tag(['new_tag'])
 	@user1.reload
-	@user1.tag_names.include?('new_tag').should be_true
-	@output = post 'display_targets_table', :table_action => 'remove_tags', :user => {@user1.id => 1}, :removed_tags => 'new_tag'
+	@user1.tag_names.include?('New_tag').should be_true
+	@output = post 'display_targets_table', :table_action => 'remove_tags', :user => {@user1.id => @user1.id}, :removed_tags => 'new_tag'
 	@user1.reload
-	@user1.tag_names.include?('new_tag').should_not be_true
+	@user1.tag_names.include?('New_tag').should_not be_true
       end
 
       it "should be able to clear tags to users" do
 	@user1.tag(['new_tag'])
 	@user1.reload
-	@user1.tag_names.include?('new_tag').should be_true
-	@output = post 'display_targets_table', :table_action => 'clear_tags', :user => {@user1.id => 1}
+	@user1.tag_names.include?('New_tag').should be_true
+	@output = post 'display_targets_table', :table_action => 'clear_tags', :user => {@user1.id => @user1.id}
 	@user1.reload
-	@user1.tag_names.empty?.should be_true
-      end
-
-      it "should be able to save segment" do
-	assert_difference 'MarketSegment.count', 1 do
-	  @output = post 'display_targets_table', :table_action => '', :save_segment => 'new_test_segment'
-	end
-      end
-
-      it "should be able to load a segment" do
-	assert_difference 'MarketSegment.count', 0 do
-	  MarketSegment.should_receive(:find_by_id).with(1).and_return(nil)
-	  @output = post 'display_targets_table', :table_action => '', :load_segment => 1
-	end
-      end
-
-      it "should be able to delete a segment" do
-	@segment = MarketSegment.create :name => 'new_test_segment', :segment_type => 'members'
-	@segment.id.should_not be_nil
-
-	assert_difference 'MarketSegment.count', -1 do
-	  @output = post 'display_targets_table', :table_action => '', :delete_segment => @segment.id
-	end
-
-	@segment = MarketSegment.find_by_name('new_test_segment')
-	@segment.should be_nil
+	@user1.tag_names.blank?.should be_true
       end
     end
 
@@ -313,5 +285,162 @@ describe MembersController do
       controller.should_receive(:process_login).exactly(0)
       @output = get 'login', :path => [@user1.id]
     end
+  end
+
+  describe "user lists" do
+    before(:each) do
+      mock_editor
+      @user1 = EndUser.push_target('user1@test.dev', :first_name => 'User1', :last_name => 'Last1')
+      @user2 = EndUser.push_target('user2@test.dev', :first_name => 'User2', :last_name => 'Last2')
+      @user3 = EndUser.push_target('user3@test.dev', :first_name => 'User3', :last_name => 'Last3')
+      @user4 = EndUser.push_target('user4@test.dev', :first_name => 'User4', :last_name => 'Last4')
+      @user5 = EndUser.push_target('user5@test.dev', :first_name => 'User5', :last_name => 'Last5', :membership_id => 'number5')
+      @subscription = UserSubscription.create :name => 'test'
+
+      @user1.action('/editor/auth/user_registration', :identifier => @user1.email)
+      @user2.action('/editor/auth/user_registration', :identifier => @user2.email)
+      @user3.action('/editor/auth/user_registration', :identifier => @user3.email)
+
+      @segment1 = UserSegment.create :name => 'Segment 1', :segment_type => 'filtered', :segment_options_text => 'created.since(1, "days")', :main_page => false
+      @segment1.refresh
+
+      @segment2 = UserSegment.create :name => 'Segment 2', :segment_type => 'filtered', :segment_options_text => 'created.before(1, "days")', :main_page => true
+      @segment2.refresh
+
+      @segment3 = UserSegment.create :name => 'Custom Segment', :segment_type => 'custom', :main_page => true
+      @segment3.add_ids [@user4.id, @user3.id]
+    end
+
+    it "should handle user list" do
+      # Test all the permutations of an active table
+      controller.should handle_active_table(:user_segments_table) do |args|
+	post 'user_segments_table', args
+      end
+    end
+
+    it "should be able to delete a user list" do
+      @output = post 'user_segments_table', :table_action => 'delete', :user_segments => {@segment1.id => @segment1.id}
+      @deleted_segment = UserSegment.find_by_id @segment1.id
+      @deleted_segment.should be_nil
+    end
+
+    it "should be able to add segments to main_page" do
+      @segment1.main_page.should be_false
+      @output = post 'user_segments_table', :table_action => 'add', :user_segments => {@segment1.id => @segment1.id}
+      @segment1.reload
+      @segment1.main_page.should be_true
+    end
+
+    it "should be able to remove segments from the main_page" do
+      @segment2.main_page.should be_true
+      @output = post 'user_segments_table', :table_action => 'remove', :user_segments => {@segment2.id => @segment2.id}
+      @segment2.reload
+      @segment2.main_page.should be_false
+    end
+
+    it "should be able to create a user list" do
+      assert_difference 'UserSegment.count', 1 do
+        post 'create_segment', :commit => 1, :segment => {:name => 'Segment 3', :segment_options_text => 'email.like("%test.dev")'}
+      end
+      @segment = UserSegment.find(:last)
+      @segment.end_user_ids.length.should == 5
+    end
+
+    it "should be able to edit a user list" do
+      assert_difference 'UserSegment.count', 0 do
+        post 'edit_segment', :path => [@segment1.id], :commit => 1, :segment => {:name => 'New Segment Name', :segment_options_text => 'email.like("%test.dev")'}
+      end
+      @segment1.reload
+      @segment1.name.should == 'New Segment Name'
+      @segment1.end_user_ids.length.should == 5
+    end
+
+    it "should be able to copy a user list" do
+      assert_difference 'UserSegment.count', 1 do
+        post 'copy_segment', :path => [@segment1.id], :commit => 1, :segment => {}
+      end
+      @segment = UserSegment.find(:last)
+      @segment.segment_options_text.should == @segment1.segment_options_text
+    end
+
+    it "should be able to refresh a user list" do
+      @segment1.last_count.should == 5
+
+      EndUser.push_target('user6@test.dev')
+
+      get 'refresh_segment', :path => [@segment1.id]
+
+      @segment1.reload
+      @segment1.last_count.should == 6
+    end
+
+    it "should be able to render add_users_form" do
+      get 'add_users_form'
+    end
+
+    it "should be able to select and existing custom user segment" do
+      post 'add_users_form', :choice => 'existing', :segment => {:id => @segment3.id}
+    end
+
+    it "should be able to create a custom user segment" do
+      assert_difference 'UserSegment.count', 1 do
+        post 'add_users_form', :choice => 'new', :segment => {:name => 'new segment'}
+      end
+      @segment = UserSegment.find(:last)
+      @segment.name.should == 'new segment'
+    end
+
+    it "should be able to add users to a custom segment" do
+      @segment3.last_count.should == 2
+      post 'display_targets_table', :table_action => 'add_users', :user_segment_id => @segment3.id, :user => {@user5.id => @user5.id}
+      @segment3.reload
+      @segment3.last_count.should == 3
+    end
+
+    it "should be able to remove users from a custom segment" do
+      @segment3.last_count.should == 2
+      post 'display_targets_table', :table_action => 'remove_users', :path => [@segment3.id], :user => {@user4.id => @user4.id}
+      @segment3.reload
+      @segment3.last_count.should == 1
+    end
+
+    it "should be able to render the builder" do
+      get 'builder'
+    end
+
+    it "should be able to render the custom builder" do
+      post 'builder', :filter => 'custom'
+    end
+
+    it "should be able to render the builder for a segment" do
+      post 'builder', :path => [@segment1.id]
+    end
+
+    it "should render operation partial" do
+      post 'update_builder', :operation => 1, :builder => @segment1.to_builder
+    end
+
+    it "should render expression partial" do
+      post 'update_builder', :expression => 1, :builder => @segment1.to_builder
+    end
+  end
+
+  it "should be able to update options" do
+    mock_editor
+    post 'options', :commit => 1, :options => {:order_by => 'created', :order_direction => 'DESC', :fields => ['gender']}
+    controller.class.module_options.fields.should == ['gender']
+  end
+
+  it "should be able to leave notes about users" do
+    mock_editor
+    user = EndUser.push_target 'user1@test.dev'
+
+    assert_difference 'EndUserNote.count', 1 do
+      post 'note', :path => [user.id], :note => {:note => 'New note message'}
+    end
+
+    note = EndUserNote.find :last
+    note.end_user_id.should == user.id
+    note.note.should == 'New note message'
   end
 end

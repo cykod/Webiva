@@ -66,6 +66,7 @@ class ContentPublication < DomainModel
 				)
   	end
   end
+
   
   def assign_entry(entry,values = {},application_state = {})
     application_state = application_state.merge({:values => values })
@@ -86,7 +87,7 @@ class ContentPublication < DomainModel
     
     self.content_publication_fields.each do |fld|
       if fld.data && fld.data[:required]
-        if fld.content_model_field.text_value(entry).blank?
+        if fld.content_model_field.content_value(entry).blank?
           entry.errors.add(fld.content_model_field.field,'is missing')
         end
       end
@@ -104,8 +105,7 @@ class ContentPublication < DomainModel
       false
     end
   end
-  
-  
+
   def form?
     self.publication_type_class.respond_to?(:render_form)
   end
@@ -158,9 +158,7 @@ class ContentPublication < DomainModel
 
   def each_page_connection_input
     self.content_publication_fields.each do |fld|
-      fld.filter_variables.each do |filter_var|
-        yield fld.content_model_field.field.to_sym,fld
-      end
+      yield fld.content_model_field.field.to_sym,fld
     end
   end
 
@@ -171,17 +169,27 @@ class ContentPublication < DomainModel
         info[:inputs] ||= {}
         info[:inputs][fld.content_model_field.field.to_sym] = []
 
-        fld.filter_variables.each do |filter_var|
+
+        if fld.content_model_field.is_type?('content/core_field/belongs_to')
+          if fld.content_model_field.relation_class == EndUser
+            info[:inputs][fld.content_model_field.field.to_sym] <<
+            [ "filter_#{fld.content_model_field.relation_name}".to_sym, fld.content_model_field.relation_name, :user_target]
+          end
           info[:inputs][fld.content_model_field.field.to_sym] <<
+            [ "filter_#{fld.content_model_field.field}".to_sym, "#{fld.content_model_field.relation_name} ID", :path]
+        else
+          fld.filter_variables.each do |filter_var|
+            info[:inputs][fld.content_model_field.field.to_sym] <<
             [ filter_var.to_sym, filter_var.to_s.humanize, :path ]
+          end
         end
-        
       end
     end
 
 
+    # Disable publication outputs for now
     self.content_publication_fields.each do |fld|
-      if fld.options.page_connection
+      if false && fld.options.filter_options.include?('connection')
         info[:outputs] ||= []
         info[:outputs] << [fld.content_model_field.field.to_sym,
                            fld.content_model_field.name,
@@ -207,7 +215,7 @@ class ContentPublication < DomainModel
   def filter_form_elements(f)
     output = ""
     self.content_publication_fields.each do |fld|
-      if (fld.data[:options] || []).include?('filter')
+      if (fld.data[:filter] == 'filter' || fld.data[:filter] == 'fuzzy')
         output << fld.filter_options(f)
       end
     end
@@ -273,23 +281,25 @@ class ContentPublication < DomainModel
           end
         end
 
-        if fld.data[:order]
-          if fld.data[:order] == 'asc'
-            filter[:order] << "`#{fld.content_model.table_name}`.`#{fld.content_model_field.field}` ASC"
-          elsif fld.data[:order] == 'desc'
-            filter[:order] << "`#{fld.content_model.table_name}`.`#{fld.content_model_field.field}` DESC"
-          end
+      end
+      if fld.data[:order]
+        if fld.data[:order] == 'asc'
+          filter[:order] << "#{fld.escaped_field} ASC"
+        elsif fld.data[:order] == 'desc'
+          filter[:order] << "#{fld.escaped_field} DESC"
         end
       end
+
+
     end
 
     if(self.content_model.show_tags?)
 
       tags = (options[:tags]||[]).find_all() { |elm| !elm.blank? }
       if tags.length > 0
-        filter[:conditions] << 'content_tags.id IN (?)'
+        filter[:conditions] << 'content_tag_tags.content_tag_id IN (?)'
         filter[:values] << tags
-        filter[:joins] << "INNER JOIN content_tags ON (`#{content_model.table_name}`.id = content_tags.id)"
+        filter[:joins] << "INNER JOIN content_tag_tags ON (`#{content_model.table_name}`.id = content_tag_tags.content_id AND content_tag_tags.content_type = #{content_model.connection.quote(content_model.table_name.classify)})"
       end
     end
 
@@ -348,8 +358,6 @@ class ContentPublication < DomainModel
       filter_output.delete(:select)
     end
     
-
-
     return filter_output
   end
 
@@ -477,7 +485,7 @@ class ContentPublication < DomainModel
   
   def self.get_publication_paragraphs
     [ 'Publications' ] + 
-    self.find(:all, :order => 'name').collect do |pub|
+    self.find(:all, :order => 'name', :conditions => 'publication_type != "data"').collect do |pub|
       ["editor", pub.publication_type, pub.content_model.name + " - " + pub.name, "/editor/publication", [pub.feature_name],pub.id ]
     end
   end

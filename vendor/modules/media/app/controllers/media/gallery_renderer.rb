@@ -38,8 +38,8 @@ class Media::GalleryRenderer < ParagraphRenderer
 </div>
   FEATURE
   
-  def galleries_feature(feature,data)
-    parser_context = FeatureContext.new do |c|
+  def galleries_feature(data)
+    webiva_feature('galleries') do |c|
       c.define_tag 'gallery' do |tag|
         result = ''
         galleries = (data[:galleries] || [])
@@ -149,15 +149,7 @@ class Media::GalleryRenderer < ParagraphRenderer
       end
       
       define_pages_tag(c,data[:path],data[:page],data[:pages])
-      
-      c.define_position_tags
-      
     end
-        
-    parser_context.globals.data = data
-  
-    parse_feature(feature,parser_context) 
-    
   end
   
   # Galleries Paragraph Displays a list of galleries with certain conditions
@@ -206,7 +198,7 @@ class Media::GalleryRenderer < ParagraphRenderer
       require_js('redbox')
       require_js('helper/gallery')
       
-      render_paragraph :text => galleries_feature(get_feature('galleries'),data) 
+      render_paragraph :text => galleries_feature(data) 
   end
   
   
@@ -269,9 +261,8 @@ class Media::GalleryRenderer < ParagraphRenderer
     </cms:gallery>
   FEATURE
   
-  def gallery_feature(feature,data) 
-     parser_context = FeatureContext.new do |c|
-
+  def gallery_feature(data) 
+     webiva_feature("gallery") do |c|
       c.define_expansion_tag('no_image') { |t| !data[:images] || data[:images].length == 0  }
 
       c.define_tag 'image' do |tag|
@@ -403,8 +394,17 @@ class Media::GalleryRenderer < ParagraphRenderer
           tag.expand
         end
       end
-      
-      c.define_tag 'gallery:image:href' do |tag|
+       
+      c.define_link_tag 'gallery:image:' do |t|
+        img = t.locals.image
+        if img && img.domain_file
+          url = img.domain_file.url(t.attr['size'])
+        else
+          nil
+        end
+      end
+
+      c.define_link_tag 'gallery:image:overlay' do |tag|
         img = tag.locals.image
         if img && img.domain_file
           url = img.domain_file.url
@@ -418,13 +418,10 @@ class Media::GalleryRenderer < ParagraphRenderer
       end
       
       c.define_image_tag('gallery:image:thumb',nil,nil,:size => :thumb) { |t| t.locals.image.domain_file  if t.locals.image}
-      c.define_image_tag('gallery:image:icon',nil,nil,:size => :icon) { |t| img && img.domain_file ? tag.locals.gallery.gallery_images[0] : '/images/site/missing_icon.gif' }
+      c.define_image_tag('gallery:image:icon',nil,nil,:size => :icon) { |t| img = t.locals.image;   img && img.domain_file ? tag.locals.gallery.gallery_images[0] : '/images/site/missing_icon.gif' }
       define_pages_tag(c,data[:page_path],data[:page],data[:pages])
       define_position_tags(c)
    end
-   
-   parse_feature(feature,parser_context) 
-
   end
   
   # Gallery Paragraph Display a specific gallery, based on the Gallery Number input connection
@@ -560,19 +557,18 @@ class Media::GalleryRenderer < ParagraphRenderer
               :can_upload => can_upload,
               :can_edit => can_edit
               }
-      feature_output = gallery_feature(get_feature('gallery'),data) 
+      feature_output = gallery_feature(data) 
       
-            
+      if gallery_options.include_javascript
+        require_css('redbox')
+        require_css('gallery')
 
-      
-      require_css('redbox')
-      require_css('gallery')
-  
-      require_js('prototype')
-      require_js('effects')
-      require_js('builder')
-      require_js('redbox')
-      require_js('helper/gallery')
+        require_js('prototype')
+        require_js('effects')
+        require_js('builder')
+        require_js('redbox')
+        require_js('helper/gallery')
+      end
 
       render_paragraph :partial => "/media/gallery/gallery_paragraph", 
                     :locals => { :feature_output => feature_output, 
@@ -585,7 +581,7 @@ class Media::GalleryRenderer < ParagraphRenderer
                                   :options => gallery_options }
     else
       data = {  }
-      render_paragraph :text => gallery_feature(get_feature('gallery'),data) 
+      render_paragraph :text => gallery_feature(data) 
     end
     
   end

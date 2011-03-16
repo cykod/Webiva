@@ -1,0 +1,40 @@
+<div class="cms_form">
+<h2><%= 'Run an Experiment'.t %></h2>
+
+<script type="text/javascript">
+submitExperimentForm = function(frm, update) {
+  var params = Form.serialize(frm);
+  params += '&language=<%= @view_language %><%= @new ? "&new=1" : "" %>';
+  if(update) { params += '&update=1'; }
+  SCMS.updateOverlay("<%= url_for %>", params);
+}
+</script>
+
+<% admin_form_for :experiment, @experiment, :html => { :onsubmit => "submitExperimentForm(this, 1); return false;" } do |f| -%>
+  <%= f.custom_field '', :value => f.output_error_message('', :base) if @experiment.errors.on(:base) %>
+  <%= f.text_field :name %>
+  <%= f.custom_field :num_versions, :value => select_tag(:num_versions, options_for_select((@experiment.min_versions..@experiment.max_versions).to_a, @experiment.num_versions), :onchange => 'submitExperimentForm(this.form);') %>
+  <%= f.header 'Select Revisions'.t, :description => 'Leave blank to distribute evenly'.t %>
+  <% (1..@experiment.num_versions).each do |i| -%>
+    <% version = @experiment.versions[i-1] || ExperimentVersion.new
+    -%>
+    <% cms_unstyled_fields_for "experiment[versions][#{i}]", version do |sf| -%>
+      <% if @experiment.is_running? && version.id -%>
+        <%= f.custom_field i.to_s, :value => "#{version.id ? sf.hidden_field(:id) : ''}#{sf.text_field(:revision, :readonly => true, :size => 4)} #{sf.text_field(:weight, :size => 4)}%" %>
+      <% else -%>
+        <%= f.custom_field i.to_s, :value => "#{version.id ? sf.hidden_field(:id) : ''}#{sf.select(:revision, @experiment.page_revision_options)} #{sf.text_field(:weight, :size => 4)}%" %>
+      <% end -%>
+    <% end -%>
+  <% end -%>
+  <%= f.header 'Optional' %>
+  <%= f.page_selector :conversion_site_node_id, {}, :label => 'Conversion Page', :onchange => 'submitExperimentForm(this.form);', :description => 'Select the same page for additional options' %>
+
+  <% if @experiment.conversion_site_node_id == @experiment.experiment_container_id -%>
+    <%= f.yes_no :webform_conversion, :description => 'Trigger a conversion if the form is submitted' %>
+  <% end -%>
+
+  <%= f.spacer %>
+  <%= f.cancel_submit_buttons "Cancel", "Submit", { :onclick => 'RedBox.close(); return false;' } %>
+<% end -%>
+
+</div>

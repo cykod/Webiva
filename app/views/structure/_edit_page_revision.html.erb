@@ -1,0 +1,14 @@
+<div class="cms_form admin_form">
+
+<h3><%= 'Edit Meta Data'.t %></h3>
+
+<% remote_cms_form_for :revision, @revision, :update => 'WD_redbox' do |f| -%>
+<%= f.text_field :title %>
+<%= f.text_field :menu_title %>
+<%= f.text_area :meta_description, :rows => 3 %>
+<%= f.text_area :meta_keywords, :rows => 3 %>
+<%= f.spacer %>
+<%= f.cancel_submit_buttons 'Cancel', 'Submit', :onclick => 'RedBox.close();' %>
+<% end -%>
+
+</div>

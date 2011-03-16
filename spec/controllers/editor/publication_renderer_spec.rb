@@ -20,7 +20,7 @@ describe Editor::PublicationRenderer, :type => :controller do
 
     # Switch to migrator
     @defaults_config_file = YAML.load_file("#{RAILS_ROOT}/config/defaults.yml")
-    DomainModel.activate_domain(Domain.find(@defaults_config_file['testing_domain']).attributes,'migrator',false)    
+    DomainModel.activate_domain(Domain.find(@defaults_config_file['testing_domain']).get_info,'migrator',false)    
     
     DomainModel.connection.reconnect!
     # Kill the spec test table if no-go
@@ -70,7 +70,7 @@ describe Editor::PublicationRenderer, :type => :controller do
   end
   
   it "should be able create a new entry" do
-     @rnd = generate_create_renderer(@publication, { :redirect_page => @view_page_node.id })
+     @rnd = generate_create_renderer(@publication, { :redirect_page_id => @view_page_node.id })
      @cm.content_model.delete_all
 
      @cm.content_model.count.should == 0
@@ -82,6 +82,21 @@ describe Editor::PublicationRenderer, :type => :controller do
      @entry.string_field.should == 'Yay!'
      
      @rnd.should redirect_paragraph("/created_entry")
+  end 
+
+  it "should be able create a new entry and display success text" do
+     @rnd = generate_create_renderer(@publication, { :success_text => "Request Submitted" })
+     @cm.content_model.delete_all
+
+     @cm.content_model.count.should == 0
+     
+     @rnd.should_render_feature('form')
+     renderer_post @rnd, { "entry_#{@publication.id}" => { :string_field => 'Yay!' } }
+
+     @cm.content_model.count.should == 1
+     @entry = @cm.content_model.find(:first)
+     @entry.string_field.should == 'Yay!'
+     
   end 
   
   it "should be able to display default create publication form feature" do
@@ -110,7 +125,7 @@ describe Editor::PublicationRenderer, :type => :controller do
     it "should be able to display the edit form on an existing entry" do
        @entry = @cm.content_model.create(:string_field => 'This is a test of the emergency broadcast system')
 
-       @rnd = generate_edit_renderer(@publication, { :redirect_page => @view_page_node.id }, { :input => [ :entry_id, @entry.id ] })
+       @rnd = generate_edit_renderer(@publication, { :return_page_id => @view_page_node.id }, { :input => [ :entry_id, @entry.id ] })
        @rnd.should_render_feature('form')
        renderer_get @rnd
     end
@@ -120,7 +135,7 @@ describe Editor::PublicationRenderer, :type => :controller do
          
          @entry = @cm.content_model.create(:string_field => 'This is a test of the emergency broadcast system')
 
-         @rnd = generate_edit_renderer(@publication, { :redirect_page => @view_page_node.id }, { :input => [ :entry_id, @entry.id ] }, :site_feature_id => @feature.id)
+         @rnd = generate_edit_renderer(@publication, { :return_page_id => @view_page_node.id }, { :input => [ :entry_id, @entry.id ] }, :site_feature_id => @feature.id)
          @rnd.should_render_feature('form')
          renderer_get @rnd
          
@@ -132,7 +147,7 @@ describe Editor::PublicationRenderer, :type => :controller do
        @entry.string_field.should == "This is a test of the emergency broadcast system"
 
        @cm.content_model.count.should == 1
-       @rnd = generate_edit_renderer(@publication, { :return_page => @view_page_node.id }, { :input => [ :entry_id, @entry.id ] })
+       @rnd = generate_edit_renderer(@publication, { :return_page_id => @view_page_node.id }, { :input => [ :entry_id, @entry.id ] })
        
        renderer_post @rnd, { "entry_#{@publication.id}" => { :string_field => 'Yay!' } }
 
@@ -155,14 +170,14 @@ describe Editor::PublicationRenderer, :type => :controller do
     end
     
     it "should be display the create form if allowed" do
-       @rnd = generate_edit_renderer(@publication, { :redirect_page => @view_page_node.id,:allow_entry_creation => true })
+       @rnd = generate_edit_renderer(@publication, { :return_page_id => @view_page_node.id,:allow_entry_creation => true })
     
        @rnd.should_render_feature('form')
        renderer_get @rnd
     end 
     
     it "should be able to create a new entry if allowed" do
-       @rnd = generate_edit_renderer(@publication, { :return_page => @view_page_node.id,:allow_entry_creation => true })
+       @rnd = generate_edit_renderer(@publication, { :return_page_id => @view_page_node.id,:allow_entry_creation => true })
        
        @cm.content_model.count.should == 0
 
@@ -200,7 +215,7 @@ describe Editor::PublicationRenderer, :type => :controller do
        @rnd.should_render_feature('list')
        renderer_get @rnd
     end
- 
+
  end
  
  describe "admin list publication" do

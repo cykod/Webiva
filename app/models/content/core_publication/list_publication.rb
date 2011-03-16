@@ -34,7 +34,7 @@ class Content::CorePublication::ListPublication < Content::PublicationType #:nod
     output +="\t<tr>\n"
     self.content_publication_fields.each do |fld|
 
-       tag_name = %w(belongs_to document image).include?(fld.content_model_field.field_type) ? fld.content_model_field.field_options['relation_name'] :      fld.content_model_field.field
+       tag_name = fld.content_model_field.feature_tag_name
     
       case fld.content_model_field_id
       when -1:

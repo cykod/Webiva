@@ -74,10 +74,11 @@ describe Editor::AuthRenderer, :type => :controller do
     end
 
     it "shouldn't save if required address fields aren't there" do
+      assert_difference "EndUserAddress.count", 0 do 
         @rnd = generate_renderer(:address_required_fields => ['state'])
-      renderer_post @rnd, :user => { :email => "test@webiva.com", :password => "test", :password_confirmation => "test" }, :address => { :address => '123 Elm St',:city => 'Boston' }
+        renderer_post @rnd, :user => { :email => "test@webiva.com", :password => "test", :password_confirmation => "test" }, :address => { :address => '123 Elm St',:city => 'Boston' }
+      end
 
-      EndUser.count.should == 0
     end
 
     it "should save if all required address fields are there" do
@@ -89,6 +90,7 @@ describe Editor::AuthRenderer, :type => :controller do
       usr.address.address.should == '123 Elm St'
       usr.address.city.should == 'Boston'
       usr.address.state.should == 'MA'
+      usr.address.country.should == 'United States'
     end
 
     it "should support information registrations that only require email" do
@@ -105,7 +107,7 @@ describe Editor::AuthRenderer, :type => :controller do
       renderer_post @rnd, :user => { :email => "test@webiva.com" }
       EndUser.count.should == 1
       usr = EndUser.find(:first)
-      usr.tag_names.should == ['test1','test2']
+      usr.tag_names.should == 'Test1, Test2'
     end
 
     it "should be able to set the user source" do
@@ -116,6 +118,120 @@ describe Editor::AuthRenderer, :type => :controller do
       usr.lead_source.should =='tester_source'
     end
     
+  end
+
+  describe "User Edit Account Paragraph" do
+    before(:each) do
+      mock_user
+    end
+
+    def generate_renderer(data = {:required_fields => [ ]})
+      # Set a user class b/c we need one
+      build_renderer('/page','/editor/auth/user_edit_account',data,{})
+    end
+    
+    it "should be able to view the default user edit paragraph" do
+      @rnd = generate_renderer
+      @rnd.should_render_feature("user_edit_account")
+      renderer_get @rnd 
+    end
+
+    it "should require a valid email" do
+      @rnd = generate_renderer
+
+      renderer_post @rnd, :user => { :email => "", :password => "", :password_confirmation => "" }
+
+      @myself.should have(1).error_on(:email)
+    end
+
+    it "should be able to change a user's  email and password" do
+      @rnd = generate_renderer()
+
+      renderer_post @rnd, :user => { :email => "test@webiva.com", :password => "test", :password_confirmation => "test" }
+
+      @myself.email.should == 'test@webiva.com'
+    end
+    
+    it "shouldn't let in values that aren't in the optional fields" do
+      @rnd = generate_renderer(:optional_fields => ['first_name'] )
+
+      renderer_post @rnd, :user => { :email => "test@webiva.com", :password => "test", :password_confirmation => "test", :first_name => 'Testerama', :last_name => 'McJohnson' }
+
+      @myself.email.should == 'test@webiva.com'
+      @myself.first_name.should == 'Testerama'
+      @myself.last_name.should be_blank
+    end
+
+    it "should let address fields in" do
+      @rnd = generate_renderer()
+      renderer_post @rnd, :user => { :email => "test@webiva.com", :password => "test", :password_confirmation => "test" }, :address => { :address => '123 Elm St',:city => 'Boston' }
+
+      @myself.email.should == 'test@webiva.com'
+      @myself.address.address.should == '123 Elm St'
+      @myself.address.city.should == 'Boston'
+      @myself.address.country.should == 'United States'
+    end
+
+    it "shouldn't save if required address fields aren't there" do
+      @rnd = generate_renderer(:address_required_fields => ['state'])
+      renderer_post @rnd, :user => { :email => "test@webiva.com", :password => "test", :password_confirmation => "test" }, :address => { :address => '125 Elm St',:city => 'Boston' }
+
+      @myself.address.id.should be_nil
+      @usr = EndUser.find @myself.id
+      @usr.address.should be_nil
+      @myself.address.errors.length.should == 1
+      @myself.address.errors.on(:state).should == 'is missing'
+    end
+
+    it "should save if all required address fields are there" do
+        @rnd = generate_renderer(:address_required_fields => ['state','city','state'])
+      renderer_post @rnd, :user => { :email => "test@webiva.com", :password => "test", :password_confirmation => "test" }, :address => { :address => '123 Elm St',:city => 'Boston', :state => 'MA' }
+
+      @myself.address.address.should == '123 Elm St'
+      @myself.address.city.should == 'Boston'
+      @myself.address.state.should == 'MA'
+    end
+
+    it "should be able to add tag names" do
+      @rnd = generate_renderer(:add_tags => 'test1,test2',:required_fields => [])
+      renderer_post @rnd, :user => { :first_name => 'first' }
+      @myself.reload
+      @myself.tag_names.should == 'Test1, Test2'
+    end
+
+    it "should set access token" do
+      token = AccessToken.create :token_name => 'token'
+      token.id.should_not be_nil
+
+      @rnd = generate_renderer(:access_token_id => token.id, :required_fields => [])
+      renderer_post @rnd, :user => { :first_name => 'First' }
+
+      @myself.errors.length.should == 0
+      @myself.first_name.should == 'First'
+      @myself.tokens.detect { |t| t.access_token_id == token.id }.should be_true
+    end
+
+    it "should send mail" do
+      @email_template = MailTemplate.find_by_name('edit') || MailTemplate.create(:subject => 'Account Updated', :name => 'edit', :language => 'en')
+
+      MailTemplateMailer.should_receive(:deliver_to_user)
+
+      @rnd = generate_renderer(:mail_template_id => @email_template.id, :required_fields => [])
+      renderer_post @rnd, :user => { :first_name => 'First' }
+
+      @myself.errors.length.should == 0
+      @myself.first_name.should == 'First'
+    end
+
+    it "should change user class id" do
+      @rnd = generate_renderer(:user_class_id => 2, :modify_profile => 'modify', :required_fields => [])
+      renderer_post @rnd, :user => { :first_name => 'First' }
+
+      @myself.errors.length.should == 0
+      @myself.first_name.should == 'First'
+      @myself.user_class_id.should == 2
+    end
+
   end
 
   describe "User Login Paragraph" do 
@@ -647,130 +763,6 @@ describe Editor::AuthRenderer, :type => :controller do
     end
   end
 
-  describe "Edit Account Paragraph" do 
-    def generate_renderer(data = {})
-      @success_page = SiteNode.find_by_title('edit_account_success') || SiteVersion.default.root_node.add_subpage('edit_account_success')
-      default = {:success_page => @success_page.id}
-      build_renderer('/page','/editor/auth/edit_account',default.merge(data),{})
-    end
-
-    it "should not render the edit_account paragraph if not logged in" do
-      @rnd = generate_renderer
-      @rnd.should_receive(:render_paragraph).with(:text => '')
-      renderer_get @rnd
-    end
-
-    it "should render the edit_account paragraph if logged in" do
-      mock_user
-      @rnd = generate_renderer
-      @rnd.should_receive(:render_paragraph).with(hash_including(:partial => '/editor/auth/edit_account'))
-      renderer_get @rnd
-    end
-
-    it "should be able to edit user data" do
-      mock_user
-      user_info = {:email => 'testnew@test.dev', :first_name => 'FirstTest', :last_name => 'LastTest', :gender => 'm', :username => 'testnew'}
-
-      @rnd = generate_renderer
-      @rnd.should_receive(:redirect_paragraph).with(@success_page.node_path).once
-      renderer_post @rnd, :user => user_info
-      @myself.reload
-      @myself.email.should == 'testnew@test.dev'
-      @myself.first_name.should == 'FirstTest'
-      @myself.last_name.should == 'LastTest'
-      @myself.gender.should == 'm'
-      @myself.username.should == 'testnew'
-    end
-
-    it "should be able to edit user data and address data" do
-      mock_user
-      user_info = {:email => @myself.email, :first_name => 'FirstTest', :last_name => 'LastTest', :gender => 'm', :username => 'testnew'}
-      address_info = {:company => 'company', :phone => 'phone', :fax => 'fax', :address => 'address', :city => 'city', :state => 'state', :zip => 'zip'}
-      work_address_info = {:company => 'work_company', :phone => 'work_phone', :fax => 'work_fax', :address => 'work_address', :city => 'work_city', :state => 'work_state', :zip => 'work_zip'}
-
-      @rnd = generate_renderer :address => 'on', :work_address => 'on'
-      @rnd.should_receive(:redirect_paragraph).with(@success_page.node_path).once
-      renderer_post @rnd, :user => user_info, :address => address_info, :work_address => work_address_info
-
-      @myself.reload
-      @myself.first_name.should == 'FirstTest'
-      @myself.last_name.should == 'LastTest'
-      @myself.gender.should == 'm'
-      @myself.username.should == 'testnew'
-      address_info.each do |key, value|
-	@myself.address.send(key.to_s).should == value
-      end
-      work_address_info.each do |key, value|
-	@myself.work_address.send(key.to_s).should == value
-      end
-    end
-
-    it "should be able to edit user data and tag" do
-      mock_user
-      user_info = {:email => 'testnew@test.dev', :first_name => 'FirstTest', :last_name => 'LastTest', :gender => 'm', :username => 'testnew'}
-
-      @rnd = generate_renderer :add_tags => 'edit_profile'
-      @rnd.should_receive(:redirect_paragraph).with(@success_page.node_path).once
-      renderer_post @rnd, :user => user_info
-      @myself.reload
-      @myself.email.should == 'testnew@test.dev'
-      @myself.first_name.should == 'FirstTest'
-      @myself.last_name.should == 'LastTest'
-      @myself.gender.should == 'm'
-      @myself.username.should == 'testnew'
-
-      @tag = Tag.find_by_name('edit_profile')
-      @tag.should_not be_nil
-      @end_user_tag = EndUserTag.find_by_end_user_id_and_tag_id(@myself.id, @tag.id)
-      @end_user_tag.should_not be_nil
-    end
-
-    it "should be able to edit user data and subscribe" do
-      mock_user
-      user_info = {:email => 'testnew@test.dev', :first_name => 'FirstTest', :last_name => 'LastTest', :gender => 'm', :username => 'testnew'}
-
-      @subscription = UserSubscription.create :name => 'test'
-      @subscription.id.should_not be_nil
-
-      @rnd = generate_renderer :include_subscriptions => [@subscription.id]
-      @rnd.should_receive(:redirect_paragraph).with(@success_page.node_path).once
-      renderer_post @rnd, :user => user_info, :subscription => {'0' => 1, @subscription.id.to_s => 'on'}
-      @myself.reload
-      @myself.email.should == 'testnew@test.dev'
-      @myself.first_name.should == 'FirstTest'
-      @myself.last_name.should == 'LastTest'
-      @myself.gender.should == 'm'
-      @myself.username.should == 'testnew'
-
-      @entry = UserSubscriptionEntry.find_by_end_user_id_and_user_subscription_id(@myself.id, @subscription.id)
-      @entry.should_not be_nil
-    end
-
-    it "should be able to edit user data and unsubscribe" do
-      mock_user
-      user_info = {:email => 'testnew@test.dev', :first_name => 'FirstTest', :last_name => 'LastTest', :gender => 'm', :username => 'testnew'}
-
-      @subscription = UserSubscription.create :name => 'test'
-      @subscription.id.should_not be_nil
-      @subscription.subscribe_user(@myself)
-      @entry = UserSubscriptionEntry.find_by_end_user_id_and_user_subscription_id(@myself.id, @subscription.id)
-      @entry.should_not be_nil
-
-      @rnd = generate_renderer :include_subscriptions => [@subscription.id]
-      @rnd.should_receive(:redirect_paragraph).with(@success_page.node_path).once
-      renderer_post @rnd, :user => user_info, :subscription => {'0' => 1 }
-      @myself.reload
-      @myself.email.should == 'testnew@test.dev'
-      @myself.first_name.should == 'FirstTest'
-      @myself.last_name.should == 'LastTest'
-      @myself.gender.should == 'm'
-      @myself.username.should == 'testnew'
-
-      @entry = UserSubscriptionEntry.find_by_end_user_id_and_user_subscription_id(@myself.id, @subscription.id)
-      @entry.should be_nil
-    end
-  end
-
   describe "Missing Password Paragraph" do 
     def generate_renderer(data = {})
       @reset_page = SiteNode.find_by_title('reset') || SiteVersion.default.root_node.add_subpage('reset')
@@ -932,6 +924,10 @@ describe Editor::AuthRenderer, :type => :controller do
       assert_difference 'UserSubscriptionEntry.count', 1 do
 	renderer_post @rnd, :email_list_signup => email_list_signup_info
       end
+
+      user = EndUser.find_by_email('test@test.dev')
+      user.should_not be_nil
+      user.user_level.should == 3
     end
 
     it "should not signup for a email list if a missing field is required" do
@@ -945,6 +941,9 @@ describe Editor::AuthRenderer, :type => :controller do
       assert_difference 'UserSubscriptionEntry.count', 0 do
 	renderer_post @rnd, :email_list_signup => email_list_signup_info
       end
+
+      user = EndUser.find_by_email('test@test.dev')
+      user.should be_nil
 
       email_list_signup_info = { :email => 'test@test.dev',
 	                         :first_name => ''
@@ -993,6 +992,10 @@ describe Editor::AuthRenderer, :type => :controller do
       assert_difference 'UserSubscriptionEntry.count', 1 do
 	renderer_post @rnd, :partial_post => true, :email_list_signup => email_list_signup_info
       end
+
+      user = EndUser.find_by_email('test@test.dev')
+      user.should_not be_nil
+      user.user_level.should == 3
     end
 
     it "should not add an entry for user subscription when not allowing for partial_post and missing data" do
@@ -1026,6 +1029,18 @@ describe Editor::AuthRenderer, :type => :controller do
       @user.should_not be_nil
       @end_user_tag = EndUserTag.find_by_end_user_id_and_tag_id(@user.id, @tag.id)
       @end_user_tag.should_not be_nil
+    end
+  end
+
+  describe "View Account Paragraph" do
+    def generate_renderer(data = {})
+      build_renderer('/page','/editor/auth/view_account',data,{})
+    end
+
+    it "should render view account paragraph" do
+      @rnd = generate_renderer
+      @rnd.should_receive(:render_paragraph)
+      renderer_get @rnd
     end
   end
 end

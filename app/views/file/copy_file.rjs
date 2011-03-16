@@ -1,5 +1,6 @@
 
 page.replace_html :file_manager_body, :partial => '/file/details/file_details', :locals => {:file => @file }
+page.replace_html :available_file_storage, :partial => '/file/available_file_storage'
 
 page.insert_html :bottom, "file_manager", :partial => 'file_item', :locals => { :file => @file}
 page << "setTimeout('FileEditor.refreshUploadedFile(#{@file.id},#{@file.parent_id})',10);"

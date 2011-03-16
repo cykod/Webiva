@@ -13,27 +13,47 @@ class MemberImportWorker <  Workling::Base #:nodoc:all
     results = { }
   
     dmn = Domain.find(args[:domain_id])
-    DomainModel.activate_domain(dmn.attributes,'migrator',false)
+    DomainModel.activate_domain(dmn.get_info,'migrator',false)
     
     results[:completed] = false
     
-    count = -1
-    CSV.open(args[:filename],"r",args[:deliminator]).each do |row|
+    file = DomainFile.find_by_id args[:csv_file]
+    filename = file.filename
+
+    reader, header = open_csv(filename,args[:deliminator])
+    count = 0  
+    reader.each do |row|
       count += 1 if !row.join.blank?
     end
     count = 1 if count < 1
     results[:entries] = count
     
-    
+    results[:errors] = []
     results[:initialized] = true
     results[:imported] = 0
-    EndUser.import_csv(args[:filename],args[:data],:import => true, :options => args[:options],:deliminator => args[:deliminator]) do |imported,errors|
+    Workling.return.set(args[:uid],results)
+
+    EndUser.import_csv(filename,args[:data],:import => true, :options => args[:options],:deliminator => args[:deliminator]) do |imported, errors|
       results[:imported] += imported
-      Workling.return.set(args[:uid],results)
+      results[:errors] << "row #{errors[0][0]+2}, error importing \"#{errors[0][1]}\"" unless errors.empty?
+      Workling.return.set(args[:uid],results) if (results[:imported] % 10) == 0
     end
     
     results[:completed] = true
     Workling.return.set(args[:uid],results)
-    
   end
+
+  def open_csv(filename,deliminator = ',')
+    reader = nil
+    header = []
+    begin 
+      reader = CSV.open(filename,"r",deliminator)
+      header = reader.shift
+    rescue Exception => e
+      reader = CSV.open(filename,"r",deliminator,?\r)
+      header = reader.shift
+    end
+    return [ reader,header ]
+  end
+
 end

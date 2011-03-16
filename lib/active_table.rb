@@ -143,7 +143,52 @@ module ActiveTable
       yield params[:table_action],params[entry_type.to_sym].values
      end
    end
-   
+
+    # Method that returns the ordering field
+    # This method is called with [:table_name]_order when the active_table singleton method is used
+    def active_table_order(table_name,columns,opts)
+      session[:active_table] ||= {}
+      session[:active_table][table_name.to_sym] ||= {}
+      order = session[:active_table][table_name.to_sym][:order]
+      if opts[:order]
+        if order == opts[:order]
+          order = opts[:order] + ' DESC'
+        else
+          order = opts[:order]
+        end
+      end
+
+      session[:active_table][table_name.to_sym][:order] = order
+
+      columns.each do |hdr|
+        if hdr.field_hash == order && hdr.is_orderable?
+          return hdr.field
+        elsif hdr.field_hash + " DESC" == order  && hdr.is_orderable?
+          return hdr.field + " DESC"
+        end
+      end
+
+      nil
+    end
+
+    def active_table_set_order(table_name,columns,order)
+      session[:active_table] ||= {}
+      session[:active_table][table_name.to_sym] ||= {}
+      session[:active_table][table_name.to_sym][:order] = nil
+
+      columns.each do |hdr|
+        next unless hdr.is_orderable?
+
+        if hdr.field == order
+          session[:active_table][table_name.to_sym][:order] = hdr.field_hash
+          return
+        elsif hdr.field + " DESC" == order
+          session[:active_table][table_name.to_sym][:order] = hdr.field_hash + " DESC"
+          return
+        end
+      end
+    end
+
     # Method that actually generates the data for the table, only called directly in the 
     # case of a non-classes level tables.
     # This method is called with [:table_name]_generate when the active_table singleton method is used
@@ -168,6 +213,7 @@ module ActiveTable
           search_options.stringify_keys!
           session[:active_table] ||= {}
           session[:active_table][table_name.to_sym] = search_options.to_hash
+
           
         elsif session[:active_table] && session[:active_table][table_name.to_sym]
           search_options = session[:active_table][table_name.to_sym]
@@ -261,7 +307,6 @@ module ActiveTable
         #entry_count = model_class.find(:first,count_by,count_options)
         #entry_count = entry_count.cnt
         
-        
         page = (opts.delete(:page) || 1).to_i
         pages_count = (entry_count.to_f / per_page).ceil.to_i
         pages_count = 1 if pages_count < 1
@@ -295,11 +340,7 @@ module ActiveTable
           pages = [ 1, '..' ] +  pages[1..-1]
         end
         
-        if end_page == pages_count
-          pages
-        elsif end_page == pages_count
-          pages << pages_count 
-        elsif end_page < pages_count
+        if end_page < pages_count
           pages += [ '..', pages_count ]
         end
         
@@ -369,6 +410,14 @@ module ActiveTable
       
       define_method "#{table_name}_generate" do |opts,*find_options|
         active_table_generate(table_name,model_class,columns,options,opts,*find_options)
+      end
+
+      define_method "#{table_name}_order" do |opts|
+        active_table_order(table_name,columns,opts)
+      end
+
+      define_method "#{table_name}_set_order" do |order|
+        active_table_set_order(table_name,columns,order)
       end
       
       define_method "#{table_name}_columns" do 

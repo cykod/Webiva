@@ -1,0 +1,24 @@
+<div class='admin_content'>
+
+<% admin_form_for :import, @import do |f| %>
+  <%= f.show_error_message :base, '' %>
+  <%= f.header 'Select a CSV file to import' %>
+  <%= f.filemanager_file :import_file_id, :description => "File must be a CSV with the following columns:\n Title, permalink, author,published date, preview, body, embed\nOnly title and body are required to have non-empty values but all columns must be present" %>
+
+  <%= f.header 'Import RSS Feed' %>
+  <%= f.text_field :rss_url, :label => 'URL', :size => 40 %>
+
+  <%= f.header 'Import WordPress Blog' %>
+  <%= f.filemanager_file :wordpress_export_file_id, :label => 'Export file', :description => "Log into your blog. Goto Tools > Export and click Download" %>
+  <%= f.custom_field '', :value => 'Or' %>
+  <%= f.text_field :wordpress_url, :label => 'URL', :size => 40, :description => "The home page of your word press blog.\n Example: http://<blog's name>.wordpress.com/" %>
+  <%= f.text_field :wordpress_username, :label => 'Username', :size => 15 %>
+  <%= f.password_field :wordpress_password, :label => 'Password', :size => 15 %>
+  <%= f.check_boxes :wordpress_import_settings, [['Import comments', 'comments'], ['Import pages', 'pages']], :label => 'Import settings' %>
+
+  <%= f.spacer %>
+  <%= f.cancel_submit_buttons "Cancel","Submit" %>
+
+<% end -%>
+
+</div>

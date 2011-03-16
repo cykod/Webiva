@@ -22,11 +22,11 @@ class Media::Players::Video::FlvPlayer < Media::Players::Video::Base
   def swf_url ; "#{self.component_path}/flvplayer.swf"; end
 
   def flash_width
-    @options.width + 6
+    @options.width.to_i + 6
   end
 
   def flash_height
-    @options.height + 38
+    @options.height.to_i + 38
   end
 
   def flash_options

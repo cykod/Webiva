@@ -1,0 +1,11 @@
+<% if (images = revision.used_images).length > 0 %>
+<div class='tree_detail_secondary_section'>
+  <h2>Images on Page</h2>
+  <% images.each do |img| -%>
+    <div class='thumbnail_image'>
+       <img src='<%= img.thumbnail_url(theme,'thumb') %>' align='left' />
+     </div>
+  <% end -%>
+</div>
+<% end -%>
+

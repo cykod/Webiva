@@ -5,6 +5,7 @@
  }
 
 #cms_edit_page_link {
+  z-index:1000;
  position:fixed;
  bottom:10%;
  right:0px;

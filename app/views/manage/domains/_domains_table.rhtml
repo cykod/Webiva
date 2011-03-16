@@ -12,7 +12,7 @@
         <a href='<%= url_for :action => 'edit', :path => dmn %>'><%= dmn.name %></a>
         </td>
         <td> 
-          <%= dmn.client.name %>
+          <%= h dmn.client.name if dmn.client %>
         </td>
         <td>
           <%= dmn.domain_type_display %>

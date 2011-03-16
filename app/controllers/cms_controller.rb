@@ -13,6 +13,8 @@ class CmsController < ApplicationController
 
   before_filter :validate_is_editor
 
+  before_filter :generate_menu
+
   hide_action :active_table_action, :active_table_generate, :auto_link, :concat, :current_cycle, :cycle
   hide_action :excerpt, :highlight, :markdown, :permit, :permit?, :pluralize, :reset_cycle, :simple_format, :textilize
   hide_action :textilize_without_paragraph, :truncate, :word_wrap
@@ -29,7 +31,7 @@ class CmsController < ApplicationController
   # Filter method validating that the current user has an
   # editor user class. Skip this filters to get around the requirement.
   def validate_is_editor
-    if myself && myself.user_class
+    if myself.id && myself.user_class
       if !myself.user_class.editor?
         redirect_to :controller => '/manage/access', :action => 'denied'
       end
@@ -39,8 +41,8 @@ class CmsController < ApplicationController
     end
 
     if params[:return_to_site] 
-      url = request.referer.gsub!(/^https?\:\/\/[^\/]+/,"")
-      unless url =~ /^\/website/
+      url = request.referer.to_s.gsub!(/^https?\:\/\/[^\/]+/,"")
+      unless url.blank? || url =~ /^\/website/
         session[:return_to_site] = url
       end
     end
@@ -52,6 +54,28 @@ class CmsController < ApplicationController
     @cms_titlebar_handlers = get_handler_instances(:webiva,:titlebar,self)
   end
 
+  def generate_menu
+    if !request.xhr?
+      @menu = WebivaMenu.new do |menu|
+        menu.item(0,'website', ['editor_website','editor_structure'], :controller => '/structure')
+        menu.item(10,'content',nil,:controller => '/content')
+        menu.item(20,'files',['editor_files'],:controller => '/file')
+        menu.item(30,'people',['editor_members'],:controller => '/members')
+        menu.item(40,'marketing',['editor_visitors'],:controller => '/emarketing')
+        menu.item(50,'mail',['editor_mailing'],:controller => '/mail_manager')
+        menu.item(60,'options',['editor_design_templates','editor_permissions','editor_site_management','editor_editors','editor_emails'],:controller => '/options')
+        menu.item(100,'system',['system_admin','client_admin'],:controller => '/manage/system') 
+      end
+
+      get_handler_instances(:webiva,:titlebar,self)
+
+
+      @menu.authorize(myself)
+    end
+
+    true
+  end
+
 
   # Generate friendlier error messages than the 500-white-screen-of-death
   def rescue_action_in_public(exception)
@@ -61,6 +85,9 @@ class CmsController < ApplicationController
       end
       if exception.is_a?(ActiveRecord::RecordNotFound)
         @error_message = "The record you were looking for could not be found"
+      elsif exception.is_a?(ActionController::InvalidAuthenticityToken)
+        @error_message = 'The form you submitted expired, reloading page'
+        headers['Refresh'] = '3; URL=' + request.url
       else
         super
         @error_message = 'There was a problem processing your request'
@@ -74,7 +101,6 @@ class CmsController < ApplicationController
     rescue Exception => e
       render :text => 'There was an error processing your request', :status => 500
     end
-    
   end
   
      
@@ -273,33 +299,19 @@ class CmsController < ApplicationController
   # The last page title does not need to exist in cms_admin_paths unless it 
   # is referenced somewhere else in the controller.
   def self.cms_admin_paths(section,pages = {})
-    pages['Content'] ||= { :controller => '/content' }
+    pages['Content'] ||= { :controller => '/content' } 
+    pages['Website'] ||= { :controller => '/structure' }
     pages['Options'] ||= { :controller => '/options' }
-    pages['Modules'] ||= { :controller => '/options/modules' }
+    pages['Modules'] ||= { :controller => '/modules' }
     sing = class << self; self; end
     sing.send :define_method, "cms_page_path_info" do
       { :section => section, :pages => pages }
     end
   end
 
-  # Checks if a parameter exists in parms, then the session, otherwise sets it to the
-  # default value, sets the session and returns the value
-  #
-  # Used primarily for toggles on the backend (like archived in structure)
-  def handle_session_parameter(parameter_name,default_val = nil,options = {})
-
-    parameter_name = parameter_name.to_sym
-    # Show return to be explicit what we are doing (setting session value & returning)
-    if params.has_key?(parameter_name)
-      return session[parameter_name] = params[parameter_name]
-    else
-      return session[parameter_name] || default_val
-    end
-  end
-
   # Sets the current page title and breadcrumbs 
   # in each controller method
-  def cms_page_path(pages,info,menu_js=nil)
+  def cms_page_path(pages,info,menu_js=nil,section=nil)
     ap = self.class.cms_page_path_info
     output_pages = []
     pages.each do |page_name|
@@ -313,7 +325,7 @@ class CmsController < ApplicationController
     end
 
     output_pages << info
-    cms_page_info(output_pages,ap[:section],menu_js)
+    cms_page_info(output_pages,section || ap[:section],menu_js)
   end
   
   # Redirects to another page defined in cms_admin_paths

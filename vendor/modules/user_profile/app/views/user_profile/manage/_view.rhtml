@@ -1,0 +1,48 @@
+<script>
+  ProfileData = {
+    tab: <%= @tab %>,
+    
+    editProfile: function() {
+      var params = Form.serialize("profiles") + "&tab=" + ProfileData.tab;
+      new Ajax.Updater('tab_' + ProfileData.tab, 
+          "<%= url_for :action => 'view', :path => [@user.id], :profile_type_id => @current_profile_type_id %>",
+          { parameters: params, evalScripts: true } );
+
+    },
+    changeType: function(profile_type) {
+      var params = "tab=" + ProfileData.tab;
+      new Ajax.Updater('tab_' + ProfileData.tab,
+      "<%= url_for :action => 'view', :path => [ @user.id ], :tab => @tab %>&profile_type_id=" + profile_type, 
+          { parameters: params, evalScripts: true } );
+    }
+
+
+  }
+
+</script>
+<% if flash[:notice] %>
+  <div class='flash_notice'><div><%= flash[:notice] %></div></div>
+<% end -%>
+
+<div class='profiles'>
+ <% if @matching_profile_types.count > 1 %>
+  <div class="type" style="padding-bottom:15px;">
+    <%= select_tag :profile_type_id, options_for_select(@matching_profile_types, @current_profile_type_id),
+        :onchange => "ProfileData.changeType(this.value);" %>
+  </div>
+<% end -%>
+<% ajax_tabs ['View','Edit'] , @editing_profile ? 'Edit' : 'View' do |t| %>
+  <% t.tab do -%>
+    <div id="display_profile">
+      <%= render(:partial => 'display_profile') %>
+    </div>
+  <% end -%>
+  <% t.tab do -%>
+    <div id="edit_profile">
+      <%= render :partial => 'edit_profile' %>
+    </div>
+  <% end -%>
+<% end %>
+</div>
+
+

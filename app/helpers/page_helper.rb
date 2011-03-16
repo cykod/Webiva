@@ -2,7 +2,32 @@
 
 module PageHelper
 
-  
+
+  def webiva_javascript_tags(js_includes,js_header)
+    if js_includes || js_header
+      if js_header; js_includes ||= []; js_includes += js_header; end 
+
+      js_includes.uniq.each do |js|
+        if js.to_s[0..3] == 'http'
+          concat(" <script src=\"#{vh js}\" type='text/javascript'></script>\n")
+        else 
+          concat(" " + javascript_include_tag(js) + "\n")
+        end
+      end
+    end
+    nil
+  end
+
+  def webiva_css_tags(css_includes,css_header)
+    if css_includes || css_header
+      if css_header; css_includes ||= []; css_includes += css_header; end 
+      css_includes.uniq.each do |css|
+        concat(" " + stylesheet_link_tag(css, :media => 'all') + "\n")
+      end
+    end
+    nil
+  end
+
 
   def ajax_url_for(rnd,options={})
     opts = options.merge(:site_node => rnd.paragraph.page_revision ? rnd.paragraph.page_revision.revision_container_id : 0, 
@@ -20,15 +45,20 @@ module PageHelper
     style = ''
    end
    tbl_type =options[:type] == 'div' ? 'div' : 'table'
+
+   if options[:class]
+     extra_class = " " + options[:class]
+   end
    
-   div_id = options[:container_id] || tbl.name
+   div_id = options[:container_id] || "cmspara_#{tbl.renderer.paragraph.id}"
    concat(register_table_js(tbl,div_id,options[:refresh_url]))
    concat("<form id='#{tbl.name}_update_form' action='' onsubmit='return false;'>") unless options[:no_form]
+   concat("<input type='hidden' name='page_connection_hash' value='#{tbl.page_connection_hash}' />") unless options[:no_form]
    
    if tbl_type == 'table'
-      concat("<#{tbl_type} cellspacing='0' cellpadding='0' class='user_#{tbl_type}' #{style} >")
+      concat("<#{tbl_type} cellspacing='0' cellpadding='0' class='user_#{tbl_type}#{extra_class}' #{style} >")
    else
-     concat("<#{tbl_type} class='user_#{tbl_type}' #{style} >")
+     concat("<#{tbl_type} class='user_#{tbl_type}#{extra_class}' #{style} >")
    end
    
    
@@ -194,15 +224,11 @@ selected_icon : unselected_icon}' id='#{elem_id}#{star}' align='absmiddle' title
   def content_node_links(objects)
     return nil unless objects
     objects.map do |obj| 
-      if obj.is_a?(Array)
-        cls = obj[0].is_a?(String) ? obj[0].constantize : obj[0]
-        obj = cls.find_by_id(obj[1])
-      end
-
-      if obj && obj.content_node
-        admin_url = obj.content_node.admin_url.symbolize_keys
+      nd = ContentNode.find_by_id(obj)
+      if nd && admin_url = nd.admin_url 
+        admin_url.symbolize_keys!
         if myself.has_content_permission?(admin_url.delete(:permission))
-          name = admin_url.delete(:title) || obj.class.to_s.humanize
+          name = admin_url.delete(:title) || nd.node_type.underscore.titleize
           url = url_for(admin_url) + "?return_to_site=true"
           (link_to h(name), url)
         else

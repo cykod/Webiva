@@ -13,10 +13,10 @@ class MemberImportController < WizardController # :nodoc: all
                  [ 'confirm', 'Confirm' ],
                  [ 'import', 'Import' ] ]
   
+  cms_admin_paths 'people', "People" => { :controller => 'members' }
+
   def index
-    cms_page_info([ [ 'E-marketing', url_for(:controller => 'emarketing') ], 
-                    [ 'Email Targets', url_for(:controller =>'members' ) ],
-                    'Member Import' ], 'e_marketing' )
+    cms_page_path [ "People" ], "Member Import"
   
     if params[:previous]
       @wizard = DefaultsHashObject.new((session[:member_import_wizard] || {})[:index])
@@ -63,10 +63,8 @@ class MemberImportController < WizardController # :nodoc: all
   end
   
   def fields
-    cms_page_info([ [ 'E-marketing', url_for(:controller => 'emarketing') ], 
-                    [ 'Email Targets', url_for(:controller =>'members' ) ],
-                    'Member Import - Match Fields' ], 'e_marketing' )
-  
+   cms_page_path [ "People" ], "Member Import - Match Fields"
+
     if !session[:member_import_wizard] || !session[:member_import_wizard][:index]
       redirect_to :action => 'index'; return
       return
@@ -74,8 +72,8 @@ class MemberImportController < WizardController # :nodoc: all
 
     @deliminator = @@deliminators[session[:member_import_wizard][:index][:field_deliminator]]
 
-    
-    filename = session[:member_import_wizard][:index][:filename]
+    file = DomainFile.find_by_id(session[:member_import_wizard][:index][:csv_file])
+    filename = file.filename
     
     begin 
       @available_fields = csv_fields(filename,@deliminator)
@@ -84,9 +82,9 @@ class MemberImportController < WizardController # :nodoc: all
         redirect_to :action => :index, :bad => true
         return
       end
-    rescue Exception => e
-      redirect_to :action => :index, :bad => true
-      return
+    #rescue Exception => e
+    #  redirect_to :action => :index, :bad => true
+    #  return
     end
     
     session[:member_import_wizard][:fields] ||= {}
@@ -117,6 +115,9 @@ class MemberImportController < WizardController # :nodoc: all
     end
     
     @member_fields = EndUser.import_fields
+    if SiteModule.module_enabled?('user_profile')
+      @member_fields += UserProfileType.import_fields
+    end
         
     @member_field_options = @member_fields.collect { |fld| [ fld[1], fld[0] ] }
     
@@ -127,7 +128,7 @@ class MemberImportController < WizardController # :nodoc: all
         match = { :action => submitted_actions[idx.to_s], :field => submitted_matches[idx.to_s].to_s }
       else 
         match_field = @member_fields.detect do |clb|
-          clb[2].include?(fld.downcase)
+          clb[2].include?(fld.downcase) || fld.downcase == clb[0] || fld.downcase == clb[1].downcase
         end
         match = { :action => 'm' }
         if match_field 
@@ -142,26 +143,26 @@ class MemberImportController < WizardController # :nodoc: all
   end
   
   def options
-    cms_page_info([ [ 'E-marketing', url_for(:controller => 'emarketing') ], 
-                    [ 'Email Targets', url_for(:controller =>'members' ) ],
-                    'Member Import - Options' ], 'e_marketing' )
+    cms_page_path [ "People" ], "Member Import - Options"
      
     if request.post?
       session[:member_import_wizard][:options] = params[:options]
       redirect_to :action => 'confirm'
     end
      
-     @options = DefaultsHashObject.new(params[:options] || session[:member_import_wizard][:options] ||  { :import_mode => 'normal' } )
+    @options = DefaultsHashObject.new(params[:options] || session[:member_import_wizard][:options] ||  { :import_mode => 'normal' } )
  
-     @enable_next = true
+    @segments = UserSegment.select_options_with_nil 'User List', :conditions => {:segment_type => 'custom'}, :order => 'name'
+    @segments += [['--Create a new User List--', 'create']]
+
+    @enable_next = true
   end
   
   def confirm
-    cms_page_info([ [ 'E-marketing', url_for(:controller => 'emarketing') ], 
-                    [ 'Email Targets', url_for(:controller =>'members' ) ],
-                    'Member Import - Confirm' ], 'e_marketing' )
-  
-    filename = session[:member_import_wizard][:index][:filename]
+    cms_page_path [ "People" ], "Member Import - Confirm "
+    
+    file = DomainFile.find_by_id(session[:member_import_wizard][:index][:csv_file])
+    filename = file.filename
 
     @deliminator = @@deliminators[session[:member_import_wizard][:index][:field_deliminator]]
     
@@ -170,12 +171,13 @@ class MemberImportController < WizardController # :nodoc: all
     if request.post?
       # Posting? Do it Do it
       
-      worker_args = { :domain_id => DomainModel.active_domain_id,
-                                                 :filename => filename,
-                                                 :data => session[:member_import_wizard][:fields],
-                                                 :options => session[:member_import_wizard][:options],
-                                                 :deliminator => @deliminator
-                                                }
+      worker_args = {
+        :domain_id => DomainModel.active_domain_id,
+        :csv_file => session[:member_import_wizard][:index][:csv_file],
+        :data => session[:member_import_wizard][:fields],
+        :options => session[:member_import_wizard][:options],
+        :deliminator => @deliminator
+      }
       worker_key = MemberImportWorker.async_do_work(worker_args)
       session[:member_import_worker_key] = worker_key
       # Start a worker that will create any necessary fields
@@ -200,10 +202,8 @@ class MemberImportController < WizardController # :nodoc: all
   end
   
   def import
-    cms_page_info([ [ 'E-marketing', url_for(:controller => 'emarketing') ], 
-                    [ 'Email Targets', url_for(:controller =>'members' ) ],
-                    'Member Import - Import Data' ], 'e_marketing' )
-  
+    cms_page_path [ "People" ], "Member Import - Import Data"
+
     status
   
     @back_button_url = url_for :action => 'confirm'
@@ -213,61 +213,50 @@ class MemberImportController < WizardController # :nodoc: all
     @enable_next = false
     
   end
-  
+
   def status
     if session[:member_import_worker_key]
-      begin 
-	results = Workling.return.get(session[:member_import_worker_key]) || { }
-	@initialized = results[:initialized]
-	@completed = results[:completed]
-	@entries = results[:entries]
-	@imported = results[:imported]
-	
-	if @initialized
-	 @percentage = (@imported.to_f / (@entries < 1 ? 1 : @entries) *100).to_i
-	  if @entries < 1
-	  @entries = 1
-	  end
-	else
-	 @enties = nil
-	 @percentage = 0
-	end
-      rescue Exception => e
-        @invalid_worker = true
-      end
+      results = Workling.return.get(session[:member_import_worker_key]) || { }
+      @initialized = results[:initialized]
+      @completed = results[:completed]
+      @errors = results[:errors]
+      @entries = results[:entries].to_i
+      @imported = results[:imported].to_i
+      @entries = 1 if @entries == 0
+      @percentage = (@imported.to_f / @entries.to_f * 100.0).to_i
     else
       @invalid_worker = true 
     end
   end
-  
+
   
   
   private
+
+  def open_csv(filename,deliminator = ',')
+    reader = nil
+    header = []
+    begin 
+      reader = CSV.open(filename,"r",deliminator)
+      header = reader.shift
+    rescue Exception => e
+      reader = CSV.open(filename,"r",deliminator,?\r)
+      header = reader.shift
+    end
+    return [ reader,header ]
+  end
   
   def valid_csv(filename,deliminator = ',')
-      begin
-        reader = CSV.open(filename,"r",deliminator) 
-      rescue Exception => err
-        raise err.to_s
-        return false
-      end
-      reader.close
-      return true
+    reader,header = open_csv(filename,deliminator)
+    return reader
   end
   
   def csv_fields(filename,deliminator = ',')
-    begin 
-      reader = CSV.open(filename,"r",deliminator)
-      fields = reader.shift.collect do |fld|
-        fld.to_s.strip
-      end 
-    rescue Exception => e
-      return false
+    reader,header = open_csv(filename,deliminator)
+    if reader
+      fields = header.map(&:to_s).map(&:strip)
+      reader.close
+      return fields
     end
-    reader.close
-    
-    return fields
   end
-  
-  
 end

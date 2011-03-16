@@ -1,0 +1,66 @@
+<%
+chart_title = @from.strftime('%A, %e %B')
+case @when
+when 'yesterday'
+  chart_title = @from.strftime('%A, %e %B')
+when 'week'
+  chart_title = @from.strftime('%A, %e %B') + ' - ' + Time.now.strftime('%A, %e %B')
+when 'last_week'
+  chart_title = @from.strftime('%A, %e %B') + ' - ' + (@from + 1.week - 1.day).strftime('%A, %e %B')
+when 'month'
+  chart_title = @from.strftime('%B')
+when 'last_month'
+  chart_title = @from.strftime('%B')
+end
+%>
+
+<%
+chart_top = @stats.size > 3 ? ((@stats.size - 3) * 3) : 0
+%>
+<div class='admin_content'>
+<div class="visitor_container" style="width:100%;">
+  <div class="heading" style="padding-bottom:10px;">
+    <%= @when_options.collect { |opt| link_to opt[0], {:when => opt[1], :type_id => @type_id, :target_id => @target_id}, :class => @when == opt[1] ? 'selected button_link' : 'button_link' }.join(' ') %>
+  </div>
+
+<% if @type_options -%>
+  <div style="padding:0 0 10px 5px;">
+  <form method='GET'>
+    <%= hidden_field_tag 'when', @when %>
+    <%= select_tag 'type_id', options_for_select(@type_options, @type_id), :onchange => 'this.form.submit();' %>
+  </form>
+  </div>
+<% end -%>
+
+<div class="visitor_container_body">
+<div id="chart_div">
+<div id="chart_canvas">
+<% if @stats.empty? -%>
+<h2 class="no_data"><%= 'No data'.t %></h2>
+<% end -%>
+</div>
+</div>
+</div>
+
+<script type="text/javascript+protovis">
+
+<% if @all_fields -%>
+var data = [<%= @stats.collect { |stat| "[#{stat.visits}, #{stat.hits}, #{stat.subscribers}, #{stat.leads}, #{stat.conversions}]" }.join(', ') %>];
+var columns = ['Visitors', 'Hits', 'Subscribers', 'Leads', 'Conversions'];
+<% else -%>
+var data = [<%= @stats.collect { |stat| "[#{stat.visits}, #{stat.hits}]" }.join(', ') %>];
+var columns = ['Visitors', 'Hits'];
+<% end -%>
+var labels = [<%= @stats.collect { |stat| "'#{jh stat.target.send(@title)}'" }.join(', ') %>];
+var urls = [<%= @stats.collect { |stat| "'#{jh url_for(stat.target.admin_url)}'" }.join(', ') %>];
+
+var chart = WebivaBarChart({data: data, labels: labels, columns: columns, urls: urls, canvas: 'chart_canvas', container: 'chart_div'});
+
+$j(document).ready(function() {
+  chart.sort();
+  chart.draw();
+});
+</script>
+
+</div>
+</div>

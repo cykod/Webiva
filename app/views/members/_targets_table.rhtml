@@ -1,65 +1,48 @@
-<% if @update_tags -%>
-<script>
-  <%= render :partial => 'update_tags' -%>
-</script>
-<% end -%>
+<%
+   segment_action = @segment && @segment.segment_type == 'custom' ? ['Remove Users from List', 'remove_users'] : ['Add Users to List','js','MemberEditor.addUsersToList();']
 
-<% if @update_segments -%>
-<script>
-  <%= render :partial => 'update_segmentations' -%>
-</script>
-<% end -%>
-
-<% @user_classes = []
-   @user_level_options = EndUser.user_level_select_options
-   @source_options = EndUser.source_options_hash
-   @view = "View".t
-   @edit = "Edit".t 
-   @delete = "Delete".t
-   @user_class_objs = UserClass.find(:all)
-   @user_class_index = @user_class_objs.index_by(&:id)
-   @user_class_objs.each  { |cls| @user_classes[cls.id] = h(cls.name.t) } %>
-
-<% active_table_for :email_targets_table, @active_table_output,
-                    :refresh_url => url_for(:action => 'display_targets_table'),
+   active_table_for :email_targets_table, @active_table_output,
+                    :refresh_url => url_for(:action => 'display_targets_table', :path => @segment ? @segment.id : nil, :terms => @search.terms, :offsets => @search.offsets.empty? ? nil : @search.offsets),
                     :class => 'active_table',
                     :width => '100%',
-                    :actions => [ ['Add Tags','js','MemberEditor.addTags();'],
-                                   ['Remove Tags','js','MemberEditor.removeTags();']
+                    :next => @search.user_segment && @search.terms ? 'more' : '&gt;',
+                    :actions => [['Acknowledge','acknowledge','Mark the selected entries as acknowledged?'],
+                                 ['Quick Edit','js','MemberEditor.quickEdit();'],
+                                 ['Add Tags','js','MemberEditor.addTags();'],
+                                 ['Remove Tags','js','MemberEditor.removeTags();'],
+                                 segment_action
                                 ],
-                    :more_actions => [ ['Delete Targets','delete','Delete the selected users?'] ],
+                    :more_actions => [['Delete Targets','delete','Delete the selected users?']],
                     :update => 'targets_table' do |t| %>
+<% user_url = url_for(:action => 'view',  :path => [ t.id, @segment ? @segment.id : nil].compact) %>
 <tr <%= highlight_row "user",t.id %>  >
   <td nowrap='1'>
     <%= entry_checkbox 'user',t.id %>
   </td>
+  <td valign='center' align='center'>
+    <div style='font-size:18px;'><%= t.user_level_dingbat %></div>
+  </td>
+  <td align='center' nowrap='1'>
+    <%= t.editor? ? '' : link_to(theme_image_tag('icons/actions/edit.gif'), :action => 'edit', :path => [ t.id, @segment ? @segment.id : nil ].compact) %>
+  </td>
   <td align='center'>
-    <% unless  @user_class_index[t.user_class_id].editor? %>
-      <a href='/website/members/edit/<%= t.id %>'><%= theme_image_tag 'icons/table_actions/edit.gif' %></a>
-    <% end -%>
-  </td>
-  <td nowrap='1' align='center'><%= t.user_level %></td>
-  <td><a href='/website/members/view/<%= t.id %>'><%= h t.email.blank? ? 'No Email'.t : t.email %></a></td>
-  <td>
-    <%= h(truncate(t.first_name,:length => 30)) %>
+    <%= image = t.image ? t.image.image_tag(:icon) : ''
+        t.editor? ? image : link_to(image,user_url) 
+    %>
   </td>
   <td>
-    <%= h(truncate(t.last_name ,:llength => 30)) %>
+    <a href="javascript:void(0);" onclick="SCMS.remoteOverlay('<%= url_for :action => 'note', :path => t.id %>');"><%= theme_image_tag('icons/table_actions/comment.gif') %></a>
+    <%= link_to(t.name, user_url) %>
   </td>
   <td>
-    <%= t.created_at ? t.created_at.strftime(DEFAULT_DATE_FORMAT.t) : '-' %>
-  </td>
-  <td>
-    <%= t.registered_at ? t.registered_at.strftime(DEFAULT_DATE_FORMAT.t) : '-' %>
+    <%= email = t.email.blank? ? 'No Email'.t : t.email
+        link_to(email, user_url) 
+    %>
   </td>
 
-  <td nowrap='1'><%= @user_classes[t.user_class_id] if t.user_class_id  %></td>
-  <td><%= h @source_options[t.source] %></td>
-  <td><%= h t.lead_source.blank? ? '-' : t.lead_source %></td>
-  <td valign='baseline'><%   user_tags = t.tag_cache_tags.to_s.split(",") %>
-                        <%= user_tags[0..5].collect {|tag| "<a href='javascript:void(0);' onclick='MemberEditor.viewTag(\"#{jh tag}\");'>#{tag}</a>" }.join(", ") %>
-                         <%= "+(#{user_tags.length-6})" if user_tags.length > 6 %>
-  </td>
+  <% display_segment_fields(t) do |field, output| -%>
+    <td align='center'><%= output %></td>
+  <% end -%>
 </tr>  
 
 <% end -%>

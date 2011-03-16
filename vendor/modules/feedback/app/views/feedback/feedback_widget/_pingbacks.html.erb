@@ -1,0 +1,22 @@
+
+<table class='mini_table' width='100%'>
+<% pingbacks.each do |pingback| -%>
+<tr>
+<td  valign='baseline'>
+<%= theme_image_tag(pingback.has_comment ? 'icons/table_actions/rating_positive.gif' : 'icons/table_actions/rating_none.gif') %> 
+ <a target="_blank" href="<%= pingback.source_uri %>"><%= h(truncate(pingback.title,:length => 60)) -%></a>: <%= h(pingback.excerpt) -%> <em>(<%= distance_of_time_in_words_to_now(pingback.posted_at) -%> ago )</em>
+</td>
+<td align='right' nowrap='1' valign='baseline'>
+  <%= link_to(theme_image_tag('icons/table_actions/rating_positive.gif'),'javascript:void(0);',
+              :onclick => "Widget.update(#{widget.id},{ pingback_id: #{pingback.id}, pingback_action: 'create'});",
+              :title => 'Create Comment') unless pingback.has_comment -%>
+  <%= link_to('[x]','javascript:void(0);',
+              :onclick => "if(confirm('Are you sure you want to permanently delete this pingback?')){Widget.update(#{widget.id},{ pingback_id: #{pingback.id}, pingback_action: 'delete'});}",
+              :title => 'Delete Comment') unless pingback.has_comment -%>
+  <%= link_to(theme_image_tag('icons/table_actions/rating_negative.gif'),'javascript:void(0);',
+              :onclick => "Widget.update(#{widget.id},{ pingback_id: #{pingback.id}, pingback_action: 'remove'});",
+              :title => 'Remove Comment' ) if pingback.has_comment -%> 
+</td>
+</tr>
+<% end -%>
+</table>

@@ -17,20 +17,16 @@ class Blog::EditRenderer < ParagraphRenderer
     @options = paragraph_options(:list)
     
     conn_type,conn_id = page_connection(:input)
-    
+
+    target_conn_type,target_conn_id = page_connection(:target_url)
+    if !target_conn_id.blank?
+      @target_connection_url = "/#{target_conn_id}"
+    end
+
     if editor?
       @blog = Blog::BlogBlog.find(:first,:conditions => "is_user_blog = 1")
     else
-      if ajax?
-       if session[:blog_list] && session[:blog_list][paragraph.id]
-        obj = session[:blog_list][paragraph.id]
-        @target = obj[0].constantize.find(obj[1])
-       end
-      else
-        @target = conn_id
-        session[:blog_list] ||= {}
-        session[:blog_list][paragraph.id] = [ @target.class.to_s,@target.id] 
-      end
+      @target = conn_id
       @blog = Blog::BlogBlog.find_by_target_type_and_target_id(@target.class.to_s,@target.id) if @target
     end
 
@@ -39,9 +35,6 @@ class Blog::EditRenderer < ParagraphRenderer
     end
     
     return render_paragraph(:text => '') if !@blog
-    
-    
-    
  
     @tbl = end_user_table( :post_list,
                              Blog::BlogPost,
@@ -59,7 +52,8 @@ class Blog::EditRenderer < ParagraphRenderer
 
     end_user_table_generate(@tbl,:conditions => [ "blog_blog_id = ?",@blog.id],:order => 'blog_posts.updated_at DESC',:per_page => 20, :include => :active_revision)
   
-    data = { :tbl => @tbl, :edit_url => @options.edit_page_url }
+    edit_url = @options.edit_page_url + @target_connection_url.to_s
+    data = { :tbl => @tbl, :edit_url => edit_url }
     
     render_paragraph :text => blog_edit_list_feature(data)
   end
@@ -67,13 +61,19 @@ class Blog::EditRenderer < ParagraphRenderer
   
   def write
     @options = paragraph_options(:write)
-    
+
     conn_type,conn_id = page_connection(:target)
-    
-     return render_paragraph(:text => '')  if !conn_type
+
+    return render_paragraph(:text => '')  if !conn_type
+
+    target_conn_type,target_conn_id = page_connection(:target_url)
+    if !target_conn_id.blank?
+      @target_connection_url = "/#{target_conn_id}"
+    end
+
     if editor?
       @blog = Blog::BlogBlog.find(:first,:conditions => "is_user_blog = 1")
-      @target = @blog.target
+      @target = @blog.target if @blog
     else
       @target = conn_id
       @blog = Blog::BlogBlog.find_by_target_type_and_target_id(@target.class.to_s,@target.id)
@@ -82,54 +82,49 @@ class Blog::EditRenderer < ParagraphRenderer
     if !@blog && @options.auto_create && @target
       @blog = Blog::BlogBlog.create_user_blog(sprintf(@options.blog_name,@target.name),@target)
     end
-    
+
     return render_paragraph(:text => '') if !@blog || !@target
-    
+
     post_conn_type,post_conn_id = page_connection(:post)
-    
-    if post_conn_type == :post_id
-      @entry = @blog.blog_posts.find_by_id(post_conn_id,:include => :active_revision)
-    elsif post_conn_type == :post_permalink
-      @entry = @blog.blog_posts.find_by_permalink(post_conn_id,:include => :active_revision)
+
+    if post_conn_type == :post_permalink
+      @entry = @blog.blog_posts.find_by_permalink(post_conn_id,:include => :active_revision) || @blog.blog_posts.build
     elsif editor?
       @entry= @blog.blog_post.find(:first)
     end
-    
+
     require_js('tiny_mce/tiny_mce.js')
     require_js('front_cms_form_editor')
-    
-    if @entry
-      @revision = @entry.active_revision.clone
-    else
-      @entry = @blog.blog_posts.build()
-      @revision = Blog::BlogPostRevision.new()
-    end
-    
-    if request.post? && params[:post]
-      @entry.permalink = ''
-#      handle_image_upload(params[:post],
-      @revision.attributes = params[:post]
-      @revision.end_user_id = myself.id
 
-      if params[:publish_post].to_i == 1
-        @entry.publish_now
-      else
-        @entry.make_draft
-      end
-  
-      if(@entry.valid? && @revision.valid?)
-          @entry.save_revision!(@revision)
-          DataCache.expire_content("Blog")
-          DataCache.expire_content("BlogPost")
-          
-          redirect_paragraph :site_node => @options.list_page_id
-          return
+      if request.post? && params[:post]
+
+        @published = @entry.published? 
+        @entry.attributes = params[:post].slice(:title,:body)
+        @entry.permalink = ''
+        @entry.end_user_id = myself.id 
+
+        if params[:publish_post].to_i == 1
+          @entry.publish_now
+        else
+          @entry.make_draft
+        end
+
+      if @entry.valid?
+        @entry.generate_preview 
+        @entry.save
+        if @entry.published? &&  !@published 
+          @handlers = get_handler_info(:blog,:targeted_after_publish)
+          @handlers.each do |hndl|
+            hndl[:class].send(:after_publish,@entry,myself)
+          end
+
+        end
+        list_url = @options.list_page_url + @target_connection_url.to_s
+        return redirect_paragraph list_url
       end      
     end
-    
-  
+
     data = { :post => @revision, :entry => @entry, :revision => @revision }
-    
     render_paragraph :text => blog_edit_write_feature(data)
   end
 

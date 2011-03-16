@@ -63,6 +63,7 @@ module Content
         belongs_class_name = options[:belongs_to]
         if ContentModel.relationship_classes.detect { |cls| cls[1] == belongs_class_name }
           field_opts['relation_class'] = belongs_class_name.camelcase
+          field_opts['add_has_many'] = options[:add_has_many].blank? ? false : true
         else
           field_opts['relation_class'] = nil
         end 
@@ -74,6 +75,9 @@ module Content
         else
           field_opts['relation_class'] = nil
         end 
+      },
+      :folder_id => Proc.new { |field,field_opts,options|
+        field_opts['folder_id'] = options[:folder_id].to_i > 0 ? options[:folder_id].to_i : nil
       }
     }
     
@@ -124,7 +128,7 @@ module Content
       :validates_as_email => Proc.new { |cls,fld| cls.validates_as_email fld.model_field.field },
       :validates_date => Proc.new { |cls,fld| cls.validates_date fld.model_field.field,:allow_nil => true },
       :validates_datetime => Proc.new { |cls,fld| cls.validates_datetime fld.model_field.field,:allow_nil => true },
-      :serialize => Proc.new { |cls,fld| cls.serialize fld.model_field.field },
+      :serialize => Proc.new { |cls,fld| cls.serialize fld.model_field.field if cls.respond_to?(:serialize) },
       :validates_numericality => Proc.new { |cls,fld| cls.validates_numericality_of fld.model_field.field, :allow_nil => true },
     }
     
@@ -162,13 +166,30 @@ module Content
           end
         end
         block.call(cls,self) if block
+        setup_hash_model(cls)
       end
     end
     
-    
+    def setup_hash_model(cls) #:nodoc:
+      return unless cls.superclass == HashModel
+
+      case content_field[:representation]
+      when :integer
+        cls.integer_options @model_field.field.to_sym
+      when :boolean
+        cls.boolean_options @model_field.field.to_sym
+      end
+    end
+
+    # Returns field information hash from register_content_fields
+    def content_field
+      @content_field ||= ContentModel.content_field(@model_field.field_module,@model_field.field_type)
+    end
+
     @@content_display_methods = {
       :text => "Content::Field.text_value(entry.send(@model_field.field),size,options)",
-      :html => "entry.send(@model_field.field)"
+      :html => "Content::Field.html_value(entry.send(@model_field.field),size,options)",
+      :code => "Content::Field.code_value(entry.send(@model_field.field),size,options)"
     }
     
     # Creates a content_display method of a specific type
@@ -189,6 +210,31 @@ module Content
     def content_value(entry)
       entry.send(@model_field.field)
     end 
+
+    # Returns the value of this field, can be overridden manually if necessary
+    # (for more complex or fields for exapmle)
+    def content_export(entry)
+      content_value(entry)
+    end
+
+
+    def self.code_value(val,size,options={})
+      case size
+      when :excerpt, :form
+       text_value(val,size,options)
+      else
+        val
+      end
+    end
+
+    def self.html_value(val,size,options={})
+      case size
+      when :excerpt
+        text_value( Util::TextFormatter.text_plain_generator(val),size,options)
+      else
+        val
+      end
+    end
     
     # Helper method for escaping an html value
     def self.text_value(val,size,options={})
@@ -200,8 +246,8 @@ module Content
       elsif options[:format] && options[:format] == 'simple'
         simple_format(h(val))
       else
-        if options[:limit]
-          Content::Field.snippet(h(val),options[:limit].to_i,options[:omission] || '...')
+        if options[:snippet]
+          Content::Field.snippet(h(val),options[:snippet].to_i,options[:omission] || '...')
         else
           h val
         end
@@ -210,7 +256,8 @@ module Content
 
     # Helper method for intelligently truncating text
     def self.snippet(text, wordcount, omission)
-      text.split[0..(wordcount-1)].join(" ") + (text.split.size > wordcount ? " " + omission : "")
+      split_text = text.split
+      split_text[0..(wordcount-1)].join(" ") + (split_text.length > wordcount ? " " + omission : "")
     end
 
     
@@ -224,9 +271,9 @@ module Content
     def self.content_smart_truncate(val) 
       val = val.to_s
       if(val  && val.length > 30 && !val.include?(' '))
-        white_list_sanitizer.sanitize( truncate(val,:length => 30))
+        truncate(h(val),:length => 30)
       else
-        white_list_sanitizer.sanitize( truncate(val,:length => 60))
+        truncate(h(val),:length => 60)
       end        
     end
     
@@ -526,13 +573,29 @@ module Content
         end
       end,
       :conditions => Proc.new do |field_name,fld,options|
-        val = options[(field_name + "_options").to_sym]
+        val = options[(field_name + "_options").to_sym] if options[(field_name + "_options").to_sym] != [""]
+
+        # Handle cases where we get the object id or target sent in (mostly for belongs_to)
+        val = options[(field_name + "_id").to_sym] if val.blank?
+        val = options[field_name.to_sym] if val.blank?
+        if val && val.kind_of?(DomainModel)
+          val = val.id ? val.id : 0
+        end
+
         val  = [ val ] unless val.is_a?(Array)
         val = val.reject(&:blank?)
         val.length == 0 ? nil :{ :conditions =>  "#{fld.escaped_field} IN (?)", :values => [ val ] }
       end ,
       :fuzzy =>  Proc.new do |field_name,fld,options|
-        val =  options[(field_name + "_options").to_sym]
+        val = options[(field_name + "_options").to_sym] if options[(field_name + "_options").to_sym] != [""]
+
+        # Handle cases where we get the object id or target sent in (mostly for belongs_to)
+        val = options[(field_name + "_id").to_sym] if val.blank?
+        val = options[field_name.to_sym] if val.blank?
+        if val && val.kind_of?(DomainModel)
+          val = val.id ? val.id : 0
+        end
+
         val  = [ val ] unless val.is_a?(Array)
         val = val.reject(&:blank?)
         val.length == 0 ? nil : { :score =>  "IF(#{fld.escaped_field} IN (" + val.map { |elm| DomainModel.quote_value(elm) }.join(",") + "),1,0)" }
@@ -582,7 +645,9 @@ module Content
         conditions.length > 0 ? { :conditions => conditions.join(" AND "), :values => values } : nil
 
       end                
-    }    
+    }   
+
+    def filter_variables; []; end
     
     
     # Sets up filter methods compatible with this field. 
@@ -813,14 +878,20 @@ module Content
     entry.send("#{@model_field.field}=",values[@model_field.field.to_sym]) if values.has_key?(@model_field.field.to_sym)
   end
 
+  # Imports a value into the entry, uses assign_value by default
+  # but can be overridden for more complex behavior
+  def content_import(entry,value)
+    assign_value(entry,value)
+  end
+
   def default_field_name #:nodoc:
     @model_field.field
   end
   
   class FieldOptions < HashModel #:nodoc:all
-    attributes :required => false, :options => [], :relation_class => nil, :unique => false, :regexp => false, :regexp_code => '', :regexp_message => 'is not formatted correctly', :on => '', :off => '', :on_description => '', :hidden => false, :exclude => false
+    attributes :required => false, :options => [], :relation_class => nil, :unique => false, :regexp => false, :regexp_code => '', :regexp_message => 'is not formatted correctly', :on => '', :off => '', :on_description => '', :hidden => false, :exclude => false, :relation_name => nil, :relation_singular => nil, :folder_id => nil, :add_has_many => false, :foreign_key => nil
     
-    boolean_options :required, :unique, :regexp, :hidden, :exclude
+    boolean_options :required, :unique, :regexp, :hidden, :exclude, :add_has_many
 
     def validate
       if !self.regexp_code.blank?

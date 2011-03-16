@@ -1,3 +1,5 @@
 default_language: en
 default_country: US
 active_cache: true
+memcache_servers: 
+- localhost:11211

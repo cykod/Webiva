@@ -12,28 +12,26 @@ class DashboardController < CmsController #:nodoc:all
   def index
     cms_page_info 'Dashboard', 'dashboard',  myself.has_role?(:editor_site_management) ? 'CMSDashboard.pagePopup();' : nil
 
+    if Rails.env == 'development'
+      begin
+        WorklingStatusWoker.async_do_work :nothing => true
+      rescue Workling::QueueserverNotFoundError
+        flash.now[:notice] = 'Background queue is not running please check your configuration.'
+      end
+    end
+
     @widget_columns = EditorWidget.assemble_widgets(myself)
     @widget_columns.each do |column|
       column.each do  |widget| 
         widget.render_widget(self) unless widget.hide? 
         if widget.includes
           widget.includes[:js].each { |js| require_js(js) } if widget.includes[:js]
-          widget.includes[:css].each { |css| require_js(css) } if widget.includes[:css]
+          widget.includes[:css].each { |css| require_css(css) } if widget.includes[:css]
         end
       end
     end
-
-    @cms_titlebar_handlers||=[]
-    @cms_titlebar_handlers.unshift(self)
   end
 
-  protected
-
-  def titlebar_html
-    "<a href='javascript:void(0);' onclick='CMSDashboard.toggleEdit();'><img title='Toggle Widget Editing' src='#{theme_src('framework/page_title_edit_icon.gif')}' align='absmiddle'/></a>"
-  end
-
-  public 
 
   def positions
     columns = [ params[:column_0]||[], params[:column_1]||[], params[:column_2]||[] ]

@@ -1,0 +1,6 @@
+
+if DomainFile.available_file_storage == 0
+  page.replace_html 'upload_progress', '<span style="color:red;">' + 'File storage limit reached'.t + '</span>'
+else
+  page.redirect_to :action => 'index'
+end

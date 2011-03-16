@@ -40,7 +40,7 @@ class InitialBlogSetup < ActiveRecord::Migration
       t.column :published_at, :datetime
     end
 
-    add_index :blog_posts,:blog_blog_id, :name => 'blog'
+    add_index :blog_posts,[ :blog_blog_id, :created_at ], :name => 'blog'
 
 
     create_table :blog_categories, :force => true do |t|
@@ -57,6 +57,7 @@ class InitialBlogSetup < ActiveRecord::Migration
     end
 
     add_index :blog_posts_categories, :blog_post_id, :name => 'blog_post'
+    add_index :blog_posts_categories, :blog_category_id, :name => 'blog_category_id'
 
   end
 

@@ -5,6 +5,8 @@ class ContentModelType < DomainModel
 
   attr_accessor :content_score_a,:content_score_b,:content_score_c
 
+  attr_accessor :connected_end_user
+
   def content_score
     self.content_score_a.to_f +
       self.content_score_b.to_f +
@@ -64,7 +66,14 @@ class ContentModelType < DomainModel
     sing.send(:define_method, :class_name) do
       val
     end
+    sing.send(:define_method, :name) do
+      val
+    end
+    sing.send(:define_method, :to_s) do
+      val
+    end
   end
+
   
   def self.self_and_descendants_from_active_record
     [ ContentModelType ]
@@ -91,7 +100,7 @@ class ContentModelType < DomainModel
 
     def #{target_relation_name}
       if  @#{relations_name}_cache
-        #{class_name}.find(:all,:conditions => { :id => @#{relations_name}_cache }  )
+        "#{class_name}".constantize.find(:all,:conditions => { :id => @#{relations_name}_cache }  )
       else
          #{target_relation_name}_dbs
       end
@@ -112,6 +121,8 @@ class ContentModelType < DomainModel
     def #{target_relation_name}_after_save
       if @#{relations_name}_cache 
         set_content_through_collection(#{model_field.content_model_id},#{model_field.id},"#{class_name}",:"#{relations_name}", @#{relations_name}_cache)
+         @#{relations_name}_cache = nil
+        #{target_relation_name}_dbs.reload
       end
     end
 EOF

@@ -60,17 +60,16 @@ MemberEditor = {
 </script>
 
 <div class='admin_content'>
-<table>
-<tr>
-<td>
-<% cms_form_for :user_options, @user, :html => { :class => 'admin_form' }  do |f| %>
+  <% cms_form_for :user_options, @user, :html => { :class => 'admin_form', :autocomplete => 'off' }  do |f| %>
 
 <%= f.text_field :email, :required => true %>
 <%= f.text_field :first_name %>
 <%= f.text_field :last_name %>
 <%= f.radio_buttons :gender, [[ 'Male'.t,'m' ], ['Female'.t, 'f' ]] %>
+<%= f.spacer %>
 <tr>
   <td colspan='2'>
+<div class='tab_container'>
 <% ajax_tabs [ 'Account', 'User Details','Tracking Info' ] + (@user.id.blank? ? [] : ['Addresses' ]), 'Account' do |t| %>
 
 <% t.tab do -%>
@@ -100,8 +99,15 @@ MemberEditor = {
   <%= f.header 'Tags' %>
   <tr>
     <td colspan='2'>
-      <textarea name='user_options[tag_names]' id='user_options_tag_names' cols='50' rows='4'><%= h @user.tag_names.join(", ") %></textarea> <br>
+      <textarea name='user_options[tag_names]' id='user_options_tag_names' cols='50' rows='4'><%= h @user.tag_names %></textarea> <br>
       <%= "Example: Red, Blue".t %>
+
+      <br/><br/>
+<b><%= "Existing Tags".t %></b> - <%= "Click to add a tag".t %><br/><br/>
+  <% EndUser.tag_cloud(%w(12 14 16 18 20)).each do |tag| %>
+    <a href='javascript:void(0);' onclick='MemberEditor.addTag("<%= jvh tag[:name] %>");'  style='font-size:<%= tag[:size] %>px;'><%= h tag[:name] %></a>
+  <% end -%>
+
     </td>
   </tr>
 </table>
@@ -113,6 +119,7 @@ MemberEditor = {
   <%= f.select :user_level, EndUser.user_level_select_options %>
   <%= f.text_field :lead_source %>
   <%= f.text_field :referrer %>
+  <%= f.end_user_selector :source_user_id, :no_name => true %>
   <%= f.select :language, Configuration.languages.collect { |lang| [ lang.upcase, lang ] } %>
   <%= f.text_field :vip_number, :disabled => !@user.vip_number.blank? %>
   <% f.custom_field '' do %>
@@ -192,28 +199,14 @@ MemberEditor = {
 <% end -%>
 <% end -%>
 <% end -%>
+
+</div> 
   </td>
 </tr>
+<%= f.spacer %>
 <%= f.cancel_submit_buttons 'Cancel','Submit' %>
 
 <% end -%>
 
-</td>
-<td valign='top'>
-<b><%= "Existing Tags".t %></b> - <%= "Click to add a tag".t %><br/><br/>
-  <% cloud = []
-      EndUser.cloud(EndUser.tags_count(:order => 'count DESC'), %w(12 14 16 18 20)) do |tg, font_size|
-        cloud << [tg,font_size]
-      end
-  %>
-  <% cloud.each do |tag| %>
-    <a href='javascript:void(0);' onclick='MemberEditor.addTag("<%= jvh tag[0] %>");'  style='font-size:<%= tag[1] %>px;'><%= h tag[0] %></a>
-    
-  <% end -%>
-
-<br/><br/>
-</td>
-</tr>
-</table>
 
 </div>

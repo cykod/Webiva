@@ -27,6 +27,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
 
   def create
     publication = paragraph.content_publication
+    @options = paragraph_options(:create)
     
 
     if !editor?
@@ -42,30 +43,34 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
         if entry.errors.length == 0 && entry.save
           expire_content(publication.content_model_id)
   
+          user = entry.connected_end_user ? entry.connected_end_user : myself
+
           session['content_model'] ||= {}
           session['content_model'][publication.content_model.table_name] = entry.id
           if publication.update_action_count > 0
-            publication.run_triggered_actions(entry,'create',myself)
+            publication.run_triggered_actions(entry,'create',user)
           end
           
-          if paragraph.data[:redirect_page]
-            redirect_node = SiteNode.find_by_id(paragraph.data[:redirect_page])
-            if redirect_node
-              redirect_paragraph redirect_node.node_path
-              return
-            end
+          self.elevate_user_level(user, @options.user_level) if ! @options.user_level.blank? && @options.user_level > 0
+          self.visiting_end_user_id = user.id
+
+          if @options.redirect_page_url
+            return redirect_paragraph @options.redirect_page_url
+          else
+            paragraph_output = form_feature(publication,{:entry => entry, :publication => publication, :submitted => true, :options => @options})
+            return render_paragraph :text => paragraph_output
           end
         end
       else
         if publication.view_action_count > 0
-          publication.run_triggered_actions(entry,'view',myself)
+          publication.run_triggered_actions(myself,'view',myself)
         end
       end
     end
     
-      require_js('prototype')
-      require_js('overlib/overlib')
-      require_js('user_application')
+    require_js('prototype')
+    require_js('overlib/overlib')
+    require_js('user_application')
     
     content_type = "ContentModel" + publication.content_model_id.to_s
     content_target = "New"
@@ -123,8 +128,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
       elsif entry_id.to_i == -5 && content_connection && content_connection.to_sym == :entry_id
         fld = publication.content_model.content_model_fields.find_by_id(pub_options.url_field)
         if fld
-          options[:conditions] = " `#{publication.content_model.table_name}`.`#{fld.field}` = ? "
-          options[:values] = [ connection_entry_id ]
+          options[:conditions] = [ " `#{publication.content_model.table_name}`.`#{fld.field}` = ? ", connection_entry_id ]
           entry = publication.get_filtered_entry(:first,options)
         end
       else
@@ -145,9 +149,9 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
       render_paragraph :text => ''
       return
     end
-   
-    if paragraph.data[:return_page]
-      redirect_node = SiteNode.find_by_id(paragraph.data[:return_page])
+
+    if paragraph.data[:return_page_id]
+      redirect_node = SiteNode.find_by_id(paragraph.data[:return_page_id])
       if redirect_node
 	      return_page = redirect_node.node_path
       end
@@ -155,7 +159,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
     
     return_page = nil unless return_page
     
-    if !entry && return_page
+    if !entry && return_page && !editor?
       redirect_paragraph return_page
       return 
     end
@@ -164,6 +168,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
       publication.run_triggered_actions(entry,'view',myself) 
     end
     
+    set_page_connection(:content_id, [publication.content_model.table_name.camelcase,entry.id] ) if entry 
     require_css('gallery')
     
     render_paragraph :text => display_feature(publication,{ :entry => entry, :return_page => return_page, :offset => connection_offset, :publication => publication, :page_href => site_node.node_path, :filter_options => options })
@@ -171,15 +176,18 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
 
 
   def edit
-    
    publication = paragraph.content_publication
    content_connection,entry_id = page_connection()
-   options = paragraph.data || {}
-   pub_options = paragraph_options(:edit) # publication.data || {}
+   pub_options = paragraph_options(:edit)
    
+     options = {}
    
     if entry_id && entry_id.to_i != 0
-      entry = publication.content_model.content_model.find_by_id(entry_id)
+      publication.each_page_connection_input do |filter_name,fld|
+        conn_type,conn_id = page_connection(filter_name)
+        options[conn_type] = conn_id unless conn_id.blank?
+      end
+      entry = publication.get_filtered_entry(entry_id,options)              
     elsif editor?
       entry = publication.content_model.content_model.find(:first)
     elsif pub_options.allow_entry_creation
@@ -188,36 +196,20 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
       render_paragraph :text => ''
       return
     end
-      
-    if paragraph.data[:return_page]
-      redirect_node = SiteNode.find_by_id(paragraph.data[:return_page])
-      if redirect_node
-        return_page = redirect_node.node_path
-      end
-    end
-      
-    return_page = '#' unless return_page
+     
+    return_page = pub_options.return_page_url
       
     if request.post? && params['entry_' + publication.id.to_s]
     
-      publication.update_entry(entry,params['entry_' + publication.id.to_s],
-          {:user => myself, :renderer => self, :controller => controller })
-      
+      publication.update_entry(entry,params['entry_' + publication.id.to_s],renderer_state)
       new_entry = entry.id ? false : true
       
       if entry.save
         expire_content(publication.content_model_id)
         if publication.update_action_count > 0
-          if new_entry
-      	   publication.run_triggered_actions(entry,'create',myself) 
-	        else
-      	   publication.run_triggered_actions(entry,'edit',myself)
-      	  end
+      	  publication.run_triggered_actions(entry,new_entry ? 'create' : 'edit',myself) 
         end
-        if return_page 
-          redirect_paragraph redirect_node.node_path
-          return
-    	  end
+        return redirect_paragraph(return_page) if return_page
       end
     else 
       if publication.view_action_count > 0
@@ -260,7 +252,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
       end
     else
       if publication.view_action_count > 0
-    	  publication.run_triggered_actions(entry,'view',myself) 
+    	  publication.run_triggered_actions(myself,'view',myself) 
       end
     end
     
@@ -278,7 +270,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
   
     publication = paragraph.content_publication
     if publication.view_action_count > 0
-    	publication.run_triggered_actions(entry,'view',myself) 
+    	publication.run_triggered_actions(myself,'view',myself) 
     end
 
     options = paragraph.data || {}
@@ -322,7 +314,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
       
     end
     if publication && publication.view_action_count > 0
-	    publication.run_triggered_actions(entry,'view',myself) 
+	    publication.run_triggered_actions(myself,'view',myself) 
     end
     
     target_string = publication.content_model_id.to_s
@@ -338,7 +330,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
       data ={ :entries => entries[1], :pages => entries[0] }
       
       content_type = pub_opts.content_type || 'text'
-      feature_output = data_feature(publication.feature_name,publication,data)
+      feature_output = data_feature(publication,data)
       DataCache.put_content("ContentModel",target_string,display_string,[feature_output,content_type])
     end
     data_paragraph :data => feature_output,

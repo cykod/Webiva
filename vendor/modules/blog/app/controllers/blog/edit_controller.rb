@@ -7,12 +7,15 @@ class Blog::EditController < ParagraphController
   editor_header 'Blog Paragraphs'
   
   editor_for :list, :name => "User Blog List", :feature => :blog_edit_list,
-                       :inputs => [ [ :container, 'Blog Target', :target] ]
+                       :inputs => { :input => [ [ :container, 'Blog Target', :target] ],
+                                    :target_url => [ [:target_url, "Target URL", :path ] ] }
+
   editor_for :write, :name => "User Blog Write Post", :feature => :blog_edit_write,
                        :inputs => { :target => [ [ :container, 'Blog Target', :target] ],
-                                    :post => [ [ :post_permalink, 'Blog Post Permalink', :path ],
-                                               [ :post_id, 'Blog Post', :path ] ] }
+                                    :post => [ [ :post_permalink, 'Blog Post Permalink', :path ] ],
+                                    :target_url => [ [ :target_url, "Target URL", :path ]] }
   
+
 
   class ListOptions < HashModel
     attributes :auto_create => true, :blog_name => '%s Blog',:edit_page_id => nil

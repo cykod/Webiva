@@ -31,9 +31,22 @@ class ContentPublicationField < DomainModel
       nil
     end
   end
-  
- 
-  
+
+  def data_field?
+    if !self.content_model_field_id.blank? && self.content_model_field
+      self.content_model_field.data_field?
+    else
+      nil
+    end
+  end
+
+  def relation_class_name
+    if !self.content_model_field_id.blank? && self.content_model_field
+      self.content_model_field.relation_class_name
+    else
+      nil
+    end
+  end
   
  def form_field(entry,options={})
     if !self.content_model_field_id.blank? && self.content_model_field
@@ -57,7 +70,8 @@ class ContentPublicationField < DomainModel
   def field_options_form_elements(f)
     txt = self.content_publication.field_options_form_elements(self,f)
     txt += self.content_model_field.form_display_options(self,f).to_s if self.content_publication.form?
-    txt += self.content_model_field.filter_display_options(self,f).to_s if self.content_publication.filter?
+
+    txt += self.content_model_field.filter_display_options(self,f).to_s if self.content_publication.filter? && self.content_model_field.filter_variables.length > 0
     txt
   end
   
@@ -77,6 +91,10 @@ class ContentPublicationField < DomainModel
     else 
       ''
     end
+  end
+
+  def required?
+     self.content_model_field.required? || self.options.required
   end
 
   def options

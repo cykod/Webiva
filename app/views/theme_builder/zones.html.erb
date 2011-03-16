@@ -1,0 +1,12 @@
+<div class='admin_content'>
+
+<% admin_form_for :parser, @parser, :html => {:onsubmit => 'submitTheme();'} do |f| -%>
+  <%= f.text_field :theme_name, :vertical => true  %>
+  <%= f.spacer %>
+  <%= f.submit_tag 'Create Theme', :vertical => true %>
+  <% f.custom_field 'Select Zones', :vertical => true do %>
+    <%= render :partial => 'parser_form_html' %>
+  <% end -%>
+<% end -%>
+
+</div>

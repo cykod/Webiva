@@ -1,0 +1,19 @@
+<style type="text/css">
+  #captcha .captcha_field input{
+    width: 150px !important;
+    font-size: 16px;
+  }
+</style>
+
+<div id='captcha'>
+  <div class='captcha_image'>
+    <img src='<%= captcha.url %>' width='110' height='30' alt='captcha'>
+  </div>
+  
+  <div class='captcha_field'>
+    <input type='hidden' name='captcha_code' value='<%= captcha.captcha_code %>'>
+    <%= captcha.valid? ? '' : '<span class="fieldWithErrors">' -%>
+    <input type='text' class="text_field_input" name='captcha_text'>
+    <%= captcha.valid? ? '' : '</span>' -%>
+  </div>
+</div>

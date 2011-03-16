@@ -25,28 +25,27 @@ describe Media::MediaFeature, :type => :view do
     @swf_options = Media::MediaController::SwfOptions.new opts
 
     @feature = build_feature('/media/media_feature')
-    @paragraph = mock :id => 1
+    @paragraph = mock :id => 1, :language => 'en'
   end
 
   describe "Media Feature" do
     it "should display a video player" do
-      @feature.should_receive(:paragraph).and_return(@paragraph)
+      @feature.should_receive(:paragraph).any_number_of_times.and_return(@paragraph)
       @video_options.should_receive(:media_file).at_least(1).and_return(@media)
       @output = @feature.media_media_video_feature({:options => @video_options})
       @output.should include(@media.full_url)
     end
 
     it "should display an audio player" do
-      @feature.should_receive(:paragraph).and_return(@paragraph)
+      @feature.should_receive(:paragraph).any_number_of_times.and_return(@paragraph)
       @feature.should_receive(:require_js).and_return('')
-      @feature.should_receive(:header_html)
       @audio_options.should_receive(:media_file).at_least(1).and_return(@media)
       @output = @feature.media_media_audio_feature({:options => @audio_options})
       @output.should include(@media.full_url)
     end
 
     it "should display a swf" do
-      @feature.should_receive(:paragraph).and_return(@paragraph)
+      @feature.should_receive(:paragraph).any_number_of_times.and_return(@paragraph)
       @swf_options.should_receive(:swf_url).and_return('test.swf')
       @output = @feature.media_media_swf_feature({:options => @swf_options})
       @output.should include('test.swf')

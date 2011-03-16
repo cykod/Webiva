@@ -1,0 +1,20 @@
+<% if permit?('editor_structure') %>
+<ul class='page_detail_buttons'>
+  <li class='icon'><a href='javascript:void(0);'  title='<%= vh 'Delete module'.t%>' onclick='StructureEditor.nodeDelete(<%= @node.id %>,"<%= jh "Are you sure you want to remove this module?" .t %>");'><%= image_tag(theme_src('icons/header_actions/delete_page.png')) %></a></li>
+</ul>  
+<% end -%>
+
+
+<h1 class='inpage'><%= 'Robots Options:'.t %> <a href='<%= @node.node_path %>'><%= @node.node_path %></a></h1>
+<div class='tree_detail_body'>
+<% if flash[:notice] %>
+<div class='inpage_flash_notice'>
+  Updated Options
+</div>
+<% end -%>
+<% remote_cms_form_for :options, @options, :update => 'element_info',:html => {:class => 'admin_form' }, :url => { :action => 'robots', :path => @node.id } do |f| -%>
+  <%= f.text_area :extra, :rows => 10, :description => 'Additional settings added to the top of robots.txt'.t %>
+  <%= f.spacer %>
+  <%= f.submit_tag 'Update Options' %>
+<% end -%>
+</div>

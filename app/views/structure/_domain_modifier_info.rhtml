@@ -1,19 +1,14 @@
-<b> <%= "Domain Details Details".t %></b>
+<% if permit?('editor_structure') %>
+<ul class='page_detail_buttons'>
+  <li class='icon'><a href='javascript:void(0);'  title='<%= vh 'Delete Domain Modifier'.t%>' onclick='StructureEditor.deleteModifier("mod_<%= @mod.id %>");'><%= image_tag(theme_src('icons/header_actions/delete_page.png')) %></a></li>
+</ul>
+<% end -%>
+
+<h1 class='inpage'><%= "Domain Modifier".t %></h1>
+
 <script>
 DomainEditor = {};
 DomainEditor = {
-  showEdit: function() {
-    Element.hide('domain_view');
-    Element.show('domain_edit');
-  
-  },
-  
-  hideEdit: function() {
-    Element.show('domain_view');
-    Element.hide('domain_edit');
-  
-  },
-  
   submitForm: function() {
     
     params = Form.serialize('domain_form');
@@ -31,29 +26,20 @@ DomainEditor = {
 
 
 </script>
-<div id='domain_view' >
 
-<table>
-  <tr>
-    <td><%= 'Limited to Domain:'.t %></td>
-    <td>
-    <a class='ajax_link' href='javascript:void(0);' onclick='DomainEditor.showEdit();'> 
-        <%= @domain_options.limit_to_domain.blank? ? 'None Entered'.t : @domain_options.limit_to_domain %>
-   </a>
-  </td>
- </tr>
- </table>
+<div class='tree_detail_body'>
 
-</div>
+<% if flash[:notice] %><div class="inpage_flash_notice"><%= flash[:notice] %></div><% end %>
+<div id='domain_edit' >
 
-<div id='domain_edit' style='display:none;'>
-
-<% tabled_form_for :domain, @domain_options, :html => {:id => 'domain_form', :onsubmit => 'DomainEditor.submitForm(); return false;' }  do  |f| -%>
-<%= f.text_field :limit_to_domain %>
+<% admin_form_for :domain, @domain_options, :html => {:id => 'domain_form', :onsubmit => 'DomainEditor.submitForm(); return false;' }  do  |f| -%>
+  <%= f.text_field :limit_to_domain, :description => "Any pages affected by this modifier will be served under the listed domain. \n Enter only a domain (e.g. webiva.com) not a full url" %>
 
 <% end -%>
 <div align='right'>
     <input type='submit' value='<%= "Update".t %>' onclick='DomainEditor.submitForm();'/>
+</div>
+
 </div>
 
 </div>

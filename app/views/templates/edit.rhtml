@@ -1,4 +1,3 @@
-<div class='admin_tabbed_content'>
 <script type='text/javascript'>
 	TemplateEdit = {
 		popup: function() {
@@ -73,13 +72,27 @@
 			$('zone_order').value = zone_order;
 		
 		},
+
+    editorHeight: 0,
 		
 		loadEditor: function() {
+      var offset = $('editor_content').cumulativeOffset();
+      var height = document.viewport.getHeight() - 215;
+
+      TemplateEdit.editorHeight = height;
+
+     style_height = height - 30;
+  	 $('struct_styles_display').style.height = style_height + "px";
+	   $('design_styles_display').style.height = style_height + "px";
+     $('editor_content').style.height = height + "px";
+
+     $('editor_content').scrollTo();
 		
       editAreaLoader.init({
 			    id: "editor_content"	// id of the textarea to transform	
 			    ,start_highlight: true
 			    ,allow_toggle: false
+          ,min_height: 200
 			    ,language: "en"
 			    ,syntax: "html"	
 			    ,toolbar: "search, go_to_line, |, undo, redo, |, select_font, |, change_smooth_selection, highlight, reset_highlight, |, help"
@@ -137,13 +150,14 @@
 		
 		switchFile: function(file) {
 		  TemplateEdit.currentFile = file.id;
-		  $('struct_styles_display').hide();
-		  $('design_styles_display').hide();
+		  $('struct_styles_display_wrapper').hide();
+		  $('design_styles_display_wrapper').hide();
+
 		  if(file.id == 'style_struct') {
-  		  $('struct_styles_display').show();
+  		  $('struct_styles_display_wrapper').show();
 		  }
 		  else if(file.id == 'style_design')  {
-        $('design_styles_display').show();		  
+        $('design_styles_display_wrapper').show();		  
 		  }
       // Force Syntax Changes
       editAreaLoader.execCommand('editor_content','change_syntax',TemplateEdit.tabLanguages.get(file.id));
@@ -151,6 +165,9 @@
 		},
 		
 		selectStyle: function(line) {
+      var rows_offset = Math.round( (TemplateEdit.editorHeight - 50) / 18 / 2);
+      // Shift the editor halfway down so the selected style isn't at the bottom of the screen 
+      editAreaLoader.execCommand('editor_content','go_to_line',"" + (line + rows_offset));
       editAreaLoader.execCommand('editor_content','go_to_line',"" + line);
 		},
 		
@@ -158,8 +175,28 @@
 		  if(confirm('<%= jh "Load a previous version of this template?".t %>')) {
   		  document.location = '?version=' + version_id;
   		}
-		}
-		
+		},
+  filterTimeout: null,
+  filterStylesWait: function(style,div) {
+    if(TemplateEdit.filterTimeout) clearTimeout(TemplateEdit.filterTimeout);
+    TemplateEdit.filterTimeout = setTimeout(function() { TemplateEdit.filterStyles(style,div); },200);
+  },
+
+   filterStyles: function(style,div) {
+     TemplateEdit.filterTimeout = null;
+     $(div + "_clear").style.display = style == '' ? 'none' : 'inline';
+     $(div).select('.template_title').each(function(s) {
+         if(style == '' || s.title.include(style)) 
+           s.parentNode.show(); 
+         else
+           s.parentNode.hide();
+     });
+   },
+
+    clearFilter: function(type) {
+     $(type + '_styles_search').value = '';
+      TemplateEdit.filterStyles('',type + "_styles_display");
+     }
 		
 	};
   
@@ -213,14 +250,18 @@
       if($('selected_language'))
             output += '&selected_language=' + $('selected_language').value
       return output;
-    }
+               }
   };
+
 	
 	
 </script>
 <div align='right' id='template_versions'>
   <%= render :partial => 'template_versions' %>
 </div>
+
+<hr/>
+<div class='admin_tabbed_content tab_container'>
 <form action='' id='site_template_form' onsubmit='return false;' method='post'>
 <% ajax_tabs(@tabs.map { |elm| elm.humanize.t },@display_view == 'advanced' ? 'Edit' : 'Options') do |t| -%>
 
@@ -239,11 +280,14 @@
 
 <% if @tabs.include?('edit') -%>
   <% t.tab do  -%>
-		<div id='zone_display' style='border:1px solid #000000; margin:5px 0;'>
+    <div id='zone_display'>
 			<%= render :partial => 'zone_ordering' %>
 		</div>
 		<% cms_unstyled_fields_for :site_template,@site_template, :html => { :id => 'site_template_html_form' } do |f| %> 
+      <div>
       <%= "Image File Folder:".t %><%= f.filemanager_folder :domain_file_id, :label => 'Image File Folder' %><br/.
+    </div>
+
       <input type='hidden' id='zone_order' name='zone_order' value='' />
       <table width='100%'>
       <tr>
@@ -251,12 +295,21 @@
           <textarea name='editor_content' id='editor_content' style='width:100%; height:450px;'></textarea>
         </td>
         <td>
-          <div class='style_display' id='design_styles_display' style='display:none;'>
+          <div class='style_display_container admin_form' id='design_styles_display_wrapper' style='display:none;'>
+          SEARCH: <input type='text' id='design_styles_search' class='text_field' size='20' onkeyup='TemplateEdit.filterStylesWait(this.value,"design_styles_display");' onchange='TemplateEdit.filterStylesWait(this.value,"design_styles_display");' />
+          <button id='design_styles_display_clear' style='display:none;' onclick="TemplateEdit.clearFilter('design');">Clear</button>
+          <div class='style_display' id='design_styles_display'>
             <%= render :partial => 'style_selector', :locals => { :styles => @design_styles, :default_styles => display_style(@default_design_styles) } %>
           </div>
-          <div class='style_display'  id='struct_styles_display' style='display:none;'>
+        </div>
+          <div class='style_display_container' id='struct_styles_display_wrapper' style='display:none;'>
+  SEARCH: <input type='text' id='struct_styles_search' class='text_field' size='20' onkeyup='TemplateEdit.filterStylesWait(this.value,"struct_styles_display");' onchange='TemplateEdit.filterStylesWait(this.value,"struct_styles_display");' />
+          <button id='struct_styles_display_clear' style='display:none;' onclick="TemplateEdit.clearFilter('struct');">Clear</button>
+           
+          <div class='style_display'  id='struct_styles_display'>
             <%= render :partial => 'style_selector', :locals => { :styles => @struct_styles, :default_styles => display_style(@default_struct_styles) } %>
           </div>
+        </div>
         </td>
       </tr>
       </table>

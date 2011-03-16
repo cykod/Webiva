@@ -5,6 +5,8 @@
     class ViewOptions < HashModel
       default_options :title_field => nil, :description_field => nil, :published_at_field => nil, :url_field => nil
     end
+
+    feature_name :display
     
     # add the options class
     options_class ViewOptions
@@ -35,7 +37,7 @@
       output = "<cms:entry>\n"
       output += "<table class='styled_table'>\n\n"
       self.content_publication_fields.each do |fld|
-         tag_name = %w(belongs_to document image).include?(fld.content_model_field.field_type) ? fld.content_model_field.field_options['relation_name'] :      fld.content_model_field.field
+         tag_name = fld.content_model_field.feature_tag_name
       
         if fld.field_type == 'value'
             output += "<tr>\n"
@@ -47,6 +49,7 @@
       output += "<tr>\n"
       output += "  <td colspan='2' align='right'><cms:return_link>Return</cms:return_link></td>\n"
       output += "</tr>\n"
+      output += "</table>\n"
       output += '</cms:entry>'
       
       output

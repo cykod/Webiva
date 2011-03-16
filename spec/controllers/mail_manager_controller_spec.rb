@@ -19,6 +19,8 @@ describe MailManagerController, "" do
            :mail_template => { 
              :name => 'test campaign mail templates',
              :template_type => 'campaign',
+             :body_text => 'body',
+             :body_type => 'text',
              :language => 'en',
              :create_type => 'blank',
              :category => 'test campaign category',
@@ -108,7 +110,7 @@ describe MailManagerController, "" do
 
     it 'should save a template' do 
       post('edit_template', :mail_template => @tmpl_post_options, :email => ['daffy2@mywebiva.net'],  :path => 1)
-      response.should redirect_to("http://test.host/website/mail_manager/templates")
+      response.should redirect_to("http://test.host/website/mail_manager/templates?show_campaign=1")
       @tmpl = MailTemplate.find(:last)
       @tmpl.category.should == 'test campaign category'
 

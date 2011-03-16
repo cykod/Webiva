@@ -17,15 +17,6 @@
       VisitorViewer.selectedEntry = entry_id;
     },
     
-    loadStatistics: function() {
-      if(!$('site_statistics_details')) {
-        new Ajax.Updater('site_statistics',
-                          "<%= url_for :action => 'site_statistics' %>/" );
-      }
-    
-    
-    },
-    
     googleRadios: function() {
       if($('options_google_analytics_disabled').checked) {
         $('options_analytics_code').disabled = true;
@@ -54,44 +45,49 @@
       return false;
     }
     
-  
-  
   }
   
    <%= active_table_javascript %>
 </script>
+<% action_panel :handler => 'visitors', :more => true do |p| -%>
+<% end -%>
 
-<br/>
-<br/>
-<% ajax_tabs [ 'Site Visitors', 'Google Analytics' ], 'Site Visitors' do |t| -%>
+<% more_action_panel :handler => 'visitors' do |p| -%>
+  <%= p.link "Visitors", {:url => "javascript:void(0);"}, :"j-action" => 'swap', :swap => '#visitors,#google_analytics' %>
+  <%= p.link "Google Analytics", {:url => "javascript:void(0);"}, :"j-action" => 'swap', :swap => '#google_analytics,#visitors' %>
+<% end -%>
 
 
-<% t.tab do %>
+<hr/>
+
+<div id="visitors">
 <table>
-
-<tr>
+ <tr>
   <td style='padding-right:10px;' width='450' valign='top'>
 <div id='entries_table'>
 <%= render :partial => 'visitor_table' %>
 </div>
   </td>
-  <td style='border-left:1px solid #000000; padding-left:10px;' valign='top'  >
+  <td style='padding-left:10px;' valign='top'>
     <div id='visitor_detail'>
-      
     </div>
   </td>
 </tr>
 </table>
+</div>
 
-<% end -%>
-
-<% t.tab do %>
-  <div id='options_updated' style='display:none;'><b><%= "Options Updated".t %></b></div>
+<div id="google_analytics" style="display:none;" class="visitor_container">
+<div class="heading"><h2>Google Analytics</h2></div>
+<div class="visitor_container_body" style="width:600px;">
+<div id='options_updated' style='display:none;'><b><%= "Options Updated".t %></b></div>
   <% tabled_form_for :options, @options, :html => { :onsubmit => 'return VisitorViewer.saveOptions(this);' } do |f| %>
     <%= f.radio_buttons :google_analytics, [ [ 'Enabled' , 'enabled' ], [ 'Disabled', 'disabled'] ], :label => "Google Analytics", :onchange => 'VisitorViewer.googleRadios()' %>
     <%= f.text_field :analytics_code, :disabled => @options.google_analytics == 'enabled' ? false : true %>
+    <%= f.spacer %>
     <%= f.submit_tag 'Update', :id => 'submit_options' %>
   <% end -%>
+
+  <br/>
 
   <div id='analytics_disabled' <%= "style='display:none;'" if @options.google_analytics == 'enabled'%>>
   <%= "Google Analytics is a free service that tracks visitors to your website and allows you to analyze your traffic.".t %>
@@ -106,13 +102,10 @@
     <%= h('
     urchinTracker();
     </script>  ') %>
-</pre>
+  </pre>
 </div>
 <div id='analytics_enabled' <%= "style='display:none;'" unless @options.google_analytics == 'enabled'%>>
   <%= "Goto".t %><a target='_blank' href='http://www.google.com/analytics/'><%= "Your Google Analytics Account".t %></a>
 </div>
-
-<% end -%>
-
-<% end -%>
-
+</div>
+</div>

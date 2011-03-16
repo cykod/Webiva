@@ -1,54 +1,27 @@
-<script>
-  Exporter = {
+<%
+  segment_id = @segment ? @segment.id : nil
+-%>
 
-    generate: function() {
-      $('export_download').innerHTML = '<%= jh "Exporting File".t %>';
-      Element.show('export_download');
-      $('submit_button').disabled = true;
-      new Ajax.Request("<%= url_for :action => 'generate_file' %>",
-                       { parameters: Form.serialize('export_form'), 
-                         onComplete: function(req) {
-                           setTimeout(Exporter.status,1000);
-                         }
-                       }
-                      );
-    },
-    
-    status: function() {
-      $('export_download').innerHTML = '<%= jh "Still Exporting...".t %>';
-      new Ajax.Request("<%= url_for :action => 'status' %>")
-    },
-    
-    download: function() {
-      $('export_download').innerHTML = '<%= jh "Starting Download".t %>';
-      openWindow("<%= url_for :action => 'download_file'  %>",'Download',40,40,'false','false')
-      setTimeout(Exporter.backToContent,100);
-        
-    },
-    
-    backToContent: function() {
-      document.location = "<%= url_for :controller => '/members', :action => 'index', :refresh => 1 %>";
-      
-    }
-  }
-</script>
 <div class='admin_content'>
+
 <h4><%= "Exporting ".t %><%= sprintf("%d members".t,@member_count.to_i) %></h4>
-<% cms_form_for :export, @export, :html => { :onsubmit => 'Exporter.generate(); return false;', :id => 'export_form' } do |f| %>
+
+<% cms_form_for :export, @export, :html => { :id => 'export_form' } do |f| %>
 <%= f.check_boxes :include, @include_options, :vertical => true, :separator => '<br/>', :label => 'Include in export' %>
 <tr>
   <td colspan='2' align='right'>
-    <input type='submit' value='<%= vh "Export & Download".t %>' id='submit_button' /> 
+    <input type='button' value='<%= vh "Export & Download".t %>' id='export_button' /> 
     &nbsp;&nbsp;
-    <span style='display:none;' id='export_download'><%= "Exporting File".t %></span>
+    <span style='display:none;' id='export_button_status'><%= "Exporting File".t %></span>
   </td>
 </tr>
-
-
-
 <% end -%>
 
-<script>
-  Exporter.updateForm();
-</script>
 </div>
+
+<script>
+new WebivaExporter({button: '#export_button',
+                    url: "<%= url_for :action => 'generate_file', :path => segment_id %>",
+	            frm: '#export_form',
+                    onComplete: function() {document.location = "<%= url_for :controller => '/members', :path => segment_id %>";}});
+</script>

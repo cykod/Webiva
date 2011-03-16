@@ -36,7 +36,7 @@ describe TriggeredAction do
     
     user.reload
     
-    user.tag_names.should == ['Testerama']
+    user.tag_names.should == 'Testerama'
   end
   
   it "should be able perform the set user referrer core action" do

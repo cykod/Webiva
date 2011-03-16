@@ -4,16 +4,16 @@
 module Content::MigrationSupport  #:nodoc:
 
  def delete_table
+   cClass = ContentMigrator.clone
+
+   if self.table_name
+     cClass.update_up(<<-CODE)
+       drop_table :#{self.table_name} do |t|
+       end
+     CODE
     
-    cClass = ContentMigrator.clone
-    
-    cClass.update_up(<<-CODE)
-      drop_table :#{self.table_name} do |t|
-      end
-    CODE
-    
-    cClass.migrate_domain(Domain.find(DomainModel.active_domain_id))
-  
+     cClass.migrate_domain(Domain.find(DomainModel.active_domain_id))
+   end
   end
   
   def create_table
@@ -102,6 +102,11 @@ module Content::MigrationSupport  #:nodoc:
         field_name_prefix = field[:name].downcase.gsub(/[^a-z0-9]+/,"_")[0..20].singularize
         # use an index if necessary, (e.g. blog_2, etc if necessary )
         field_name_index = 1
+
+        @reserved_names ||= %w(id accept callback categorie action attributes application connection database dispatcher display drive errors format host key layout load link new, notify open public quote render request records responses save scope send session system template test timeout to_s type visits)
+        if @reserved_names.include?(field_name_prefix)
+          field_name_prefix = "fld_#{field_name_prefix}"
+        end
         field_name_try = field_name_prefix
         
         while self.content_model_fields.find(:first,:conditions => [ 'field=?',field_name_try ] )
@@ -136,6 +141,7 @@ module Content::MigrationSupport  #:nodoc:
         elsif content_field[:representation] && content_field[:representation] != :none
           migration_options = content_field[:migration_options] ? ", " + content_field[:migration_options] : ''
           migration_code += "add_column  :#{self.table_name}, :#{field_row.field}, :#{content_field[:representation]}#{migration_options}\n"
+          migration_code += "add_index   :#{self.table_name}, :#{field_row.field}, :name => '#{field_row.field}_index'\n" if content_field[:index]
         end
         
         

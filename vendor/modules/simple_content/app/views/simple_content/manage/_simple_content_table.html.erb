@@ -1,0 +1,14 @@
+<% current_time = Time.now %>
+<% active_table_for :simple_content_table, @active_table_output,
+                    :refresh_url => url_for(:action => 'simple_content_table'),
+                    :style => 'width:100%',
+                    :more_actions => [['Delete','delete','Are you sure you want to delete the selected models?']] do |t| %>
+<tr <%= highlight_row 'simple_content',t.id %> >
+  <td align='left' nowrap='1'><%= entry_checkbox "simple_content", t.id %></td>
+  <td><a href='<%= url_for(:action => 'edit', :path => t.id) %>'><%= t.name %></a></td>
+  <td width="160" align="center"><%= t.created_at ? t.created_at.strftime(DEFAULT_DATETIME_FORMAT.t) : '-' %></td>
+  <td width="160" align="center"><%= t.updated_at ? t.updated_at.strftime(DEFAULT_DATETIME_FORMAT.t) : '-' %></td>
+</tr>
+
+
+<% end -%>

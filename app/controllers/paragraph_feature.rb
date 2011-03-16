@@ -180,7 +180,7 @@ class ParagraphFeature
   end
   
   def self.dummy_renderer(controller=nil) #:nodoc:
-    ParagraphRenderer.new(UserClass.get_class('domain_user'),controller || ApplicationController.new,PageParagraph.new,SiteNode.new,PageRevision.new)
+    ParagraphRenderer.new(UserClass.domain_user_class,controller || ApplicationController.new,PageParagraph.new,SiteNode.new,PageRevision.new)
   end
 
   # Returns a list of tags that are defined in this feature
@@ -202,14 +202,12 @@ class ParagraphFeature
     sing.send :define_method, :available_features do 
       return features
     end 
-    
-    opts[:default_feature] ||= ''
+    default_feature = opts.delete(:default_feature) || '' 
     sing.send :define_method, "get_default_feature_#{type.to_s}" do
-      opts[:default_feature]
+      default_feature
     end
-    opts[:default_data] ||= {}
-    sing.send :define_method, "get_default_data_#{type.to_s}" do
-      opts[:default_data]
+    sing.send :define_method, "get_feature_options_#{type.to_s}" do
+      opts
     end
   end
   
@@ -313,7 +311,7 @@ block is non-nil
         inc = val.is_a?(Array) && val.include?(t.attr['include'])
         inc ? t.expand : nil
       elsif t.attr['not_equals']
-        eql = val.is_a?(Integer) ? t.attr['not_equals'].to_i : tar.attr['not_equals']
+        eql = val.is_a?(Integer) ? t.attr['not_equals'].to_i : t.attr['not_equals']
         val != eql ? t.expand : nil
       elsif t.attr['min']
         min = val.is_a?(Integer) ? t.attr['min'].to_i : tar.attr['min']
@@ -333,6 +331,19 @@ block is non-nil
         end
       end
     end
+
+    def escape_value_helper(value,escape) #:nodoc:
+      case escape
+      when 'value':
+        vh(value)
+      when 'javascript':
+        jh(value)
+      when 'javascript_value':
+        jvh(value)
+      else
+        h(value)
+      end
+    end
     
     # Defines a value tag, which is the standard tag that 
     # is used to output a piece of content. Using value_tag
@@ -346,11 +357,29 @@ block is non-nil
     # Which would only display the Name: .. text if the return value of the block
     # isn't blank.
     #
+    # You can pass an "escape" attribute set to html, value, javascript or javascript_value
+    # to escape the output of a tag as necessary
+    #
+    # You can also use the value as an expansion tag by passing any of the following:
+    #  max="MAX VALUE", min="MIN_VALUE", not_equals="COMPARE VALUE",
+    #  equals="COMPARE VALUE", contains="Multiple,Comma,Separated,Values"
+    #
+    #  For example:
+    #
+    #       <cms:age min='21'>Alcohol Reference</cms:age>
+    #
+    #  Which would only expand if the value of age is greater than 21
+    #  
     def define_value_tag(name,field='value',&block)
       define_tag(name) do |tag|
         val = yield(tag)
         if tag.single?
-          val
+          val = truncate(Util::TextFormatter.text_plain_generator(val), :length => tag.attr['limit'].to_i, :omission => tag.attr['omission'] || '...') if tag.attr['limit']
+          if tag.attr['escape']
+            escape_value_helper(val,tag.attr['escape']) 
+          else 
+            val
+          end
         else
           value_tag_helper(tag,field,val)
         end
@@ -403,9 +432,9 @@ block is non-nil
     #      </div>
     #      </cms:posts>
     #      <cms:no_posts><h2>No Posts</h2></cms:no_posts>
-    def define_loop_tag(name,plural=nil)
+    def define_loop_tag(name,plural=nil,options = {})
       name_parts = name.split(":")
-      name_base = name_parts[-1]
+      name_base = options[:local] || name_parts[-1]
       plural = name_base.pluralize unless plural
       name_parts[-1] = plural
       
@@ -518,17 +547,23 @@ block is non-nil
     #   value tag the returns the user's profile id
     # [<cms:user:myself>]
     #   expansion tag that expands only if the user is the currently logged in user
-    def define_user_tags(tag_name)
-    
-      define_expansion_tag(tag_name) { |t| yield t }
-      define_expansion_tag(tag_name + ":logged_in") { |t| usr = yield t; !usr.id.blank? }
-      define_h_tag(tag_name + ":name") { |t| usr = yield t; usr.name if usr }
-      define_h_tag(tag_name + ":first_name") { |t| usr = yield t; usr.first_name if usr }
-      define_h_tag(tag_name + ":last_name") { |t| usr = yield t; usr.last_name if usr }
-      define_value_tag(tag_name + ":profile") { |t| usr = yield t; usr.user_profile_id if usr }
-      define_value_tag(tag_name + ":profile_name") { |t| usr = yield t; usr.user_profile.name if usr }
-      define_expansion_tag(tag_name + ":myself") { |t| usr = yield t; usr == myself if usr }
-    
+    def define_user_tags(tag_name,options={},&block)
+      local=options[:local]
+      if !local
+        name_parts = tag_name.split(":")
+        local = name_parts[-1]
+      end
+
+      define_expansion_tag(tag_name) { |t| block ? t.locals.send("#{local}=",block.call(t)) : t.locals.send(local) }
+      define_expansion_tag(tag_name + ":logged_in") { |t| usr = t.locals.send(local); !usr.id.blank? }
+      define_h_tag(tag_name + ":name") { |t| usr = t.locals.send(local); usr.name if usr }
+      define_h_tag(tag_name + ":username") { |t| usr = t.locals.send(local); usr.username if usr }
+      define_h_tag(tag_name + ":first_name") { |t| usr = t.locals.send(local); usr.first_name if usr }
+      define_h_tag(tag_name + ":last_name") { |t| usr = t.locals.send(local); usr.last_name if usr }
+      define_value_tag(tag_name + ":profile") { |t| usr = t.locals.send(local); usr.user_profile_id if usr }
+      define_value_tag(tag_name + ":profile_name") { |t| usr = t.locals.send(local); usr.user_profile.name if usr }
+      define_expansion_tag(tag_name + ":myself") { |t| usr = t.locals.send(local); usr == myself if usr }
+      define_image_tag(tag_name + ":img") { |t| usr = t.locals.send(local); usr.image if usr }
     end
 
     # Similar to define_user_tags but it defines a whole bunch of tags
@@ -538,7 +573,7 @@ block is non-nil
     # of the local variable to find the user object (defaults to the name of the tag)
     #
     #     expansion_tag('user') { |t| t.locals.user = data[:user] }
-    #     user_details_tags('user') { |t| t.locals.user }
+    #     user_details_tags('user', :local => 'user')
     #
     # Would define expansion tags for: myself,male,female,address,work_address
     # and would define value tag for:
@@ -597,26 +632,26 @@ block is non-nil
         object_id = img[2]
         img = img[0]
       end
-      
+
       attr = tag.attr.clone
       if img 
         icon_size = attr.delete('size') || tag_opts[:size] || nil
         size = icon_size #%w(icon thumb preview small original).include?(icon_size) ?  icon_size : nil
         size = nil if size == 'original'
-        img_size = img.image_size(size)
+        img_size = img.image_size(size) || []
         shadow = attr.delete('shadow')
         align = attr.delete('align') 
         field = attr.delete('field')
-        
+
         case field
         when 'width':
-            img_tag = img_size[0].to_s
+          img_tag = img_size[0].to_s
         when 'height':
-            img_tag = img_size[1].to_s
+          img_tag = img_size[1].to_s
         when 'dimensions':
-            img_tag =  "width='#{img_size[0].to_s}' height='#{img_size[1].to_s}'"
+          img_tag =  "width='#{img_size[0].to_s}' height='#{img_size[1].to_s}'"
         when 'src':
-            img_tag = img.url(size)
+          img_tag = img.url(size)
         else
           if shadow
             shadow_align = align
@@ -638,7 +673,7 @@ block is non-nil
               attr['style'] += "margin: 0 0 #{border_amt}px #{border_amt}px"
             end
           end
-          
+
           img_url = img.url(size)
           img_opts =  { :src => img_url,:width => img_size[0],:height => img_size[1] }
           attr.symbolize_keys!
@@ -656,8 +691,8 @@ block is non-nil
             tag_opts[:onmouseout] = "WebivaMenu.restoreImage(this,'#{object_id}'); " + tag_opts[:onmouseout].to_s
             preload = "<script>WebivaMenu.preloadImage('#{jvh rollover.url(size)}');</script>"
           end
-          img_tag =  tag('img',tag_opts).html_safe + preload.to_s.html_safe
-          img_tag = "<div style='float:#{shadow_align}; margin:#{border}; #{attr['style']}'><div style='width:#{img_size[0] + 12}px; float:#{shadow_align};' class='cms_gallery_shadow'><div><p>" + img_tag + "</p></div></div></div>" if shadow
+          img_tag =  tag('img',tag_opts) + preload.to_s.html_safe
+          img_tag = "<div style='float:#{shadow_align}; margin:#{border}; #{attr['style']}'><div style='width:#{img_size[0] + 12}px; float:#{shadow_align};' class='cms_gallery_shadow'><div><p>" + img_tag + "</p></div></div></div>" if img_size[0] && shadow
         end
         if tag.single?
           img_tag
@@ -722,7 +757,15 @@ block is non-nil
         end
       end
     end
-    
+
+    def define_ajax_form_for_tag(name,arg,options = {},&block)
+      options[:html] ||= {}
+      options[:html][:onsubmit] ||= ''
+      options[:html][:onsubmit] += " new Ajax.Updater('cmspara_#{paragraph.id}','#{ajax_url}',{ evalScripts: true, parameters: Form.serialize(this) }); return false;"
+      define_form_for_tag(name,arg,options,&block)
+      require_js('prototype')
+    end
+
     # Creates a cms_unstyled_form_for object that can be used 
     # in combination with define_field_tag to allows users to 
     # custom style a form
@@ -743,7 +786,11 @@ block is non-nil
           frm_opts = opts.delete(:html) || { }
           frm_opts[:method] = 'post'
           html_options = html_options_for_form(options.delete(:url),frm_opts)
-          frm_tag = tag(:form,html_options) + "<CMS:AUTHENTICITY_TOKEN/>".html_safe + opts.delete(:code).to_s.html_safe
+          html_options['action'] ||= ''
+          if pch = opts.delete(:page_connection_hash)
+            pch = "<input type='hidden' name='page_connection_hash' value='#{pch}' />"
+          end
+          frm_tag = tag(:form,html_options,true) + ("<CMS:AUTHENTICITY_TOKEN/>" + pch.to_s + opts.delete(:code).to_s).html_safe
           cms_unstyled_fields_for(arg,obj,opts) do |f|
             tag.locals.send("#{frm_obj}=",f)
             frm_tag + tag.expand.html_safe + "</form>".html_safe
@@ -800,12 +847,22 @@ block is non-nil
       end
           
       define_tag name do |tag|
-        frm = tag.locals.send(frm_obj)
-        if frm && frm.object && frm.object.errors && frm.object.errors.length > 0
+        if block_given?
+          objs = yield tag
+          objs = [ objs ] unless objs.is_a?(Array)
+        else
+          frm = tag.locals.send(frm_obj)
+          objs = [ frm.object ] if frm && frm.object
+        end
+        objs ||= []
+        objs = objs.compact
+        error_count = objs.inject(0) { |acc,obj| acc + obj.errors.length } 
+        if error_count > 0 
+          messages = objs.inject([]) { |acc,obj| acc + obj.errors.full_messages }.join(tag.attr['separator'] || "<br/>")
           if tag.single?
-            frm.object.errors.full_messages.join(tag.attr['separator'] || "<br/>")
+            messages
           else
-            tag.locals.value = frm.object.errors.full_messages.join(tag.attr['separator'] || "<br/>")
+            tag.locals.value = messages
             tag.expand           
           end          
         else
@@ -944,24 +1001,25 @@ block is non-nil
     end
   end
   
-    include SimpleCaptcha::ViewHelpers 
-    
-    def define_captcha_tag(name,options={})  #:nodoc:
-      define_tag(name) do |t| 
-        
-        show_captcha = block_given? ? yield : true
-        if show_captcha
-          options[:field_value] ||= set_simple_captcha_data(options[:code_type])
-          simple_captcha_options = 
-            {:image => simple_captcha_image(options),
-            :label => options[:label] || "(type the code from the image)",
-            :field => simple_captcha_field(options)}
-          render_to_string :partial => '/simple_captcha/simple_captcha_feature', :locals => {:simple_captcha_options  => simple_captcha_options } 
-        else
-          nil
-        end
+  def define_captcha_tag(name,options={})  #:nodoc:
+    define_value_tag(name) do |t| 
+      captcha = yield t
+      if captcha
+        captcha.generate(t.attr.merge(options))
+      else
+        nil
       end
     end
+
+    define_value_tag(name+'_error') do |t|
+      captcha = yield t
+      if captcha
+        captcha.valid? ? nil : (t.attr['message'] || 'Captcha is invalid')
+      else
+        nil
+      end
+    end
+  end
     
     # Defines a field tag used with define_form_for_tag
     # Most options are passed directly through to the appropriate field options
@@ -1035,15 +1093,64 @@ block is non-nil
       if errs.is_a?(Array)
         errs = errs.uniq
         val = errs.collect { |msg| 
-          (t.attr['label'] || field_name.humanize) + " " + msg.t + "<br/>"
+          (t.attr['label'] || field_name.to_s.humanize) + " " + msg.t + "<br/>"
         }.join("\n")
       elsif errs
-        val =(t.attr['label'] || field_name.humanize) + " " + errs.t
+        val =(t.attr['label'] || field_name.to_s.humanize) + " " + errs.t
       end
       
       val
     end
-    
+
+    # Fields is a list array of arrays like:
+    #  [ :tag_name, "Label", :field_control, :field_name, options = {} ]
+    def define_form_fields_tag(base,fields,options = {})
+      local = options[:local] || 'form'
+
+      fields.each do |fld|
+          define_form_field_tag("#{base}:#{fld[0]}",fld[4].merge(:label => fld[1], :control => fld[2], :field => fld[3] ))
+      end
+
+      define_loop_tag(base,nil,:local => 'field') { |t| fields }
+
+      define_tag("#{base}:item") do |t|
+        tag_name = t.attr['tag'] || 'li'
+        if !t.single?
+          "<#{tag_name} class='#{t.locals.field[2]}'>" + t.expand + "</#{tag_name}>"
+        else 
+          "<#{tag_name} class='#{t.locals.field[2]}'>" + form_fields_helper(t,local,t.locals.field) +  "</#{tag_name}>"
+        end
+      end
+
+      define_tag("#{base}:item:label") { |t| form_fields_label_helper(t,local,t.locals.field) }
+
+      define_tag("#{base}:item:control") do |t|
+        form_field_tag_helper(t,t.locals.send(local),t.locals.field[2],t.locals.field[3],t.locals.field[4])
+      end
+
+      define_value_tag "#{base}:error" do |t|
+        form_field_error_tag_helper(t,t.locals.send(local),t.locals.field[3])
+      end
+
+    end
+
+    def form_fields_label_helper(t,local,field)
+      object_id = field[2] if ![:radio_buttons,:check_boxes].include?(field[2])
+      frm = t.locals.send(local)
+      req = field[4][:required] ? "<em>*</em>" : ""
+      label = field[1]
+      if object_id 
+        "<label for='#{frm.object_name}_#{object_id}'>#{label.to_s + req}</label>"
+      else
+        "<label>#{label}</label>"
+      end
+    end
+
+    def form_fields_helper(t,local,field)
+      form_fields_label_helper(t,local,field) + 
+        form_field_tag_helper(t,t.locals.send(local),field[2],field[3],field[4])
+    end
+
     def define_form_field_tag(name,options={},&block) #:nodoc:
       options = options.clone
       
@@ -1055,8 +1162,26 @@ block is non-nil
       
       control_type = options.delete(:control) || 'text_field'
       field_name = options.delete(:field) || tag_name
+      label = options.delete(:label) || field_name.to_s.humanize
       options[:class] ||= control_type
       frm_obj = options[:local] || :form
+      required = options.delete(:required)
+      
+      if control_type != 'radio_buttons' && control_type != 'check_boxes'
+        object_id = field_name
+      else
+        object_id = nil
+      end
+
+      define_tag "#{pre_tag}#{tag_name}_label" do |t|
+        if object_id
+          frm = t.locals.send(frm_obj)
+          req = required ? "<em>*</em>" : ""
+          "<label for='#{frm.object_name}_#{object_id}'>#{t.single? ? label.to_s + req : t.expand}</label>"
+        else
+          t.single? ? label : t.expand
+        end
+      end
       
      
       define_tag "#{pre_tag}#{tag_name}" do |t|
@@ -1096,19 +1221,29 @@ block is non-nil
       output
     end
 
+    # Defines a form and a list of fields that represent the exposed filters
+    # in a publication - should be used only in webiva_custom_feature
+    def define_publication_filter_form_tags(prefix,arg,publication,options={}) 
+      define_button_tag("#{prefix}:submit",:value => 'Search')
+      define_button_tag("#{prefix}:clear",:value => 'Clear',:name => "clear_#{arg}")
+
+      define_form_for_tag(prefix,arg, :local => arg) {  |t|  yield(t)[0] }
+
+      define_publication_filter_fields_tags(prefix,arg,publication,options)
+    end
+
     # Defines a list of fields that represent the exposed filters
     # in a publication - should be used only in webiva_custom_feature
     def define_publication_filter_fields_tags(prefix,arg,publication,options={}) 
-
+      
       if block_given?
-        define_expansion_tag("#{prefix}_search") { |t| yield(t) }
+        define_expansion_tag("#{prefix}_search") { |t| yield(t)[1] }
       else
         define_expansion_tag("#{prefix}_search") { |t| false }
       end
 
+   
       
-      define_button_tag("#{prefix}:submit",:value => 'Search')
-      define_button_tag("#{prefix}:clear",:value => 'Clear',:name => "clear_#{arg}")
       publication.content_publication_fields.each do |fld|
         if !fld.options.filter.blank? && fld.options.filter_options.include?('expose')
           fld.filter_variables.each do |var|
@@ -1127,6 +1262,18 @@ block is non-nil
       end
     end
 
+    
+    def define_content_model_fields_value_tags(prefix,content_model_fields,options = {})
+      c = self
+     local = options.delete(:local) || 'entry'
+      content_model_fields.each do |fld|
+        fld.site_feature_value_tags(c,prefix,:full,:local => local)
+      end
+    end
+
+    def define_content_model_value_tags(prefix,content_model,options = {})
+      define_content_model_fields_value_tags(prefix,content_model.content_model_fields,options)
+    end
 
     # Defines a list of tags based on a passed-in publication
     # Can only be used in webiva_custom_feature
@@ -1169,110 +1316,7 @@ block is non-nil
       end
 
       if publication.form?
-        
-        
-        c.define_tag("#{prefix}:has_many_field") do |t|
-          frm = t.locals.send(frm_obj)
-          available_fields = publication.content_publication_fields.map(&:content_model_field).map { |fld| [ fld.feature_tag_name, fld.id, fld ]}
-
-          fields = t.attr['fields'].split(",").map { |fld| fld.strip.blank? ? nil : fld.strip }.compact
-
-          active_fields = available_fields.select { |fld| fields.include?(fld[0]) }.map { |fld| fld[2] } 
-          t.locals.has_many_fields = active_fields
-          t.locals.has_many_values = t.locals.has_many_fields.map do  |fld|
-            frm.object.send("#{fld.field_options['relation_singular']}_ids")
-          end
-
-
-          # TODO: Yeah, not so hot - needs to be extract to core_field somehow
-          if active_fields[0] && cls = active_fields[0].relation_class
-            cm =  active_fields[0].content_model_relation
-
-            if t.attr['display'] && display_field = cm.content_model_fields.detect { |fld| fld.field == t.attr['display'] }
-              display_field = display_field.field
-            else
-              display_field = "identifier_name"
-            end
-              
-
-
-            if t.attr['filter_by'] && filter_field = cm.content_model_fields.detect { |fld| fld.field == t.attr['filter_by'] }
-              conditions = { filter_field.field => t.attr['filter'] }
-            else
-              conditions = nil
-            end
-
-            if t.attr['order'] && order_field = cm.content_model_fields.detect { |fld| fld.field == t.attr['order'] }
-              order_by = "`#{order_field.field}`"
-            else
-              order_by = nil
-            end
-            arr = cls.find(:all,:order => order_by,:conditions => conditions)
-            if t.attr['group'] && group_field = cm.content_model_fields.detect { |fld| fld.field == t.attr['group'] }
-
-              if t.attr['group_2nd'] && group_2nd_field =  cm.content_model_fields.detect { |fld| fld.field == t.attr['group_2nd'] }
-                available_options =  {}
-                arr.group_by { |elm| group_field.content_display(elm) }.each do |key,arr2|
-                  arr2.group_by { |elm|  group_2nd_field.content_display(elm) }.each do |key2,arr3|
-                    available_options[key] ||= {}
-                    available_options[key][key2] = arr3.map { |elm| [ elm.send(display_field), elm.id ] }
-                  end
-                end
-                arr = available_options.to_a.map do |elm|
-                  [ elm[0],
-                    elm[1].to_a.sort { |a,b| a[0].to_s.downcase <=> b[0].to_s.downcase }.map { |elm2| { :name => elm2[0], :items => elm2[1] } }
-                  ]
-                end.sort { |a,b| a[0].to_s.downcase <=> b[0].to_s.downcase }.map { |elm| { :name => elm[0], :items => elm[1] } }
-              else
-                available_options =  {}
-                arr.group_by { |elm| group_field.content_display(elm) }.each do |key,arr|
-                  
-                  available_options[key] = arr.map { |elm| [  elm.send(display_field), elm.id ] }
-                end
-                arr = available_options.to_a.sort { |a,b| a[0].to_s.downcase <=> b[0].to_s.downcase }.map { |elm| { :name => elm[0], :items => elm[1] } }
-              end
-            else
-              arr.map! { |elm| [ elm.send(display_field), elm.id ] }
-            end
-            output = ''
-            output << has_many_field_helper(1,t,arr,0)
-          end
-          output
-        end
-
-        c.value_tag("#{prefix}:has_many_field:grouping") { |t| t.locals.has_many_grouping }
-        c.define_tag("#{prefix}:has_many_field:entries") do |t|
-          pre = t.attr['pre'] || ''
-          post = t.attr['post'] || ''
-          prefix = t.attr['prefix']
-          align = t.attr['align'] || 'center'
-          if !t.locals.has_many_entry
-            nil
-          else 
-            frm = t.locals.send(frm_obj)
-
-            field_names = t.locals.has_many_fields.map { |fld|  "#{fld.field_options['relation_singular']}_ids" }
-            output = ''
-            values = t.locals.has_many_values
-
-            t.locals.has_many_entry.each do |ent|
-              output <<  pre + (prefix ?  "<tr><td class='has_many_label'>#{ent[0]}</td>" : "<tr>")
-              t.locals.has_many_fields.each_with_index do |fld,idx|
-                output << "<td align='#{align}' class='has_many_item'>" +
-                  check_box_tag("#{frm.object_name}[#{field_names[idx]}][]",
-                                ent[1],
-                                values[idx].include?(ent[1]),
-                                :id => "#{frm.object_name}_#{field_names[idx]}_#{ent[1]}") + "</td>"
-              end
-              output <<( prefix ? "</tr>" :  "<td class='value_label'>#{ent[0]}</td></tr>") + post
-            end
-            output
-          end
-        end
-
-        c.value_tag("#{prefix}:has_many_field:level") { |t| t.locals.has_many_level } 
-
-        
+               
         c.loop_tag("#{prefix}:field") do |t|
           fields = publication.content_publication_fields.select { |fld| fld.field_type == 'input' && fld.content_model_field.data_field? }
           if t.attr['except']
@@ -1286,9 +1330,27 @@ block is non-nil
           fields
         end
 
-        c.value_tag("#{prefix}:field:label") do |t|
-          t.locals.field.label
+        define_tag("#{prefix}:field:item") do |t|
+          tag_name = t.attr['tag'] || 'li'
+          if !t.single?
+            "<#{tag_name} class='#{t.locals.field.content_model_field.field_type}_model_field' >" + t.expand + "</#{tag_name}>"
+          else 
+            "<#{tag_name} class='#{t.locals.field.content_model_field.field_type}_model_field' >" + publication_form_fields_helper(t,frm_obj,t.locals.field) +  "</#{tag_name}>"
+          end
         end
+
+        c.value_tag("#{prefix}:field:label") do |t|
+          req = t.locals.field.required? ? "<em>*</em>" : ""
+          label = t.locals.field.label
+          frm = t.locals.send(frm_obj)
+          object_id = t.locals.field.content_model_field.field
+          "<label for='#{frm.object_name}_#{object_id}'>#{label.to_s + req}</label>"
+        end
+
+        c.value_tag("#{prefix}:field:required") do |t|
+          t.locals.field.required?
+        end
+
         c.value_tag("#{prefix}:field:control") do |t|
           opts = { :label => t.locals.field.label, :size => size }.merge(t.locals.field.data)
           opts[:size] = t.attr['size'] if t.attr['size']
@@ -1300,6 +1362,18 @@ block is non-nil
         end
       end
 
+    end
+
+    def publication_form_fields_helper(t,frm_obj,field)
+      req = field.required? ? "<em>*</em>" : ""
+      label = field.label
+      frm = t.locals.send(frm_obj)
+      object_id = field.content_model_field.field
+      opts = { :label => t.locals.field.label }.merge(t.locals.field.data)
+      opts[:size] = t.attr['size'] if t.attr['size']
+
+      "<label for='#{frm.object_name}_#{object_id}'>#{label.to_s + req}</label>" +
+      field.form_field(t.locals.send(frm_obj),opts.merge(t.attr.symbolize_keys))
     end
 
     # Defines a page_list tag called pages on the base as well as tags for 
@@ -1347,7 +1421,7 @@ block is non-nil
           
           result = ''
           
-          if pages > 1
+          if pages && pages > 1
             
             # Show back button
             if page > 1
@@ -1476,8 +1550,9 @@ block is non-nil
         define_tag(prefix + 'not_last') { |tag| !tag.locals.last ? tag.expand : '' }
         define_tag(prefix + 'middle') { |tag| ( !tag.locals.first && !tag.locals.last ) ? tag.expand : '' }
         define_tag(prefix + 'not_middle') { |tag| (tag.locals.first || tag.locals.last)  ? tag.expand : '' }
-        define_tag(prefix + 'multiple') { |tag| ( (tag.locals.index + (tag.attr['offset'] || 1).to_i ) % (tag.attr['value'] || 2).to_i ) == 0 ? tag.expand : '' }
-  
+        define_tag(prefix + 'multiple') { |tag| ( (tag.locals.index + (tag.attr['offset'] || 0).to_i ) % (tag.attr['value'] || 2).to_i ) == 0 ? tag.expand : '' }
+        define_tag(prefix + 'before') { |tag| (tag.locals.index < tag.attr['index'].to_i)  ? tag.expand : '' }
+        define_tag(prefix + 'after') { |tag| (tag.locals.index > tag.attr['index'].to_i)  ? tag.expand : '' }
     end    
     
     # Called inside of a loop_tag for a customized iteratation over a list
@@ -1512,10 +1587,10 @@ block is non-nil
           nil
         elsif tag.attr['icon'] || (tag.attr['type'] == 'image')
             img_src = (tag.single? ? tag.attr['icon'] : tag.expand)
-            "<form class='post_button_form' action='#{vh url}' #{onsubmit} method='#{method}'><input class='#{cls}' type='image' value='submit' src='#{vh img_src}'/></form>"
+            "<form class='post_button_form' style='display:inline;' action='#{vh url}' #{onsubmit} method='#{method}'><CMS:AUTHENTICITY_TOKEN/><input class='#{cls}' type='image' value='submit' src='#{vh img_src}'/></form>"
         else
           button_value = (tag.attr['value'] || (tag.single? ? button_value : tag.expand))
-          "<form class='post_button_form' action='#{vh url}'  #{onsubmit}  method='#{method}'><input class='#{cls}' type='submit' value='#{qvh(button_value)}'/></form>"
+          "<form class='post_button_form'  style='display:inline;' action='#{vh url}'  #{onsubmit}  method='#{method}'><CMS:AUTHENTICITY_TOKEN/><input class='#{cls}' type='submit' value='#{qvh(button_value)}'/></form>"
         end      
       end
     end
@@ -1544,26 +1619,29 @@ block is non-nil
     end 
     
     def define_media_tag(name, options={}, &block)
-      define_tag(name) do |tag|
+      define_value_tag(name) do |tag|
         file = yield(tag)
 
 	if SiteModule.module_enabled?('media') && file
 	  opts = options.clone.merge(tag.attr.symbolize_keys)
 	  ext = file.extension.to_s.downcase
 
+    @player_idx ||= 0
+    @player_idx += 1
+
 	  case ext
 	  when 'mp3'
 	    media_options = Media::MediaController::AudioOptions.new(opts)
 	    media_options.media_file_id = file.id
 	    media_options.media_file = file
-	    container_id = "#{media_options.media_type}_#{paragraph.id}"
+	    container_id = "#{media_options.media_type}_#{paragraph.id}_#{@player_idx}"
 	    media_options.player.headers(self)
 	    media_options.player.render_player(container_id)
 	  when 'flv'
 	    media_options = Media::MediaController::VideoOptions.new(opts)
 	    media_options.media_file_id = file.id
 	    media_options.media_file = file
-	    container_id = "#{media_options.media_type}_#{paragraph.id}"
+	    container_id = "#{media_options.media_type}_#{paragraph.id}_#{@player_idx}"
 	    media_options.player.headers(self)
 	    media_options.player.render_player(container_id)
 	  when 'mov'
@@ -1571,11 +1649,43 @@ block is non-nil
 	    height = (tag.attr['height'] || 260).to_i
 	    "<embed src='#{file.url}' width='#{width}' height='#{height}' autoplay='false' />"
 	  else
-	    message = tag.single? ? 'Download Media'.t : tag.expand
-	    "<a href='#{med.url}'>#{message}</a>"
+	    message = tag.attr['link'] || file.name
+	    "<a href='#{file.url}'>#{message}</a>"
 	  end
 	end
       end
+    end
+
+    def define_header_tag(name)
+      define_tag(name) do |tag|
+        content = yield(tag) if block_given?
+        content ||= tag.expand unless tag.single?
+        html_include(:head_html, content) unless content.blank?
+      end
+      nil
+    end
+
+    def define_meta_tag(name, options={})
+      define_tag(name) do |tag|
+        content = yield(tag) if block_given?
+        content ||= tag.expand unless tag.single?
+        content ||= tag.attr['content']
+
+        if tag.attr['name']
+          case tag.attr['name'].downcase
+          when 'description'
+            html_include(:meta_description, content)
+          when 'keywords'
+            html_include(:meta_keywords, content)
+          end
+        else
+          opts = options.stringify_keys
+          opts.merge! tag.attr
+          opts['content'] = content
+          html_include(:head_html, tag(:meta, opts))
+        end
+      end
+      nil
     end
 
     # get versions of all the define_... methods without the define
@@ -1596,7 +1706,7 @@ block is non-nil
       yield self
     end
     
-    def define_loop_tag(name,plural=nil) #:nodoc:
+    def define_loop_tag(name,plural=nil,options={}) #:nodoc:
       name_parts = name.split(":")
       name_base = name_parts[-1]
       plural = name_base.pluralize unless plural
@@ -1613,6 +1723,19 @@ block is non-nil
       define_value_tag(name_base + "url")
       define_block_tag(name_base + "link")
       define_value_tag(name_base + "href")
+    end
+
+    def define_user_tags(tag_name,options = {})
+      expansion_tag(tag_name)
+      expansion_tag(tag_name + ":logged_in")
+      define_value_tag(tag_name + ":name")
+      define_value_tag(tag_name + ":username")
+      define_value_tag(tag_name + ":first_name")
+      define_value_tag(tag_name + ":last_name")
+      define_value_tag(tag_name + ":profile")
+      define_value_tag(tag_name + ":profile_name")
+      expansion_tag(tag_name + ":myself")
+      define_image_tag(tag_name + ":img")
     end
 
     def define_user_details_tags(name_base,options={}) #:nodoc:
@@ -1636,13 +1759,17 @@ block is non-nil
 
     end
 
+    def define_publication_filter_form_tags(prefix,arg,publication,options={}) #:nodoc
+      define_form_for_tag(prefix)
+      define_button_tag("#{prefix}:submit",:value => 'Search')
+      define_button_tag("#{prefix}:clear",:value => 'Clear',:name => "clear_#{arg}")      
+      define_publication_filter_fields_tags(prefix,arg,publication,options)
+    end
+
     def define_publication_filter_fields_tags(prefix,arg,publication,options={}) #:nodoc:
 
-      define_form_for_tag(prefix)
       define_expansion_tag("#{prefix}_search")
       
-      define_button_tag("#{prefix}:search",:value => 'Search')
-      define_button_tag("#{prefix}:clear",:value => 'Clear',:name => "clear_#{arg}")      
 
       define_field_fields_tag("#{prefix}:fields")
       publication.content_publication_fields.each do |fld|
@@ -1657,6 +1784,17 @@ block is non-nil
 
         end
       end
+    end
+
+    def define_content_model_fields_value_tags(prefix,content_model_fields,options = {})
+      c = self
+      content_model_fields.each do |fld|
+        fld.site_feature_value_tags(c,prefix,:full,:local => 'entry')
+      end
+    end
+
+    def define_content_model_value_tags(prefix,content_model,options = {})
+      define_content_model_fields_value_tags(prefix,content_model.content_model_fields,options)
     end
     
     def define_user_address_tags(name_base,options={}) #:nodoc:
@@ -1682,7 +1820,7 @@ block is non-nil
           tag_name = fld.content_model_field.feature_tag_name
 
           if fld.field_type=='input'
-            define_form_field_tag "#{prefix}:#{tag_name}" 
+            define_form_field_tag "#{prefix}:#{tag_name}"
             value_tag "#{prefix}:#{tag_name}_value"
             value_tag "#{prefix}:#{tag_name}_display"
             define_form_field_error_tag "#{prefix}:#{tag_name}_error"
@@ -1695,6 +1833,7 @@ block is non-nil
       if publication.form?
         define_form_fields_loop_tag("#{prefix}:field")
         define_value_tag("#{prefix}:field:label")
+	expansion_tag("#{prefix}:field:required")
         define_value_tag("#{prefix}:field:control")
         define_value_tag("#{prefix}:field:error")
       end
@@ -1728,6 +1867,10 @@ block is non-nil
     []
   end
   
+  def form_tag(url="", opts={})
+    tag(:form, {:action => url, :method => 'post'}.merge(opts), true) + "<CMS:AUTHENTICITY_TOKEN/>"
+  end
+
   # Is this feature currently displaying documentation or actually rendering the feature
   def documentation
     @display_documentation ? true : false
@@ -1757,34 +1900,46 @@ block is non-nil
       end      
       
      end 
-     parse_feature(get_feature(feature_name),parser_context)
+     opts = {}
+     opts[:site_feature_id] = data[:site_feature_id] if data.has_key?(:site_feature_id)
+     opts[:custom_feature_body] = data[:custom_feature_body] if data.has_key?(:custom_feature_body)
+     feature = get_feature(feature_name,opts)
+     feature.body_html = single_feature(data[:partial_feature], feature.body_html) unless data[:partial_feature].blank?
+     parse_feature(feature,parser_context)
   else
     documenter = FeatureDocumenter.new(self) do |c|
       yield c
+
+      get_handler_info(:site_feature,feature_name).each do |handler|
+          handler[:class].send("#{feature_name}_feature".to_sym,c,data)
+      end
     end
     documenter.method_list.sort { |a,b| a[1] <=> b[1] }
   end
  end
- 
-#  def webiva_custom_feature(feature_content)
-#    parser_context = FeatureContext.new(self) { |c| yield c }
-#    parse_feature(SiteFeature.new(:body_html => feature_content),parser_context)
-# end
-    
-  
+
+  def single_feature(tag_name, feature_body)
+    if feature_body =~ /(<cms:#{tag_name}.*?\/cms:#{tag_name}>)/m
+      $1
+    else
+      feature_body
+    end
+  end
+
  def get_feature(type,options = {}) #:nodoc:
-    if @para.site_feature && (@para.site_feature.feature_type == :any || @para.site_feature.feature_type == type.to_s)
-      feat = @para.site_feature
-      feat
+    if options.has_key?(:custom_feature_body)
+      SiteFeature.new(:body_html => options[:custom_feature_body], :options => {})
+    elsif options.has_key?(:site_feature_id) && @feature_override = SiteFeature.find_by_id(options[:site_feature_id])
+      @feature_override
+    elsif !options.has_key?(:site_feature_id) && @para.site_feature && (@para.site_feature.feature_type == :any || @para.site_feature.feature_type == type.to_s)
+      @para.site_feature
     else
       if @para.content_publication
         SiteFeature.new(:body_html => @para.content_publication.default_feature, :options => {})
       else
-        if options[:class_name]
-          SiteFeature.new(:body_html => options[:class_name].constantize.send("get_default_feature_#{type}"), :options=> { :default => true})
-        else
-          SiteFeature.new(:body_html => self.class.send("get_default_feature_#{type}"), :options=> { :default => true})
-        end
+        opts = self.class.send("get_feature_options_#{type}")
+        require_css(opts[:default_css_file]) if !Configuration.options.skip_default_feature_css && opts[:default_css_file]
+        SiteFeature.new(:body_html => self.class.send("get_default_feature_#{type}"), :options=> { :default => true } )
       end
     end
   end
@@ -1794,21 +1949,25 @@ block is non-nil
       options = feature.options || {}
         
       SiteTemplate.add_standard_parsing!(context,:values => options[:values],
-                                                 :language => @language, 
+                                                 :language => paragraph.language, 
                                                  :localize_values => options[:localize_values],
                                                  :localize => options[:localize],
                                                  :default_feature => options[:default] )
+
+      context.header_tag('header')
+      context.meta_tag('meta')
+
       feature_parser = Radius::Parser.new(context, :tag_prefix => 'cms')
       begin
         feature_parser.parse(feature.body_html || feature.body)
       rescue  Radius::MissingEndTagError => err
-        if RAILS_ENV=='test' || myself.editor?
+        if RAILS_ENV!='production' || myself.editor?
           "<div><b>#{'Feature Definition Contains an Error'.t}</b><br/>#{err.to_s.t}</div>"
         else
           ""
         end
       rescue Radius::UndefinedTagError => err
-        if  RAILS_ENV=='test' || myself.editor?
+        if  RAILS_ENV!='production' || myself.editor?
           "<div><b>#{'Feature Definition Contains an Undefined tag:'.t}</b>#{err.to_s.t}</div>"
         else
           ""

@@ -1,0 +1,19 @@
+<%
+heading ||= 'Importing...'.t
+-%>
+<div class="cms_form">
+<h2><%= heading  %></h2>
+<div id="import_status"><%= 'Waiting for import to start'.t %></div>
+<div id="import_progress" class="progress_bar">
+<div class="progress" style="width:0px;"></div>
+<div class="progress_indicator"></div>
+</div>
+<div id="import_error" class="error"></div>
+<div id="import_close" style="display:none; text-align:center; padding-top:10px;">
+  <a class="button_link" href="javascript:void(0);" onclick="window.location.reload();"><%= 'Finished'.t %></a>
+</div>
+</div>
+
+<script>
+setTimeout( function() { WebivaImporter.status(); }, 100 );
+</script>

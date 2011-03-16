@@ -4,14 +4,21 @@ require 'yaml'
 
 path = File.dirname(__FILE__)
 
-config = YAML.load_file(path + "/../config/workling.yml")
+config = YAML.load_file(path + "/../config/defaults.yml") || {}
 
 env = ENV['RAILS_ENV'] || 'production'
 
-config = config[env] 
+if !config['starling']
+ if env == 'production'
+  config['starling'] = 'localhost:15151'
+ else
+  config['starling'] = 'localhost:22122'
+ end
+end 
 
-port = config['listens_on'].split(":")[1]
+host = config['starling'].split(":")[0]
+port = config['starling'].split(":")[1]
 
-cmd = "starling -d -P #{path}/../tmp/pids/starling.pid -q  #{path}/../tmp/starling_#{env}/ -p #{port}"
+cmd = "starling -d -P #{path}/../tmp/pids/starling.pid -q  #{path}/../tmp/starling_#{env}/ -h #{host} -p #{port}"
 puts("Running #{env}:" + cmd)
 `#{cmd}`

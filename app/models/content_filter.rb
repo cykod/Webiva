@@ -22,6 +22,7 @@ class ContentFilter < DomainModel
   class << self;
     include ActionView::Helpers::TagHelper
     include ActionView::Helpers::TextHelper
+    include ActionView::Helpers::UrlHelper
   end
 
   @@built_in_filters = [ ['Full HTML','full_html'],
@@ -150,7 +151,7 @@ Options:
   end
 
   def self.comment_filter(code,options={}) #:nodoc:
-    safe_link(RedCloth.new(code,[:lite_mode, :filter_html]).to_html)
+    safe_link(RedCloth.new(code,[:lite_mode, :filter_html]).to_html).gsub(/^([ ]+)/) { "&nbsp;" * $1.length }
   end
 
   def self.safe_link(code)
@@ -173,6 +174,21 @@ Options:
     end
 
     cd
+  end
+
+
+  def self.wysiwyg_replace_images(html) 
+    html = html.gsub(/\/__fs__\/([0-9a-fA-F\/]+)(\:([a-zA-Z_]+)){0,1}/) do |match|
+      size = $3 ? $3 : nil
+      file_id = $1.split("/")[-1].to_i
+      file = DomainFile.find_by_id(file_id)
+      if file
+        file.url(size)
+      else
+        "/images/missing_image.gif"
+      end
+    end
+
   end
 
  def self.html_replace_images(code,image_folder_path,live_url = false) #:nodoc:

@@ -1,0 +1,16 @@
+<% stat_view do |s| -%>
+  <%= s.raw 'Published', @profile_entry.published ? 'Yes'.t : 'No'.t -%>
+  <% if @profile_entry.content_model -%>
+    <% @profile_entry.user_profile_type.display_content_model_fields.each do |fld| %>
+      <% if fld.is_type?('/content/core_field/header')  %>
+        <%= s.header fld.name %>
+      <% else -%>
+        <%= s.raw fld.name , fld.content_display(@profile_entry.content_model_entry, :form) %>  
+      <% end -%>
+    <% end -%>
+  <% end -%>
+<% end -%>
+<br/>
+
+
+

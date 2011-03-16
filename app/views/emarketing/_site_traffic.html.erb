@@ -1,0 +1,18 @@
+<div class="chart_table_wrapper">
+<h1>Site Traffic</h1>
+<% ajax_tabs [ ['Today'], ['Yesterday'], ['This Week'] ], 'Today' do |t| -%>
+
+<% t.tab do -%>
+  <%= render :partial => 'session_traffic', :locals => {:traffic => site_traffic[:today]} %>
+<% end -%>
+
+<% t.tab do -%>
+  <%= render :partial => 'session_traffic', :locals => {:traffic => site_traffic[:yesterday]} %>
+<% end -%>
+
+<% t.tab do -%>
+  <%= render :partial => 'session_traffic', :locals => {:traffic => site_traffic[:this_week]} %>
+<% end -%>
+
+<% end -%>
+</div>

@@ -1,0 +1,38 @@
+<div class='cms_form'>
+
+<% paragraph_options_form_for "Experiment Conversion Options", :experiment do |f| -%>
+   <%= f.select :type, @options.class.type_options, :vertical => true %>
+   <%= f.select :experiment_id, @options.experiment_options, {}, :vertical => true, :onchange => 'updateExperimentJS();' %>
+   <%= f.text_field :delay_for, :vertical => true %>
+
+   <tr class="vertical"><td colspan="2" class="label_vertical"> <label for="experiment_onclick_js"><%= 'Onclick script (readonly)'.t %></label></td></tr>
+   <tr>
+     <td colspan="2" class="data_vertical text_area_control" nowrap="1">
+       <%= text_area_tag :experiment_onclick_js, @options.onclick_js, :cols => 50, :rows => 2, :readonly => true %>
+     </td>
+   </tr>
+
+   <tr class="vertical"><td colspan="2" class="label_vertical"> <label for="experiment_manual_js"><%= 'Manual script (readonly)'.t %></label></td></tr>
+   <tr>
+     <td colspan="2" class="data_vertical text_area_control" nowrap="1">
+       <%= text_area_tag :experiment_manual_js, @options.manual_js, :cols => 50, :rows => 2, :readonly => true %>
+     </td>
+   </tr>
+<% end -%>
+
+<script>
+updateExperimentJS = function() {
+  var experiment_id = $('experiment_experiment_id').value;
+  if(experiment_id) {
+    $('experiment_manual_js').value = "WebivaExperiment.finished(" + experiment_id + ");";
+    $('experiment_onclick_js').value = "onclick=\"return WebivaExperiment.onclick(" + experiment_id + ", this);\"";
+  } else {
+    $('experiment_manual_js').value = "";
+    $('experiment_onclick_js').value = "";
+  }
+};
+
+</script>
+
+</div>
+

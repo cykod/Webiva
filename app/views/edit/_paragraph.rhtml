@@ -8,12 +8,12 @@
   
 <div <% if ['lock','clear'].include?(para.display_type) %>class='cms_framework_feature'<% else %>class='cms_paragraph'<% end %> id='cms_paragraph_<%= para_index %>' style='padding:0px; margin:0px;'>
   <div id="cms_paragraph_menu_<%= para_index %>" class="cms_paragraph_menu" style='padding:0px; margin:0px;'>
-      <img src='<%= theme_src("/images/icons/paragraph.gif") %>' class='cms_paragraph_icon' style='padding:0px;margin:0px;' border='0' onclick='cmsEdit.selectParagraph(<%= para_index %>)' />
+      <img src='<%= theme_src("/images/icons/pageeditor/paragraph.gif") %>' class='cms_paragraph_icon' style='padding:0px;margin:0px;' border='0' onclick='cmsEdit.selectParagraph(<%= para_index %>)' />
       <a href='javascript:void(0);' onclick='cmsEdit.showMenu(<%= para_index %>);' class='cms_ajax_link'>
           <% if para.content_publication_id.to_i > 0 %>
-            <%= @paragraph_hash["#{para.display_type}_#{para.content_publication_id}"][2] %>
+            <%= @paragraph_hash["#{para.display_module}_#{para.display_type}_#{para.content_publication_id}"][2] %>
           <% else %>
-            <%= @paragraph_hash[para.display_type] ? @paragraph_hash[para.display_type][2].t : 'Invalid Paragraph Type' %>
+            <%= @paragraph_hash["#{para.display_module}_#{para.display_type}"] ? @paragraph_hash["#{para.display_module}_#{para.display_type}"][2].t : 'Invalid Paragraph Type' %>
 	  <% end -%>
       </a>
  </div>

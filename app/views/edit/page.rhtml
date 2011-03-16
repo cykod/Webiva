@@ -5,8 +5,6 @@
      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <script> var AUTH_TOKEN = "<%= form_authenticity_token.to_s %>";</script>
     <%= stylesheet_link_tag 'common' %>
-    <%= @output.head %>
-    
     <%= theme_stylesheet_link_tag  "main" %>
     <%= javascript_include_tag :defaults %>
     <%= javascript_include_tag "builder" %>
@@ -21,6 +19,12 @@
     <%= javascript_include_tag "menu.js" %>
     <%= javascript_include_tag "shortcut" %>
 
+    <% if @output.includes[:css] -%>
+        <% @output.includes[:css].uniq.each do |css| -%>
+          <%= stylesheet_link_tag css %>
+        <% end -%>
+    <% end -%>
+    <%= strip_script_tags(@output.head) unless @output.head.blank? -%>
 <script type="text/javascript">
 
 cmsEdit.setText({ deleteText: "<%= jh('Are you sure you want to delete this paragraph?'.t) %>",
@@ -33,7 +37,8 @@ cmsEdit.setText({ deleteText: "<%= jh('Are you sure you want to delete this para
                   defaultStyleText: "<%= jh 'Default Style'.t %>",
                   currentStyleText: "<%= jh 'Current Style:'.t %>",
                   createStyleText: '<%= jh "+ Create new style".t %>',
-                  editStyleText: '<%= jh "Edit".t %>'                   
+                  editStyleText: '<%= jh "Edit".t %>',
+                  copyStyleText: '<%= jh "Copy".t %>'
                    });
 
 
@@ -42,7 +47,7 @@ tinyMCE.init({
           theme_advanced_layout_manager: "SimpleLayout",
           mode : "none",
           valid_elements: "*[*]",
-          plugins: 'table,filemanager,advimage,advlink,paste',
+          plugins: 'table,filemanager,advimage,advlink,paste,autoresize',
           extend_valid_elements: 'a[name|href|target|title|onclick]',
           theme_advanced_buttons1 : "bold,italic,underline,separator,strikethrough,justifyleft,justifycenter,justifyright,justifyfull,bullist,numlist,undo,redo,pastetext,pasteword,anchor,link,unlink,image,<%= 'filemanager,' if  myself.has_role?('editor_files') %>hr,forecolor,backcolor,formatselect,styleselect,tablecontrols,code",
           theme_advanced_blockformats: "p,div,h1,h2,h3,h4,h5,h6,blockquote,dt,dd,code,samp",
@@ -54,7 +59,8 @@ tinyMCE.init({
           content_css: "<%= url_for :controller => 'public', :action => 'stylesheet', :path => [ @output.css_site_template_id, @output.language ], :editor => 1 %>",
           debug : false,
           relative_urls : false,
-	  remove_script_host : true,
+	        remove_script_host : true,
+          gecko_spellcheck : true,
           setupcontent_callback: "mceSetupContent",
           handle_event_callback: "mceEventCallback",
           execcommand_callback: "mceExecCallback",
@@ -91,20 +97,12 @@ tinyMCE.init({
   <input class='cms_button' type='button' value='<%= vh "Cancel".t %>' onclick='cmsEdit.cancelAction();' />
   </div>
 </div>
-<div id='cms_save_as_specific' class='cms_form' style='display:none;'>
-  <h3><%= "Save as a custom version".t %></h3>
-  <form onsubmit='cmsEdit.saveAsSpecificSubmit(this); return false;'>
-    <%= "New Version Number: ".t %><input type='text' size='30' value='' />
-    <input type='submit' value='<%= "Save".t %>'/>
-    <input type='submit' value='<%= "Cancel".t %>' onclick='cmsEdit.closeBox(); return false;'/>
-  </form>
-</div>
 
 <div id="cms_header">
     <div id='cms_info_line'>
     	<div id='cms_page_info'>
 			<%= "Title:".t %> <div style='display:none;' id='page_info_div'></div>   
-      <a id='cms_info_page_title' class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.pageInfo();'><%= @revision.title.to_s.empty? ?  "[No Title]".t : truncate(@revision.title.to_s,30) %></a> &nbsp;&nbsp;
+      <a id='cms_info_page_title' class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.pageInfo();'><%= @revision.title.to_s.empty? ?  "[No Title]".t : truncate(@revision.title.to_s,:length => 30) %></a> &nbsp;&nbsp;
       <span style='position:relative;'>   
 			<%= "Version:".t %> 
       <a id='cms_info_version'  class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.showVersions();'><%= dec(@revision.revision) %></a> &nbsp; &nbsp;
@@ -120,13 +118,13 @@ tinyMCE.init({
       </span>
       <span style='position:relative;'>   
 			<%= "Page:".t %> <a id='cms_info_url'  class='cms_ajax_link' href='javascript:void(0);' onclick='SCMS.popupDiv("cms_select_page");'>&nbsp;
-          <img src='<%= @page.page_type == 'page' ? theme_src('icons/page.gif') : theme_src('icons/framework.gif') %>' align='absmiddle' />
+        <span class='site_node <%= @page.page_type == 'page' ? "page_node" : "framework_modifier" %>'></span>
       <%= @site_node.node_path %>&nbsp;</a> 
       <div id='cms_select_page' class='cms_popup' style='display:none; top:15px; left:10px;'>
         <% @pages.each do |page| -%>
           <% if myself.has_role?('editor_structure') || page[0].page_type == 'page' -%>
           <a href='javascript:void(0);' class='cms_ajax_link<%= '_selected' if @site_node.id == page[0].id %>' onclick='cmsEdit.reloadPage("<%= page[0].page_type %>",<%= page[0].id %>,"<%= page[1] %>");'  id='page_selector_<%= page[0].page_type %>_<%= page[0].id %>'>
-          <img src='<%= page[0].page_type == 'page' ? theme_src('/images/icons/page.gif') : theme_src('/images/icons/framework.gif') %>' align='absmiddle' />
+            <span class='site_node <%= page[0].page_type == 'page' ? "page_node" : "framework_modifier" %>'></span>
             <%= page[0].node_path %> 
          </a>
          <br/>
@@ -165,7 +163,7 @@ tinyMCE.init({
           
           }
       </script>
-      <a href='<%= url_for :controller => '/structure', :action => 'index' %>' id='cms_structure_icon' onclick="return cmsEdit.leavePage('<%= url_for :controller => '/structure', :action => 'index' %>'); " title='<%= "Return to Website".t %>' ><%= theme_image_tag '/images/icons/pageeditor/structure.gif',:align=>'absmiddle' %></a>
+      <a href='<%= url_for :controller => '/structure', :action => 'index', :version => @site_node.site_version_id %>' id='cms_structure_icon' onclick="return cmsEdit.leavePage('<%= url_for :controller => '/structure', :action => 'index' %>'); " title='<%= "Return to Website".t %>' ><%= theme_image_tag '/images/icons/pageeditor/structure.gif',:align=>'absmiddle' %></a>
       &nbsp;|&nbsp;
       <% if myself.has_role?('editor_files') %>
       <%= link_to image_tag(theme_src("/images/icons/pageeditor/files_and_images.gif"),:align=>'absmiddle', :title => "Show File Manager".t ) , { :controller => 'file', :action => 'popup' , :popup_type => 'select', :path => 0 }, :popup => ['file_manager', 'height=400,width=800,scrollbars,resizeable' ] %>
@@ -190,17 +188,17 @@ tinyMCE.init({
       
     </div>
     <div style='float:right; padding-top:3px; position:relative;' >
-      <a id='cms_goto_page' href='<%= @goto_page_override_url || @page.node_path %>'  onclick='return cmsEdit.gotoPage();' ><%= "Goto Page".t %></a>
+      <a id='cms_goto_page' href='<%= @goto_page_override_url || @page.node_path %>'  onclick='return cmsEdit.gotoPage();' ><%= "Go to Page".t %></a>
       |      
       <input type='submit' id='cms_save_changes' value='<%= vh "Save Changes".t %>' disabled='true' onclick='cmsEdit.saveChanges(); return false;' />    
       <input type='submit' id='cms_save_as_button' value='<%= vh "Save As...".t %>' onclick='cmsEdit.saveAs(); return false;' />
+      <input type='submit' id='cms_preview_button' value='<%= vh "Preview".t %>' onclick='cmsEdit.previewChanges(); return false;' />
       <div id='cms_save_as' onmouseover='delayedHideShow(this)' onmouseout='delayedHide(this);' class='cms_popup' style='display:none; right:1px; top:25px; <%= Locale.language_code == 'fr' ? 'width:450px;' : 'width:200px;' %> '>
-        <a class='cms_ajax_link'  href='javascript:void(0);' onclick='cmsEdit.saveAsSend("minor")'><%= "Save As a New Minor Version".t %></a><br/>
-        <a class='cms_ajax_link'  href='javascript:void(0);' onclick='cmsEdit.saveAsSend("major")'><%= "Save As a New Major Version".t %></a><br/>
-        <a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.saveAsSpecific()'><%= "Save As a Custom Version".t %></a><br/>
+        <a class='cms_ajax_link'  href='javascript:void(0);' onclick='cmsEdit.changeVersion("minor")'><%= "Save As a New Minor Version".t %></a><br/>
+        <a class='cms_ajax_link'  href='javascript:void(0);' onclick='cmsEdit.changeVersion("major")'><%= "Save As a New Major Version".t %></a><br/>
       </div>    
         <a href='javascript:void(0);' onclick='cmsEdit.pageMenu();'>
-      <img src='<%= theme_src("framework/page_title_menu_icon.gif") %>' width='24' height='24' align='absmiddle'/>
+      <img src='<%= theme_src("icons/pageeditor/page_title_menu_icon.gif") %>' width='24' height='24' align='absmiddle'/>
       <div id='cms_page_menu' class='cms_popup' style='display:none; right:0px; '>
           <a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.deletePopup("edit");' ><%= "Delete this Edit".t %></a><br/>
           <a class='cms_ajax_link'  href='javascript:void(0);' onclick='cmsEdit.deletePopup("revision");'><%= "Delete this Version".t %></a><br/>

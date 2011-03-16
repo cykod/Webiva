@@ -21,18 +21,15 @@ class Editor::MenuFeature < ParagraphFeature #:nodoc:all
                       }
                     ] },
   :default_feature => <<-FEATURE
-<div>
+<ul class='menu'>
   <cms:section>
-    <div class='menu_item'>
-    <cms:link selected_class='selected'><cms:title/></cms:link>
-    <cms:selected>
-      <cms:section>
-        &nbsp;&nbsp;<cms:link selected_class='selected'><cms:title/></cms:link><br/>
-      </cms:section>
-    </cms:selected>
-    </div>
+    <li><cms:link selected_class='selected'><cms:title/></cms:link>
+    <cms:menu><ul> <cms:section>
+        <li><cms:link selected_class='selected'><cms:title/></cms:link></li>
+     </cms:section></ul></cms:menu>
+     </li>
   </cms:section>
-</div>
+</ul>
   FEATURE
   
    def item_selected(item,url)
@@ -125,7 +122,8 @@ class Editor::MenuFeature < ParagraphFeature #:nodoc:all
                 icon = tag.locals.data[:rev].icon
               end
               
-              if rollover_type = tag.attr.delete('rollover') 
+              if rollover_type = attr.delete('rollover') 
+                require_js('menu') unless @include_menu_js
                 @include_menu_js = true
                 if %w(hot disabled selected).include?(rollover_type)
                   rollover_icon = tag.locals.data[:rev].send('icon_' + rollover_type )
@@ -144,6 +142,7 @@ class Editor::MenuFeature < ParagraphFeature #:nodoc:all
 
  
           c.define_tag 'section:popup' do |tag|
+            require_js('menu') unless @include_menu_js
             @include_menu_js = true
             opts = []
             opts << "offset_x: #{jvh tag.attr['offset_x']}" if tag.attr['offset_x']
@@ -278,6 +277,15 @@ FEATURE
   end
 
 
+  feature :page_title, :default_feature => <<-FEATURE
+   <h1><cms:title/></h1>
+FEATURE
+
+  def page_title_feature(data)
+    webiva_feature('page_title') do |c|
+      c.h_tag('title') { |t| data[:title] }
+    end
+  end
 
 
 

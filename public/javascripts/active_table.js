@@ -1,4 +1,14 @@
-ActiveTable = {
+/* Make this JS library independant during the jquery transition */
+
+ActiveTable = function() {
+ var $ = function(e) { return document.getElementById(e); } ;
+ var each = function(collection,callback) {
+   var cnt = collection.length;
+   for(i = 0;i < cnt;i++) {
+     callback.call(this,collection[i]);
+   }
+ };
+ return {
   header: function(table_name,field) {
   
     var value_elem = $(table_name + '_' + field + '_searching');
@@ -7,7 +17,7 @@ ActiveTable = {
     
     var elems = $(table_name + "_search_form").select('span');
     var search_count = new Number($(table_name + '_search_cnt').value);
-    elems.each(function(elm) {
+    each(elems,function(elm) {
       if(sel_elem == elm) {
         value_elem.value = '1';
         
@@ -31,7 +41,7 @@ ActiveTable = {
 
   checkAll: function(table_name,check) {
      var elements = $(table_name + '_update_form').getInputs();
-     elements.each(function(elem) {
+     each(elements,function(elem) {
        if(elem.type == 'checkbox' && elem.className == 'entry_checkbox')
         elem.checked = check
         if($(elem.id + "_row"))
@@ -69,7 +79,7 @@ ActiveTable = {
   countChecked: function(table_name) {
     var count=0;
     var elements = $(table_name + '_update_form').getInputs();
-     elements.each(function(elem) {
+     each(elements,function(elem) {
        if(elem.type == 'checkbox' && elem.className == 'entry_checkbox' && elem.checked)
         count++;
      });
@@ -80,7 +90,7 @@ ActiveTable = {
     var nums = $A([ 5,10,25,50,100,250,500 ])
     var arr = [];
     last = 1;
-    nums.each(function(num) {
+    each(nums,function(num) {
         if(num < 10 || num < total_count || last) {
            if(num > total_count) {
               arr.push(["Show all","js","ActiveTable.perPageSize(" + num + ",'" + table_name + "','" + url + "','"  + update_element + "');"]);
@@ -162,4 +172,6 @@ ActiveTable = {
     tables[0].addClassName('table_highlight');
 
   }
-};
+  } 
+  
+}();

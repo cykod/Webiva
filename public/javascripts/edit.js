@@ -64,14 +64,14 @@ function mceEventCallback(e) {
   if(e.type =='focus') {
      cmsEdit.unselectParagraph();
   }
-  mceResizeEditorBox(tinyMCE.activeEditor);
+  //mceResizeEditorBox(tinyMCE.activeEditor);
   //tinyMCE.selectedInstance.resizeToContent();
   return true;
 }
 
 function mceInitInstance(editor) {
   //editor.resizeToContent();
-  mceResizeEditorBox(editor);
+ // mceResizeEditorBox(editor);
 
 }
 
@@ -112,7 +112,8 @@ var cmsEdit = {
   setPageInfo: function(page_type,page_id,revision_id,lang,active,template_id,page_url)  {
     if((cmsEdit.previousPageType != page_type) || (cmsEdit.previousPageId != page_id)) {
         cmsEdit.pageUrl = page_url;
-        $('cms_goto_page').href = cmsEdit.pageUrl;
+
+      if(cmsEdit.pageUrl == 'Domain') cmsEdit.pageUrl = '/';
     }
     cmsEdit.pageType= page_type;
     cmsEdit.pageId = page_id;
@@ -124,6 +125,7 @@ var cmsEdit = {
     }
     cmsEdit.previousPageType = page_type;
     cmsEdit.previousPageId = page_id;
+    $('cms_goto_page').href = cmsEdit.pageUrl;
   },
 
   setParagraphIndex: function(para_index) {
@@ -326,7 +328,6 @@ var cmsEdit = {
       }
       else {
         return true;
-
       }
     },
 
@@ -686,18 +687,18 @@ var cmsEdit = {
 
   },
 
-  saveAsSend: function(version) {
+  saveAsSend: function(version, name) {
     cmsEdit.hideSaveAs();
     cmsEdit.pageModified=false;
     $('cms_save_changes').disabled = true;
-    cmsEdit.sendChanges('save_as',"version=" + version);
+    var params = "version=" + version
+    if(name) { params += "&name=" + name; }
+    cmsEdit.sendChanges('save_as',params);
   },
 
   sendChanges: function(action,params,cleanup,callback) {
 
     tinyMCE.triggerSave();
-
-
 
     var update_params = cmsEdit._getParagraphOrder();
     update_params += cmsEdit._getParagraphData();
@@ -723,6 +724,15 @@ var cmsEdit = {
                      });
 
 
+  },
+
+  previewChanges: function() {
+    cmsEdit.sendChanges('preview');
+  },
+
+  openPreviewWindow: function() {
+    var url = cmsEdit.editURL + 'goto' + "/" + cmsEdit.pageType + "/" + cmsEdit.pageId + "/" + cmsEdit.revisionId + '?url=' + escape(cmsEdit.pageUrl);
+    openWindow(url, 'edit_preview', null, null, 'yes', 'yes');
   },
 
   _getParagraphOrder: function() {
@@ -934,16 +944,11 @@ var cmsEdit = {
     SCMS.hidePopupDiv('cms_save_as');
   },
 
-  saveAsSpecific: function() {
-    SCMS.hidePopupDiv('cms_save_as');
-    SCMS.setKeyHandler(null);
-    RedBox.showInline('cms_save_as_specific');
-  },
-
   saveAsSpecificSubmit: function(frm) {
     // Get Value
-    var elem = Form.findFirstElement(frm);
+    var elem = frm.version;
     var value = elem.value;
+    var name = frm.name.value;
 
     regexp = /^[0-9]*\.[0-9]{1,2}$/
     if(!regexp.test(value)) {
@@ -952,7 +957,7 @@ var cmsEdit = {
     }
     else {
       cmsEdit.closeBox();
-      cmsEdit.saveAsSend(value);
+      cmsEdit.saveAsSend(value, name);
     }
 
 
@@ -999,7 +1004,9 @@ var cmsEdit = {
               style_txt =  cmsEdit.txt.get('selectStyleText') + feature[0];
 
             txt += "<a href='javascript:void(0);' onclick='cClick(); cmsEdit.selectParagraphStyle(\"" + para_index+ "\"," + feature[1] + ");'>" + style_txt  + "</a>";
-            txt += " (<a href='javascript:void(0);' onclick='cClick(); cmsEdit.editParagraphStyle(\"" + para_index+ "\"," + feature[1] + ");'>" +  cmsEdit.txt.get('editStyleText') +  "</a>) <br/>";
+            txt += " (<a href='javascript:void(0);' onclick='cClick(); cmsEdit.editParagraphStyle(\"" + para_index+ "\"," + feature[1] + ");'>" +  cmsEdit.txt.get('editStyleText') +  "</a>)";
+            txt += " (<a href='javascript:void(0);' onclick='cClick(); cmsEdit.copyParagraphStyle(\"" + para_index+ "\"," + feature[1] + ");'>" +  cmsEdit.txt.get('copyStyleText') +  "</a>) <br/>";
+
             });
           });
 
@@ -1063,9 +1070,9 @@ var cmsEdit = {
                       paragraph_id: para.paragraph_id,
                       feature_id: feature_id });
     cmsEdit.pageChanged();
-    new Ajax.Updater( 'cms_paragraph_' + para_index,
-                      cmsEdit.url('set_paragraph_feature'),
+    new Ajax.Request( cmsEdit.url('set_paragraph_feature'),
                      { parameters: params.toQueryString(),
+                       onComplete: function(req) { Element.replace('cms_paragraph_' + para_index, req.responseText); },
                        evalScripts:true
                      });
     cClick();
@@ -1076,10 +1083,21 @@ var cmsEdit = {
     var params = $H({ para_index: para_index,
                       paragraph_id: para.paragraph_id,
                       feature_id: feature_id });
-    cmsEdit.styleWin = openWindow(cmsEdit.templateUrl('popup_feature',feature_id) + "?" + Object.toQueryString(params),'EditStyle' + cmsEdit.revisionId,900,600,'yes','yes');
+    cmsEdit.styleWin = openWindow(cmsEdit.templateUrl('popup_feature',feature_id) + "?" + Object.toQueryString(params),'EditStyle' + cmsEdit.revisionId,900,650,'yes','yes');
       cmsEdit.styleWin.focus();
     cClick();
   },
+
+ copyParagraphStyle: function(para_index,feature_id) {
+    var para = cmsEdit.paragraphs.get(para_index);
+    var params = $H({ para_index: para_index,
+                      paragraph_id: para.paragraph_id,
+                      copy_feature_id: feature_id });
+    cmsEdit.styleWin = openWindow(cmsEdit.templateUrl('popup_feature',feature_id) + "?" + Object.toQueryString(params),'EditStyle' + cmsEdit.revisionId,900,650,'yes','yes');
+      cmsEdit.styleWin.focus();
+    cClick();
+  },
+
 
 
   /* Modification History */
@@ -1353,9 +1371,11 @@ var cmsEdit = {
         $('cms_paragraph_display_'+elem_id).innerHTML = "<div class='cms_paragraph_editor_cover'></div>" + html;
 
       cmsEdit.pageChanged();
-    }
+  },
 
-
+  changeVersion: function(version) {
+    SCMS.remoteOverlay(cmsEdit.editURL + 'change_version' + "/" + cmsEdit.pageType + "/" + cmsEdit.pageId + "/" + cmsEdit.revisionId + '?version=' + version);
+  }
 
 }
 

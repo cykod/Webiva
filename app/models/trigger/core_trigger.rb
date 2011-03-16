@@ -22,6 +22,14 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
         { :name => :referrer,
           :description => 'Set the user referrer',
           :options_partial => '/triggered_action/referrer'
+        },
+        { :name => :post_back,
+          :description => 'Setup a Post Back',
+          :options_partial => '/triggered_action/post_back'
+        },
+        { :name => :experiment,
+          :description => 'Experiment conversion',
+          :options_partial => '/triggered_action/experiment'
         }
       ]
 
@@ -56,13 +64,13 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
     
     def perform(action_data={},user = nil)
     
-      data_vars = action_data.is_a?(DomainModel) ? action_data.attributes.symbolize_keys :  (action_data.is_a?(Hash) ? action_data : {})
-      data_vars = data_vars.symbolize_keys
+      data_vars = action_data.is_a?(DomainModel) ? action_data.triggered_attributes :  (action_data.is_a?(Hash) ? action_data : (action_data.respond_to?(:to_hash) ? action_data.to_hash : {}))
+      data_vars.symbolize_keys!
     
       # Find out who we are emailing
       if options.email_to == 'autorespond'
         begin
-          emails = [ action_data.is_a?(DomainModel) ? (action_data.attributes['email'] || action_data.attributes['email_address']) : (action_data['email']  || action_data['email_address']) ]
+          emails = user && ! user.email.blank? ? [user.email] : [(data_vars[:email]  || data_vars[:email_address])]
         rescue
           return false
         end
@@ -85,7 +93,7 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
           body += "<br/>" + publication.render_html(action_data)
         end
       elsif options.include_data == 'y'
-        action_data = action_data.attributes if action_data.is_a?(DomainModel)
+        action_data = action_data.triggered_attributes if action_data.is_a?(DomainModel)
         if action_data.is_a?(Hash)
           body += "<br/><table>"
           action_data.each do |key,val|
@@ -94,16 +102,18 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
           body += "</table>"
         end
       end
-      
+
+      emails.reject! { |e| e.blank? }
+
       if options.send_type == 'message'
         msg_options = { :html => body }
-        msg_options[:from] = options.message_from unless options.message_from.blank?
+        msg_options[:from] = DomainModel.variable_replace(options.message_from,data_vars) unless options.message_from.blank?
         
         emails.each do |email|
           MailTemplateMailer.deliver_message_to_address(email,options.subject,msg_options)
         end    
       elsif options.send_type == 'template'
-        action_data = action_data.attributes if action_data.is_a?(DomainModel)
+        action_data = action_data.triggered_attributes if action_data.is_a?(DomainModel)
         variables = action_data.clone
         variables.stringify_keys!
         variables['DATA'] = body
@@ -152,8 +162,63 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
     end    
   end
   
-  
-  
-      
+  class PostBackTrigger < Trigger::TriggerBase
+    class PostBackOptions < HashModel
+      attributes :url => nil, :format => 'params'
+
+      validates_presence_of :url
+      validates_presence_of :format
+      validates_urlness_of :url
+    end
+
+    options 'Post Back Options', PostBackOptions
+
+    def perform(data={}, user=nil)
+      data = data.attributes if data.is_a?(DomainModel)
+      data['user'] = user.attributes.slice('id', 'first_name', 'last_name', 'email') if user && user.id
+      body = nil
+      content_type = nil
+      case options.format
+      when 'xml'
+        body = data.to_xml
+        content_type = 'application/xml'
+      when 'json'
+        body = data.to_json
+        content_type = 'application/json'
+      else
+        body = data.to_params
+        content_type = 'application/x-www-form-urlencoded'
+      end
+
+      uri = URI.parse(options.url)
+      Net::HTTP.start(uri.host, uri.port) do |http|
+        path = uri.path
+        path += '?' + uri.query if uri.query
+        http.request_post(path, body, 'Content-Type' => content_type)
+      end
+    end
+  end
+
+  class ExperimentTrigger < Trigger::TriggerBase
+    class ExperimentOptions < HashModel
+      attributes :experiment_id => nil
+      validates_presence_of :experiment_id
+
+      options_form(
+                   fld(:experiment_id, :select, :options => :experiment_options)
+                   )
+
+      def experiment_options
+        Experiment.select_options_with_nil
+      end
+    end
+
+    options 'Experiment Options', ExperimentOptions
+
+    def perform(data={}, user=nil)
+      return unless self.session
+      Experiment.success! options.experiment_id, self.session
+    end
+  end
 end
 

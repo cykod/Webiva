@@ -1,0 +1,15 @@
+<script>
+function disableSubmit()
+{
+  $j('#wizard_commit_button').after('<span><%= "Please wait..".t %></span>');
+  $j('#wizard_cancel_button').hide();
+  $j('#wizard_commit_button').hide();
+
+}
+</script>
+<% admin_form_for :wizard, the_wizard, :html => {:onsubmit => "disableSubmit(); return true;"} do |f|  -%>
+  <%= hidden_field_tag "version", version.id %>
+  <%= render :partial => the_wizard.options_partial, :locals => the_wizard.options_locals(f) -%>
+  <%= f.spacer %>
+  <%= f.cancel_submit_buttons %>
+<% end -%>

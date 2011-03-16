@@ -32,6 +32,7 @@ describe Feedback::CommentsFeature, :type => :view do
       @test_class.id = 100
 
       @test_comment = Comment.create :end_user => @user, :comment => 'Test Comment', :target_type => 'TestTarget', :target_id => @test_class.id
+      @test_comment.id.should_not be_nil
 
       @feature = build_feature('/feedback/comments_feature')
 

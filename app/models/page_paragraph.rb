@@ -27,7 +27,9 @@ class PageParagraph < DomainModel
   belongs_to :content_publication
 
 
-  
+  named_scope :live_paragraphs, {:joins => :page_revision, :conditions => 'page_revisions.active=1 AND page_revisions.revision_type="real"'}
+  named_scope :with_feature, lambda { |display_module, display_type| {:conditions => ['display_module = ? and display_type = ?', display_module, display_type]} }
+
   # PageParagraph file instance support is in PageRevisions
   # process_file_instance :display_body, :display_body_html
   apply_content_filter(:display_body =>  :display_body_html) do |para|
@@ -69,7 +71,7 @@ class PageParagraph < DomainModel
 #  validates_presence_of :page_revision
 
   def language
-    @language || self.page_revision.language
+    @language || (self.page_revision ? self.page_revision.language : Configuration.languages[0] )
   end
   
   def before_create
@@ -169,6 +171,24 @@ class PageParagraph < DomainModel
   def display_module_identifier
       self.display_module.gsub("/","_")
   end
+
+  def add_paragraph_input!(input_name,other_para,conn_type,identifier)
+    self.connections ||= { }
+    self.connections[:inputs] ||= { }
+    self.connections[:inputs][input_name.to_sym] = [ other_para.identity_hash, conn_type.to_sym, identifier.to_sym]
+    
+    other_para.connections ||= { }
+    other_para.connections[:outputs] ||= []
+    other_para.connections[:outputs] << [ identifier.to_sym, self.identity_hash, input_name.to_sym ]
+    other_para.save
+    self.save
+  end
+
+  def add_page_input(input_name,conn_type,identifier)
+    self.connections ||= { }
+    self.connections[:inputs] ||= { }
+    self.connections[:inputs][input_name.to_sym] = [ "0", conn_type.to_sym, identifier.to_sym]
+  end
   
   def page_connection(name)
     @page_connections  ||= {}
@@ -186,6 +206,8 @@ class PageParagraph < DomainModel
   def self.thaw(atr)
     para_id = atr.delete('id') || atr.delete(:id)
     para = PageParagraph.new(atr)
+    para.connections.symbolize_keys! if para.connections
+    para.connections.each { |key,hsh| hsh.symbolize_keys! if hsh.is_a?(Hash) } if para.connections
     para.id = para_id
     para
   end
@@ -222,11 +244,25 @@ class PageParagraph < DomainModel
     end
   end
 
+  def fix_paragraph_options(from_version, to_version, opts={})
+    options = paragraph_options
+    return unless options
+    if options.fix_page_options(to_version)
+      self.data = options.to_h(:skip => true)
+      self.save
+    end
+  end
+
   private
 
   def link_canonical_content_type!(opts,opt,override)
     container_type = opt[1]
-    container_id = opts.send(opt[2])
+
+    if opt[2] == :content_model_id
+      container_id = self.content_publication.content_model_id
+    else
+      container_id = opts.send(opt[2])
+    end
 
     content_type  = ContentType.fetch(container_type,container_id)
     if content_type

@@ -7,10 +7,20 @@ module FileHelper
       %w(id file_type width height processor processor_status url).each { |elm| file_info[elm] = file.send(elm) }
       file_info['short_name'] = file.name
       file_info['name'] = file.file_path
-      file_info['thumb_url'] = file.url(:thumb)
+      file_info['thumb_url'] = file.thumbnail_url(theme,:thumb)
       file_info['editor_url'] = file.editor_url
+      file_info['thumb_editor_url'] = file.editor_url(:thumb)
       file_info['private_file'] = file.private?
     end
+  end
+
+  def filemanager_details(file)
+     details = []
+       details << "#{file.width}x#{file.height}" if file.image? 
+       details << number_to_human_size(file.file_size) if file.file_size
+       details << "Created " + file.created_at.localize(DEFAULT_DATETIME_FORMAT.t) if file.created_at 
+       details.join(", ")
+
   end
 
   def filemanager_register_details(file)
@@ -41,12 +51,12 @@ module FileHelper
 
 
   def file_manager_image_tag(file,size,icon_size)
-    url = file.thumbnail_url(theme,size)
+    url = file.thumbnail_url(theme,size,true)
     thumb_size = file.thumbnail_thumb_size(size,icon_size)
     tag("img",
         :title => file.name,
-        :src => url + "?" + file.stored_at.to_i.to_s,
-        :align => 'middle',
+        :src => url,
+        :align => 'absmiddle',
         :id => "thumb_image_#{file.id}",
         :width => thumb_size[0],
         :height => thumb_size[1]

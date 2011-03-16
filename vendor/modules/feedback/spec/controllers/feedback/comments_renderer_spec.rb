@@ -41,6 +41,33 @@ describe Feedback::CommentsRenderer, :type => :controller do
     end
   end
 
+  it "should be able to add a comment with logged in user and set user name" do
+    mock_user
+    @myself.first_name = nil
+    @myself.last_name = nil
+    @myself.full_name = nil
+    @myself.save
+
+    options = {}
+    inputs = @test_inputs
+    @rnd = generate_comments_renderer(options, inputs)
+
+    assert_difference 'Comment.count', 1 do
+      renderer_post @rnd, {"comment_#{@rnd.paragraph.id}" => { :name => 'Test Name', :comment => 'Test Comment' }}
+
+      @comment = Comment.find(:last)
+      @comment.should_not be_nil
+      @comment.comment.should == 'Test Comment'
+      @comment.target_type.should == 'TestTarget'
+      @comment.target_id.should == @test_class.id
+    end
+
+    @myself.reload
+    @myself.first_name.should == 'Test'
+    @myself.last_name.should == 'Name'
+    @myself.full_name.should == 'Test Name'
+  end
+
   it "should be able to add a comment with logged in user when linked to a page" do
     mock_user
 
@@ -48,8 +75,8 @@ describe Feedback::CommentsRenderer, :type => :controller do
     inputs = {}
     @rnd = generate_comments_renderer(options, inputs)
 
-    @page_revision = ''
-    @rnd.paragraph.should_receive(:page_revision).twice().and_return(@page_revision)
+    @page_revision = PageRevision.new
+    @rnd.paragraph.should_receive(:page_revision).any_number_of_times.and_return(@page_revision)
     @page_revision.should_receive(:revision_container_type).and_return('TestTarget')
     @page_revision.should_receive(:revision_container_id).and_return(15)
 
@@ -86,8 +113,8 @@ describe Feedback::CommentsRenderer, :type => :controller do
     inputs = {}
     @rnd = generate_comments_renderer(options, inputs)
 
-    @page_revision = ''
-    @rnd.paragraph.should_receive(:page_revision).twice().and_return(@page_revision)
+    @page_revision = PageRevision.new
+    @rnd.paragraph.should_receive(:page_revision).any_number_of_times.and_return(@page_revision)
     @page_revision.should_receive(:revision_container_type).and_return('TestTarget')
     @page_revision.should_receive(:revision_container_id).and_return(15)
 

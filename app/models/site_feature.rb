@@ -37,7 +37,7 @@ class SiteFeature < DomainModel
 
   def self.options(type)
     [ [ 'Default'.t, '' ] ] +
-    self.find(:all, :conditions => ['feature_type=?',type]).collect do |feat|
+    self.find(:all, :conditions => ['feature_type=?',type.to_s]).collect do |feat|
       [ feat.name, feat.id ]
     end 
   end
@@ -82,16 +82,21 @@ class SiteFeature < DomainModel
   
 
   def self.single_feature_type_hash(site_template_id,feature_type,options = {})
-   features = []
-    SiteFeature.find(:all,:select => 'id,site_template_id,name,feature_type',
-        :conditions => { :site_template_id => site_template_id, :feature_type => feature_type }).map do |feature|
+    features = []
+    feature_type = feature_type.to_s
+    if site_template_id 
+      conditions = { :site_template_id => site_template_id, :feature_type => feature_type }
+    else
+      conditions = [ 'site_template_id IS NULL and feature_type = ?',feature_type ]
+    end
+    SiteFeature.find(:all,:select => 'id,site_template_id,name,feature_type',:conditions => conditions).map do |feature|
       features << [ feature.name, feature.id ]
     end
-    
-    if options[:include_all]
+
+    if options[:include_all] && site_template_id
       features +=  self.single_feature_type_hash(nil,feature_type)
     end
-    
+
     features
   end
   
@@ -110,4 +115,29 @@ class SiteFeature < DomainModel
     css = override ?  replace_images(self.css) :  self.rendered_css
     Util::CssParser.parse_full(css)
   end  
+
+  def export_to_bundle(bundler)
+    details = self.feature_details
+    return nil if !details || details.size == 4 # ContentPublication feature
+
+    module_name = details[2].to_s.underscore.split('/')[0]
+    (bundler.modules << module_name) if module_name != 'editor'
+    bundler.add_folder(self.image_folder) if self.image_folder
+    self.attributes.slice('name', 'description', 'feature_type', 'body', 'options', 'css', 'category', 'archived', 'image_folder_id', 'preprocessor')
+  end
+
+  def self.feature_hash
+    paragraph_list = ParagraphController.get_editor_paragraphs + SiteModule.get_module_paragraphs.values
+    output = {}
+
+    paragraph_list.each do |para_list|
+      para_list[2].each do |paragraph|
+        next unless paragraph[4][0]
+        output[paragraph[4][0]] ||= []
+        output[paragraph[4][0]] << [ paragraph[3], paragraph[1] ]
+      end
+    end
+
+    output
+  end
 end

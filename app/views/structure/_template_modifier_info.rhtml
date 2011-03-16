@@ -1,25 +1,38 @@
+
+
+<% if permit?('editor_structure') %>
+<ul class='page_detail_buttons'>
+  <li class='icon'><a href='javascript:void(0);'  title='<%= vh 'Delete Theme Modifier'.t%>' onclick='StructureEditor.deleteModifier("mod_<%= @mod.id %>");'><%= image_tag(theme_src('icons/header_actions/delete_page.png')) %></a></li>
+</ul>
+<% end -%>
+
+<h1 class='inpage'><%= "Theme Modifier".t %>
+<% if @frm.template_id %>
+(<a class='small' href='<%= url_for :controller => '/templates', :action => 'edit', :path => @frm.template_id %>'><%= "Edit Theme".t %></a>)
+<% end -%>
+</h1>
+
+<div class='tree_detail_body'>
 <% if @updated -%>
-  <div class='flash_notice'>
-    <%= "Template Information Saved".t -%>
+  <div class='inpage_flash_notice'>
+    <%= "Theme Information Saved".t -%>
   </div>
 <% end -%>
 
-<b> <%= "Template Modifier".t %> </b> 
-<% if @frm.template_id %>
-(<a href='<%= url_for :controller => '/templates', :action => 'edit', :path => @frm.template_id %>'><%= "Edit Template".t %></a>)<br/>
-<% end -%>
-</div>
-<br/>
+
 <% remote_cms_form_for :mod, @frm, 
    :update => 'element_info', 
    :method => 'post', 
    :url =>  { :action => 'element_info', :node_type => 'mod', :node_id => @mod.id  },
    :html => { :class => 'admin_form' } do  |f| -%>
 
-<%= f.radio_buttons :template_id, @site_templates.collect { |tpl| [ tpl.name, tpl.id ] }, :label => 'Selected Template' ,:default => 'None', :vertical => 'true', :separator => '<br/>' %>
-<%= f.radio_buttons :clear_frameworks, [ ['Yes'.t,'yes'], ['No'.t,'no' ] ], :label => 'Clear Framework Elements' ,:default => 'No', :vertical => 'true', :separator => '&nbsp;' %>  
-
+<%= f.radio_buttons :template_id, @site_templates.collect { |tpl| [ tpl.name, tpl.id ] }, :label => 'Selected Theme' ,:default => 'None', :vertical => 'true', :separator => '<br/>' %>
+<%= f.spacer %>
+<%= f.radio_buttons :clear_frameworks, [ ['Yes'.t,'yes'], ['No'.t,'no' ] ], :label => 'Clear Framework Elements' ,:default => 'No', :vertical => 'true', :separator => '&nbsp;',
+  :description => 'Setting this to yes will clear all the framework \nelements (such as menu\'s) on pages affected by this modifier' %>  
+  <%= f.spacer %>
 <%= f.submit_tag 'Submit' %>
 <% end -%>
+</div>
 
 </div>

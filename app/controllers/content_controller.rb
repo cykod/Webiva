@@ -9,12 +9,15 @@ class ContentController < ModuleController #:nodoc: all
 
   layout 'manage'
   
-  permit 'editor_content', :except => 'index'
-  permit 'editor_content_configure', :except => [ 'index','custom','view','add_tags_form','remove_tags_form','edit_entry','entry' ]
+  permit 'editor_content_configure', :except => [ 'index','custom','view','add_tags_form','remove_tags_form','edit_entry','entry', 'active_table' ]
 
+  permit 'editor_content', :except => 'index'
 
   before_filter :check_view_permission, :only => [ 'view', 'entry' ]
   before_filter :check_edit_permission, :only => [ 'add_tags_form','remove_tags_form','edit_entry' ]
+
+  cms_admin_paths 'content',
+    'Content' => { :action =>'index'}
   
   register_handler :content, :fields, "Content::CoreField"
   register_handler :content, :publication, "Content::CorePublication"
@@ -25,7 +28,22 @@ class ContentController < ModuleController #:nodoc: all
   register_handler :content, :feature, "Content::CoreFeature::KeywordGenerator"
   
   register_handler :trigger, :actions, "Trigger::CoreTrigger"
-  
+
+  register_handler :user_segment, :fields, 'EndUserSegmentField'
+  register_handler :user_segment, :fields, 'EndUserActionSegmentField'
+  register_handler :user_segment, :fields, 'EndUserCacheSegmentField'
+  register_handler :user_segment, :fields, 'EndUserTagSegmentField'
+  register_handler :user_segment, :fields, 'UserSubscriptionEntrySegmentField'
+  register_handler :user_segment, :fields, 'EndUserTokenSegmentField'
+  register_handler :user_segment, :fields, 'DomainLogEntrySegmentField'
+
+  register_handler :structure, :wizard, 'Wizards::SimpleSite'
+  register_handler :structure, :wizard, 'Wizards::MembersSetup'
+
+  register_handler :chart, :traffic, 'ContentNode'
+  register_handler :chart, :traffic, 'SiteNode'
+  register_handler :chart, :traffic, 'DomainLogReferrer'
+
   def index
     @content_models,@content_actions = CmsController.get_content_models_and_actions
 
@@ -47,7 +65,7 @@ class ContentController < ModuleController #:nodoc: all
       end
     end
     
-    cms_page_info('Content','content') 
+    cms_page_path [],'Content'
   end
 
   def custom
@@ -263,7 +281,7 @@ class ContentController < ModuleController #:nodoc: all
     cms_page_info([ [ 'Content', url_for(:action => 'index') ] , ['Custom Content', url_for(:action => 'custom' ) ], 'Create a Content Model' ],'content')
     
     
-    if request.post?
+    if request.post? && params[:commit]
       @content_model.customized =  true
       @content_model.model_preset = 'custom'
       if @content_model.save
@@ -293,6 +311,8 @@ class ContentController < ModuleController #:nodoc: all
           return
         end
       end
+    elsif request.post? 
+      redirect_to :action => 'custom'
     end
   
   end
@@ -328,7 +348,7 @@ class ContentController < ModuleController #:nodoc: all
   
     @content_model = ContentModel.find(content_id)
     
-    @fields, fields_valid = @content_model.process_fields(params[:model_fields].map { |idx| params[:field][idx] })
+    @fields, fields_valid = @content_model.process_fields((params[:model_fields]||[]).map { |idx| params[:field][idx] })
     
     if request.post? && fields_valid
        worker_key = MigrationHandlerWorker.async_do_work( :content_model_id =>  @content_model.id,

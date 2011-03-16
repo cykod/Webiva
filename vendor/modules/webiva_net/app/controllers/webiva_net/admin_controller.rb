@@ -10,7 +10,9 @@ class WebivaNet::AdminController < ModuleController
  
  permit 'editor_site_management'
 
+ register_handler :structure, :wizard, "WebivaNet::SimpleSiteWizard"
  register_handler :webiva, :titlebar, "WebivaNet::TitlebarHandler"
+ register_handler :action_panel, :templates, "WebivaNet::ThemesController"
 
  public 
  
@@ -33,7 +35,7 @@ class WebivaNet::AdminController < ModuleController
   end
   
   class Options < HashModel
-    attributes :documentation_url => "http://www.webiva.net/doc/user"
+    attributes :documentation_url => "http://www.webiva.net/doc/user", :themes_rss_url => "http://www.webiva.net/themes/rss"
   
   end
   

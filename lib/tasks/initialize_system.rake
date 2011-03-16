@@ -14,7 +14,8 @@ namespace "cms" do
     
     # Make an initial client
     client = Client.create(:name => ENV["CLIENT"],
-                  :domain_limit => 10);
+                  :database_limit => 100,
+                  :domain_limit => 1000);
                   
     # Make an initial client user who is a system admin
     client.client_users.create(:username => ENV["USERNAME"],
@@ -23,7 +24,7 @@ namespace "cms" do
                                 :system_admin => true)
                                 
     # Make the initial domain
-    domain = client.domains.create(:name => ENV['DOMAIN'])
+    domain = client.domains.create(:name => ENV['DOMAIN'], :primary => true)
     
     print "Successfully Created Client, Domain and System User\n"
   end

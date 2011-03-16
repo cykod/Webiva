@@ -1,0 +1,40 @@
+Setting up Webiva bounce support.
+
+Instructions for POSTFIX on Ubuntu
+
+sudo apt-get install postfix mailutils
+
+# reconfigure postfix with the correct domain
+sudo dpkg-reconfigure postfix
+
+Create a shell script /etc/postfix/webiva_transport.sh.  This will process all incoming emails for a specified domain.
+#!/bin/bash
+
+HOME=/home/webiva/Webiva \
+/home/webiva/Webiva/script/mailing_queuer.rb production 2>&1 > \
+/home/webiva/Webiva/log/receive_mail.log
+
+Add the following to the end of /etc/postfix/master.cf.
+Change user=webiva:webiva to the correct user that webiva runs as.  See: man 8 pipe for further details.
+
+webiva   unix  -       n       n       -       -       pipe
+  flags= user=webiva:webiva argv=/etc/postfix/webiva_transport.sh
+
+Edit or create /etc/postfix/transport and add:
+
+<domain> webiva:
+
+(Important Note:  All emails received to <domain> on this server will go to /etc/postfix/webiva_transport.sh.)
+
+
+Now run,
+sudo /usr/sbin/postmap /etc/postfix/transport
+creates the /etc/postfix/transport.db file
+
+Now restart postfix
+sudo /etc/init.d/postfix restart
+
+
+For more information goto:
+http://oldwiki.rubyonrails.org/rails/pages/HowToReceiveEmailsWithActionMailer
+

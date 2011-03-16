@@ -3,11 +3,15 @@
 class Feedback::CommentsController < ParagraphController
   
   # Editor for comments
-  editor_header "Content Paragraphs", :paragraph_content
+  editor_header "Feedback Paragraphs", :paragraph_content
   
   editor_for :comments, :name => 'Comments', :feature => :comments_page_comments,
-                        :inputs => [[ :content_identifier, 'Content ID', :content]],
-                        :triggers => [['New Comment','action']]
+    :inputs => { :input => [[:content_identifier, 'Content ID', :content]],
+                 :comments_ok => [[:comments_ok, 'Allow Commenting', :boolean]]
+               },
+    :triggers => [['New Comment','action']]
+
+  editor_for :pingback_auto_discovery, :name => 'Pingback Autodiscovery Paragraph', :no_options => true
 
   content_model :comments
 

@@ -38,6 +38,9 @@ class DomainModel < ActiveRecord::Base
     (@@active_domain[process_id]  ||{})[:database].to_s
   end
   
+  def self.site_version_id
+    (@@active_domain[process_id]||{})[:site_version_id].to_s
+  end
   # Returns the name of the class
   #  (overridden in ContentModelType where self.to_s doesn't work)
   def self.class_name
@@ -60,6 +63,13 @@ class DomainModel < ActiveRecord::Base
 
     belongs_to field.to_sym, :class_name => 'DomainFile', :foreign_key => options[:foreign_key] || field_name
     domain_file_column(field_name)
+  end
+
+  def self.has_end_user(field_name,options={})
+    field = options[:relation] || field_name.to_s.gsub(/_id$/,'')
+
+    belongs_to field.to_sym, :class_name => 'EndUser', :foreign_key => options[:foreign_key] || field_name
+    after_save_update_end_user_name(field, options[:name_column]) if options[:name_column]
   end
 
   # Used to paginate a list of entries, returns a pagination information hash
@@ -96,6 +106,8 @@ class DomainModel < ActiveRecord::Base
   # [:window_size]
   #   Size of page window - passed through to pagination hash (used by CmsHelper#admin_pagination for example
   def self.paginate(page,args = {})
+    page = page.to_i
+    page = 1 if page < 1
     args = args.clone.symbolize_keys!
     window_size =args.delete(:window) || 2
     
@@ -103,8 +115,23 @@ class DomainModel < ActiveRecord::Base
     page_size = 20 if page_size <= 0
 
     count_args = args.slice( :conditions, :joins, :include, :distinct, :having)
-    
-    if page_size.is_a?(Integer)
+
+    if args.delete(:large)
+      offset = args[:offset] = page_size * (page-1)
+      args[:limit] = page_size + 1
+
+      items = self.find(:all,args)
+
+
+      if items.length == page_size + 1
+        pages = page + 1
+        total = pages * page_size
+        items = items[0..page_size-1]
+      else
+        pages = page
+        total = pages * page_size
+      end
+    elsif page_size.is_a?(Integer)
       
       if args[:group]
         count_by = args[:group]
@@ -124,14 +151,18 @@ class DomainModel < ActiveRecord::Base
       
       args[:offset] = offset
       args[:limit] = page_size
+
+      items = self.find(:all,args)
     else
+      offset = 0
       total_count = 0
       page = 1
       pages = 1
+
+      items = self.find(:all,args)
     end
 
-    items = self.find(:all,args)
-
+   
     [ { :pages => pages, 
         :page => page, 
         :window_size => window_size, 
@@ -150,6 +181,7 @@ class DomainModel < ActiveRecord::Base
   include ModelExtension::FileInstanceExtension
   include ModelExtension::ContentNodeExtension
   include ModelExtension::ContentCacheExtension
+  include ModelExtension::EndUserExtension
   
   # Adds support for triggered actions to this object
   # 
@@ -157,18 +189,17 @@ class DomainModel < ActiveRecord::Base
   # which will run all the triggered actions associated with this object
   def self.has_triggered_actions
     has_many :triggered_actions, :as => :trigger, :conditions => 'comitted = 1', :dependent => :destroy
-    
-    self.module_eval(<<-SRC)
-    def run_triggered_actions(data = {},trigger_name = nil,user = nil)
-      if (trigger_name.to_s == 'view' && self.view_action_count > 0) || (trigger_name.to_s != 'view' && self.update_action_count > 0)
-        actions = trigger_name ?  self.triggered_actions.find(:all,:conditions => ['action_trigger=?',trigger_name]) :  self.triggered_actions
-        actions.each do |act|
-          act.perform(data,user)
-        end
-      end
-    end    
-    SRC
   end
+
+  def run_triggered_actions(data = {},trigger_name = nil,user = nil,session = nil)
+    if (trigger_name.to_s == 'view' && self.view_action_count > 0) || (trigger_name.to_s != 'view' && self.update_action_count > 0)
+      actions = trigger_name ?  self.triggered_actions.find(:all,:conditions => ['action_trigger=?',trigger_name]) :  self.triggered_actions
+      actions.each do |act|
+        act.perform(data,user,session)
+      end
+    end
+  end    
+
 
   # Activates a specific domain as the active domain 
   # 
@@ -183,12 +214,17 @@ class DomainModel < ActiveRecord::Base
   # This would activate the domain with id 1 from the Domain table
   def self.activate_domain(domain_info,environment='production',save_connection = true)
     DataCache.reset_local_cache
-  
+
+    if domain_info.is_a?(Hash) && domain_info[:domain_database].nil?
+      raise 'Missing domain_database, use get_info instead of attributes' unless Rails.env == 'production'
+      domain_info = domain_info[:id]
+    end
+
     unless domain_info.is_a?(Hash)
       if domain_info.is_a?(Integer)
-      	domain_info = Domain.find_by_id(domain_info).attributes
+      	domain_info = Domain.find_by_id(domain_info).get_info
       elsif domain_info.is_a?(String)
-        domain_info = Domain.find_by_name(domain_info).attributes
+        domain_info = Domain.find_by_name(domain_info).get_info
       end
     end
   
@@ -196,9 +232,7 @@ class DomainModel < ActiveRecord::Base
     
     @@active_domain[process_id] = domain_info
     
-    file = "#{RAILS_ROOT}/config/sites/#{domain_info[:database]}.yml"
-    
-    self.activate_database_file(file,environment,save_connection)
+    self.activate_database(domain_info,environment,save_connection)
     
     return true
   end
@@ -260,6 +294,36 @@ class DomainModel < ActiveRecord::Base
     end
   end
   
+  def self.activate_database(domain_info,environment = 'production',save_connection = true)
+    
+    delegate_class_name = (domain_info[:database] + "_" + environment).classify
+
+    if !Object.const_defined?(delegate_class_name)
+      begin
+        db_config_file = domain_info[:domain_database][:options]
+      rescue 
+        return false
+      end
+      db_config = db_config_file[ environment ]
+
+      cls = Object.const_set(delegate_class_name.to_s, Class.new(ActiveRecord::Base))
+      cls.abstract_class = true
+      db_config['persistent'] = false
+      cls.establish_connection(db_config)
+
+      @@database_connection_pools[self.process_id] = cls
+      return true
+    else
+      @@database_connection_pools[self.process_id] = delegate_class_name.constantize
+      @@mutex.synchronize do 
+
+        @@database_connection_pools[self.process_id].connection.verify!
+      end
+
+      return true
+    end
+  end
+  
   # Run a worker on a specific DomainModel
   # see DomainModel#run_worker if you already have the ActiveRecord object
   def self.run_worker(class_name,entry_id,method,parameters = {})
@@ -272,6 +336,10 @@ class DomainModel < ActiveRecord::Base
                                      :language => Locale.language_code  
 					  )
 
+  end
+
+  def self.run_class_worker(method,parameters = { })
+    self.run_worker(self.to_s,nil,method,parameters)
   end
   
   # Runs a background process worker that will 
@@ -291,12 +359,18 @@ class DomainModel < ActiveRecord::Base
      Digest::SHA1.hexdigest(Time.now.to_i.to_s + rand(1e100).to_s)
   end
 
+  def self.hexdigest(val)
+    Digest::SHA1.hexdigest(val)[0..63]
+  end
+
   # Generates a hexdigest hash on a hash
   # by turning the hash into an array, sorting the keys
   # and hashing the resultant array - allows Hash's with the same
   # keys and values to generate consistent Hash's
+  # and will sort upto two hashes deep
   def self.hash_hash(hsh)
     arr = hsh.to_a.sort { |a,b| a[0].to_s<=>b[0].to_s }
+    arr.map! { |elm| elm[1].is_a?(Hash) ? [elm[0],elm[1].to_a.sort { |a,b| a[0].to_s<=>b[0].to_s } ] : elm }
     Digest::SHA1.hexdigest(arr.to_s)[0..63]
   end
 
@@ -336,7 +410,7 @@ class DomainModel < ActiveRecord::Base
   def resolve_argument(arg,default = :name)
    if arg.is_a?(Proc) 
       arg.call(self)
-   elsif arg.is_a?(String)
+   elsif arg.is_a?(String) || arg.is_a?(Fixnum)
       arg
    elsif !arg.blank?
       self.send(arg.to_sym)
@@ -344,7 +418,11 @@ class DomainModel < ActiveRecord::Base
       self.send(default)
    end
   end       
-  
+
+  # Returns the models attributes plus any additional attributes.
+  # for example: EndUser triggered_attributes { self.attributes.merge( :name => self.name ) }
+  def triggered_attributes; self.attributes; end
+
  # Does variable replacement of strings surrounded by two percent signs
  # for example: %%VARIABLE%% with elements from the vars hash
  #
@@ -419,8 +497,9 @@ class DomainModel < ActiveRecord::Base
    # find the elements to add
    data.each do |data_elem|
      cur_id = data_elem[foreign_key]
-     elm = current_collection.detect { |elm| elm.send(foreign_key) == cur_id }
+     elm = current_collection.detect { |elm| elm.send(foreign_key) == cur_id.to_i }
      if elm
+       len =  self.send(collection,true).length
        elm.update_attributes(data_elem)
      else
        current_collection.create(data_elem) 
@@ -432,7 +511,7 @@ class DomainModel < ActiveRecord::Base
  def through_connection_cache(collection,data) #:nodoc:
    if(data)
      col = self.send(collection.to_sym)
-     data.map { |elm| col.build(elm) }
+     data.map { |elm| col.new(elm) }
    else
      self.send(collection.to_sym)
    end
@@ -546,7 +625,7 @@ class DomainModel < ActiveRecord::Base
   # Adds content tag support to a model
   # includes ContentTagFunctionality methods into the class
   def self.has_content_tags
-    has_many :content_tag_tags, :as => :content, :include => :content_tag
+    has_many :content_tag_tags, :foreign_key => :content_id, :include => :content_tag, :dependent => :delete_all, :conditions => "content_tag_tags.content_type='" + self.to_s + "'"
     has_many :content_tags, :through => :content_tag_tags, :order => 'content_tags.name'
     after_save :tag_cache_after_save
     include ContentTagFunctionality
@@ -630,8 +709,9 @@ class DomainModel < ActiveRecord::Base
         
         @tag_name_cache.each do |tag_name|
           unless @existing_tags.include?(tag_name)
-              tg = ContentTag.get_tag(self.class.to_s,tag_name)
-              self.content_tag_tags.create(:content_tag => tg)
+            tg = ContentTag.get_tag(self.class.to_s,tag_name)
+            # Be explicit about the content_type for Content models (which don't have a real class name)
+            self.content_tag_tags.create(:content_tag => tg,:content_type => self.class.to_s)
           end
         end
       end
@@ -665,14 +745,26 @@ class DomainModel < ActiveRecord::Base
       permalink_try
     end
   end
+
+  # Put something into the remote cache from a delayed worker
+  def self.remote_cache_put(args,result)
+     now = Time.now
+     DataCache.put_remote(args[:remote_type],args[:remote_target],args[:display_string],[ result ,now + args[:expiration].to_i.seconds])
+     DataCache.expire_content(args[:remote_type],args[:remote_target])
+  end
   
-  # Expires the entire website from the cache
-  def expire_site
+
+  def self.expire_site
     DataCache.expire_container('SiteNode')
     DataCache.expire_container('Handlers')
     DataCache.expire_container('SiteNodeModifier')
     DataCache.expire_container('Modules')
     DataCache.expire_content
+    DataCache.reset_local_cache
+  end
+  # Expires the entire website from the cache
+  def expire_site
+    self.class.expire_site
   end
    
 

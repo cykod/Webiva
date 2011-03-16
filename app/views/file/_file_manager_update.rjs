@@ -14,3 +14,7 @@ page << 'setTimeout("FileEditor.finishedProcessing();",300);'
 end
 
 page << "FileEditor.recreateDragAndDroppables();"
+
+page.replace_html :available_file_storage, :partial => '/file/available_file_storage'
+
+page << "FileUploader.reset();"

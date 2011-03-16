@@ -7,55 +7,55 @@ class Editor::AuthFeature < ParagraphFeature #:nodoc:all
 <cms:registered>
 You are already registered
 </cms:registered>
-<cms:register>
+<cms:register> 
+ <ol class='webiva_form register_form'>
+  <cms:errors><li class='errors'><cms:value/></li></cms:errors>
   <!-- enter form elements directly -->
-  <div class='item'>
-     <cms:email_error><div class='error'><cms:value/></div></cms:email_error>
-     <div class='label'>Email:</div>
-     <div class='field'><cms:email/></div>
-  </div>
+  
+  <li><cms:email_label/><cms:email/></li>
 
   <cms:any_field except='email'>
-  <div class='item'>
-     <cms:error><div class='error'><cms:value/></div></cms:error>
-     <div class='label'><cms:label/>*:</div>
-     <div class='field'><cms:control/></div>
-  </div>
+     <li><cms:label/><cms:control/></li>
   </cms:any_field>
   <!-- optional fields except='field1' or fields="field1,field2" options work too -->
 
 
+ <cms:publication>
+ <cms:field><cms:item/></cms:field>
+ </cms:publication>
 
-  <cms:submit/>
+  <li class='captcha'><cms:captcha/></li>
+  <li class='button'><cms:submit/></li>
+  </ol>
 </cms:register>
 
 
 FEATURE
   
   def user_register_feature(data)
-    webiva_custom_feature(:user_register,data) do |c|6
+    webiva_custom_feature(:user_register,data) do |c|
       c.expansion_tag('registered') { |t| data[:registered] }
       c.form_for_tag('register',:user) { |t| data[:usr] ? data[:usr] : nil }
 
-      c.expansion_tag('register:errors') { |t| data[:failed] }
+      c.form_error_tag('register:errors') { |t| [ data[:usr], data[:address], data[:business], data[:model] ]}
 
       data[:options].all_field_list.each do |fld|
         c.field_tag("register:#{fld[0]}",{ :control => fld[1][1]}.merge(fld[1][3]||{}))
       end
 
       ['any_field','required_field','optional_field'].each do |fields|
-        user_fields_helper('register',c,fields,data)
+        user_fields_helper('register',c,fields,data,(data[:options].always_required_fields + data[:options].required_fields))
       end
 
       c.fields_for_tag('register:address',:address) { |t| data[:address] ? data[:address] : nil }
-      user_fields_helper('register:address',c,'address_field',data)
+      user_fields_helper('register:address',c,'address_field',data,data[:options].address_required_fields)
 
        data[:options].address_field_list.each do |fld|
         c.field_tag("register:address:#{fld[0]}",{ :control => fld[1][1]}.merge(fld[1][3]||{}))
       end
 
       c.fields_for_tag('register:business',:business) { |t| data[:business] ? data[:business] : nil }
-      user_fields_helper('register:business',c,'business_address_field',data)
+      user_fields_helper('register:business',c,'business_address_field',data,data[:options].work_address_required_fields)
       
       data[:options].business_address_field_list.each do |fld|
         c.field_tag("register:business:#{fld[0]}",{ :control => fld[1][1]}.merge(fld[1][3]||{}))
@@ -64,8 +64,11 @@ FEATURE
       if data[:options].publication
         c.fields_for_tag('register:publication',:model) { |t|  data[:model] }
         c.publication_field_tags("register:publication",data[:options].publication)
+      else
+        c.expansion_tag('register:publication') { |t| nil }
       end
-      
+      c.captcha_tag('register:captcha') { |t| data[:captcha]}
+
       c.button_tag('register:submit')
 
       data[:options].register_features.each do |feature|
@@ -75,10 +78,83 @@ FEATURE
   end
 
 
+  feature :user_edit_account, :default_feature => <<-FEATURE
+<cms:edit>
+  <cms:reset_password>Reset your password.</cms:reset_password>
+  <cms:updated>Account Updated.</cms:updated>
+
+ <ol class='webiva_form edit_account_form'>
+ <!-- enter form elements directly -->
+  <cms:errors><li class='errors'><cms:value/></li></cms:errors>
+
+  <li><cms:email_label/><cms:email/></li>
+
+  <cms:any_field except='email'>
+     <li><cms:label/><cms:control/></li>
+  </cms:any_field>
+  <!-- optional fields except='field1' or fields="field1,field2" options work too -->
+
+
+ <cms:publication>
+ <cms:field><cms:item/></cms:field>
+ </cms:publication>
+
+ <li class='button'><cms:submit/></li>
+  </ol>
+</cms:edit>
+
+
+FEATURE
+  
+  def user_edit_account_feature(data)
+    webiva_custom_feature(:user_edit_account,data) do |c|
+      c.form_for_tag('edit',:user,:html => { :enctype => 'multipart/form-data' }) { |t| data[:usr] ? data[:usr] : nil }
+      c.form_error_tag('edit:errors') { |t| [ data[:usr], data[:address], data[:business], data[:model] ]}
+
+      c.expansion_tag('edit:updated') { |t| data[:updated] }
+      c.expansion_tag('edit:reset_password') { |t| data[:reset_password] }
+
+      data[:options].all_field_list.each do |fld|
+        c.field_tag("edit:#{fld[0]}",{ :control => fld[1][1]}.merge(fld[1][3]||{}))
+      end
+
+      ['any_field','required_field','optional_field'].each do |fields|
+        user_fields_helper('edit',c,fields,data,data[:options].required_fields)
+      end
+
+      c.fields_for_tag('edit:address',:address) { |t| data[:address] ? data[:address] : nil }
+      user_fields_helper('edit:address',c,'address_field',data,data[:options].address_required_fields)
+
+       data[:options].address_field_list.each do |fld|
+        c.field_tag("edit:address:#{fld[0]}",{ :control => fld[1][1]}.merge(fld[1][3]||{}))
+      end
+
+      c.fields_for_tag('edit:business',:business) { |t| data[:business] ? data[:business] : nil }
+      user_fields_helper('edit:business',c,'business_address_field',data,data[:options].work_address_required_fields)
+      
+      data[:options].business_address_field_list.each do |fld|
+        c.field_tag("edit:business:#{fld[0]}",{ :control => fld[1][1]}.merge(fld[1][3]||{}))
+      end
+
+      if data[:options].publication
+        c.fields_for_tag('edit:publication',:model) { |t|  data[:model] }
+        c.publication_field_tags("edit:publication",data[:options].publication)
+      else
+        c.expansion_tag('edit:publication') { |t| nil }
+      end
+      
+      c.button_tag('edit:submit')
+
+      data[:options].user_edit_features.each do |feature|
+        feature.feature_instance.feature_tags(c,data[:feature])
+      end
+
+    end
+  end
 
 
 
-  def user_fields_helper(prefix,c,fields_name,data)
+  def user_fields_helper(prefix,c,fields_name,data,required_fields=[])
     c.loop_tag("#{prefix}:#{fields_name}") do |t|
       fields = data[:options].send("#{fields_name}_list") || []
       if t.attr['except']
@@ -92,7 +168,12 @@ FEATURE
       fields
     end
     c.value_tag("#{prefix}:#{fields_name}:label") do |t|
-      t.locals.send(fields_name)[1][0]
+      fld =  t.locals.send(fields_name)
+      frm =  t.locals.form
+      req = required_fields.include? fld[0].to_s
+      content_tag("label",
+                  t.locals.send(fields_name)[1][0] + (req ? "<em>*</em>" : ""),
+                 :for => "#{frm.object_name}_#{fld[1[2]]}")
     end
     c.value_tag("#{prefix}:#{fields_name}:control") do |t|
       frm = t.locals.form
@@ -100,6 +181,9 @@ FEATURE
     end
     c.value_tag("#{prefix}:#{fields_name}:error") do |t|
       c.form_field_error_tag_helper(t,t.locals.form, t.locals.send(fields_name)[0].to_s)
+    end
+    c.expansion_tag("#{prefix}:#{fields_name}:required") do |t|
+      required_fields.include? t.locals.send(fields_name)[0].to_s
     end
   end
 
@@ -199,12 +283,8 @@ FEATURE
   
   def login_feature(data)
     webiva_feature(:login) do |c|
-      c.define_tag 'logged_in' do |tag|
-        if data[:user]
-          tag.expand
-        else
-          ''
-        end
+      c.expansion_tag 'logged_in' do |tag|
+        data[:user]
       end
       c.define_tag 'login_form' do |tag|
         # Go through each section
@@ -248,12 +328,16 @@ FEATURE
         if editor?
           { :href => 'javascript:void(0);' }
         else
-          { :href => '?cms_logout=1' }
+          { :href => data[:logout_url] }
         end
       end
       
       c.define_expansion_tag('use_username') { |tag| data[:type] =='username' }
       c.define_expansion_tag('use_email') { |tag| data[:type] =='email'|| data[:type]=='both' }
+
+      data[:options].login_features.each do |feature|
+        feature.feature_instance.feature_tags(c,data[:feature])
+      end
     end
   end
 
@@ -361,7 +445,7 @@ FEATURE
   
   def email_list_feature(data)
     webiva_feature(:email_list,data) do |c|
-      c.form_for_tag('form','email_list_signup') { !data[:submitted] ? data[:email_list] : nil }
+      c.form_for_tag('form',"email_list_#{paragraph.id}") { !data[:submitted] ? data[:email_list] : nil }
       
       c.define_form_error_tag('form:errors')
       
@@ -376,6 +460,16 @@ FEATURE
     end
   end
   
+  feature :view_account, :default_feature => <<-FEATURE
+  <cms:user>
+    <cms:name/>
+  </cms:user>
+  FEATURE
 
-
+  def view_account_feature(data)
+    webiva_feature(:view_account,data) do |c|
+      c.expansion_tag('user') { |t| t.locals.user = data[:user] }
+      c.user_details_tags('user') { |t| t.locals.user }
+    end
+  end
 end

@@ -5,8 +5,8 @@ class PageRevision < DomainModel
   belongs_to :revision_container,  :polymorphic => true
   has_many :page_paragraphs, :dependent => :destroy, :order => 'zone_idx,position'
   
-  belongs_to :created_by, :polymorphic => true
-  belongs_to :updated_by, :polymorphic => true
+  belongs_to :created_by, :class_name => 'EndUser'
+  belongs_to :updated_by, :class_name => 'EndUser'
   
   belongs_to :parent_revision, :class_name => "PageRevision", :foreign_key => 'parent_revision_id'
   
@@ -40,6 +40,11 @@ class PageRevision < DomainModel
 
   end
 
+  def display_variables
+    return @display_variables if @display_variables
+    @display_variables = (self.variables || {}).clone
+  end
+
   def self.deactivate_page_revision(page,revision_id)
 
     active_rev = page.page_revisions.find_by_id(revision_id)
@@ -57,6 +62,27 @@ class PageRevision < DomainModel
     SiteTemplate.find(1)
   end
 
+  def node_path
+    if self.revision_container.is_a?(SiteNode)
+      self.revision_container.node_path
+    else
+      self.revision_container.site_node.node_path
+    end
+  end
+
+
+  def full_page_paragraphs
+    if self.revision_container.is_a?(SiteNode)
+      container = self.revision_container
+      paras = container.full_framework_paragraphs(self.language,true)
+    else
+      container = self.revision_container.site_node
+      paras = container.full_framework_paragraphs(self.language,false,self.revision_container.position)
+    end
+    paras + self.page_paragraphs
+  end
+
+
 
   def used_images
     DomainFileInstance.find(:all,:conditions => { :target_type => 'PageParagraph', :target_id => page_paragraph_ids }, :include => :domain_file).map(&:domain_file).uniq
@@ -73,6 +99,23 @@ class PageRevision < DomainModel
   
   end
   
+  # create a deep-copy of this revision in a new language
+  def create_translation(language)
+    new_revision = self.clone
+    new_revision.language = language
+    new_revision.revision_type = 'real'
+    new_revision.active= false
+    new_revision.save
+
+    self.page_paragraphs.each do |para|
+      new_para = para.clone
+      new_para.page_revision_id=new_revision.id
+      new_para.save
+    end
+
+    new_revision
+  end
+
 
   # Create a new temporary revision
   # deep-cloning the paragraphs, and updating the paragraph connections
@@ -86,6 +129,7 @@ class PageRevision < DomainModel
     new_rev.updated_at = Time.now
     new_rev.parent_revision = self
     new_rev.variables ||= {}
+    new_rev.identifier_hash = nil
     new_rev.save
     new_rev.paragraph_update_map = {}
     
@@ -165,7 +209,7 @@ class PageRevision < DomainModel
     container = self.revision_container
     
     PageRevision.transaction do 
-      real_rev = container.page_revisions.find(:all,:conditions => [ 'revision_type="real" AND revision=? AND language=?', self.revision,self.language] )
+      real_rev = container.page_revisions.find(:all,:conditions => [ 'revision_type="real" AND revision=? AND language=? AND id != ?', self.revision,self.language,self.id] )
       real_rev.each do |rev|
         rev.update_attributes(:revision_type => 'old' )
         DomainFileInstance.clear_targets('PageParagraph',rev.page_paragraph_ids)
@@ -181,8 +225,19 @@ class PageRevision < DomainModel
     end
   
   end
-  
-  def make_new_version(version = 'minor')
+
+  def get_next_version(version='minor')
+    container = self.revision_container
+    max_revision = container.page_revisions.find(:first,:order => 'page_revisions.revision DESC')
+
+    if version == 'major'
+      max_revision.revision.floor + 1
+    elsif version == 'minor'
+      max_revision.revision + 0.01
+    end
+  end
+
+  def make_new_version(version = 'minor', version_name=nil)
   
     container = self.revision_container
     max_revision = container.page_revisions.find(:first,:order => 'page_revisions.revision DESC')
@@ -202,6 +257,7 @@ class PageRevision < DomainModel
     end
     
     self.update_attributes(:revision => new_version,
+                           :version_name => version_name,
                            :active => false,
                            :revision_type => 'real',
                            :updated_at => Time.now)
@@ -241,6 +297,31 @@ class PageRevision < DomainModel
                                         self.revision,self.revision_container_type,self.revision_container_id, self.language])
       end
   end
+
+
+  # Programmatically add a paragraph to a revision
+  def add_paragraph(renderer_class,name,paragraph_options={ },options={ })
+
+    self.page_paragraphs.build(
+                               :zone_idx => options[:zone] || 1,
+                               :display_type => name,
+                               :display_module => renderer_class,
+                               :data => paragraph_options
+                             )
+  end
   
 
+  def push_paragraph(renderer_class,name,paragraph_options={ },options={ })
+    para = self.page_paragraphs.find(:first, :conditions => {:zone_idx => options[:zone] || 1,:display_type => name,:display_module => renderer_class}) || self.add_paragraph(renderer_class,name,paragraph_options,options)
+    para.data = paragraph_options
+    if block_given?
+      yield para
+    end
+    para.save
+    para
+  end
+  
+  def fix_paragraph_options(from_version, to_version, opts={})
+    self.page_paragraphs.each { |para| para.fix_paragraph_options(from_version, to_version, opts) }
+  end
 end

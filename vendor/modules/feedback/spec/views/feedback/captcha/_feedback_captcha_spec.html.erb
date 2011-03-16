@@ -1,0 +1,23 @@
+require  File.expand_path(File.dirname(__FILE__)) + "/../../../../../../../spec/spec_helper"
+
+describe "render the captcha tag" do
+  it "should have input tags" do
+    @cntl = mock :session => {}, :params => {}
+    @captcha = FeedbackCaptcha.new @cntl
+    render :partial => "feedback/captcha/feedback_captcha", :helper => 'explicit', :locals => {:captcha => @captcha}
+    response.should have_tag 'img[src=?]', @captcha.url
+    response.should have_tag 'input[type=?][name=?]', 'hidden', 'captcha_code'
+    response.should have_tag 'input[type=?][class=?][name=?]', 'text', 'text_field_input', 'captcha_text'
+  end
+
+  it "should display error input tag" do
+    @cntl = mock :session => {}, :params => {}
+    @captcha = FeedbackCaptcha.new @cntl
+    @captcha.should_receive(:valid?).twice.and_return(false)
+    render :partial => "feedback/captcha/feedback_captcha", :helper => 'explicit', :locals => {:captcha => @captcha}
+    response.should have_tag 'img[src=?]', @captcha.url
+    response.should have_tag 'input[type=?][name=?]', 'hidden', 'captcha_code'
+    response.should have_tag 'input[type=?][class=?][name=?]', 'text', 'text_field_input', 'captcha_text'
+    response.should have_tag 'span[class=?]', 'fieldWithErrors'
+  end
+end

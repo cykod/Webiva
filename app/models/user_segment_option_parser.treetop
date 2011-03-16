@@ -1,0 +1,150 @@
+
+grammar UserSegmentOption
+
+  rule multiple_operations
+    operations:operations more:(newline+ operations)* newline* {
+      def eval(env={})
+        [operations.eval(env)] + more.elements.collect { |e| e.operations.eval(env) }
+      end
+    }
+  end
+
+  rule operations
+    not_op:not operation:operation more:('+' operation)* {
+      def eval(env={})
+    	[not_op.eval(env), operation.eval(env)] + more.elements.collect { |e| e.operation.eval(env) }
+      end
+    }
+  end
+
+  rule operation
+    space field:field '.' operation:operation_name lparen arguments:arguments rparen child:sub_operations space {
+      def eval(env={})
+        {:field => field.eval(env), :operation => operation.eval(env), :arguments => arguments.eval(env), :child => child.eval(env)}
+      end
+    }
+  end
+
+  rule sub_operations
+    ('.' field '.' operation_name lparen arguments rparen)* {
+      def eval(env={})
+        if empty?
+          nil
+        else
+          child = nil
+          elements.reverse.each do |e| 
+            child = {:field => e.field.eval(env), :operation => e.operation_name.eval(env), :arguments => e.arguments.eval(env), :child => child}
+          end
+          child
+        end
+      end
+    }
+  end
+
+  rule field
+    [a-zA-Z] [a-zA-Z0-9_]* {
+      def eval(env={})
+        text_value
+      end
+    }
+  end
+
+  rule operation_name
+    [a-zA-Z] [a-zA-Z0-9_]* {
+      def eval(env={})
+        text_value
+      end
+    }
+  end
+
+  rule arguments
+    arg:argument more:(',' argument)* {
+      def eval(env={})
+        [arg.eval(env)] + more.elements.collect{ |e| e.argument.eval(env) }
+      end
+    }
+  end
+
+  rule argument
+    space arg:(string / float / integer / boolean / array) space {
+      def eval(env={})
+        arg.eval(env)
+      end
+    }
+  end
+
+  rule array
+    '[' arg:(string / float / integer / boolean) more:(',' val:(string / float / integer / boolean))* ']' {
+      def eval(env={})
+        [arg.eval(env)] + more.elements.collect{ |e| e.val.eval(env) }
+      end
+    }
+  end
+
+  rule string
+    ('"' ('\"' / [^"])* '"' / "'" ("\\'" / [^'])* "'") {
+      def eval(env={})
+        text_value[1..-2].gsub('\"', '"').gsub('\\\'', "'")
+      end
+    }
+  end
+
+  rule integer
+    ([1-9] [0-9]* / '0') {
+      def eval(env={})
+        text_value.to_i
+      end
+    }
+  end
+
+  rule boolean
+    ('true' / 'TRUE' / 'True' / 'false' / 'FALSE' / 'False') {
+      def eval(env={})
+        if text_value.downcase == 'true'
+          true
+        else
+          false
+        end
+      end
+    }
+  end
+
+  rule float
+    ([0-9]+ '.' [0-9]+ / '.' [0-9]+)  {
+      def eval(env={})
+        text_value.to_f
+      end
+    }
+  end
+
+  rule lparen
+    space '(' space
+  end
+
+  rule rparen
+    space ')' space
+  end
+
+  rule non_space_char
+    ![ ] .
+  end
+
+  rule not
+    space ([nN] [oO] [tT] ' ' / '!')? space {
+      def eval(env={})
+	return nil if empty?
+        return 'not' if text_value.strip.downcase == 'not' || text_value.strip.downcase == '!'
+	nil
+      end
+    }
+  end
+
+  rule newline
+    space "\n"
+  end
+
+  rule space
+    [ ]*
+  end
+end
+
