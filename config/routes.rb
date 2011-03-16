@@ -64,7 +64,7 @@ Webiva::Application.routes.draw do |map|
   end
 
   match '*path' => 'page#index', :as => :page
-  match '' => 'page#index'
+  root :to => 'page#index'
 end
 
 

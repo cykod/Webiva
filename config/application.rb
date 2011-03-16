@@ -48,7 +48,6 @@ CMS_DEFAULT_TIME_ZONE = defaults_config_file['time_zone'] || 'Eastern Time (US &
 module Webiva
   class Application < Rails::Application
     paths.config.database = "#{Rails.root}/config/cms.yml"
-    config.action_controller.session_store = :mem_cache_store
 
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
