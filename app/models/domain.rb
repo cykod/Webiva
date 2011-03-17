@@ -97,7 +97,7 @@ class Domain < SystemModel
        self.save
        initializer = " INITIALIZER=#{params[:initializer]}" if params[:initializer]
        # Create the database, yml files and run the initial migration
-       ok  = `cd #{RAILS_ROOT};rake cms:create_domain_db DOMAIN_ID=#{self.id}#{initializer}`
+       ok  = `cd #{Rails.root};rake cms:create_domain_db DOMAIN_ID=#{self.id}#{initializer}`
     end
   end
 
@@ -160,7 +160,7 @@ class Domain < SystemModel
   end
 
   def database_file
-    "#{RAILS_ROOT}/config/sites/#{self.database}.yml"
+    "#{Rails.root}/config/sites/#{self.database}.yml"
   end
 
   def get_info

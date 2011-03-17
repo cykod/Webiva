@@ -405,7 +405,7 @@ class ParagraphRenderer < ParagraphFeature
   #    data_paragraph :data => @file.image_data, :type => 'image/jpeg'
   #
   #    # renders the specified file (the full path of the file must be specified
-  #    data_paragraph :file => "#{RAILS_ROOT}/tmp/widgets/something.gif"
+  #    data_paragraph :file => "#{Rails.root}/tmp/widgets/something.gif"
   #
   #    # renders the specified domain file 
   #    data_paragraph :domain_file => @domain_file
@@ -785,7 +785,7 @@ an integer representing the number of seconds to keep the element in the cache.
     # and the 
     
     feature_list = []
-    Dir.glob("#{RAILS_ROOT}/app/controllers/editor/[a-z0-9\-_]*_renderer.rb") do |file|
+    Dir.glob("#{Rails.root}/app/controllers/editor/[a-z0-9\-_]*_renderer.rb") do |file|
       if file =~ /\/([a-z0-9\-_]+)_renderer.rb$/
         renderer_name = $1
         cls_name = "Editor::#{renderer_name.camelcase}Renderer"
@@ -796,7 +796,7 @@ an integer representing the number of seconds to keep the element in the cache.
         end
       end
     end
-    Dir.glob("#{RAILS_ROOT}/app/controllers/editor/[a-z0-9\-_]*_feature.rb") do |file|
+    Dir.glob("#{Rails.root}/app/controllers/editor/[a-z0-9\-_]*_feature.rb") do |file|
       if file =~ /\/([a-z0-9\-_]+)_feature.rb$/
         renderer_name = $1
         cls_name = "Editor::#{renderer_name.camelcase}Feature"

@@ -45,7 +45,7 @@ class SiteWidget < DomainModel #:nodoc:all
 
   def self.core_widgets 
     widgets =[]
-    Dir.glob("#{RAILS_ROOT}/app/models/dashboard/[a-z0-9\-_]*_widget.rb") do |file|
+    Dir.glob("#{Rails.root}/app/models/dashboard/[a-z0-9\-_]*_widget.rb") do |file|
       if file =~ /\/([a-z0-9\-_]+)_widget.rb$/
         widget_class = "Dashboard::#{$1.camelcase}Widget"
         cls = widget_class.constantize

@@ -6,9 +6,9 @@ task :mail_isotracker_digest => [:environment] do |t|
   
   domain = ENV["DOMAIN"] || raise('Please add a DOMAIN argument to specify the desired domain') 
   
-  db_config = YAML.load_file("#{RAILS_ROOT}/config/cms.yml")
+  db_config = YAML.load_file("#{Rails.root}/config/cms.yml")
   
-  main_db = YAML.load_file("#{RAILS_ROOT}/config/database.yml")
+  main_db = YAML.load_file("#{Rails.root}/config/database.yml")
   
   domain_db_info = db_config["domain_db"]
   

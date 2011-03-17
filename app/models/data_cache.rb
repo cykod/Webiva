@@ -60,7 +60,7 @@ class DataCache
 
   # Get a container from the remote cache
   def self.get_container(container,version)
-    return nil if RAILS_ENV == 'test'
+    return nil if Rails.env == 'test'
     
     # Get the value array [value set time, value]
     unless container.is_a?(String)
@@ -152,7 +152,7 @@ class DataCache
   # as using cached_content will prevent you from need to expire the cache
   # manually (it will be expired automatically when the model is saved)
  def self.get_content(content_type,content_target,display_location)
-    return nil if RAILS_ENV == 'test'
+    return nil if Rails.env == 'test'
 
     # get the value array [value set time, value]
     unless content_type.is_a?(String)
@@ -209,7 +209,7 @@ class DataCache
 
 # Gets a piece of content from the cache of remote objects
 def self.get_remote(content_type,content_target,display_location)
-   return nil if RAILS_ENV == 'test'
+   return nil if Rails.env == 'test'
 
     # get the value array [value set time, value]
     unless content_type.is_a?(String)

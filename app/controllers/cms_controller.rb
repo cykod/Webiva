@@ -146,7 +146,7 @@ class CmsController < ApplicationController
   def self.get_content_models_and_actions # :nodoc:
       content_models = []
       content_actions = []
-      Dir.glob("#{RAILS_ROOT}/app/controllers/editor/[a-z0-9\-_]*_controller.rb") do |file|
+      Dir.glob("#{Rails.root}/app/controllers/editor/[a-z0-9\-_]*_controller.rb") do |file|
         if file =~ /\/([a-z0-9\-_]+)_controller.rb$/
           controller_name = $1
           if controller_name != 'admin'

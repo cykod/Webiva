@@ -78,14 +78,14 @@ class DomainFileSize < DomainModel
   end
   
   def self.custom_sizes
-    custom_size_hash = DataCache.get_cached_container("Config",'DomainFileSize')  unless RAILS_ENV == 'test'
+    custom_size_hash = DataCache.get_cached_container("Config",'DomainFileSize')  unless Rails.env == 'test'
     return custom_size_hash if custom_size_hash
     
     custom_size_hash = {}
     DomainFileSize.find(:all).each do |size|
       custom_size_hash[size.size_name.to_sym] = [ size.name, size.final_size ]
     end
-    DataCache.put_container("Config",'DomainFileSize',custom_size_hash)  unless RAILS_ENV == 'test'
+    DataCache.put_container("Config",'DomainFileSize',custom_size_hash)  unless Rails.env == 'test'
     return custom_size_hash
   end
   

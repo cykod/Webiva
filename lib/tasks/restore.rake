@@ -14,7 +14,7 @@ namespace "cms" do
     
     raise 'Params DIR=directory [DOMAIN=domain_to_restore CLIENT_ID=client_id] OR [DOMAIN_ID=domain_id_to_replace]' unless ENV['DIR'] && ((ENV['DOMAIN'] && ENV['CLIENT_ID']) || ENV['DOMAIN_ID'])
     
-    main_db = YAML.load_file("#{RAILS_ROOT}/config/cms_migrator.yml")
+    main_db = YAML.load_file("#{Rails.root}/config/cms_migrator.yml")
     db_cfg = main_db[ENV['RAILS_ENV']]
     
     
@@ -102,7 +102,7 @@ namespace "cms" do
     
     if(File.exists?(directory + "/storage.tar.gz"))
       
-      storage_dir = "#{RAILS_ROOT}/public/system/storage/#{dmn.file_store}" 
+      storage_dir = "#{Rails.root}/public/system/storage/#{dmn.file_store}" 
       FileUtils.rm_rf(storage_dir) if(File.directory?(storage_dir))
         
       FileUtils.mkdir_p(storage_dir) 
@@ -111,7 +111,7 @@ namespace "cms" do
     
     if(File.exists?(directory + "/private.tar.gz"))
     
-      private_dir = "#{RAILS_ROOT}/public/system/private/#{dmn.file_store}" 
+      private_dir = "#{Rails.root}/public/system/private/#{dmn.file_store}" 
       FileUtils.rm_rf(private_dir) if(File.directory?(private_dir))
       FileUtils.mkdir_p(private_dir) 
       `tar -xzf #{directory + "/private.tar.gz"} -C #{private_dir}`

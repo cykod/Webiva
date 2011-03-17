@@ -6,8 +6,8 @@ class Server < SystemModel
   def self.server_name
     return @@server_name if @@server_name
 
-    if File.exists?("#{RAILS_ROOT}/config/server.yml")
-      @@server_name = YAML.load_file("#{RAILS_ROOT}/config/server.yml")['server']['name']
+    if File.exists?("#{Rails.root}/config/server.yml")
+      @@server_name = YAML.load_file("#{Rails.root}/config/server.yml")['server']['name']
     else
       @@server_name = 'localhost'
     end

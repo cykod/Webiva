@@ -20,7 +20,7 @@ Given /^a blank site$/ do
 end
 
 Given /^a running background process$/ do
-  `RAILS_ENV=test #{RAILS_ROOT}/script/background.rb restart`
+  `RAILS_ENV=test #{Rails.root}/script/background.rb restart`
 end
 
 

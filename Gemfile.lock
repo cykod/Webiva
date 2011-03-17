@@ -33,19 +33,59 @@ GEM
     activesupport (3.0.5)
     arel (2.0.9)
     builder (2.1.2)
+    capybara (0.4.1.2)
+      celerity (>= 0.7.9)
+      culerity (>= 0.2.4)
+      mime-types (>= 1.16)
+      nokogiri (>= 1.3.3)
+      rack (>= 1.0.0)
+      rack-test (>= 0.5.4)
+      selenium-webdriver (>= 0.0.27)
+      xpath (~> 0.1.3)
+    celerity (0.8.8)
+    childprocess (0.1.7)
+      ffi (~> 0.6.3)
     crack (0.1.8)
+    cucumber (0.10.0)
+      builder (>= 2.1.2)
+      diff-lcs (~> 1.1.2)
+      gherkin (~> 2.3.2)
+      json (~> 1.4.6)
+      term-ansicolor (~> 1.0.5)
+    cucumber-rails (0.3.2)
+      cucumber (>= 0.8.0)
+    culerity (0.2.15)
     daemons (1.1.0)
-    database_cleaner (0.4.3)
+    database_cleaner (0.6.6)
+    diff-lcs (1.1.2)
     erubis (2.6.6)
       abstract (>= 1.0.0)
     factory_girl (1.3.3)
+    factory_girl_rails (1.0.1)
+      factory_girl (~> 1.3)
+      railties (>= 3.0.0)
+    fakeweb (1.3.0)
+    ffi (0.6.3)
+      rake (>= 0.8.7)
+    flay (1.4.1)
+      ruby_parser (~> 2.0)
+      sexp_processor (~> 3.0)
+    flog (2.5.0)
+      ruby_parser (~> 2.0)
+      sexp_processor (~> 3.0)
+    gherkin (2.3.4)
+      json (~> 1.4.6)
     gruff (0.3.6)
     hpricot (0.8.4)
     httparty (0.7.4)
       crack (= 0.1.8)
     httpclient (2.1.6.1)
     i18n (0.5.0)
-    json (1.5.1)
+    jquery-rails (0.2.7)
+      rails (~> 3.0)
+      thor (~> 0.14.4)
+    json (1.4.6)
+    json_pure (1.5.1)
     libxml-ruby (1.1.4)
     mail (2.2.15)
       activesupport (>= 2.3.6)
@@ -58,7 +98,7 @@ GEM
     mime-types (1.16)
     mysql (2.8.1)
     net-ssh (2.1.3)
-    nokogiri (1.3.1)
+    nokogiri (1.4.4)
     polyglot (0.3.1)
     rack (1.2.2)
     rack-mount (0.6.13)
@@ -74,27 +114,54 @@ GEM
       activesupport (= 3.0.5)
       bundler (~> 1.0)
       railties (= 3.0.5)
+    rails_code_qa (0.4.1)
+      flay (= 1.4.1)
+      flog (= 2.5.0)
+      rcov (= 0.9.9)
     railties (3.0.5)
       actionpack (= 3.0.5)
       activesupport (= 3.0.5)
       rake (>= 0.8.7)
       thor (~> 0.14.4)
     rake (0.8.7)
+    rcov (0.9.9)
     resthome (0.8.0)
       httparty
     rmagick (2.13.1)
+    rspec (2.5.0)
+      rspec-core (~> 2.5.0)
+      rspec-expectations (~> 2.5.0)
+      rspec-mocks (~> 2.5.0)
+    rspec-core (2.5.1)
+    rspec-expectations (2.5.0)
+      diff-lcs (~> 1.1.2)
+    rspec-mocks (2.5.0)
+    rspec-rails (2.5.0)
+      actionpack (~> 3.0)
+      activesupport (~> 3.0)
+      railties (~> 3.0)
+      rspec (~> 2.5.0)
+    ruby_parser (2.0.6)
+      sexp_processor (~> 3.0)
+    rubyzip (0.9.4)
     selenium-client (1.2.18)
+    selenium-webdriver (0.1.3)
+      childprocess (~> 0.1.5)
+      ffi (~> 0.6.3)
+      json_pure
+      rubyzip
+    sexp_processor (3.0.5)
     slave (1.2.1)
     soap4r (1.5.8)
       httpclient (>= 2.1.1)
     syntax (1.0.0)
+    term-ansicolor (1.0.5)
     thor (0.14.6)
     treetop (1.4.9)
       polyglot (>= 0.3.1)
     tzinfo (0.3.25)
-    webrat (0.6.0)
-      nokogiri (>= 1.2.0)
-      rack (>= 1.0)
+    xpath (0.1.3)
+      nokogiri (~> 1.3)
 
 PLATFORMS
   ruby
@@ -103,12 +170,16 @@ DEPENDENCIES
   BlueCloth
   RedCloth
   SystemTimer
+  capybara
+  cucumber-rails
   daemons
-  database_cleaner (= 0.4.3)
-  factory_girl
+  database_cleaner
+  factory_girl_rails
+  fakeweb
   gruff
   hpricot
-  json
+  jquery-rails
+  json (~> 1.4.6)
   libxml-ruby
   maruku
   memcache-client
@@ -118,9 +189,10 @@ DEPENDENCIES
   nokogiri
   radius
   rails (= 3.0.5)
+  rails_code_qa
   resthome
   rmagick
+  rspec-rails
   selenium-client (= 1.2.18)
   slave
   soap4r
-  webrat (= 0.6.0)

@@ -98,7 +98,7 @@ class PublicController < ApplicationController  # :nodoc: all
         return
       end
       
-      render :nothing => true if RAILS_ENV == 'test'
+      render :nothing => true if Rails.env == 'test'
       if USE_X_SEND_FILE
         x_send_file(name,:type => mime_type,:disposition => 'inline',:filename => df.name)    
       else
@@ -174,7 +174,7 @@ class PublicController < ApplicationController  # :nodoc: all
       mime_type = @df.mime_type
     end
     
-    render :nothing => true if RAILS_ENV == 'test'
+    render :nothing => true if Rails.env == 'test'
     
     if USE_X_SEND_FILE
       x_send_file(abs_name,:type => mime_type,:disposition => 'inline',:filename => @df.name)    
@@ -200,7 +200,7 @@ class PublicController < ApplicationController  # :nodoc: all
       return redirect_to version.url if df.processor != 'local'
       return  render(:inline => 'File not found', :status => 404) unless version.copy_local!
 
-      render :nothing => true if RAILS_ENV == 'test'
+      render :nothing => true if Rails.env == 'test'
 
       name = version.filename
       if df.mime_type.blank?

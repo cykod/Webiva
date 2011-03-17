@@ -66,7 +66,7 @@ class PageController < ModuleAppController
 
   public  
 
-  if RAILS_ENV == 'test'
+  if Rails.env == 'test'
     def set_test_renderer(rnd) #:nodoc:
       @test_renderer = rnd
     end

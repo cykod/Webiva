@@ -17,30 +17,24 @@ gem 'net-ssh', :require => 'net/ssh'
 gem 'rmagick', :require => 'RMagick'
 gem 'libxml-ruby', :require => 'xml'
 gem 'soap4r', :require => 'soap/soap'
-gem 'json'
+gem 'json', '~> 1.4.6'
 gem 'SystemTimer', :require => 'system_timer'
 gem 'memcache-client', :require => 'memcache'
 gem 'resthome'
 gem "nokogiri"
 
-group :test do
-#   gem "cucumber", "0.6.2"
-#   gem "rspec", "1.3.0"
-#   gem "rspec-rails", "1.3.2"
-   gem "database_cleaner", '0.4.3'
-   gem "factory_girl"
-   gem "webrat", "0.6.0"
-#   gem "cucumber-rails",  "0.2.4"
+group :development, :test, :spec, :cucumber, :selenium do
+  gem 'rspec-rails'
+  gem 'cucumber-rails'
+  gem 'capybara'
+  gem 'database_cleaner'
+  gem 'factory_girl_rails'
+  gem 'jquery-rails'
+  gem 'rails_code_qa'
+  gem 'hpricot'
+  gem 'fakeweb'
 end
 
 group :selenium do
-#  gem 'cucumber-rails',   '0.2.4' 
-  gem 'database_cleaner',  '0.4.3'
-  gem 'webrat',            '0.6.0' 
-#  gem 'rspec',            '1.3.0' 
-#  gem 'rspec-rails',      '1.3.2' 
   gem 'selenium-client',   '1.2.18'
-
-
-
 end

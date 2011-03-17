@@ -3,7 +3,7 @@
 
 require 'yaml'
 
-RAILS_ROOT = File.dirname(__FILE__) + "/.."
+Rails.root = File.dirname(__FILE__) + "/.."
 
 # We may not have a workling Webiva install, so 
 def run_db_command(command)
@@ -13,7 +13,7 @@ end
 
 def update_server_info
 
-  cms_yml_file = YAML.load_file("#{RAILS_ROOT}/config/cms.yml")['production']
+  cms_yml_file = YAML.load_file("#{Rails.root}/config/cms.yml")['production']
 
   @db_name= cms_yml_file['database']
   @username = cms_yml_file['username']
@@ -21,7 +21,7 @@ def update_server_info
   @db_host = cms_yml_file['host']
   @db_port = 3306
 
-  server_yml_file = YAML.load_file("#{RAILS_ROOT}/config/server.yml")['server']
+  server_yml_file = YAML.load_file("#{Rails.root}/config/server.yml")['server']
 
   @server_name = server_yml_file['name']
   @roles = server_yml_file['roles'] || []

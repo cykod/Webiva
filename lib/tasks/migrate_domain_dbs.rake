@@ -21,7 +21,7 @@ namespace "cms" do
       db_file = dmn[:domain_database][:options]
       ActiveRecord::Base.establish_connection(db_file['migrator'])
       DomainModel.establish_connection(db_file['migrator'])
-      ActiveRecord::Migrator.migrate("#{RAILS_ROOT}/db/migrate/",version)
+      ActiveRecord::Migrator.migrate("#{Rails.root}/db/migrate/",version)
     end 
     
   end

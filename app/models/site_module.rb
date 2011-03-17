@@ -13,7 +13,7 @@ class SiteModule < DomainModel
   
   def get_renderers
     renderers = []
-    Dir.glob("#{RAILS_ROOT}/vendor/modules/#{name}/app/controllers/#{name}/[a-z0-9\-_]*_renderer.rb") do |file|
+    Dir.glob("#{Rails.root}/vendor/modules/#{name}/app/controllers/#{name}/[a-z0-9\-_]*_renderer.rb") do |file|
       if file =~ /#{name}\/([a-z0-9\-_]+)_renderer.rb$/
         renderer_name = $1
         cls_name = "#{name.camelcase}::#{renderer_name.camelcase}Renderer"
@@ -27,7 +27,7 @@ class SiteModule < DomainModel
   
   def get_features
     features = []
-    Dir.glob("#{RAILS_ROOT}/vendor/modules/#{name}/app/controllers/#{name}/[a-z0-9\-_]*_feature.rb") do |file|
+    Dir.glob("#{Rails.root}/vendor/modules/#{name}/app/controllers/#{name}/[a-z0-9\-_]*_feature.rb") do |file|
       if file =~ /#{name}\/([a-z0-9\-_]+)_feature.rb$/
         feature_name = $1
         cls_name = "#{name.camelcase}::#{feature_name.camelcase}Feature"
@@ -153,7 +153,7 @@ class SiteModule < DomainModel
     paragraphs = {}
     last_header = ''
     self.find(:all,:conditions => "status='active'").each do |comp|
-      Dir.glob("#{RAILS_ROOT}/vendor/modules/#{comp.name}/app/controllers/#{comp.name}/[a-z0-9\-_]*_controller.rb") do |file|
+      Dir.glob("#{Rails.root}/vendor/modules/#{comp.name}/app/controllers/#{comp.name}/[a-z0-9\-_]*_controller.rb") do |file|
         
         if file =~ /\/([a-z0-9\-_]+)_controller.rb$/
           controller_name = $1
@@ -429,7 +429,7 @@ class SiteModule < DomainModel
 
   def self.get_domain_modules(domain)
     modules = []
-    Dir.glob("#{RAILS_ROOT}/vendor/modules/[a-z]*") do |file|
+    Dir.glob("#{Rails.root}/vendor/modules/[a-z]*") do |file|
       if file =~ /\/([a-z_-]+)\/{0,1}$/
         mod = DomainModule::get_module_info($1,domain)
         modules <<  mod if mod[:status] != :hidden
@@ -443,13 +443,13 @@ class SiteModule < DomainModel
   def self.migrate_domain_components(params = { })
     # do some sanitization on the activation list just in case
     list = params[:activation_list].map { |mod| mod.gsub(/[^0-9a-zA-Z_\-]+/,'')}
-    ok = `cd #{RAILS_ROOT};rake cms:migrate_domain_components DOMAIN_ID=#{DomainModel.active_domain_id} COMPONENT=#{list.join(',')}`
+    ok = `cd #{Rails.root};rake cms:migrate_domain_components DOMAIN_ID=#{DomainModel.active_domain_id} COMPONENT=#{list.join(',')}`
     expire_site
   end
 
   def migrate_domain_component(params = {})
     
-    ok = `cd #{RAILS_ROOT};rake cms:migrate_domain_components DOMAIN_ID=#{DomainModel.active_domain_id} COMPONENT=#{self.name}`
+    ok = `cd #{Rails.root};rake cms:migrate_domain_components DOMAIN_ID=#{DomainModel.active_domain_id} COMPONENT=#{self.name}`
     expire_site
   end
 end

@@ -41,7 +41,7 @@ class Dashboard::ContentNodeWidget < Dashboard::WidgetBase #:nodoc:all
     end
 
     def available_files
-      files = Dir.glob("#{RAILS_ROOT}/public/themes/standard/images/icons/content/*.png").map { |fl| File.basename(fl) }.sort
+      files = Dir.glob("#{Rails.root}/public/themes/standard/images/icons/content/*.png").map { |fl| File.basename(fl) }.sort
       [['Default icon',nil]] + files.map {  |fl|  [ File.basename(fl,'.png').titleize, fl ] }
     end
 

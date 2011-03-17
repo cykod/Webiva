@@ -183,7 +183,7 @@ class ApplicationController < ActionController::Base
     
     # Cancel out of domain activations
     # if we are testing
-    if RAILS_ENV == 'test' || RAILS_ENV == 'cucumber' || RAILS_ENV == 'selenium'
+    if Rails.env == 'test' || Rails.env == 'cucumber' || Rails.env == 'selenium'
       DomainModel.activate_domain(Domain.find(CMS_DEFAULTS['testing_domain']).get_info,'production',false)
       return true
     else 
@@ -266,7 +266,7 @@ class ApplicationController < ActionController::Base
       session[:cms_language] = params[:set_language]
     end
     
-    Locale.set(session[:cms_language]) unless RAILS_ENV == 'test'
+    Locale.set(session[:cms_language]) unless Rails.env == 'test'
     
   end   
 
@@ -530,12 +530,12 @@ class ApplicationController < ActionController::Base
 
   def sanitize_backtrace(trace) # :nodoc:
     re = Regexp.new(/^#{Regexp.escape(rails_root)}/)
-    trace.map { |line| Pathname.new(line.gsub(re, "[RAILS_ROOT]")).cleanpath.to_s }
+    trace.map { |line| Pathname.new(line.gsub(re, "[Rails.root]")).cleanpath.to_s }
   end
 
   def rails_root # :nodoc:
     return @rails_root if @rails_root
-    @rails_root = Pathname.new(RAILS_ROOT).cleanpath.to_s
+    @rails_root = Pathname.new(Rails.root).cleanpath.to_s
   end  
 
 end

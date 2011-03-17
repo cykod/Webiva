@@ -4,7 +4,7 @@ namespace "cms" do
   task :create_domain_db => [:environment] do |t|
     domain_id = ENV['DOMAIN_ID'] || raise('Missing DOMAIN_ID=## argument')
 
-    db_config_file = YAML.load_file("#{RAILS_ROOT}/config/cms_migrator.yml")
+    db_config_file = YAML.load_file("#{Rails.root}/config/cms_migrator.yml")
     db_config = db_config_file[ENV['RAILS_ENV']]
     db_adapter = db_config['adapter'] || 'mysql'
     db_socket = db_config['socket']
@@ -71,7 +71,7 @@ namespace "cms" do
 
       ActiveRecord::Base.logger = Logger.new(STDOUT)
       ActiveRecord::Base.establish_connection(options['migrator'])
-      ActiveRecord::Migrator.migrate("#{RAILS_ROOT}/db/migrate/")
+      ActiveRecord::Migrator.migrate("#{Rails.root}/db/migrate/")
 
       ActiveRecord::Base.establish_connection(db_config)
 

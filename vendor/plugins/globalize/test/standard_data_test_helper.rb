@@ -14,7 +14,7 @@ def inflate_schema(source, dest)
   end
 end
 
-plugin_path = RAILS_ROOT + "/vendor/plugins/globalize"
+plugin_path = Rails.root + "/vendor/plugins/globalize"
 
 config_location = plugin_path + "/test/config/database.yml"
 

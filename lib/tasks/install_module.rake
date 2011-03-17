@@ -11,7 +11,7 @@ task :install_module => [:environment] do |t|
       raise "USAGE: rake cms:install_module MODULE=mod_name"
   end
   
-    `cd #{RAILS_ROOT}/vendor/modules; git clone #{GIT_REPOSITORY}:webiva-#{ENV['MODULE']} #{ENV['MODULE']}`
+    `cd #{Rails.root}/vendor/modules; git clone #{GIT_REPOSITORY}:webiva-#{ENV['MODULE']} #{ENV['MODULE']}`
 end
 
 end

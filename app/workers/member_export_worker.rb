@@ -18,7 +18,7 @@ class MemberExportWorker <  Workling::Base #:nodoc:all
     
     results[:completed] = false
     
-    tmp_path = "#{RAILS_ROOT}/tmp/export/"
+    tmp_path = "#{Rails.root}/tmp/export/"
     FileUtils.mkpath(tmp_path)
     
     filename  = tmp_path + dmn.id.to_s + "_member_export.csv"

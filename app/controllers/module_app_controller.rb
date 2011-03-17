@@ -79,7 +79,7 @@ class ModuleAppController < ApplicationController
     end
 
     # Handle the www issue
-    unless RAILS_ENV == 'test' || RAILS_ENV == 'cucumber' # Skip ssl and domain switches in test mode
+    unless Rails.env == 'test' || Rails.env == 'cucumber' # Skip ssl and domain switches in test mode
       if DomainModel.active_domain[:www_prefix] != @www_prefix
         dest_http = request.ssl? ? 'https://' : 'http://'
 

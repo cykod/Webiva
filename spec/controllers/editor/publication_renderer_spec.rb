@@ -19,7 +19,7 @@ describe Editor::PublicationRenderer, :type => :controller do
     end
 
     # Switch to migrator
-    @defaults_config_file = YAML.load_file("#{RAILS_ROOT}/config/defaults.yml")
+    @defaults_config_file = YAML.load_file("#{Rails.root}/config/defaults.yml")
     DomainModel.activate_domain(Domain.find(@defaults_config_file['testing_domain']).get_info,'migrator',false)    
     
     DomainModel.connection.reconnect!

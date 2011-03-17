@@ -26,7 +26,7 @@ describe DomainDatabase do
   end
 
   it "should set the options to the yml file if it exists" do
-    database_file = "#{RAILS_ROOT}/config/sites/test_webiva_001_test_dev.yml"
+    database_file = "#{Rails.root}/config/sites/test_webiva_001_test_dev.yml"
     File.unlink(database_file) if File.exists?(database_file) # incase this test failed previously
 
     @client = Client.create :name => 'New Client'

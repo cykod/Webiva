@@ -533,7 +533,7 @@ class DomainFile < DomainModel
 
    # Just get get the local filename without forcing a copy
    def local_filename(size=nil,force=false)
-     "#{RAILS_ROOT}/public" + self.relative_filename(size,force);
+     "#{Rails.root}/public" + self.relative_filename(size,force);
    end
 
    def file_exists?(fl=nil)
@@ -558,7 +558,7 @@ class DomainFile < DomainModel
    def storage_directory; self.storage_base + "/" + self.prefix + "/"; end
 
    # Return the absolute storage directory - valid for opening a file  on the server 
-   def abs_storage_directory; "#{RAILS_ROOT}/public" + self.storage_base + "/" + self.prefix + "/"; end
+   def abs_storage_directory; "#{Rails.root}/public" + self.storage_base + "/" + self.prefix + "/"; end
    
    def storage_directories
      dirs = []
@@ -594,7 +594,7 @@ class DomainFile < DomainModel
    def self.private_storage_base; "/system/private/#{DomainFile.storage_subdir}"; end
 
    # Absolute path to private storage directory
-   def self.abs_private_storage_base; "#{RAILS_ROOT}/public" + self.private_storage_base; end
+   def self.abs_private_storage_base; "#{Rails.root}/public" + self.private_storage_base; end
 
    # Public storage base
    def self.public_storage_base;  "/system/storage/#{DomainFile.storage_subdir}"; end
@@ -1561,7 +1561,7 @@ class DomainFile < DomainModel
   end
   
   def self.export_to_csv(obj, opts={})
-    tmp_path = "#{RAILS_ROOT}/tmp/export/"
+    tmp_path = "#{Rails.root}/tmp/export/"
     FileUtils.mkpath(tmp_path)
     filename  = "#{tmp_path}#{DomainModel.active_domain_id.to_s}_#{obj.class.to_s.underscore}.csv"
 

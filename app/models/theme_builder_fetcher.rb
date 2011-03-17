@@ -40,7 +40,7 @@ class ThemeBuilderFetcher
       end
     end
 
-    tmp_path = "#{RAILS_ROOT}/tmp/theme_builder/" + DomainModel.active_domain_id.to_s;
+    tmp_path = "#{Rails.root}/tmp/theme_builder/" + DomainModel.active_domain_id.to_s;
     FileUtils.mkpath(tmp_path)
     filename = tmp_path + "/styles.css"
     File.open(filename, 'w') { |f| f.write css }
@@ -76,7 +76,7 @@ class ThemeBuilderFetcher
     end
 
     html_file = nil
-    tmp_path = "#{RAILS_ROOT}/tmp/theme_builder/" + DomainModel.active_domain_id.to_s;
+    tmp_path = "#{Rails.root}/tmp/theme_builder/" + DomainModel.active_domain_id.to_s;
     FileUtils.mkpath(tmp_path)
     filename = tmp_path + "/index.html"
     File.open(filename, 'w') { |f| f.write "<!DOCTYPE html>\n<html>\n<head>\n#{doc.css('meta').to_html}\n#{self.parse_css(@base_url, inline_styles)}\n</head>\n#{body}\n</html>" }

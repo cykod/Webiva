@@ -22,7 +22,7 @@ require 'pp'
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 module ExceptionNotifierHelper
   VIEW_PATH = "views/exception_notifier"
-  APP_PATH = "#{RAILS_ROOT}/app/#{VIEW_PATH}"
+  APP_PATH = "#{Rails.root}/app/#{VIEW_PATH}"
 
   def render_section(section)
     RAILS_DEFAULT_LOGGER.info("rendering section #{section.inspect}")

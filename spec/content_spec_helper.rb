@@ -4,7 +4,7 @@ module ContentSpecHelper
 
   def connect_to_migrator_database
      # Switch to migrator
-    @defaults_config_file = YAML.load_file("#{RAILS_ROOT}/config/defaults.yml")
+    @defaults_config_file = YAML.load_file("#{Rails.root}/config/defaults.yml")
 
     dmn = Domain.find(@defaults_config_file['testing_domain']).get_info
     DomainModel.activate_database(dmn,'migrator',false)

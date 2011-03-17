@@ -14,7 +14,7 @@ task :website_export => [:environment] do |t|
   
   dmn = Domain.find(ENV['DOMAIN_ID'].to_i)
   backup_dir =  Time.now.strftime('%Y%m%d%H%M%S') + "_export_" + dmn.database
-  dir = "#{RAILS_ROOT}/backup/#{backup_dir}"
+  dir = "#{Rails.root}/backup/#{backup_dir}"
   FileUtils.mkpath(dir)
 
   lang = Configuration.languages[0] 
@@ -40,10 +40,10 @@ task :website_export => [:environment] do |t|
   end
 
   FileUtils.mkpath(dir + "/system/storage/#{dmn.file_store}")
-  `cp -r  #{RAILS_ROOT}/public/system/storage/#{dmn.file_store}/* #{dir}/system/storage/#{dmn.file_store}`
+  `cp -r  #{Rails.root}/public/system/storage/#{dmn.file_store}/* #{dir}/system/storage/#{dmn.file_store}`
 
   FileUtils.mkpath(dir + "/system/private/#{dmn.file_store}")
-  `cp -r  #{RAILS_ROOT}/public/system/private/#{dmn.file_store}/* #{dir}/system/private/#{dmn.file_store}`
+  `cp -r  #{Rails.root}/public/system/private/#{dmn.file_store}/* #{dir}/system/private/#{dmn.file_store}`
 
   FileUtils.mkpath(dir + "/stylesheet/")
   SiteTemplate.find(:all,:conditions => 'parent_id IS NULL').each do |tpl|

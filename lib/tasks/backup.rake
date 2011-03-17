@@ -6,10 +6,10 @@ def cms_backup_dump_db(config,output_file)
 end
 
 def cms_backup_file_store(file_store_id,output_dir)
-  private_dir = "#{RAILS_ROOT}/public/system/private/#{file_store_id}"
+  private_dir = "#{Rails.root}/public/system/private/#{file_store_id}"
   `cd #{private_dir}; tar -czvf #{output_dir}/private.tar.gz .` if File.exists?(private_dir) && File.directory?(private_dir)
   
-  storage_dir = "#{RAILS_ROOT}/public/system/storage/#{file_store_id}"
+  storage_dir = "#{Rails.root}/public/system/storage/#{file_store_id}"
   `cd #{storage_dir}; tar -czvf #{output_dir}/storage.tar.gz .` if File.exists?(storage_dir) && File.directory?(storage_dir)
 end
   
@@ -20,7 +20,7 @@ namespace "cms" do
     require 'active_record/schema_dumper'
     require 'logger'
     
-    main_db = YAML.load_file("#{RAILS_ROOT}/config/cms_migrator.yml")
+    main_db = YAML.load_file("#{Rails.root}/config/cms_migrator.yml")
     db_cfg = main_db[ENV['RAILS_ENV']]
     
     domain_id = ENV['DOMAIN_ID']
@@ -40,7 +40,7 @@ namespace "cms" do
       backup_dir =  Time.now.strftime('%Y%m%d%H%M%S')
     end
     
-    dir = "#{RAILS_ROOT}/backup/#{backup_dir}"
+    dir = "#{Rails.root}/backup/#{backup_dir}"
     FileUtils.mkpath(dir)
     
     ActiveRecord::Base.logger = Logger.new(STDERR)
@@ -56,7 +56,7 @@ namespace "cms" do
       # backup database
       cms_backup_dump_db(db_cfg,File.join(webiva_dir,'webiva.sql'))
       # backup config files
-      FileUtils.cp_r Dir.glob("#{RAILS_ROOT}/config/*.yml"), webiva_dir
+      FileUtils.cp_r Dir.glob("#{Rails.root}/config/*.yml"), webiva_dir
     end
     
     domains.each do |dmn|
@@ -89,11 +89,11 @@ namespace "cms" do
   
     print("Backing up to File: backup/#{backup_dir}.tar.gz\n");
     
-    `cd #{RAILS_ROOT}/backup; tar -zcvf #{backup_dir}.tar.gz #{backup_dir}/`
+    `cd #{Rails.root}/backup; tar -zcvf #{backup_dir}.tar.gz #{backup_dir}/`
     FileUtils.rm_rf(dir)
     
-    if File.exists?("#{RAILS_ROOT}/config/backup.yml") && !ENV['NO_COPY']
-      backup_file = YAML.load_file("#{RAILS_ROOT}/config/backup.yml")
+    if File.exists?("#{Rails.root}/config/backup.yml") && !ENV['NO_COPY']
+      backup_file = YAML.load_file("#{Rails.root}/config/backup.yml")
       backup_cfg = backup_file['server']
       
       case backup_cfg['type']
@@ -103,7 +103,7 @@ namespace "cms" do
 	    ftp.chdir(backup_cfg['directory']) if backup_cfg['directory']
 	    puts("Transmitting Backup file data...")
 	    iter = 0
-	    ftp.putbinaryfile("#{RAILS_ROOT}/backup/#{backup_dir}.tar.gz","#{backup_dir}.tar.gz") do |data|
+	    ftp.putbinaryfile("#{Rails.root}/backup/#{backup_dir}.tar.gz","#{backup_dir}.tar.gz") do |data|
 	      
 	      iter += 1
 	      
@@ -129,7 +129,7 @@ namespace "cms" do
 	    end
 	  end
 	  
-	  FileUtils.rm("#{RAILS_ROOT}/backup/#{backup_dir}.tar.gz")
+	  FileUtils.rm("#{Rails.root}/backup/#{backup_dir}.tar.gz")
 	rescue Exception => e
 	 raise "Error FTPing files: " + e.to_s
 	end
@@ -142,7 +142,7 @@ namespace "cms" do
           @bucket = @s3.bucket(backup_cfg['bucket'], true) unless @bucket # create the bucket
 
           puts("Transmitting Backup file data...\n")
-          File.open("#{RAILS_ROOT}/backup/#{backup_dir}.tar.gz") do |file|
+          File.open("#{Rails.root}/backup/#{backup_dir}.tar.gz") do |file|
             @bucket.put("#{backup_dir}.tar.gz", file, {}, 'private')
           end
           puts("Done Transmitting Files\n")

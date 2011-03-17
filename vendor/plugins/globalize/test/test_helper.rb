@@ -5,7 +5,7 @@ require 'test_help'
 require 'stringio'
 
 plugin_path = File.expand_path(File.dirname(__FILE__)+"/../")
-config_location = RAILS_ROOT + "/config/database.yml"
+config_location = Rails.root + "/config/database.yml"
 
 config = YAML::load(ERB.new(IO.read(config_location)).result)
 log_file = plugin_path + "/test/log/test.log"

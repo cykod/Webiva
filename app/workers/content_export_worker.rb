@@ -18,7 +18,7 @@ class ContentExportWorker <  Workling::Base #:nodoc:all
     
     results[:completed] = false
     
-    tmp_path = "#{RAILS_ROOT}/tmp/export/"
+    tmp_path = "#{Rails.root}/tmp/export/"
     FileUtils.mkpath(tmp_path)
     
     content_model = ContentModel.find(args[:content_model_id])
@@ -44,7 +44,7 @@ class ContentExportWorker <  Workling::Base #:nodoc:all
     case args[:export_format]
     when 'sql':
     
-      dmn_yaml = "#{RAILS_ROOT}/config/sites/#{dmn.database}.yml"
+      dmn_yaml = "#{Rails.root}/config/sites/#{dmn.database}.yml"
       dmn_file = YAML.load_file(dmn_yaml)
       config = dmn_file['migrator']
     

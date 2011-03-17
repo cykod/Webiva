@@ -229,7 +229,7 @@ class ContentNode < DomainModel
       begin
 	handler_info[:class].search(language,query,options)
       rescue Exception => e
-	raise e unless RAILS_ENV == 'production'
+	raise e unless Rails.env == 'production'
 	return internal_search(language,query,options)
       end
     else

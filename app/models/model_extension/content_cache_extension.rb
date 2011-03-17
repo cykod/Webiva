@@ -113,13 +113,13 @@ module ModelExtension::ContentCacheExtension
       content_cache_expire_list
       
       DataCache.expire_content(self.class.to_s,"ID#{self.id}")
-      logger.warn("Content Cache Expire: #{self.class.to_s} ID#{self.id}") unless RAILS_ENV == 'production'
+      logger.warn("Content Cache Expire: #{self.class.to_s} ID#{self.id}") unless Rails.env == 'production'
       if opts[:identifier]
         opts[:identifier].each do |ident|
           # We are only using the first 46 characters of the identifier
           # b/c of memcached size issues
           ident = "ATR#{self.resolve_argument(ident).to_s[0..45]}"
-          logger.warn("Content Cache Expire: #{self.class.to_s} #{ident}") unless RAILS_ENV == 'production'
+          logger.warn("Content Cache Expire: #{self.class.to_s} #{ident}") unless Rails.env == 'production'
           DataCache.expire_content(self.class.to_s,ident)
          
           
@@ -154,7 +154,7 @@ module ModelExtension::ContentCacheExtension
     # attribute symbol, or proc that will search by the cache by identifier instead of id
     def cache_fetch(display_string,identifier=nil)
       ident = identifier ? "ATR#{self.resolve_argument(identifier).to_s[0..45]}" : "ID#{self.id}"
-      logger.warn("Content Cache Fetch: #{self.class.to_s} #{ident} #{display_string}") unless RAILS_ENV == 'production'
+      logger.warn("Content Cache Fetch: #{self.class.to_s} #{ident} #{display_string}") unless Rails.env == 'production'
       
       DataCache.get_content(self.class.to_s,
                             ident,
@@ -167,7 +167,7 @@ module ModelExtension::ContentCacheExtension
     def cache_put(display_string,content,identifier=nil,expiration=0)
       ident = identifier ? "ATR#{self.resolve_argument(identifier).to_s[0..45]}" : "ID#{self.id}"
 
-      logger.warn("Content Cache Put: #{self.class.to_s} #{ident} #{display_string} (#{content.to_s.length})") unless RAILS_ENV == 'production'
+      logger.warn("Content Cache Put: #{self.class.to_s} #{ident} #{display_string} (#{content.to_s.length})") unless Rails.env == 'production'
       
       DataCache.put_content(self.class.to_s,
                             ident,
@@ -195,14 +195,14 @@ module ModelExtension::ContentCacheExtension
 
       # Expire any lists data cache elements
       def content_cache_expire_list 
-        logger.warn("Content Cache Expire List: #{self.to_s}") unless RAILS_ENV == 'production'
+        logger.warn("Content Cache Expire List: #{self.to_s}") unless Rails.env == 'production'
         DataCache.expire_content(self.to_s,'LIST')
       end
 
 
       # Put data into the cache associated with the content_cache'd class
       def cache_put_list(display_string,content,expiration=0)
-        logger.warn("Content Cache Put List: #{self.to_s} #{display_string}") unless RAILS_ENV == 'production'
+        logger.warn("Content Cache Put List: #{self.to_s} #{display_string}") unless Rails.env == 'production'
         DataCache.put_content(self.to_s,
                               "LIST",
                               display_string,
@@ -212,7 +212,7 @@ module ModelExtension::ContentCacheExtension
       
       # Pull data out of the list cache given a display string
       def cache_fetch_list(display_string)
-        logger.warn("Content Cache Fetch List: #{self.to_s} #{display_string}") unless RAILS_ENV == 'production'
+        logger.warn("Content Cache Fetch List: #{self.to_s} #{display_string}") unless Rails.env == 'production'
 
         DataCache.get_content(self.to_s,
                               'LIST',
@@ -229,7 +229,7 @@ module ModelExtension::ContentCacheExtension
         else
           ident = "ATR#{identifier.to_s[0..45]}"
         end
-        logger.warn("Content Cache Fetch: #{self.to_s}  #{ident} #{display_string}") unless RAILS_ENV == 'production'
+        logger.warn("Content Cache Fetch: #{self.to_s}  #{ident} #{display_string}") unless Rails.env == 'production'
         DataCache.get_content(self.to_s,ident,display_string)
       end
 
@@ -244,7 +244,7 @@ module ModelExtension::ContentCacheExtension
           ident = "ATR#{identifier.to_s[0..45]}"
         end
         
-        logger.warn("Content Cache Put: #{self.to_s} #{ident} #{display_string} (#{content.to_s.length})") unless RAILS_ENV == 'production'
+        logger.warn("Content Cache Put: #{self.to_s} #{ident} #{display_string} (#{content.to_s.length})") unless Rails.env == 'production'
         
         DataCache.put_content(self.to_s,ident,display_string,content,expiration)
       end

@@ -88,7 +88,7 @@ class DomainFileVersion < DomainModel
    # Return the absolute storage directory - valid for opening a file  on the server 
    # Return the relative storage directory
    # Thumbnails are stored in subdirectories prefixed with the file size (../small/file.jpg)
-   def abs_filename; "#{RAILS_ROOT}/public" + self.relative_filename; end
+   def abs_filename; "#{Rails.root}/public" + self.relative_filename; end
    alias_method :filename, :abs_filename
    
    def name
@@ -96,7 +96,7 @@ class DomainFileVersion < DomainModel
    end
    
    def storage_directory; self.storage_base + "/" + self.prefix + "/"; end
-   def abs_storage_directory; "#{RAILS_ROOT}/public" + self.storage_base + "/" + self.prefix + "/"; end
+   def abs_storage_directory; "#{Rails.root}/public" + self.storage_base + "/" + self.prefix + "/"; end
    
    def storage_base; self.domain_file.private? ? DomainFile.private_storage_base : DomainFile.public_storage_base; end
    

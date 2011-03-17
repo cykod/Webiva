@@ -40,7 +40,7 @@ class TransmitFileController < ApplicationController
   def delete
     key = params[:path][1]
     DomainFile::LocalProcessor.get_directories_to_delete(key).each do |dir|
-      dir = "#{RAILS_ROOT}/public" + dir
+      dir = "#{Rails.root}/public" + dir
       FileUtils.rm_rf(dir) if File.directory?(dir)
     end
 

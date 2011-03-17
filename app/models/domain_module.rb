@@ -45,7 +45,7 @@ class DomainModule < SystemModel
   # aren't hidden
   def self.all_modules(domain)
     modules = []
-    Dir.glob("#{RAILS_ROOT}/vendor/modules/[a-z0-9_]*") do |file|
+    Dir.glob("#{Rails.root}/vendor/modules/[a-z0-9_]*") do |file|
       if file =~ /\/([a-z_0-9-]+)\/{0,1}$/
         mod = self.module_info(domain,$1)
         modules <<  mod if mod[:status] != 'hidden'

@@ -21,7 +21,7 @@ require 'webrat/core/matchers'
 Spec::Runner.configure do |config|
   config.use_transactional_fixtures = false # Modified for 2.3.2
   config.use_instantiated_fixtures  = false
-  config.fixture_path = RAILS_ROOT + '/spec/fixtures/'
+  config.fixture_path = Rails.root + '/spec/fixtures/'
 end
 
 Webrat.configure do |config|

@@ -13,7 +13,7 @@ class ModuleController < CmsController  # :nodoc: all
   protected
 
     def validate_module
-      if !active_module(self.class.to_s.include?('AdminController')) && RAILS_ENV != 'test'
+      if !active_module(self.class.to_s.include?('AdminController')) && Rails.env != 'test'
         redirect_to :controller => '/modules'
         return false
       else

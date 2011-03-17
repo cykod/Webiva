@@ -325,7 +325,7 @@ class MailTemplate < DomainModel
     
     # add in a spacer image if no other image available
     if !replaced_variable
-      replaced_filename = "#{RAILS_ROOT}/public/images/spacer.gif"
+      replaced_filename = "#{Rails.root}/public/images/spacer.gif"
       replaced_variable = "track_image:http://#{Configuration.full_domain}/images/spacer.gif"
       @prepared_body[:html] = @prepared_body[:html].to_s + "<img src='%%#{replaced_variable}%%' width='1' height='1' />"
     end

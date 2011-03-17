@@ -260,7 +260,7 @@ class ParagraphController < CmsController
     # and the 
     
     paragraphs = []
-    Dir.glob("#{RAILS_ROOT}/app/controllers/editor/[a-z0-9\-_]*_controller.rb") do |file|
+    Dir.glob("#{Rails.root}/app/controllers/editor/[a-z0-9\-_]*_controller.rb") do |file|
       if file =~ /\/([a-z0-9\-_]+)_controller.rb$/
         controller_name = $1
         if controller_name != 'admin'
@@ -292,7 +292,7 @@ class ParagraphController < CmsController
     # Find all the controllers in the 'editors' subdirectory,
     
     controllers = []
-    Dir.glob("#{RAILS_ROOT}/app/controllers/editor/[a-z0-9\-_]*_controller.rb") do |file|
+    Dir.glob("#{Rails.root}/app/controllers/editor/[a-z0-9\-_]*_controller.rb") do |file|
       if file =~ /\/([a-z0-9\-_]+)_controller.rb$/
         controller_name = $1
         cls = "Editor::#{controller_name.camelcase}Controller".constantize

@@ -7,7 +7,7 @@ require 'yaml'
 require 'rubygems'
 require 'memcache'
 
-RAILS_ROOT = File.dirname(__FILE__) + "/.."
+ROOT_FOLDER = File.dirname(__FILE__) + "/.."
 
 def run_db_command(command,use_db=true)
      if use_db
@@ -162,16 +162,16 @@ INTRODUCTION
       report_error(@server_name != 'localhost', "Master server can not be localhost") if @server_type == 'master'
     end
 
-    if File.exists?("#{RAILS_ROOT}/config/server.yml")
+    if File.exists?("#{ROOT_FOLDER}/config/server.yml")
       puts('server.yml already exists, not overwriting')
     else
-      FileUtils.cp("#{RAILS_ROOT}/config/server.yml.example","#{RAILS_ROOT}/config/server.yml")
+      FileUtils.cp("#{ROOT_FOLDER}/config/server.yml.example","#{ROOT_FOLDER}/config/server.yml")
     end
 
-    server_yml_file = YAML.load_file "#{RAILS_ROOT}/config/server.yml"
+    server_yml_file = YAML.load_file "#{ROOT_FOLDER}/config/server.yml"
     server_yml_file['server']['name'] = @server_name
     server_yml_file['server']['type'] = @server_type
-    File.open("#{RAILS_ROOT}/config/server.yml","w") { |fd| fd.write(YAML.dump(server_yml_file)) }
+    File.open("#{ROOT_FOLDER}/config/server.yml","w") { |fd| fd.write(YAML.dump(server_yml_file)) }
   end
 
   def add_server_to_db()
@@ -189,7 +189,7 @@ INTRODUCTION
   end
 
   def validate_memcache_servers()
-    defaults_config_file = YAML.load_file("#{RAILS_ROOT}/config/defaults.yml")
+    defaults_config_file = YAML.load_file("#{ROOT_FOLDER}/config/defaults.yml")
 
     memcache_servers = defaults_config_file['memcache_servers'] || ['localhost:11211']
     memcache_servers.each do |server|
@@ -208,12 +208,12 @@ INTRODUCTION
   def validate_configs_exists()
     files = %w(cms.yml cms_migrator.yml defaults.yml workling.yml)
     files.each do |file|
-      filename = "#{RAILS_ROOT}/config/#{file}"
-      cmd = "scp #{files.join(' ')} #{whoami}@#{@server_name}:#{File.expand_path(RAILS_ROOT + '/config')}"
+      filename = "#{ROOT_FOLDER}/config/#{file}"
+      cmd = "scp #{files.join(' ')} #{whoami}@#{@server_name}:#{File.expand_path(ROOT_FOLDER + '/config')}"
       report_error File.exists?(filename), "config/#{file} not found!\nCopy the config files from the Master server.\n#{wrap(cmd, "\033[1m")}"
     end
 
-    cms_migrator_yml_file = YAML.load_file "#{RAILS_ROOT}/config/cms_migrator.yml"
+    cms_migrator_yml_file = YAML.load_file "#{ROOT_FOLDER}/config/cms_migrator.yml"
     @username = cms_migrator_yml_file['production']['username']
     @pw = cms_migrator_yml_file['production']['password']
     @db_name = cms_migrator_yml_file['production']['database']
@@ -249,21 +249,21 @@ INTRODUCTION
 
   def create_initial_yml_files
 
-    if File.exists?("#{RAILS_ROOT}/config/workling.yml")
+    if File.exists?("#{ROOT_FOLDER}/config/workling.yml")
       puts('workling.yml already exists, not overwriting')
     else
-      FileUtils.cp("#{RAILS_ROOT}/config/workling.yml.example","#{RAILS_ROOT}/config/workling.yml")
+      FileUtils.cp("#{ROOT_FOLDER}/config/workling.yml.example","#{ROOT_FOLDER}/config/workling.yml")
     end
 
-    if File.exists?("#{RAILS_ROOT}/config/defaults.yml")
+    if File.exists?("#{ROOT_FOLDER}/config/defaults.yml")
       puts("defaults.yml already exists, not overwriting")
     else
-       FileUtils.cp("#{RAILS_ROOT}/config/defaults.yml.example","#{RAILS_ROOT}/config/defaults.yml")
+       FileUtils.cp("#{ROOT_FOLDER}/config/defaults.yml.example","#{ROOT_FOLDER}/config/defaults.yml")
 
       if @server_type == 'master'
-        defaults_yml_file = YAML.load_file "#{RAILS_ROOT}/config/defaults.yml"
+        defaults_yml_file = YAML.load_file "#{ROOT_FOLDER}/config/defaults.yml"
         defaults_yml_file['memcache_servers'] = ["#{@server_name}:11211"]
-        File.open("#{RAILS_ROOT}/config/defaults.yml","w") { |fd| fd.write(YAML.dump(defaults_yml_file)) }
+        File.open("#{ROOT_FOLDER}/config/defaults.yml","w") { |fd| fd.write(YAML.dump(defaults_yml_file)) }
       end
     end
 
@@ -290,23 +290,23 @@ INTRODUCTION
     print("Done!\n")
 
     print('Creating workling.yml...')
-    workling_yml_file = YAML.load_file("#{RAILS_ROOT}/config/workling.yml")
+    workling_yml_file = YAML.load_file("#{ROOT_FOLDER}/config/workling.yml")
     workling_yml_file['production']['listens_on'] = "#{@server_name}:15151"
     workling_yml_file['development']['listens_on'] = "#{@server_name}:22122"
-    File.open("#{RAILS_ROOT}/config/workling.yml","w") { |fd| fd.write(YAML.dump(workling_yml_file)) }
+    File.open("#{ROOT_FOLDER}/config/workling.yml","w") { |fd| fd.write(YAML.dump(workling_yml_file)) }
     print("Done!\n")
   end
 
 
   def write_db_yml_file(filename,args)
 
-    cms_yml_example_file = YAML.load_file("#{RAILS_ROOT}/config/#{filename}.example")
+    cms_yml_example_file = YAML.load_file("#{ROOT_FOLDER}/config/#{filename}.example")
     %w(adapter socket host encoding pool).each do |arg|
       args[arg] ||= cms_yml_example_file['production'][arg]
     end
 
     cms_yml_output_file = { 'production' => args, 'development' => args }
-    File.open("#{RAILS_ROOT}/config/#{filename}","w") { |fd| fd.write(YAML.dump(cms_yml_output_file)) }
+    File.open("#{ROOT_FOLDER}/config/#{filename}","w") { |fd| fd.write(YAML.dump(cms_yml_output_file)) }
   end
 
   def rebuild_gems
@@ -360,9 +360,9 @@ EOF
   def build_local_gems
     print("Building local gems")
 
-    system("find #{RAILS_ROOT}/vendor/gems '*.o' -print | xargs rm")
-    system("find #{RAILS_ROOT}/vendor/gems '*.so' -print | xargs rm")
-    system("find #{RAILS_ROOT}/vendor/gems '*.out' -print | xargs rm")
+    system("find #{ROOT_FOLDER}/vendor/gems '*.o' -print | xargs rm")
+    system("find #{ROOT_FOLDER}/vendor/gems '*.so' -print | xargs rm")
+    system("find #{ROOT_FOLDER}/vendor/gems '*.out' -print | xargs rm")
 
     ok = system("rake gems:build:force")
     report_error(ok,'building of local gems failed, please run rake --trace gems:build:force manually')

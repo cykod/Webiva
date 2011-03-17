@@ -138,7 +138,7 @@ class WebformForm < DomainModel
   end
 
   def run_export_csv(args)
-    tmp_path = "#{RAILS_ROOT}/tmp/export/"
+    tmp_path = "#{Rails.root}/tmp/export/"
     FileUtils.mkpath(tmp_path)
     
     filename = tmp_path + DomainModel.active_domain_id.to_s + "_webform_export.csv"

@@ -37,7 +37,7 @@ describe DomainFile do
   end
   
   it "should be able to read a file locally and import it correctly" do
-    File.open("#{RAILS_ROOT}/spec/fixtures/files/rails.png") do |f|
+    File.open("#{Rails.root}/spec/fixtures/files/rails.png") do |f|
       @df.filename = f
       @df.save
     end
@@ -74,7 +74,7 @@ describe DomainFile do
   end
   
   it "should be able to extract a folder and recompress it to an archive" do
-    File.open("#{RAILS_ROOT}/spec/fixtures/files/test_folder.zip") do |f| 
+    File.open("#{Rails.root}/spec/fixtures/files/test_folder.zip") do |f| 
       @archive = DomainFile.create(:filename => f)
     end
     @files = @archive.extract(:single_folder => false)      

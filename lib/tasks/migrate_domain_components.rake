@@ -36,16 +36,16 @@ namespace "cms" do
       ComponentMigrator.handle_migration_update
       
       if force && domain
-        components = Dir.glob("#{RAILS_ROOT}/vendor/modules/*/db").map { |md| md.split("/")[-2] } unless components
+        components = Dir.glob("#{Rails.root}/vendor/modules/*/db").map { |md| md.split("/")[-2] } unless components
         components.each do |component|
-          dir = "#{RAILS_ROOT}/vendor/modules/#{component}/db"
+          dir = "#{Rails.root}/vendor/modules/#{component}/db"
           ComponentMigrator.current_component = component
       	  ComponentMigrator.migrate(dir,version)
         end
       else
         active_modules = SiteModule.find(:all,:conditions => "status IN ('active','initializing','initialized','error')")
         active_modules.each do |mod|
-          dir = "#{RAILS_ROOT}/vendor/modules/#{mod.name}/db"
+          dir = "#{Rails.root}/vendor/modules/#{mod.name}/db"
           if(File.directory?(dir) && (!components || components.include?(mod.name)))
             begin
               ComponentMigrator.current_component = mod.name

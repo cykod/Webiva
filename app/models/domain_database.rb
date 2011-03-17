@@ -41,7 +41,7 @@ class DomainDatabase < SystemModel
   def options
     opt = self.read_attribute(:options)
     return opt if opt
-    database_file = "#{RAILS_ROOT}/config/sites/#{self.name}.yml"
+    database_file = "#{Rails.root}/config/sites/#{self.name}.yml"
     return nil unless File.exists?(database_file)
     info = YAML.load_file(database_file)
     self.update_attribute(:options, info) if self.id

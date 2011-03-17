@@ -39,7 +39,7 @@ Webiva::Application.routes.draw do |map|
   match '/paragraph/:site_node/:page_revision/:paragraph/*path' => 'page#paragraph', :as => :paragraph_action
 
   begin
-    Dir.glob("#{RAILS_ROOT}/vendor/modules/[a-z]*") do |file|
+    Dir.glob("#{Rails.root}/vendor/modules/[a-z]*") do |file|
       if file =~ /\/([a-z_-]+)\/{0,1}$/
         mod_name = $1
         if File.exists?(file + "/routes.rb")

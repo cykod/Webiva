@@ -41,7 +41,7 @@ module HandlerActions
   module  ClassMethods
 
     def get_handlers(component,handler=nil,initialized = false)
-      handlers = DataCache.get_cached_container("Handlers","Active") unless initialized || RAILS_ENV != 'production'
+      handlers = DataCache.get_cached_container("Handlers","Active") unless initialized || Rails.env != 'production'
       unless handlers
         mods = initialized ? SiteModule.initialized_modules_info :  SiteModule.enabled_modules_info
         handlers = {}
@@ -65,7 +65,7 @@ module HandlerActions
             end
           end
         end
-        DataCache.put_container("Handlers","Active",handlers)  unless initialized || RAILS_ENV == 'development'
+        DataCache.put_container("Handlers","Active",handlers)  unless initialized || Rails.env == 'development'
       end
 
       if handler

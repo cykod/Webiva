@@ -103,7 +103,7 @@ Spec::Runner.configure do |config|
   # in your config/boot.rb
   config.use_transactional_fixtures = false # Modified for 2.3.2
   config.use_instantiated_fixtures  = false
-  config.fixture_path = RAILS_ROOT + '/spec/fixtures/'
+  config.fixture_path = Rails.root + '/spec/fixtures/'
 
 #  config.before(:suite) do
 #    WebivaCleaner.cleaner.reset
@@ -237,7 +237,7 @@ def add_factory_girl_path(dir)
   end
 end
 
-ActiveSupport::TestCase.fixture_path = RAILS_ROOT + '/spec/fixtures/'
+ActiveSupport::TestCase.fixture_path = Rails.root + '/spec/fixtures/'
 
 
 # Custom Matchers

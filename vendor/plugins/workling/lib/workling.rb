@@ -13,7 +13,7 @@ module Workling
 
   class ConfigurationError < WorklingError
     def initialize
-      super File.exist?(File.join(RAILS_ROOT, 'config', 'starling.yml')) ? 
+      super File.exist?(File.join(Rails.root, 'config', 'starling.yml')) ? 
         "config/starling.yml has been depracated. rename your config file to config/workling.yml then try again!" :
         "config/workling.yml could not be loaded. check out README.markdown to see what this file should contain. "
     end
@@ -118,11 +118,11 @@ module Workling
   end
   
   #
-  #  returns a config hash. reads RAILS_ROOT/config/workling.yml
+  #  returns a config hash. reads Rails.root/config/workling.yml
   #
   def self.config
     begin
-      config_path = File.join(RAILS_ROOT, 'config', 'workling.yml')
+      config_path = File.join(Rails.root, 'config', 'workling.yml')
       @@config ||=  YAML.load_file(config_path)[RAILS_ENV || 'development'].symbolize_keys
       @@config[:memcache_options].symbolize_keys! if @@config[:memcache_options]
       @@config 

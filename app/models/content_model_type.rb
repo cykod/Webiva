@@ -44,7 +44,7 @@ class ContentModelType < DomainModel
   end
 
   def self.subclasses
-     @@subclasses[self] = []
+     @@subclasses = []
   end
   
   def self.human_attribute_name(attribute)
