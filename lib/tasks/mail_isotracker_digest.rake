@@ -16,7 +16,7 @@ task :mail_isotracker_digest => [:environment] do |t|
     set_table_name :domains
   end
   
-  ActiveRecord::Base.establish_connection(main_db[RAILS_ENV])
+  ActiveRecord::Base.establish_connection(main_db[Rails.env])
   
   domains = [ domain ]
   
