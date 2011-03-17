@@ -24,11 +24,5 @@ Workling::Return::Store.instance = CACHE
 
 Webiva::Application.configure do
   config.cache_store = :mem_cache_store, memcache_servers, memcache_options
-  config.action_controller.session_store = :mem_cache_store
-  config.action_controller.session = {
-    :key => '_Webiva',
-    :cache => CACHE
-  }
-
-  config.cache_store = :mem_cache_store
+  config.session_store :mem_cache_store, :cache => CACHE, :key => '_Webiva'
 end

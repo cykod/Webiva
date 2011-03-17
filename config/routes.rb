@@ -1,4 +1,4 @@
-Webiva::Application.routes.draw do |map|
+Webiva::Application.routes.draw do
   match '/view/:language/*path' => 'page#view', :as => :language_link
   match '/website' => 'manage/access#login'
 
@@ -11,22 +11,13 @@ Webiva::Application.routes.draw do |map|
   match '/simple_captcha/:action' => 'simple_captcha#index', :as => :simple_captcha
 
   match '/website/:controller(/:action(/*path))'
-
-  map.connect '/webalytics',
-    :controller => 'page', :action => 'webalytics'
-
-  map.connect '/mailing/view/:campaign_hash/:queue_hash',
-    :controller => 'campaigns', :action => 'view'
-  map.connect '/mailing/image/:campaign_hash/:queue_hash',
-    :controller => 'campaigns', :action => 'image'
-  map.connect '/mailing/link/:campaign_hash/:link_hash/:queue_hash',
-    :controller => 'campaigns', :action =>  'link'
-  
-  map.connect '/system/storage/:domain_id/*path',
-    :controller => 'public', :action => 'image'
-  map.connect '/__fs__/*prefix', :controller => 'public', :action => 'file_store'
-    
-  map.stylesheet '/stylesheet/*path', :controller => 'public', :action => 'stylesheet'
+  match '/webalytics' => 'page#webalytics'
+  match '/mailing/view/:campaign_hash/:queue_hash' => 'campaigns#view'
+  match '/mailing/image/:campaign_hash/:queue_hash' => 'campaigns#image'
+  match '/mailing/link/:campaign_hash/:link_hash/:queue_hash' => 'campaigns#link'
+  match '/system/storage/:domain_id/*path' => 'public#image'
+  match '/__fs__/*prefix' => 'public#file_store'
+  match '/stylesheet/*path' => 'public#stylesheet', :as => :stylesheet
 
   match '/file/:action/*path' => 'public#index'
 

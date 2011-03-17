@@ -34,7 +34,10 @@ class Domain < SystemModel
   validates_presence_of :domain_type
   validates_inclusion_of :domain_type, :in => %w(domain redirect)
 
-  def before_create #:nodoc: 
+  before_create :set_inactive_message
+  after_save :save_database
+  
+  def set_inactive_message #:nodoc: 
     self.inactive_message = 'Site Currently Down for Maintenance' if self.inactive_message.blank?
   end
 
@@ -44,7 +47,7 @@ class Domain < SystemModel
     self.errors.add(:domain_database_id, 'is invalid') if self.domain_database && self.domain_database.client_id != self.client_id
   end
 
-  def after_save #:nodoc:
+  def save_database #:nodoc:
     # Clear the domain information out of any cache
     if self.domain_database
       self.domain_database.save

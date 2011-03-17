@@ -55,7 +55,6 @@ class WebivaQuickInstall
     create_master_users()
     create_initial_yml_files()
     validate_memcache_servers()
-    rebuild_gems()
     migrate_system_db()
     initialize_system()
     create_domain_db()
@@ -69,7 +68,6 @@ class WebivaQuickInstall
     create_master_users()
     create_initial_yml_files()
     validate_memcache_servers()
-    rebuild_gems()
     migrate_system_db()
     initialize_system()
     create_domain_db()
@@ -81,7 +79,6 @@ class WebivaQuickInstall
     get_server_name()
     validate_configs_exists()
     validate_memcache_servers()
-    rebuild_gems()
     add_server_to_db()
     display_success_message()
   end
@@ -308,17 +305,6 @@ INTRODUCTION
     cms_yml_output_file = { 'production' => args, 'development' => args }
     File.open("#{ROOT_FOLDER}/config/#{filename}","w") { |fd| fd.write(YAML.dump(cms_yml_output_file)) }
   end
-
-  def rebuild_gems
-    puts('Rebuilding local gems...')
-    ok = system('rake gems:build:force')
-    report_error(ok,'Could not build local gems (run "rake --trace gems:build:force" manually to see errors)')
-    puts('Done rebuildings local gems...')
-    puts('Installing additional gems...')
-    ok = system('rake gems:install')
-    report_error(ok,'Could not install gems (run "rake --trace gems:install" manually to see errors)')
-  end
-
 
   def migrate_system_db()
     ok = system('rake cms:migrate_system_db')

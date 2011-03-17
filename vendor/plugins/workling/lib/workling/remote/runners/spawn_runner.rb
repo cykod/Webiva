@@ -21,7 +21,7 @@ module Workling
         cattr_accessor :options
         
         # use thread for development and test modes. easier to hunt down exceptions that way. 
-        @@options = { :method => (RAILS_ENV == "test" || RAILS_ENV == "development" ? :thread : :fork) }
+        @@options = { :method => (Rails.env == "test" || Rails.env == "development" ? :thread : :fork) }
         include Spawn if Workling.spawn_installed?
         
         # dispatches to Spawn, using the :fork option. 

@@ -14,9 +14,11 @@ module Globalize
       :message => " has invalid characters. Allowed characters are: " + 
         "'c', '=', 0-9, '?', ':', '%', '!', '<', '>', '&', '|', '(', ')', ' '."
 
+    after_initialize :initial_setup
+      
     def self.reloadable?; false end
 
-    def after_initialize
+    def initial_setup
       if !pluralization.nil? && pluralization.size > 200
         raise SecurityError, "Pluralization field for #{self.english_name} language " +
           "contains potentially harmful code. " +

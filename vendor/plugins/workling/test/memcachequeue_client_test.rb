@@ -14,7 +14,7 @@ context "The memcachequeue client" do
     client.connection.namespace.should.equal "myapp_development"
   end
   
-  specify "should load it's config as well as any given MemCache options from RAILS_ENV/config/workling.yml" do
+  specify "should load it's config as well as any given MemCache options from Rails.env/config/workling.yml" do
     Workling.send :class_variable_set, "@@config", { :listens_on => "localhost:12345", :memcache_options => { :namespace => "myapp_development" } }
     client = Workling::Clients::MemcacheQueueClient.new
     client.connect

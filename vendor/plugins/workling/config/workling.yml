@@ -1,4 +1,4 @@
-# By default, NotRemoteRunner is used when RAILS_ENV == 'test'.
+# By default, NotRemoteRunner is used when Rails.env == 'test'.
 #
 # You can pass options to memcached client by nesting the key value pairs
 # under 'memcache_options'.
