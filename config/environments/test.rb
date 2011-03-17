@@ -23,4 +23,12 @@ Webiva::Application.configure do
   # All your existing stuff
   config.action_controller.allow_forgery_protection  = false
 
+  testing_domain = config.webiva_defaults['testing_domain']
+
+  raise 'No Available Testing Database!' unless testing_domain
+
+  db_info = YAML.load_file("#{Rails.root}/config/cms.yml")['test']
+  ActiveRecord::Base.establish_connection db_info
+  SystemModel.establish_connection db_info
+  DomainModel.activate_domain(Domain.find(testing_domain).attributes, 'migrator', false)
 end

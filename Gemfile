@@ -21,6 +21,7 @@ gem 'json'
 gem 'SystemTimer', :require => 'system_timer'
 gem 'memcache-client', :require => 'memcache'
 gem 'resthome'
+gem "nokogiri"
 
 group :test do
 #   gem "cucumber", "0.6.2"
@@ -29,7 +30,6 @@ group :test do
    gem "database_cleaner", '0.4.3'
    gem "factory_girl"
    gem "webrat", "0.6.0"
-   gem "nokogiri", "1.3.1"
 #   gem "cucumber-rails",  "0.2.4"
 end
 

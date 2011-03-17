@@ -7,24 +7,31 @@
 Webiva::Application.configure do
 
 
-# IMPORTANT: Setting config.cache_classes to false is known to
-# break Cucumber's use_transactional_fixtures method.
-# For more information see https://rspec.lighthouseapp.com/projects/16211/tickets/165
-config.cache_classes = true
+  # IMPORTANT: Setting config.cache_classes to false is known to
+  # break Cucumber's use_transactional_fixtures method.
+  # For more information see https://rspec.lighthouseapp.com/projects/16211/tickets/165
+  config.cache_classes = true
 
-# Log error messages when you accidentally call methods on nil.
-config.whiny_nils = true
+  # Log error messages when you accidentally call methods on nil.
+  config.whiny_nils = true
 
-# Show full error reports and disable caching
-config.action_controller.consider_all_requests_local = true
-config.action_controller.perform_caching             = false
+  # Show full error reports and disable caching
+  config.action_controller.consider_all_requests_local = true
+  config.action_controller.perform_caching             = false
 
-# Disable request forgery protection in test environment
-config.action_controller.allow_forgery_protection    = false
+  # Disable request forgery protection in test environment
+  config.action_controller.allow_forgery_protection    = false
 
-# Tell Action Mailer not to deliver emails to the real world.
-# The :test delivery method accumulates sent emails in the
-# ActionMailer::Base.deliveries array.
-config.action_mailer.delivery_method = :test
+  # Tell Action Mailer not to deliver emails to the real world.
+  # The :test delivery method accumulates sent emails in the
+  # ActionMailer::Base.deliveries array.
+  config.action_mailer.delivery_method = :test
 
+  cucumber_domain = config.webiva_defaults['cucumber_domain']
+  raise 'No Available Cucumber Database!' unless cucumber_domain
+
+  db_info = YAML.load_file("#{Rails.root}/config/cms.yml")['cucumber']
+  ActiveRecord::Base.establish_connection db_info
+  SystemModel.establish_connection db_info
+  DomainModel.activate_domain(Domain.find(cucumber_domain).attributes, 'migrator', false)
 end
