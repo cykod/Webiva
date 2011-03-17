@@ -4,8 +4,6 @@ class Gallery < DomainModel
 
   validates_datetime :occurred_at
 
-  acts_as_taggable :join_table => 'gallery_tags' 
-  
   belongs_to :container, :polymorphic => true
   belongs_to :owner, :polymorphic => true
   

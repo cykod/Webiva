@@ -17,12 +17,16 @@ class Client < SystemModel
 
   validates_uniqueness_of :name
 
+  before_validation :set_defaults
+
   validates_numericality_of :domain_limit
   validates_numericality_of :database_limit
   validates_numericality_of :max_client_users
   validates_numericality_of :max_file_storage
 
-  def before_validation
+  after_save :save_databases
+  
+  def set_defaults
     self.domain_limit = Client::DEFAULT_DOMAIN_LIMIT unless self.domain_limit
     self.max_client_users = Client::DEFAULT_MAX_CLIENTS unless self.max_client_users
     self.max_file_storage = Client::DEFAULT_MAX_FILE_STORAGE unless self.max_file_storage
@@ -86,7 +90,7 @@ class Client < SystemModel
     self.domain_databases.collect { |db| [db.domain_name, db.id] }
   end
 
-  def after_save
+  def save_databases
     self.domain_databases.map(&:save)
   end
 end

@@ -7,6 +7,8 @@ class ContentModelType < DomainModel
 
   attr_accessor :connected_end_user
 
+  after_destroy :delete_content_relations
+
   def content_score
     self.content_score_a.to_f +
       self.content_score_b.to_f +
@@ -16,12 +18,8 @@ class ContentModelType < DomainModel
 #  def self.select_options(options = {})
 #       self.find(:all,options).collect { |itm| [ itm.identifier_name, itm.id ] }
 #  end
-  
-  def after_save
-    #
-  end
 
-  def after_destroy
+  def delete_content_relations
     self.connection.execute("DELETE FROM content_relations WHERE content_model_id=" + quote_value(self.content_model_id) + "  AND entry_id=" + quote_value(self.id))
   end
 
@@ -43,6 +41,7 @@ class ContentModelType < DomainModel
     'Content Model'
   end
 
+  # TODO: fix memory leaks
   def self.subclasses
      @@subclasses = []
   end

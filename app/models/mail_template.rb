@@ -42,7 +42,7 @@ class MailTemplate < DomainModel
  validates_presence_of :name
  validates_presence_of :language,  :on => :create
 
- has_and_belongs_to_many :domain_files, :join_table => 'domain_files_mail_templates'
+#  has_and_belongs_to_many :domain_files, :join_table => 'domain_files_mail_templates'
   
  belongs_to :site_template
  

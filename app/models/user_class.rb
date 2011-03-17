@@ -21,6 +21,8 @@ class UserClass < DomainModel
 
   has_many :end_users
 
+  after_destroy :update_end_users_as_default
+
   # Return or create a class by name
   def self.get_class(name,built_in = false)
     UserClass.initializor unless @@initialized
@@ -58,10 +60,6 @@ class UserClass < DomainModel
 #    end
   end
 
-  def before_save #:nodoc:
-    #self.role_cache = self.role_ids
-  end
-  
   # Called the first time the class is loaded
   def self.initializor #:nodoc:
     sing = class << self; self; end
@@ -102,7 +100,7 @@ class UserClass < DomainModel
     end
   end
   
-  def after_destroy #:nodoc:
+  def update_end_users_as_default #:nodoc:
     self.end_users.each do |user|
       user.update_attribute(:user_class_id,4)
     end

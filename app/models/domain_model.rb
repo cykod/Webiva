@@ -47,6 +47,10 @@ class DomainModel < ActiveRecord::Base
     self.to_s
   end
   
+  def self.connection_name
+    self.active_domain[:connection_name] ||= 'domain_model_' + self.active_domain_id + "_" + Rails.env
+  end
+
   # Allow update to all attributes via a Hash, even 
   # protected attributes
   def update_all_attributes(atr = {})
@@ -255,71 +259,29 @@ class DomainModel < ActiveRecord::Base
     alias_method :connection_active_record, :connection # :nodoc:
   end
 
-  # @@database_connection_pools = {}
-  # def self.connection
-  #   if  @@database_connection_pools[self.process_id]
-  #      @@database_connection_pools[self.process_id].connection
-  #   else
-  #     connection_active_record
-  #   end
-  # end
-  
-  def self.activate_database_file(file,environment = 'production',save_connection = true)
-    
-    delegate_class_name = File.basename(file,'.yml').classify
+  # create a seperate connection handler per domain
+  @@connection_handlers = {}
+  def self.connection_handler
+    @@connection_handlers[self.connection_name] ||= ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+  end
 
-    if true # Object.const_defined?(delegate_class_name)
-      begin
-        db_config_file = YAML.load_file(file)
-      rescue 
-        return false
-      end
-      db_config = db_config_file[ environment ]
+  def self.has_connection_handler
+    @@connection_handlers[self.connection_name]
+  end
 
-      #cls = Object.const_set(delegate_class_name.to_s, Class.new(ActiveRecord::Base))
-      #cls.abstract_class = true
-      #cls.establish_connection(db_config)
-      DomainModel.establish_connection(db_config)
-
-      #@@database_connection_pools[self.process_id] = cls
+  def self.activate_database(domain_info,environment = 'production',save_connection = true)
+    if self.has_connection_handler
+      self.connection_handler.verify_active_connections!
       return true
     else
-      @@database_connection_pools[self.process_id] = delegate_class_name.constantize
-      @@mutex.synchronize do 
-
-        @@database_connection_pools[self.process_id].connection.verify!
-      end
-
-      return true
-    end
-  end
-  
-  def self.activate_database(domain_info,environment = 'production',save_connection = true)
-    
-    delegate_class_name = (domain_info[:database] + "_" + environment).classify
-
-    if !Object.const_defined?(delegate_class_name)
       begin
         db_config_file = domain_info[:domain_database][:options]
       rescue 
         return false
       end
       db_config = db_config_file[ environment ]
-
-      cls = Object.const_set(delegate_class_name.to_s, Class.new(ActiveRecord::Base))
-      cls.abstract_class = true
       db_config['persistent'] = false
-      cls.establish_connection(db_config)
-
-      @@database_connection_pools[self.process_id] = cls
-      return true
-    else
-      @@database_connection_pools[self.process_id] = delegate_class_name.constantize
-      @@mutex.synchronize do 
-
-        @@database_connection_pools[self.process_id].connection.verify!
-      end
-
+      self.establish_connection(db_config)
       return true
     end
   end

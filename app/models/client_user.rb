@@ -17,19 +17,23 @@ class ClientUser < SystemModel
 
   validates_presence_of :client_id
 
+  validate :validate_client
+
   attr_accessor :password
   attr_accessor :activated_client
   
   serialize :options
 
-  def before_save # :nodoc:
+  before_save :set_hashed_password
+  
+  def set_hashed_password # :nodoc:
     if self.password && self.password.length > 0
       self.salt = self.class.generate_hash if self.salt.blank?
       self.hashed_password = ClientUser.hash_password(self.password, self.salt)
     end
   end
 
-  def validate
+  def validate_client
     self.errors.add(:client_id, 'is missing') unless self.client
 
     if self.id.nil? && self.client

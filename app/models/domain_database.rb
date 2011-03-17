@@ -11,19 +11,20 @@ class DomainDatabase < SystemModel
   validates_presence_of :client_id
 
   validates_numericality_of :max_file_storage
-
+  validate :validate_storage
+  
   serialize :options
   serialize :config
 
-  def  before_validation_on_create
-    self.max_file_storage = DomainDatabase::DEFAULT_MAX_FILE_STORAGE unless self.max_file_storage
-  end
+  after_save :update_domains
+  
+  before_validation(:on => :create) { self.max_file_storage ||= DomainDatabase::DEFAULT_MAX_FILE_STORAGE }
 
-  def validate
+  def validate_storage
     self.errors.add(:max_file_storage, 'is too large') if self.client && self.max_file_storage > self.client.available_file_storage(self)
   end
 
-  def after_save #:nodoc:
+  def update_domains #:nodoc:
     # Clear the domain information out of any cache
     self.domains.each do |domain|
       DataCache.set_domain_info(domain.name,nil)

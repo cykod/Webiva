@@ -44,7 +44,8 @@ class EndUser < DomainModel
    include ModelExtension::EndUserImportExtension
    include WebivaCaptcha::ModelSupport
 
-
+  before_validation :set_defaults
+  
   validates_confirmation_of :password
 
   # Only need an email if we aren't a client user
@@ -58,7 +59,8 @@ class EndUser < DomainModel
   validates_uniqueness_of :username, :allow_blank => true
   validates_presence_of :user_class
   validates_as_email :email
-  
+  validate :validate_has_password
+
   attr_accessor :admin_edit
   attr_accessor :password
   attr_accessor :site_policy
@@ -135,11 +137,16 @@ class EndUser < DomainModel
                          [ 'Import', 'import' ],
                          [ 'Referral', 'referral' ] ]
 
+  before_update :trigger_before_update_handlers
+  before_save :update_end_user_values
+
   if CMS_EDITOR_LOGIN_SUPPORT 
    after_save :update_editor_login
   end
 
-  def after_save #:nodoc:
+  after_save :update_cache
+
+  def update_cache #:nodoc:
     self.end_user_cache = EndUserCache.find_by_end_user_id(self.id) unless self.end_user_cache
     self.end_user_cache ? self.end_user_cache.save : EndUserCache.create(:end_user_id => self.id)
   end
@@ -147,13 +154,13 @@ class EndUser < DomainModel
   ## Validation Fucntions 
   
   
-  def before_validation #:nodoc:
+  def set_defaults
     self.email = self.email.to_s.strip
     self.user_class_id = UserClass.default_user_class_id if self.user_class_id.blank?
     self.email = self.email.downcase unless self.email.blank?
   end
 
-  def validate #:nodoc:
+  def validate_has_password #:nodoc:
     if self.registered? && !self.hashed_password && (!self.password || self.password.empty?)
       errors.add(:password, 'is missing')
     end
@@ -493,13 +500,13 @@ class EndUser < DomainModel
     @triggered_attributes ||= self.attributes.merge(:name => self.name)
   end
 
-  def before_update #:nodoc:
+  def trigger_before_update_handlers #:nodoc:
     self.get_handler_info(:end_user, :before_update).each do |handler|
       handler[:class].end_user_updated self
     end
   end
 
-  def before_save #:nodoc:
+  def update_end_user_values #:nodoc:
     if self.password && !self.password.empty?
       self.salt = EndUser.generate_hash if self.salt.blank?
       self.hashed_password = EndUser.hash_password(self.password,self.salt) if self.password && !self.password.empty?

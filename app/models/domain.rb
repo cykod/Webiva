@@ -34,6 +34,8 @@ class Domain < SystemModel
   validates_presence_of :domain_type
   validates_inclusion_of :domain_type, :in => %w(domain redirect)
 
+  validate :validate_client
+
   before_create :set_inactive_message
   after_save :save_database
   
@@ -41,7 +43,7 @@ class Domain < SystemModel
     self.inactive_message = 'Site Currently Down for Maintenance' if self.inactive_message.blank?
   end
 
-  def validate
+  def validate_client
     self.errors.add(:client_id, 'is missing') unless self.client
     self.errors.add(:max_file_storage, 'is too large') if self.max_file_storage && self.client && self.max_file_storage > self.client.available_file_storage(self.domain_database)
     self.errors.add(:domain_database_id, 'is invalid') if self.domain_database && self.domain_database.client_id != self.client_id

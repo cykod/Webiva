@@ -11,3 +11,4 @@ def reload_domain!
   end
   true
 end
+

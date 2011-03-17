@@ -8,7 +8,7 @@ Webiva::Application.configure do
   config.webiva_defaults['default_date_format'] ||= "%m/%d/%Y"
   config.webiva_defaults['enable_beta_code'] ||= false
   config.webiva_defaults['time_zone'] ||= 'Eastern Time (US & Canada)'
-  
+  config.webiva_defaults['editor_login'] || false
   config.time_zone = config.webiva_defaults['time_zone']
 end
 
@@ -21,6 +21,7 @@ CMS_DEFAULT_CONTRY = Webiva::Application.config.webiva_defaults['default_country
 CMS_CACHE_ACTIVE = Webiva::Application.config.webiva_defaults['active_cache']
 CMS_DEFAULT_DOMAIN = Webiva::Application.config.webiva_defaults['domain']
 CMS_SYSTEM_ADMIN_EMAIL = Webiva::Application.config.webiva_defaults['system_admin']
+CMS_EDITOR_LOGIN_SUPPORT = Webiva::Application.config.webiva_defaults['editor_login']
 DEFAULT_DATETIME_FORMAT = Webiva::Application.config.webiva_defaults['default_datetime_format']
 DEFAULT_DATE_FORMAT = Webiva::Application.config.webiva_defaults['default_date_format']
 BETA_CODE = Webiva::Application.config.webiva_defaults['enable_beta_code']

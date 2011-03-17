@@ -17,7 +17,6 @@ gem 'net-ssh', :require => 'net/ssh'
 gem 'rmagick', :require => 'RMagick'
 gem 'libxml-ruby', :require => 'xml'
 gem 'soap4r', :require => 'soap/soap'
-gem 'json', '~> 1.4.6'
 gem 'SystemTimer', :require => 'system_timer'
 gem 'memcache-client', :require => 'memcache'
 gem 'resthome'
@@ -36,5 +35,5 @@ group :development, :test, :spec, :cucumber, :selenium do
 end
 
 group :selenium do
-  gem 'selenium-client',   '1.2.18'
+#  gem 'selenium-client',   '1.2.18'
 end

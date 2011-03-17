@@ -16,14 +16,18 @@ namespace "cms" do
     dmn = Domain.find_by_id_and_status(domain_id,'initializing') || raise("Invalid Domain ID: no domain with ID:#{domain_id} in the initializing state")
   
     if dmn.database.to_s.empty?
-      dmn.database = 'webiva_' + sprintf("%03d",dmn.id) +  '_' + dmn.name.gsub(/[^a-zA-Z0-9]+/,"_")[0..20] 
+      base_name = db_config_file['base_webiva_db'] || "webiva"
+      base_name += '_'
+      dmn.database = base_name + sprintf("%03d",dmn.id) +  '_' + dmn.name.gsub(/[^a-zA-Z0-9]+/,"_")[0..20] 
       create_database = true
     end 
     dmn.status = 'working'
     dmn.save
 
-    user_name = 'cms_' + dmn.id.to_s + "_user"
-    migrator_name = 'cms_' + dmn.id.to_s + "_m"
+    base_name = db_config_file['base_webiva_db_user'] || "cms"
+    base_name += '_'
+    user_name = base_name + dmn.id.to_s + "_user"
+    migrator_name = base_name + dmn.id.to_s + "_m"
     user_password =  Base64.encode64(Digest::SHA1.hexdigest("#{rand(1<<64)}/#{Time.now.to_f}/#{Process.pid}"))[0..7]
     migrator_password = Base64.encode64(Digest::SHA1.hexdigest("#{rand(1<<64)}/#{Time.now.to_f}/#{Process.pid}"))[0..7]
   
