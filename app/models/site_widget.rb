@@ -20,6 +20,8 @@ class SiteWidget < DomainModel #:nodoc:all
 
   include Dashboard::WidgetMethods
 
+  before_validation(:on => :create) { self.module, self.widget = self.widget_identifier.split(":") unless self.widget_identifier.blank? }
+
   def self.create_widget(mod,widget,options={ })
     returning site_widget=self.new(options) do
       site_widget.module = mod
@@ -36,13 +38,6 @@ class SiteWidget < DomainModel #:nodoc:all
                                :position => EditorWidget.next_widget_position(user,self.column))
   end
  
-  def before_validation_on_create
-    unless self.widget_identifier.blank?
-      self.module, self.widget = self.widget_identifier.split(":")
-    end
-  end
-
-
   def self.core_widgets 
     widgets =[]
     Dir.glob("#{Rails.root}/app/models/dashboard/[a-z0-9\-_]*_widget.rb") do |file|

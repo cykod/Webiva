@@ -40,7 +40,7 @@ class SiteNode < DomainModel
   
   attr_accessor :page_info, :closed
 
-  named_scope :with_type, lambda { |type| {:conditions => {:node_type => type}} }
+  scope :with_type, lambda { |type| {:conditions => {:node_type => type}} }
 
   attr_accessor :created_by_id, :copying
 

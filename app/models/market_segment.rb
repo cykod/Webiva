@@ -15,9 +15,9 @@ class MarketSegment < DomainModel
                 ['Everyone', 'everyone']]
                  
 
-  named_scope :with_segment_type, lambda { |segment_type| {:conditions => {:segment_type => segment_type}} }
-  named_scope :for_campaign, lambda { |campaign| campaign.id ? {:conditions => ['market_campaign_id IS NULL OR market_campaign_id = ?', campaign.id]} : {:conditions => 'market_campaign_id IS NULL'} }
-  named_scope :order_by_name, :order => :name
+  scope :with_segment_type, lambda { |segment_type| {:conditions => {:segment_type => segment_type}} }
+  scope :for_campaign, lambda { |campaign| campaign.id ? {:conditions => ['market_campaign_id IS NULL OR market_campaign_id = ?', campaign.id]} : {:conditions => 'market_campaign_id IS NULL'} }
+  scope :order_by_name, :order => :name
 
    def save_segment
     self.market_campaign_id ? 'yes' : 'no'

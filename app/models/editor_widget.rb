@@ -16,6 +16,8 @@ class EditorWidget < DomainModel
 
   validate :widget_options_validation # From WidgetMethods
   
+  before_validation(:on => :create) { self.module, self.widget = self.widget_identifier.split(":") unless self.widget_identifier.blank? }
+
   def after_create
     EditorWidget.update_all('`position`=`position`+1',['`column`=? AND `end_user_id`=? AND `position` >= ?',self.column,self.end_user_id,self.position])
   end
@@ -27,12 +29,6 @@ class EditorWidget < DomainModel
       self.site_widget.title
     else
       self.read_attribute(:title)
-    end
-  end
-
-  def before_validation_on_create
-    unless self.widget_identifier.blank?
-      self.module, self.widget = self.widget_identifier.split(":")
     end
   end
 

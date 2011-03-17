@@ -4,7 +4,7 @@ class DomainLogReferrer  < DomainModel
   
   has_many :domain_log_sessions
 
-  named_scope :matching, lambda { |domain, path| {:conditions => {:referrer_domain => domain, :referrer_path => path}} }
+  scope :matching, lambda { |domain, path| {:conditions => {:referrer_domain => domain, :referrer_path => path}} }
 
   def self.fetch_referrer(domain,path)
     self.matching(domain,path).first || self.create(:referrer_domain => domain,:referrer_path =>path)

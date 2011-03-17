@@ -27,8 +27,8 @@ class PageParagraph < DomainModel
   belongs_to :content_publication
 
 
-  named_scope :live_paragraphs, {:joins => :page_revision, :conditions => 'page_revisions.active=1 AND page_revisions.revision_type="real"'}
-  named_scope :with_feature, lambda { |display_module, display_type| {:conditions => ['display_module = ? and display_type = ?', display_module, display_type]} }
+  scope :live_paragraphs, {:joins => :page_revision, :conditions => 'page_revisions.active=1 AND page_revisions.revision_type="real"'}
+  scope :with_feature, lambda { |display_module, display_type| {:conditions => ['display_module = ? and display_type = ?', display_module, display_type]} }
 
   # PageParagraph file instance support is in PageRevisions
   # process_file_instance :display_body, :display_body_html

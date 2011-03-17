@@ -12,12 +12,12 @@ class DomainLogSession < DomainModel
   belongs_to :site_version
   belongs_to :domain_log_source
 
-  named_scope :between, lambda { |from, to| {:conditions => ['domain_log_sessions.created_at >= ? AND domain_log_sessions.created_at < ?', from, to]} }
-  named_scope :visits, lambda { |group_by| group_by =~ /_id$/ ? {:select => "#{group_by} as target_id, count(*) as visits", :group => 'target_id'} : {:select => "#{group_by} as target_value, count(*) as visits", :group => 'target_value'} }
-  named_scope :hits_n_visits, lambda { |group_by| self.hits_n_visits_options group_by }
-  named_scope :hits_n_visits_n_uniques, lambda { |group_by| self.hits_n_visits_options group_by, true }
-  named_scope :referrer_only, :conditions => 'domain_log_referrer_id IS NOT NULL'
-  named_scope :valid_sessions, :conditions => '`ignore` = 0 AND domain_log_source_id IS NOT NULL'
+  scope :between, lambda { |from, to| {:conditions => ['domain_log_sessions.created_at >= ? AND domain_log_sessions.created_at < ?', from, to]} }
+  scope :visits, lambda { |group_by| group_by =~ /_id$/ ? {:select => "#{group_by} as target_id, count(*) as visits", :group => 'target_id'} : {:select => "#{group_by} as target_value, count(*) as visits", :group => 'target_value'} }
+  scope :hits_n_visits, lambda { |group_by| self.hits_n_visits_options group_by }
+  scope :hits_n_visits_n_uniques, lambda { |group_by| self.hits_n_visits_options group_by, true }
+  scope :referrer_only, :conditions => 'domain_log_referrer_id IS NOT NULL'
+  scope :valid_sessions, :conditions => '`ignore` = 0 AND domain_log_source_id IS NOT NULL'
 
 
   def self.hits_n_visits_options(group_by=nil, uniques=false)

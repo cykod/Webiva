@@ -78,7 +78,7 @@ class ContentNode < DomainModel
   belongs_to :content_type
   has_many :content_node_values, :dependent => :delete_all
 
-  named_scope :from_content do |node_type,node_id|
+  scope :from_content do |node_type,node_id|
     { :conditions => { :node_type => node_type, :node_id => node_id } }
   end
 
