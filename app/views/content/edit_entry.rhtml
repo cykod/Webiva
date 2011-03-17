@@ -32,7 +32,7 @@ ContentEditor = {
 </script>
 
 <div class='admin_content'>
-<% cms_form_for :entry, @entry, :html => { :enctype => 'multipart/form-data', :class => 'admin_form' } do |f| %>
+<%= cms_form_for :entry, @entry, :html => { :enctype => 'multipart/form-data', :class => 'admin_form' } do |f| %>
   <% @content_model.content_model_fields.each do |fld| %>
     <%= fld.form_field(f,:editor => true) unless fld.options.hidden %>
   <% end -%>

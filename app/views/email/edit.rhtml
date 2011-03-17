@@ -41,7 +41,7 @@ EmailEditor = {
 
 <div class='admin_content'>
 <h3><%= @email.id ? "Edit Domain Email".t : "Create Domain Email".t %></h3>
-<% cms_form_for :email, @email, :html => { :class => 'admin_form' } do |f| %>
+<%= cms_form_for :email, @email, :html => { :class => 'admin_form' } do |f| %>
 <table>
 <tbody>
   <% if @email.system_email? %>

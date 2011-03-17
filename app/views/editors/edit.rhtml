@@ -1,5 +1,5 @@
 <div class='admin_content'>
-  <% cms_form_for :user_options, @user, :html => {:class => 'admin_form', :autocomplete => 'off' } do |f| %>
+  <%= cms_form_for :user_options, @user, :html => {:class => 'admin_form', :autocomplete => 'off' } do |f| %>
 
 <%= f.text_field :email %>
 <%= f.text_field :first_name %>

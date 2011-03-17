@@ -1,6 +1,6 @@
 <div class='admin_content'>
 
-<% admin_form_for :domain, @domain do |f| %>
+<%= admin_form_for :domain, @domain do |f| %>
   <%= f.text_field :name %>
   <% if myself.has_role?('system_admin') -%>
     <%= f.select :client_id, @clients %>

@@ -17,8 +17,8 @@
 <br/><br/>
   <%= "Description:".t %><br/>
   <textarea name='field[<%= field_index %>][description]'  cols='60' rows='3'><%= h fld.description %></textarea><br/>
-  <% cms_unstyled_fields_for  "field[#{field_index}][field_options]", fld.field_options_model do |uf| %>
-  <% cms_fields_for "field[#{field_index}][field_options]", fld.field_options_model do |f| %>
+  <%= cms_unstyled_fields_for  "field[#{field_index}][field_options]", fld.field_options_model do |uf| %>
+  <%= cms_fields_for "field[#{field_index}][field_options]", fld.field_options_model do |f| %>
     <%= render :partial => fld.field_options_partial, :locals => { :f => f, :uf => uf, :field => fld, :field_index => field_index } %>
   <% end -%>
   <% end -%>

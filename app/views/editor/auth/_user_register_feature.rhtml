@@ -5,7 +5,7 @@
 <img class='handle' style='cursor:pointer;' src='<%= theme_src('icons/paragraph_move.gif') %>' id='handle_<%= idx %>' align='absmiddle' /> 
 <%= feature.name %><br/>
   <input type='hidden' name='user_register[features][<%= idx %>][feature_handler]' value='<%= feature.feature_handler %>'/>
-<% cms_fields_for "user_register[features][#{idx}][feature_options]", feature.options do |ff| -%>
+<%= cms_fields_for "user_register[features][#{idx}][feature_options]", feature.options do |ff| -%>
   <%= render :partial => feature.options_partial, :locals => { :f => ff, :prefix =>  "user_register[features][#{idx}][feature_options]", :options => feature.options } %>
 <% end -%>
 

@@ -1,6 +1,6 @@
 <a href='javascript:void(0);' onclick='FileEditor.selectUpload();'>&lt; Back to File Manager</a>
 <div align='right'>
-<% cms_unstyled_form_for :search  do |f| %>
+<%= cms_unstyled_form_for :search  do |f| %>
   <%= f.select :order, @order_options %>
 <% end -%>
 </div>

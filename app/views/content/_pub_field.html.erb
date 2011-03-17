@@ -7,14 +7,14 @@
  <form class='field_form' id='field_options_<%= field_index %>' onsubmit='PublicationEditor.closeOptions(<%= field_index %>); return false;'>
     <input type='hidden' name='field[<%= field_index %>][content_field_id]' value='<%= fld.content_model_field_id %>' />
     <input type='hidden' name='field[<%= field_index %>][id]' id='field_id_<%= field_index %>'  value='<%= fld.id %>' />
-  <% cms_fields_for "field[#{field_index}]", fld do |f| %>
+  <%= cms_fields_for "field[#{field_index}]", fld do |f| %>
     <tbody>
     <%= f.select :field_type, @publication.field_type_options, {}, { :onchange => "PublicationEditor.changeFieldType(#{field_index})" } %>
     </tbody>
     <tbody id='label_<%= field_index %>' <%= "style='display:none;'" unless %w(input value format).include?(fld.field_type) %> >
       <%= f.text_field :label %>
     </tbody>
-    <% cms_subfields_for "field[#{field_index}]", fld.field_options do |sf| %>
+    <%= cms_subfields_for "field[#{field_index}]", fld.field_options do |sf| %>
       <% @publication.custom_field_types.each do |cust_field| -%>
       <tbody id='<%= cust_field[0] %>_<%= field_index %>' <%= "style='display:none;'" unless fld.field_type == cust_field[0] %> >
         <%= render :partial => cust_field[1], :locals => { :f => sf, :field_index => field_index, :field => fld } %>

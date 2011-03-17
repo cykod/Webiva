@@ -2,7 +2,7 @@
 <h3><%= "Edit Profile Options".t %></h3>
 
 
-<% cms_form_for :edit_profile, @options, 
+<%= cms_form_for :edit_profile, @options, 
           :html => { :id => 'edit_profile_form',
                      :style => 'height:450px; width:550px;',
                      :onsubmit => "cmsEdit.submitParagraphData(this,'#{url_for :action => 'edit_account'}',#{@paragraph.id},#{@paragraph_index}); return false;"

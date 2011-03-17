@@ -20,7 +20,7 @@
 <% end -%>
 
 
-<% remote_cms_form_for :mod, @frm, 
+<%= remote_cms_form_for :mod, @frm, 
    :update => 'element_info', 
    :method => 'post', 
    :url =>  { :action => 'element_info', :node_type => 'mod', :node_id => @mod.id  },

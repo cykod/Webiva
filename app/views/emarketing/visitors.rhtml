@@ -80,7 +80,7 @@
 <div class="heading"><h2>Google Analytics</h2></div>
 <div class="visitor_container_body" style="width:600px;">
 <div id='options_updated' style='display:none;'><b><%= "Options Updated".t %></b></div>
-  <% tabled_form_for :options, @options, :html => { :onsubmit => 'return VisitorViewer.saveOptions(this);' } do |f| %>
+  <%= tabled_form_for :options, @options, :html => { :onsubmit => 'return VisitorViewer.saveOptions(this);' } do |f| %>
     <%= f.radio_buttons :google_analytics, [ [ 'Enabled' , 'enabled' ], [ 'Disabled', 'disabled'] ], :label => "Google Analytics", :onchange => 'VisitorViewer.googleRadios()' %>
     <%= f.text_field :analytics_code, :disabled => @options.google_analytics == 'enabled' ? false : true %>
     <%= f.spacer %>

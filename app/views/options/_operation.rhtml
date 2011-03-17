@@ -4,7 +4,7 @@
 </div>
 <div style='float:left; padding-left:10px;'>
   <b><%= DomainFileSize.operation_options_hash[operation.type] %> Operation</b><br/>
-  <% cms_fields_for "operation[#{idx}]", operation do |f| -%>
+  <%= cms_fields_for "operation[#{idx}]", operation do |f| -%>
     <%= f.hidden_field :type  %>
     <%= render :partial => "/options/image_size_operations/#{operation.type}", :locals => { :f => f, :operation => operation, :idx => idx } %>
   <% end -%>

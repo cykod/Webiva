@@ -1,7 +1,7 @@
 <div class='cms_form'>
 <h3>Page Variables</h3>
 <div style='width:500px; height:400px; overflow:auto;'>
-<% cms_form_for :options, @options, :styled_form => { :no_translate => true }, :html => {:id => 'cms_page_variables', :onsubmit => 'cmsEdit.updatePageVariables();' }  do |f| -%>
+<%= cms_form_for :options, @options, :styled_form => { :no_translate => true }, :html => {:id => 'cms_page_variables', :onsubmit => 'cmsEdit.updatePageVariables();' }  do |f| -%>
 	<% @variables.each do |opt| -%>
     <%= render :partial => '/templates/custom_field', :locals => {:opt => opt, :f => f} %> 
 	<% end -%>

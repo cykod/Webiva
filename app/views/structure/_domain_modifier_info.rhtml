@@ -32,7 +32,7 @@ DomainEditor = {
 <% if flash[:notice] %><div class="inpage_flash_notice"><%= flash[:notice] %></div><% end %>
 <div id='domain_edit' >
 
-<% admin_form_for :domain, @domain_options, :html => {:id => 'domain_form', :onsubmit => 'DomainEditor.submitForm(); return false;' }  do  |f| -%>
+<%= admin_form_for :domain, @domain_options, :html => {:id => 'domain_form', :onsubmit => 'DomainEditor.submitForm(); return false;' }  do  |f| -%>
   <%= f.text_field :limit_to_domain, :description => "Any pages affected by this modifier will be served under the listed domain. \n Enter only a domain (e.g. webiva.com) not a full url" %>
 
 <% end -%>

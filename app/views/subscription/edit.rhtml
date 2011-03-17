@@ -1,5 +1,5 @@
 <div class='admin_content'>
-<% cms_form_for :subscription, @subscription, :html => { :class => 'admin_form' } do |f| %>
+<%= cms_form_for :subscription, @subscription, :html => { :class => 'admin_form' } do |f| %>
  <%= f.text_field :name %>
  <%= f.text_area :description, :rows => 5, :cols => 40 %> 
  <%=  # f.radio_buttons :require_registered_user, [ ['Only Registered Members', true ], ["All Users", false ]], :label => 'Allow Signup' 

@@ -4,7 +4,7 @@
 </div>
 <img class='handle' style='cursor:pointer;' src='<%= theme_src('icons/paragraph_move.gif') %>' id='handle_<%= idx %>' align='absmiddle' /> 
 <%= feature.name %><br/>
-<% cms_fields_for "feature[#{idx}][feature_options]", feature.options do |ff| -%>
+<%= cms_fields_for "feature[#{idx}][feature_options]", feature.options do |ff| -%>
 <input type='hidden' name='feature[<%= idx %>][_delete]' value='' id='feature_delete_<%= idx %>' />
 <input type='hidden' name='feature[<%= idx %>][id]' value='<%= feature.id %>'/>
 <input type='hidden' name='feature[<%= idx %>][feature_handler]' value='<%= feature.feature_handler %>'/>

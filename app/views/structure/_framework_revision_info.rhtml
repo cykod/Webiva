@@ -24,7 +24,7 @@ latest = @active_revision_info[2] -%>
  <% end -%>
 
 <% else -%>
-<% remote_form_for :revision_create, info[1],
+<%= remote_form_for :revision_create, info[1],
     :update => "element_info", 
     :method => 'post', 
     :url =>  { :action => 'create_revision', :language  => info[0],:node_id => @node.id, :framework_id => @mod.id  } do  |f| -%>

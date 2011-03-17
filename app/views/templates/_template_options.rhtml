@@ -1,4 +1,4 @@
-<% admin_fields_for :site_template, @site_template do |f| -%>
+<%= admin_fields_for :site_template, @site_template do |f| -%>
 	<%= f.text_field :name %>
 	<%= f.text_area :description, :cols => 40, :rows => 3 %>
   <%= f.text_field :doctype, :size => 120, :label => 'Doctype',:description => 'Override the default doctype of HTML 5' %>

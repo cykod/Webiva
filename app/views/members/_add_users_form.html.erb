@@ -6,7 +6,7 @@ MemberEditor.addUsersToListTableAction(<%= @segment.id %>);
 <% end -%>
 
 <h3>Add Users to List</h3>
-<% cms_unstyled_form_for :segment, @segment, :html => {:id => 'user_segment_form', :onsubmit => 'MemberEditor.addUsersToListSubmit(this); return false;', :class => "admin_form"} do |f| -%>
+<%= cms_unstyled_form_for :segment, @segment, :html => {:id => 'user_segment_form', :onsubmit => 'MemberEditor.addUsersToListSubmit(this); return false;', :class => "admin_form"} do |f| -%>
 <ul style="list-style: none;">
 <% if @segments.size > 0 -%>
 <li>

@@ -1,5 +1,5 @@
 <div class='admin_content'>
-<% admin_form_for :content_type, @content_type do |f| -%>
+<%= admin_form_for :content_type, @content_type do |f| -%>
   <%= f.label_field :content_name %>
   <% if @content_type.editable? -%>
     <%= f.text_field :list_site_node_url, :label => 'List Url' %>

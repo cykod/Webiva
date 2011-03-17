@@ -7,7 +7,7 @@
  <% end -%>
 
 <p>
-<% cms_form_for :wizard, @wizard, :html => { :id => 'wizard_form' } do |f| %>
+<%= cms_form_for :wizard, @wizard, :html => { :id => 'wizard_form' } do |f| %>
  <%= f.filemanager_file :csv_file, :onchange => '$("wizard_next").disabled=false', :type => 'doc' %>
  <%= f.select :field_deliminator, [ ['Comma (,)'.t,'comma'],['Semi-Colon (;)'.t,'semicolon'],['Tab'.t,'tab'],['Colon (:)'.t,'colon']] %>
 <% end -%>

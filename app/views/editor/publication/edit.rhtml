@@ -1,5 +1,5 @@
 <div class='cms_form'>
-<% paragraph_options_form_for "Edit Publication Options", :edit, @options  do |f| -%>
+<%= paragraph_options_form_for "Edit Publication Options", :edit, @options  do |f| -%>
 <%= f.page_selector :return_page_id %>
 <%= f.check_boxes :allow_entry_creation, [ ['Allow creation',true ]], :single => true %>
 <% end -%>

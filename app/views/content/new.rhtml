@@ -1,5 +1,5 @@
 <div class='admin_content'>
-<% cms_form_for :content_model, @content_model, :html => { :class=>'admin_form',:onsubmit => " if(this.submitted) { return false; } this.submitted=true; return true;"} do |f| %>
+<%= cms_form_for :content_model, @content_model, :html => { :class=>'admin_form',:onsubmit => " if(this.submitted) { return false; } this.submitted=true; return true;"} do |f| %>
   <%= f.text_field :name, :label => 'Name of the Content Model', :vertical => true, :size => 60, :noun => 'Name' %>
   <%= f.text_area :description, :label => 'Description of the Content Model', :vertical => true, :cols => 60, :rows => 4, :noun => 'Description' %>
   <%= f.radio_buttons :show_on_content, [ ['Yes',true],['No',false]], :label => 'Main Page', 

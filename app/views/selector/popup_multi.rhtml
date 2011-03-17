@@ -41,7 +41,7 @@ SelectorPopup = {
 </script>
 
 
-<% cms_unstyled_form_for :objs, @selected do |f| -%>
+<%= cms_unstyled_form_for :objs, @selected do |f| -%>
 <b><%= @name  %></b>
   <%= f.submit_tag 'Clear Selection', :onclick => 'SelectorPopup.clearSelection(); return false;' %>
   <br/>

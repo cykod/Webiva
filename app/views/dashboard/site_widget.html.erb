@@ -14,7 +14,7 @@ WidgetEditor = {
 </script>
 
 <div class='admin_content'>
-  <% admin_form_for :widget, @widget do |f| -%>
+  <%= admin_form_for :widget, @widget do |f| -%>
 <% f.section do -%>
     <% if @widget.new_record? -%>
       <%= f.select :widget_identifier, @widget_modules, {}, :label => 'Widget',:onchange => 'WidgetEditor.selectWidget(this.value);' -%>

@@ -26,7 +26,7 @@ redirectSelectFunc = function() {
   
 <div id='redirect_display_fields' <%= hide_if @display_edit_form %> >
    
-  <% link_edit_form_for  :redirect, @redirect_details, :styled_form => { :onclick => 'Element.show("redirect_edit_fields"); Element.hide("redirect_display_fields");', :classname => "ajax_link redirect_information_link" } do |f| -%>
+  <%= link_edit_form_for  :redirect, @redirect_details, :styled_form => { :onclick => 'Element.show("redirect_edit_fields"); Element.hide("redirect_display_fields");', :classname => "ajax_link redirect_information_link" } do |f| -%>
 
   <%= f.radio_buttons :redirect_type, RedirectDetail.redirect_type_select_options, :default => 'None Selected', :label => 'Redirect To' %>
   <% if @redirect_details.redirect_type == 'site_node' %>
@@ -40,7 +40,7 @@ redirectSelectFunc = function() {
   </div>
   <div id='redirect_edit_fields' <%= hide_unless @display_edit_form %> >
 
-  <% remote_tabled_form_for :redirect, @redirect_details, 
+  <%= remote_tabled_form_for :redirect, @redirect_details, 
      :update => 'element_info', 
      :method => 'post', 
      :url =>  { :action => 'element_info', :node_type => 'node', :node_id => @node.id  },
@@ -53,7 +53,7 @@ redirectSelectFunc = function() {
   <% end -%>
   
 <% else %>
-  <% tabled_display_form_for :redirect, @redirect_details  do |f| -%>
+  <%= tabled_display_form_for :redirect, @redirect_details  do |f| -%>
   
   <%= f.radio_buttons :redirect_type, RedirectDetail.redirect_type_select_options, :default => 'None Selected', :label => 'Redirect To' %>
   <% if @redirect_details.redirect_type == 'site_node' %>

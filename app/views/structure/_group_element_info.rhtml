@@ -32,7 +32,7 @@ GroupEditor= {
 
 <div class='tree_detail_body'>
   <p><%= "Groups allow you to group site elements together without forcing them to be nested together by URL.".t -%></p>
-<% admin_form_for :group, @node_options, :html => { :onsubmit => "GroupEditor.submitForm(this); return false;" } do |f| %>
+<%= admin_form_for :group, @node_options, :html => { :onsubmit => "GroupEditor.submitForm(this); return false;" } do |f| %>
   <%= f.yes_no :closed, :label => 'Closed by defult', :description => 'If set to yes, this grouping will always start closed when the tree is displayed' %>
   <%= f.submit_tag 'Update' %>
 <% end -%>

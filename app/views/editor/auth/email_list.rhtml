@@ -1,5 +1,5 @@
 <div class='cms_form' >
-  <% paragraph_options_form_for "Email List Options",:email_list ,@options, :html => { :style => 'width:600px; height:450px; overflow:auto;' } do |f| -%>
+  <%= paragraph_options_form_for "Email List Options",:email_list ,@options, :html => { :style => 'width:600px; height:450px; overflow:auto;' } do |f| -%>
 <tr>
 <td colspan='2'>                  
 <% ajax_tabs ['Options','Fields','Triggered Actions'], 'Options' do |t| %>

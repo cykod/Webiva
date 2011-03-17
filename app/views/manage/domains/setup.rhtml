@@ -2,7 +2,7 @@
 
 <b>Setup Domain: <%= @domain.name %>
 <br/><br/>
-<% admin_form_for :domain, @domain, :styled_form => {:no_translate => true} do |f| %>
+<%= admin_form_for :domain, @domain, :styled_form => {:no_translate => true} do |f| %>
   <% if @domain.domain_type == 'redirect' %>
     <%= f.text_field :redirect, :label => 'Redirect To' %>
     <%= f.submit_tag 'Setup' %>

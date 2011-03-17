@@ -23,7 +23,7 @@
 
 <div style='width:325px; float:left;'>
 
-<% remote_cms_form_for :note, @note, :update => 'RB_window' do |f| %>
+<%= remote_cms_form_for :note, @note, :update => 'RB_window' do |f| %>
   <%= f.text_area :note, :rows => 3, :vertical => true, :label => 'Note'.t %>
   <%= f.submit 'Add Note' %>
 <% end -%>

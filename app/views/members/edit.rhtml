@@ -60,7 +60,7 @@ MemberEditor = {
 </script>
 
 <div class='admin_content'>
-  <% cms_form_for :user_options, @user, :html => { :class => 'admin_form', :autocomplete => 'off' }  do |f| %>
+  <%= cms_form_for :user_options, @user, :html => { :class => 'admin_form', :autocomplete => 'off' }  do |f| %>
 
 <%= f.text_field :email, :required => true %>
 <%= f.text_field :first_name %>
@@ -139,7 +139,7 @@ MemberEditor = {
 
     <% t.tab do -%>
     <table>
-      <% cms_subfields_for :address, @address do |af| %>
+      <%= cms_subfields_for :address, @address do |af| %>
         <%= af.text_field :address %>
         <%= af.text_field :city %>
         <%= af.text_field :state %>
@@ -152,7 +152,7 @@ MemberEditor = {
 
     <% t.tab do -%>
     <table>
-      <% cms_subfields_for :work_address, @work_address do |af| %>
+      <%= cms_subfields_for :work_address, @work_address do |af| %>
         <%= af.text_field :company %>
         <%= af.text_field :phone %>
         <%= af.text_field :fax %>
@@ -167,7 +167,7 @@ MemberEditor = {
 
     <% t.tab do -%>
     <table>
-      <% cms_subfields_for :shipping_address, @shipping_address do |af| %>
+      <%= cms_subfields_for :shipping_address, @shipping_address do |af| %>
         <%= af.text_field :address %>
         <%= af.text_field :city %>
         <%= af.text_field :state %>
@@ -182,7 +182,7 @@ MemberEditor = {
 
     <% t.tab do -%>
     <table>
-      <% cms_subfields_for :billing_address, @billing_address do |af| %>
+      <%= cms_subfields_for :billing_address, @billing_address do |af| %>
         <%= af.text_field :address %>
         <%= af.text_field :city %>
         <%= af.text_field :state %>

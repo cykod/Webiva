@@ -1,6 +1,6 @@
 <div class='admin_content'>
 
-<% admin_form_for :domain, @dmn do |f| -%>
+<%= admin_form_for :domain, @dmn do |f| -%>
 
   <%= f.radio_buttons :active, [['Site is active',true ],['Site is inactive',false]] ,  :label => '',:single => true, :description => 'If the site is inactive only the /website admin interface will be accessible' %>
 

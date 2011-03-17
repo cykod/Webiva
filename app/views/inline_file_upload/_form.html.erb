@@ -18,7 +18,7 @@ form_options[:html][:onsubmit] = '$("upload_form").hide(); $("uploading").show()
 <body>
 
 <div id="upload_form">
-<% cms_unstyled_form_for :file, file, form_options do |f| -%>
+<%= cms_unstyled_form_for :file, file, form_options do |f| -%>
 
 <div class="buttons">
 Upload a file

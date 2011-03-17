@@ -69,7 +69,7 @@ cmsAutoMenuEdit = {
 </script>
 <div class='cms_form' style='width:500px;'>
 <h3><%= "Edit Automatic Menu".t %></h3>
-<% cms_form_for :menu, @menu, :html => { :id => 'automenu_form', :onsubmit => 'cmsAutoMenuEdit.saveMenu(); return false;' } do |f| -%>
+<%= cms_form_for :menu, @menu, :html => { :id => 'automenu_form', :onsubmit => 'cmsAutoMenuEdit.saveMenu(); return false;' } do |f| -%>
 <%= f.root_page_selector :root_page, :label => 'Root Page' %>
 <%= f.select :lock_level, [['Unlocked','no'],['1st Level Lock','one'],['2nd Level Lock','two'],['Completly Locked','yes']], :label => 'Menu Locking', :description => 'Locking the menu will prevent new items from showing up automatically' %>
 <%= f.select :levels, @levels, :label => 'Levels Deep' %>

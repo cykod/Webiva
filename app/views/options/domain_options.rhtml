@@ -3,7 +3,7 @@
   <% if @updated %>
     <b><%= "Updated Options".t %></b>
   <% end -%>
-  <% admin_form_for :options,@options, :html => { :class => 'admin_form' } , :update => 'domain_options' do |f| %>
+  <%= admin_form_for :options,@options, :html => { :class => 'admin_form' } , :update => 'domain_options' do |f| %>
 <% tabled_ajax_tabs ['Options','Member Configuration','Default Folders &amp; Images','Backend Configuration'],'Options' do |t| %>
 
 <% t.tabled_tab do %>

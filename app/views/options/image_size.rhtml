@@ -43,7 +43,7 @@ var ImageSizeEditor = {
 <table>
 <tr>
   <td width='600' valign='top'>
-    <% cms_form_for :domain_file_size,@domain_file_size, :html => { :class => 'admin_form', :onsubmit => 'ImageSizeEditor.submit();' } do |f| -%>
+    <%= cms_form_for :domain_file_size,@domain_file_size, :html => { :class => 'admin_form', :onsubmit => 'ImageSizeEditor.submit();' } do |f| -%>
       <%= f.text_field :name, :description => 'Descriptive name of the image size', :required => true %>
       <%= f.text_field :size_name, :description => 'Short name (numbers, letters and dashes only) used in site features', :required => true %>
       <%= f.text_area :description , :cols => 40, :rows =>5, :description => 'Description of this size' %>

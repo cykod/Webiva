@@ -17,7 +17,7 @@ WidgetEditor = {
 }
 </script>
 
-  <% admin_form_for :widget, @widget, :html => { :onsubmit => 'CMSDashboard.submitWidgetForm(Form.serialize(this)); return false;' } do |f| -%>
+  <%= admin_form_for :widget, @widget, :html => { :onsubmit => 'CMSDashboard.submitWidgetForm(Form.serialize(this)); return false;' } do |f| -%>
 <%= hidden_field_tag :widget_id, @widget.id -%>
 <%= hidden_field_tag :column, @widget.column -%>
 <% f.section do -%>

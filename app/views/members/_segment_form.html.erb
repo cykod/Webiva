@@ -14,7 +14,7 @@ UserSegment = {
 }
 </script>
 
-<% admin_form_for :segment, @segment do |f| -%>
+<%= admin_form_for :segment, @segment do |f| -%>
 <%= f.text_field :name %>
 <%= f.text_area :description, :rows => 3 %>
 <%= f.grouped_select :order_by, UserSegment.order_by_group_options %>

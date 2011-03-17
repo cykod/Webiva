@@ -1,6 +1,6 @@
 <div class='cms_form'>
 
-<% paragraph_options_form_for "Create Entry Publication Options",:create do |f| -%>
+<%= paragraph_options_form_for "Create Entry Publication Options",:create do |f| -%>
 <%= f.page_selector :redirect_page_id, :label => 'Entry Created Page' %>
 <%= f.text_area :success_text, :rows =>10,:cols => 50, :description => 'This text can be displayed when an entry is created in lieu of a redirect'  -%>
 <%= f.select :user_level, @options.class.user_level_options %>

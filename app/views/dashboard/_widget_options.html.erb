@@ -1,5 +1,5 @@
 <% if options -%>
-<% cms_subfields_for 'widget[data]', options do |f| -%>
+<%= cms_subfields_for 'widget[data]', options do |f| -%>
  <%= render :partial => options.options_partial, :locals => options.options_locals(f) -%>
 <% end -%>
 <% if @widget_title -%>

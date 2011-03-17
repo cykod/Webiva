@@ -1,6 +1,6 @@
 <h3><%= "Translate/Replace Page Text".t %></h3>
 
-<% remote_form_for :trans, @trans, :url => { :action => 'translate_text' } , :loading => "$('_cms_submit_translations').innerHTML='#{'Submitting Translations...'.t}'" do |t| -%>
+<%= remote_form_for :trans, @trans, :url => { :action => 'translate_text' } , :loading => "$('_cms_submit_translations').innerHTML='#{'Submitting Translations...'.t}'" do |t| -%>
 <div id='_cms_submit_translations'>
 <table width='90%'>
 <tr>

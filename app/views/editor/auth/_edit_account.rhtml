@@ -3,7 +3,7 @@
   <%= "Please reset your password to enable future access to you account".t %>
  </div>
 <% end -%>
-<% cms_form_for :user, user, :url => '', :html => { :class => 'cms_form' } do |f| %>
+<%= cms_form_for :user, user, :url => '', :html => { :class => 'cms_form' } do |f| %>
   <%= f.text_field :email, :required => true, :vertical => opts[:vertical] %>
 
   <%= f.text_field :username, :required =>(opts[:username] == 'required'), :vertical => opts[:vertical] if opts[:username] != 'off' %>
@@ -22,7 +22,7 @@
 <% end -%>
   
 <% if opts[:address] != 'off' %>
-  <% cms_subfields_for :address, address do |af| %>
+  <%= cms_subfields_for :address, address do |af| %>
     <%= af.text_field :address, :required =>(opts[:address] == 'required'), :vertical => opts[:vertical]  %>
     <% if opts[:country].blank? %>
       <%= af.select :country, af.translated_countries_for_select( [ 'United States' ] ), :required =>(opts[:address] == 'required'), :vertical => opts[:vertical]%>
@@ -40,7 +40,7 @@
   <% end -%>
 <% end -%>
 <% if opts[:work_address] != 'off' %>
-  <% cms_subfields_for :work_address, work_address do |af| %>
+  <%= cms_subfields_for :work_address, work_address do |af| %>
     <%= af.text_field :company, :required =>(opts[:work_address] == 'required'), :vertical => opts[:vertical] %>
     <%= af.text_field :address, :rows => 2, :required =>(opts[:work_address] == 'required'), :vertical => opts[:vertical] %>
     <% if opts[:country].blank? %>

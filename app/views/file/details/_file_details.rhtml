@@ -7,7 +7,7 @@
 
 <% if file.file_type_match(@select) && (@mce && !file.private? && file.image?) -%>
 <div id='fm_insert'>
-    <% cms_form_for :insert, :html => { 
+    <%= cms_form_for :insert, :html => { 
                 :onsubmit=>"FileEditor.callbackFileCustom(#{file.id}); return false;" } do |f| %>
       <%= f.select :align, [ ['None',''],['Left','left'],['Right','right'],['AbsMiddle','absmiddle'] ]  %>
       <%= f.select :size, file.image_size_options %>

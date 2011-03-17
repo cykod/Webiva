@@ -14,7 +14,7 @@
 
 <% t.tab do -%>
   <%= "Update you account password.".t %>
-  <% tabled_form_for :pw, @pw do |f| %>
+  <%= tabled_form_for :pw, @pw do |f| %>
      <input type='hidden' name='selected_tab' value='Password' />
     <%= f.password_field :current_password %>
     <%= f.password_field :new_password %>
@@ -26,7 +26,7 @@
 
 <% if permit?('admin') -%>
   <% t.tab do -%>
-    <% tabled_form_for :admin, @admin do |f| %>
+    <%= tabled_form_for :admin, @admin do |f| %>
       <input type='hidden' name='selected_tab' value='Admin' />
       <%= f.select :language, @languages %>
       <%= f.check_boxes :translation_options, [ ['Enable Context Translation','translate' ] ] %>

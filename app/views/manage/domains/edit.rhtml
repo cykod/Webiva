@@ -1,14 +1,14 @@
 <div class='admin_content'>
 <h2>Update Domain Options:</h2>
 <% if @domain.domain_type == 'redirect' %>
-  <% cms_form_for :domain, @domain do |f| %>
+  <%= cms_form_for :domain, @domain do |f| %>
     <%= f.text_field :redirect, :label => 'Redirect To' %>
     <%= f.submit_tag 'Update' %>
   <% end -%>
 </div>
 
 <% else %>
-  <% cms_form_for :domain, @domain do |f| %>
+  <%= cms_form_for :domain, @domain do |f| %>
     <%= f.radio_buttons :email_enabled, [ ['Yes', true ], ['No', false ] ], :label => 'Handle Emails on Domain' %>
     <%= f.radio_buttons :ssl_enabled, [ ['Yes', true ], ['No', false ] ], :label => 'Domain has SSL Certificate' %>
     <% if @domain.domain_database -%>

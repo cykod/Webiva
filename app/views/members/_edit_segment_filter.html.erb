@@ -1,6 +1,6 @@
 <div class='cms_form'>
 
-<% admin_form_for :segment, @segment, :html => {:onsubmit => 'MemberEditor.updateUserList(this); return false;'} do |f| -%>
+<%= admin_form_for :segment, @segment, :html => {:onsubmit => 'MemberEditor.updateUserList(this); return false;'} do |f| -%>
 <%= f.grouped_select :order_by, UserSegment.order_by_group_options %>
 <%= f.radio_buttons :order_direction, UserSegment.order_direction_select_options %>
   <% if @segment.segment_type == 'filtered' -%>

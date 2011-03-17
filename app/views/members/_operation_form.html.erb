@@ -21,7 +21,7 @@ OperationBuilder = {
 }
 </script>
 
-<% cms_unstyled_form_for :builder, @builder, :html => {:id => 'builder', :onsubmit => 'OperationBuilder.appendExpression(); return false;', :class => "admin_form"} do |f| -%>
+<%= cms_unstyled_form_for :builder, @builder, :html => {:id => 'builder', :onsubmit => 'OperationBuilder.appendExpression(); return false;', :class => "admin_form"} do |f| -%>
 
 <table width="100%" cellspacing="0" cellpadding="0" border="0">
 <tr>

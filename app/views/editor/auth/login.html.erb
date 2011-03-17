@@ -41,7 +41,7 @@ LoginEditor = {
 
 
 <div class='cms_form'>
-<% paragraph_options_form_for  'Login Options', :login, @options do |f| %>
+<%= paragraph_options_form_for  'Login Options', :login, @options do |f| %>
 <% tabled_ajax_tabs ['Options','Login Features'],'Options' do |t| %>
 
 <% t.tabled_tab do %>

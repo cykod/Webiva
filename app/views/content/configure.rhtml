@@ -40,7 +40,7 @@ ContentEditor = {
 
 
 <div class='admin_content'>
-<% cms_form_for :content,@content_model, :html => { :class => 'admin_form' } do |f| %>
+<%= cms_form_for :content,@content_model, :html => { :class => 'admin_form' } do |f| %>
 
 <% tabled_ajax_tabs [ 'Configuration', 'Content Features'], 'Configuration'  do |t| -%>
 

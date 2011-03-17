@@ -1,7 +1,7 @@
 
 <div class='admin_content'>
 
-<% cms_form_for :client,@client,:html => { :class => 'admin_form' }, :url => { :action => 'create' } do |f| %>
+<%= cms_form_for :client,@client,:html => { :class => 'admin_form' }, :url => { :action => 'create' } do |f| %>
   <%= render :partial => 'form', :locals => { :f => f } %>
   <%= f.submit_tag "Create" %>
 <% end -%>

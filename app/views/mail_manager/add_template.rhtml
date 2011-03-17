@@ -9,7 +9,7 @@
 </script>
 <div class='admin_content'>
 
-<% cms_form_for :mail_template, @mail_template, :html => { 'class' => 'admin_form' } do |f| -%>
+<%= cms_form_for :mail_template, @mail_template, :html => { 'class' => 'admin_form' } do |f| -%>
 <tbody>
 <%= f.text_field :name, :vertical => true, :required => true %>
 <%= f.radio_buttons :template_type, MailTemplate.template_type_select_options, :vertical => true %>

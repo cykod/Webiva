@@ -150,7 +150,7 @@ Event.observe(document.onresize ? document : window, "resize",FeatureEditor.kill
 </div>
 <input type='hidden' name='feature[feature_type]' value='<%= @feature.feature_type %>' />
   <div class='text_field_control' style='padding:10px;'>  
-  <% cms_unstyled_fields_for :feature, @feature do |f| -%>
+  <%= cms_unstyled_fields_for :feature, @feature do |f| -%>
       Name: <%= f.text_field :name, :size => 60 %>
   <% end -%>
 </div>
@@ -165,7 +165,7 @@ Event.observe(document.onresize ? document : window, "resize",FeatureEditor.kill
 <% ajax_tabs ['Options','Theme',['CSS','FeatureEditor.activateCss();']],  'Theme' do |t| -%>
   <% t.tab do  -%>
    <div class='admin_content' id='feature_options'>
-      <% admin_fields_for :feature, @feature do |f| -%>
+      <%= admin_fields_for :feature, @feature do |f| -%>
          <%= f.text_field :category, :size => 30 %>
          <%= f.text_field :description,:size => 80 %>
          <%= f.custom_field :feature_type, :value => @feature.feature_type, :label => 'Paragraph Theme Type' %>

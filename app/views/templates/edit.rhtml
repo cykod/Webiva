@@ -283,7 +283,7 @@
     <div id='zone_display'>
 			<%= render :partial => 'zone_ordering' %>
 		</div>
-		<% cms_unstyled_fields_for :site_template,@site_template, :html => { :id => 'site_template_html_form' } do |f| %> 
+		<%= cms_unstyled_fields_for :site_template,@site_template, :html => { :id => 'site_template_html_form' } do |f| %> 
       <div>
       <%= "Image File Folder:".t %><%= f.filemanager_folder :domain_file_id, :label => 'Image File Folder' %><br/.
     </div>

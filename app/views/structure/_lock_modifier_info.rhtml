@@ -83,10 +83,10 @@ LockEditor = {
 
 <div id='lock_edit' style='display:none;'>
 
-<% admin_form_for :lock, @lock_options, :html => {:id => 'lock_form', :onsubmit => 'LockEditor.submitForm(); return false;' }  do  |f| -%>
+<%= admin_form_for :lock, @lock_options, :html => {:id => 'lock_form', :onsubmit => 'LockEditor.submitForm(); return false;' }  do  |f| -%>
   <%= f.radio_buttons :access_control, [ [  'Only Allow Selected', 'lock'], ['Allow All except Selected','unlock' ] ],:vertical => true, :label => 'Lock Type' %>
 
-  <% cms_subfields_for :mod,@mod do |sf| -%>
+  <%= cms_subfields_for :mod,@mod do |sf| -%>
     <%= sf.ordered_selection_list('access_authorized',UserClass,:id_field => 'identifier',:options =>  Role.authorized_options(:all), :sortable => false, :vertical => true, :label => 'Affected Users') %>
   <% end -%>
 

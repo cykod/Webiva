@@ -1,7 +1,7 @@
 <div class='cms_form'>
 <h3><%= sprintf("%s Options".t,@publication.name) %></h3>
 
-<% tabled_form_for :pub, @options, 
+<%= tabled_form_for :pub, @options, 
           :html => { :id => 'edit_entry',
                      :onsubmit => "cmsEdit.submitParagraphData(this,'#{url_for :action => 'view'}',#{@paragraph.id},#{@paragraph_index}); return false;"
                    }  do |f| -%>

@@ -3,7 +3,7 @@
 <form name='translation_<%= lang %>' id='translation_form_<%= lang %>' class='translation_form'>
 <% if @localized_options.length > 0 %>
  <h3><%= "Translated Variables".t %></h3>
-  <% cms_fields_for "localize_values[#{lang}]", @localized_values[lang]  do |f| -%>
+  <%= cms_fields_for "localize_values[#{lang}]", @localized_values[lang]  do |f| -%>
     <% @localized_options.each do |opt| -%>
         <%= render :partial => 'custom_field', :locals => {:opt => opt, :f => f} %> 
     <% end -%>

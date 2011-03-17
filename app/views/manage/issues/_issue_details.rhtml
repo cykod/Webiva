@@ -7,7 +7,7 @@
         [ Anonymous ]
       <% end -%>
       </b><Br/>
-      <% form_for :issue, issue, :url => { :action => 'update_issue', :path => issue.id } do |f| %>
+      <%= form_for :issue, issue, :url => { :action => 'update_issue', :path => issue.id } do |f| %>
         Location:<%= f.text_field :location %><input type='submit' value='Submit'>
       <% end -%>
       <h3>Behavior</h3>
@@ -52,7 +52,7 @@
       <% end -%>
       
       <h3>Add Note</h3>
-      <% remote_cms_form_for :note, @issue_note, :update => "issue_details_#{issue.id}", :url => {:action => 'add_note', :path =>  issue.id } do |f| %>
+      <%= remote_cms_form_for :note, @issue_note, :update => "issue_details_#{issue.id}", :url => {:action => 'add_note', :path =>  issue.id } do |f| %>
         <%= f.radio_buttons :action, [ 'note','closed','complete' ] %>
         <%= f.text_field :work_time %>
         <%= f.text_area :note, :cols => 50,:rows => 5 %>

@@ -5,7 +5,7 @@
 <% end -%>
 
 <div id='login_box'>
-<% tabled_form_for :user, @user, :html => { :class => 'admin_form' } do |f| -%>
+<%= tabled_form_for :user, @user, :html => { :class => 'admin_form' } do |f| -%>
 
 	<%= f.text_field :username %>
 	<%= f.password_field :password %>

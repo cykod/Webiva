@@ -1,6 +1,6 @@
 <div class='admin_content'>
 
-<% admin_form_for :parser, @parser do |f| -%>
+<%= admin_form_for :parser, @parser do |f| -%>
   <%= f.header 'Upload a HTML File' %>
   <%= f.filemanager_file :html_file_id %>
   <%= f.custom_field '', :value => 'OR' %>

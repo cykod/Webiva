@@ -1,6 +1,6 @@
 <div class='cms_form'>
 
-<% paragraph_options_form_for "Experiment Conversion Options", :experiment do |f| -%>
+<%= paragraph_options_form_for "Experiment Conversion Options", :experiment do |f| -%>
    <%= f.select :type, @options.class.type_options, :vertical => true %>
    <%= f.select :experiment_id, @options.experiment_options, {}, :vertical => true, :onchange => 'updateExperimentJS();' %>
    <%= f.text_field :delay_for, :vertical => true %>

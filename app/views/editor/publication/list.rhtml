@@ -1,5 +1,5 @@
 <div class='cms_form'>
-<% paragraph_options_form_for ("%s Options" /  @publication.name),:list ,@options, :html => { :style => 'width:600px; height:450px; overflow:auto;' } do |f| -%>
+<%= paragraph_options_form_for ("%s Options" /  @publication.name),:list ,@options, :html => { :style => 'width:600px; height:450px; overflow:auto;' } do |f| -%>
   <%= f.select :detail_page, @pages, :label => 'Detail Page'.t %>
   <%= f.text_field :per_page, :description => 'Leave blank to use default' %>
   <%= @publication.filter_form_elements(f) %>

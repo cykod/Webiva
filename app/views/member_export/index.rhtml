@@ -6,7 +6,7 @@
 
 <h4><%= "Exporting ".t %><%= sprintf("%d members".t,@member_count.to_i) %></h4>
 
-<% cms_form_for :export, @export, :html => { :id => 'export_form' } do |f| %>
+<%= cms_form_for :export, @export, :html => { :id => 'export_form' } do |f| %>
 <%= f.check_boxes :include, @include_options, :vertical => true, :separator => '<br/>', :label => 'Include in export' %>
 <tr>
   <td colspan='2' align='right'>
