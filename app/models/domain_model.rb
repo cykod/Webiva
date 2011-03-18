@@ -197,7 +197,7 @@ class DomainModel < ActiveRecord::Base
 
   def run_triggered_actions(data = {},trigger_name = nil,user = nil,session = nil)
     if (trigger_name.to_s == 'view' && self.view_action_count > 0) || (trigger_name.to_s != 'view' && self.update_action_count > 0)
-      actions = trigger_name ?  self.triggered_actions.find(:all,:conditions => ['action_trigger=?',trigger_name]) :  self.triggered_actions
+      actions = trigger_name ?  self.triggered_actions.where('action_trigger = ?', trigger_name).all :  self.triggered_actions
       actions.each do |act|
         act.perform(data,user,session)
       end
@@ -246,7 +246,7 @@ class DomainModel < ActiveRecord::Base
   def has(name)
     @extra_relations ||= {}
     return @extra_relations[name] if @extra_relations[name]
-    @extra_relations[name] = name.to_s.classify.constantize.find(:first,:conditions => { "#{self.class.to_s.underscore}_id" => self.id })
+    @extra_relations[name] = name.to_s.classify.constantize.where("#{self.class.to_s.underscore}_id" => self.id).first
   end
   
   
@@ -606,7 +606,7 @@ class DomainModel < ActiveRecord::Base
       
       # Returns a list of existing tags for this class
       def tag_options
-        ContentTag.find_select_options(:all,:conditions => { :content_type =>  self.to_s })
+        ContentTag.find_select_options.where(:content_type => self.to_s).all
       end
       
     end
