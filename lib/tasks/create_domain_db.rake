@@ -75,12 +75,12 @@ namespace "cms" do
 
       ActiveRecord::Base.logger = Logger.new(STDOUT)
       ActiveRecord::Base.establish_connection(options['migrator'])
+      
+      DomainModel.activate_domain(dmn.get_info,'production')
+
       ActiveRecord::Migrator.migrate("#{Rails.root}/db/migrate/")
 
       ActiveRecord::Base.establish_connection(db_config)
-
-      # Now activate the DB connection to the created database
-      DomainModel.activate_domain(dmn.get_info,'production')
 
       # And create any initial data as necessary
       Domain.initial_domain_data

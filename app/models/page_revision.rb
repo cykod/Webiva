@@ -18,15 +18,22 @@ class PageRevision < DomainModel
   serialize :variables
   
   attr_accessor :paragraph_update_map
-  
+
+  # Scopes
+  scope :active, where(:active => true)
+  scope :real, where(:revision_type => 'real')
+  scope :temporary, where(:revision_type => 'temp')
+  def self.for_language(l); self.where(:language => l); end
+  def self.for_revision(revision); self.where(:revision => revision); end
+  def self.for_container(type, id); where(:revision_container_type => type, :revision_container_id => id); end
+
   def self.activate_page_revision(page,revision_id)
 
     active_rev = page.page_revisions.find_by_id(revision_id)
 
     unless active_rev.active?
 
-      inactive_revs = page.page_revisions.find(:all, :conditions => ['language = ? AND active = 1',active_rev.language]);
-      inactive_revs.each do |rev|
+      page.page_revisions.active.for_language(active_rev.language).all.each do |rev|
         rev.active = 0
         rev.save
       end
@@ -37,7 +44,6 @@ class PageRevision < DomainModel
     end
 
     return false
-
   end
 
   def display_variables
@@ -82,21 +88,14 @@ class PageRevision < DomainModel
     paras + self.page_paragraphs
   end
 
-
-
   def used_images
-    DomainFileInstance.find(:all,:conditions => { :target_type => 'PageParagraph', :target_id => page_paragraph_ids }, :include => :domain_file).map(&:domain_file).uniq
+    DomainFileInstance.used_images('PageParagraph', self.page_paragraph_ids)
   end
   
   # Delete any temporary revisions
   # that are more than 2 days old
   def cleanup_temporary()
-    PageRevision.find(:all,
-                      :conditions => [ 'updated_at <  ? AND revision_type = "temp" AND revision_container_type=? AND revision_container_id=?',
-                                        2.days.ago, self.revision_container_type,self.revision_container_id] ).each do |rev|
-      rev.destroy
-    end
-  
+    PageRevision.temporary.where('updated_at < ?', 2.days.ago).for_container(self.revision_container_type, self.revision_container_id).all.map(&:destroy)
   end
   
   # create a deep-copy of this revision in a new language
@@ -182,10 +181,9 @@ class PageRevision < DomainModel
     
     new_rev
   end
-    
-    
+
   def get_translations
-    existing = PageRevision.find(:all,:conditions => ['revision_container_type=? AND revision_container_id=? AND revision = ? AND revision_type="real"',self.revision_container_id,self.revision_container_id,self.revision],:order => 'language') || [] 
+    existing = PageRevision.real.for_container(self.revision_container_type, self.revision_container_id).for_revision(self.revision).order('language').all
   
     revisions = {} 
     existing.each do |rev|
@@ -200,8 +198,7 @@ class PageRevision < DomainModel
   end
   
   def visible_languages
-    existing = PageRevision.find(:all,:conditions => ['revision_container_type=? AND revision_container_id=? AND active=1 AND revision_type="real"',self.revision_container_id,self.revision_container_id],:order => 'language') || [] 
-    
+    PageRevision.real.active.for_container(self.revision_container_type, self.revision_container_id).order('language').all
   end
   
   # Make this temporary revision into a real revision
@@ -209,7 +206,7 @@ class PageRevision < DomainModel
     container = self.revision_container
     
     PageRevision.transaction do 
-      real_rev = container.page_revisions.find(:all,:conditions => [ 'revision_type="real" AND revision=? AND language=? AND id != ?', self.revision,self.language,self.id] )
+      real_rev = container.page_revisions.real.for_revision(self.revision).for_language(self.language).not_me(self.id).all
       real_rev.each do |rev|
         rev.update_attributes(:revision_type => 'old' )
         DomainFileInstance.clear_targets('PageParagraph',rev.page_paragraph_ids)
@@ -220,15 +217,15 @@ class PageRevision < DomainModel
 
       self.page_paragraphs.map(&:link_canonical_type!)
     end
+
     if container.is_a?(SiteNode)
       container.save_content(self.created_by) 
     end
-  
   end
 
   def get_next_version(version='minor')
     container = self.revision_container
-    max_revision = container.page_revisions.find(:first,:order => 'page_revisions.revision DESC')
+    max_revision = container.page_revisions.order('page_revisions.revision DESC').first
 
     if version == 'major'
       max_revision.revision.floor + 1
@@ -240,7 +237,7 @@ class PageRevision < DomainModel
   def make_new_version(version = 'minor', version_name=nil)
   
     container = self.revision_container
-    max_revision = container.page_revisions.find(:first,:order => 'page_revisions.revision DESC')
+    max_revision = container.page_revisions.order('page_revisions.revision DESC').first
 
     if version == 'major'
       new_version = max_revision.revision.floor + 1
@@ -249,7 +246,7 @@ class PageRevision < DomainModel
     else
       new_version = version.to_f
       PageRevision.transaction do 
-        real_rev = container.page_revisions.find(:all,:conditions => [ 'revision_type="real" AND revision=? AND language=?', new_version,self.language] )
+        real_rev = container.page_revisions.real.for_revision(new_version).for_language(self.language).all
         real_rev.each do |rev|
           rev.update_attributes(:revision_type => 'old' )
         end
@@ -264,10 +261,7 @@ class PageRevision < DomainModel
   end
   
   def translation(lang)
-    PageRevision.find(:first, 
-                      :conditions => [ 'revision_type="real" AND revision=? AND revision_container_type=? AND revision_container_id=? AND language=?',
-                                      self.revision,self.revision_container_type,self.revision_container_id, lang]
-                      )
+    PageRevision.real.for_revision(self.revision).for_language(lang).for_container(self.revision_container_type, self.revision_container_id).first
   end
   
   def translations(langs) 
@@ -283,19 +277,17 @@ class PageRevision < DomainModel
   def activate
     unless self.active
       PageRevision.transaction do
-        PageRevision.update_all(['active=?',false],[ 'revision != ? AND revision_container_type=? AND revision_container_id=? AND language=?',
-                                        self.revision,self.revision_container_type,self.revision_container_id, self.language])
-        PageRevision.update_all(['active=?',true],[ 'revision = ? AND revision_container_type=? AND revision_container_id=? AND language=?',
-                                        self.revision,self.revision_container_type,self.revision_container_id, self.language])
+        base_scope = PageRevision.for_language(self.language).for_container(self.revision_container_type, self.revision_container_id)
+        base_scope.where('revision != ?'. self.revision).update_all('active=0')
+        base_scope.for_revision(self.revision).update_all('active=1')
       end
     end
   end
   
   def deactivate
-      PageRevision.transaction do
-        PageRevision.update_all(['active=?',false],[ 'revision = ? AND revision_container_type=? AND revision_container_id=? AND language=?',
-                                        self.revision,self.revision_container_type,self.revision_container_id, self.language])
-      end
+    PageRevision.transaction do
+      PageRevision.for_language(self.language).for_container(self.revision_container_type, self.revision_container_id).for_revision(self.revision).update_all('active=0')
+    end
   end
 
 
@@ -312,7 +304,7 @@ class PageRevision < DomainModel
   
 
   def push_paragraph(renderer_class,name,paragraph_options={ },options={ })
-    para = self.page_paragraphs.find(:first, :conditions => {:zone_idx => options[:zone] || 1,:display_type => name,:display_module => renderer_class}) || self.add_paragraph(renderer_class,name,paragraph_options,options)
+    para = self.page_paragraphs.for_zone(options[:zone]).with_feature(renderer_class, name).first || self.add_paragraph(renderer_class,name,paragraph_options,options)
     para.data = paragraph_options
     if block_given?
       yield para

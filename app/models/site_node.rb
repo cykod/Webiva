@@ -40,9 +40,27 @@ class SiteNode < DomainModel
   
   attr_accessor :page_info, :closed
 
-  scope :with_type, lambda { |type| {:conditions => {:node_type => type}} }
+  before_validation { self.node_type = 'P' if self.node_type.blank? }
 
   attr_accessor :created_by_id, :copying
+
+  before_save :update_node_path
+  after_create :create_default_revision
+  after_save :update_children
+  
+  # Scopes
+  def self.with_type(type); self.where(:node_type => type); end
+  def self.page_node_types(include_root=false)
+    types = '"P","M","J"'
+    types += ',"R"' if include_root
+    self.where("node_type IN(#{types})")
+  end
+  def self.page_and_group_node_types(include_root=false)
+    types = '"P","M","J","G"'
+    types += ',"R"' if include_root
+    self.where("node_type IN(#{types})")
+  end
+  def self.for_version(version_id); self.where(:site_version_id => version_id); end
 
   # Expires the entire site when save or deleted
   expires_site
@@ -60,11 +78,7 @@ class SiteNode < DomainModel
     return @experiment_page_revision if @experiment_page_revision
     version = self.experiment_version(session)
     return nil unless version
-    @experiment_page_revision = self.page_revisions.first :conditions => {:revision => version.revision, :language => version.language, :revision_type => 'real'}
-  end
-
-  def before_validation #:nodoc:
-    self.node_type = 'P' if self.node_type.blank?
+    @experiment_page_revision = self.page_revisions.where(:revision => version.revision, :language => version.language, :revision_type => 'real').first
   end
 
   def child_cache #:nodoc:
@@ -98,10 +112,7 @@ class SiteNode < DomainModel
   def nested_pages(closed = [])
     page_hash = {self.id => self}
 
-    nds = SiteNode.find(:all,
-                               :conditions => [ 'lft > ? AND rgt < ? AND site_version_id=?',self.lft,self.rgt,self.site_version_id],
-                               :order => 'lft',
-                               :include => :live_revisions)
+    nds = SiteNode.where('lft > ? AND rgt < ? AND site_version_id=?',self.lft,self.rgt,self.site_version_id).order('lft').includes(:live_revisions).all
     nds.each do |nd|
       nd.closed = true if closed.include?(nd.id)
       page_hash[nd.parent_id].child_cache << nd  if page_hash[nd.parent_id]
@@ -218,7 +229,7 @@ class SiteNode < DomainModel
   
   # alias for active_revision  
   def visible_revision(language)
-    self.page_revisions.find(:first,:conditions => 'active=1 AND revision_type="real"', :order => "language='#{language}' DESC,revision DESC")
+    self.page_revisions.active.real.order("language='#{language}' DESC, revision DESC").first
   end
   
   # Returns a list of revision of the passed languages, 
@@ -227,15 +238,15 @@ class SiteNode < DomainModel
   def language_revisions(languages)
     languages.collect do |lang|
       [ lang,
-        self.page_revisions.find(:first,:conditions => ['language=? AND revision_type="real"',lang], :order => 'active DESC, revision DESC'),
-        self.page_revisions.find(:first,:conditions => ['language=? AND revision_type="real"',lang], :order => 'revision DESC')
+        self.page_revisions.real.for_language(lang).order('active DESC, revision DESC').first,
+        self.page_revisions.real.for_language(lang).order('revision DESC').first
       ]
     end
   end
   
   # Returns a list of active revisions in all available languages
   def active_revisions
-    self.page_revisions.find(:all,:conditions => ['active=?',true], :order => 'language')
+    self.page_revisions.active.order('language').all
   end
   
 #  def domain_module_info #:nodoc:
@@ -301,19 +312,12 @@ class SiteNode < DomainModel
   
   # Returns a list of modifiers, optionally only those before
   # the page (and then optionally only those before the passed index)
-  def modifiers(before_only=false,before_idx=nil)
+  def modifiers(before_only=false, before_idx=nil)
     if before_only
-      self.site_node_modifiers.find(
-                                    :all, 
-                                    :conditions =>
-                                    ["modifier_type NOT IN ('P','page') AND position < ?",
-                                     before_idx ? before_idx : page_modifier.position
-                                    ],
-                                    :order => 'position')
+      before_idx = page_modifier.position unless before_idx
+      self.site_node_modifiers.not_page.where('position < ?', before_idx).order('position').all
     else
-      self.site_node_modifiers.find(:all,
-                                    :conditions => "modifier_type NOT IN ('P','page')",
-                                    :order => :position)
+      self.site_node_modifiers.not_page.order('position').all
     end
   end
   
@@ -323,10 +327,8 @@ class SiteNode < DomainModel
   #  Options
   #     version - a passed in site version to use, otherwise defaults to SiteVersion.current
   def self.page_options(include_root = false, opts={})
-    node_type = include_root ? 'node_type IN("P","R","M","J")' : 'node_type IN ("P","M","J")'
     site_version = opts[:version] || SiteVersion.current 
-    SiteNode.find(:all,:conditions => [node_type + " AND site_version_id=? ",site_version.id],
-                  :order => 'lft').collect do |page|
+    SiteNode.page_node_types(include_root).for_version(site_version.id).order('lft').all.collect do |page|
       [ page.node_type != 'R' ? page.node_path : include_root , opts[:url] ? page.node_path : page.id ]
     end
   end
@@ -340,9 +342,7 @@ class SiteNode < DomainModel
   # Returns a select-friendly list of pages and groups
   #  optionally including the root node as well
   def self.page_and_group_options(include_root = false)
-    node_type = include_root ? 'node_type IN("P","R","M","J","G")' : 'node_type IN ("P","M","J","G"")'
-    SiteNode.find(:all,:conditions => node_type,
-                  :order => 'lft').collect do |page|
+    SiteNode.page_and_group_node_types(include_root).order('lft').all.collect do |page|
       title = case page.node_type
               when 'R': include_root
               when 'P': page.node_path
@@ -354,9 +354,8 @@ class SiteNode < DomainModel
   
   # Returns a select-friendly list of modules that match that have a module_name of  mod
   def self.module_options(mod)
-    SiteNode.find(:all,:conditions => [ 'module_name = ? AND node_type = "M" ',mod],
-                  :order => 'node_path').collect do |page|
-      [ page.node_path + " (Module)".t ,page.id ]
+    SiteNode.where(:module_name => mod, :node_type => 'M').order('node_path').all.collect do |page|
+      [ page.node_path + " (Module)".t, page.id ]
     end
   end
   
@@ -389,12 +388,10 @@ class SiteNode < DomainModel
   # Deprecated
   def self.update_paragraph_links(old_path,new_path) #:nodoc:
     return if(old_path == new_path)
-    
 
     reg = Regexp.new("<a([^>]*?)href=(\\\"|\')(#{Regexp.quote(old_path)})([^>]*)\>",Regexp::IGNORECASE| Regexp::MULTILINE)
 
-     PageParagraph.find(:all,:conditions => "display_type = 'html' AND display_body LIKE " + DomainModel.connection.quote("%" + old_path + "%")).each do |para|
-      
+    PageParagraph.where(:display_type => 'html').where('display_body LIKE ?', "%#{old_path}%").all.each do |para|
       fixed_body = ''
       text_body = para.display_body
       while( mtch = reg.match(text_body) ) 
@@ -404,10 +401,7 @@ class SiteNode < DomainModel
         text_body = mtch.post_match
       end
       para.update_attribute(:display_body,fixed_body + text_body)
-
     end
-
-
   end
   
   # Make a deep copy of this site node including all live revisions
@@ -461,9 +455,9 @@ class SiteNode < DomainModel
   def page_content(limit = 5)
     return @page_content if @page_content
 
-    content_type_ids = ContentType.find(:all,:select => 'id', :conditions => { :detail_site_node_url => self.node_path }).map(&:id)
+    content_type_ids = ContentType.where(:detail_site_node_url => self.node_path).select('id').all.map(&:id)
 
-    @page_content = ContentNode.find(:all,:conditions => { :content_type_id => content_type_ids },:include => :node, :order => 'created_at DESC', :limit => limit )
+    @page_content = ContentNode.where(:content_type_id => content_type_ids).includes(:node).order('created_at DESC').limit(limit).all
   end
   
   def can_index?
@@ -477,8 +471,8 @@ class SiteNode < DomainModel
   end
 
   protected
-  
-  def after_create #:nodoc:
+
+  def create_default_revision #:nodoc:
     return if @copying
 
     if self.node_type == 'P'
@@ -493,7 +487,7 @@ class SiteNode < DomainModel
     self.site_node_modifiers.create(:modifier_type => 'page')
   end
   
-  def before_save #:nodoc:
+  def update_node_path #:nodoc:
     node_path = ''
     if self.parent && self.parent.node_path && (self.parent.node_type == 'P' || self.parent.node_type == 'G')
       node_path = self.parent.node_path
@@ -512,7 +506,7 @@ class SiteNode < DomainModel
     
   end
   
-  def after_save #:nodoc:
+  def update_children #:nodoc:
     unless self.frozen?
       if self.children.length > 0
         self.children.each do |child|
@@ -525,7 +519,7 @@ class SiteNode < DomainModel
   def content_node_body(language)  #:nodoc:
     rev = self.live_revisions.detect { |rev| rev.language == language }
     if rev
-      paragraphs = rev.page_paragraphs.find(:all,:conditions => "display_module IS NULL")
+      paragraphs = rev.page_paragraphs.where(:display_module => nil).all
       paragraphs.map { |para| para.display }.join(" ")
     else
       nil
@@ -554,7 +548,7 @@ class SiteNode < DomainModel
 
   def self.traffic_scope(from, duration, opts={})
     scope = DomainLogEntry.valid_sessions.between(from, from+duration).hits_n_visits('site_node_id')
-    scope = scope.scoped(:conditions => {:site_node_id => opts[:target_id]}) if opts[:target_id]
+    scope = scope.where(:site_node_id => opts[:target_id]) if opts[:target_id]
     scope
   end
 

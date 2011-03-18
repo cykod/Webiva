@@ -20,7 +20,14 @@ class SiteNodeModifier < DomainModel
 
   attr_accessor :created_by_id, :copying
  
-  def before_create #:nodoc:
+  before_create :set_initial_options
+  before_save :update_modifier_data
+  after_create :create_default_page_revision
+
+  # Scopes
+  scope :not_page, where("modifier_type NOT IN ('P','page')")
+  
+  def set_initial_options #:nodoc:
     return if @copying
     
     if opts = self.modifier_options
@@ -63,8 +70,7 @@ class SiteNodeModifier < DomainModel
     rev.create_temporary
   end
 
-
-  def after_create
+  def create_default_page_revision
     return if @copying
 
     if self.modifier_type == 'F' || self.modifier_type == 'framework'
@@ -83,8 +89,8 @@ class SiteNodeModifier < DomainModel
   def language_revisions(languages)
     languages.collect do |lang|
       [ lang,
-        self.page_revisions.find(:first,:conditions => ['language=? AND revision_type="real"',lang], :order => 'active DESC, revision DESC'),
-        self.page_revisions.find(:first,:conditions => ['language=? AND revision_type="real"',lang], :order => 'revision DESC')
+        self.page_revisions.real.for_language(lang).order('active DESC, revision DESC').first,
+        self.page_revisions.real.for_language(lang).order('revision DESC').first
       ]
     end
   end
@@ -108,7 +114,7 @@ class SiteNodeModifier < DomainModel
     end
   end
 
-  def before_save
+  def update_modifier_data
     self.modifier_data = @options.to_hash if @options
   end
 
@@ -206,15 +212,11 @@ class SiteNodeModifier < DomainModel
 
   def active_language_revision(language)
     # Get the first real, active revisions from this framework that's available
-    self.page_revisions.find(:first,
-                             :conditions => "revision_type = 'real' AND active=1",
-                             :order => "language=#{PageRevision.quote_value(language)} DESC"
-                            )
-
+    self.page_revisions.real.active.order("language=#{PageRevision.quote_value(language)} DESC").first
   end
 
   def copy_live_revisions(mod)
-    mod.page_revisions.find(:all, :conditions => {:revision_type => 'real', :active => true}).each do |rev|
+    mod.page_revisions.real.active.all.each do |rev|
       tmp_rev = rev.create_temporary
       tmp_rev.revision_container = self
       tmp_rev.save
@@ -223,7 +225,7 @@ class SiteNodeModifier < DomainModel
   end
 
   def fix_paragraph_options(from_version, to_version, opts={})
-    self.page_revisions.find(:all, :conditions => {:revision_type => 'real', :active => true}).each { |rev| rev.fix_paragraph_options(from_version, to_version, opts) }
+    self.page_revisions.real.active.all.each { |rev| rev.fix_paragraph_options(from_version, to_version, opts) }
   end
 
   protected
@@ -308,8 +310,4 @@ class SiteNodeModifier < DomainModel
       end
     end
   end
-
-
-  
-  
 end

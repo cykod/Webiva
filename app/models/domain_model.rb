@@ -14,6 +14,8 @@ class DomainModel < ActiveRecord::Base
   
   cattr_accessor :logger
 
+  def self.not_me(id); id ? self.where('id != ?', id) : self; end
+
   def self.process_id
     Thread.current.object_id
   end
@@ -494,7 +496,7 @@ class DomainModel < ActiveRecord::Base
   
   def save(validate=true) #:nodoc:
     post_handlers(self,:pre_save)
-    if save_active_record(validate)
+    if save_active_record(:validate => validate)
         post_handlers(self,:post_save)
     end
   end

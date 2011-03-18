@@ -27,9 +27,12 @@ class PageParagraph < DomainModel
   belongs_to :content_publication
 
 
-  scope :live_paragraphs, {:joins => :page_revision, :conditions => 'page_revisions.active=1 AND page_revisions.revision_type="real"'}
-  scope :with_feature, lambda { |display_module, display_type| {:conditions => ['display_module = ? and display_type = ?', display_module, display_type]} }
+  scope :live_paragraphs, joins(:page_revision).where('page_revisions.active = 1 AND page_revisions.revision_type = "real"')
+  def self.with_feature(display_module, display_type); self.where('display_module = ? and display_type = ?', display_module, display_type); end
+  def self.for_zone(idx=nil); self.where(:zone_idx => idx || 1); end
 
+  before_create :initialize_defaults
+  
   # PageParagraph file instance support is in PageRevisions
   # process_file_instance :display_body, :display_body_html
   apply_content_filter(:display_body =>  :display_body_html) do |para|
@@ -74,7 +77,7 @@ class PageParagraph < DomainModel
     @language || (self.page_revision ? self.page_revision.language : Configuration.languages[0] )
   end
   
-  def before_create
+  def initialize_defaults
     if self.identity_hash.blank?
       self.identity_hash = DomainModel.generate_hash
     end

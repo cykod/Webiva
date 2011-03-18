@@ -8,7 +8,9 @@ class DomainFileInstance < DomainModel
   belongs_to :domain_file
   
   belongs_to :target, :polymorphic => true
-  
+
+  def self.for_target(type, id); where(:target_type => type, :target_id => id); end
+
   # DomainFile - when a file is destroyed, asks if you really want to delete as it's used in XXX places
   # Delete a folder - same thing
   
@@ -38,4 +40,7 @@ class DomainFileInstance < DomainModel
   
   end
 
+  def self.used_images(target_type, target_id)
+    self.for_target(target_type, target_id).select('domain_file_id').includes(:domain_file).all.map(&:domain_file).uniq
+  end
 end
