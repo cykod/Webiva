@@ -11,6 +11,10 @@ class SiteModule < DomainModel
                        ['Active','active'],
                        ['Available','available']]
   
+  validate :validate_name_exists, :on => :update
+
+  after_save :clear_data_cache
+
   def get_renderers
     renderers = []
     Dir.glob("#{Rails.root}/vendor/modules/#{name}/app/controllers/#{name}/[a-z0-9\-_]*_renderer.rb") do |file|
@@ -87,7 +91,7 @@ class SiteModule < DomainModel
     end
   end
 
-  def after_save
+  def clear_data_cache
     DataCache.put_local_cache(:site_modules_active,nil)
   end
   
@@ -365,7 +369,7 @@ class SiteModule < DomainModel
     optionsClass.new(hsh)
   end
   
-  def validate_on_update
+  def validate_name_exists
     errors.add_to_base("Please enter a name") if name.empty?
   end
   

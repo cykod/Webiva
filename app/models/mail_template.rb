@@ -50,7 +50,8 @@ class MailTemplate < DomainModel
 
  process_file_instance :body_html, :body_html_display
 
- 
+ validate :validate_create_type, :on => :create 
+ validate :validate_campaign_bodies, :on => :update, :if => lambda { template_type == 'campaign' }
  
  attr_reader :prepared_body
  
@@ -67,6 +68,9 @@ class MailTemplate < DomainModel
  @@href_regexp = /\<a([^\>]+?)href\=(\'|\")([^\'\"]+)(\'|\")([^\>]*?)\>/mi
  @@src_href = /\<img([^\>]+?)src\=(\'|\")([^\'\"]+)(\'|\")([^\>]*?)\>/mi
  
+ before_validation { self.language ||= Configuration.languages[0] }
+ before_save :update_body
+
  private
  
  def invalid_variable(var) #:nodoc:
@@ -85,7 +89,7 @@ class MailTemplate < DomainModel
  # Returns a select-friendly list of campaign templates
  def self.campaign_template_options; self.find_select_options(:all,:conditions => 'template_type = "campaign" AND archived=0');  end
  
- def before_save #:nodoc:
+ def update_body #:nodoc:
   self.body_html.gsub!('/website/mail_manager/edit_template/','') unless self.body_html.blank?
   self.body_text.gsub!('/website/mail_manager/edit_template/','') unless self.body_text.blank?
   if(self.body_text.blank? && self.generate_text_body && self.generate_text_body.to_s != "0")
@@ -98,11 +102,7 @@ class MailTemplate < DomainModel
     Util::TextFormatter.text_formatted_generator(html)
  end
  
- def before_validation #:nodoc:
-   self.language ||= Configuration.languages[0]
- end
-
- def validate_on_create #:nodoc:
+ def validate_create_type #:nodoc:
   if self.create_type
     case create_type
     when 'master':
@@ -113,13 +113,11 @@ class MailTemplate < DomainModel
   end
  end  
 
- def validate
-   if self.template_type == 'campaign' && self.id
-     if self.body_format == 'html'
-       errors.add(:body_type, 'is invalid. (Campaign template types can be text or both.)')
-     else
-       errors.add(:body_text, 'is missing. (Campaign template types require a text version.)') if self.body_text.blank? || self.body_text.strip.blank?
-     end
+ def validate_campaign_bodies
+   if self.body_format == 'html'
+     errors.add(:body_type, 'is invalid. (Campaign template types can be text or both.)')
+   else
+     errors.add(:body_text, 'is missing. (Campaign template types require a text version.)') if self.body_text.blank? || self.body_text.strip.blank?
    end
  end
 

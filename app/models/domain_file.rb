@@ -228,7 +228,7 @@ class DomainFile < DomainModel
 
    before_update :process_file_update
    after_update :update_image_instances
-   validate_on_create :preprocess_file
+   validate :preprocess_file, :on => :create
    after_create :process_file
    before_create :set_server
    before_save :update_server_hash
