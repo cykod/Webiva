@@ -19,14 +19,14 @@ class EndUserActionSegmentField < UserSegment::FieldHandler
      info = UserSegment::FieldHandler.sortable_fields[order_by.to_sym]
 
     if order_by.to_sym == :user_action
-      EndUserAction.scoped :order => "renderer #{direction}, action #{direction}"
+      EndUserAction.order("renderer #{direction}, action #{direction}")
     elsif order_by.to_sym == :num_actions
       sort_method = info[:sort_method]
       field = info[:field]
-      EndUserAction.scoped(:select => "end_user_id, #{sort_method}(#{field}) as #{field}_#{sort_method}", :group => :end_user_id, :order => "#{field}_#{sort_method} #{direction}")
+      EndUserAction.select("end_user_id, #{sort_method}(#{field}) as #{field}_#{sort_method}").group('end_user_id').order("#{field}_#{sort_method} #{direction}")
     else
       field = self.user_segment_fields[order_by.to_sym][:field]
-      EndUserAction.scoped :order => "#{field} #{direction}"
+      EndUserAction.order("#{field} #{direction}")
     end
   end
 
@@ -35,7 +35,7 @@ class EndUserActionSegmentField < UserSegment::FieldHandler
   end
 
   def self.get_handler_data(ids, fields)
-    EndUserAction.find(:all, :conditions => {:end_user_id => ids}).group_by(&:end_user_id)
+    EndUserAction.where(:end_user_id => ids).all.group_by(&:end_user_id)
   end
 
   def self.field_output(user, handler_data, field)

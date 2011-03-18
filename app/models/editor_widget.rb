@@ -18,7 +18,16 @@ class EditorWidget < DomainModel
   
   before_validation(:on => :create) { self.module, self.widget = self.widget_identifier.split(":") unless self.widget_identifier.blank? }
 
-  def after_create
+  after_create :update_editor_widget_positions
+
+  scope :with_widget, where('site_widget_id IS NOT NULL')
+  def self.for_column(column); self.where(:column => column); end
+  def self.for_user(user)
+    user = user.id if user.is_a?(EndUser)
+    self.where(:end_user_id => user)
+  end
+
+  def update_editor_widget_positions
     EditorWidget.update_all('`position`=`position`+1',['`column`=? AND `end_user_id`=? AND `position` >= ?',self.column,self.end_user_id,self.position])
   end
 
@@ -89,15 +98,15 @@ class EditorWidget < DomainModel
   end
 
   def self.next_widget_position(user,column) #:nodoc:
-    (EditorWidget.maximum(:position,:conditions => {  :end_user_id => user, :column => column } ) || -1) + 1
+    (EditorWidget.for_user(user).for_column(column).maximum(:position) || -1) + 1
   end
 
   def self.site_widgets(user)  #:nodoc:
-    EditorWidget.find(:all,:conditions =>[ 'end_user_id = ? AND site_widget_id IS NOT NULL',user.id ])
+    EditorWidget.for_user(user).with_widget.all
   end
 
  def self.user_widgets(user)  #:nodoc:
-    EditorWidget.find(:all,:conditions =>[ 'end_user_id = ? ',user.id ])
+    EditorWidget.for_user(user).all
   end
 
 
@@ -116,7 +125,7 @@ class EditorWidget < DomainModel
        end
      end
      existing_widgets = editor_widgets.index_by(&:site_widget_id)
-     SiteWidget.find(:all,:order => :weight).each do |widget|
+     SiteWidget.order('weight').all.each do |widget|
        if widget.view_permission_granted?(user)
          if(!existing_widgets[widget.id])
            widget.create_user_widget(user)
@@ -126,8 +135,7 @@ class EditorWidget < DomainModel
      cache_put_list("UserWidgets:#{user.id}",Time.now)
    end
 
-   all_widgets = EditorWidget.find(:all,:conditions => {  :end_user_id => user.id }, 
-                                   :order => :position,:include => :site_widget)
+   all_widgets = EditorWidget.for_user(user).order('position').includes(:site_widget).all
    columns = [[],[],[] ]
    all_widgets.each do |widget|
      if  widget.permission?(user)

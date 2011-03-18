@@ -698,7 +698,7 @@ class DomainModel < ActiveRecord::Base
     permalink_try = permalink_try_partial[0..60]
     
     if !field.blank?
-      while(self.class.send("find_by_#{field}",permalink_try,:conditions => ['id != ?',self.id || 0] ))
+      while(self.class.where('id != ?',self.id || 0).where(field => permalink_try).first)
         permalink_try = permalink_try_partial + '-' + idx.to_s
         idx += 1
       end

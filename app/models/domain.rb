@@ -39,6 +39,11 @@ class Domain < SystemModel
   before_create :set_inactive_message
   after_save :save_database
   
+  def self.by_database(db); self.where(:database => db); end
+  scope :initialized, where(:status => 'initialized')
+  scope :type_domain, where(:domain_type => 'domain')
+  scope :with_database, where('`database` != "" AND `database` IS NOT NULL')
+
   def set_inactive_message #:nodoc: 
     self.inactive_message = 'Site Currently Down for Maintenance' if self.inactive_message.blank?
   end
@@ -92,7 +97,7 @@ class Domain < SystemModel
  
   # Returns a list of active modules
   def get_active_modules
-    self.domain_modules.find(:all, :conditions => 'status = "active"', :order => 'name')
+    self.domain_modules.active.order('name').all
   end
 
 
@@ -118,12 +123,12 @@ class Domain < SystemModel
 
   # Return a list of all domains on a given database
   def self.find_site_domains(database_name)
-    self.find(:all,:conditions => { :database => database_name }, :order => 'name')
+    self.by_database(database_name).order('name').all
   end
 
   # Return a single domain on a given database
   def self.find_site_domain(domain_id,database_name)
-    self.find(domain_id,:conditions => { :database => database_name })
+    self.by_database(database_name).find domain_id
   end
 
   # Return the name of the version active on this domain
@@ -141,10 +146,7 @@ class Domain < SystemModel
   end
 
   def destroy_domain #:nodoc:
-    dmns = Domain.find(:all,:conditions => { :database => self.database })
-    if dmns.length > 1
-      self.destroy
-    end
+    self.destroy if Domain.by_database(self.database).count > 1
   end
 
   # Make this the primary domain
@@ -197,7 +199,7 @@ class Domain < SystemModel
   end
 
   def self.each(env='production', ids=nil)
-    domains = Domain.find(:all, :conditions => 'domain_type = "domain" AND `database` != "" AND `status`="initialized"').collect { |dmn| dmn.get_info }.uniq
+    domains = Domain.type_domain.with_database.initialized.all.collect { |dmn| dmn.get_info }.uniq
     domains.each do |dmn|
       ActiveRecord::Base.establish_connection(dmn[:domain_database][:options][env])
       DomainModel.activate_domain(dmn, env)

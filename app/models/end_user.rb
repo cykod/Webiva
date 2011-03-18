@@ -146,6 +146,11 @@ class EndUser < DomainModel
 
   after_save :update_cache
 
+  scope :activated, where(:activated => true)
+  scope :registered, where(:registered => true)
+  def self.with_login(fld, val); self.where("#{fld} != \"\" AND fld = ?", val); end
+  def self.by_verification_string(str); self.where(:verification_string => str); end
+
   def update_cache #:nodoc:
     self.end_user_cache = EndUserCache.find_by_end_user_id(self.id) unless self.end_user_cache
     self.end_user_cache ? self.end_user_cache.save : EndUserCache.create(:end_user_id => self.id)
@@ -245,8 +250,7 @@ class EndUser < DomainModel
 
   # Return a list of select options of all users
   def self.select_options(editor=false)
-    self.find(:all, :order => 'last_name, first_name',:include => :user_class,
-              :conditions => [ 'user_classes.editor = ?',editor ] ).collect { |usr| [ "#{usr.last_name}, #{usr.first_name} (##{usr.id})", usr.id ] } 
+    self.includes(:user_class).where('user_classes.editor = ?',editor).order('last_name, first_name').collect { |usr| [ "#{usr.last_name}, #{usr.first_name} (##{usr.id})", usr.id ] } 
   end
   
   # Return the image associated with this user or return the missing_image configured
@@ -299,7 +303,7 @@ class EndUser < DomainModel
   # Given a email and a password, return a registered and active EndUser 
   # that matches those account details
   def self.login_by_email(email,password)
-    usr = find(:first,:conditions => ["email != '' AND email = ? AND activated = 1 AND registered = 1",email.to_s.downcase] )
+    usr = self.activated.registered.with_login('email', email).first
     
     hashed_password = EndUser.hash_password(password || "",usr.salt) if usr
     if usr && usr.hashed_password == hashed_password
@@ -312,8 +316,8 @@ class EndUser < DomainModel
   # Given a username and a password, return a registered and active EndUser 
   # that matches those account details
   def self.login_by_username(username,password)
-    usr = find(:first,
-         :conditions => ["username != '' AND username = ? and activated = 1 AND registered = 1", username])
+    usr = self.activated.registered.with_login('username', username).first
+
     hashed_password = EndUser.hash_password(password || "",usr.salt) if usr
     if usr && usr.hashed_password  == hashed_password
       usr
@@ -325,12 +329,10 @@ class EndUser < DomainModel
   # Login via a one-time verification string - used to reset a users password via an email ink
   def self.login_by_verification(verification)
     return nil if verification.blank?
-    usr=nil
+    usr = nil
     EndUser.transaction do
-      usr = EndUser.find_by_verification_string(verification,:conditions => {  :activated => 1, :registered => 1 })
-      if usr
-        usr.update_attribute(:verification_string,nil)
-      end
+      usr = EndUser.activated.registered.by_verification_string(verification).first
+      usr.update_attribute(:verification_string, nil) if usr
     end
     usr
   end
@@ -900,7 +902,7 @@ Not doing so could allow a user to change their user profile (for example) and e
   end
 
   def last_log_entry
-    @last_log_entry ||= (DomainLogEntry.find(:first, :conditions => {:user_id => self.id}, :order => 'occurred_at DESC') || DomainLogEntry.new)
+    @last_log_entry ||= (DomainLogEntry.where(:user_id => self.id).order('occurred_at DESC').first || DomainLogEntry.new)
   end
 
   def last_session
