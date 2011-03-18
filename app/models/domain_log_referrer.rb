@@ -4,7 +4,8 @@ class DomainLogReferrer  < DomainModel
   
   has_many :domain_log_sessions
 
-  scope :matching, lambda { |domain, path| {:conditions => {:referrer_domain => domain, :referrer_path => path}} }
+  # Scopes
+  def self.matching(domain, path); self.where(:referrer_domain => domain, :referrer_path => path); end
 
   def self.fetch_referrer(domain,path)
     self.matching(domain,path).first || self.create(:referrer_domain => domain,:referrer_path =>path)
@@ -29,9 +30,9 @@ class DomainLogReferrer  < DomainModel
   def self.traffic_scope(from, duration, opts={})
     scope = DomainLogSession.valid_sessions.between(from, from+duration)
     if opts[:target_id]
-      scope = scope.scoped(:conditions => {:domain_log_referrer_id => opts[:target_id]}).hits_n_visits('domain_log_referrer_id')
+      scope = scope.where(:domain_log_referrer_id => opts[:target_id]).hits_n_visits('domain_log_referrer_id')
     elsif opts[:domain]
-      scope = scope.scoped(:joins => :domain_log_referrer, :conditions => ['`domain_log_referrers`.`referrer_domain` = ?', opts[:domain]]).hits_n_visits('`domain_log_referrers`.referrer_path')
+      scope = scope.joins(:domain_log_referrer).where('domain_log_referrers.referrer_domain = ?', opts[:domain]).hits_n_visits('domain_log_referrers.referrer_path')
     else
       scope = scope.referrer_only.hits_n_visits('domain_log_referrer_id')
     end

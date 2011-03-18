@@ -3,7 +3,6 @@
 require "digest/sha1"
 
 class DomainFileVersion < DomainModel
-
   belongs_to :domain_file
   
   serialize :meta_info
@@ -25,7 +24,7 @@ class DomainFileVersion < DomainModel
       end
       return
     end
-  
+    
     info = {}
     if file.image_size
       info[:image_size] = { :width => file.width, :height => file.height }
@@ -75,44 +74,44 @@ class DomainFileVersion < DomainModel
     # unless we have a filename, return false
     atr = self.read_attribute(:filename)
     return nil unless self.prefix && atr
-     "#{DomainFile.storage_subdir}/#{self.prefix}/#{atr}"
+    "#{DomainFile.storage_subdir}/#{self.prefix}/#{atr}"
   end
   
-   def relative_filename
-      # unless we have a filename, return false
-      atr = self.read_attribute(:filename)
-      return nil unless self.prefix && atr
+  def relative_filename
+    # unless we have a filename, return false
+    atr = self.read_attribute(:filename)
+    return nil unless self.prefix && atr
     self.storage_directory + atr
-   end
-   
-   # Return the absolute storage directory - valid for opening a file  on the server 
-   # Return the relative storage directory
-   # Thumbnails are stored in subdirectories prefixed with the file size (../small/file.jpg)
-   def abs_filename; "#{Rails.root}/public" + self.relative_filename; end
-   alias_method :filename, :abs_filename
-   
-   def name
-     self.read_attribute(:filename)
-   end
-   
-   def storage_directory; self.storage_base + "/" + self.prefix + "/"; end
-   def abs_storage_directory; "#{Rails.root}/public" + self.storage_base + "/" + self.prefix + "/"; end
-   
-   def storage_base; self.domain_file.private? ? DomainFile.private_storage_base : DomainFile.public_storage_base; end
-   
-   def url
-     if domain_file.processor != 'local'
-       self.domain_file.processor_handler.version_url(self)
-     else
-       relative_filename
-     end
-   end
-   
-   ###########
-   # Hooks
-   ###########
-   
-   def erase_version_file
+  end
+  
+  # Return the absolute storage directory - valid for opening a file  on the server 
+  # Return the relative storage directory
+  # Thumbnails are stored in subdirectories prefixed with the file size (../small/file.jpg)
+  def abs_filename; "#{Rails.root}/public" + self.relative_filename; end
+  alias_method :filename, :abs_filename
+  
+  def name
+    self.read_attribute(:filename)
+  end
+  
+  def storage_directory; self.storage_base + "/" + self.prefix + "/"; end
+  def abs_storage_directory; "#{Rails.root}/public" + self.storage_base + "/" + self.prefix + "/"; end
+  
+  def storage_base; self.domain_file.private? ? DomainFile.private_storage_base : DomainFile.public_storage_base; end
+  
+  def url
+    if domain_file.processor != 'local'
+      self.domain_file.processor_handler.version_url(self)
+    else
+      relative_filename
+    end
+  end
+  
+  ###########
+  # Hooks
+  ###########
+  
+  def erase_version_file
     self.domain_file.processor_handler.destroy_remote_version!(self)
     if !prefix.blank? && (File.directory?(abs_storage_directory))
       FileUtils.rm_rf(abs_storage_directory)
@@ -120,12 +119,12 @@ class DomainFileVersion < DomainModel
   end
   
   def move_version_file
-      FileUtils.mkpath(self.abs_storage_directory)
-      File.mv(self.domain_file.filename,self.filename)
-      self.domain_file.destroy_thumbs
-      self.domain_file.processor_handler.create_remote_version!(self) if self.domain_file.processor != 'local'
+    FileUtils.mkpath(self.abs_storage_directory)
+    File.mv(self.domain_file.filename,self.filename)
+    self.domain_file.destroy_thumbs
+    self.domain_file.processor_handler.create_remote_version!(self) if self.domain_file.processor != 'local'
   end
- 
+  
   def width
     return nil unless self.meta_info[:image_size]
     self.meta_info[:image_size][:width]
@@ -144,7 +143,7 @@ class DomainFileVersion < DomainModel
     self.domain_file.processor_handler.respond_to?('copy_version_local!') ? self.domain_file.processor_handler.copy_version_local!(self) : false
   end
 
- protected
+  protected
   def self.generate_version_hash
     now = Time.now
     digest  = Digest::SHA1.hexdigest("#{now}#{rand}#{now.usec}#{Process.pid}")[0..31]

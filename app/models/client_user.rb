@@ -91,8 +91,7 @@ class ClientUser < SystemModel
   def name
     self.username
   end
-  
-  
+
   def identifier_name #:nodoc:
     "CLIENT USER:#{self.username} (#{self.id})"
   end

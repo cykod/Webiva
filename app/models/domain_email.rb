@@ -7,6 +7,7 @@ class DomainEmail < DomainModel
   validates_format_of :email_type, :with => /mailbox|alias|bounce/
   
   validates_as_email_name :email
+  validate :validate_email_type
   
   attr_protected :email
   
@@ -17,21 +18,15 @@ class DomainEmail < DomainModel
   
   has_options :email_type, [ ['Mailbox','mailbox'],['Alias','alias'], ['Bounce','bounce']]
 
+  after_save :propogate_system_emails
+  after_destroy :destroy_system_emails
 
-  def before_save
+  before_save do
     self.hashed_password = EndUser.hash_password(self.password) unless self.password.blank?
     self.redirects = redirect_list.join("\n")
   end
   
-  def after_save
-    self.propogate_system_emails
-  end
-  
-  def after_destroy
-    self.destroy_system_emails
-  end
-  
-  def validate
+  def validate_email_type
     if self.email_type == 'mailbox'
       if !self.linked_account?
 	if self.password.blank? && ( !self.id || self.hashed_password.blank? )

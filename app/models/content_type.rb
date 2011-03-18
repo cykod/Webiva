@@ -39,7 +39,11 @@ class ContentType < DomainModel
   
   belongs_to :container, :polymorphic => true
   
-  def after_destroy #:nodoc:
+  before_create :update_content_meta_type
+  after_update :clear_content_node_values
+  after_destroy :destroy_all_content_nodes
+  
+  def destroy_all_content_nodes #:nodoc:
     ContentNode.destroy_all({ :content_type_id => self.id })
   end
 
@@ -48,17 +52,12 @@ class ContentType < DomainModel
     self.find_by_container_type_and_container_id(container_type,container_id)
   end
 
-  def before_create #:nodoc:
-    cmts = ContentMetaType.find(:all)
-    cmts.each do |cmt|
-      if(cmt.match_type(self))
-        cmt.update_type(self)
-        break
-      end
-    end
+  def update_content_meta_type #:nodoc:
+    cmt = ContentMetaType.all.detect { |c| c.match_type(self) }
+    cmt.update_type(self) if cmt
   end
 
-  def after_update #:nodoc:
+  def clear_content_node_values #:nodoc:
     self.content_node_values.clear
   end
 

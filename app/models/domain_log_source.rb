@@ -6,6 +6,10 @@ class DomainLogSource < DomainModel
 
   serialize :options
 
+  after_save :clear_cache
+
+  scope :active, where(:active => true)
+
   def self.chart_traffic_handler_info
     {
       :name => 'Traffic Sources',
@@ -44,14 +48,14 @@ class DomainLogSource < DomainModel
     self.handler_obj.configurable?
   end
 
-  def after_save
+  def clear_cache
     DataCache.expire_container self.class.name
   end
 
   def self.sources
     sources = DataCache.get_cached_container self.name, 'sources'
     return sources if sources
-    sources = DomainLogSource.find(:all, :conditions => {:active => true}, :order => 'position').collect { |s| s.attributes.symbolize_keys }
+    sources = DomainLogSource.active.order('position').all.collect { |s| s.attributes.symbolize_keys }
     DataCache.put_cached_container self.name, 'sources', sources
     sources
   end
@@ -59,7 +63,7 @@ class DomainLogSource < DomainModel
   def self.traffic_scope(from, duration, opts={})
     scope = DomainLogSession.valid_sessions.between(from, from+duration).hits_n_visits('domain_log_source_id')
     if opts[:target_id]
-      scope = scope.scoped(:conditions => {:domain_log_source_id => opts[:target_id]})
+      scope = scope.where(:domain_log_source_id => opts[:target_id])
     end
     scope
   end

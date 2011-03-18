@@ -36,7 +36,9 @@ class ContentModel < DomainModel
 
   after_commit  :post_commit_reconfigure
   
-  def before_save #:nodoc:
+  before_save :update_preset_and_nodes
+  
+  def update_preset_and_nodes #:nodoc:
     if self.model_preset.blank?
       self.model_preset = 'custom'
       self.customized = true

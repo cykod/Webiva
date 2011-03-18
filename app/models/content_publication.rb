@@ -25,8 +25,9 @@ class ContentPublication < DomainModel
   
   has_triggered_actions  
 
+  before_create :set_feature_name
+
   public
-  
   
   def options(val=nil)
     self.publication_type_class.options(val)
@@ -47,7 +48,7 @@ class ContentPublication < DomainModel
     @publication_type_class ||= cls.new(self)
   end
   
-  def before_create
+  def set_feature_name
     self.feature_name =  self.content_model.name.downcase.gsub(/[^a-z0-9]/,"_")[0..20] + "_" + self.name.downcase.gsub(/[^a-z0-9]/,"_")[0..20] + "_publication"
   end
 

@@ -8,7 +8,10 @@ class ContentMetaType < DomainModel
   has_many :content_types
   serialize :category_value
 
-  def after_save # :nodoc:
+  after_save :update_content_types
+  after_destroy :remove_links_and_detail_urls
+  
+  def update_content_types # :nodoc:
 
     # Need to update all content types that could have 
     # this as the meta type
@@ -90,8 +93,7 @@ class ContentMetaType < DomainModel
                            )
   end
 
-  
-  def after_destroy # :nodoc:
+  def remove_links_and_detail_urls # :nodoc:
     # Need to get rid of links and detail urls
     self.content_types.each do |content_type|
       content_type.update_attributes(:content_meta_type_id => nil,

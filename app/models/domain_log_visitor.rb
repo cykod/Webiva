@@ -12,7 +12,6 @@ class DomainLogVisitor < DomainModel
      self.domain_log_sessions[0]
    end
 
-
    def ip_address_name
      Resolv.new.getname(self.ip_address)
    rescue Exception => e
@@ -24,7 +23,7 @@ class DomainLogVisitor < DomainModel
    end
 
    def session_details(session_limit = 10)
-     self.domain_log_sessions.find(:all,:include => :domain_log_entries,:limit => 10)
+     self.domain_log_sessions.includes(:domain_log_entries).limit(10).all
    end
 
    def has_location?

@@ -10,13 +10,19 @@ class DomainLogEntry < DomainModel
   belongs_to :user_class
   belongs_to :site_node
 
-  scope :recent, lambda { |from| from ||= 1.minute.ago; {:conditions => ['occurred_at > ?', from]} }
-  scope :between, lambda { |from, to| {:conditions => ['`domain_log_entries`.occurred_at >= ? AND `domain_log_entries`.occurred_at < ?', from, to]} }
-  scope :content_only, :conditions => 'content_node_id IS NOT NULL'
-  scope :hits_n_visits, lambda { |group_by|
-    group_by ? {:select => "#{group_by} as target_id, count(*) AS hits, count( DISTINCT domain_log_session_id ) AS visits, SUM(IF(domain_log_entries.user_level=3,1, 0)) AS subscribers, SUM(IF(domain_log_entries.user_level=4,1, 0)) AS leads, SUM(IF(domain_log_entries.user_level=5,1, 0)) AS conversions, SUM(`value`) as total_value", :group => 'target_id'} : {:select => "count(*) AS hits, count( DISTINCT domain_log_session_id ) AS visits, SUM(IF(domain_log_entries.user_level=3,1, 0)) AS subscribers, SUM(IF(domain_log_entries.user_level=4,1, 0)) AS leads, SUM(IF(domain_log_entries.user_level=5,1, 0)) AS conversions, SUM(`value`) as total_value"}
-  }
-  scope :valid_sessions, :conditions => 'domain_log_sessions.`ignore` = 0 AND domain_log_sessions.domain_log_source_id IS NOT NULL', :joins => :domain_log_session
+  # Scopes
+  scope :content_only, where('domain_log_entries.content_node_id IS NOT NULL')
+  def self.recent(from=nil); self.where('domain_log_entries.occurred_at > ?', from || 1.minute.ago); end
+  def self.between(from, to); self.where('domain_log_entries.occurred_at' => from..to); end
+  def self.valid_sessions; where('domain_log_sessions.`ignore` = 0 AND domain_log_sessions.domain_log_source_id IS NOT NULL').joins(:domain_log_sessions); end
+  def self.session_stats; self.select('domain_log_session_id, count(*) as page_count, max(occurred_at) as last_entry_at, SUM(`value`) as session_value').group('domain_log_session_id'); end
+  def self.hits_n_visits(group_by=nil)
+    base_select = "count(*) AS hits, count( DISTINCT domain_log_session_id ) AS visits, SUM(IF(domain_log_entries.user_level=3,1, 0)) AS subscribers, SUM(IF(domain_log_entries.user_level=4,1, 0)) AS leads, SUM(IF(domain_log_entries.user_level=5,1, 0)) AS conversions, SUM(`value`) as total_value"
+    return self.select(base_select) unless group_by
+
+    base_select += ", #{group_by} as target_id"
+    self.select(base_select).group('target_id')
+  end
 
   def self.create_entry_from_request(user, site_node, path, request, session, output)
     return nil unless request.session_options
@@ -76,15 +82,7 @@ class DomainLogEntry < DomainModel
 
   def self.find_user_sessions(user)
     # If we have a user, find any other sessions
-    entry_sessions = 
-        DomainLogEntry.find(:all,
-            :conditions => ["user_id=?",user.id],
-            :group => 'domain_log_session_id',
-            :select => 'domain_log_session_id',
-            :order => 'occurred_at DESC').map do |entry|
-              entry.domain_log_session_id
-        end
-    
+    entry_sessions = DomainLogEntry.where(:user_id => user.id).select('domain_log_session_id').group('domain_log_session_id').order('occurred_at DESC').all.collect(&:domain_log_session_id)
     find_session_helper(entry_sessions)
   end
   
@@ -94,7 +92,6 @@ class DomainLogEntry < DomainModel
     find_session_helper(entry_sessions)
   end    
   
-  
   def self.find_session_helper(entry_sessions)
     # Get rid of duplicates
     entry_sessions.uniq!
@@ -102,7 +99,7 @@ class DomainLogEntry < DomainModel
     entries = []
     page_count = 0
     entry_sessions.each_with_index do |domain_log_session_id,idx|
-      session_entries = DomainLogEntry.find(:all,:conditions => {:domain_log_session_id => domain_log_session_id},:order => 'occurred_at')
+      session_entries = DomainLogEntry.where(:domain_log_session_id => domain_log_session_id).order('occurred_at').all
       page_count += session_entries.length
       entries << { :session =>  (entry_sessions.length - idx).to_i,
                    :occurred_at => session_entries[0].occurred_at, 
@@ -149,9 +146,9 @@ class DomainLogEntry < DomainModel
   end
 
   def self.user_sessions(end_user_id)
-    sessions = DomainLogSession.find :all, :conditions => {:end_user_id => end_user_id}, :include => [:domain_log_referrer, :domain_log_visitor]
-    visitor_ids = DomainLogVisitor.find(:all, :select => :id, :conditions => {:end_user_id => end_user_id}).collect(&:id)
-    sessions += DomainLogSession.find(:all, :conditions => ['domain_log_visitor_id in(?) && (end_user_id IS NULL || end_user_id = ?)', visitor_ids, end_user_id], :include => [:domain_log_referrer, :domain_log_visitor]) unless visitor_ids.empty?
+    sessions = DomainLogSession.includes(:domain_log_referrer, :domain_log_visitor).where(:end_user_id => end_user_id).all
+    visitor_ids = DomainLogVisitor.where(:end_user_id => end_user_id).select('id').all.collect(&:id)
+    sessions += DomainLogSession.includes(:domain_log_referrer, :domain_log_visitor).where('domain_log_visitor_id in(?) && (end_user_id IS NULL || end_user_id = ?)', visitor_ids, end_user_id).all unless visitor_ids.empty?
     sessions = sessions.uniq.sort { |a,b| b.created_at <=> a.created_at }
     DomainLogSession.update_sessions sessions
     sessions

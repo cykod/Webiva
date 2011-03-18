@@ -25,10 +25,11 @@ end
 class DomainLogGroup < DomainModel
   has_many :domain_log_stats, :dependent => :delete_all
 
-  scope :for_target, lambda { |type, id| {:conditions => {:target_type => type, :target_id => id}} }
-  scope :with_type, lambda { |type| {:conditions => {:stat_type => type}} }
-  scope :started_at, lambda { |time| {:conditions => {:started_at => time}} }
-  scope :with_duration, lambda { |duration| {:conditions => {:duration => duration.to_i}} }
+  # Scopes
+  def self.for_target(type, id); self.where(:target_type => type, :target_id => id); end
+  def self.with_type(type); self.where(:stat_type => type); end
+  def self.started_at(time); self.where(:started_at => time); end
+  def self.with_duration(duration); self.where(:duration => duration.to_i); end
 
   def expired?
     self.expires_at && self.expires_at < Time.now

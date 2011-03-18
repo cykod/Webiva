@@ -4,6 +4,7 @@
 class Configuration < DomainModel
 
   serialize :options
+  after_save :clear_cache
 	
   # Retrieve a configuration value by key from the cache or the database
   # will create the key if it doesn't exist
@@ -31,12 +32,11 @@ class Configuration < DomainModel
     DataCache.put_container("Config",key,val.options)
     val
   end
-	
-  def after_save #:nodoc:
+
+  def clear_cache #:nodoc:
     DataCache.expire_container("Config")
   end
   	
-	
   # Get a configuration HashModel by class either using values or pull it from the configurations table
   def self.get_config_model(mdl,values = nil)
     key=  mdl.to_s.underscore

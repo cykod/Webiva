@@ -4,17 +4,21 @@
 
 class ContentModelFeature < DomainModel
 
-  serialize :feature_options
   belongs_to :content_model
+
+  serialize :feature_options
   
+  validate :validate_options
+
   before_save :update_callbacks
-  
-  def validate
+  before_save :update_feature_options
+
+  def validate_options
     opts = options(true)
     self.errors.add_to_base('options are not valid') unless opts.valid?
   end
-  
-  def before_save
+
+  def update_feature_options
     self.feature_options = options.to_hash # Get ourselves a nice clean hash
   end
   
@@ -44,7 +48,6 @@ class ContentModelFeature < DomainModel
     self.feature.options_partial
   end
 
-  
   def feature_instance
     self.feature.new(self)
   end
@@ -58,9 +61,7 @@ class ContentModelFeature < DomainModel
     end
   end
 
-
   def model_generator(content_model,cls)
     feature_instance.model_generator(content_model,cls)
   end
-
 end

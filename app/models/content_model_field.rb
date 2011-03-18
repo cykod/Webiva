@@ -18,14 +18,14 @@ class ContentModelField < DomainModel
   
 #  acts_as_list
 
-  def before_validation
-    self.name = self.name.to_s.strip
-  end
-  
-  def validate
-    if self.module_class
-      self.errors.add(:field_options,'are invalid') unless field_options_model.valid?
-    end
+  before_validation { self.name = self.name.to_s.strip }
+
+  validate :validate_field_options, :if => lambda { module_class }
+
+  after_save :add_has_many_relationship, :if => lambda { self.field_type == 'belongs_to' && self.field_options['add_has_many'] }
+
+  def validate_field_options
+    self.errors.add(:field_options,'are invalid') unless field_options_model.valid?
   end
 
   serialize :field_options
@@ -249,10 +249,6 @@ class ContentModelField < DomainModel
   
   def assign(entry,values)
     self.module_class.assign(entry,values)
-  end
-
-  def after_save
-    self.add_has_many_relationship if self.field_type == 'belongs_to' && self.field_options['add_has_many']
   end
 
   def add_has_many_relationship

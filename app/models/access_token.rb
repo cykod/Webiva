@@ -22,6 +22,8 @@ class AccessToken < DomainModel
 
   serialize :role_cache
 
+  before_save :update_role_cache
+
   # Alias for token_name
   def name
     self.token_name
@@ -36,10 +38,9 @@ class AccessToken < DomainModel
     end
   end
 
-  def before_save # :nodoc: 
+  def update_role_cache # :nodoc: 
     self.role_cache = self.role_ids
   end
-  
 
   # returns a select-friendly list of options for editor tokens
   def self.editor_token_options
@@ -62,6 +63,4 @@ class AccessToken < DomainModel
       tokens.include?(tkn[:access_token_id].to_i)
     end
   end
-  
-  
 end
