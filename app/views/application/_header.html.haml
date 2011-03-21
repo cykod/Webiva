@@ -6,7 +6,7 @@
 = theme_stylesheet_link_tag  "admin_design", :media => 'all'
 = theme_stylesheet_link_tag  "admin_framework", :media => 'all'
 :javascript
-  var AUTH_TOKEN = " form_authenticity_token.to_s ";
+  var AUTH_TOKEN = "#{form_authenticity_token.to_s}";
 = remote_script 'ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js'
 = remote_script 'ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js'
 :javascript

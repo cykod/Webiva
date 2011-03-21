@@ -1,7 +1,8 @@
 Webiva::Application.routes.draw do
   match '/view/:language/*path' => 'page#view', :as => :language_link
   match '/website' => 'manage/access#login'
-
+  get '/website/manage/access/denied' => 'manage/access#denied'
+  
   match '/mailing/view/:campaign_hash/:queue_hash' => 'campaigns#view'
   match '/mailing/image/:campaign_hash/:queue_hash' => 'campaigns#image'
   match '/mailing/link/:campaign_hash/:link_hash/:queue_hash' => 'campaigns#link'
