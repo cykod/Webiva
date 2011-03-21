@@ -1,19 +1,21 @@
-require File.dirname(__FILE__) + '/test_helper'
+require 'test_helper'
 
 class Note < ActiveRecord::Base
   acts_as_nested_set :scope => [:notable_id, :notable_type]
 end
+class Default < ActiveRecord::Base
+  acts_as_nested_set
+  set_table_name 'categories'
+end
+class ScopedCategory < ActiveRecord::Base
+  acts_as_nested_set :scope => :organization
+  set_table_name 'categories'
+end
+class RenamedColumns < ActiveRecord::Base
+  acts_as_nested_set :parent_column => 'mother_id', :left_column => 'red', :right_column => 'black'
+end
 
-class AwesomeNestedSetTest < Test::Unit::TestCase
-
-  class Default < ActiveRecord::Base
-    acts_as_nested_set
-    set_table_name 'categories'
-  end
-  class Scoped < ActiveRecord::Base
-    acts_as_nested_set :scope => :organization
-    set_table_name 'categories'
-  end
+class AwesomeNestedSetTest < TestCaseClass
 
   def test_left_column_default
     assert_equal 'lft', Default.acts_as_nested_set_options[:left_column]
@@ -34,16 +36,28 @@ class AwesomeNestedSetTest < Test::Unit::TestCase
   def test_left_column_name
     assert_equal 'lft', Default.left_column_name
     assert_equal 'lft', Default.new.left_column_name
+    assert_equal 'red', RenamedColumns.left_column_name
+    assert_equal 'red', RenamedColumns.new.left_column_name
   end
-
+  
   def test_right_column_name
     assert_equal 'rgt', Default.right_column_name
     assert_equal 'rgt', Default.new.right_column_name
+    assert_equal 'black', RenamedColumns.right_column_name
+    assert_equal 'black', RenamedColumns.new.right_column_name
   end
 
   def test_parent_column_name
     assert_equal 'parent_id', Default.parent_column_name
     assert_equal 'parent_id', Default.new.parent_column_name
+    assert_equal 'mother_id', RenamedColumns.parent_column_name
+    assert_equal 'mother_id', RenamedColumns.new.parent_column_name
+  end
+  
+  def test_creation_with_altered_column_names
+    assert_nothing_raised do 
+      RenamedColumns.create!()
+    end
   end
   
   def test_quoted_left_column_name
@@ -66,19 +80,14 @@ class AwesomeNestedSetTest < Test::Unit::TestCase
     assert_raises(ActiveRecord::ActiveRecordError) { Category.new.rgt = 1 }
   end
   
-  def test_parent_column_protected_from_assignment
-    assert_raises(ActiveRecord::ActiveRecordError) { Category.new.parent_id = 1 }
-  end
-  
   def test_colums_protected_on_initialize
-    c = Category.new(:lft => 1, :rgt => 2, :parent_id => 3)
+    c = Category.new(:lft => 1, :rgt => 2)
     assert_nil c.lft
     assert_nil c.rgt
-    assert_nil c.parent_id
   end
   
   def test_scoped_appends_id
-    assert_equal :organization_id, Scoped.acts_as_nested_set_options[:scope]
+    assert_equal :organization_id, ScopedCategory.acts_as_nested_set_options[:scope]
   end
   
   def test_roots_class_method
@@ -115,7 +124,9 @@ class AwesomeNestedSetTest < Test::Unit::TestCase
     
     assert !categories(:top_level).leaf?
     assert !categories(:child_2).leaf?
+    assert !Category.new.leaf?
   end
+  
     
   def test_parent
     assert_equal categories(:child_2), categories(:child_2_1).parent
@@ -199,6 +210,13 @@ class AwesomeNestedSetTest < Test::Unit::TestCase
     category.children.each {|c| assert_equal category.id, c.parent_id }
   end
   
+  def test_order_of_children
+    categories(:child_2).move_left
+    assert_equal categories(:child_2), categories(:top_level).children[0]
+    assert_equal categories(:child_1), categories(:top_level).children[1]
+    assert_equal categories(:child_3), categories(:top_level).children[2]
+  end
+  
   def test_is_or_is_ancestor_of?
     assert categories(:top_level).is_or_is_ancestor_of?(categories(:child_1))
     assert categories(:top_level).is_or_is_ancestor_of?(categories(:child_2_1))
@@ -218,7 +236,7 @@ class AwesomeNestedSetTest < Test::Unit::TestCase
   end
 
   def test_is_or_is_ancestor_of_with_scope
-    root = Scoped.root
+    root = ScopedCategory.root
     child = root.children.first
     assert root.is_or_is_ancestor_of?(child)
     child.update_attribute :organization_id, 'different'
@@ -244,7 +262,7 @@ class AwesomeNestedSetTest < Test::Unit::TestCase
   end
   
   def test_is_or_is_descendant_of_with_scope
-    root = Scoped.root
+    root = ScopedCategory.root
     child = root.children.first
     assert child.is_or_is_descendant_of?(root)
     child.update_attribute :organization_id, 'different'
@@ -252,7 +270,7 @@ class AwesomeNestedSetTest < Test::Unit::TestCase
   end
   
   def test_same_scope?
-    root = Scoped.root
+    root = ScopedCategory.root
     child = root.children.first
     assert child.same_scope?(root)
     child.update_attribute :organization_id, 'different'
@@ -619,4 +637,165 @@ class AwesomeNestedSetTest < Test::Unit::TestCase
     assert Category.valid?
   end
   
+  def test_assigning_parent_id_on_create
+    category = Category.create!(:name => "Child", :parent_id => categories(:child_2).id)
+    assert_equal categories(:child_2), category.parent
+    assert_equal categories(:child_2).id, category.parent_id
+    assert_not_nil category.left
+    assert_not_nil category.right
+    assert Category.valid?
+  end
+
+  def test_assigning_parent_on_create
+    category = Category.create!(:name => "Child", :parent => categories(:child_2))
+    assert_equal categories(:child_2), category.parent
+    assert_equal categories(:child_2).id, category.parent_id
+    assert_not_nil category.left
+    assert_not_nil category.right
+    assert Category.valid?
+  end
+
+  def test_assigning_parent_id_to_nil_on_create
+    category = Category.create!(:name => "New Root", :parent_id => nil)
+    assert_nil category.parent
+    assert_nil category.parent_id
+    assert_not_nil category.left
+    assert_not_nil category.right
+    assert Category.valid?
+  end
+
+  def test_assigning_parent_id_on_update
+    category = categories(:child_2_1)
+    category.parent_id = categories(:child_3).id
+    category.save
+    assert_equal categories(:child_3), category.parent
+    assert_equal categories(:child_3).id, category.parent_id
+    assert Category.valid?
+  end
+
+  def test_assigning_parent_on_update
+    category = categories(:child_2_1)
+    category.parent = categories(:child_3)
+    category.save
+    assert_equal categories(:child_3), category.parent
+    assert_equal categories(:child_3).id, category.parent_id
+    assert Category.valid?
+  end
+
+  def test_assigning_parent_id_to_nil_on_update
+    category = categories(:child_2_1)
+    category.parent_id = nil
+    category.save
+    assert_nil category.parent
+    assert_nil category.parent_id
+    assert Category.valid?
+  end
+
+  def test_creating_child_from_parent
+    category = categories(:child_2).children.create!(:name => "Child")
+    assert_equal categories(:child_2), category.parent
+    assert_equal categories(:child_2).id, category.parent_id
+    assert_not_nil category.left
+    assert_not_nil category.right
+    assert Category.valid?
+  end
+
+  def check_structure(entries, structure)
+    structure = structure.dup
+    Category.each_with_level(entries) do |category, level|
+      expected_level, expected_name = structure.shift
+      assert_equal expected_name, category.name, "wrong category"
+      assert_equal expected_level, level, "wrong level for #{category.name}"
+    end
+  end
+
+  def test_each_with_level
+    levels = [
+      [0, "Top Level"],
+      [1, "Child 1"],
+      [1, "Child 2"],
+      [2, "Child 2.1"],
+      [1, "Child 3" ]]
+
+    check_structure(Category.root.self_and_descendants, levels)
+
+    # test some deeper structures
+    category = Category.find_by_name("Child 1")
+    c1 = Category.new(:name => "Child 1.1")
+    c2 = Category.new(:name => "Child 1.1.1")
+    c3 = Category.new(:name => "Child 1.1.1.1")
+    c4 = Category.new(:name => "Child 1.2")
+    [c1, c2, c3, c4].each(&:save!)
+
+    c1.move_to_child_of(category)
+    c2.move_to_child_of(c1)
+    c3.move_to_child_of(c2)
+    c4.move_to_child_of(category)
+
+    levels = [
+      [0, "Top Level"],
+      [1, "Child 1"],
+      [2, "Child 1.1"],
+      [3, "Child 1.1.1"],
+      [4, "Child 1.1.1.1"],
+      [2, "Child 1.2"],
+      [1, "Child 2"],
+      [2, "Child 2.1"],
+      [1, "Child 3" ]]
+
+      check_structure(Category.root.self_and_descendants, levels)
+  end
+  
+  def test_model_with_attr_accessible
+    model = Class.new(ActiveRecord::Base)
+    model.set_table_name 'categories'
+    model.attr_accessible :name
+    assert_nothing_raised do
+      model.acts_as_nested_set
+      model.new(:name => 'foo')
+    end
+  end
+  
+  def test_before_move_callback
+    @called = false
+    Category.before_move do |record|
+      @called = true
+    end
+    categories(:child_2).move_to_root
+    assert @called
+  ensure
+    Category.before_move_callback_chain.pop
+  end
+  
+  def test_before_move_callback_returning_false_stops_move
+    Category.before_move do
+      return false
+    end
+    assert !categories(:child_3).move_to_root
+    assert !categories(:child_3).root?
+  ensure
+    Category.before_move_callback_chain.pop
+  end
+  
+  def test_before_move_callback_returning_false_halts_save
+    Category.before_move do
+      return false
+    end
+    categories(:child_3).parent_id = nil
+    assert !categories(:child_3).save
+  ensure
+    Category.before_move_callback_chain.pop
+  end
+  
+  def test_calls_after_save_when_moving
+    @called = false
+    Category.after_save do
+      @called = true
+    end
+    categories(:child_3).parent = categories(:child_2)
+    assert categories(:child_3).save
+    assert @called
+  ensure
+    Category.after_save_callback_chain.pop
+  end
 end

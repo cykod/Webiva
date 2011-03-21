@@ -1,7 +1,8 @@
+require 'rubygems'
 begin
   require 'jeweler'
 rescue LoadError
-  puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
+  puts "Jeweler not available. Install it with: sudo gem install jeweler"
   exit 1
 end
 require 'rake/testtask'
@@ -22,13 +23,14 @@ Jeweler::Tasks.new do |s|
   s.rdoc_options = ["--main", "README.rdoc", "--inline-source", "--line-numbers"]
   s.test_files = Dir['test/**/*.{yml,rb}']
 end
-
+ Jeweler::GemcutterTasks.new
+ 
 desc 'Default: run unit tests.'
 task :default => :test
 
 desc 'Test the awesome_nested_set plugin.'
 Rake::TestTask.new(:test) do |t|
-  t.libs << 'lib'
+  t.libs += ['lib', 'test']
   t.pattern = 'test/**/*_test.rb'
   t.verbose = true
 end
@@ -45,7 +47,7 @@ end
 namespace :test do
   desc "just rcov minus html output"
   Rcov::RcovTask.new(:coverage) do |t|
-    # t.libs << 'test'
+    t.libs << 'test'
     t.test_files = FileList['test/**/*_test.rb']
     t.output_dir = 'coverage'
     t.verbose = true
