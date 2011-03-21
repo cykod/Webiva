@@ -260,8 +260,13 @@ class DomainModel < ActiveRecord::Base
   class << self
     alias_method :connection_active_record, :connection # :nodoc:
     
+    # I believe this is the magic function to override, so that once the domain is activated it is using the correct connection
+    def arel_engine
+      self
+    end
+
     def connection
-      self.active_domain_id.blank? ? SystemModel.connection : connection_active_record
+      self.active_domain_id.blank? ? SystemModel.connection : super
     end
   end
 
