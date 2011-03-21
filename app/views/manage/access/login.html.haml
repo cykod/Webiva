@@ -1,0 +1,20 @@
+%hr/
+%div{:align => "center", :style => "padding:30px"}
+  - if !DomainModel.active_domain[:active]
+    .error= DomainModel.active_domain[:inactive_message]
+  #login_box
+    = tabled_form_for :user, @user, :html => { :class => 'admin_form' } do |f|
+      = f.text_field :username
+      = f.password_field :password
+      = f.spacer
+      = f.submit_tag "Login"
+  :javascript
+    if (navigator.userAgent.indexOf("Firefox")==-1) {
+      $('login_box').hide();
+      document.write("");
+      document.write("Notice: the backend editor currently only officially supports the Firefox Web Browser");
+      document.write("Let me in anyway &raquo;");
+    }
+    
+:javascript
+  Event.observe(window, 'load', function() { $('user_username').focus(); });

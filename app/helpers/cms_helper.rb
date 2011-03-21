@@ -91,15 +91,11 @@ SEARCH_WIDGET
   def render_webiva_menu(menu,selected) 
     return '' unless menu
     menu.items.map do |item|
-      <<-EOF
-      <li #{"class='selected'" if selected == item.identifier }>
-          <a href='#{url_for(item.url)}'>
-             <div class='menu_image menu_image_#{item.identifier}'><div></div></div>
-             <div class='menu_item_text'>#{h(item.name.t)}</div>
-          </a>
-      </li>
-      EOF
-    end.join("\n")
+      img = content_tag :div, content_tag(:div, ''), :class => "menu_image menu_image_#{item.identifier}"
+      txt = content_tag :div, item.name.t, :class => 'menu_item_text'
+      link = content_tag :a, img + txt, :href => url_for(item.url)
+      content_tag :li, link, :class => selected == item.identifier ? 'selected' : nil
+    end.join("\n").html_safe
   end
 
   def render_webiva_breadcrumbs(page_info)
@@ -875,13 +871,13 @@ EOF
   # Load a remote script over http or https as necessary
   def remote_script(script)
     prefix =  request.ssl? ? 'https://' : 'http://'
-    "<script src='#{prefix}#{vh script}'></script>"
+    "<script src='#{prefix}#{vh script}'></script>".html_safe
   end
 
   # Load a remote stylesheet over http or https as necessary
   def remote_stylesheet(stylesheet)
     prefix =  request.ssl? ? 'https://' : 'http://'
-    "<link href='#{prefix}#{vh stylesheet}' rel='stylesheet' type='text/css' />"
+    "<link href='#{prefix}#{vh stylesheet}' rel='stylesheet' type='text/css' />".html_safe
 
   end
 

@@ -14,7 +14,7 @@ class DomainLogEntry < DomainModel
   scope :content_only, where('domain_log_entries.content_node_id IS NOT NULL')
   def self.recent(from=nil); self.where('domain_log_entries.occurred_at > ?', from || 1.minute.ago); end
   def self.between(from, to); self.where('domain_log_entries.occurred_at' => from..to); end
-  def self.valid_sessions; where('domain_log_sessions.`ignore` = 0 AND domain_log_sessions.domain_log_source_id IS NOT NULL').joins(:domain_log_sessions); end
+  def self.valid_sessions; where('domain_log_sessions.`ignore` = 0 AND domain_log_sessions.domain_log_source_id IS NOT NULL').joins(:domain_log_session); end
   def self.session_stats; self.select('domain_log_session_id, count(*) as page_count, max(occurred_at) as last_entry_at, SUM(`value`) as session_value').group('domain_log_session_id'); end
   def self.hits_n_visits(group_by=nil)
     base_select = "count(*) AS hits, count( DISTINCT domain_log_session_id ) AS visits, SUM(IF(domain_log_entries.user_level=3,1, 0)) AS subscribers, SUM(IF(domain_log_entries.user_level=4,1, 0)) AS leads, SUM(IF(domain_log_entries.user_level=5,1, 0)) AS conversions, SUM(`value`) as total_value"

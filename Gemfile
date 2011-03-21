@@ -4,6 +4,7 @@ source 'http://rubygems.org'
 gem "rails", '3.0.5'
 
 gem 'mysql'
+gem 'haml', '>= 3.0.25'
 gem 'mime-types', :require => 'mime/types'
 gem 'radius'
 gem 'RedCloth', :require => 'redcloth'

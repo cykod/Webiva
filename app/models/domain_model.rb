@@ -259,6 +259,10 @@ class DomainModel < ActiveRecord::Base
   
   class << self
     alias_method :connection_active_record, :connection # :nodoc:
+    
+    def connection
+      self.active_domain_id.blank? ? SystemModel.connection : connection_active_record
+    end
   end
 
   # create a seperate connection handler per domain

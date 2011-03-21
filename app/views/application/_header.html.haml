@@ -1,0 +1,32 @@
+%title= (@cms_page_info ? @cms_page_info[:page_title] : @title) ||  "CMS"
+%META{:CONTENT => "text/html; charset=UTF-8", "HTTP-EQUIV" => "Content-Type"}
+%META{:CONTENT => "NOINDEX, NOFOLLOW, NOCACHE", :NAME => "ROBOTS"}
+= stylesheet_link_tag 'common'
+= remote_stylesheet 'fonts.googleapis.com/css?family=Droid+Sans'
+= theme_stylesheet_link_tag  "admin_design", :media => 'all'
+= theme_stylesheet_link_tag  "admin_framework", :media => 'all'
+:javascript
+  var AUTH_TOKEN = " form_authenticity_token.to_s ";
+= remote_script 'ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js'
+= remote_script 'ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js'
+:javascript
+  $j = jQuery.noConflict();
+= javascript_include_tag 'jaction'
+= remote_script 'www.google.com/jsapi'
+- unless @no_legacy_cs
+  = javascript_include_tag :legacy
+= javascript_include_tag 'application'
+= javascript_include_tag 'active_table'
+= javascript_include_tag 'shortcut'
+= javascript_include_tag 'exporter'
+!= @header if @header
+!= @extra_header if @extra_header
+- if @js_header
+  - @js_header.uniq.each do |js|
+    - if js.to_s.include?('http://')
+      %script{:src => js, :type => "text/javascript"}
+    - else
+      = javascript_include_tag js
+- if @css_header
+  - @css_header.uniq.each do |css|
+    = stylesheet_link_tag css

@@ -1,0 +1,7 @@
+- raise 'Please Call cms_page_paths inside of your administration controller' unless @cms_page_info
+!!!
+%html
+  %head
+    = render :partial => '/application/header'
+  %body{:onload => @onload}
+    = render :partial => '/layouts/themes/' + theme + '/manage'

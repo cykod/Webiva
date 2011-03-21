@@ -25,6 +25,9 @@ class SiteTemplate < DomainModel
 
   serialize :options
 
+  before_create :inital_setup
+  after_save :update_features_options
+
   def self.site_template_options
     self.select_options(:conditions => ['template_type = "site" and parent_id IS NULL'])
   end
@@ -643,7 +646,7 @@ class SiteTemplate < DomainModel
     self.options[:options] = opts
   end
   
-  def before_create
+  def inital_setup
     self.head ||= ''
     self.options ||= {}
     self.options = { :options => self.options[:options] || [],
@@ -654,7 +657,7 @@ class SiteTemplate < DomainModel
     }
   end
   
-  def after_save
+  def update_features_options
     self.site_template_rendered_parts.clear
     
     if self.domain_file_id != @old_domain_file_id

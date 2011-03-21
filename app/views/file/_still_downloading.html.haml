@@ -1,0 +1,5 @@
+- if session[:download_worker_key] && Workling.return.get(session[:download_worker_key])
+  #download_notice.flash_notice
+    %span#download_status= 'Still Exporting...'
+  :javascript
+    new WebivaExporter({status: "#download_status", onComplete: function() {$j('#download_notice').hide();}});

@@ -59,26 +59,25 @@ module StyledFormBuilderGenerator #:nodoc:
       #   :no_remote => true - does not generate a remote_ type function
       def generate_form_for(pre = '',post = '',options = {})
           class_name = self.to_s
-          display_only = options[:display]  || false
           name = options[:name] || class_name.underscore 
           
-	  pre = pre.blank? ? '' : pre.gsub(/([\"\#])/, '\\\\\1')
-	  post = post.blank? ? '' : post.gsub(/([\"\#])/, '\\\\\1')
-	  pre_cmd = pre.blank? ? '' : "safe_concat(\"#{pre}\")"
-	  post_cmd = post.blank? ? '' : "safe_concat(\"#{post}\")"
+	  pre = pre.blank? ? "\"\"" : pre.gsub(/([\"\#])/, '\\\\\1')
+	  post = post.blank? ? "\"\"" : post.gsub(/([\"\#])/, '\\\\\1')
+	  pre_cmd = pre.blank? ? "\"\"" : "\"#{pre}\""
+	  post_cmd = post.blank? ? "\"\"" : "\"#{post}\""
 
           names = [ [ name, 'form_tag(options.delete(:url) || {}, options.delete(:html) || {})'] ]
-          names << [ 'remote_' + name, 'form_tag(options.delete(:url) || {},(options[:html]||{}).merge({:onsubmit => "new Ajax.Updater(\'#{options[:update]}\',this.action,{ evalsScripts: true, parameters: Form.serialize(this) }); return false;"}))' ]  unless display_only || options[:no_remote]
+       
           names.each do |nm|
             src = <<-END_SRC 
               def #{nm[0]}_for(object_name,*args,&proc)
                 raise ArgumentError, "Missing block" unless block_given?
                 options = args.last.is_a?(Hash) ? args.pop : {}
-                #{"safe_concat(" + nm[1] + ")" unless display_only}
-                #{pre_cmd}
-                fields_for(object_name, *(args << options.merge(:builder => #{class_name})), &proc)
-                #{post_cmd}
-                #{"safe_concat('</form>')" unless display_only}
+                #{nm[1]} +
+                #{pre_cmd}.html_safe +
+                fields_for(object_name, *(args << options.merge(:builder => #{class_name})), &proc) +
+                #{post_cmd}.html_safe +
+                '</form>'.html_safe
               end
             END_SRC
             StyledFormBuilderGenerator::FormFor.class_eval src, __FILE__, __LINE__
@@ -251,7 +250,7 @@ module EnhancedFormElements
     
     # Outputs a line break
     def spacer()
-      '<br/>'
+      '<br/>'.html_safe
     end
     
     # Displays the value of a attribute of the form object
@@ -485,8 +484,8 @@ module EnhancedFormElements
     # Output the error message for a specific field given a label and the field
     def output_error_message(label,field)
       return nil unless @object && @object.errors
-      errs = @object.errors.on(field)
-      if errs.is_a?(Array)
+      errs = @object.errors[field]
+      if errs.empty?
         label = label.gsub(/\:$/,'') # get rid of ending : if there
         opts = errs.pop if errs.last.is_a?(Hash)
         errs.pop if errs.last.nil?
@@ -497,11 +496,11 @@ module EnhancedFormElements
           msg = @object.errors.generate_message(field,msg) if msg.is_a?(Symbol)
           label + " " + emit_label(msg) + "<br/>"
         end
-      elsif errs
-        label = label.gsub(/\:$/,'') # get rid of ending : if there
-        errs = @object.errors.generate_message(field,errs) if errs.is_a?(Symbol)
-        
-        return label + " " + emit_label(errs)
+#      elsif errs
+#        label = label.gsub(/\:$/,'') # get rid of ending : if there
+#        errs = @object.errors.generate_message(field,errs) if errs.is_a?(Symbol)
+#        
+#        return label + " " + emit_label(errs)
       end
       nil
     end  
@@ -552,11 +551,11 @@ module TabledFormElements
 
   def spacer(size=nil)
     txt = size ? "<img src='/images/spacer.gif' width='1' height='#{size}' />" : '<br/>'
-    "<tr><th colspan='2' align='center'>" + txt + "</th></tr>"
+    ("<tr><th colspan='2' align='center'>" + txt + "</th></tr>").html_safe
   end 
 
   def divider(tg='<hr/>')
-    "<tr><th colspan='2' align='center'>" + tg + "</th></tr>"
+    ("<tr><th colspan='2' align='center'>" + tg + "</th></tr>").html_safe
   end 
 
 

@@ -76,6 +76,7 @@ GEM
     gherkin (2.3.4)
       json (~> 1.4.6)
     gruff (0.3.6)
+    haml (3.0.25)
     hpricot (0.8.4)
     httparty (0.7.4)
       crack (= 0.1.8)
@@ -176,6 +177,7 @@ DEPENDENCIES
   factory_girl_rails
   fakeweb
   gruff
+  haml (>= 3.0.25)
   hpricot
   jquery-rails
   libxml-ruby
