@@ -6,6 +6,7 @@ Webiva::Application.configure do
   # test suite.  You never need to work with it otherwise.  Remember that
   # your test database is "scratch space" for the test suite and is wiped
   # and recreated between test runs.  Don't rely on the data there!
+  config.active_support.deprecation = :log
   config.cache_classes = true
 
   # Log error messages when you accidentally call methods on nil.
@@ -22,13 +23,4 @@ Webiva::Application.configure do
 
   # All your existing stuff
   config.action_controller.allow_forgery_protection  = false
-
-  testing_domain = config.webiva_defaults['testing_domain']
-
-  raise 'No Available Testing Database!' unless testing_domain
-
-  db_info = YAML.load_file("#{Rails.root}/config/cms.yml")['test']
-  ActiveRecord::Base.establish_connection db_info
-  SystemModel.establish_connection db_info
-  DomainModel.activate_domain(Domain.find(testing_domain).attributes, 'migrator', false)
 end

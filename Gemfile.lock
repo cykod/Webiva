@@ -4,6 +4,7 @@ GEM
     BlueCloth (1.0.1)
     RedCloth (4.2.7)
     SystemTimer (1.2.2)
+    ZenTest (4.5.0)
     abstract (1.0.0)
     actionmailer (3.0.5)
       actionpack (= 3.0.5)
@@ -170,6 +171,7 @@ DEPENDENCIES
   BlueCloth
   RedCloth
   SystemTimer
+  ZenTest
   capybara
   cucumber-rails
   daemons

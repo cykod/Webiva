@@ -24,10 +24,3 @@ Webiva::Application.configure do
   config.action_mailer.default_charset = 'utf-8'
 
 end
-
-begin
-  d = Domain.first
-  activate_domain! d.id
-rescue
-  raise "Please make sure you have a least 1 domain before running in production"
-end

@@ -33,6 +33,7 @@ group :development, :test, :spec, :cucumber, :selenium do
   gem 'rails_code_qa'
   gem 'hpricot'
   gem 'fakeweb'
+  gem 'ZenTest'
 end
 
 group :selenium do

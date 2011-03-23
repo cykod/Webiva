@@ -97,7 +97,7 @@ class WebivaSystemCleaner
   end
 end
 
-Spec::Runner.configure do |config|
+RSpec.configure do |config|
   # If you're not using ActiveRecord you should remove these
   # lines, delete config/database.yml and disable :active_record
   # in your config/boot.rb
