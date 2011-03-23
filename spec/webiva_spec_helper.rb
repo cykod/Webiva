@@ -237,8 +237,6 @@ def add_factory_girl_path(dir)
   end
 end
 
-ActiveSupport::TestCase.fixture_path = Rails.root + '/spec/fixtures/'
-
 
 # Custom Matchers
 class HandleActiveTableMatcher
@@ -320,7 +318,7 @@ module RspecRendererExtensions
 
 end
 
-module Spec
+module RSpec
  module Rails
   module Example
     class ModelExampleGroup
@@ -353,7 +351,7 @@ module Spec
       end
     end
 
-    class ControllerExampleGroup < FunctionalExampleGroup
+    class ControllerExampleGroup
  
 
       def mock_editor(email = 'test@webiva.com',permissions = nil)
@@ -446,7 +444,7 @@ module Spec
       
    end
    
-    class ViewExampleGroup < FunctionalExampleGroup
+    class ViewExampleGroup
       def build_feature(feature_class,code=nil)
         if code
           site_feature = mock_model(SiteFeature,:body => code,:body_html => code,:feature_type => :any,:options => {} )
@@ -599,6 +597,6 @@ end
 
 # No Longer available in ModelTests
 def fixture_file_upload(path, mime_type = nil, binary = false)
-  fixture_path = ActionController::TestCase.send(:fixture_path) if ActionController::TestCase.respond_to?(:fixture_path)
+  fixture_path = Rspec.configuration.fixture_path
   ActionController::TestUploadedFile.new("#{fixture_path}#{path}", mime_type, binary)
 end
