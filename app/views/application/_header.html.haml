@@ -30,3 +30,5 @@
 - if @css_header
   - @css_header.uniq.each do |css|
     = stylesheet_link_tag css
+%meta{:name => "csrf-param", :content => "authenticity_token"}
+%meta{:name => "csrf-token", :content => form_authenticity_token.to_s}

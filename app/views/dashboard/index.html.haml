@@ -112,7 +112,7 @@
   = p.link 'Edit Widgets', { :icon => 'add.png', :url => 'javascript:void(0);', :id => 'edit_widgets' }, :onclick => 'CMSDashboard.editWidgets();', :"j-action" => 'swap', :swap => '#stop_editing_widgets,#edit_widgets'
   = p.link 'Stop Editing Widgets', { :icon => 'remove.png', :hidden => true, :url => 'javascript:void(0);', :id => 'stop_editing_widgets' }, :onclick => 'CMSDashboard.stopEditingWidgets();', :"j-action" => 'swap', :swap => '#edit_widgets,#stop_editing_widgets'
 - if myself.has_role?(:editor_site_management)
-  - more_action_panel do |p|
+  = more_action_panel do |p|
     = p.link 'Edit Site Widgets',:action => :site_widgets
 %hr/
 %table{:cellpadding => "0", :cellspacing => "0", :width => "100%"}

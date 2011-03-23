@@ -1,0 +1,21 @@
+%div{:class =>  widget.hide? ? 'dashboard_widget_hidden' : 'dashboard_widget', :id => "widget_#{widget.id}", :style => widget.hide? ? 'display:none;' : nil}
+  .dashboard_widget_titlebar
+    .dashboard_widget_icon
+      = theme_image_tag('icons/content/' + widget.icon, :align => 'none')
+    .dashboard_widget_title
+      %span.dashboard_widget_title_text= widget.title_link ? link_to(widget.title,widget.title_link) : widget.title
+      %span.dashboard_widget_title_edit{:style => "display:none;"}
+        - if widget.editable?(myself)
+          %a{:href => "javascript:void(0);", :onclick => "CMSDashboard.editWidget(#{widget.id})"} (edit)
+        - else
+          (site widget)
+    .dashboard_widget_tools{:style => "display:none;"}
+      - if !widget.site_widget
+        %a{:href => "javascript:void(0);", :onclick => "CMSDashboard.deleteWidget(#{widget.id})"} (Delete)
+      - elsif widget.hide?
+        %a{:href => "javascript:void(0);", :onclick => "CMSDashboard.showWidget(#{widget.id})"} (Show)
+      - elsif !widget.required?(myself)
+        %a{:href => "javascript:void(0);", :onclick => "CMSDashboard.hideWidget(#{widget.id})"} (Hide)
+  - unless widget.hide?
+    .dashboard_widget_body
+      = widget.output

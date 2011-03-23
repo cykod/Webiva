@@ -82,8 +82,7 @@ module ApplicationHelper
       end
     end
     
-    result  
-    
+    result.html_safe
   end
 
 
@@ -154,15 +153,11 @@ module ApplicationHelper
     end
   end
   
-  
-  
   # Display a string with newlines as a ul
   def list_format(txt)
-    "<ul>" + txt.split("\n").map { |elm| "<li>#{h elm}</l1>" }.join("\n") + "</ul>"
+    output = txt.split("\n").map { |elm| content_tag :li, elm }.join("\n")
+    content_tag :ul, output, {}, false
   end
-
-  
-  
 end
 
 

@@ -3,90 +3,9 @@
 
 # Helper methods for CmsController derivitive backend controllers
 module CmsHelper
-
-
   def webiva_search_widget # :nodoc:
-    output = form_tag({ :controller => '/search'},:id => 'search_widget_form', :style => 'display:inline;')
-    js = <<-SEARCH_WIDGET
-  <input type='text' name='search' size='20' id='search_widget' value='Search Webiva' />
-  
-  <div class='autocomplete' id='search_widget_autocomplete' style='display:none; width:500px;'>
-     <ul class="autocomplete_list">
-       <li class='autocomplete_item' id='result_1'>
-         <div class="name">Enter a colon (:) to see registered search handlers</div>
-         <div class="subtext">Search handlers let you search different pieces of your Webiva Site</div>
-       </li>
-       <li class='autocomplete_item' id='result_1'>
-         <div class="name">Enter a url to jump to a page of your site</div>
-         <div class="subtext">The system will show pages that match the prefix you've entered</div>
-       </li>
-       <li class='autocomplete_item' id='result_1'>
-         <div class="name">Or enter search terms to search content</div>
-         <div class="subtext">The system will show site content that matches your search</div>
-       </li>
-    </ul>
- </div>
- 
-    <script>
-      SearchWidget = {
-       onFocus: function() {
-          if(this.value=="Search Webiva") this.value=""; 
-          SearchWidget.autocomplete.updateChoices($('search_widget_autocomplete').innerHTML);
-          SearchWidget.autocomplete.hasFocus = true;
-          SearchWidget.autocomplete.changed = false;
-          SearchWidget.autocomplete.show();
-       },
-       onBlur: function() {
-         if(this.value=="") this.value="Search Webiva"; 
-      },
-       setup: function() {
-          $('search_widget').onfocus = SearchWidget.onFocus;
-          $('search_widget').onblur = SearchWidget.onBlur;
-
-          SearchWidget.autocomplete = new Ajax.Autocompleter('search_widget','search_widget_autocomplete','#{url_for(:controller => '/search', :action => 'autocomplete')}',
-        { minChars: 1, frequency: 0.5, paramName: 'search', 
-         afterUpdateElement: function(text,li) { 
-           var url = li.select(".autocomplete_url");
-           var text = li.select(".autocomplete_text");
-        if(url[0]) {
-           document.location = url[0].value;
-          $('search_widget').value = li.select(".name")[0].innerHTML; 
-        } else if(text[0]) {
-          $('search_widget').value = text[0].value; 
-          return false;
-        }
-        else {
-          $('search_widget').value = li.select(".name")[0].innerHTML; 
-        }
-        },
-        onShow: function(element,update) {
-        if(!update.style.position || update.style.position=='absolute') {
-          update.style.position = 'absolute';
-          Position.clone(element, update, {
-            setHeight: false,
-            setWidth: false,
-            offsetTop: element.offsetHeight
-          });
-          update.style.left = '';
-          update.style.right = '0px';
-        }
-        Effect.Appear(update,{duration:0.15});
-       }
-      });
-      shortcut.add("Alt+S",function() { $('search_widget').focus(); });
-  
-
-     }
-     };
-    
-
-     SearchWidget.setup();
-    </script> 
-    </form>
-SEARCH_WIDGET
-    output + js.html_safe
+    render :partial => '/helpers/cms/webiva_search_widget'
   end
-
 
   def render_webiva_menu(menu,selected) 
     return '' unless menu
@@ -102,8 +21,8 @@ SEARCH_WIDGET
     if page_info[:title].is_a?(Array) && page_info[:title].length > 0 
       breadcrumbs = page_info[:title][0..-2]
       breadcrumbs.map do |itm|
-        render_webiva_title(itm) + " &gt; "
-      end.join
+        render_webiva_title(itm) + " &gt; ".html_safe
+      end.join.html_safe
     else
       nil
     end
@@ -140,34 +59,34 @@ SEARCH_WIDGET
   end
 
 
-   class PopupMenuBuilder #:nodoc:all
-      include ActionView::Helpers::JavaScriptHelper
+  class PopupMenuBuilder #:nodoc:all
+    include ActionView::Helpers::JavaScriptHelper
      
-     def link(name,options = {})
-        if options[:js]
-          "[ '','#{escape_javascript(name)}', 'js', '#{escape_javascript(options[:js])}' ],"
-        elsif options[:url]
-          "[ '','#{escape_javascript(name)}',  '#{escape_javascript(options[:url])}', ],"
-        end
-     end
+    def link(name,options = {})
+      if options[:js]
+        "[ '','#{escape_javascript(name)}', 'js', '#{escape_javascript(options[:js])}' ],"
+      elsif options[:url]
+        "[ '','#{escape_javascript(name)}',  '#{escape_javascript(options[:url])}', ],"
+      end
+    end
      
-     def separator() 
-        "[],"
-     end  
-   end
+    def separator() 
+      "[],"
+    end  
+  end
    
-   # Builds a popup menu
-   def popup_menu(id,image,options={},&block) # :nodoc:
-      options = options.clone
-      options[:class] = 'line_icon'
+  # Builds a popup menu
+  def popup_menu(id,image,options={},&block) # :nodoc:
+    options = options.clone
+    options[:class] = 'line_icon'
     
-      safe_concat("<a href='javascript:void(0);' id='link_#{id}' >" + image_tag(image,options) + "</a>")
-      safe_concat("<script type='text/javascript'> $('link_#{id}').onclick = function() { popupMenu('', new Array(")
+    output = content_tag :a, image_tag(image, options), :href => 'javascript:void(0);', :id => "link_#{id}"
+    output << "<script type='text/javascript'> $('link_#{id}').onclick = function() { popupMenu('', new Array(".html_safe
       
-      yield PopupMenuBuilder.new
+    output << capture(PopupMenuBuilder.new, &block)
       
-      safe_concat("[] )); }</script>")
-   end
+    content_tag << "[] )); }</script>".html_safe
+  end
 
 =begin rdoc
 Creates an action panel (the set of links at the top of an admin page)
@@ -183,46 +102,42 @@ Yields an ActionPanelBuilder. The :icon argument will add an icon next to the im
 images/icons/actions directory of the current theme. 
 
 =end 
-   def action_panel(options = {},&block)  # :yields: ActionPanelBuilder.new
-      safe_concat("<ul class='action_panel' id='action_panel'>")
+  def action_panel(options = {},&block)  # :yields: ActionPanelBuilder.new
+    apb = ActionPanelBuilder.new(self, :directory => 'title_actions')
+    content = capture(apb, &block)
       
-      apb = ActionPanelBuilder.new(self, :directory => 'title_actions')
-      yield apb
+    if options[:handler]
+      handlers = get_handler_info('action_panel',options[:handler])
       
-      if options[:handler]
-        handlers = get_handler_info('action_panel',options[:handler])
-      
-        if handlers
-          handlers.each do |handler|
-            (handler[:links] || []).each do |link|
-              opts = link.clone
-              name = opts.delete(:link)
-              role = opts.delete(:role)
+      if handlers
+        handlers.each do |handler|
+          (handler[:links] || []).each do |link|
+            opts = link.clone
+            name = opts.delete(:link)
+            role = opts.delete(:role)
               
-              if !role || myself.has_role?(role)
-                safe_concat(apb.link(name,opts))
-              end
+            if !role || myself.has_role?(role)
+              content << apb.link(name,opts)
             end
           end
         end
       end
-      if options[:more]
-        safe_concat(apb.link('more', { :url => 'javascript:void(0);',:icon => 'add.png', :id => 'more_actions_link' },
-                             :"j-action" => 'slidetoggle,swap', :swap => '#less_actions_link,#more_actions_link', :slidetoggle => '#more_actions_panel'))
+    end
 
-        safe_concat(apb.link('less', { :url => 'javascript:void(0);',:icon => 'remove.png', :id => 'less_actions_link', :hidden => true },
-                             :"j-action" => 'slidetoggle,swap', :swap => '#more_actions_link,#less_actions_link', :slidetoggle => '#more_actions_panel'))
-      end
-      safe_concat("</ul>")
-   end   
+    if options[:more]
+      content << apb.link('more', { :url => 'javascript:void(0);',:icon => 'add.png', :id => 'more_actions_link' },
+                          :"j-action" => 'slidetoggle,swap', :swap => '#less_actions_link,#more_actions_link', :slidetoggle => '#more_actions_panel')
+
+      content << apb.link('less', { :url => 'javascript:void(0);',:icon => 'remove.png', :id => 'less_actions_link', :hidden => true },
+                          :"j-action" => 'slidetoggle,swap', :swap => '#more_actions_link,#less_actions_link', :slidetoggle => '#more_actions_panel')
+    end
+
+    content_tag :ul, content, {:class => 'action_panel', :id => 'action_panel'}, false
+  end   
 
    def more_action_panel(options = {},&block)
-     concat("<div style='display:none;' id='more_actions_panel'>")
-     concat("<h2>More Actions <a class='title_link' href=\"javascript:void(0);\" j-action='slideup,swap' swap='#more_actions_link,#less_actions_link' slideup=\"#more_actions_panel\">(close actions)</a></h2>")
-     concat("<ul>")
-      
-      apb = ActionPanelBuilder.new(self, :directory => 'actions')
-      yield apb
+     apb = ActionPanelBuilder.new(self, :directory => 'actions')
+     content = capture(apb, &block)
 
       if options[:handler]
         handlers = get_handler_info('action_panel',options[:handler])
@@ -235,7 +150,7 @@ images/icons/actions directory of the current theme.
               role = opts.delete(:role)
 
               if !role || myself.has_role?(role)
-                concat(apb.link(name,opts))
+                content << apb.link(name,opts)
               end
             end
           end
@@ -243,7 +158,10 @@ images/icons/actions directory of the current theme.
       end
 
 
-      concat('</ul></div>')
+     close_link = content_tag :a, '(close actions)', :class => 'title_link', :href => "javascript:void(0);", 'j-action' => 'slideup,swap', :swap => '#more_actions_link,#less_actions_link',  :slideup => "#more_actions_panel"
+     more_actions_heading = content_tag :h2, "More Actions #{close_link}", {}, false
+     content = content_tag :ul, content, {}, false
+     content_tag :div, more_actions_heading + content, {:style => 'display:none', :id => 'more_actions_panel'}, false
    end
 
    # This class usually isn't instantiated directly, see CmsHelper#action_panel for usage
