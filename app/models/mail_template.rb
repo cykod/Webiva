@@ -85,20 +85,17 @@ class MailTemplate < DomainModel
  # Returns a select-friendly list of campaign templates
  def self.campaign_template_options; self.find_select_options(:all,:conditions => 'template_type = "campaign" AND archived=0');  end
  
- def before_save #:nodoc:
-  self.body_html.gsub!('/website/mail_manager/edit_template/','') unless self.body_html.blank?
-  self.body_text.gsub!('/website/mail_manager/edit_template/','') unless self.body_text.blank?
-  if(self.body_text.blank? && self.generate_text_body && self.generate_text_body.to_s != "0")
-     self.body_text = self.class.text_generator(self.body_html)
-   end
- end
- 
  # Generate text from HTML - moved to util
  def self.text_generator(html) #:nodoc:
     Util::TextFormatter.text_formatted_generator(html)
  end
  
  def before_validation #:nodoc:
+   self.body_html.gsub!('/website/mail_manager/edit_template/','') unless self.body_html.blank?
+   self.body_text.gsub!('/website/mail_manager/edit_template/','') unless self.body_text.blank?
+   if(self.body_text.blank? && self.generate_text_body && self.generate_text_body.to_s != "0")
+     self.body_text = self.class.text_generator(self.body_html)
+   end
    self.language ||= Configuration.languages[0]
  end
 

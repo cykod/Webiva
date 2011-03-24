@@ -44,7 +44,7 @@ MemberViewer = {
       <%= f.row 'User Level',@user.user_level_display %>
       <%= f.row('Source',@user.source_display) if !@user.source.blank? %>
       <%= f.row('Lead Source',@user.lead_source) unless @user.lead_source.blank? %>
-      <%= f.row('Source User',@user.source_user.name) unless @user.source_user.blank? %>
+      <%= f.raw('Source User',link_to(h(@user.source_user.name), :action => 'view', :path => @user.source_user_id)) unless @user.source_user.blank? %>
       <%= f.row('Referrer',@user.referrer) unless @user.referrer.blank? %>
 
       <%= f.header "Account Dates" %>
