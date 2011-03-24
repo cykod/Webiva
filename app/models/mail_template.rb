@@ -359,6 +359,7 @@ class MailTemplate < DomainModel
   if is_text
     unsubscribe_text = "\n\n#{'To unsubscribe from any future %s mailings, goto:' / Configuration.domain }%%#{unsubscribe_var}%%"
     unsubscribe_text << "\n" + Configuration.options.one_line_address
+    @prepared_body[:text] ||= ''
     @prepared_body[:text] += unsubscribe_text
   end
   
