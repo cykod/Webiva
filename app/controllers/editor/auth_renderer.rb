@@ -101,6 +101,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       if all_valid 
       
         # Set a source if we have one        
+        @user.set_tracked_information(myself_tracking_information);
         if session[:user_referrer]
           @usr.referrer = session[:user_referrer]
         end

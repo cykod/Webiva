@@ -55,6 +55,7 @@ class ApplicationController < ActionController::Base
       response.data[:user] = EndUser.default_user 
       response.data[:user].tag_names_add(session[:user_tags]) if session[:user_tags]
       response.data[:user].referrer = session[:user_referrer] if session[:user_referrer]
+      response.data[:user].source_user_id = session[:user_source_user_id] if session[:user_source_user_id]
     else
       begin
         userModel = session[:user_model].constantize
@@ -73,6 +74,13 @@ class ApplicationController < ActionController::Base
     end
     
   end   
+
+  def myself_tracking_information
+    { :tags => session[:user_tags],
+      :referrer => session[:user_referrer],
+      :source_user_id => session[:user_source_user] 
+    }
+  end
   
   hide_action :theme_src
   helper_method :theme_src
