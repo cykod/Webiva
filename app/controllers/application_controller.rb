@@ -50,12 +50,12 @@ class ApplicationController < ActionController::Base
         return response.data[:user]
       end
     end
-    
+
+    session[:user_tracking] ||= {}
+
     if session[:user_id].blank? || session[:user_model].blank? 
       response.data[:user] = EndUser.default_user 
-      response.data[:user].tag_names_add(session[:user_tags]) if session[:user_tags]
-      response.data[:user].referrer = session[:user_referrer] if session[:user_referrer]
-      response.data[:user].source_user_id = session[:user_source_user_id] if session[:user_source_user_id]
+      response.data[:user].anonymous_tracking_information = session[:user_tracking]
     else
       begin
         userModel = session[:user_model].constantize
@@ -75,13 +75,6 @@ class ApplicationController < ActionController::Base
     
   end   
 
-  def myself_tracking_information
-    { :tags => session[:user_tags],
-      :referrer => session[:user_referrer],
-      :source_user_id => session[:user_source_user] 
-    }
-  end
-  
   hide_action :theme_src
   helper_method :theme_src
   # Returns a relative link for an image using the currently active theme
@@ -152,11 +145,9 @@ class ApplicationController < ActionController::Base
   
   def save_anonymous_tags #:nodoc:
     if !session[:user_id] 
-      session[:user_tags] = myself.tag_cache_tmp unless myself.tag_cache_tmp.blank?
-      session[:user_referrer] = myself.referrer unless myself.referrer.blank?
+      session[:user_tracking] = myself.anonymous_tracking_information
     else 
-      session[:user_tags] = nil
-      session[:user_referrer] = nil
+      session.delete(:user_tracking)
     end
     
   end
