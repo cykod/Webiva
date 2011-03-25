@@ -15,10 +15,6 @@ class UserSegmentCache < DomainModel
 
   validates_presence_of :user_segment_id
 
-  def before_create #:nodoc:
-    self.created_at = Time.now unless self.created_at
-  end
-
   def fetch_users(opts={})
     ids = opts[:offset] && opts[:limit] ? self.id_list[opts[:offset]..opts[:offset]+opts[:limit]-1] : self.id_list
     return [] if ! ids || ids.empty?

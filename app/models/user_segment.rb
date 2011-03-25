@@ -17,11 +17,14 @@ class UserSegment < DomainModel
 
   belongs_to :market_segment, :dependent => :destroy
 
+  before_validation :set_defaults
+
   validates_presence_of :name
   validates_presence_of :segment_type
   validates_presence_of :segment_options_text, :if => Proc.new { |seg| seg.segment_type == 'filtered' }
   validates_presence_of :order_by
   validates_presence_of :order_direction
+  validate :validate_segment_options
 
   has_options :segment_type, [['Filtered', 'filtered'], ['Custom', 'custom']]
   has_options :order_direction, [['Ascending', 'ASC'], ['Descending', 'DESC']]
@@ -35,6 +38,10 @@ class UserSegment < DomainModel
      ['Removing', 'removing'],
      ['Sorting', 'sorting']]
 
+  before_create :inital_setup
+  after_create :create_market_segment
+  after_save :update_market_segment
+
   # Determines if the segment is ready for use.
   def ready?; self.status == 'finished'; end
 
@@ -43,12 +50,12 @@ class UserSegment < DomainModel
     self.read_attribute(:fields) || []
   end
 
-  def before_validation #:nodoc:
+  def set_defaults #:nodoc:
     self.order_by = 'created' if self.order_by.blank?
     self.order_direction = 'DESC' if self.order_direction.blank?
   end
 
-  def validate #:nodoc:
+  def validate_segment_options #:nodoc:
     self.errors.add(:segment_options_text, nil, :message => self.operations.failure_reason) if self.segment_options_text && self.segment_options.nil?
     self.errors.add(:order_by, 'is invalid') unless self.class.order_by_options.rassoc(self.order_by)
     self.errors.add(:order_direction, 'is invalid') unless self.class.order_direction_options_hash[self.order_direction]
@@ -191,7 +198,7 @@ class UserSegment < DomainModel
     sort_field = UserSegment::FieldHandler.sortable_fields[self.order_by.to_sym]
     scope = sort_field[:handler].sort_scope(self.order_by, self.order_direction)
     end_user_field = sort_field[:handler].user_segment_fields_handler_info[:end_user_field] || :end_user_id
-    scope = scope.scoped(:select => "DISTINCT #{end_user_field}") unless scope.proxy_options[:select]
+    scope = scope.scoped(:select => "DISTINCT #{end_user_field}") if scope.to_sql =~ /^SELECT \*/
     sorted_ids = scope.find(:all, :conditions => {end_user_field => ids}).collect &end_user_field
 
     ids = sorted_ids + (ids - sorted_ids)
@@ -359,7 +366,7 @@ class UserSegment < DomainModel
     return [offset, users]
   end
 
-  def before_create #:nodoc:
+  def inital_setup #:nodoc:
     self.status = 'new'
   end
 
@@ -440,14 +447,14 @@ class UserSegment < DomainModel
     self.operations.to_builder
   end
 
-  def after_create #:nodoc:all
+  def create_market_segment #:nodoc:all
     self.market_segment = MarketSegment.create(:name => self.name ,:segment_type => 'user_segment',
                                                :options => {:user_segment_id =>  self.id},
                                                :description => 'Sends a Campaign to all users in this list'.t)
     self.save
   end
 
-  def after_save #:nodoc:all
+  def update_market_segment #:nodoc:all
     if self.market_segment && self.market_segment.name != self.name
       self.market_segment.name = self.name
       self.market_segment.save
