@@ -16,3 +16,10 @@ find . -type f -exec perl -pi -e 's/<% cms_subfields_for/<%= cms_subfields_for/g
 find . -type f -exec perl -pi -e 's/<% admin_fields_for/<%= admin_fields_for/g' {} \;
 
 find . -type f -exec perl -pi -e "s/named_scope/scope/" {} \;
+
+
+find . -type f -exec perl -pi -e "s/integrate_views/render_views/" {} \;
+
+find . -type f -exec perl -pi -e 's/controller_name :page/subject { PageController.new }/' {} \;
+
+find . -type f -exec perl -pi -e 's/require .*\/spec_helper.*/require "spec_helper"/' {} \;

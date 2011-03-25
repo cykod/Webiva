@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + "/../spec_helper"
+require "spec_helper"
 
 describe UserSubscriptionEntrySegmentField do
   reset_domain_tables :end_users, :user_subscriptions, :user_subscription_entries, :user_segments, :user_segment_caches

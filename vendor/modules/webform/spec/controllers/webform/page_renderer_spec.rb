@@ -1,8 +1,8 @@
 require  File.expand_path(File.dirname(__FILE__)) + '/../../webform_spec_helper'
 
 describe Webform::PageRenderer, :type => :controller do
-  controller_name :page
-  integrate_views
+  subject { PageController.new }
+  render_views
 
   reset_domain_tables :webform_forms, :webform_form_results, :end_users
 

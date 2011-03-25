@@ -1,7 +1,3 @@
-Factory.define :end_user, :class => EndUser do |d|
-  d.sequence(:email) { |n| "user#{n}@test.dev" }
-end
-
 Factory.define :domain_log_visitor, :class => DomainLogVisitor do |d|
   d.sequence(:visitor_hash) { |n| "visitor_hash_#{n}" }
   d.ip_address '127.0.0.1'

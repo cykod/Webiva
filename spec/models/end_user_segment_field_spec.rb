@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + "/../spec_helper"
+require "spec_helper"
 
 describe EndUserSegmentField do
   reset_domain_tables :end_users

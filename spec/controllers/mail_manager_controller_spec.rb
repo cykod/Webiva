@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + "/../spec_helper"
+require "spec_helper"
 require File.dirname(__FILE__) + "/../mail_template_spec_helper"
 
 
@@ -7,7 +7,7 @@ require File.dirname(__FILE__) + "/../mail_template_spec_helper"
 
 describe MailManagerController, "" do
   reset_domain_tables :mail_templates, :domain_files, :end_users, :site_templates
-  integrate_views
+  render_views
   include MailTemplateSpecHelper
 
   describe "Creation / Options - it" do

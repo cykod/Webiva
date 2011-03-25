@@ -65,7 +65,7 @@ class UserSegment < DomainModel
   def segment_options_text=(text) #:nodoc:
     text = text.gsub("\r", '').strip
     self.should_refresh = self.segment_options_text != text
-    self.write_attribute :segment_options_text, text
+    self[:segment_options_text] = text
     @filter = UserSegment::Filter.new
     @filter.parse text
     if @filter.valid?
@@ -78,13 +78,13 @@ class UserSegment < DomainModel
 
   def order_by=(order) #:nodoc:
     self.should_refresh = self.order_by != order
-    self.write_attribute :order_by, order
+    self[:order_by] = order
     order
   end
 
   def order_direction=(direction) #:nodoc:
     self.should_refresh = self.order_direction != direction
-    self.write_attribute :order_direction, direction
+    self[:order_direction] = direction
     direction
   end
 

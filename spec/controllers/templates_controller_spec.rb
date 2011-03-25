@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + "/../spec_helper"
+require "spec_helper"
 
 describe TemplatesController do
-  integrate_views
+  render_views
 
   reset_domain_tables :site_template, :domain_file, :site_template_zone, :site_feature, :site_node, :page_paragraph, :page_revision
 

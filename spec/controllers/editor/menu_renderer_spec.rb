@@ -1,10 +1,10 @@
-require File.dirname(__FILE__) + "/../../spec_helper"
+require "spec_helper"
 
 
 describe Editor::MenuRenderer, :type => :controller do
-  controller_name :page
+  subject { PageController.new }
   
-  integrate_views
+  render_views
 
   reset_domain_tables :end_users, :site_versions, :page_revisions, :site_nodes, :site_node_modifiers, :page_paragraphs
 

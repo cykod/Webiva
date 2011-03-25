@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + "/../spec_helper"
+require "spec_helper"
 
 describe EndUserTagSegmentField do
   reset_domain_tables :end_users, :tags, :end_user_tags, :user_segments, :user_segment_caches

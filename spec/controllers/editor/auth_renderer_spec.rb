@@ -1,10 +1,10 @@
-require File.dirname(__FILE__) + "/../../spec_helper"
+require "spec_helper"
 
 
 describe Editor::AuthRenderer, :type => :controller do
-  controller_name :page
+  subject { PageController.new }
   
-  integrate_views
+  render_views
 
   reset_domain_tables :end_users, :end_user_addresses, :tags, :end_user_tags, :site_nodes, :user_subscriptions, :mail_templates, :user_subscription_entries
 

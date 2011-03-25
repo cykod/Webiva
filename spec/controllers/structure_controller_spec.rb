@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + "/../spec_helper"
+require "spec_helper"
 
 describe StructureController do
-  integrate_views
+  render_views
 
 
   reset_domain_tables :site_versions, :site_nodes, :site_node_modifiers, :page_revisions, :page_paragraphs

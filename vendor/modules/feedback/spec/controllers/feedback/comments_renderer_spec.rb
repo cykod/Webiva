@@ -1,4 +1,4 @@
-require  File.expand_path(File.dirname(__FILE__)) + "/../../../../../../spec/spec_helper"
+require "spec_helper"
 
 require  File.expand_path(File.dirname(__FILE__)) + '/../../feedback_test_helper'
 
@@ -6,9 +6,9 @@ describe Feedback::CommentsRenderer, :type => :controller do
 
   include FeedbackTestHelper
 
-  controller_name :page
+  subject { PageController.new }
 
-  integrate_views
+  render_views
 
   reset_domain_tables :comments, :end_users
 

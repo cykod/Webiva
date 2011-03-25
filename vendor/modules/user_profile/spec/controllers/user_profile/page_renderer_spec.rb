@@ -1,10 +1,10 @@
-require  File.expand_path(File.dirname(__FILE__)) + "/../../../../../../spec/spec_helper"
+require "spec_helper"
 
 describe UserProfile::PageRenderer, :type => :controller do
   
-  controller_name :page
+  subject { PageController.new }
 
-  integrate_views
+  render_views
   reset_domain_tables :user_profile_types, :user_profile_entries, :content_types, :end_users, :user_profile_type_user_classes
 
 

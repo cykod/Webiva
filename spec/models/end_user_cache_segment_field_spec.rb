@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + "/../spec_helper"
+require "spec_helper"
 
 describe EndUserCacheSegmentField do
   it "should only have valid EndUser fields" do

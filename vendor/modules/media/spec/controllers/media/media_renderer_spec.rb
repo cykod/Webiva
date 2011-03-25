@@ -1,12 +1,12 @@
-require  File.expand_path(File.dirname(__FILE__)) + "/../../../../../../spec/spec_helper"
+require "spec_helper"
 
 require  File.expand_path(File.dirname(__FILE__)) + '/../../media_test_helper'
 
 describe Media::MediaRenderer, :type => :controller do
   include MediaTestHelper
-  controller_name :page
+  subject { PageController.new }
 
-  integrate_views
+  render_views
 
   reset_domain_tables :configurations
 

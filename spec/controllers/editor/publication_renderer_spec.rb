@@ -1,11 +1,11 @@
-require File.dirname(__FILE__) + "/../../spec_helper"
+require "spec_helper"
 require File.dirname(__FILE__) + "/../../content_spec_helper"
 
 
 describe Editor::PublicationRenderer, :type => :controller do
-  controller_name :page
+  subject { PageController.new }
   
-  integrate_views
+  render_views
   
   reset_domain_tables :content_publications, :content_publication_fields
   

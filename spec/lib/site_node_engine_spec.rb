@@ -1,9 +1,9 @@
-require File.dirname(__FILE__) + "/../spec_helper"
+require "spec_helper"
 
 describe SiteNodeEngine, :type => :controller do
-  controller_name :page
+  subject { PageController.new }
 
-  integrate_views
+  render_views
 
   @@html_test_code = "<h1>Yo, Html Paragraph here!</h1>"
   @@code_test_code = "<h1>Yo, Code Paragraph here!</h1>"

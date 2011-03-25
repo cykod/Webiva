@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + "/../spec_helper"
+require "spec_helper"
 
 # Test added version support by DomainFileVersion
 # This tests a bunch of functionality on DomainFile as well

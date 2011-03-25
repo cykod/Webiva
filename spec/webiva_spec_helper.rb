@@ -104,6 +104,7 @@ RSpec.configure do |config|
   config.use_transactional_fixtures = false # Modified for 2.3.2
   config.use_instantiated_fixtures  = false
   config.fixture_path = Rails.root + '/spec/fixtures/'
+  config.mock_with :rspec
 
 #  config.before(:suite) do
 #    WebivaCleaner.cleaner.reset
@@ -322,6 +323,36 @@ module RSpec
  module Rails
   module Example
     class ModelExampleGroup
+     
+      
+      def mock_editor(email = 'test@webiva.com',permissions = nil)
+        # get me a client user to ignore any permission issues    
+        @myself = EndUser.push_target('test@webiva.com')
+
+        if permissions.nil?
+          @myself.user_class = UserClass.client_user_class
+          @myself.client_user_id = 1
+          @myself.save
+        else
+          @myself.user_class = UserClass.domain_user_class
+          @myself.save
+          permissions = [ permissions ] unless permissions.is_a?(Array)
+          permissions.map! { |perm| perm.to_sym } 
+          
+          permissions.each do |perm|
+            @myself.user_class.has_role(perm)
+          end
+        end
+        @myself
+      end
+      
+      def mock_user(email = 'test@webiva.com')
+        # get me a client user to ignore any permission issues    
+        @myself = EndUser.push_target(email)
+      end
+    end
+
+    class ExampleGroup
      
       
       def mock_editor(email = 'test@webiva.com',permissions = nil)
@@ -599,4 +630,11 @@ end
 def fixture_file_upload(path, mime_type = nil, binary = false)
   fixture_path = Rspec.configuration.fixture_path
   ActionController::TestUploadedFile.new("#{fixture_path}#{path}", mime_type, binary)
+end
+
+def assert_difference(executable, how_many = 1, &block)
+  before = eval(executable)
+  yield
+  after = eval(executable)
+  after.should == before + how_many
 end

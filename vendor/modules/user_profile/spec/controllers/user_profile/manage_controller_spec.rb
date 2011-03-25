@@ -1,10 +1,10 @@
-require  File.expand_path(File.dirname(__FILE__)) + "/../../../../../../spec/spec_helper"
+require "spec_helper"
 require File.expand_path(File.dirname(__FILE__)) + "/../../../../../../spec/content_spec_helper"
 
 describe UserProfile::ManageController do
   include ContentSpecHelper
 
-  integrate_views
+  render_views
 
   reset_domain_tables :user_profile_types, :user_profile_entries, :content_types,  :content_publications, :end_users, :end_user_caches, :cms_controller_spec_tests, :user_profile_type_user_classes
 

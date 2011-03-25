@@ -1,8 +1,8 @@
-require File.dirname(__FILE__) + "/../spec_helper"
+require "spec_helper"
 
 describe ModulesController do
 
- integrate_views
+ render_views
  
   reset_domain_tables :site_modules
 

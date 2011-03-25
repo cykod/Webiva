@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + "/../spec_helper"
+require "spec_helper"
 
 describe FileController do
-  integrate_views
+  render_views
 
   reset_domain_tables :domain_files, :end_users, :roles, :user_roles
   

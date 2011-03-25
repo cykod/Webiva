@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
-require  File.expand_path(File.dirname(__FILE__)) + "/../../../../../../spec/spec_helper"
+require "spec_helper"
 
 
 describe Blog::AddBlogWizard do

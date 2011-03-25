@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + "/../spec_helper"
+require "spec_helper"
 require File.dirname(__FILE__) + "/../content_spec_helper"
 
 describe ContentController, "create a content model" do
@@ -7,7 +7,7 @@ describe ContentController, "create a content model" do
 
   include ContentSpecHelper
 
- integrate_views
+ render_views
  
  before(:all) do
     # Need to clean out the content models and create a new content model

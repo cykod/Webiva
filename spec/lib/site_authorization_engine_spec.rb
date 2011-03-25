@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + "/../spec_helper"
+require "spec_helper"
 
 describe SiteAuthorizationEngine, :type => :controller do
-  controller_name :page
+  subject { PageController.new }
 
   reset_domain_tables :end_users, :site_versions, :page_revisions, :site_nodes, :site_node_modifiers, :page_paragraphs, :site_templates, :roles, :user_roles
 

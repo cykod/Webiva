@@ -1,10 +1,10 @@
-require  File.expand_path(File.dirname(__FILE__)) + "/../../../../../../spec/spec_helper"
+require "spec_helper"
 
 
 describe Blog::PageRenderer, :type => :controller do
-  controller_name :page
+  subject { PageController.new }
   
-  integrate_views
+  render_views
 
   def generate_page_renderer(paragraph, options={}, inputs={})
     @rnd = build_renderer('/page', '/blog/page/' + paragraph, options, inputs)

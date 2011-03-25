@@ -1,8 +1,8 @@
 require  File.expand_path(File.dirname(__FILE__)) + '/../../simple_content_spec_helper'
 
 describe SimpleContent::PageRenderer, :type => :controller do
-  controller_name :page
-  integrate_views
+  subject { PageController.new }
+  render_views
 
   reset_domain_tables :simple_content_models
 

@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + "/../spec_helper"
+require "spec_helper"
 
 describe MembersController do
-  integrate_views
+  render_views
 
   reset_domain_tables :end_users, :user_subscriptions, :user_subscription_entries, :tags, :mail_templates, :end_user_addresses, :tag_notes, :end_user_tags, :market_segments, :user_segments, :user_segment_caches, :end_user_note
 

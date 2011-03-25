@@ -1,10 +1,10 @@
-require File.dirname(__FILE__) + "/../../spec_helper"
+require "spec_helper"
 
 
 describe Editor::ContentRenderer, :type => :controller do
-  controller_name :page
+  subject { PageController.new }
   
-  integrate_views
+  render_views
 
   describe "Recent Content Paragraph" do 
     def generate_renderer(data = {})
