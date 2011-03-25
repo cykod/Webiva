@@ -198,7 +198,7 @@ class UserSegment < DomainModel
     sort_field = UserSegment::FieldHandler.sortable_fields[self.order_by.to_sym]
     scope = sort_field[:handler].sort_scope(self.order_by, self.order_direction)
     end_user_field = sort_field[:handler].user_segment_fields_handler_info[:end_user_field] || :end_user_id
-    scope = scope.scoped(:select => "DISTINCT #{end_user_field}") if scope.to_sql =~ /^SELECT \*/
+    scope = scope.scoped(:select => "DISTINCT #{end_user_field}") if scope.to_sql =~ /^SELECT \`\w+\`\.\* FROM /
     sorted_ids = scope.find(:all, :conditions => {end_user_field => ids}).collect &end_user_field
 
     ids = sorted_ids + (ids - sorted_ids)
