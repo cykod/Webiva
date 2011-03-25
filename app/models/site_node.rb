@@ -463,7 +463,14 @@ class SiteNode < DomainModel
 
     content_type_ids = ContentType.find(:all,:select => 'id', :conditions => { :detail_site_node_url => self.node_path }).map(&:id)
 
-    @page_content = ContentNode.find(:all,:conditions => { :content_type_id => content_type_ids },:include => :node, :order => 'created_at DESC', :limit => limit )
+    begin
+      @page_content = ContentNode.find(:all,:conditions => { :content_type_id => content_type_ids },:include => :node, :order => 'created_at DESC', :limit => limit )
+    rescue Exception => e
+      @page_content = ContentNode.find(:all,:conditions => { :content_type_id => content_type_ids }, :order => 'created_at DESC', :limit => limit )
+
+    end
+
+    @page_content
   end
   
   def can_index?
