@@ -198,7 +198,7 @@ class Manage::DomainsController < CmsController # :nodoc: all
   end
 
   def destroy
-    if request.method == :post
+    if request.post?
       if @domain
         @domain.destroy
 
