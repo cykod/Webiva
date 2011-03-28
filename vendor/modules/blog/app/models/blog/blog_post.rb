@@ -2,33 +2,40 @@
 
 
 class Blog::BlogPost < DomainModel
-
-  validates_uniqueness_of :permalink, :scope => 'blog_blog_id'  
-
-  has_many :blog_post_revisions, :class_name => 'Blog::BlogPostRevision', :dependent => :destroy
+  include Feedback::PingbackSupport
 
   belongs_to :active_revision, :class_name => 'Blog::BlogPostRevision', :foreign_key => 'blog_post_revision_id'
   belongs_to :blog_blog
   
+  has_many :blog_post_revisions, :class_name => 'Blog::BlogPostRevision', :dependent => :destroy
   has_many :blog_posts_categories
   has_many :blog_categories, :through => :blog_posts_categories
+  has_many :comments, :as => :target
   
+  has_content_tags
+
+  validates_uniqueness_of :permalink, :scope => 'blog_blog_id'  
   validates_presence_of :title
-
   validates_length_of :permalink, :allow_nil => true, :maximum =>  64
-
   validates_datetime :published_at, :allow_nil => true
    
   has_options :status, [ [ 'Draft','draft'],['Preview','preview'], ['Published','published']] 
 
-  has_many :comments, :as => :target
-
-  include Feedback::PingbackSupport
+  validate :validate_published_at
+  validate :validate_content_model
 
   cached_content :update => :blog_blog, :identifier => :permalink
   # Add cached content support, but make sure we update the blog cache element
   
-  has_content_tags
+  before_save :update_revision
+  after_create :update_revision_post
+  after_update :clear_revision
+
+  scope :most_recent, order('published_at DESC')
+  scope :is_viewable, where(:status => ['preview', 'published'])
+  scope :published, where(:status => 'published')
+
+  def self.for_permalink(permalink); self.where(:permalink => permalink); end
 
   def data_model
     return @data_model if @data_model
@@ -42,11 +49,13 @@ class Blog::BlogPost < DomainModel
     self.data_model.attributes = opts
   end
 
-  def validate
+  def validate_published_at
     if self.status == 'published'  && !self.published_at.is_a?(Time)
       self.errors.add(:published_at,'is invalid')
     end
+  end
 
+  def validate_content_model
     self.errors.add_to_base('%s is invalid' / self.blog_blog.content_model.name) if self.data_model && ! self.data_model.valid?
   end
   
@@ -206,8 +215,7 @@ class Blog::BlogPost < DomainModel
     DataCache.expire_content("BlogPost")
   end
 
-
-  def before_save
+  def update_revision
     if self.data_model
       self.data_model.save
       self.data_model_id = self.data_model.id
@@ -225,12 +233,12 @@ class Blog::BlogPost < DomainModel
     self.generate_permalink!
   end
 
-  def after_create
+  def update_revision_post
     @revision.update_attribute(:blog_post_id,self.id)
     @revision= nil
   end
 
-  def after_update
+  def clear_revision
     @revision = nil
   end
 

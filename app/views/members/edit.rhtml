@@ -70,9 +70,9 @@ MemberEditor = {
 <tr>
   <td colspan='2'>
 <div class='tab_container'>
-<% ajax_tabs [ 'Account', 'User Details','Tracking Info' ] + (@user.id.blank? ? [] : ['Addresses' ]), 'Account' do |t| %>
+<%= ajax_tabs [ 'Account', 'User Details','Tracking Info' ] + (@user.id.blank? ? [] : ['Addresses' ]), 'Account' do |t| %>
 
-<% t.tab do -%>
+<%= t.tab do -%>
 <table>
   <%= f.text_field :username %>
   <%= f.text_field :membership_id, :label => 'Membership Number' %>
@@ -86,7 +86,7 @@ MemberEditor = {
 <% end -%>
 
 
-<% t.tab do -%>
+<%= t.tab do -%>
 <table>
   <%= f.text_field :salutation -%>
   <%= f.text_field :middle_name -%>
@@ -114,7 +114,7 @@ MemberEditor = {
 <% end -%>
 
 
-<% t.tab do -%>
+<%= t.tab do -%>
 <table>
   <%= f.select :user_level, EndUser.user_level_select_options %>
   <%= f.text_field :lead_source %>
@@ -122,7 +122,7 @@ MemberEditor = {
   <%= f.end_user_selector :source_user_id, :no_name => true %>
   <%= f.select :language, Configuration.languages.collect { |lang| [ lang.upcase, lang ] } %>
   <%= f.text_field :vip_number, :disabled => !@user.vip_number.blank? %>
-  <% f.custom_field '' do %>
+  <%= f.custom_field '' do %>
     <% if @user.vip_number.blank? %>
         <button onclick='MemberEditor.generateVIPNumber(); return false;' ><%= "Generate VIP Number".t %></button>
     <% else -%>
@@ -133,11 +133,11 @@ MemberEditor = {
 <% end -%>
 
 <% unless  @user.id.blank? %>
-<% t.tab do -%>
+<%= t.tab do -%>
 
-  <% ajax_tabs [ 'Home Address', 'Business Address','Shipping', 'Billing' ], 'Home Address' do |t| %>
+  <%= ajax_tabs [ 'Home Address', 'Business Address','Shipping', 'Billing' ], 'Home Address' do |t| %>
 
-    <% t.tab do -%>
+    <%= t.tab do -%>
     <table>
       <%= cms_subfields_for :address, @address do |af| %>
         <%= af.text_field :address %>
@@ -150,7 +150,7 @@ MemberEditor = {
     </table>
     <% end -%>
 
-    <% t.tab do -%>
+    <%= t.tab do -%>
     <table>
       <%= cms_subfields_for :work_address, @work_address do |af| %>
         <%= af.text_field :company %>
@@ -165,7 +165,7 @@ MemberEditor = {
     </table>
     <% end -%>
 
-    <% t.tab do -%>
+    <%= t.tab do -%>
     <table>
       <%= cms_subfields_for :shipping_address, @shipping_address do |af| %>
         <%= af.text_field :address %>
@@ -180,7 +180,7 @@ MemberEditor = {
     <% end -%>
 
 
-    <% t.tab do -%>
+    <%= t.tab do -%>
     <table>
       <%= cms_subfields_for :billing_address, @billing_address do |af| %>
         <%= af.text_field :address %>

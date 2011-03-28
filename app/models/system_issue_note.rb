@@ -9,9 +9,9 @@ class SystemIssueNote < SystemModel #:nodoc:all
   
   validates_presence_of :action
   
-  
-  def after_create
+  after_create :send_issue
+
+  def send_issue
     SystemIssueMailer.deliver_issue(self.system_issue.reload,'updated')
   end
-  
 end

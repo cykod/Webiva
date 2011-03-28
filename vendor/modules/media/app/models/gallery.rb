@@ -14,20 +14,21 @@ class Gallery < DomainModel
   has_many :all_images, :class_name => 'GalleryImage', :dependent => :destroy, :order => :position
   has_one :first_image, :class_name => 'GalleryImage', :conditions => 'position = 1'
   
-  def before_create
+  before_create :setup_gallery_folder
+  after_destroy :remove_domain_file
+
+  def setup_gallery_folder
     if self.domain_file_id.blank?
       gallery_folder_id = Configuration.options.gallery_folder || DomainFile.root_folder.id
       gal_folder = DomainFile.create_folder(name,gallery_folder_id,:automatic => true,:special=>'gallery')
       self.domain_file = gal_folder
-      
     end    
   end
   
-  def after_destroy
+  def remove_domain_file
     fl = self.domain_file
     fl.destroy if fl
   end 
-  
   
   def resort_images(ascending=true)
     arr = self.gallery_images
@@ -41,7 +42,5 @@ class Gallery < DomainModel
     arr.each_with_index do |img,idx|
       img.update_attribute(:position,idx+1)
     end
-  
   end
-  
 end

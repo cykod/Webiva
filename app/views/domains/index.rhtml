@@ -1,4 +1,4 @@
-<% action_panel do |p| -%>
+<%= action_panel do |p| -%>
   <% if @client.can_add_domain? %>
     <%= p.link 'Add a new domain to this site', :icon => 'add.png', :action => 'edit' %>
   <% end -%>

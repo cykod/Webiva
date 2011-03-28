@@ -16,7 +16,7 @@ MemberViewer = {
 </script>
 
 <% unless @user.client_user_id || (@user.user_class.editor? && !myself.has_role?('editor_editors')) %>
-<% action_panel do |p| -%>
+<%= action_panel do |p| -%>
   <%= p.link 'Edit User',:icon => 'pen.png',:action => 'edit', :path => [ @user, @segment ? @segment.id : nil ].compact %>
   <%= p.link 'Login as User', { :icon => 'download.gif',:action => 'login', :path => @user }, :method => 'post' %>
 <% end -%>
@@ -27,7 +27,7 @@ MemberViewer = {
 <tr>
   <td width='260' valign='top'>
     <div>
-    <% stat_view do |f| %>
+    <%= stat_view do |f| %>
       <%= f.header "User Profile" %>
       <%= f.row 'Name',@user.name %>
       <%= f.row 'Username',@user.username unless @user.username.blank? %>
@@ -61,9 +61,9 @@ MemberViewer = {
   <td valign='top'>
 
 <div class="tab_container">
-<% ajax_tabs [ 'Details', 'Notes' ] + @handler_tabs, 'Details' do |t| -%>
+<%= ajax_tabs [ 'Details', 'Notes' ] + @handler_tabs, 'Details' do |t| -%>
 
-<% t.tab do -%>
+<%= t.tab do -%>
   <div style='padding:5px 10px'>
 
   <% if @user.address_id || @user.billing_address_id || @user.work_address_id || @user.shipping_address_id %>
@@ -85,7 +85,7 @@ MemberViewer = {
   </div>
 <% end -%>
 
-<% t.tab do -%>
+<%= t.tab do -%>
   <% @user.end_user_notes.each do |note| -%>
     <div class="note">
       <%= render :partial => 'user_note', :locals => {:note => note} %>
@@ -94,7 +94,7 @@ MemberViewer = {
 <% end -%>
 
 <% @handler_tabs.each_with_index do |handler,idx| -%>
-  <% t.tab do -%>
+  <%= t.tab do -%>
     <div style='padding:5px 10px' id='tab_<%= idx+1 %>'><%= "Loading...".t %></div>
   <% end -%>
 <% end -%>

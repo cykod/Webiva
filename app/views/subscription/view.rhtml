@@ -2,7 +2,7 @@
   <%= active_table_javascript %>
 </script>
 
-<% action_panel do |p| -%>
+<%= action_panel do |p| -%>
   <%= p.link 'Edit Subscription', :icon => 'edit.gif',:action => 'edit',:path => @subscription.id %>
   <%= p.link 'Download Email Addresses', :icon => 'download.gif',:action => 'download',:path => @subscription.id, :target => '_blank' %>
 <% end -%>

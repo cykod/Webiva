@@ -1,6 +1,6 @@
 <% even = 0 %>
 
-<% active_table_for :visitor, @active_table_output,
+<%= active_table_for :visitor, @active_table_output,
                     :refresh_url => url_for(:controller => '/emarketing', :action => 'visitor_update'),
                     :class => 'active_table', :width => '100%',
                     :update => 'entries_table' do |t| -%>

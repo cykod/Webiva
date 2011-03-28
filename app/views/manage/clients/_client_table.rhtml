@@ -1,4 +1,4 @@
-<% active_table_for :client_table, @active_table_output,
+<%= active_table_for :client_table, @active_table_output,
                     :refresh_url => url_for(:action => 'display_client_table'),
                     :class => 'active_table',
                     :actions => [ [ 'Delete', 'delete', 'Are you sure you want to delete this client and all related domains?' ]],

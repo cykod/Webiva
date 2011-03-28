@@ -24,14 +24,14 @@
 </tr>
 <tr>
   <td colspan='2' valign='top'>
-   <% ajax_tabs ['HTML Body','Text Body','Attachments'], 'HTML Body' do |t| %>
+   <%= ajax_tabs ['HTML Body','Text Body','Attachments'], 'HTML Body' do |t| %>
   
-  <% t.tab do %>
+  <%= t.tab do %>
       <label><input type='checkbox'  id='mail_template_body_value_html' name='mail_template[body_type][]' value='html' <%= "checked='checked'" if @mail_template.body_type.include?('html') %> /> <%= "Enabled HTML Body".t %></label><br/>
       <textarea id='template_body_html' name='mail_template[body_html]' cols='70' rows='10'><%= h @mail_template.body_html %></textarea>
   <% end -%>
   
-  <% t.tab do %>
+  <%= t.tab do %>
     <input type='hidden' name='mail_template[body_type][]' value='' />
     <label><input type='checkbox' id='mail_template_body_value_text'  name='mail_template[body_type][]' value='text' <%= "checked='checked'" if @mail_template.body_type.include?('text') %> /> <%= "Enable Text Body".t %></label>
     &nbsp; <%= "Use %%Variable_Name%% to insert variables into the text template".t  %>
@@ -39,7 +39,7 @@
     <textarea id='template_body_text'  name='mail_template[body_text]' style='height:300px; width:100%;' ><%= h @mail_template.body_text %></textarea>
   <% end -%>
 
-  <% t.tab do %>
+  <%= t.tab do %>
     <div id='attachments' style='height:300px;'>
       <%= link_to '+Add Attachment'.t, { :controller => 'file', :action => 'popup' , :select => 'all', :callback => 'MailTemplateEditor.attachDocument' }, :popup => ['file_manager', 'height=400,width=800' ] %>
       <div id='template_attachments'>

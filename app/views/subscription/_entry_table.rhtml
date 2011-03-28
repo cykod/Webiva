@@ -1,4 +1,4 @@
-<% active_table_for :entry_table, @active_table_output,
+<%= active_table_for :entry_table, @active_table_output,
                   :actions => [ ['Unsubscribe','unsubscribe','Are you want to unsubscribe the selected users?' ]],
                   :refresh_url => url_for(:action => 'display_entry_table',:path => @subscription.id) do |t| -%>
 <tr <%= highlight_row 'entry',t.id %> >

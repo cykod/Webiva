@@ -18,7 +18,7 @@
   };
 </script>
 <% if myself.has_role?('editor_access_tokens') -%>
-<% action_panel do |p| -%>
+<%= action_panel do |p| -%>
   <%= p.link 'Access Tokens',:controller => '/access_token',:action => 'editor', :icon => 'configure.gif' %>
 <% end -%>
 
@@ -28,9 +28,9 @@
 
 <% end -%>
 
-<% ajax_tabs @categories.collect { |cat| cat[1]  } + ['User Profiles'.t], @categories[0][1]  do |t| %>
+<%= ajax_tabs @categories.collect { |cat| cat[1]  } + ['User Profiles'.t], @categories[0][1]  do |t| %>
 <% @categories.each do |perm| %>
-  <% t.tab do %>
+  <%= t.tab do %>
   <div class='admin_content'>
     <div id='permission_category_<%= perm[0] %>'>
       <%= render :partial => 'permission_grid', :locals => { :category => perm, :permissions => @permissions[perm[0]] } %>
@@ -39,7 +39,7 @@
   <% end -%>
 <% end -%>
 
-<% t.tab do %>
+<%= t.tab do %>
 
 <div class='admin_content'>
   <%= render :partial => 'user_profiles' %>

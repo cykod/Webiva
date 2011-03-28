@@ -1,4 +1,4 @@
-<% active_table_for :site_templates_table, @active_table_output,
+<%= active_table_for :site_templates_table, @active_table_output,
                     :actions => [['Export Themes', 'js', 'SiteTemplateList.setupBundle();']],
                     :more_actions => [['Delete Themes', 'delete', 'Are you sure you want to permanently delete these themes?']],
                     :update => 'site_templates_table' do |t| %>

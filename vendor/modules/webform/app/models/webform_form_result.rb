@@ -8,17 +8,21 @@ class WebformFormResult < DomainModel
   belongs_to :domain_log_session
 
   validates_presence_of :webform_form_id
+  validate :validate_data
 
   content_node
   cached_content :update => [:webform_form]
 
   serialize :data
 
-  named_scope :posted_after, lambda {|date| {:conditions => ["posted_at > ?", date]}}
-  named_scope :posted_before, lambda {|date| {:conditions => ["posted_at < ?", date]}}
-  named_scope :posted_between, lambda {|from, to| {:conditions => {:posted_at => (from..to)}}}
+  def self.posted_after(date); self.where("posted_at > ?", date); end
+  def self.posted_before(date); self.where("posted_at < ?", date); end
+  def self.posted_between(from, to); self.where(:posted_at => from..to); end
 
-  def validate
+  before_create :set_defaults
+  before_save :notify_webform_features
+
+  def validate_data
     if self.webform_form
       errors.add(:data, 'is invalid') unless self.data_model.valid?
     end
@@ -67,12 +71,12 @@ class WebformFormResult < DomainModel
     end
   end
 
-  def before_create
+  def set_defaults
     self.reviewed = false
     self.posted_at = Time.now
   end
 
-  def before_save
+  def notify_webform_features
     self.webform_form.webform_features(self)
   end
 

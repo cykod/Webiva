@@ -4,7 +4,7 @@
 <% flash[:notice] = nil %>
 <% end -%>
 
-<% active_table_for :email_table, @active_table_output,
+<%= active_table_for :email_table, @active_table_output,
                     :refresh_url =>  url_for(:action => 'email_table_output'),
                     :class => 'active_table',    
                     :actions => [ [ 'Delete','delete','Are you sure you want to delete the selected addreses?' ] ],                

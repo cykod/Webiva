@@ -60,7 +60,7 @@
 
 </script>
 
-<% action_panel do |p| -%>
+<%= action_panel do |p| -%>
   <% p.custom do -%>
   <iframe id="UploadTarget" name="UploadTarget" src="" style="width:0;height:0px;border:0px;"></iframe>
   <%= form_tag({  :action => "gallery_upload", :path => @gallery.id }, :enctype => 'multipart/form-data', :onsubmit => 'this.target="UploadTarget"; GalleryEditor.showUploadStatus();', :style => 'display:inline; padding:0px; margin:0px;') %>

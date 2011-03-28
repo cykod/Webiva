@@ -1,4 +1,4 @@
-<% stat_view do |s| -%>
+<%= stat_view do |s| -%>
   <%= s.raw 'Published', @profile_entry.published ? 'Yes'.t : 'No'.t -%>
   <% if @profile_entry.content_model -%>
     <% @profile_entry.user_profile_type.display_content_model_fields.each do |fld| %>

@@ -5,6 +5,7 @@ class SiteFeature < DomainModel
   serialize :options
   
   validates_presence_of :name, :feature_type
+  validate :validate_xml
   
   belongs_to :admin_user, :class_name => 'EndUser', :foreign_key => :admin_user_id
   
@@ -16,7 +17,9 @@ class SiteFeature < DomainModel
   
   track_editor_changes
   
-  def validate
+  before_save :update_image_paths
+
+  def validate_xml
     if self.validate_xml
       validator = Util::HtmlValidator.new(self.body)
       if !validator.valid?
@@ -29,8 +32,7 @@ class SiteFeature < DomainModel
     self.image_folder ? self.image_folder : (self.site_template ? self.site_template.domain_file : nil )
   end
   
-
-  def before_save
+  def update_image_paths
     self.body_html = replace_images(self.body.to_s)
     self.rendered_css = replace_images(self.css.to_s)
   end

@@ -1,5 +1,5 @@
 <% current_time = Time.now %>
-<% active_table_for :category_table, @active_table_output,
+<%= active_table_for :category_table, @active_table_output,
                     :refresh_url => url_for(:action => 'category_table', :path => @blog.id),
                     :class => 'active_table',
                     :actions => [ [ 'Delete', 'delete', 'Are you sure you want to permantently delete the selected category?' ] ],

@@ -9,6 +9,9 @@ class ExperimentVersion < DomainModel
   validates_presence_of :weight
   validates_presence_of :experiment_id
 
+  after_save :add_to_paragraph
+  before_destroy :remove_from_paragraph
+
   def title(opts={})
     return @title if @title
     return @title = self.revision.to_s unless self.page_revision
@@ -36,7 +39,7 @@ class ExperimentVersion < DomainModel
     @page_revision = self.experiment.experiment_container.page_revisions.first :conditions => {:revision => self.revision, :language => self.language, :revision_type => 'real'}
   end
 
-  def after_save
+  def add_to_paragraph
     return unless self.page_revision && self.experiment
 
     if self.experiment.finished? || ! self.experiment.same_page?
@@ -48,7 +51,7 @@ class ExperimentVersion < DomainModel
     end
   end
 
-  def before_destroy
+  def remove_from_paragraph
     return unless self.page_revision
 
     self.remove_experiment_conversion_webform_trigger self.page_revision

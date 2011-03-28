@@ -155,11 +155,11 @@
   }
 </script>
 
-<% action_panel :handler => 'members', :more => true do |p| -%>
+<%= action_panel :handler => 'members', :more => true do |p| -%>
   <%= p.link "Add a user",:icon => 'add.png', :action => 'create' %>
 <% end -%>
 
-<% more_action_panel :handler => 'members' do |p| -%>
+<%= more_action_panel :handler => 'members' do |p| -%>
   <%= p.link "Import People",:icon => 'upload.gif', :controller => :member_import %>
   <%= p.link "Download Current List",:icon => 'download.gif', :controller => :member_export, :action => 'index', :path => @segment ? @segment.id : nil %>
   <%= p.link "Tag List", :icon => 'show.gif', :action => 'tags' %>

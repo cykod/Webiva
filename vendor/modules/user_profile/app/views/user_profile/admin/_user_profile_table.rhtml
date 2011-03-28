@@ -1,5 +1,5 @@
 <div class='admin_content'>
-<% active_table_for :user_profile_table, @tbl, :refresh_url => url_for(:action => 'display_user_profile_table', :path => ""), 
+<%= active_table_for :user_profile_table, @tbl, :refresh_url => url_for(:action => 'display_user_profile_table', :path => ""), 
 :actions => [ ['Delete','delete','Are you sure you want to delete these profiles?']] do |t| -%>
 
 

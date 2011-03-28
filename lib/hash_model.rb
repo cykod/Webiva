@@ -23,10 +23,17 @@ HashModel's are used throughout webiva
 
 =end
 class HashModel 
-  include Validateable
+  # include Validateable
+  include ActiveModel::Validations
+  include ActiveModel::Conversion
+  extend ActiveModel::Naming
+
   include WebivaValidationExtension
   include ModelExtension::OptionsExtension
-  
+
+  def persisted?; true; end
+  def new_record?; false; end
+
   def self.defaults
     {}
   end
@@ -341,6 +348,10 @@ class HashModel
     super
   end
   
+  def deprecated_callback_method(symbol) #:nodoc:
+    ActiveSupport::Deprecation.warn("Overwriting #{symbol} in your models has been deprecated, please use Base##{symbol} :method_name instead")
+  end
+
   def format_data
    int_opts = self.class.current_integer_opts
     int_opts.each do |opt|

@@ -1,4 +1,4 @@
-<% active_table_for :site_nodes_table, @active_table_output,
+<%= active_table_for :site_nodes_table, @active_table_output,
                     :refresh_url => url_for(:action => 'display_site_nodes_table', :path => @version.id, :language => @language),
                     :update => 'site_nodes_table' do |t| %>
 <tr <%= highlight_row 'site_node',t.id %> >

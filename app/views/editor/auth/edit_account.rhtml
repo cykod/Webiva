@@ -7,15 +7,15 @@
                      :style => 'height:450px; width:550px;',
                      :onsubmit => "cmsEdit.submitParagraphData(this,'#{url_for :action => 'edit_account'}',#{@paragraph.id},#{@paragraph_index}); return false;"
                    }  do |f| -%>
-<% ajax_tabs ['Configuration','Fields','Display','Actions'], 'Configuration' do |t| %>
-<% t.tab do %>
+<%= ajax_tabs ['Configuration','Fields','Display','Actions'], 'Configuration' do |t| %>
+<%= t.tab do %>
 <table>
   <%= f.select :success_page, @pages %>
   <%= f.text_field :add_tags, :label => 'Add Tags on Edit' %>
   <%= f.select :include_subscriptions, @subscriptions,{},:multiple => true, :size => 5, :valign => 'top' %>
 </table>
 <% end -%>
-<% t.tab do -%>
+<%= t.tab do -%>
 <table>
     <%= f.radio_buttons :address_type, [ ['United States','us' ] ,[ 'European','european' ], ] %>
     <%= f.select :country, [['Show Country Selection'.t,'']] + f.translated_countries_for_select( [ 'United States' ] ) %>
@@ -25,13 +25,13 @@
   <%= f.radio_buttons :reset_password, [ ['Show','show'],['Off','off']] %>
 </table>
 <% end -%>
-<% t.tab do -%>
+<%= t.tab do -%>
 <table>
   <%= f.text_field :edit_button, :label => 'Edit Button Label' %>
   <%= f.radio_buttons :form_display, [ [ 'Standard', 'normal' ], ['Vertical', 'vertical']]  %>
 </table>
 <% end -%>
-<% t.tab do -%>
+<%= t.tab do -%>
 <div id='cms_triggered_actions'>
   <%= render :partial => '/editor/includes/actions' %>
 </div>

@@ -1,4 +1,4 @@
-<% active_table_for :user_actions_table, @tbl,
+<%= active_table_for :user_actions_table, @tbl,
     :refresh_url => url_for(:action => 'display_user_actions_table',:path => [ @user.id ]) do |t| -%>
 <tr <%= highlight_row 'action',t.id %>>
   <td><%= t.description %></td>

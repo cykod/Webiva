@@ -1,5 +1,5 @@
 <% current_time = Time.now %>
-<% active_table_for :experiments_table, @active_table_output,
+<%= active_table_for :experiments_table, @active_table_output,
                     :more_actions => [['Delete', 'delete', 'Are you sure you want to delete these experiments?']],
                     :style => 'width:100%' do |t| %>
 <tr <%= highlight_row 'experiment',t.id %>>

@@ -162,8 +162,8 @@ Event.observe(document.onresize ? document : window, "resize",FeatureEditor.kill
 </label>
 </div>
 </div>
-<% ajax_tabs ['Options','Theme',['CSS','FeatureEditor.activateCss();']],  'Theme' do |t| -%>
-  <% t.tab do  -%>
+<%= ajax_tabs ['Options','Theme',['CSS','FeatureEditor.activateCss();']],  'Theme' do |t| -%>
+  <%= t.tab do  -%>
    <div class='admin_content' id='feature_options'>
       <%= admin_fields_for :feature, @feature do |f| -%>
          <%= f.text_field :category, :size => 30 %>
@@ -175,7 +175,7 @@ Event.observe(document.onresize ? document : window, "resize",FeatureEditor.kill
    </div>
   <% end -%>
 
-  <% t.tab do  -%>
+  <%= t.tab do  -%>
       <div id='show_default_feature'>
         <a href='javascript:void(0);' onclick='SCMS.showHide("default_feature","show_default_feature");'><%= "Show Default Feature".t %></a>
         <% if @doc -%>
@@ -224,7 +224,7 @@ Event.observe(document.onresize ? document : window, "resize",FeatureEditor.kill
      
   <% end -%>
   
-  <% t.tab do -%>
+  <%= t.tab do -%>
       <table width='100%'>
       <tr>
         <td width='100%'>

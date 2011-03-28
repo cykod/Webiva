@@ -2,9 +2,9 @@
   <%= paragraph_options_form_for "Email List Options",:email_list ,@options, :html => { :style => 'width:600px; height:450px; overflow:auto;' } do |f| -%>
 <tr>
 <td colspan='2'>                  
-<% ajax_tabs ['Options','Fields','Triggered Actions'], 'Options' do |t| %>
+<%= ajax_tabs ['Options','Fields','Triggered Actions'], 'Options' do |t| %>
 
-  <% t.tab do -%>  
+  <%= t.tab do -%>  
     <table>
     <%= f.select :user_subscription_id, @subscriptions %>
     <%= f.text_field :tags, :description => 'Comma separated list of Tags to add to email contact' %>
@@ -14,7 +14,7 @@
     </table>
   <% end -%>
   
-  <% t.tab do -%>
+  <%= t.tab do -%>
     <table>
     <%= f.radio_buttons :zip, @on_off %>
     <%= f.radio_buttons :first_name, @on_off %>
@@ -24,7 +24,7 @@
   <% end -%>
   
   
-  <% t.tab do -%>  
+  <%= t.tab do -%>  
     <div id='cms_triggered_actions'>
     <%= render :partial => '/editor/includes/actions' %>
   </div>

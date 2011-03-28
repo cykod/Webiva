@@ -49,10 +49,10 @@
   
    <%= active_table_javascript %>
 </script>
-<% action_panel :handler => 'visitors', :more => true do |p| -%>
+<%= action_panel :handler => 'visitors', :more => true do |p| -%>
 <% end -%>
 
-<% more_action_panel :handler => 'visitors' do |p| -%>
+<%= more_action_panel :handler => 'visitors' do |p| -%>
   <%= p.link "Visitors", {:url => "javascript:void(0);"}, :"j-action" => 'swap', :swap => '#visitors,#google_analytics' %>
   <%= p.link "Google Analytics", {:url => "javascript:void(0);"}, :"j-action" => 'swap', :swap => '#google_analytics,#visitors' %>
 <% end -%>

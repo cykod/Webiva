@@ -1,7 +1,7 @@
 
 class WebformForm < DomainModel
-  validates_presence_of :name
-  validates_uniqueness_of :name
+  validates :name, :presence => true, :uniqueness => true
+  validate :validate_content_model
 
   has_many :webform_form_results, :dependent => :delete_all
 
@@ -10,7 +10,9 @@ class WebformForm < DomainModel
 
   cached_content
 
-  def validate
+  before_save :update_fields
+
+  def validate_content_model
     self.errors.add_to_base('Invalid options') unless self.content_model.valid?
   end
 
@@ -34,7 +36,7 @@ class WebformForm < DomainModel
     @content_model ||= ContentHashModel.new(self.fields, self.features)
   end
 
-  def before_save
+  def update_fields
     self.fields = self.content_model.to_a
     self.features = self.content_model.features
   end

@@ -8,6 +8,7 @@ add your own triggers into the system.
 =end
 class TriggeredAction < DomainModel
   validates_presence_of :action_type,:name, :action_trigger, :trigger
+   validate :validate_type
   
   belongs_to :trigger, :polymorphic => true
   
@@ -15,16 +16,14 @@ class TriggeredAction < DomainModel
   
   include ActionView::Helpers::TagHelper
   
-  def validate #:nodoc
+  before_create { self.data ||= {} }
+
+  def validate_type #:nodoc
     full_act = self.full_action_type
     unless TriggeredAction.available_actions_options.detect { |opt| opt[1] == full_act } 
       self.errors.add(:full_action_type,'is not a valid action')
       self.errors.add(:action_type,'is not a valid action')
     end    
-  end
-  
-  def before_create #:nodoc:
-    self.data ||= {}
   end
   
   def triggers #:nodoc:

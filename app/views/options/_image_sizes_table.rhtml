@@ -1,4 +1,4 @@
-<% active_table_for :image_sizes_table, @active_table_output,
+<%= active_table_for :image_sizes_table, @active_table_output,
       :actions => [ ['Delete','delete','Are you sure you want to delete the selected image sizes?' ]]  do |t| -%>
 <tr <%= highlight_row 'domain_file_size',t.id %>>
   <td><%= entry_checkbox 'domain_file_size', t.id %></td>

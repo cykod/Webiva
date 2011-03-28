@@ -1,5 +1,5 @@
 <% current_time = Time.now %>
-<% active_table_for :webform_result_table, @active_table_output,
+<%= active_table_for :webform_result_table, @active_table_output,
                     :refresh_url => url_for(:action => 'webform_result_table', :path => [@webform.id]),
                     :style => 'width:100%',
                     :actions => [['Mark as Read', 'mark'], ['Mark as Unread', 'unmark']],

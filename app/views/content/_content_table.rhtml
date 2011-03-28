@@ -1,6 +1,6 @@
 <% can_edit = @content_model.can_edit?(myself) %>
 
-<% active_table_for @content_model.table_name + '_table', @active_table_output,
+<%= active_table_for @content_model.table_name + '_table', @active_table_output,
                     :refresh_url => url_for(:action => 'active_table', :path => @content_model.id),
                     :class => 'active_table',
                     :style => 'width:100%',

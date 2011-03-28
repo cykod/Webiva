@@ -88,7 +88,7 @@ class EndUser < DomainModel
 
   has_many :end_user_notes, :order => 'created_at DESC'
 
-  has_many :end_user_tags
+  has_many :end_user_tags, :dependent => :delete_all
   has_many :tags, :through => :end_user_tags
   after_save :tag_cache_after_save
   include ContentTagFunctionality

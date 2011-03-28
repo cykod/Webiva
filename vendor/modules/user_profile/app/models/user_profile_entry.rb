@@ -9,16 +9,8 @@ class UserProfileEntry < DomainModel
 
   has_many :user_profile_view_entries
 
-  named_scope :by_type, lambda { |type_id| 
-    { :conditions => { :user_profile_type_id => type_id } }
-  }
-
-  named_scope :by_user, lambda { |user_id|
-   { :conditions => { :end_user_id => user_id },
-     :include => :end_user,
-     :group => :end_user_id
-   }
-  }
+  def self.by_type(type_id); where(:user_profile_type_id => type_id); end
+  def self.by_user(user_id); self.where(:end_user_id => user_id).group(:end_user_id).includes(:end_user); end
 
   cached_content  :identifier => :url
 

@@ -31,13 +31,13 @@
         :onchange => "ProfileData.changeType(this.value);" %>
   </div>
 <% end -%>
-<% ajax_tabs ['View','Edit'] , @editing_profile ? 'Edit' : 'View' do |t| %>
-  <% t.tab do -%>
+<%= ajax_tabs ['View','Edit'] , @editing_profile ? 'Edit' : 'View' do |t| %>
+  <%= t.tab do -%>
     <div id="display_profile">
       <%= render(:partial => 'display_profile') %>
     </div>
   <% end -%>
-  <% t.tab do -%>
+  <%= t.tab do -%>
     <div id="edit_profile">
       <%= render :partial => 'edit_profile' %>
     </div>

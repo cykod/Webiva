@@ -8,13 +8,13 @@ SiteTemplateList = {
 }
 </script>
 
-<% action_panel  :more => true do |p| -%>
+<%= action_panel  :more => true do |p| -%>
   <%= p.link 'Add a Blank Theme', :action => 'new', :icon => 'add.png' %>
   <%= p.link 'View Paragraph Themes',:action => 'features', :icon => 'view.png' %>
 <% end -%>
 
 
-<% more_action_panel :handler => 'templates' do |p| -%>
+<%= more_action_panel :handler => 'templates' do |p| -%>
   <%= p.link 'Import Theme',:action => 'import_bundle', :icon => 'view.gif' %>
   <%= p.link 'Theme Builder',:controller => '/theme_builder', :icon => 'view.gif' %>
 <% end -%>

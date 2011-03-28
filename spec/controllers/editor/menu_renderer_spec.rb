@@ -36,7 +36,7 @@ describe Editor::MenuRenderer, :type => :controller do
     SiteNode.should_receive(:find_by_id).once.and_return(test_node)
 
     @output = renderer_get @rnd
-    @output.status.should == '200 OK'
+    @output.status.should == 200
   end
 
   it "should renderer an automenu with subpages" do
@@ -59,7 +59,7 @@ describe Editor::MenuRenderer, :type => :controller do
     root_node.should_receive(:nested_pages).at_least(:once)
 
     @output = renderer_get @rnd
-    @output.status.should == '200 OK'
+    @output.status.should == 200
   end
 
   it "should renderer an automenu without subpages" do
@@ -82,7 +82,7 @@ describe Editor::MenuRenderer, :type => :controller do
 
 
     @output = renderer_get @rnd
-    @output.status.should == '200 OK'
+    @output.status.should == 200
   end
 
   it "should renderer an automenu without a page" do
@@ -105,7 +105,7 @@ describe Editor::MenuRenderer, :type => :controller do
 
   
     @output = renderer_get @rnd
-    @output.status.should == '200 OK'
+    @output.status.should == 200
   end
 
   it "should render a site map of the entire site" do
@@ -124,7 +124,7 @@ describe Editor::MenuRenderer, :type => :controller do
     @site_version.should_receive(:root_node).once.and_return(@root_node)
 
     @output = renderer_get @rnd
-    @output.status.should == '200 OK'
+    @output.status.should == 200
   end
 
   it "should render bread crumbs" do
@@ -149,7 +149,7 @@ describe Editor::MenuRenderer, :type => :controller do
     test.should_receive(:parent).twice.and_return(@root_node)
 
     @output = renderer_get @rnd
-    @output.status.should == '200 OK'
+    @output.status.should == 200
   end
 
   it "should render bread crumbs with limit" do
@@ -174,6 +174,6 @@ describe Editor::MenuRenderer, :type => :controller do
     test.should_receive(:parent).exactly(0).and_return(@root_node)
 
     @output = renderer_get @rnd
-    @output.status.should == '200 OK'
+    @output.status.should == 200
   end
 end

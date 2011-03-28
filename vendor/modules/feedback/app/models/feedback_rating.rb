@@ -6,8 +6,8 @@ class FeedbackRating < DomainModel
 
   cached_content :identifier => :target_identifier
 
-  named_scope :with_target, lambda { |type, id| {:conditions => ['`feedback_ratings`.target_type = ? and `feedback_ratings`.target_id = ?', type, id]} }
-
+  def self.with_target(type, id); self.where('feedback_ratings.target_type = ? and feedback_ratings.target_id = ?', type, id); end
+  
   def target_identifier
     "#{self.target_type}_#{self.target_id}"
   end

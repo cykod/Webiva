@@ -319,184 +319,119 @@ module RspecRendererExtensions
 
 end
 
-module RSpec
- module Rails
-  module Example
-    class ModelExampleGroup
-     
-      
-      def mock_editor(email = 'test@webiva.com',permissions = nil)
-        # get me a client user to ignore any permission issues    
-        @myself = EndUser.push_target('test@webiva.com')
+module RSpec::Rails
+  module ControllerExampleGroup
+    def mock_editor(email = 'test@webiva.com',permissions = nil)
+      # get me a client user to ignore any permission issues    
+      @myself = EndUser.push_target('test@webiva.com')
 
-        if permissions.nil?
-          @myself.user_class = UserClass.client_user_class
-          @myself.client_user_id = 1
-          @myself.save
-        else
-          @myself.user_class = UserClass.domain_user_class
-          @myself.save
-          permissions = [ permissions ] unless permissions.is_a?(Array)
-          permissions.map! { |perm| perm.to_sym } 
-          
-          permissions.each do |perm|
-            @myself.user_class.has_role(perm)
-          end
-        end
-        @myself
-      end
-      
-      def mock_user(email = 'test@webiva.com')
-        # get me a client user to ignore any permission issues    
-        @myself = EndUser.push_target(email)
-      end
-    end
-
-    class ExampleGroup
-     
-      
-      def mock_editor(email = 'test@webiva.com',permissions = nil)
-        # get me a client user to ignore any permission issues    
-        @myself = EndUser.push_target('test@webiva.com')
-
-        if permissions.nil?
-          @myself.user_class = UserClass.client_user_class
-          @myself.client_user_id = 1
-          @myself.save
-        else
-          @myself.user_class = UserClass.domain_user_class
-          @myself.save
-          permissions = [ permissions ] unless permissions.is_a?(Array)
-          permissions.map! { |perm| perm.to_sym } 
-          
-          permissions.each do |perm|
-            @myself.user_class.has_role(perm)
-          end
-        end
-        @myself
-      end
-      
-      def mock_user(email = 'test@webiva.com')
-        # get me a client user to ignore any permission issues    
-        @myself = EndUser.push_target(email)
-      end
-    end
-
-    class ControllerExampleGroup
- 
-
-      def mock_editor(email = 'test@webiva.com',permissions = nil)
-        # get me a client user to ignore any permission issues    
-        @myself = EndUser.push_target('test@webiva.com')
-
-        if permissions.nil?
-          @myself.user_class = UserClass.client_user_class
-          @myself.client_user_id = 1
-          @myself.save
-        else
-          @myself.user_class = UserClass.domain_user_class
-          @myself.save
-          permissions = [ permissions ] unless permissions.is_a?(Array)
-          permissions.map! { |perm| perm.to_sym } 
-          
-          permissions.each do |perm|
-            @myself.user_class.has_role(perm)
-          end
-        end
+      if permissions.nil?
+        @myself.user_class = UserClass.client_user_class
+        @myself.client_user_id = 1
+        @myself.save
+      else
+        @myself.user_class = UserClass.domain_user_class
+        @myself.save
+        permissions = [ permissions ] unless permissions.is_a?(Array)
+        permissions.map! { |perm| perm.to_sym } 
         
-        controller.should_receive('myself').at_least(:once).and_return(@myself)
-      end
-      
-      def mock_user(email = 'test@webiva.com')
-        # get me a client user to ignore any permission issues    
-        @myself = EndUser.push_target(email)
-        controller.should_receive('myself').at_least(:once).and_return(@myself)
-        @myself
-      end
-
-      def paragraph_controller_helper(site_node_path,display_module_type,data={},extra_attributes = {})
-        display_parts = display_module_type.split("/")
-	@site_version ||= SiteVersion.new :name => 'Test', :default_version => true
-	@root_node ||= SiteNode.create :site_version => @site_version, :node_type => 'R', :node_path => '/'
-	@site_node = @root_node.add_subpage(site_node_path.sub('/', ''))
-	@revision = PageRevision.create :revision_container => @site_node, :language => 'en', :active => true, :created_by => @myself, :updated_by => @myself
-	@paragraph = PageParagraph.create :display_module => display_parts[0..-2].join("/"), :display_type => display_parts[-1], :page_revision_id => @revision.id, :data => data, :attributes => extra_attributes
-      end
-
-      def paragraph_controller_path
-	['page', @site_node.id, @revision.id, @paragraph.id, 0]
-      end
-
-      def paragraph_controller_get(page, args = {})
-	args[:path] = paragraph_controller_path
-	get page, args
-      end
-
-      def paragraph_controller_post(page, args = {})
-	args[:path] = paragraph_controller_path
-	post page, args
-      end
-
-      def display_all_editors_for(&block)
-	controller.class.get_editor_for.each do |editor|
-	  paragraph_controller_helper("/#{editor[0]}", "/#{controller.class.to_s.underscore}/#{editor[0]}")
-	  output = paragraph_controller_get editor[0]
-	  yield editor[0], output
-	end
-      end
-
-      def build_renderer_helper(user_class,site_node_path,display_module_type,data={},page_connections={},extra_attributes = {})
-        display_parts = display_module_type.split("/")
-        para = PageParagraph.create(:display_type => display_parts[-1], :display_module => display_parts[0..-2].join("/"),:data=>data)
-        para.attributes = extra_attributes
-        para.direct_set_page_connections(page_connections)
-        rnd = para.renderer.new(user_class,controller,para,SiteNode.new(:node_path => site_node_path,:site_version_id => SiteVersion.default.id),PageRevision.new,{})
-        rnd.extend(RspecRendererExtensions)
-        rnd
-      end
-         
-      def build_renderer(site_node_path,display_module_type,data={},page_connections={},extra_attributes={})
-        build_renderer_helper(UserClass.default_user_class,site_node_path,display_module_type,data,page_connections,extra_attributes)
-      end
-      
-      def build_anonymous_renderer(site_node_path,display_module_type,data={},page_connections={},extra_attributes={})
-        build_renderer_helper(UserClass.anonymous_user_class,site_node_path,display_module_type,data,page_connections,extra_attributes)
-      end     
-
-      def renderer_get(rnd,args = {})
-        controller.set_test_renderer(rnd)
-        get :renderer_test, args
-      end
-      
-      def renderer_post(rnd,args = {})
-        controller.set_test_renderer(rnd)
-        post :renderer_test, args
-      end
-      
-   end
-   
-    class ViewExampleGroup
-      def build_feature(feature_class,code=nil)
-        if code
-          site_feature = mock_model(SiteFeature,:body => code,:body_html => code,:feature_type => :any,:options => {} )
-          paragraph = mock_model(PageParagraph,:site_feature => site_feature, :content_publication => nil,:page_revision => PageRevision.new, :language => 'en', :html_include => {})
-        else
-          paragraph = mock_model(PageParagraph,:site_feature => nil, :content_publication => nil,:page_revision => PageRevision.new, :language => 'en', :html_include => {})
+        permissions.each do |perm|
+          @myself.user_class.has_role(perm)
         end
-        renderer = mock_model(ParagraphRenderer,
-                              :get_handler_info => [],
-                              :protect_against_forgery? => false,
-                              :require_js => nil,
-                              :paragraph_action_url => '/paragraph',
-                              :html_include => {},
-                              :paragraph => paragraph)
-
-        feature_class.classify.constantize.new(paragraph,renderer)
       end
-   end   
+      
+      controller.should_receive('myself').at_least(:once).and_return(@myself)
+    end
+    
+    def mock_user(email = 'test@webiva.com')
+      # get me a client user to ignore any permission issues    
+      @myself = EndUser.push_target(email)
+      controller.should_receive('myself').at_least(:once).and_return(@myself)
+      @myself
+    end
+
+    def paragraph_controller_helper(site_node_path,display_module_type,data={},extra_attributes = {})
+      display_parts = display_module_type.split("/")
+      @site_version ||= SiteVersion.new :name => 'Test', :default_version => true
+      @root_node ||= SiteNode.create :site_version => @site_version, :node_type => 'R', :node_path => '/'
+      @site_node = @root_node.add_subpage(site_node_path.sub('/', ''))
+      @revision = PageRevision.create :revision_container => @site_node, :language => 'en', :active => true, :created_by => @myself, :updated_by => @myself
+      @paragraph = PageParagraph.create :display_module => display_parts[0..-2].join("/"), :display_type => display_parts[-1], :page_revision_id => @revision.id, :data => data, :attributes => extra_attributes
+    end
+
+    def paragraph_controller_path
+      ['page', @site_node.id, @revision.id, @paragraph.id, 0]
+    end
+
+    def paragraph_controller_get(page, args = {})
+      args[:path] = paragraph_controller_path
+      get page, args
+    end
+
+    def paragraph_controller_post(page, args = {})
+      args[:path] = paragraph_controller_path
+      post page, args
+    end
+
+    def display_all_editors_for(&block)
+      controller.class.get_editor_for.each do |editor|
+        paragraph_controller_helper("/#{editor[0]}", "/#{controller.class.to_s.underscore}/#{editor[0]}")
+        output = paragraph_controller_get editor[0]
+        yield editor[0], output
+      end
+    end
+
+    def build_renderer_helper(user_class,site_node_path,display_module_type,data={},page_connections={},extra_attributes = {})
+      display_parts = display_module_type.split("/")
+      para = PageParagraph.create(:display_type => display_parts[-1], :display_module => display_parts[0..-2].join("/"),:data=>data)
+      para.attributes = extra_attributes
+      para.direct_set_page_connections(page_connections)
+      rnd = para.renderer.new(user_class,controller,para,SiteNode.new(:node_path => site_node_path,:site_version_id => SiteVersion.default.id),PageRevision.new,{})
+      rnd.extend(RspecRendererExtensions)
+      rnd
+    end
+    
+    def build_renderer(site_node_path,display_module_type,data={},page_connections={},extra_attributes={})
+      build_renderer_helper(UserClass.default_user_class,site_node_path,display_module_type,data,page_connections,extra_attributes)
+    end
+    
+    def build_anonymous_renderer(site_node_path,display_module_type,data={},page_connections={},extra_attributes={})
+      build_renderer_helper(UserClass.anonymous_user_class,site_node_path,display_module_type,data,page_connections,extra_attributes)
+    end     
+
+    def renderer_get(rnd,args = {})
+      controller.set_test_renderer(rnd)
+      get :renderer_test, args
+    end
+    
+    def renderer_post(rnd,args = {})
+      controller.set_test_renderer(rnd)
+      post :renderer_test, args
+    end
   end
- end
+   
+  module ViewExampleGroup
+    def build_feature(feature_class,code=nil)
+      if code
+        site_feature = mock_model(SiteFeature,:body => code,:body_html => code,:feature_type => :any,:options => {} )
+        paragraph = mock_model(PageParagraph,:site_feature => site_feature, :content_publication => nil,:page_revision => PageRevision.new, :language => 'en', :html_include => {})
+      else
+        paragraph = mock_model(PageParagraph,:site_feature => nil, :content_publication => nil,:page_revision => PageRevision.new, :language => 'en', :html_include => {})
+      end
+      renderer = mock_model(ParagraphRenderer,
+                            :get_handler_info => [],
+                            :protect_against_forgery? => false,
+                            :require_js => nil,
+                            :paragraph_action_url => '/paragraph',
+                            :html_include => {},
+                            :paragraph => paragraph)
+
+      feature_class.classify.constantize.new(paragraph,renderer)
+    end
+  end   
 end
+
+
 
 
 class ParagraphOutputMatcher

@@ -1,4 +1,4 @@
-<% active_table_for :site_widgets_table, @tbl,
+<%= active_table_for :site_widgets_table, @tbl,
  :actions => [['Delete','delete','Delete selected widgets?']]  do |t| -%>
 <% active_tr "widget",t.id do |tr| -%>
  <td><%= tr.checkbox -%></td>

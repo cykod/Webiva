@@ -5,7 +5,7 @@
 <%= "Total Sessions:".t %> <%= @sessions.size %>, <%= "Total Pages:".t %> <%= @sessions.inject(0){ |sum,s| sum + s.page_count } %>
 <br/><br/>
 
-<% table_for @sessions, [ 'Session','Date Started','Time','Pages','User Level','Referrer','Affiliate','Campaign'], :class=>'data_table',:cellspacing => '0' do |entry| %>
+<%= table_for @sessions, [ 'Session','Date Started','Time','Pages','User Level','Referrer','Affiliate','Campaign'], :class=>'data_table',:cellspacing => '0' do |entry| %>
 
 <tbody>
 <tr class='highlighted_row'>

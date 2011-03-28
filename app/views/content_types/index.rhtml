@@ -1,4 +1,4 @@
-<% action_panel do |p| -%>
+<%= action_panel do |p| -%>
   <%= p.link 'Rebuild Content Types Urls', {:icon => 'configure.gif', :action => 'rebuild_all_types',:right => true},  :method => 'post', :confirm => 'Are you sure you want to rebuild all content types? This will force a reindex of all content and may modify content links'  -%>
 <% end -%>
 <hr/>

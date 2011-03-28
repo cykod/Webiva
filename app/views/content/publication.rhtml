@@ -169,9 +169,9 @@ PublicationEditor = {
 </script>
 <hr/>
 <div class='admin_content tab_container'>
-<% ajax_tabs [ 'Fields', 'Options','Triggered Actions'], 'Fields' do |t| -%>
+<%= ajax_tabs [ 'Fields', 'Options','Triggered Actions'], 'Fields' do |t| -%>
 
-<% t.tab do %>
+<%= t.tab do %>
 <div class='admin_content admin_form'>
   <%= form_for :add_field, :html => { :onsubmit => 'PublicationEditor.addField(); return false;', :id => 'add_field_form' } do |f| %>
     <%= f.select :field_id, @available_fields  %>
@@ -194,7 +194,7 @@ PublicationEditor = {
 </div>
 <% end %>
 
-<% t.tab do %>
+<%= t.tab do %>
 <div class='admin_content'>
 
   <%= cms_form_for :options, @publication_options, 
@@ -212,7 +212,7 @@ PublicationEditor = {
   <span id='saving_changes' style='display:none;'><%= 'Saving Changes to Publication...'.t %></span>
 </div>
 <% end -%>
-<% t.tab do %>
+<%= t.tab do %>
 <div class='admin_content'>
   <div id='triggered_actions'>
     <%= render :partial => 'triggered_actions' %>

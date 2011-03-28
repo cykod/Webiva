@@ -1,7 +1,7 @@
 <%
 refresh_table = false
 -%>
-<% active_table_for :user_segments_table, @active_table_output,
+<%= active_table_for :user_segments_table, @active_table_output,
                     :refresh_url => url_for(:action => 'user_segments_table'),
                     :style => 'width:100%',
                     :actions => [['Add to Main Page', 'add'], ['Remove from Main Page', 'remove']],

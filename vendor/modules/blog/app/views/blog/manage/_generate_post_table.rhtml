@@ -1,4 +1,4 @@
-<% active_table_for :generate_post_table, @tbl do |t| -%>
+<%= active_table_for :generate_post_table, @tbl do |t| -%>
 <tr <%= highlight_row 'post',t.id %> >
   <td><button onclick='BlogGenerator.addPost(<%= t.id %>); return false;'>Add Post</button></td>
   <td><%= t.blog_blog ? v(t.blog_blog.name) : '' %></td>

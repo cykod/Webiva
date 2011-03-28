@@ -72,13 +72,13 @@ UserRegisterEditor = {
  <%= f.select :content_publication_id, ContentPublication.select_options_with_nil('Publication',:conditions => { :publication_type => 'create', :publication_module => 'content/core_publication' }) %>
   <%= f.ordered_array :include_subscriptions, UserSubscription.select_options %>
 <% end -%>
-<% t.tab do %>
+<%= t.tab do %>
 
   <%= render :partial => 'user_register_features' -%>
 
 
 <% end -%>
-<% t.tab do %>
+<%= t.tab do %>
   <div id='cms_triggered_actions'>
     <%= render :partial => '/editor/includes/actions' %>
   </div>

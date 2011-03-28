@@ -10,8 +10,12 @@ class Experiment < DomainModel
   validates_presence_of :name
   validates_presence_of :experiment_container_type
   validates_presence_of :experiment_container_id
+  validate :validate_versions
 
   serialize :data
+
+  before_save :update_data
+  after_save :save_versions
 
   def num_versions
     @num_versions ||= self.min_versions
@@ -75,7 +79,7 @@ class Experiment < DomainModel
     self.conversion_site_node.node_path
   end
 
-  def validate
+  def validate_versions
     if @versions && @versions.size > 0
       if self.total_weight != 100 && self.total_weight != 0
         self.errors.add_to_base("Weights must added up to 100")
@@ -159,11 +163,11 @@ class Experiment < DomainModel
     self.options.webform_conversion = wc
   end
 
-  def before_save
+  def update_data
     self.data = self.options.to_h
   end
 
-  def after_save
+  def save_versions
     if @versions && self.language
 
       unless self.is_running?

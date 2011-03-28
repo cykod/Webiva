@@ -71,7 +71,7 @@ end
 # in the ways of Rails too! I reflowed the patch a little to keep the line
 # length to a maximum of 78 characters, an old habit.
 
-module ActiveRecord
+module ActiveModel
   module Validations
     module ClassMethods
       def validates_as_email(*attr_names)
@@ -80,7 +80,7 @@ module ActiveRecord
           :with      => RFC822::EmailAddress,
           :allow_nil => true }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
-
+        
         configuration[:if] = Proc.new { |u| !u.send(attr_names[0]).blank? }
         validates_format_of attr_names, configuration
       end
@@ -91,10 +91,10 @@ module ActiveRecord
           :with      => RFC822::EmailLocalPart ,
           :allow_nil => true }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
-
+        
         configuration[:if] = Proc.new { |u| !u.send(attr_names[0]).blank? }
         validates_format_of attr_names, configuration
-      
+        
       end
     end
   end

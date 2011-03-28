@@ -1,5 +1,5 @@
 <% current_time = Time.now %>
-<% active_table_for :webform_table, @active_table_output,
+<%= active_table_for :webform_table, @active_table_output,
                     :refresh_url => url_for(:action => 'webform_table'),
                     :style => 'width:100%',
                     :more_actions => [['Delete','delete','Are you sure you want to delete the webforms?']] do |t| %>

@@ -1,4 +1,4 @@
-<% active_table_for :editor_table, @active_table_output,
+<%= active_table_for :editor_table, @active_table_output,
                     :refresh_url =>  url_for(:action => 'display_editor_table'),
                     :class => 'active_table',
                     :more_actions => [ [ 'Delete','delete','Are you sure you want to delete the selected editors?' ]],

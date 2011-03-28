@@ -1,0 +1,15 @@
+.cms_form.admin_form
+  %h3 Add Tags to People
+  Existing Tags:
+  %div{:style => "width:300px;"}
+    - EndUser.tag_cloud.each do |tag|
+      %a{:href => "javascript:void(0);", :onclick => "MemberEditor.addTagInPopup(\"#{jvh tag[:name]}\");"}= tag[:name]
+  %br/
+  Tags to Add (Comma Separated List):
+  %br/
+  %textarea#tags_field{:cols => "40", :name => "tags_field", :rows => "5"}
+  %br/
+  %br/
+  %div{:align => "right"}
+    %input{:onclick => "RedBox.close(); return false;", :type => "submit", :value => "Cancel"}/
+    %input{:onclick => "MemberEditor.addTagsSubmit($(\"tags_field\").value); RedBox.close(); return false;", :type => "submit", :value => "Add Tags"}/

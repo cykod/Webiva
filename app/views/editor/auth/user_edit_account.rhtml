@@ -66,10 +66,10 @@ UserEditEditor = {
  <%= f.select :content_publication_user_field, @options.publication_field_options() if @options.publication %>
  <%= f.ordered_array :include_subscriptions, UserSubscription.select_options %>
 <% end -%>
-<% t.tab do %>
+<%= t.tab do %>
    <%= render :partial => 'user_edit_features' -%>
 <% end -%>
-<% t.tab do %>
+<%= t.tab do %>
   <div id='cms_triggered_actions'>
     <%= render :partial => '/editor/includes/actions' %>
   </div>

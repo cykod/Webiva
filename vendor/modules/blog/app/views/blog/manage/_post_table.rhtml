@@ -1,5 +1,5 @@
 <% current_time = Time.now %>
-<% active_table_for :post_table, @active_table_output,
+<%= active_table_for :post_table, @active_table_output,
                     :refresh_url => url_for(:action => 'post_table', :path => @blog.id),
                     :class => 'active_table',
                     :style => 'width:100%',

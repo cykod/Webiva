@@ -30,46 +30,46 @@ describe MembersController do
     end
 
     it "should render index page" do
-      @output = get 'index'
-      @output.status.should == '200 OK'
+      get 'index'
+      response.status.should == 200
     end
 
     describe "lookup_autocomplete tests:" do
       it "should render nothing" do
-	controller.should_receive(:render).with(:nothing => true)
-	@output = get 'lookup_autocomplete'
+	get 'lookup_autocomplete'
+        response.body.should be_blank
       end
 
       it "should render nothing with empty string" do
-	controller.should_receive(:render).with(:nothing => true)
-	@output = get 'lookup_autocomplete', :member => ''
+	get 'lookup_autocomplete', :member => ''
+        response.body.should be_blank
       end
 
       it "should lookup by first_name" do
 	@output = get 'lookup_autocomplete', :member => 'user'
-	@output.status.should == '200 OK'
+	@output.status.should == 200
 	@output.body.should include('User1')
       end
 
       it "should lookup by last_name" do
 	@output = get 'lookup_autocomplete', :member => 'last2, user'
-	@output.status.should == '200 OK'
+	@output.status.should == 200
 	@output.body.should include('User2')
       end
 
       it "should lookup by membership_id" do
 	@output = get 'lookup_autocomplete', :member => 'number5'
-	@output.status.should == '200 OK'
+	@output.status.should == 200
 	@output.body.should include('User5')
       end
     end
 
     describe "create end_user tests:" do
       it "should render create page" do
-	assert_difference 'EndUser.count', 0 do
-	  @output = get 'create'
-	  @output.status.should == '200 OK'
-	end
+        expect {
+	  get 'create'
+        }.to change{ EndUser.count }.by(0)
+        response.status.should == 200
       end
 
       it "should create a new user" do
@@ -109,7 +109,7 @@ describe MembersController do
       it "should render edit page" do
 	assert_difference 'EndUser.count', 0 do
 	  @output = get 'edit', :path => [@user1.id]
-	  @output.status.should == '200 OK'
+	  @output.status.should == 200
 	end
       end
 
@@ -176,7 +176,7 @@ describe MembersController do
 
     it "should render view page" do
       @output = get 'view', :path => [@user1.id]
-      @output.status.should == '200 OK'
+      @output.status.should == 200
     end
 
     it "should be able to login as different user" do
@@ -186,17 +186,17 @@ describe MembersController do
 
     it "should render member_visits partial" do
       @output = get 'member_visits', :path => [@user1.id]
-      @output.status.should == '200 OK'
+      @output.status.should == 200
     end
 
     it "should render add_tags_form partial" do
       @output = get 'add_tags_form'
-      @output.status.should == '200 OK'
+      @output.status.should == 200
     end
 
     it "should render remove_tags_form partial" do
       @output = get 'remove_tags_form', :user_ids => @user1.id.to_s
-      @output.status.should == '200 OK'
+      @output.status.should == 200
     end
 
     it "should handle display tags list" do
@@ -210,20 +210,20 @@ describe MembersController do
       TagNote.delete_all
       assert_difference 'TagNote.count', Tag.count do
 	@output = get 'tags'
-	@output.status.should == '200 OK'
+	@output.status.should == 200
       end
     end
 
     it "should render tag_details page" do
       @output = get 'tag_details', :path => [1]
-      @output.status.should == '200 OK'
+      @output.status.should == 200
     end
 
     it "should be able to update tag_details" do
       @note = TagNote.find(:first)
       @note.should_not be_nil
       @output = post 'tag_details', :path => [@note.id], :tag_note => {:description => 'test note'}
-      @output.status.should == '200 OK'
+      @output.status.should == 200
       @note.reload
       @note.description.should == 'test note'
     end
@@ -254,15 +254,15 @@ describe MembersController do
 	@user1.tag(['new_tag'])
 	@user1.reload
 	@user1.tag_names.include?('New_tag').should be_true
-	@output = post 'display_targets_table', :table_action => 'clear_tags', :user => {@user1.id => @user1.id}
+	post 'display_targets_table', :table_action => 'clear_tags', :user => {@user1.id => @user1.id}
 	@user1.reload
 	@user1.tag_names.blank?.should be_true
       end
     end
 
     it "should render generate_vip page" do
-      @output = get 'generate_vip'
-      @output.status.should == '200 OK'
+      get 'generate_vip'
+      response.status.should == 200
     end
   end
 

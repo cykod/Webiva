@@ -1,6 +1,6 @@
 <% target_cache = {} -%>
 
-<% active_table_for :ratings_table, @active_table_output,
+<%= active_table_for :ratings_table, @active_table_output,
                     :refresh_url => url_for(:action => 'ratings_table'),
                     :more_actions => [ ['Delete Ratings','delete','Are you sure you want to permanently delete these ratings?' ] ],
                     :width => '100%' do |t| %>

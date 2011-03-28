@@ -76,7 +76,7 @@ class MembersController < CmsController # :nodoc: all
       if act == 'delete'
         EndUser.destroy(uids)
       else
-        update_users = EndUser.find(:all,:conditions => { :id => uids })
+        update_users = EndUser.where(:id => uids).all
         
         case act
         when 'acknowledge'
@@ -291,7 +291,7 @@ class MembersController < CmsController # :nodoc: all
   class Options < HashModel
     attributes :fields => ['created', 'profile', 'source', 'lead_source', 'tag'], :order_by => 'created', :order_direction => 'DESC'
 
-    def validate
+    validate do
       if self.fields
         self.errors.add(:fields, 'is invalid') if self.fields.find { |f| self.fields_options.rassoc(f).nil? }
       end

@@ -10,7 +10,7 @@
 <div class="admin_content">
 <% end -%>
 
-<% stat_view do |t| -%>
+<%= stat_view do |t| -%>
   <% @result.content_model.content_model_fields.each do |fld| %>
   <% if fld.is_type?('/content/core_field/header')  %>
     <%= t.header fld.name %>

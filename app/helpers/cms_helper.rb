@@ -335,7 +335,7 @@ Used to display a view of data in a formatted manner.
 
 Usage:
 
-    <% stat_view do |v| %>
+    <%= stat_view do |v| %>
       <%= v.header "Header Text" %>
       <%= v.row "Label 1", @object.atr %> <!-- the value will be escaped -->
       <%= v.raw "Label 2", @object.atr2 %> <!-- value not escaped with raw -->

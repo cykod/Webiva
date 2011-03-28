@@ -10,11 +10,13 @@ class SystemIssue < SystemModel
   
   has_many :system_issue_notes, :dependent => :destroy
   
+  after_create :send_issue
+
   def behavior_title
     (self.behavior.slice(/.*\n/)||self.behavior).strip()[0..100]
   end
   
-  def after_create
+  def send_issue
     SystemIssueMailer.deliver_issue(self,'created')
   end
   

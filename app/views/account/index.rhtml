@@ -10,9 +10,9 @@
   end
 %>
 <br/>
-<% ajax_tabs tabs, @selected_tab || 'Password' do |t| -%>
+<%= ajax_tabs tabs, @selected_tab || 'Password' do |t| -%>
 
-<% t.tab do -%>
+<%= t.tab do -%>
   <%= "Update you account password.".t %>
   <%= tabled_form_for :pw, @pw do |f| %>
      <input type='hidden' name='selected_tab' value='Password' />
@@ -25,7 +25,7 @@
 <% end -%>
 
 <% if permit?('admin') -%>
-  <% t.tab do -%>
+  <%= t.tab do -%>
     <%= tabled_form_for :admin, @admin do |f| %>
       <input type='hidden' name='selected_tab' value='Admin' />
       <%= f.select :language, @languages %>

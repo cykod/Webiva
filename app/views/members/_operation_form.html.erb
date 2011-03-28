@@ -65,4 +65,8 @@ OperationBuilder = {
 
 <% end -%>
 
-<%= observe_form 'builder', :frequency => 1, :function => 'OperationBuilder.updateExpression();' %>
+<script type="text/javascript">
+//<![CDATA[
+new Form.Observer('builder', 1, function(element, value) {OperationBuilder.updateExpression();})
+//]]>
+</script>

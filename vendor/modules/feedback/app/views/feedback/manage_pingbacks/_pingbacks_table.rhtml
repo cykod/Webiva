@@ -1,6 +1,6 @@
 <% target_cache = {} -%>
 
-<% active_table_for :pingbacks_table, @active_table_output,
+<%= active_table_for :pingbacks_table, @active_table_output,
                     :refresh_url => url_for(:action => 'pingbacks_table'),
                     :more_actions => [ ['Create Comments', 'create'], ['Remove Comments', 'remove'], ['Delete Pingbacks','delete','Are you sure you want to permanently delete these pingbacks?' ] ],
                     :width => '100%' do |t| %>

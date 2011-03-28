@@ -1,6 +1,6 @@
 <% target_cache = {} -%>
 
-<% active_table_for :comments_table, @active_table_output,
+<%= active_table_for :comments_table, @active_table_output,
                     :refresh_url => url_for(:action => 'comments_table'),
                     :class => 'active_table',
                     :actions => [ ['Approve','approve'], ['Reject','reject' ] ],

@@ -19,8 +19,8 @@
 
 <% if  permit?('editor_structure') || permit?('editor_structure_advanced') %>
 
-<% ajax_tabs ['Info','Options'] ,'Info'  do |t| %>
-<% t.tab do %>
+<%= ajax_tabs ['Info','Options'] ,'Info'  do |t| %>
+<%= t.tab do %>
     <%= render :partial => @active_revision_info[1]  ? 'revision_info' : 'create_revision_info' %>
 
     <% if @active_revision_info[1] %>
@@ -30,7 +30,7 @@
     <% end -%>
 <% end -%>
 
-<% t.tab do %>
+<%= t.tab do %>
    <div id='site_node_page_options' >
        <%= render :partial => 'site_node_options' %>
    </div>

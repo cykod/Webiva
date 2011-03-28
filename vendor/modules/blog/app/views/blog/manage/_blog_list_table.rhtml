@@ -1,4 +1,4 @@
-<% active_table_for :blog_list_table, @tbl, :actions => [['Delete', 'delete', 'Are you sure you want to delete all of these blogs and posts?']] do |t| -%>
+<%= active_table_for :blog_list_table, @tbl, :actions => [['Delete', 'delete', 'Are you sure you want to delete all of these blogs and posts?']] do |t| -%>
 <tr <%= highlight_row 'blog',t.id  %>>
   <td><%= entry_checkbox 'blog',t.id %></td>
   <td>

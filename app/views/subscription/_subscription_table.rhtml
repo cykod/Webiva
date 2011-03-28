@@ -1,4 +1,4 @@
-<% active_table_for :subscription_table, @active_table_output,
+<%= active_table_for :subscription_table, @active_table_output,
                     :actions => [ ['Delete','delete','Are you sure you want to delete the selected subscriptions?']] do |t| -%>
 
 <tr <%= highlight_row "subscription",t.id %>  >

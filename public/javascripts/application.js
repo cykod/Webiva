@@ -890,6 +890,10 @@ Object.toQueryString = function (object) {
                };
 
 if(typeof JQuery != 'undefined') {
+  jQuery.ajaxSetup({
+    headers: { "X-CSRF-Token": $("meta[name='csrf-token']").attr('content') }
+  });
+
   jQuery(document).ajaxSend(function(e, xhr, options) {
     var token = $("meta[name='csrf-token']").attr("content");
     xhr.setRequestHeader("X-CSRF-Token", token);

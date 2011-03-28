@@ -8,11 +8,16 @@ class FeedbackEndUserRating < DomainModel
 
   validates_numericality_of :rating, :only_integer => true
 
-  named_scope :with_target, lambda { |type, id| {:conditions => ['`feedback_end_user_ratings`.target_type = ? and `feedback_end_user_ratings`.target_id = ?', type, id]} }
+  def self.with_target(type, id); self.where('feedback_end_user_ratings.target_type = ? and feedback_end_user_ratings.target_id = ?', type, id); end
 
   cached_content :update => [:feedback_rating]
 
-  def before_save
+  before_save :update_rated_at
+  after_create :update_feedback_rating
+  after_update :change_feedback_rating
+  after_destroy :remove_feedback_rating
+
+  def update_rated_at
     self.rated_at = Time.now if self.rated_at.blank?
   end
 
@@ -50,18 +55,18 @@ class FeedbackEndUserRating < DomainModel
     md5.hexdigest
   end
 
-  def after_create
+  def update_feedback_rating
     self.feedback_rating.update_rating(self.rating) if self.feedback_rating(true)
   end
 
-  def after_update
+  def change_feedback_rating
     if self.rating_changed?
       diff = self.rating - changed_attributes['rating']
       self.feedback_rating.update_rating(diff, 0) if self.feedback_rating(true)
     end
   end
 
-  def after_destroy
+  def remove_feedback_rating
     self.feedback_rating.update_rating(-self.rating, -1) if self.feedback_rating(true)
   end
 end

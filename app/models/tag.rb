@@ -5,14 +5,11 @@
 # lables. Those labels can have descriptions. 
 class Tag < DomainModel
 
-
   has_one :tag_note, :dependent => :destroy
 
   has_many :end_user_tags
 
-  def after_create #:nodoc:
-    self.create_tag_note()
-  end
+  after_create :create_tag_note
 
   def self.get_tag(tag_name)
     self.find_by_name(tag_name) || self.create(:name => tag_name)

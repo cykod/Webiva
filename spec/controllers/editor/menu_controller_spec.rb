@@ -8,7 +8,7 @@ describe Editor::MenuController do
     mock_editor
 
     display_all_editors_for do |paragraph, output|
-      output.status.should == '200 OK'
+      output.status.should == 200
     end
   end
 

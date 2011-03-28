@@ -1,7 +1,7 @@
 <div class='cms_form'>
 <%= paragraph_options_form_for "Enter VIP Options",:enter_vip do |f| %>
-<% ajax_tabs ['Options','Actions'], 'Options' do |t| %>
-  <% t.tab do %>
+<%= ajax_tabs ['Options','Actions'], 'Options' do |t| %>
+  <%= t.tab do %>
     <table>
       <%= f.page_selector :success_page, :required => true %>
       <%= f.select :already_registered_page, @pages %>
@@ -9,7 +9,7 @@
       <%= f.text_field :add_tags, :label => 'Add Tags on Success' %>
     </table>
   <% end -%>
-  <% t.tab do %>
+  <%= t.tab do %>
     <div id='cms_triggered_actions'>
       <%= render :partial => '/editor/includes/actions' %>
     </div>

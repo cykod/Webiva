@@ -1,5 +1,5 @@
 <% current_time = Time.now %>
-<% active_table_for :versions_table, @active_table_output,
+<%= active_table_for :versions_table, @active_table_output,
                     :refresh_url => url_for(:action => 'display_versions_table', :path => @experiment.id),
                     :style => 'width:100%' do |t| %>
 <tr <%= highlight_row 'version',t.id %>>

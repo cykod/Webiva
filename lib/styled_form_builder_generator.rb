@@ -484,8 +484,9 @@ module EnhancedFormElements
     # Output the error message for a specific field given a label and the field
     def output_error_message(label,field)
       return nil unless @object && @object.errors
+      return nil if field.to_s.blank?
       errs = @object.errors[field]
-      if errs.empty?
+      if errs.size > 0
         label = label.gsub(/\:$/,'') # get rid of ending : if there
         opts = errs.pop if errs.last.is_a?(Hash)
         errs.pop if errs.last.nil?

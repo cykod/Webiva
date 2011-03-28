@@ -1,4 +1,4 @@
-<% active_table_for :galleries_table, @active_table_output,
+<%= active_table_for :galleries_table, @active_table_output,
     :actions => [['Delete','delete','Are you sure you want to delete the selected galleries?']] do |t| -%>
 <tr <%= highlight_row 'gallery',t.id %>>
   <td><%= entry_checkbox 'gallery',t.id %></td>

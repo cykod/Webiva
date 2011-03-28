@@ -263,23 +263,23 @@
 <hr/>
 <div class='admin_tabbed_content tab_container'>
 <form action='' id='site_template_form' onsubmit='return false;' method='post'>
-<% ajax_tabs(@tabs.map { |elm| elm.humanize.t },@display_view == 'advanced' ? 'Edit' : 'Options') do |t| -%>
+<%= ajax_tabs(@tabs.map { |elm| elm.humanize.t },@display_view == 'advanced' ? 'Edit' : 'Options') do |t| -%>
 
 
-<% t.tab do -%>
+<%= t.tab do -%>
   <div class='admin_content'>
 			<%= render :partial => 'template_options' %>
   </div>
 <% end -%>
 
 <% if @tabs.include?('translation') -%>
-  <% t.tab do  -%>
+  <%= t.tab do  -%>
 		<%= render :partial => 'translation' %>
 	<% end -%>
 <% end -%>
 
 <% if @tabs.include?('edit') -%>
-  <% t.tab do  -%>
+  <%= t.tab do  -%>
     <div id='zone_display'>
 			<%= render :partial => 'zone_ordering' %>
 		</div>

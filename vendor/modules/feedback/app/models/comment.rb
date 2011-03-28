@@ -15,13 +15,17 @@ class Comment < DomainModel
 
   safe_content_filter({ :comment => :comment_html},:filter => :comment)
 
+  before_validation :set_name, :on => :create
+
   validates_presence_of :name, :comment, :target_type, :target_id
   
-  named_scope :with_rating, lambda { |r| {:conditions => ['`comments`.rating >= ?', r]} }
-  named_scope :for_target, lambda { |type, id| {:conditions => ['`comments`.target_type = ? AND `comments`.target_id = ?', type, id]} }
-  named_scope :order_by_posted, lambda { |order| order == 'newest' ? {:order => '`comments`.posted_at DESC'} : {:order => '`comments`.posted_at'} }
-  named_scope :for_source, lambda { |type, id| {:conditions => ['`comments`.source_type = ? AND `comments`.source_id = ?', type, id]} }
-  named_scope :between, lambda { |from, to| {:conditions => ['comments.posted_at >= ? AND comments.posted_at < ?', from, to]} }
+  def self.with_rating(r); self.where('comments.rating >= ?', r); end
+  def self.for_target(type, id); self.where('comments.target_type = ? AND comments.target_id = ?', type, id); end
+  def self.order_by_posted(o=nil); o == 'newest' ? self.order('comments.posted_at DESC') : self.order('comments.posted_at'); end
+  def self.for_source(type, id); self.where('comments.source_type = ? AND comments.source_id = ?', type, id); end
+  def self.between(from, to); self.where(:posted_at => from..to); end
+
+  before_save :update_posted_at
 
   def rating_icon(override=nil)
     override = rating unless override
@@ -34,13 +38,12 @@ class Comment < DomainModel
     end
   end
 
-  def before_validation_on_create
-    if self.name.nil?
-      self.name = self.end_user ? self.end_user.name : 'Anonymous'.t
-    end
+  def set_name
+    return if self.name
+    self.name = self.end_user ? self.end_user.name : 'Anonymous'.t
   end
 
-  def before_save
+  def update_posted_at
     self.posted_at = Time.now if self.posted_at.blank?
   end
 

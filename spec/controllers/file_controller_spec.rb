@@ -157,7 +157,7 @@ describe FileController do
 
     it "should responded to progress" do
       get :progress
-      response.status.should == '200 OK'
+      response.status.should == 200
     end
 
     it "should be able to rename a file or folder" do
@@ -337,12 +337,12 @@ describe FileController do
 
     it "should be able to fetch a file" do
       get :priv, :path => [@image.id]
-      response.status.should == '200 OK'
+      response.status.should == 200
     end
 
     it "should be able to fetch a file with size" do
       get :priv, :path => [@image.id, 'thumb']
-      response.status.should == '200 OK'
+      response.status.should == 200
     end
 
     it "should be able to search for files" do

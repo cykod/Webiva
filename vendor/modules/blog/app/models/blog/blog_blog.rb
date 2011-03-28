@@ -3,6 +3,8 @@
 
 class Blog::BlogBlog < DomainModel
 
+  before_validation :set_defaults, :on => :create
+
   validates_presence_of :name
   validates_presence_of :content_filter
 
@@ -29,6 +31,8 @@ class Blog::BlogBlog < DomainModel
   
   content_node_type :blog, "Blog::BlogPost", :content_name => :name,:title_field => :title, :url_field => :permalink, :except => Proc.new { |blg| blg.is_user_blog? }
   
+  before_save :update_content_publication
+
   def self.create_user_blog(name,target)
     self.create(:name => name, :target => target, :is_user_blog => true)
   end
@@ -107,10 +111,7 @@ class Blog::BlogBlog < DomainModel
 
 
   def find_post_by_permalink(permalink)
-    Blog::BlogPost.find(:first,
-                        :include => [ :active_revision ],
-                        :order => 'published_at DESC',
-                        :conditions => ["blog_posts.status in('published','preview') AND blog_blog_id=? AND blog_posts.permalink=?",self.id,permalink])
+    self.blog_posts.most_recent.for_permalink(permalink).is_viewable.first
   end
 
   def content_type_name
@@ -121,11 +122,11 @@ class Blog::BlogBlog < DomainModel
     ContentFilter.filter_options
   end
 
-  def before_save
+  def update_content_publication
     self.content_publication_id = nil if self.content_model.nil? || self.content_publication.nil? || self.content_model.id != self.content_publication.content_model_id
   end
 
-  def before_validation_on_create
+  def set_defaults
     if self.is_user_blog?
       self.content_filter = 'safe_html' if self.is_user_blog?
       self.blog_target_id = Blog::BlogTarget.fetch_for_target(self.target)
@@ -157,5 +158,4 @@ class Blog::BlogBlog < DomainModel
        post.save
      end
   end
-
 end

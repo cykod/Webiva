@@ -3,7 +3,7 @@
 </script>
 
 <% if myself.client_user.client_admin? && myself.client_user.client.can_add_database? -%>
-  <% action_panel do |p| %>
+  <%= action_panel do |p| %>
     <%= p.link "New Domain" ,:action => 'add', :icon => 'add.png' %>
   <% end -%>
 <% end -%>

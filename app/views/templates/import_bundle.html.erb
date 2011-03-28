@@ -11,7 +11,7 @@
 </div>
 <% elsif @bundler.name -%>
   <div style="float:left; width:300px;">
-  <% stat_view do |f| -%>
+  <%= stat_view do |f| -%>
     <%= f.header "Webiva Bundle Info" %>
     <%= f.row 'Name', @bundler.name %>
     <%= f.row 'Author', @bundler.author %>

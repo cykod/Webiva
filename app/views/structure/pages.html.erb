@@ -6,7 +6,7 @@ PageEditor = {
 }
 </script>
 
-<% action_panel do |p| -%>
+<%= action_panel do |p| -%>
   <% p.custom :right => true do -%>
     <form method="GET">
     Language: <%= select_tag :language, options_for_select(@languages, :selected => @language), :onchange => 'this.form.submit();' %>

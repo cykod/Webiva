@@ -10,6 +10,10 @@ class UserSubscriptionEntry < DomainModel
   
   has_options :subscription_type, [[ 'Adminstrator Signup', 'admin'], ['Direct Signup','direct' ], ['Trigger Signup','trigger']]
   
+  before_create :test_verified
+  after_create :send_verification_email
+  after_update :send_registration_email
+
   def email
     if self.end_user
       self.end_user.email
@@ -26,22 +30,21 @@ class UserSubscriptionEntry < DomainModel
     end
   end
   
-  def before_create #:nodoc:all
+  def test_verified #:nodoc:all
     if !verified?
       
     end
-  
   end
   
-  def after_create #:nodoc:all
-      if !verified? && self.user_subscription.double_opt_in?
-        # TODO: Send Verification Email
-      elsif self.user_subscription.registration_email?
-        # TODO: Send Registration Email
-      end
+  def send_verification_email #:nodoc:all
+    if !verified? && self.user_subscription.double_opt_in?
+      # TODO: Send Verification Email
+    elsif self.user_subscription.registration_email?
+      # TODO: Send Registration Email
+    end
   end
   
-  def after_update #:nodoc:all
+  def send_registration_email #:nodoc:all
     if verified && self.user_subscription.registration_email?
       # TOTO: Send Registration Email
     end
