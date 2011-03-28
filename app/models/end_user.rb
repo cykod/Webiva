@@ -148,7 +148,7 @@ class EndUser < DomainModel
 
   scope :activated, where(:activated => true)
   scope :registered, where(:registered => true)
-  def self.with_login(fld, val); self.where("#{fld} != \"\" AND fld = ?", val); end
+  def self.with_login(fld, val); self.where("#{fld} != \"\" AND #{fld} = ?", val); end
   def self.by_verification_string(str); self.where(:verification_string => str); end
 
   def update_cache #:nodoc:

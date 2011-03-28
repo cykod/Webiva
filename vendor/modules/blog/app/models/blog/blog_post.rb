@@ -56,7 +56,7 @@ class Blog::BlogPost < DomainModel
   end
 
   def validate_content_model
-    self.errors.add_to_base('%s is invalid' / self.blog_blog.content_model.name) if self.data_model && ! self.data_model.valid?
+    self.errors.add(:base, '%s is invalid' / self.blog_blog.content_model.name) if self.data_model && ! self.data_model.valid?
   end
   
   content_node :container_type => :content_node_container_type,  :container_field => Proc.new { |post| post.content_node_container_id },

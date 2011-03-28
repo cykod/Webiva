@@ -801,6 +801,10 @@ block is non-nil
       end
     end
     
+    def capture(obj, &block)
+      yield obj
+    end
+
     def define_fields_for_tag(name,arg,options = {}) #:nodoc:
       frm_obj = options.delete(:local) || 'form'
       define_tag name do |tag|
@@ -839,7 +843,7 @@ block is non-nil
       
       define_tag "#{name_parts[0..-2].join(":")}:no_#{name_base}" do |t|
         frm = t.locals.send(frm_obj)
-        if frm && frm.object && frm.object.errors && frm.object.errors.length > 0
+        if frm && frm.object && frm.object.errors && frm.object.errors.count > 0
           nil
         else
           t.expand
@@ -856,7 +860,7 @@ block is non-nil
         end
         objs ||= []
         objs = objs.compact
-        error_count = objs.inject(0) { |acc,obj| acc + obj.errors.length } 
+        error_count = objs.inject(0) { |acc,obj| acc + obj.errors.count } 
         if error_count > 0 
           messages = objs.inject([]) { |acc,obj| acc + obj.errors.full_messages }.join(tag.attr['separator'] || "<br/>")
           if tag.single?

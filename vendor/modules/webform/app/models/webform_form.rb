@@ -13,7 +13,7 @@ class WebformForm < DomainModel
   before_save :update_fields
 
   def validate_content_model
-    self.errors.add_to_base('Invalid options') unless self.content_model.valid?
+    self.errors.add(:base, 'Invalid options') unless self.content_model.valid?
   end
 
   def content_model_fields

@@ -32,11 +32,11 @@ class TriggeredAction < DomainModel
   
   # Return a list of available actions
   def self.available_actions
-    returning trigger_list = [] do
-      get_handler_info(:trigger,:actions).each do |info|
-        trigger_list.concat(info[:class].triggered_actions)
-      end
+    trigger_list = []
+    get_handler_info(:trigger,:actions).each do |info|
+      trigger_list.concat(info[:class].triggered_actions)
     end
+    trigger_list
   end
   
   # Return a select friendly list of available actions

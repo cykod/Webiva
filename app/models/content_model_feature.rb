@@ -15,7 +15,7 @@ class ContentModelFeature < DomainModel
 
   def validate_options
     opts = options(true)
-    self.errors.add_to_base('options are not valid') unless opts.valid?
+    self.errors.add(:base, 'options are not valid') unless opts.valid?
   end
 
   def update_feature_options

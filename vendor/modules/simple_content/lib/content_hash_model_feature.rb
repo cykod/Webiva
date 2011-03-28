@@ -9,7 +9,7 @@ class ContentHashModelFeature < HashModel
 
   def validate
     opts = options(true)
-    self.errors.add_to_base('options are not valid') unless opts.valid?
+    self.errors.add(:base, 'options are not valid') unless opts.valid?
   end
   
   def feature

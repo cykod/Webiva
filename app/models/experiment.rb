@@ -82,7 +82,7 @@ class Experiment < DomainModel
   def validate_versions
     if @versions && @versions.size > 0
       if self.total_weight != 100 && self.total_weight != 0
-        self.errors.add_to_base("Weights must added up to 100")
+        self.errors.add(:base, "Weights must added up to 100")
         @versions.each { |v| v.errors.add(:weight, 'is invalid') }
       end
 

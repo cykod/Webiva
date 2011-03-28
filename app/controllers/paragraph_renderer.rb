@@ -323,7 +323,7 @@ class ParagraphRenderer < ParagraphFeature
     if editor?
       site_node.node_path
     else
-      request.request_uri.split('?')[0]
+      request.fullpath.split('?')[0]
     end
   end
 

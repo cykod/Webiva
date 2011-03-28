@@ -92,27 +92,28 @@ module StyledFormBuilderGenerator #:nodoc:
       
       # Generates fields for, see generate_form_for for more details
       def generate_fields_for(pre='',post='',options = {})
-		    class_name = self.to_s
-		    display_only = options[:display]  || false
-		    name = options[:name] || class_name.underscore
-		    pre = pre.blank? ? '' : pre.gsub(/([\"\#])/, '\\\\\1')
-		    post = post.blank? ? '' : post.gsub(/([\"\#])/, '\\\\\1')
-		    pre_cmd = pre.blank? ? '' : "safe_concat(\"#{pre}\")"
-		    post_cmd = post.blank? ? '' : "safe_concat(\"#{post}\")"
-		    src = <<-END_SRC 
-			    def #{name}_for(object_name,*args,&proc)
-				    raise ArgumentError, "Missing block" unless block_given?
-				    options = args.last.is_a?(Hash) ? args.pop : {}
-            #{pre_cmd}
-				    fields_for(object_name, *(args << options.merge(:builder => #{class_name})), &proc)
-				    #{post_cmd}
-			    end
-		    END_SRC
-		    StyledFormBuilderGenerator::FormFor.class_eval src, __FILE__, __LINE__   
-        self.class_eval <<-SRC,  __FILE__, __LINE__
-              module FormFor
-                #{src}
-              end
+        class_name = self.to_s
+        name = options[:name] || class_name.underscore 
+        
+        pre = pre.blank? ? "\"\"" : pre.gsub(/([\"\#])/, '\\\\\1')
+        post = post.blank? ? "\"\"" : post.gsub(/([\"\#])/, '\\\\\1')
+        pre_cmd = pre.blank? ? "\"\"" : "\"#{pre}\""
+        post_cmd = post.blank? ? "\"\"" : "\"#{post}\""
+
+        src = <<-END_SRC 
+        def #{name}_for(object_name,*args,&proc)
+          raise ArgumentError, "Missing block" unless block_given?
+          options = args.last.is_a?(Hash) ? args.pop : {}
+          #{pre_cmd}.html_safe +
+          fields_for(object_name, *(args << options.merge(:builder => #{class_name})), &proc) +
+          #{post_cmd}.html_safe
+        end
+        END_SRC
+        StyledFormBuilderGenerator::FormFor.class_eval src, __FILE__, __LINE__
+        self.class_eval <<-SRC, __FILE__, __LINE__
+          module FormFor
+            #{src}
+          end
         SRC
       end
     end

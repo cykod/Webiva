@@ -395,11 +395,6 @@ class HashModel
     self.name.underscore.titleize
   end  
   
-  def self.human_attribute_name(attribute)
-    attribute.to_s.humanize
-  end  
-
-
   def self.current_canonical_opts; []; end
   
   def self.meta_canonical_paragraph(container_type,options ={ })

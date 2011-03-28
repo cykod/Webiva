@@ -325,7 +325,7 @@ class DomainFile < DomainModel
     end
     
     if self.file_type.to_s != 'fld'
-      self.errors.add_to_base('file is missing') if !current_file_name
+      self.errors.add(:base, 'file is missing') if !current_file_name
     end
     
     # Make sure we're somewhere in the file tree

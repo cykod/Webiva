@@ -2,8 +2,6 @@ require "spec_helper"
 
 
 describe Editor::AuthRenderer, :type => :controller do
-  subject { PageController.new }
-  
   render_views
 
   reset_domain_tables :end_users, :end_user_addresses, :tags, :end_user_tags, :site_nodes, :user_subscriptions, :mail_templates, :user_subscription_entries
@@ -179,8 +177,8 @@ describe Editor::AuthRenderer, :type => :controller do
       @myself.address.id.should be_nil
       @usr = EndUser.find @myself.id
       @usr.address.should be_nil
-      @myself.address.errors.length.should == 1
-      @myself.address.errors.on(:state).should == 'is missing'
+      @myself.address.errors.count.should == 1
+      @myself.address.errors[:state][0].should == 'is missing'
     end
 
     it "should save if all required address fields are there" do
@@ -206,8 +204,8 @@ describe Editor::AuthRenderer, :type => :controller do
       @rnd = generate_renderer(:access_token_id => token.id, :required_fields => [])
       renderer_post @rnd, :user => { :first_name => 'First' }
 
-      @myself.errors.length.should == 0
       @myself.first_name.should == 'First'
+      @myself.errors.empty?.should be_true
       @myself.tokens.detect { |t| t.access_token_id == token.id }.should be_true
     end
 
@@ -219,7 +217,7 @@ describe Editor::AuthRenderer, :type => :controller do
       @rnd = generate_renderer(:mail_template_id => @email_template.id, :required_fields => [])
       renderer_post @rnd, :user => { :first_name => 'First' }
 
-      @myself.errors.length.should == 0
+      @myself.errors.empty?.should be_true
       @myself.first_name.should == 'First'
     end
 
@@ -227,7 +225,7 @@ describe Editor::AuthRenderer, :type => :controller do
       @rnd = generate_renderer(:user_class_id => 2, :modify_profile => 'modify', :required_fields => [])
       renderer_post @rnd, :user => { :first_name => 'First' }
 
-      @myself.errors.length.should == 0
+      @myself.errors.empty?.should be_true
       @myself.first_name.should == 'First'
       @myself.user_class_id.should == 2
     end
@@ -308,7 +306,7 @@ describe Editor::AuthRenderer, :type => :controller do
       @rnd = generate_renderer :login_type => 'username'
       @rnd.should_receive(:redirect_paragraph).with(:page)
       renderer_post @rnd, :cms_login => {:password => password, :username => username, :remember => 1}
-      @rnd.session[:user_id].should == @user.id
+      session[:user_id].should == @user.id
     end
 
     it "should be able to login with username or email" do
@@ -343,11 +341,11 @@ describe Editor::AuthRenderer, :type => :controller do
       @user.save.should be_true
 
       @rnd = generate_renderer :login_type => 'email', :forward_login => 'yes'
-      @rnd.session[:lock_lockout] = lock_lockout
+      session[:lock_lockout] = lock_lockout
       @rnd.should_receive(:process_login)
       @rnd.should_receive(:redirect_paragraph).with(lock_lockout)
       renderer_post @rnd, :cms_login => {:password => password, :login => email, :remember => 1}
-      @rnd.session[:lock_lockout].should be_nil
+      session[:lock_lockout].should be_nil
     end
 
     it "should be able to login with email and send user to success_page" do
@@ -618,7 +616,7 @@ describe Editor::AuthRenderer, :type => :controller do
       @rnd.paragraph.should_receive(:run_triggered_actions).once.with(anything(), 'success', anything())
       renderer_post @rnd, :vip => {:number => vip_number}
 
-      @rnd.session[:user_id].should == @user.id
+      session[:user_id].should == @user.id
     end
 
     it "should activate a vip user even if already registered" do
@@ -639,7 +637,7 @@ describe Editor::AuthRenderer, :type => :controller do
       @rnd.paragraph.should_receive(:run_triggered_actions).once.with(anything(), 'success', anything())
       renderer_post @rnd, :vip => {:number => vip_number}
 
-      @rnd.session[:user_id].should == @user.id
+      session[:user_id].should == @user.id
     end
 
     it "should not activate a vip user if registered" do
@@ -660,7 +658,7 @@ describe Editor::AuthRenderer, :type => :controller do
       @rnd.paragraph.should_receive(:run_triggered_actions).once.with(anything(), 'repeat', anything())
       renderer_post @rnd, :vip => {:number => vip_number}
 
-      @rnd.session[:user_id].should be_nil
+      session[:user_id].should be_nil
     end
 
     it "should not activate a vip user with a bad vip number" do
@@ -682,7 +680,7 @@ describe Editor::AuthRenderer, :type => :controller do
       @rnd.paragraph.should_receive(:run_triggered_actions).once.with(anything(), 'failure', anything())
       renderer_post @rnd, :vip => {:number => bad_vip_number}
 
-      @rnd.session[:user_id].should be_nil
+      session[:user_id].should be_nil
     end
 
     it "should activate a vip user and redirect to already registered page" do
@@ -707,7 +705,7 @@ describe Editor::AuthRenderer, :type => :controller do
       @rnd.paragraph.should_receive(:run_triggered_actions).once.with(anything(), 'success', anything())
       renderer_post @rnd, :vip => {:number => vip_number}
 
-      @rnd.session[:user_id].should == @user.id
+      session[:user_id].should == @user.id
     end
 
     it "should activate a vip user and redirect to success page" do
@@ -732,7 +730,7 @@ describe Editor::AuthRenderer, :type => :controller do
       @rnd.paragraph.should_receive(:run_triggered_actions).once.with(anything(), 'success', anything())
       renderer_post @rnd, :vip => {:number => vip_number}
 
-      @rnd.session[:user_id].should == @user.id
+      session[:user_id].should == @user.id
     end
 
     it "should activate a vip user and add tags" do
@@ -755,7 +753,7 @@ describe Editor::AuthRenderer, :type => :controller do
       renderer_post @rnd, :vip => {:number => vip_number}
 
       @user.reload
-      @rnd.session[:user_id].should == @user.id
+      session[:user_id].should == @user.id
       @tag = Tag.find_by_name(tags)
       @tag.should_not be_nil
       @end_user_tag = EndUserTag.find_by_end_user_id_and_tag_id(@user.id, @tag.id)

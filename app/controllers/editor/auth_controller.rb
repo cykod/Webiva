@@ -56,7 +56,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
 
         self.register_features.each do |feature|
           if !feature.options.valid?
-            self.errors.add_to_base('Feature Error')
+            self.errors.add(:base, 'Feature Error')
           end
         end
        
@@ -238,7 +238,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
 
         self.user_edit_features.each do |feature|
           if !feature.options.valid?
-            self.errors.add_to_base('Feature Error')
+            self.errors.add(:base, 'Feature Error')
           end
         end
       end
@@ -403,7 +403,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
 
         self.login_features.each do |feature|
           if !feature.options.valid?
-            self.errors.add_to_base('Feature Error')
+            self.errors.add(:base, 'Feature Error')
           end
         end
        

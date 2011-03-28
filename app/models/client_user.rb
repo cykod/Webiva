@@ -37,7 +37,7 @@ class ClientUser < SystemModel
     self.errors.add(:client_id, 'is missing') unless self.client
 
     if self.id.nil? && self.client
-      self.errors.add_to_base('Max users for client') if self.client.available_client_users == 0
+      self.errors.add(:base, 'Max users for client') if self.client.available_client_users == 0
     end
   end
 

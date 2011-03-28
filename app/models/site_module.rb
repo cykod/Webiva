@@ -370,7 +370,7 @@ class SiteModule < DomainModel
   end
   
   def validate_name_exists
-    errors.add_to_base("Please enter a name") if name.empty?
+    errors.add(:base, "Please enter a name") if name.empty?
   end
   
   

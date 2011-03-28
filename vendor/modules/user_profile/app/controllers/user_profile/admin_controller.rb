@@ -82,7 +82,7 @@ class UserProfile::AdminController < ModuleController
   # Dummy options model just to force visit to the module options page
   class Options < HashModel
     def validate 
-      self.errors.add_to_base('Add Profile') if UserProfileType.count == 0
+      self.errors.add(:base, 'Add Profile') if UserProfileType.count == 0
     end
   end
 end

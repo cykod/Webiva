@@ -258,7 +258,7 @@ class Blog::ManageController < ModuleController
 
     def validate
       if self.import_file_id.blank? && self.wordpress_export_file_id.blank? && self.wordpress_url.blank? && self.rss_url.blank?
-        self.errors.add_to_base 'Import settings not specified'
+        self.errors.add :base, 'Import settings not specified'
       elsif ! self.rss_url.blank?
         self.errors.add(:rss_url, 'is invalid') unless URI::regexp(%w(http https)).match(self.rss_url)
       elsif self.import_file_id.blank? && self.wordpress_export_file_id.blank? && ! self.wordpress_url.blank?
@@ -302,12 +302,12 @@ class Blog::ManageController < ModuleController
             self.errors.add(:wordpress_password, 'is invalid')
           else
             self.errors.add(:wordpress_url, 'is invalid')
-            self.errors.add_to_base(self.wordpress_importer.error)
+            self.errors.add(:base, self.wordpress_importer.error)
           end
         end
 
         unless self.wordpress_importer.error
-          self.errors.add_to_base(self.wordpress_importer.error) unless self.wordpress_importer.import
+          self.errors.add(:base, self.wordpress_importer.error) unless self.wordpress_importer.import
         end
       end
 

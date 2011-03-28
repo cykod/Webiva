@@ -28,7 +28,7 @@ class DomainFileSize < DomainModel
   cattr_accessor :gravity_options
 
   def validate_operations #:nodoc:all
-    self.errors.add_to_base("One or more operation options are invalid") if !operations_valid?
+    self.errors.add(:base, "One or more operation options are invalid") if !operations_valid?
   end
   
   def operations

@@ -36,3 +36,6 @@ find . -type f -exec perl -pi -e 's/<% more_action_panel/<%= more_action_panel/g
 find . -type f -exec perl -pi -e 's/<% ajax_tabs/<%= ajax_tabs/g' {} \;
 
 find . -type f -exec perl -pi -e 's/<% t.tab do/<%= t.tab do/g' {} \;
+
+find . -type f -exec perl -pi -e 's/errors.add_to_base\(/errors.add(:base, /' {} \;
+find . -type f -exec perl -pi -e 's/errors.add_to_base /errors.add :base, /' {} \;
