@@ -106,11 +106,11 @@ class ContentModel < DomainModel
   
    # Return a hash of content fields with their modules added in
   def self.content_fields_hash
-    returning field_hash = {} do 
-      get_handler_info(:content,:fields).each do |info|
-        field_hash[info[:identifier]] = info[:class].field_hash
-      end
+    field_hash = {}
+    get_handler_info(:content,:fields).each do |info|
+      field_hash[info[:identifier]] = info[:class].field_hash
     end
+    field_hash
   end
 
   # Returns a select-friendly list of available content field types
@@ -264,19 +264,18 @@ class ContentModel < DomainModel
   # Checks a list of content_model_fields given a list of ids
   def process_fields(fields)
     all_valid = true
-    returning cm_fields = [] do 
-      fields.each do |fld|
-        fld_id = fld.delete(:id)
-        cm_field = self.content_model_fields.detect { |cm| cm.id == fld_id.to_i } if fld_id
-        if !cm_field
-          cm_field = self.content_model_fields.build
-        end
-        
-        cm_field.attributes = fld
-        all_valid = false unless cm_field.valid?
-        
-        cm_fields << cm_field
+    cm_fields = [] 
+    fields.each do |fld|
+      fld_id = fld.delete(:id)
+      cm_field = self.content_model_fields.detect { |cm| cm.id == fld_id.to_i } if fld_id
+      if !cm_field
+        cm_field = self.content_model_fields.build
       end
+        
+      cm_field.attributes = fld
+      all_valid = false unless cm_field.valid?
+        
+      cm_fields << cm_field
     end
     
     [ cm_fields, all_valid ]

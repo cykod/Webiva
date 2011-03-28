@@ -56,36 +56,34 @@ class DomainLogSession < DomainModel
 #  validates_uniqueness_of :session_id
   def self.session(visitor_id,session_id,user,ip_address,save_entry=true,tracking=nil,site_node=nil,ignore=true,full_session=nil)
     user = user.id if user.is_a?(EndUser)
-    returning (self.find_by_session_id(session_id) || self.new(:session_id => session_id, :ip_address => ip_address)) do |ses|
+    ses = (self.find_by_session_id(session_id) || self.new(:session_id => session_id, :ip_address => ip_address))
+    if(tracking && tracking.referrer_domain)
+      referrer_id =  DomainLogReferrer.fetch_referrer(tracking.referrer_domain,tracking.referrer_path).id
+    else
+      referrer_id = nil
+    end
 
-      if(tracking && tracking.referrer_domain)
-        referrer_id =  DomainLogReferrer.fetch_referrer(tracking.referrer_domain,tracking.referrer_path).id
-      else
-        referrer_id = nil
-      end
+    ses.attributes = {
+      :domain_log_visitor_id => visitor_id,
+      :affiliate => tracking.affiliate,
+      :campaign => tracking.campaign,
+      :origin => tracking.origin,
+      :domain_log_referrer_id => referrer_id,
+      :query => tracking.search,
+      :domain_id => DomainModel.active_domain_id,
+      :site_version_id => site_node ? site_node.site_version_id : nil,
+      :ignore => ignore,
+      :affiliate_data => tracking.affiliate_data} if tracking && ses.id.nil?
 
-      ses.attributes = {
-        :domain_log_visitor_id => visitor_id,
-        :affiliate => tracking.affiliate,
-        :campaign => tracking.campaign,
-        :origin => tracking.origin,
-        :domain_log_referrer_id => referrer_id,
-        :query => tracking.search,
-        :domain_id => DomainModel.active_domain_id,
-        :site_version_id => site_node ? site_node.site_version_id : nil,
-        :ignore => ignore,
-        :affiliate_data => tracking.affiliate_data} if tracking && ses.id.nil?
+    ses.attributes = {:end_user_id => user}
 
-      ses.attributes = {:end_user_id => user}
+    unless ignore
+      source = DomainLogSource.get_source ses, full_session if full_session
+      ses.domain_log_source_id = source[:id] if source
+    end
 
-      unless ignore
-        source = DomainLogSource.get_source ses, full_session if full_session
-        ses.domain_log_source_id = source[:id] if source
-      end
-
-      ses.save if save_entry
-    end 
-
+    ses.save if save_entry
+    ses
   end
 
   def update_ignore

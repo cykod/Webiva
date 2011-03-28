@@ -2,6 +2,7 @@ require "spec_helper"
 
 
 describe HashModel do
+  include ActionDispatch::TestProcess
 
   reset_domain_tables :site_versions, :site_nodes, :domain_files
 

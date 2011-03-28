@@ -23,9 +23,7 @@ class SystemIssue < SystemModel
   # See if there's already and error of this type
   # if so return the parent error
   def self.register_child!(code_location,error_location,error_type)
-      returning self.find(:first,:conditions => { :code_location => code_location, :error_type => error_type, :error_location => error_location },:lock => true) do |parent|
-        parent.update_attributes(:children_count => parent.children_count.to_i + 1) if parent
-      end
+    parent = self.find(:first,:conditions => { :code_location => code_location, :error_type => error_type, :error_location => error_location },:lock => true)
+    parent.update_attributes(:children_count => parent.children_count.to_i + 1) if parent
   end
-  
 end

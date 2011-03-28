@@ -3,7 +3,7 @@
  <b>No Previous Revisions</b>
 <% else -%>
 <div style='position:absolute; right:0px; z-index:1000; background-color:white;'>
-<% table_for file.versions, ['','Name','Size','Date','By',''], :class => 'active_table' do |t| -%>
+<%= table_for file.versions, ['','Name','Size','Date','By',''], :class => 'active_table' do |t| -%>
 <tr>
   <td nowrap='1'><a href='javascript:void(0);' title='Extract to own file' onclick='FileEditor.extractRevision(<%= t.id %>);'><%= theme_image_tag('icons/actions/upload.gif') %></a></td>
   <td nowrap='1'><%= link_to t.name, t.url, :target => '_blank' %></td>

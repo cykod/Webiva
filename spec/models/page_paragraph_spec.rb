@@ -4,6 +4,7 @@ require "spec_helper"
 # This tests a bunch of functionality on DomainFile as well
 
 describe PageParagraph do
+  include ActionDispatch::TestProcess
 
   reset_domain_tables :page_paragraphs, :domain_files, :domain_file_instances, :site_nodes, :site_versions
   

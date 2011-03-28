@@ -42,8 +42,8 @@ describe UserSegment do
   end
 
   it "should be able to filter for users" do
-    size = UserSegmentCache::SIZE
-    UserSegmentCache::SIZE = 2
+    size = UserSegmentCache.cache_size
+    UserSegmentCache.cache_size = 2
     @segment = UserSegment.create :name => 'Test', :segment_type => 'filtered', :segment_options_text => 'activated.is(true)'
     @segment.should_refresh?.should be_true
     @segment.refresh
@@ -52,12 +52,12 @@ describe UserSegment do
     @segment.user_segment_caches.length.should == 3
     @segment.last_count.should == 5
     @segment.last_ran_at.should_not be_nil
-    UserSegmentCache::SIZE = size
+    UserSegmentCache.cache_size = size
   end
 
   it "should be able to search through users" do
-    size = UserSegmentCache::SIZE
-    UserSegmentCache::SIZE = 2
+    size = UserSegmentCache.cache_size
+    UserSegmentCache.cache_size = 2
     @segment = UserSegment.create :name => 'Test', :segment_type => 'filtered', :segment_options_text => 'activated.is(true)'
     @segment.should_refresh?.should be_true
     @segment.refresh
@@ -95,12 +95,12 @@ describe UserSegment do
     users[1].id.should == @user8.id
     offset.should == 4
 
-    UserSegmentCache::SIZE = size
+    UserSegmentCache.cache_size = size
   end
 
   it "should be able to paginate through the segment" do
-    size = UserSegmentCache::SIZE
-    UserSegmentCache::SIZE = 2
+    size = UserSegmentCache.cache_size
+    UserSegmentCache.cache_size = 2
     @segment = UserSegment.create :name => 'Test', :segment_type => 'filtered', :segment_options_text => 'activated.is(true)'
     @segment.should_refresh?.should be_true
     @segment.refresh
@@ -147,12 +147,12 @@ describe UserSegment do
     pages[:last].should == 5
     pages[:pages].should == 3
 
-    UserSegmentCache::SIZE = size
+    UserSegmentCache.cache_size = size
   end
 
   it "should be able to iterate over the users" do
-    size = UserSegmentCache::SIZE
-    UserSegmentCache::SIZE = 2
+    size = UserSegmentCache.cache_size
+    UserSegmentCache.cache_size = 2
     @segment = UserSegment.create :name => 'Test', :segment_type => 'filtered', :segment_options_text => 'activated.is(true)'
     @segment.should_refresh?.should be_true
     @segment.refresh
@@ -199,7 +199,7 @@ describe UserSegment do
 
     user.should be_nil
 
-    UserSegmentCache::SIZE = size
+    UserSegmentCache.cache_size = size
   end
 
   it "should be able to change the ordering of the users" do

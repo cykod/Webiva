@@ -9,13 +9,13 @@ class TriggeredActionMailer < ActionMailer::Base #:nodoc:all
   def self.send_email(data,options,user)
     users = EndUser.find(:all,:conditions => ["user_class_id = ?", options[:user_class]],:order => 'last_name,first_name')
     users.each do |usr| 
-      self.deliver_email(usr.email,
-                           options[:subject],
-                           options[:custom_message],
-                            nil,
-                            data,
-                           user
-                           )
+      self.email(usr.email,
+                 options[:subject],
+                 options[:custom_message],
+                 nil,
+                 data,
+                 user
+                 ).deliver
     end
   end
   

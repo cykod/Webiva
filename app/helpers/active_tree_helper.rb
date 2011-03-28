@@ -17,28 +17,26 @@ module ActiveTreeHelper
     end
 
     def child(obj,level=1)
-      returning html = '' do
-        html << "\n<#{@opts[:leaf_tg]} class='#{@opts[:leaf_clss]}' id='#{@element}_#{obj.id}'>"
-        html << "<span class='active_tree_dropper'></span><span class='toggle'></span>#{'<span class=\'handle\'></span>' unless @opts[:no_handle]}<a class='#{@opts[:leaf_content_clss]}' href='javascript:void(0);' onclick='#{@opts[:js_obj]}.select(#{obj.id},\"#{@element}_#{obj.id}\");'>"
-        html << @template.send(:render,:partial => @opts[:partial],:locals => { :tree => self, @element.to_sym => obj }).to_s
-        html << "</a>"
-        html << self.children(obj,level+1)
-        
-        html << "</#{@opts[:leaf_tg]}>\n"
-      end
-        
+      html = ''
+      html << "\n<#{@opts[:leaf_tg]} class='#{@opts[:leaf_clss]}' id='#{@element}_#{obj.id}'>"
+      html << "<span class='active_tree_dropper'></span><span class='toggle'></span>#{'<span class=\'handle\'></span>' unless @opts[:no_handle]}<a class='#{@opts[:leaf_content_clss]}' href='javascript:void(0);' onclick='#{@opts[:js_obj]}.select(#{obj.id},\"#{@element}_#{obj.id}\");'>"
+      html << @template.send(:render,:partial => @opts[:partial],:locals => { :tree => self, @element.to_sym => obj }).to_s
+      html << "</a>"
+      html << self.children(obj,level+1)
+      html << "</#{@opts[:leaf_tg]}>\n"
+      html
     end
 
     def children(object,level=1,wrap=true)
-      returning html = '' do
-        html << "<#{@opts[:tg]} id='#{@element}_#{object.id}_children' class='#{@opts[:branch_clss]}'>" if wrap
-        # First time around we already have an array of objects
-        objects = wrap ?  object.send(@opts[:children]) : object
-        objects.each do |obj|
-          html << self.child(obj,level)
-        end
-        html << "</#{@opts[:tg]}>" if wrap
+      html = ''
+      html << "<#{@opts[:tg]} id='#{@element}_#{object.id}_children' class='#{@opts[:branch_clss]}'>" if wrap
+      # First time around we already have an array of objects
+      objects = wrap ?  object.send(@opts[:children]) : object
+      objects.each do |obj|
+        html << self.child(obj,level)
       end
+      html << "</#{@opts[:tg]}>" if wrap
+      html
     end
   end
 

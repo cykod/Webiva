@@ -1,5 +1,5 @@
 require "spec_helper"
-require File.dirname(__FILE__) + "/../content_spec_helper"
+require "content_spec_helper"
 
 describe ContentPublication do
 

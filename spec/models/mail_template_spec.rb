@@ -1,8 +1,8 @@
 require "spec_helper"
-require File.dirname(__FILE__) + "/../mail_template_spec_helper"
+require "mail_template_spec_helper"
 
 describe MailTemplate do
-  
+  include ActionDispatch::TestProcess
   include MailTemplateSpecHelper
   include ActionController::Assertions::SelectorAssertions # for site template stuff
 

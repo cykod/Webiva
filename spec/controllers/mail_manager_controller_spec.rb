@@ -1,11 +1,13 @@
 require "spec_helper"
-require File.dirname(__FILE__) + "/../mail_template_spec_helper"
+require "mail_template_spec_helper"
 
 
 
 
 
 describe MailManagerController, "" do
+  include ActionDispatch::TestProcess
+
   reset_domain_tables :mail_templates, :domain_files, :end_users, :site_templates
   render_views
   include MailTemplateSpecHelper

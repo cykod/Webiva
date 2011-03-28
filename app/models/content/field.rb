@@ -107,11 +107,11 @@ module Content
       
       field_options_code =  <<-EOF
       def set_field_options(options)
-        returning field_opts = {} do
-          field_opts['hidden'] = options['hidden'].blank? ? false : true
-          field_opts['exclude'] = options['exclude'].blank? ? false : true
-          #{options.map { |opt| "@@field_procs[:#{opt}].call(@model_field,field_opts,options||{})" }.join("\n")}
-        end
+        field_opts = {}
+        field_opts['hidden'] = options['hidden'].blank? ? false : true
+        field_opts['exclude'] = options['exclude'].blank? ? false : true
+        #{options.map { |opt| "@@field_procs[:#{opt}].call(@model_field,field_opts,options||{})" }.join("\n")}
+        field_opts
       end
       EOF
       self.class_eval field_options_code, __FILE__, __LINE__ 

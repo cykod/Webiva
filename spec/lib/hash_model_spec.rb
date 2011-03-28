@@ -1,7 +1,8 @@
 require "spec_helper"
 
 describe HashModel do
-
+  include ActionDispatch::TestProcess
+  
   def create_hash_model_class(strict=false, attributes={})
     @cls = Class.new(HashModel)
     @cls.attributes attributes

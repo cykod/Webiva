@@ -10,7 +10,7 @@
  <h2>All modules are initialized</h2>
 <% end -%>
 
-<% table_for @site_modules, ['Name','Status','Configure'], :class=>'active_table' do |t| %>
+<%= table_for @site_modules, ['Name','Status','Configure'], :class=>'active_table' do |t| %>
 <tr>
   <td><%= h t.display_name -%></td>
   <td><%= t.status_display -%></td>

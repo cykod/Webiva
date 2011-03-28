@@ -6,9 +6,11 @@ Should not be used directly. Instead use UserSegment methods.
 
 =end
 class UserSegmentCache < DomainModel
-  SIZE = 25000
   DEFAULT_BATCH_SIZE = 1000
 
+  cattr_accessor :cache_size
+  @@cache_size = 25000
+  
   belongs_to :user_segment
 
   serialize :id_list

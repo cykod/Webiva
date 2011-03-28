@@ -1,6 +1,7 @@
 require "spec_helper"
 
 describe DomainFile do
+  include ActionDispatch::TestProcess
 
   reset_domain_tables :domain_file, :domain_file_version
   

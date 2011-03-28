@@ -1,6 +1,7 @@
 require "spec_helper"
 
 describe ModelExtension::EndUserImportExtension do
+  include ActionDispatch::TestProcess
 
   reset_domain_tables :end_user, :end_user_cache, :end_user_action, :end_user_tag, :end_user_address, :domain_file, :tag, :tag_note
 

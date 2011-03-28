@@ -3,15 +3,15 @@
 module FileHelper
 
   def fm_file_info(file)
-    returning file_info = {} do
-      %w(id file_type width height processor processor_status url).each { |elm| file_info[elm] = file.send(elm) }
-      file_info['short_name'] = file.name
-      file_info['name'] = file.file_path
-      file_info['thumb_url'] = file.thumbnail_url(theme,:thumb)
-      file_info['editor_url'] = file.editor_url
-      file_info['thumb_editor_url'] = file.editor_url(:thumb)
-      file_info['private_file'] = file.private?
-    end
+    file_info = {}
+    %w(id file_type width height processor processor_status url).each { |elm| file_info[elm] = file.send(elm) }
+    file_info['short_name'] = file.name
+    file_info['name'] = file.file_path
+    file_info['thumb_url'] = file.thumbnail_url(theme,:thumb)
+    file_info['editor_url'] = file.editor_url
+    file_info['thumb_editor_url'] = file.editor_url(:thumb)
+    file_info['private_file'] = file.private?
+    file_info
   end
 
   def filemanager_details(file)

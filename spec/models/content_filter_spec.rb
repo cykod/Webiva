@@ -2,6 +2,7 @@ require "spec_helper"
 
 
 describe ContentFilter do
+  include ActionDispatch::TestProcess
 
   reset_domain_tables :content_filter, :domain_files, :domain_file_instances
 

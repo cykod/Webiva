@@ -217,7 +217,7 @@ class DomainFile < DomainModel
     rescue Exception => e
       raise self.inspect + e.to_s
     end
-    fattr = self.read_attribute(:filename)
+    fattr = self[:filename]
     if fattr != self.name
       ext = File.extname(self.name)
       desired_name = DomainFile.sanitize_filename(File.basename(self.name,ext) + File.extname(fattr))
@@ -302,9 +302,9 @@ class DomainFile < DomainModel
       # Write the filename so we know where to save it (and make sure this file validates)
       begin
         current_file_name =File.basename(DomainFile.sanitize_filename(@file_data.original_filename.to_s.downcase))
-        self.write_attribute(:filename,current_file_name)
+        self[:filename] = current_file_name
       rescue Exception => e
-        self.write_attribute(:filename,nil)
+        self[:filename] = nil
       end
       
       if current_file_name
@@ -493,7 +493,7 @@ class DomainFile < DomainModel
   
   
   def prefixed_filename(size=nil, opts={})
-    atr = self.read_attribute(:filename)
+    atr = self[:filename]
     return nil unless self.prefix && atr
 
     # Only allow valid file sizes
@@ -514,7 +514,7 @@ class DomainFile < DomainModel
   # the storage directroy
   def relative_filename(size=nil,force=nil)
     # unless we have a filename, return false
-    atr = self.read_attribute(:filename)
+    atr = self[:filename]
     return nil unless self.prefix && atr
     
     # Only allow valid file sizes
@@ -827,7 +827,7 @@ class DomainFile < DomainModel
   
   # Return the file's extension
   def extension
-    ext = self.read_attribute(:extension)
+    ext = self[:extension]
     return ext if ext;
     return unless self.meta_info.is_a?(Hash)
     return self.meta_info[:file_extension] if self.file_type != 'fld'
@@ -922,11 +922,11 @@ class DomainFile < DomainModel
     dir = DomainFile.generate_temporary_directory
     
     
-    File.open(File.join(dir,self.read_attribute(:filename)),'wb') do |f|
+    File.open(File.join(dir,self[:filename]),'wb') do |f|
       f.write(val)
     end
     
-    File.open(File.join(dir,self.read_attribute(:filename)),'rb') do |f|
+    File.open(File.join(dir,self[:filename]),'rb') do |f|
       self.filename=f
       self.process_immediately = true
       self.save

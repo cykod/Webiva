@@ -2,6 +2,8 @@ require "spec_helper"
 
 
 describe EndUser do
+  include ActionDispatch::TestProcess
+
   reset_domain_tables :end_users, :end_user_tags, :tags, :domain_files, :end_user_actions, :configurations, :roles, :user_roles
   before(:each) do
     

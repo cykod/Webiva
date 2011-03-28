@@ -1,6 +1,7 @@
 require "spec_helper"
 
 describe ParagraphFeature, :type => :view do
+  include ActionDispatch::TestProcess
 
   reset_domain_tables :end_users, :end_user_addresses, :domain_files, :site_modules
 

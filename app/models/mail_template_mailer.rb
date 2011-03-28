@@ -6,7 +6,7 @@ require 'mime/types'
 # MailTemplateMailer is used to send MailTemplate's
 # 
 # See MailTemplate for a more detailed description, 
-# MailTemplate#deliver_to_user and MailTemplate#deliver_to_address
+# MailTemplate#to_user and MailTemplate#to_address
 # should be used in most cases. 
 #
 # If you don't have a MailTemplate however, you can use
@@ -19,12 +19,12 @@ class MailTemplateMailer < ActionMailer::Base
   #
   # Usage:
   #
-  #     MailTemplateMailer.deliver_message_to_address(
+  #     MailTemplateMailer.message_to_address(
   #                    'test@domain.com',
   #                    "This is the email subject",
   #                    :text => 'Text body',
   #                    :html => "<b>Html Body!</b>",
-  #                    :from => 'Svend@karlson.com')
+  #                    :from => 'Svend@karlson.com').deliver
   #
   # Either :text or :html (or both) must be specified,
   # :from is optional and will use the default or the

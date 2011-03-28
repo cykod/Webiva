@@ -1,8 +1,8 @@
 require "spec_helper"
 
 describe SiteNodeEngine, :type => :controller do
-  subject { PageController.new }
-
+  include ActionDispatch::TestProcess
+  
   render_views
 
   @@html_test_code = "<h1>Yo, Html Paragraph here!</h1>"

@@ -1,8 +1,9 @@
 require "spec_helper"
-require File.dirname(__FILE__) + "/../../content_spec_helper"
+require "content_spec_helper"
 
 describe Content::Field do
-
+  include ActionDispatch::TestProcess
+  
   reset_domain_tables :content_models,:content_model_fields
   
   include ContentSpecHelper

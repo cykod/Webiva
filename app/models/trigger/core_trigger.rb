@@ -110,7 +110,7 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
         msg_options[:from] = DomainModel.variable_replace(options.message_from,data_vars) unless options.message_from.blank?
         
         emails.each do |email|
-          MailTemplateMailer.deliver_message_to_address(email,options.subject,msg_options)
+          MailTemplateMailer.message_to_address(email,options.subject,msg_options).deliver
         end    
       elsif options.send_type == 'template'
         action_data = action_data.triggered_attributes if action_data.is_a?(DomainModel)
@@ -121,7 +121,7 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
         mail_template  = MailTemplate.find_by_id(options.mail_template_id)
         variables['system:from'] = DomainModel.variable_replace(options.message_from,data_vars) unless options.message_from.blank?
         emails.each do |email|
-          MailTemplateMailer.deliver_to_address(email,mail_template,variables)
+          MailTemplateMailer.to_address(email,mail_template,variables).deliver
         end
       end
     end    

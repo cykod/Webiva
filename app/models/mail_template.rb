@@ -18,16 +18,16 @@ with lists of variables used)
 
 === Using Mail Templates
 MailTemplates are generally created in e-marketing => Email Templates, but to
-use one you can use MailTemplate#deliver_to_address  or MailTemplate#deliver_to_user 
+use one you can use MailTemplate#to_address  or MailTemplate#to_user 
 for example:
 
      @mail_template = MailTemplate.find_by_id(@options.mail_template_id)
      @replacement_variables = { :url => url,
                                :link => "<a href='#{url}'>#{url}</a>" }
 
-     @mail_template.deliver_to_email('test@domain.com',@replacement_variables)
+     @mail_template.to_email('test@domain.com',@replacement_variables).deliver
                              OR
-     @mail_template.deliver_to_user(myself,@replacement_variables)
+     @mail_template.to_user(myself,@replacement_variables).deliver
 
 === Template Types
 There are two types of templates - site and campaign - the former are for usage in the site,
@@ -150,12 +150,12 @@ class MailTemplate < DomainModel
  
  # Deliver this template to an email address
  def deliver_to_address(email,variables={})
-  MailTemplateMailer.deliver_to_address(email,self,variables)
+  MailTemplateMailer.to_address(email,self,variables).deliver
  end
  
  # Deliver this template to a EndUser (first_name,last_name,etc will be available as variables)
  def deliver_to_user(usr,variables={})
-  MailTemplateMailer.deliver_to_user(usr,self,variables)
+  MailTemplateMailer.to_user(usr,self,variables).deliver
  end
  
  # Return a list of attachments

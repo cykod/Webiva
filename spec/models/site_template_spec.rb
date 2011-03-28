@@ -1,6 +1,7 @@
 require "spec_helper"
 
 describe SiteTemplate do
+  include ActionDispatch::TestProcess
 
   reset_domain_tables :editor_changes, :site_feature, :site_template, :domain_file, :site_template_zone, :site_template_rendered_part, :site_node, :page_paragraph, :page_revision, :site_node_modifiers
 

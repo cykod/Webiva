@@ -14,9 +14,9 @@ module ContentSpecHelper
 
   def create_spec_test_content_model(args={ })
     ContentModel.connection.execute('DROP TABLE IF EXISTS cms_spec_tests')  
-    returning cm = ContentModel.create({:name => 'spec_test'}.merge(args)) do 
-      cm.create_table # Create the table    
-    end
+    cm = ContentModel.create({:name => 'spec_test'}.merge(args))
+    cm.create_table # Create the table    
+    cm
   end
   
   def create_dummy_fields(cm,create_fields = [ :string ] )

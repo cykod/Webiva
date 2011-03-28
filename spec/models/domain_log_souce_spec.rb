@@ -1,5 +1,5 @@
 require "spec_helper"
-require File.dirname(__FILE__) + "/../domain_log_spec_helper"
+require "domain_log_spec_helper"
 
 describe DomainLogSource do
 

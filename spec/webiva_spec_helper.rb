@@ -103,7 +103,7 @@ RSpec.configure do |config|
   # in your config/boot.rb
   config.use_transactional_fixtures = false # Modified for 2.3.2
   config.use_instantiated_fixtures  = false
-  config.fixture_path = Rails.root + '/spec/fixtures/'
+  config.fixture_path = "#{Rails.root}/spec/fixtures/"
   config.mock_with :rspec
 
 #  config.before(:suite) do
@@ -592,10 +592,10 @@ def prevent_feature_injection(model,&block)
   ModelInjectionAttackMatcher.new(model,&block)
 end
 
-# No Longer available in ModelTests
-def fixture_file_upload(path, mime_type = nil, binary = false)
-  fixture_path = Rspec.configuration.fixture_path
-  ActionController::TestUploadedFile.new("#{fixture_path}#{path}", mime_type, binary)
+class ActionController::TestCase
+  def self.fixture_path
+    RSpec.configuration.fixture_path
+  end
 end
 
 def assert_difference(executable, how_many = 1, &block)

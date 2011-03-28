@@ -6,7 +6,7 @@
 
 <div class='active_table_wrapper'>
 
-<% table_for @content_models, ['Name','Entries','Description','Publications' ,'Fields'], :class => 'active_table'  do |mdl| %>
+<%= table_for @content_models, ['Name','Entries','Description','Publications' ,'Fields'], :class => 'active_table'  do |mdl| %>
 <tr <%= highlight_row "tools",mdl.id %>>
   <td>
     <% if mdl.table_name -%>

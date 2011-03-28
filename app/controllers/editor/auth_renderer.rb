@@ -581,7 +581,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       if usr && email_template
         vars = { :verification => Configuration.domain_link(site_node.node_path + "?verification=" + usr.verification_string) }
 	
-	MailTemplateMailer.deliver_to_user(usr,email_template,vars)
+	MailTemplateMailer.to_user(usr,email_template,vars).deliver
       end
 
       flash['template_sent'] = true

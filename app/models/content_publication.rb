@@ -204,12 +204,12 @@ class ContentPublication < DomainModel
   end
   
   def filter_variables
-    returning filter_vars = [] do
-      self.content_publication_fields.each do |fld|
-        if (fld.options.filter)
-          filter_vars.concat(fld.filter_variables)
-        end
+    filter_vars = []
+    self.content_publication_fields.each do |fld|
+      if (fld.options.filter)
+        filter_vars.concat(fld.filter_variables)
       end
+    filter_vars
     end
   end
   

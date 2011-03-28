@@ -148,7 +148,7 @@ class MailManagerController < CmsController # :nodoc: all
     @mail_template.replace_link_hrefs
     
     
-    MailTemplateMailer.deliver_to_address(params[:email],@mail_template)
+    MailTemplateMailer.to_address(params[:email],@mail_template).deliver
   
     render :layout => false, :text =>   'Sent Email to %s' / params[:email]
   end

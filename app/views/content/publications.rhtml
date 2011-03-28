@@ -23,7 +23,7 @@
 <% end -%>
 
 <div class='admin_content'>
-<% table_for @publications, [ 'Name','Type','Description','Delete' ], :class=>'active_table', :cellspacing => 0, :id => 'publication_table' do |pub| %>
+<%= table_for @publications, [ 'Name','Type','Description','Delete' ], :class=>'active_table', :cellspacing => 0, :id => 'publication_table' do |pub| %>
   <tr <%= highlight_row "pub",pub.id %>  >
     <td><a href='<%= url_for :action => 'publication', :path => [ @content_model.id, pub.id ] %>' > <%= pub.name %></td>
     <td><%= h pub.publication_type_display %></td>

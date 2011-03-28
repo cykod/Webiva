@@ -12,6 +12,6 @@ class SystemIssueNote < SystemModel #:nodoc:all
   after_create :send_issue
 
   def send_issue
-    SystemIssueMailer.deliver_issue(self.system_issue.reload,'updated')
+    SystemIssueMailer.issue(self.system_issue.reload,'updated').deliver
   end
 end

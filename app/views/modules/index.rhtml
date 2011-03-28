@@ -37,7 +37,7 @@ confirmDeactivation: function() {
 <% else %>
 
 <%= form_tag '' -%>
-  <% table_for @available_modules, ['Name','Status','Activate','Deactivate','Dependencies','Description'], :class=>'active_table',:width => '100%' do |t| %>
+  <%= table_for @available_modules, ['Name','Status','Activate','Deactivate','Dependencies','Description'], :class=>'active_table',:width => '100%' do |t| %>
   <tr id='elem_mod_<%= t[:module] -%>_row'   onmouseover='SCMS.highlightRow(this);'  onmouseout='SCMS.lowlightRow(this);' onclick='SCMS.clickRow("mod","<%= t[:module] -%>"); ModuleEditor.updateButtons(); '>
     <td nowrap='1'>
       <% if (t[:status] == 'active' || t[:status] == 'initialized') && "#{t[:name].to_s.camelcase}::AdminController".constantize.method_defined?('options') %>

@@ -203,12 +203,12 @@ class UserSegment < DomainModel
 
     ids = sorted_ids + (ids - sorted_ids)
 
-    num_segements = (ids.length / UserSegmentCache::SIZE)
-    num_segements = num_segements + 1 if (ids.length % UserSegmentCache::SIZE) > 0
+    num_segements = (ids.length / UserSegmentCache.cache_size)
+    num_segements = num_segements + 1 if (ids.length % UserSegmentCache.cache_size) > 0
 
     (0..num_segements-1).each do |idx|
-      start = idx * UserSegmentCache::SIZE
-      self.user_segment_caches.create :id_list => ids[start..start+UserSegmentCache::SIZE-1], :position => idx
+      start = idx * UserSegmentCache.cache_size
+      self.user_segment_caches.create :id_list => ids[start..start+UserSegmentCache.cache_size-1], :position => idx
     end
 
     self.status = 'finished'
@@ -276,10 +276,10 @@ class UserSegment < DomainModel
     offset = opts.delete(:offset).to_i
     limit = opts.delete(:limit)
 
-    cache_offset = offset % UserSegmentCache::SIZE
+    cache_offset = offset % UserSegmentCache.cache_size
 
     ids = []
-    ((offset / UserSegmentCache::SIZE).to_i..self.user_segment_caches.length-1).each do |position|
+    ((offset / UserSegmentCache.cache_size).to_i..self.user_segment_caches.length-1).each do |position|
       cache = self.user_segment_caches.find_by_position(position)
       ids += cache.id_list[cache_offset...(cache_offset+limit-ids.length)]
       cache_offset = 0
@@ -305,10 +305,10 @@ class UserSegment < DomainModel
       
     offset = (page-1) * page_size
 
-    position = (offset / UserSegmentCache::SIZE).to_i
+    position = (offset / UserSegmentCache.cache_size).to_i
 
     cache = self.user_segment_caches.find_by_position(position)
-    items = cache ? cache.fetch_users(:offset => (offset % UserSegmentCache::SIZE), :limit => page_size, :include => args[:include]) : []
+    items = cache ? cache.fetch_users(:offset => (offset % UserSegmentCache.cache_size), :limit => page_size, :include => args[:include]) : []
 
     [ { :pages => pages, 
         :page => page, 
@@ -343,7 +343,7 @@ class UserSegment < DomainModel
     limit = args.delete(:limit).to_i
     limit = 20 if limit <= 0
 
-    cache_offset = offset % UserSegmentCache::SIZE
+    cache_offset = offset % UserSegmentCache.cache_size
 
     if args[:scope].nil?
       args[:scope] = EndUser.scoped(:conditions => args.delete(:conditions), :joins => args.delete(:joins))
@@ -351,11 +351,11 @@ class UserSegment < DomainModel
     end
 
     ids = []
-    ((offset / UserSegmentCache::SIZE).to_i..self.user_segment_caches.length-1).each do |position|
+    ((offset / UserSegmentCache.cache_size).to_i..self.user_segment_caches.length-1).each do |position|
       cache = self.user_segment_caches.find_by_position(position)
       cache_offset, cache_ids = cache.search(cache_offset, args.merge(:limit => limit-ids.length))
       ids = ids + cache_ids
-      offset = UserSegmentCache::SIZE * position + cache_offset
+      offset = UserSegmentCache.cache_size * position + cache_offset
       cache_offset = 0
       break if ids.length >= limit
     end

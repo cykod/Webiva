@@ -39,3 +39,4 @@ find . -type f -exec perl -pi -e 's/<% t.tab do/<%= t.tab do/g' {} \;
 
 find . -type f -exec perl -pi -e 's/errors.add_to_base\(/errors.add(:base, /' {} \;
 find . -type f -exec perl -pi -e 's/errors.add_to_base /errors.add :base, /' {} \;
+find . -type f -exec perl -pi -e 's/<% table_for/<%= table_for/g' {} \;

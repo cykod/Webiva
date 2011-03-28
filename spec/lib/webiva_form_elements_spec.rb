@@ -1,7 +1,8 @@
 require "spec_helper"
 
 describe WebivaFormElements, :type => :view do
-
+  include ActionDispatch::TestProcess
+  
   reset_domain_tables :site_nodes, :site_versions, :page_revisions, :page_paragraphs
 
   class TestModel < HashModel

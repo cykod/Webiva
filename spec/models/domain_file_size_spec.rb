@@ -4,6 +4,7 @@ require "spec_helper"
 # This tests a bunch of functionality on DomainFile as well
 
 describe DomainFileSize do
+  include ActionDispatch::TestProcess
 
   reset_domain_tables :domain_file_size, :domain_file
   

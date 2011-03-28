@@ -2,6 +2,7 @@ require "spec_helper"
 require 'fakeweb'
 
 describe DomainFile::LocalProcessor do
+  include ActionDispatch::TestProcess
 
   reset_domain_tables :domain_file, :domain_file_version
   reset_system_tables :server

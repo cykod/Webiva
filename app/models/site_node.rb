@@ -145,13 +145,13 @@ class SiteNode < DomainModel
 
   # Adds a modifier to this nodes list of modifiers
   def add_modifier(type,options={})
-    returning md = self.site_node_modifiers.create(options.merge(:modifier_type => type)) do
-      md.move_to_top
-      if block_given?
-        yield md
-        md.save
-      end
+    md = self.site_node_modifiers.create(options.merge(:modifier_type => type))
+    md.move_to_top
+    if block_given?
+      yield md
+      md.save
     end
+    md
   end
 
   # Adds a subpage with the suburl of title to this page

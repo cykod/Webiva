@@ -1,7 +1,8 @@
 require "spec_helper"
 
 describe PublicController, "handling sending files" do
- 
+  include ActionDispatch::TestProcess
+
   reset_domain_tables :domain_file_sizes, :domain_files
 
   it "should return a valid file if the file exists" do

@@ -21,7 +21,7 @@
   <% if @domain_modules -%>
     <hr/>
     <div class='admin_content'>
-    <% table_for @domain_modules, ['Name','Status','Description','Action' ], :class=>'active_table' do |t| %>
+    <%= table_for @domain_modules, ['Name','Status','Description','Action' ], :class=>'active_table' do |t| %>
     <tr <%= highlight_row "module",t[:module] %> >
       <td><b><%= t[:name].t %></b></td>
       <td><%= t[:status].humanize.t %></td>
