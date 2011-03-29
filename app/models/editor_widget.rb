@@ -37,7 +37,7 @@ class EditorWidget < DomainModel
     if self.site_widget
       self.site_widget.title
     else
-      self.read_attribute(:title)
+      self[:title]
     end
   end
 

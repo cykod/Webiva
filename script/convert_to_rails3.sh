@@ -40,3 +40,14 @@ find . -type f -exec perl -pi -e 's/<% t.tab do/<%= t.tab do/g' {} \;
 find . -type f -exec perl -pi -e 's/errors.add_to_base\(/errors.add(:base, /' {} \;
 find . -type f -exec perl -pi -e 's/errors.add_to_base /errors.add :base, /' {} \;
 find . -type f -exec perl -pi -e 's/<% table_for/<%= table_for/g' {} \;
+
+find . -type f -exec perl -pi -e 's/\.write_attribute\((\:\w+),\s*(\w+)\)/[$1] = $2/' {} \;
+find . -type f -exec perl -pi -e 's/\.write_attribute (\:\w+),\s*(\w+)/[$1] = $2/' {} \;
+find . -type f -exec perl -pi -e 's/\swrite_attribute\((\:\w+),\s*(\w+)\)/ self[$1] = $2/' {} \;
+find . -type f -exec perl -pi -e 's/\swrite_attribute (\:\w+),\s*(\w+)/ self[$1] = $2/' {} \;
+
+
+find . -type f -exec perl -pi -e 's/\.read_attribute\(\s*(\:\w+)\s*\)/[$1]/' {} \;
+find . -type f -exec perl -pi -e 's/\.read_attribute (\:\w+)/[$1]/' {} \;
+find . -type f -exec perl -pi -e 's/\sread_attribute\(\s*(\:\w+)\s*\)/self[$1]/' {} \;
+find . -type f -exec perl -pi -e 's/\sread_attribute (\:\w+)/self[$1]/' {} \;

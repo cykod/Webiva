@@ -488,7 +488,7 @@ class EndUser < DomainModel
   # Returns an introduction string, either from
   # the attribute or based on gender
   def introduction
-    intro = read_attribute(:introduction)
+    intro =self[:introduction]
     if !intro.blank?
       intro
     elsif !self.gender.blank?

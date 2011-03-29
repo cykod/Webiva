@@ -106,7 +106,7 @@ class SiteNodeModifier < DomainModel
   }
 
   def modifier_type
-    type = self.read_attribute(:modifier_type)
+    type = self[:modifier_type]
     if type.length == 1
       @@legacy_modifier_hash[type]
     else

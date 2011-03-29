@@ -254,7 +254,7 @@ class Experiment < DomainModel
 
   def conversion_site_node_id=(site_node_id)
     @old_conversion_site_node_id = self.conversion_site_node_id
-    self.write_attribute :conversion_site_node_id, site_node_id
+    self[:conversion_site_node_id] = site_node_id
   end
 
   def add_experiment_conversion_paragraph(site_node)

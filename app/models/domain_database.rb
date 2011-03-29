@@ -40,7 +40,7 @@ class DomainDatabase < SystemModel
   end
 
   def options
-    opt = self.read_attribute(:options)
+    opt = self[:options]
     return opt if opt
     database_file = "#{Rails.root}/config/sites/#{self.name}.yml"
     return nil unless File.exists?(database_file)

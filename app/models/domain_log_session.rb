@@ -95,7 +95,7 @@ class DomainLogSession < DomainModel
   end
 
   def page_count(force = false)
-    atr =  self.read_attribute(:page_count)
+    atr =  self[:page_count]
     if atr.blank? || force
       self.domain_log_entries.count
     else
@@ -104,7 +104,7 @@ class DomainLogSession < DomainModel
   end
 
   def last_entry_at(force = false)
-    atr = self.read_attribute(:last_entry_at)
+    atr = self[:last_entry_at]
     if atr.blank? || force
       self.domain_log_entries.maximum(:occurred_at)
     else  
@@ -113,7 +113,7 @@ class DomainLogSession < DomainModel
   end
   
   def length(force = false)
-    atr = self.read_attribute(:length)
+    atr = self[:length]
     if atr.blank? || force
       last = self.last_entry_at
       last ? (last - self.created_at).to_i : 0
@@ -123,7 +123,7 @@ class DomainLogSession < DomainModel
   end
   
   def session_value(force = false)
-    atr =  self.read_attribute(:session_value)
+    atr =  self[:session_value]
     if atr.blank? || force
       self.domain_log_entries.sum(:value)
     else

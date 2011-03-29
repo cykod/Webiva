@@ -38,7 +38,7 @@ class DomainFileVersion < DomainModel
     
     # Create a new instance with the correct file attributes
     v = DomainFileVersion.create(:domain_file => file,
-                                 :filename => file.read_attribute(:filename),
+                                 :filename => file[:filename],
                                  :file_type => file.file_type,
                                  :meta_info => info,
                                  :extension => file.extension,
@@ -72,14 +72,14 @@ class DomainFileVersion < DomainModel
 
   def prefixed_filename
     # unless we have a filename, return false
-    atr = self.read_attribute(:filename)
+    atr = self[:filename]
     return nil unless self.prefix && atr
     "#{DomainFile.storage_subdir}/#{self.prefix}/#{atr}"
   end
   
   def relative_filename
     # unless we have a filename, return false
-    atr = self.read_attribute(:filename)
+    atr = self[:filename]
     return nil unless self.prefix && atr
     self.storage_directory + atr
   end
@@ -91,7 +91,7 @@ class DomainFileVersion < DomainModel
   alias_method :filename, :abs_filename
   
   def name
-    self.read_attribute(:filename)
+    self[:filename]
   end
   
   def storage_directory; self.storage_base + "/" + self.prefix + "/"; end

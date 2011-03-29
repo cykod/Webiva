@@ -33,7 +33,7 @@ class DomainFileSize < DomainModel
   
   def operations
     return @operation_cache if @operation_cache
-    opts = self.read_attribute(:operations)
+    opts = self[:operations]
     opts ||= []
     @operation_cache = opts.map do |op|
       @@operation_classes[op[:type]].new(op)
@@ -50,7 +50,7 @@ class DomainFileSize < DomainModel
       op.valid?
       op.to_hash.merge(:type => op.operation_name )
     end
-    self.write_attribute(:operations,val)
+    self[:operations] = val
     @operation_cache = nil
   end
   

@@ -82,7 +82,7 @@ class SiteTemplate < DomainModel
   # update the old one if necessary
   def domain_file_id=(df_id)
     @old_domain_file_id = self.domain_file_id
-    self.write_attribute(:domain_file_id,df_id)
+    self[:domain_file_id] = df_id
   end
 
   # Make sure the updating works with setting the file as well as the id

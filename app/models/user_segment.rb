@@ -47,7 +47,7 @@ class UserSegment < DomainModel
 
   # A list of fields to display
   def fields
-    self.read_attribute(:fields) || []
+    self[:fields] || []
   end
 
   def set_defaults #:nodoc:
