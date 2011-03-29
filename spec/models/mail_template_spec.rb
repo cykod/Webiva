@@ -152,8 +152,8 @@ EOF
       @tmpl = MailTemplate.find(:last)
 
       @prepared_html = @tmpl.prepare_to_send
-      @prepared_html.should have_tag('h1',:style=>'font-size:19px;')
-      @prepared_html.should have_tag('td',:style=>'color:yellow;font-weight:bold;')
+      @prepared_html.should have_selector('h1',:style=>'font-size:19px;')
+      @prepared_html.should have_selector('td',:style=>'color:yellow;font-weight:bold;')
       @tmpl.deliver_to_address('daffy@mywebiva.com')
       ActionMailer::Base.deliveries.size.should == 1  
     end

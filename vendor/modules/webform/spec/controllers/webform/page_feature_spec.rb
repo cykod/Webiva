@@ -30,10 +30,10 @@ describe Webform::PageFeature, :type => :view do
   it "should render webform form" do
     @feature.should_receive(:paragraph).any_number_of_times.and_return(@paragraph)
     @output = @feature.webform_page_form_feature(:options => @options, :result => @result)
-    @output.should have_tag('input[type=text]', :name => 'results_1[first_name]')
-    @output.should have_tag('input[type=text]', :name => 'results_1[last_name]')
-    @output.should have_tag('input[type=text]', :name => 'results_1[email]')
-    @output.should have_tag('input[type=submit]')
+    @output.should have_selector('input[type=text]', :name => 'results_1[first_name]')
+    @output.should have_selector('input[type=text]', :name => 'results_1[last_name]')
+    @output.should have_selector('input[type=text]', :name => 'results_1[email]')
+    @output.should have_selector('input[type=submit]')
   end
 
   it "should render webform form when saved" do
