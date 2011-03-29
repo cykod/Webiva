@@ -5,7 +5,7 @@ class SiteFeature < DomainModel
   serialize :options
   
   validates_presence_of :name, :feature_type
-  validate :validate_xml
+  validate :test_xml
   
   belongs_to :admin_user, :class_name => 'EndUser', :foreign_key => :admin_user_id
   
@@ -19,7 +19,7 @@ class SiteFeature < DomainModel
   
   before_save :update_image_paths
 
-  def validate_xml
+  def test_xml
     if self.validate_xml
       validator = Util::HtmlValidator.new(self.body)
       if !validator.valid?
