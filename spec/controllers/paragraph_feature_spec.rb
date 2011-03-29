@@ -15,7 +15,7 @@ describe ParagraphFeature, :type => :view do
       c.link_tag('go') { |t| data[:url] }
     end
 
-    @output.should have_selector('a', :href => 'http//www.google.com', :content => 'Google')
+    @output.should have_tag('a', :href => 'http//www.google.com', :text => 'Google')
   end
 
   it "should render a simple tag using href" do
@@ -23,7 +23,7 @@ describe ParagraphFeature, :type => :view do
     @output = @feature.parse_inline("Link:<a <cms:go_href/>>Google</a>") do |c|
       c.link_tag('go') { |t| data[:url] }
     end
-    @output.should have_selector('a', :href => 'http//www.google.com', :content => 'Google')
+    @output.should have_tag('a', :href => 'http//www.google.com', :content => 'Google')
   end
 
   it "should render a simple tag using url" do
@@ -31,7 +31,7 @@ describe ParagraphFeature, :type => :view do
     @output = @feature.parse_inline("Link:<a href='<cms:go_url/>'>Google</a>") do |c|
       c.link_tag('go') { |t| data[:url] }
     end
-    @output.should have_selector('a', :href => 'http//www.google.com', :content => 'Google')
+    @output.should have_tag('a', :href => 'http//www.google.com', :content => 'Google')
   end
 
   it "should render a simple attribute tag" do
@@ -57,7 +57,7 @@ describe ParagraphFeature, :type => :view do
     @output = @feature.parse_inline("<cms:data><cms:value/></cms:data>") do |c|
       c.h_tag('data', 'value', :format => :simple) { |t| data }
     end
-    @output.should have_selector('p', :content => "&lt;/div&gt;try to break the layers")
+    @output.should have_tag('p', :content => "&lt;/div&gt;try to break the layers")
   end
 
   it "should render missing data if data is nil" do
@@ -159,10 +159,10 @@ describe ParagraphFeature, :type => :view do
       c.h_tag('list:last_name') { |t| t.locals.end_user.last_name }
     end
 
-    @output.should have_selector('td', :content => 'First1')
-    @output.should have_selector('td', :content => 'First2')
-    @output.should have_selector('td', :content => 'Last1')
-    @output.should have_selector('td', :content => 'Last2')
+    @output.should have_tag('td', :content => 'First1')
+    @output.should have_tag('td', :content => 'First2')
+    @output.should have_tag('td', :content => 'Last1')
+    @output.should have_tag('td', :content => 'Last2')
   end
 
   it "should render end user tags" do
@@ -221,7 +221,7 @@ describe ParagraphFeature, :type => :view do
       c.image_tag('image') { |t| image }
     end
 
-    @output.should have_selector('img', :src => image.url, :width => image.width, :height => image.height)
+    @output.should have_tag('img', :src => image.url, :width => image.width, :height => image.height)
   end
 
   it "should render image src" do
@@ -276,7 +276,7 @@ describe ParagraphFeature, :type => :view do
       c.image_tag('image') { |t| image }
     end
 
-    @output.should have_selector('img', :src => image.url, :width => image.width, :height => image.height, :style => 'margin: 0 1px 1px 0px')
+    @output.should have_tag('img', :src => image.url, :width => image.width, :height => image.height, :style => 'margin: 0 1px 1px 0px')
   end
 
   it "should render image tag align right" do
@@ -287,7 +287,7 @@ describe ParagraphFeature, :type => :view do
       c.image_tag('image') { |t| image }
     end
 
-    @output.should have_selector('img', :src => image.url, :width => image.width, :height => image.height, :style => 'margin: 0 0 1px 1px')
+    @output.should have_tag('img', :src => image.url, :width => image.width, :height => image.height, :style => 'margin: 0 0 1px 1px')
   end
 
   it "should render a form tag" do
@@ -296,8 +296,8 @@ describe ParagraphFeature, :type => :view do
       c.define_form_tag(frm, 'search')
     end
 
-    @output.should have_selector('form', :method => 'post')
-    @output.should have_selector('input', :type => 'text', :name => 'q')
+    @output.should have_tag('form', :method => 'post')
+    @output.should have_tag('input', :type => 'text', :name => 'q')
   end
 
   it "should render the input tag only" do
@@ -306,8 +306,8 @@ describe ParagraphFeature, :type => :view do
       c.fields_for_tag('search', :search) { |t| search }
     end
 
-    @output.should_not have_selector('form', :method => 'post')
-    @output.should have_selector('input', :type => 'text', :name => 'q')
+    @output.should_not have_tag('form', :method => 'post')
+    @output.should have_tag('input', :type => 'text', :name => 'q')
   end
 
   it "should render a form errors" do
@@ -318,8 +318,8 @@ describe ParagraphFeature, :type => :view do
       c.form_error_tag('user:errors')
     end
 
-    @output.should have_selector('form', :method => 'post')
-    @output.should have_selector('p', :content => 'First name is invalid')
+    @output.should have_tag('form', :method => 'post')
+    @output.should have_tag('p', :content => 'First name is invalid')
   end
 
   it "should render a form button tag" do
@@ -329,8 +329,8 @@ describe ParagraphFeature, :type => :view do
       c.button_tag('submit')
     end
 
-    @output.should have_selector('form', :method => 'post')
-    @output.should have_selector('input', :type => 'submit')
+    @output.should have_tag('form', :method => 'post')
+    @output.should have_tag('input', :type => 'submit')
   end
 
   it "should render a form button image tag" do
@@ -340,8 +340,8 @@ describe ParagraphFeature, :type => :view do
       c.button_tag('submit')
     end
 
-    @output.should have_selector('form', :method => 'post')
-    @output.should have_selector('input', :type => 'image', :src => '/go.gif')
+    @output.should have_tag('form', :method => 'post')
+    @output.should have_tag('input', :type => 'image', :src => '/go.gif')
   end
 
   it "should render a form delete button tag" do
@@ -351,9 +351,9 @@ describe ParagraphFeature, :type => :view do
       c.delete_button_tag('submit')
     end
 
-    @output.should have_selector('form', :method => 'post')
-    @output.should have_selector('input', :type => 'hidden', :name => 'user_delete', :value => '0')
-    @output.should have_selector('input', :type => 'submit', :value => 'Delete me')
+    @output.should have_tag('form', :method => 'post')
+    @output.should have_tag('input', :type => 'hidden', :name => 'user_delete', :value => '0')
+    @output.should have_tag('input', :type => 'submit', :value => 'Delete me')
   end
 
   it "should render a form submit tag" do
@@ -364,16 +364,16 @@ describe ParagraphFeature, :type => :view do
       c.submit_tag('submit')
     end
 
-    @output.should have_selector('form', :method => 'post')
-    @output.should have_selector('input', :type => 'submit', :value => 'Submit')
+    @output.should have_tag('form', :method => 'post')
+    @output.should have_tag('input', :type => 'submit', :value => 'Submit')
 
     @output = @feature.parse_inline("<cms:user><cms:submit/></cms:user>") do |c|
       c.form_for_tag('user', :user) { |t| user }
       c.submit_tag('submit', :default => 'Press me')
     end
 
-    @output.should have_selector('form', :method => 'post')
-    @output.should have_selector('input', :type => 'submit', :value => 'Press me')
+    @output.should have_tag('form', :method => 'post')
+    @output.should have_tag('input', :type => 'submit', :value => 'Press me')
   end
 
   it "should render a form submit tag with expansion" do
@@ -384,16 +384,16 @@ describe ParagraphFeature, :type => :view do
       c.submit_tag('submit')
     end
 
-    @output.should have_selector('form', :method => 'post')
-    @output.should have_selector('input', :type => 'submit', :value => 'Press me')
+    @output.should have_tag('form', :method => 'post')
+    @output.should have_tag('input', :type => 'submit', :value => 'Press me')
 
     @output = @feature.parse_inline("<cms:user><cms:submit type='image'>/go.gif</cms:submit></cms:user>") do |c|
       c.form_for_tag('user', :user) { |t| user }
       c.submit_tag('submit')
     end
 
-    @output.should have_selector('form', :method => 'post')
-    @output.should have_selector('input', :type => 'image', :src => '/go.gif')
+    @output.should have_tag('form', :method => 'post')
+    @output.should have_tag('input', :type => 'image', :src => '/go.gif')
   end
 
   it "should render a form submit tag with form" do
@@ -401,8 +401,8 @@ describe ParagraphFeature, :type => :view do
       c.submit_tag('submit', :form => '/go_here')
     end
 
-    @output.should have_selector('form', :action => '/go_here', :method => 'get')
-    @output.should have_selector('input', :type => 'submit', :value => 'Press me')
+    @output.should have_tag('form', :action => '/go_here', :method => 'get')
+    @output.should have_tag('input', :type => 'submit', :value => 'Press me')
   end
 
   it "should render a form field tag" do
@@ -413,8 +413,8 @@ describe ParagraphFeature, :type => :view do
       c.field_tag('first_name')
     end
 
-    @output.should have_selector('form', :method => 'post')
-    @output.should have_selector('input', :type => 'text', :value => '')
+    @output.should have_tag('form', :method => 'post')
+    @output.should have_tag('input', :type => 'text', :value => '')
   end
 
   it "should render a form select tag" do
@@ -425,11 +425,11 @@ describe ParagraphFeature, :type => :view do
       c.form_field_tag('introduction', :control => 'select') { |t| ['Mr.','Mrs.','Ms.'] }
     end
 
-    @output.should have_selector('form', :method => 'post')
-    @output.should have_selector('select', :name => 'introduction')
-    @output.should have_selector('option', :name => 'Mr.')
-    @output.should have_selector('option', :name => 'Mrs.')
-    @output.should have_selector('option', :name => 'Ms.')
+    @output.should have_tag('form', :method => 'post')
+    @output.should have_tag('select', :name => 'introduction')
+    @output.should have_tag('option', :name => 'Mr.')
+    @output.should have_tag('option', :name => 'Mrs.')
+    @output.should have_tag('option', :name => 'Ms.')
   end
 
   it "should render results and pagelist tags" do
@@ -452,10 +452,10 @@ describe ParagraphFeature, :type => :view do
       c.define_results_tags('results') { |t| t.locals.results }
     end
 
-    @output.should have_selector('p', :content => "#{offset+1} #{offset+per_page} #{total_results}")
-    @output.should have_selector('a', :href => "?page=1", :content => '1')
-    @output.should have_selector('b', :content => '2')
-    @output.should have_selector('a', :href => "?page=3", :content => '3')
+    @output.should have_tag('p', :content => "#{offset+1} #{offset+per_page} #{total_results}")
+    @output.should have_tag('a', :href => "?page=1", :content => '1')
+    @output.should have_tag('b', :content => '2')
+    @output.should have_tag('a', :href => "?page=3", :content => '3')
   end
 
   it "should render pages tags" do
@@ -464,9 +464,9 @@ describe ParagraphFeature, :type => :view do
       c.pages_tag('pages', '/test', 2, 10)
     end
 
-    @output.should have_selector('a', :href => "/test?page=1", :content => '1')
-    @output.should have_selector('b', :content => '2')
-    @output.should have_selector('a', :href => "/test?page=3", :content => '3')
+    @output.should have_tag('a', :href => "/test?page=1", :content => '1')
+    @output.should have_tag('b', :content => '2')
+    @output.should have_tag('a', :href => "/test?page=3", :content => '3')
   end
 
   it "should render a loop tag's position elements" do
@@ -487,15 +487,15 @@ describe ParagraphFeature, :type => :view do
       c.post_button_tag('button') { |t| '/go_here' }
     end
 
-    @output.should have_selector('form', :action => "/go_here", :method => 'post')
-    @output.should have_selector('input', :type => 'submit', :value => 'Press me')
+    @output.should have_tag('form', :action => "/go_here", :method => 'post')
+    @output.should have_tag('input', :type => 'submit', :value => 'Press me')
 
     @output = @feature.parse_inline("<cms:button type='image'>/go.gif</cms:button>") do |c|
       c.post_button_tag('button') { |t| '/go_here' }
     end
 
-    @output.should have_selector('form', :action => "/go_here", :method => 'post')
-    @output.should have_selector('input', :type => 'image', :src => '/go.gif')
+    @output.should have_tag('form', :action => "/go_here", :method => 'post')
+    @output.should have_tag('input', :type => 'image', :src => '/go.gif')
   end
 
   it "should render a login block" do
@@ -505,21 +505,21 @@ describe ParagraphFeature, :type => :view do
       c.login_block('login_box', false) { user }
     end
 
-    @output.should have_selector('form', :method => 'post')
-    @output.should have_selector('input', :type => 'text', :name => 'login[email]')
-    @output.should have_selector('input', :type => 'password', :name => 'login[password]')
-    @output.should have_selector('input', :type => 'submit', :value => 'Login')
-    @output.should_not have_selector('p', :content => 'Login failed.')
+    @output.should have_tag('form', :method => 'post')
+    @output.should have_tag('input', :type => 'text', :name => 'login[email]')
+    @output.should have_tag('input', :type => 'password', :name => 'login[password]')
+    @output.should have_tag('input', :type => 'submit', :value => 'Login')
+    @output.should_not have_tag('p', :content => 'Login failed.')
 
     @output = @feature.parse_inline("<cms:login_box><cms:error><p>Login failed.</p></cms:error><cms:form><cms:email/><br/><cms:password/><br/><cms:button>Login</cms:button></cms:form></cms:login_box><cms:no_login_box><p>Welcome</p></cms:no_login_box>") do |c|
       c.login_block('login_box', true) { user }
     end
 
-    @output.should have_selector('form', :method => 'post')
-    @output.should have_selector('input', :type => 'text', :name => 'login[email]')
-    @output.should have_selector('input', :type => 'password', :name => 'login[password]')
-    @output.should have_selector('input', :type => 'submit', :value => 'Login')
-    @output.should have_selector('p', :content => 'Login failed.')
+    @output.should have_tag('form', :method => 'post')
+    @output.should have_tag('input', :type => 'text', :name => 'login[email]')
+    @output.should have_tag('input', :type => 'password', :name => 'login[password]')
+    @output.should have_tag('input', :type => 'submit', :value => 'Login')
+    @output.should have_tag('p', :content => 'Login failed.')
 
     user = EndUser.push_target('test@test.dev')
 
@@ -527,8 +527,8 @@ describe ParagraphFeature, :type => :view do
       c.login_block('login_box', true) { user }
     end
 
-    @output.should have_selector('p', :content => 'Welcome')
-    @output.should_not have_selector('form')
+    @output.should have_tag('p', :content => 'Welcome')
+    @output.should_not have_tag('form')
   end
 
   describe "Media Tags" do
@@ -553,8 +553,8 @@ describe ParagraphFeature, :type => :view do
         c.media_tag('media') { |t| media }
       end
 
-      @output.should have_selector('div', :id => 'video_')
-      @output.should have_selector('script')
+      @output.should have_tag('div', :id => 'video_')
+      @output.should have_tag('script')
 
       media.destroy
     end
@@ -567,8 +567,8 @@ describe ParagraphFeature, :type => :view do
         c.media_tag('media') { |t| media }
       end
 
-      @output.should have_selector('p', :id => 'audio_')
-      @output.should have_selector('script')
+      @output.should have_tag('p', :id => 'audio_')
+      @output.should have_tag('script')
 
       media.destroy
     end
@@ -581,7 +581,7 @@ describe ParagraphFeature, :type => :view do
         c.media_tag('media') { |t| media }
       end
 
-      @output.should have_selector('embed')
+      @output.should have_tag('embed')
 
       media.destroy
     end

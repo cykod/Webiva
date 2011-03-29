@@ -143,6 +143,9 @@ GEM
       activesupport (~> 3.0)
       railties (~> 3.0)
       rspec (~> 2.5.0)
+    rspec_tag_matchers (1.0.0)
+      nokogiri (>= 1.4.0)
+      rspec-rails (>= 1.2.6)
     ruby_parser (2.0.6)
       sexp_processor (~> 3.0)
     rubyzip (0.9.4)
@@ -195,5 +198,6 @@ DEPENDENCIES
   resthome
   rmagick
   rspec-rails
+  rspec_tag_matchers
   slave
   soap4r

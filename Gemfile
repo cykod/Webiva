@@ -34,6 +34,7 @@ group :development, :test, :spec, :cucumber, :selenium do
   gem 'hpricot'
   gem 'fakeweb'
   gem 'ZenTest'
+  gem 'rspec_tag_matchers'
 end
 
 group :selenium do

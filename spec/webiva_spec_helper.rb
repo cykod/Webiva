@@ -592,7 +592,9 @@ RSpec.configure do |config|
     DataCache.reset_local_cache
   end
 
+  config.include(RspecTagMatchers)
+
   config.include RSpec::Rails::FeatureExampleGroup, :type => :feature, :example_group => {
-    :file_path => /spec\/controllers\/[^\/]+\/.*?feature/
+    :file_path => /_feature_spec/
   }
 end
