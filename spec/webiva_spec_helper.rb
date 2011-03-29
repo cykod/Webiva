@@ -97,28 +97,6 @@ class WebivaSystemCleaner
   end
 end
 
-RSpec.configure do |config|
-  # If you're not using ActiveRecord you should remove these
-  # lines, delete config/database.yml and disable :active_record
-  # in your config/boot.rb
-  config.use_transactional_fixtures = false # Modified for 2.3.2
-  config.use_instantiated_fixtures  = false
-  config.fixture_path = "#{Rails.root}/spec/fixtures/"
-  config.mock_with :rspec
-
-#  config.before(:suite) do
-#    WebivaCleaner.cleaner.reset
-#    WebivaSystemCleaner.cleaner.reset
-#  end
-
-  config.before(:each) do
-    UserClass.create_built_in_classes
-    SiteVersion.default
-    DataCache.reset_local_cache
-  end
-
-end
-
 # http://gensym.org/2007/10/18/rspec-on-rails-tip-weaning-myself-off-of-fixtures
 # Wean ourselves off of fixtures
 # Call this within the description (e.g., after the describe block) to remove everything from the associated class or table
@@ -441,22 +419,11 @@ module RSpec::Rails
     end
   end
    
-  module ViewExampleGroup
+  module FeatureExampleGroup
     def build_feature(feature_class,code=nil)
-      if code
-        site_feature = mock_model(SiteFeature,:body => code,:body_html => code,:feature_type => :any,:options => {} )
-        paragraph = mock_model(PageParagraph,:site_feature => site_feature, :content_publication => nil,:page_revision => PageRevision.new, :language => 'en', :html_include => {})
-      else
-        paragraph = mock_model(PageParagraph,:site_feature => nil, :content_publication => nil,:page_revision => PageRevision.new, :language => 'en', :html_include => {})
-      end
-      renderer = mock_model(ParagraphRenderer,
-                            :get_handler_info => [],
-                            :protect_against_forgery? => false,
-                            :require_js => nil,
-                            :paragraph_action_url => '/paragraph',
-                            :html_include => {},
-                            :paragraph => paragraph)
-
+      site_feature = code ? SiteFeature.new(:body => code,:body_html => code,:feature_type => :any,:options => {}) : nil
+      paragraph = PageParagraph.new :site_feature => site_feature, :content_publication => nil, :page_revision => PageRevision.new, :language => 'en'
+      renderer = ParagraphRenderer.dummy_renderer
       feature_class.classify.constantize.new(paragraph,renderer)
     end
   end   
@@ -603,4 +570,29 @@ def assert_difference(executable, how_many = 1, &block)
   yield
   after = eval(executable)
   after.should == before + how_many
+end
+
+RSpec.configure do |config|
+  # If you're not using ActiveRecord you should remove these
+  # lines, delete config/database.yml and disable :active_record
+  # in your config/boot.rb
+  config.use_transactional_fixtures = false # Modified for 2.3.2
+  config.use_instantiated_fixtures  = false
+  config.fixture_path = "#{Rails.root}/spec/fixtures/"
+  config.mock_with :rspec
+
+#  config.before(:suite) do
+#    WebivaCleaner.cleaner.reset
+#    WebivaSystemCleaner.cleaner.reset
+#  end
+
+  config.before(:each) do
+    UserClass.create_built_in_classes
+    SiteVersion.default
+    DataCache.reset_local_cache
+  end
+
+  config.include RSpec::Rails::FeatureExampleGroup, :type => :feature, :example_group => {
+    :file_path => /spec\/controllers\/[^\/]+\/.*?feature/
+  }
 end
