@@ -1,6 +1,7 @@
 require "spec_helper"
 
 describe SiteNodeEngine, :type => :controller do
+  include RSpec::Rails::ControllerExampleGroup
   include ActionDispatch::TestProcess
   
   render_views

@@ -177,9 +177,9 @@ class ApplicationController < ActionController::Base
   
   # Activate the appropriate database for the current request
   def activate_domain(domain=nil)
-
     # modify the params[:path] to be an array
-    params[:path] = params[:path].to_s.split("/")
+    params[:path] ||= []
+    params[:path] = params[:path].to_s.split("/") unless params[:path].is_a?(Array)
     
     # Cancel out of domain activations
     # if we are testing

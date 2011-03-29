@@ -11,13 +11,12 @@ class Wizards::SimpleSite < WizardModel
 
   attributes :pages => [], :name => nil
 
-
   options_form(
                fld(:pages, :text_area),
                fld(:name, :text_field, :label => 'Website Name')
                )
 
-  def validate
+  validate do
     self.errors.add(:name, 'is missing') if self.name.blank?
     self.errors.add(:pages, 'are missing') if self.pages.blank?
   end
