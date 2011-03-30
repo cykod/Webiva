@@ -46,33 +46,33 @@ module PageHelper
    end
    
    div_id = options[:container_id] || "cmspara_#{tbl.renderer.paragraph.id}"
-   concat(register_table_js(tbl,div_id,options[:refresh_url]))
-   concat("<form id='#{tbl.name}_update_form' action='' onsubmit='return false;'>") unless options[:no_form]
-   concat("<input type='hidden' name='page_connection_hash' value='#{tbl.page_connection_hash}' />") unless options[:no_form]
+   output = register_table_js(tbl,div_id,options[:refresh_url])
+   output << "<form id='#{tbl.name}_update_form' action='' onsubmit='return false;'>" unless options[:no_form]
+   output << "<input type='hidden' name='page_connection_hash' value='#{tbl.page_connection_hash}' />" unless options[:no_form]
    
    if tbl_type == 'table'
-      concat("<#{tbl_type} cellspacing='0' cellpadding='0' class='user_#{tbl_type}#{extra_class}' #{style} >")
+      output << "<#{tbl_type} cellspacing='0' cellpadding='0' class='user_#{tbl_type}#{extra_class}' #{style} >"
    else
-     concat("<#{tbl_type} class='user_#{tbl_type}#{extra_class}' #{style} >")
+     output << "<#{tbl_type} class='user_#{tbl_type}#{extra_class}' #{style} >"
    end
    
    
     unless options[:no_header] || tbl_type == 'div'
-     concat(tbl.header_html)
+     output << tbl.header_html
     end
    
     if !tbl.generated?
       raise 'Table not generated!'
     end
-    concat("<tbody>") if tbl_type == 'table'
+    output << "<tbody>" if tbl_type == 'table'
     if tbl.data.length > 0
       tbl.data.each do |row|
-        yield row
+        output << capture(row, &block)
       end
     else
-      concat("<tr><td colspan='#{tbl.columns.length}' align='center'>#{options[:empty]}</td></tr>") if options[:empty]
+      output << "<tr><td colspan='#{tbl.columns.length}' align='center'>#{options[:empty]}</td></tr>" if options[:empty]
     end
-    concat("</tbody>") if tbl_type == 'table'
+    output << "</tbody>" if tbl_type == 'table'
     
     table_actions = options.delete(:actions)
     more_actions = options.delete(:more_actions)
@@ -95,44 +95,43 @@ module PageHelper
       </tbody>
       EOF
     
-      concat(table_actions_str_start)
+      output << table_actions_str_start
       if(table_actions && table_actions.length > 0)
-        concat(table_actions.collect { |act|
+        output << table_actions.collect { |act|
           if act[1] == 'js'
             "<input type='submit' value='#{vh act[0].t}' onclick='if(EndUserTable.countChecked(\"#{table_name}\") > 0) { #{jvh act[2]}; } return false;'/>"
           else
             "<input type='submit' value='#{vh act[0].t}' onclick='EndUserTable.action(\"#{table_name}\",\"#{act[1]}\",\"#{act[2] ? jvh(act[2]) : ''}\"); return false;'/>"
           end
-        }.join(" "))  
+        }.join(" ")
       end
 
       if(more_actions && more_actions.length > 0)
-        concat("<script>#{table_name}_more_actions = [")
-        concat(more_actions.collect { |act| act[2].blank? ? 'null': "'#{jvh act[2]}'" }.join(","))
-        concat(" ]; </script>")
-        concat(" <select onchange=' EndUserTable.action(\"#{table_name}\",this.value,#{table_name}_more_actions[this.selectedIndex-1]);  this.selectedIndex=0; return false;'><option value=''>#{h '--More Actions--'.t}</option>")
-        concat(more_actions.collect { |act|
+        output << "<script>#{table_name}_more_actions = ["
+        output << more_actions.collect { |act| act[2].blank? ? 'null': "'#{jvh act[2]}'" }.join(",")
+        output << " ]; </script>"
+        output << " <select onchange=' EndUserTable.action(\"#{table_name}\",this.value,#{table_name}_more_actions[this.selectedIndex-1]);  this.selectedIndex=0; return false;'><option value=''>#{h '--More Actions--'.t}</option>"
+        output << more_actions.collect { |act|
           "<option value='#{act[1]}' >#{h act[0].t}</option>"
-        }.join(""))
+        }.join("")
 
-        concat("</select>")
+        output << "</select>"
 
       end
 
-      concat(table_actions_str_end)
+      output << table_actions_str_end
     end
     unless options[:no_pages] || tbl_type =='div'
-      concat(tbl.footer_html(tbl_type))
+      output << tbl.footer_html(tbl_type)
     end
     
-   concat("</#{tbl_type}>")
+   output << "</#{tbl_type}>"
     unless options[:no_pages] || tbl_type =='table'
-      concat(tbl.footer_html(tbl_type))
+      output << tbl.footer_html(tbl_type)
     end
-   concat("</form>") unless options[:no_form]
-   
-  
-    
+   output << "</form>" unless options[:no_form]
+
+   output.html_safe
   end
   
   def register_table_js(tbl,div_id,refresh_url=nil)
