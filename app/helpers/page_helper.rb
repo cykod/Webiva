@@ -4,28 +4,27 @@ module PageHelper
 
 
   def webiva_javascript_tags(js_includes,js_header)
-    if js_includes || js_header
-      if js_header; js_includes ||= []; js_includes += js_header; end 
+    return nil unless js_includes || js_header
 
-      js_includes.uniq.each do |js|
-        if js.to_s[0..3] == 'http'
-          concat(" <script src=\"#{vh js}\" type='text/javascript'></script>\n")
-        else 
-          concat(" " + javascript_include_tag(js) + "\n")
-        end
+    if js_header; js_includes ||= []; js_includes += js_header; end 
+
+    js_includes.uniq.collect do |js|
+      if js.to_s[0..3] == 'http'
+        content_tag :script, '', :src => js, :text => 'text/javascript'
+      else 
+        javascript_include_tag js
       end
-    end
-    nil
+    end.join("\n").html_safe
   end
 
   def webiva_css_tags(css_includes,css_header)
-    if css_includes || css_header
-      if css_header; css_includes ||= []; css_includes += css_header; end 
-      css_includes.uniq.each do |css|
-        concat(" " + stylesheet_link_tag(css, :media => 'all') + "\n")
-      end
-    end
-    nil
+    return nil unless css_includes || css_header
+
+    if css_header; css_includes ||= []; css_includes += css_header; end 
+    
+    css_includes.uniq.collect do |css|
+        stylesheet_link_tag(css, :media => 'all')
+    end.join("\n").html_safe
   end
 
 
@@ -39,12 +38,8 @@ module PageHelper
   def end_user_table_for(tbl,options = {},&block)
    options = options.clone
    options.symbolize_keys!
-   if options[:style]
-    style ="style='#{options[:style]}'"
-   else
-    style = ''
-   end
-   tbl_type =options[:type] == 'div' ? 'div' : 'table'
+    style = options[:style] ? "style='#{options[:style]}'" : ''
+   tbl_type = options[:type] == 'div' ? 'div' : 'table'
 
    if options[:class]
      extra_class = " " + options[:class]

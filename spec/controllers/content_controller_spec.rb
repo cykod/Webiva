@@ -60,9 +60,9 @@ describe ContentController, "create a content model" do
         # Make sure escaped field shown correctly
         
         
-        response.should include_text("&lt;h1&gt;Test Escaped Field&lt;/h1&gt;")
-        response.should include_text("&lt;h1&gt;HTML Field&lt;/h1&gt;")
-        response.should include_text('<h1>Editor Field</h1>')
+        response.body.should include("&lt;h1&gt;Test Escaped Field&lt;/h1&gt;")
+        response.should have_text("&lt;h1&gt;HTML Field&lt;/h1&gt;")
+        response.should have_text('<h1>Editor Field</h1>')
       end
       
 

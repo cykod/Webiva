@@ -16,9 +16,7 @@ module ModuleAppHelper
           if para.is_a?(String) 
             output << webiva_post_process_paragraph(para)
           elsif para.is_a?(ParagraphRenderer::ParagraphOutput) && para.rnd.is_a?(Editor::AppRenderer)
-            concat(output)
-            output = ''
-            yield
+            output << capture(&block)
           else 
             if output_obj.lightweight
               output << webiva_post_process_paragraph(render_paragraph page, output_obj.revision,para)
@@ -31,7 +29,7 @@ module ModuleAppHelper
       end 
     end
     if block_given?
-      concat(output)
+      output
     else
       output       
     end

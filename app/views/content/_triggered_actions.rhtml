@@ -7,7 +7,7 @@
   <% @publication.triggered_actions.each do |act| %>
   <tr>
     <td>
-      <%= link_to act.name , { :controller => '/triggered_action/index', :action => 'index', :action_id => act.id  }, :callback => 'PublicationEditor.replaceAction',  :popup => ['new_action', 'height=550,width=800,scrollbars=yes' ], :id => 'file_link', :class => 'ajax_link'  %>
+      <%= link_to act.name , { :controller => '/triggered_action/index', :action => 'index', :action_id => act.id  }, :callback => 'PublicationEditor.replaceAction', :target => 'new_action', 'data-popup' => 'height=550,width=800,scrollbars=yes', :id => 'file_link', :class => 'ajax_link'  %>
     </td>
     <td>
     <a href='javascript:void(0);' onclick='PublicationEditor.deleteAction(<%= act.id %>);' ><%= h "Delete".t %></a> 

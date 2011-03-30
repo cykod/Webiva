@@ -42,8 +42,6 @@ class MailTemplate < DomainModel
  validates_presence_of :name
  validates_presence_of :language,  :on => :create
 
-#  has_and_belongs_to_many :domain_files, :join_table => 'domain_files_mail_templates'
-  
  belongs_to :site_template
  
  has_options :template_type, [['Site Template','site'],['Campaign Template','campaign']]
@@ -133,13 +131,7 @@ class MailTemplate < DomainModel
   new_tpl = self.clone
   new_tpl.name += ' (Copy)'.t
   new_tpl.save
-  
-  self.domain_files.each do |df| 
-    new_tpl.domain_files << df
-  end
-  
   new_tpl
-  
  end
  
  # Find a template by name (optionally by language)
@@ -160,11 +152,8 @@ class MailTemplate < DomainModel
  
  # Return a list of attachments
  def attachments 
-  if @attachment_list.is_a?(Array)
-    @attachment_list.length > 0 ?  DomainFile.find(:all,:conditions => "id IN (#{@attachment_list.collect { |df| connection.quote(df) }.join(",")})") : []
-  else
-    self.domain_files
-  end
+   return [] unless @attachment_list.is_a?(Array)
+   @attachment_list.length > 0 ?  DomainFile.find(:all,:conditions => "id IN (#{@attachment_list.collect { |df| connection.quote(df) }.join(",")})") : []
  end
  
  # Return the body format string - text, html, both or none

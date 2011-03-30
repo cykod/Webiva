@@ -133,7 +133,7 @@
     <label for='entry_status_preview'><input onclick='PostEditor.updateStatus();' id='entry_status_preview' name='update_entry[status]' value='preview' <%= "checked='checked'" if @entry.status == 'preview' %> type='radio'><%= "Preview".t %><br/>
     <label for='entry_status_published'><input onclick='PostEditor.updateStatus();' id='entry_status_published' name='update_entry[status]' value='publish_now' <%= "checked='checked'" if @entry.status == 'published' && @entry.published_at  && @entry.published_at < Time.now %> type='radio'><%= "Published".t  %><br/>
     <label for='entry_status_post_date'><input onclick='PostEditor.updateStatus();' id='entry_status_post_date' name='update_entry[status]' value='post_date' type='radio'  <%= "checked='checked'" if @entry.status == 'published' && ( !@entry.published_at  || @entry.published_at > Time.now ) %> type='radio'><%= "Post Date".t  %><br/>
-      <% if @entry.errors.on(:published_at) %>
+      <% unless @entry.errors[:published_at].empty? %>
         <div class='error'>Invalid Date</div>
     <% end -%>
       <%= f.datetime_field :published_at, :label => '',:unstyled => true, :blank => true, :disabled => !(@entry.status == 'published' && ( !@entry.published_at  || @entry.published_at > Time.now ) ) %>

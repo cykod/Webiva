@@ -31,8 +31,8 @@ docFolderSelectCallback = function(field,file_type,id,name,url) {
  
  <% if permit?('editor_structure') %>
    <span id='file_link'> <%=  ( @node.domain_file ? @node.domain_file.file_path : 'No File Selected'.t ) -%> </span><br/><br/>
-  <%= link_to "Select a File".t, { :controller => 'file', :select => 'all', :action => 'popup' , :popup_type => 'callback', :callback => 'docFileSelectCallback', :path => @node.domain_file ? @node.domain_file.parent_id : 0 }, :popup => ['file_manager', 'height=500,width=900,scrollbars=yes' ], :class => 'button_link'  %>
-  <%= link_to "Select a Folder".t, { :controller => 'file', :select => 'all', :action => 'popup' ,:select => 'fld', :popup_type => 'callback', :callback => 'docFolderSelectCallback', :path => @node.domain_file ? @node.domain_file.parent_id : 0 }, :popup => ['file_manager', 'height=500,width=900,scrollbars=yes' ], :class => 'button_link'  %>
+  <%= link_to "Select a File".t, { :controller => 'file', :select => 'all', :action => 'popup' , :popup_type => 'callback', :callback => 'docFileSelectCallback', :path => @node.domain_file ? @node.domain_file.parent_id : 0 }, :target => 'file_manager', 'data-popup' => 'height=500,width=900,scrollbars=yes', :class => 'button_link'  %>
+  <%= link_to "Select a Folder".t, { :controller => 'file', :select => 'all', :action => 'popup' ,:select => 'fld', :popup_type => 'callback', :callback => 'docFolderSelectCallback', :path => @node.domain_file ? @node.domain_file.parent_id : 0 }, :target => 'file_manager', 'data-popup' => 'height=500,width=900,scrollbars=yes', :class => 'button_link'  %>
   <p><%= "If you select a file it will be available a this url, if you select a folder all files in that folder will be available below this location".t -%></p>
  <% else %>
   <%=   ( @node.domain_file ? @node.domain_file.file_path : 'No File Selected'.t ) %>

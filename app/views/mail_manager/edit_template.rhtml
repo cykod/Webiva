@@ -144,7 +144,7 @@
     <td width='200' valign='top' style='padding-right:20px;'>
       <div>
       <%= "Name*:".t %>
-      <%= "<span class='error'>(Missing Name)</span>" if @mail_template.errors.on(:name) %>
+      <%= "<span class='error'>(Missing Name)</span>" unless @mail_template.errors[:name].empty? %>
       <br/>
       <%= f.text_field :name, :size => 30, :class=>'text_field' %>
       <br/><br/>
@@ -197,10 +197,10 @@
     </td>
     <td valign='top'>
       Subject:* <%= f.text_field :subject, :size => 120 %>
-      <%= "<span class='error'>(Missing Subject)</span>" if @mail_template.errors.on(:subject) %>
+      <%= "<span class='error'>(Missing Subject)</span>" unless @mail_template.errors[:subject].empty? %>
 
       <br/><br/>
-<%= "<span class='error'>#{f.output_error_message('Body type', :body_type)}</span>" if @mail_template.errors.on(:body_type) %>
+<%= "<span class='error'>#{f.output_error_message('Body type', :body_type)}</span>" unless @mail_template.errors[:body_type].empty? %>
 Message Body Type:*
 <label><input type='radio' onchange='TemplateEditor.displayBodyType("html");' id='mail_template_body_value_html' name='mail_template[body_type]' value='html' <%= "checked='checked'" if @mail_template.body_format == 'html' %> /> <%= "HTML Only".t %></label>
 <label><input type='radio' onchange='TemplateEditor.displayBodyType("text");' id='mail_template_body_value_text' name='mail_template[body_type]' value='text' <%= "checked='checked'" if @mail_template.body_format == 'text' %> /> <%= "Text Only".t %></label>

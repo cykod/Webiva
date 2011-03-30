@@ -69,7 +69,7 @@ describe MailTemplateMailer do
       create_complete_template
       @tmpl_mail = MailTemplateMailer.to_user(@user.id,3, {:email => 'your_email'}).deliver
       ActionMailer::Base.deliveries.size.should == 1  
-      @tmpl_mail.transfer_encoding.should be_nil
+      @tmpl_mail.content_transfer_encoding.should be_nil
     end
   end
 

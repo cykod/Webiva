@@ -491,7 +491,7 @@ class TemplatesController < CmsController # :nodoc: all
       end
 
       expire_site
-    elsif @feature.errors.on(:body)
+    elsif @feature.errors[:body].size > 0
       @invalid_html = true
     end
   end

@@ -113,7 +113,7 @@ module Content::MigrationSupport  #:nodoc:
         end
         field_name_try = field_name_prefix
         
-        while self.content_model_fields.find(:first,:conditions => [ 'field=?',field_name_try ] )
+        while self.content_model_fields.find(:first,:conditions => [ 'field_key=?',field_name_try ] )
           field_name_index += 1
           field_name_try = field_name_prefix + field_name_index.to_s
         end

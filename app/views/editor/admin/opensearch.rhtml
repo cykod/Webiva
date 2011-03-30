@@ -12,7 +12,7 @@
   Updated Options
 </div>
 <% end -%>
-<%= remote_cms_form_for :options, @options, :update => 'element_info',:html => {:class => 'admin_form' }, :url => { :action => 'opensearch', :path => @node.id } do |f| -%>
+<%= cms_form_for :options, @options, :remote => true, :update => 'element_info',:html => {:class => 'admin_form' }, :url => { :action => 'opensearch', :path => @node.id } do |f| -%>
   <%= f.page_selector :search_results_page_id, :label => 'Search Results Page'.t %>
   <%= f.text_field :title %>
   <%= f.text_field :description %>

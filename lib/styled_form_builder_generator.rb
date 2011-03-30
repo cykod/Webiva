@@ -820,7 +820,7 @@ end
 #
 #    <%= cms_form_for :model, @model do |f| %>
 #    <%= cms_fields_for :model, @model do |f| %>
-#    <%= remote_cms_form_for :model, @model, ... do |f| %>
+#    <%= cms_form_for :model, @model, :remote => true, ... do |f| %>
 #
 # Each of the above will wrap the interior in a table, if you need to
 # work inside of an existing cms_form_for, use:
@@ -849,7 +849,7 @@ end
 #
 #    <%= cms_unstyled_form_for :model, @model do |f| %>
 #    <%= cms_unstyled_fields_for :model, @model do |f| %>
-#    <%= remote_cms_unstyled_form_for :model, @model, ... do |f| %>
+#    <%= cms_unstyled_form_for :model, @model, :remote => true, ... do |f| %>
 #
 class CmsUnstyledForm < StyledForm
   include StyledFormBuilderGenerator::Generator

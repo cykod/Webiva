@@ -7,7 +7,7 @@
   <% when :unique  -%>
      <%= f.check_boxes(:unique, [['Field must be Unique',true]], :single => true, :label => '', :description => 'Each entry in this model must have a unique value for this field') unless @exclude_field_options && @exclude_field_options.include?(:unique) %>
   <% when :regexp  -%>
-     <% f.custom_field :regexp, :label => '' do %>
+     <%= f.custom_field :regexp, :label => '' do %>
          <%= uf.check_boxes :regexp, [['Value must match regular expression',true]], :single => true, :label => '', :onclick => "$('field_regexp_#{field_index}').style.display = this.checked ? '' : 'none';"  %>
          <div id='field_regexp_<%= field_index %>' <%= "style='display:none;'" unless uf.object.regexp %>>
              RegExp: <%= uf.text_field :regexp_code %><br/>

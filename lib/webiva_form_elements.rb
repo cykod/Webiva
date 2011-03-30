@@ -562,7 +562,7 @@ module WebivaFormElements
     end
     
     
-    link_txt = link_to('+Add Image'.t, "/website/file/popup?select=img&callback=image_list_#{obj_name}_#{field}.attachFile&thumb_size=thumb", :popup => ['file_manager', 'height=500,width=900,resizable=yes,scrollbars=yes' ])
+    link_txt = link_to('+Add Image'.t, "/website/file/popup?select=img&callback=image_list_#{obj_name}_#{field}.attachFile&thumb_size=thumb", :target => 'file_manager', 'data-popup' => 'height=500,width=900,resizable=yes,scrollbars=yes')
     
      <<-JAVASCRIPT
         <script type='text/javascript'>

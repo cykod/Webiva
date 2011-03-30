@@ -31,8 +31,7 @@ class HashModel
   include WebivaValidationExtension
   include ModelExtension::OptionsExtension
 
-  def persisted?; true; end
-  def new_record?; false; end
+  def persisted?; false; end
 
   def self.defaults
     {}
@@ -346,6 +345,8 @@ class HashModel
   def valid?
     format_data
     super
+    self.validate if self.respond_to?(:validate)
+    self.errors.empty?
   end
   
   def deprecated_callback_method(symbol) #:nodoc:

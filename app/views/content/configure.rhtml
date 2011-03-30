@@ -42,9 +42,9 @@ ContentEditor = {
 <div class='admin_content'>
 <%= cms_form_for :content,@content_model, :html => { :class => 'admin_form' } do |f| %>
 
-<% tabled_ajax_tabs [ 'Configuration', 'Content Features'], 'Configuration'  do |t| -%>
+<%= tabled_ajax_tabs [ 'Configuration', 'Content Features'], 'Configuration'  do |t| -%>
 
-<% t.tabled_tab do -%>
+<%= t.tabled_tab do -%>
 <tbody>
 <%= f.text_field :name, :description => 'Display name of the content model',:vertical => true %>
 <%= f.text_field :identifier_name, :description => "Display name of individual entries, leave blank to use first field as identifier\nCan use %%field_name%% substitution, relationship fields are not available (image, document, belongs to, has many)", :vertical => true %>
@@ -82,7 +82,7 @@ ContentEditor = {
 
 </tbody>
 <% end -%>
-<% t.tabled_tab do -%>
+<%= t.tabled_tab do -%>
 <tbody>
 <tr>
   <td colspan='2'>

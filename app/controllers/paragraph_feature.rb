@@ -514,7 +514,7 @@ block is non-nil
         reset_output
         end_user_table_for(t.locals.tbl,opts) do |row|
           t.locals.send("#{field}=",row)
-          concat(t.expand)
+          t.expand
         end
         output_buffer
       end
@@ -1093,17 +1093,13 @@ block is non-nil
     
     # Defines an error tag for an individual field
     def form_field_error_tag_helper(t,frm,field_name)
-      errs = frm.object.errors.on(field_name)
-      if errs.is_a?(Array)
-        errs = errs.uniq
-        val = errs.collect { |msg| 
-          (t.attr['label'] || field_name.to_s.humanize) + " " + msg.t + "<br/>"
-        }.join("\n")
-      elsif errs
-        val =(t.attr['label'] || field_name.to_s.humanize) + " " + errs.t
-      end
-      
-      val
+      errs = frm.object.errors[field_name]
+      return if errs.empty?
+
+      errs = errs.uniq
+      errs.collect { |msg| 
+        (t.attr['label'] || field_name.to_s.humanize) + " " + msg.t
+      }.join("<br/>\n")
     end
 
     # Fields is a list array of arrays like:

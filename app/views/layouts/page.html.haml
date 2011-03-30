@@ -1,0 +1,63 @@
+- unless @partial_page || @output.partial
+  != @output.doctype ||  '<!DOCTYPE html>'
+  = tag 'html', {:xmlns => "http://www.w3.org/1999/xhtml"}.merge(@output.includes[:html_tag] || {}), true
+  %head
+    %meta{:content => "text/html; charset=UTF-8", "http-equiv" => "Content-Type"}/
+    %title= @cms_module_page_title || @output.title
+    %meta{:content => @output.language, "http-equiv" => "Content-Language"}/
+    - if @output.meta_description || @output.includes[:meta_description]
+      %meta{:content => @output.includes[:meta_description] || @output.meta_description, :name => "DESCRIPTION"}/
+    - if @output.meta_keywords || @output.includes[:meta_keywords]
+      %meta{:content => @output.includes[:meta_keywords] || @output.meta_keywords, :name => "KEYWORDS"}/
+    - if @robots.length > 0
+      %meta{:content => @robots.join(','), :name => "ROBOTS"}/
+    :javascript
+      var AUTH_TOKEN = "#{form_authenticity_token.to_s}";
+    = javascript_include_tag 'swfobject'
+    - if @output.includes[:head_html]
+      != @output.includes[:head_html].join("\n")
+    = webiva_javascript_tags(@output.includes[:js],@js_header)
+    = webiva_css_tags(@output.includes[:css],@css_header)
+    - if @output.includes[:extra_head_html]
+      != @output.includes[:extra_head_html].join("\n")
+    - if @extra_header
+      != @extra_header.uniq.join("\n")
+    %link{:href => "/stylesheet/#{@output.css_site_template_id.to_s}.css", :rel => "Stylesheet", :type => "text/css"}/
+    - if page_editor? && ! @output.lightweight
+      = stylesheet_link_tag 'edit_page_link', :media => :all
+    != @output.head
+  %body
+    - unless @output.lightweight
+      #overDiv{:style => "position:absolute; left:0px; top:0px; visibility:hidden; z-index:1000;"}
+      - if page_editor?
+        #cms_edit_page_link{:onmouseout => "this.style.width=\"0px\"", :onmouseover => "this.style.width=\"auto\";", :style => "width:0px;"}
+          = content_node_links(@output.content_nodes)
+          %a{:href => "/website/edit/page/page/#{@page.id}?return_to_site=1"}= "Edit Page".t
+          %br/
+          %a{:href => "/website/dashboard#cms_page_title"}= "Dashboard".t
+          %br/
+          %a{:href => "/website/structure"}= "Structure".t
+          %br/
+    != @output.includes[:body_start]
+
+    != render_output(@page,@output) do
+      = yield
+
+    - unless @partial_page || @output.partial
+      - if @google_analytics && @google_analytics[:enabled] == 'enabled'
+        :javascript
+          var _gaq = _gaq || [];
+          _gaq.push(['_setAccount', ' @google_analytics[:code] ']);
+          _gaq.push(['_trackPageview']);
+    
+          (function() {
+            var ga = document.createElement('script');
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 
+                'http://www') + '.google-analytics.com/ga.js';
+            ga.setAttribute('async', 'true');
+            document.documentElement.firstChild.appendChild(ga);
+          })();
+    != @output.includes[:body_end]
+
+- unless @partial_page || @output.partial
+  != '</html>'

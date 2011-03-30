@@ -11,7 +11,7 @@ submitExperimentForm = function(frm, update) {
 </script>
 
 <%= admin_form_for :experiment, @experiment, :html => { :onsubmit => "submitExperimentForm(this, 1); return false;" } do |f| -%>
-  <%= f.custom_field '', :value => f.output_error_message('', :base) if @experiment.errors.on(:base) %>
+  <%= f.custom_field '', :value => f.output_error_message('', :base) unless @experiment.errors[:base].empty? %>
   <%= f.text_field :name %>
   <%= f.custom_field :num_versions, :value => select_tag(:num_versions, options_for_select((@experiment.min_versions..@experiment.max_versions).to_a, @experiment.num_versions), :onchange => 'submitExperimentForm(this.form);') %>
   <%= f.header 'Select Revisions'.t, :description => 'Leave blank to distribute evenly'.t %>

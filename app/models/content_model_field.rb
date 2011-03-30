@@ -30,6 +30,14 @@ class ContentModelField < DomainModel
 
   serialize :field_options
 
+  def field
+    self[:field_key]
+  end
+
+  def field=(fld)
+    self[:field_key] = fld
+  end
+
   def field_type=(type)
     return unless type
 

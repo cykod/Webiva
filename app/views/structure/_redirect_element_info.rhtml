@@ -40,7 +40,8 @@ redirectSelectFunc = function() {
   </div>
   <div id='redirect_edit_fields' <%= hide_unless @display_edit_form %> >
 
-  <%= remote_tabled_form_for :redirect, @redirect_details, 
+  <%= admin_form_for :redirect, @redirect_details,
+     :remote => true,
      :update => 'element_info', 
      :method => 'post', 
      :url =>  { :action => 'element_info', :node_type => 'node', :node_id => @node.id  },

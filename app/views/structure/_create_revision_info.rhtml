@@ -1,7 +1,8 @@
 
 <% if permit?('editor_structure') %>
 
-  <%= remote_form_for :revision_create, 
+  <%= form_for :revision_create, 
+      :remote => true,
       :update => "element_info",
       :method => 'post', 
       :url =>  { :action => 'create_revision', :language  => @view_language,:node_id => @node.id  } do  |f| -%>

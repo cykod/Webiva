@@ -52,4 +52,6 @@ find . -type f -exec perl -pi -e 's/\.read_attribute (\:\w+)/[$1]/' {} \;
 find . -type f -exec perl -pi -e 's/\sread_attribute\(\s*(\:\w+)\s*\)/self[$1]/' {} \;
 find . -type f -exec perl -pi -e 's/\sread_attribute (\:\w+)/self[$1]/' {} \;
 
+# this one is questionable
 find . -type f -exec perl -pi -e 'if(/have_tag/) { s/\:text/:content/; s/have_tag/have_selector/; }' {} \;
+

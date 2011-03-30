@@ -6,7 +6,6 @@
       <script> var AUTH_TOKEN = "<%= form_authenticity_token.to_s %>";</script>
     <%= stylesheet_link_tag 'common' %>
     <%= theme_stylesheet_link_tag  "main" %>
-    <%= javascript_include_tag :defaults %>
     <%= javascript_include_tag "builder" %>
     <%= javascript_include_tag "overlib/overlib" %>
     <%= javascript_include_tag "menu_editor" %>
@@ -166,7 +165,7 @@ tinyMCE.init({
       <a href='<%= url_for :controller => '/structure', :action => 'index', :version => @site_node.site_version_id %>' id='cms_structure_icon' onclick="return cmsEdit.leavePage('<%= url_for :controller => '/structure', :action => 'index' %>'); " title='<%= "Return to Website".t %>' ><%= theme_image_tag '/images/icons/pageeditor/structure.gif',:align=>'absmiddle' %></a>
       &nbsp;|&nbsp;
       <% if myself.has_role?('editor_files') %>
-      <%= link_to image_tag(theme_src("/images/icons/pageeditor/files_and_images.gif"),:align=>'absmiddle', :title => "Show File Manager".t ) , { :controller => 'file', :action => 'popup' , :popup_type => 'select', :path => 0 }, :popup => ['file_manager', 'height=400,width=800,scrollbars,resizeable' ] %>
+      <%= link_to image_tag(theme_src("/images/icons/pageeditor/files_and_images.gif"),:align=>'absmiddle', :title => "Show File Manager".t ) , { :controller => 'file', :action => 'popup', :popup_type => 'select', :path => 0 }, :target => 'file_manager', 'data-popup' => 'height=400,width=800,scrollbars,resizeable' %>
       &nbsp;|&nbsp;
       <% end -%>
       <a href='javascript:void(0);' id='cms_add_paragraph_icon' title='<%= "Add a new Paragraph".t %>' onclick='cmsEdit.addSelectParagraph();'><%= theme_image_tag '/images/icons/pageeditor/add_paragraph.gif', :align=>'absmiddle' %></a>

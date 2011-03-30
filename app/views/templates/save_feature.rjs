@@ -18,10 +18,10 @@ if @saved
   page.replace_html 'feature_versions', :partial => 'feature_versions'
 else
   page.replace_html "save_notice", "There was a problem saving this feature: <br/>#{@feature.errors.full_messages.join("<br/>").gsub("\n","<br/>\n")}"
-  if @feature.errors.on("body")
-    page.show :ignore_xml
-  else
+  if @feature.errors[:body].empty?
     page.hide :ignore_xml
+  else
+    page.show :ignore_xml
   end
   page.visual_effect :appear, "save_notice"
   page.replace_html "saving", "Error Saving.."

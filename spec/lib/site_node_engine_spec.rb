@@ -11,9 +11,7 @@ describe SiteNodeEngine, :type => :controller do
 
   reset_domain_tables :end_users, :site_versions, :page_revisions, :site_nodes, :site_node_modifiers, :page_paragraphs, :site_templates, :site_template_rendered_parts,  :site_template_zones
 
-  
   before(:each) do
-
     @site_template = SiteTemplate.create(:name => 'Test Template',:template_html => '<div class="container"><cms:zone name="main"/></div>')
     
     @page = SiteVersion.default.root_node.add_subpage('test_page')
@@ -23,6 +21,9 @@ describe SiteNodeEngine, :type => :controller do
     @page.reload
 
     @user = EndUser.push_target('svend@karlson.com')
+    
+    @controller = PageController.new
+    get :index
   end
   
   it "should be able to find a page from path" do
