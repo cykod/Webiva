@@ -1,7 +1,7 @@
 <%
    segment_action = @segment && @segment.segment_type == 'custom' ? ['Remove Users from List', 'remove_users'] : ['Add Users to List','js','MemberEditor.addUsersToList();']
-
-   active_table_for :email_targets_table, @active_table_output,
+%>
+<%= active_table_for :email_targets_table, @active_table_output,
                     :refresh_url => url_for(:action => 'display_targets_table', :path => @segment ? @segment.id : nil, :terms => @search.terms, :offsets => @search.offsets.empty? ? nil : @search.offsets),
                     :class => 'active_table',
                     :width => '100%',
@@ -20,7 +20,7 @@
     <%= entry_checkbox 'user',t.id %>
   </td>
   <td valign='center' align='center'>
-    <div style='font-size:18px;'><%= t.user_level_dingbat %></div>
+    <div style='font-size:18px;'><%= t.user_level_dingbat.html_safe %></div>
   </td>
   <td align='center' nowrap='1'>
     <%= t.editor? ? '' : link_to(theme_image_tag('icons/actions/edit.gif'), :action => 'edit', :path => [ t.id, @segment ? @segment.id : nil ].compact) %>

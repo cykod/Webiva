@@ -28,7 +28,7 @@ class SearchController < CmsController #:nodoc:all
 
   def feeling_lucky
     if myself.id.nil? || ! myself.editor?
-      session[:lockout_current_url] = self.request.request_uri
+      session[:lockout_current_url] = self.request.fullpath
       return deny_access!
     end
 

@@ -154,7 +154,7 @@ class ApplicationController < ActionController::Base
   
   def check_ssl #:nodoc:
     if @cms_domain_info  && @cms_domain_info[:ssl_enabled] && !request.ssl?
-      redirect_to  'https://' + request.domain(10) + request.request_uri
+      redirect_to  'https://' + request.domain(10) + request.fullpath
       return false
     end
   end
@@ -431,7 +431,7 @@ class ApplicationController < ActionController::Base
                                :reporter_user => myself,
                                :status => 'reported',
                                :reported_type => 'auto',
-                               :location => location + request.request_uri,
+                               :location => location + request.fullpath,
                                :behavior => error_data,
                                :code_location => btrace.first,
                                :error_type => exception.class.to_s,

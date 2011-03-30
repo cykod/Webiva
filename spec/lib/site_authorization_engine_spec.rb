@@ -1,7 +1,10 @@
 require "spec_helper"
 
 describe SiteAuthorizationEngine, :type => :controller do
+  include RSpec::Rails::ControllerExampleGroup
   subject { PageController.new }
+
+  render_views
 
   reset_domain_tables :end_users, :site_versions, :page_revisions, :site_nodes, :site_node_modifiers, :page_paragraphs, :site_templates, :roles, :user_roles
 
@@ -25,6 +28,9 @@ describe SiteAuthorizationEngine, :type => :controller do
                                                                       :redirect => @redirect_page.id
                                                                       ).to_hash
       @lock.save
+      
+      @controller = PageController.new
+      get :index
     end
 
     it "should redirect a user we don't have access to a lock" do

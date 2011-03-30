@@ -85,7 +85,7 @@ class ModuleAppController < ApplicationController
 
         redirect_url = dest_http +
           (DomainModel.active_domain[:www_prefix] ? 'www.' : '') +
-          DomainModel.active_domain[:name] + request.request_uri
+          DomainModel.active_domain[:name] + request.fullpath
 
         redirect_to redirect_url, :status => '301'
         return false
@@ -93,7 +93,7 @@ class ModuleAppController < ApplicationController
     end
   
      unless params[:path]
-       params[:path] = request.request_uri[1..-1].split("?")[0].split("/")
+       params[:path] = request.fullpath[1..-1].split("?")[0].split("/")
      end
       
     if params[:path][0] == 'system' 

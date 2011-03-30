@@ -53,9 +53,10 @@ module CmsHelper
   
   # fields for helper that wraps cms_subfields_for with an admin_form classed table
   def admin_fields_for(name,obj=nil,options={},&block)
-    safe_concat("<table class='styled_table admin_form'>")
-    cms_subfields_for(name,obj,options,&block)
-    safe_concat("</table>")
+    output = "<table class='styled_table admin_form'>"
+    output << cms_subfields_for(name,obj,options,&block)
+    output << "</table>"
+    output.html_safe
   end
 
 
@@ -181,29 +182,16 @@ images/icons/actions directory of the current theme.
       #    :no_translate
       #      Prevents the translation of the link
       def link(txt,options = {},html_options = {})
-        opts = options.clone
-        icon = opts.delete(:icon)
-        txt = txt.t unless opts.delete(:no_translate)
-        right = "class='right'" if opts.delete(:right)
-        if link_id= opts.delete(:id)
-          id = " id='#{link_id}'" 
-        end
-        hide = ' style="display:none;"' if opts.delete(:hidden)
-        if options[:url]
-          opts = options[:url]
-        end
+        icon = options[:icon]
+        txt = txt.t unless options[:no_translate]
         icon =  @ctrl.theme_icon("action","icons/#{@b_opts[:directory]}/" + icon) if icon
-        return "<li #{right}#{id}#{hide}>".html_safe + @ctrl.send(:link_to,icon.to_s + @ctrl.send(:h,txt),opts,html_options) + "</li>".html_safe
+        output = @ctrl.link_to icon.to_s + @ctrl.send(:h, txt), options[:url], html_options
+        @ctrl.content_tag :li, output, {:class => options[:right] ? 'right' : nil, :id => options[:id], :style => options[:hidden] ? 'display:none;' : nil}, false
       end
       
       # Adds a custom item to the action panel (accepts a block)
       def custom(options = {},&block )
-        opts = options.clone
-        right = " class='right'" if opts.delete(:right)
-
-        @ctrl.safe_concat("<li#{right}>")
-        yield 
-        @ctrl.safe_concat("</li>")
+        content_tag :li, capture(yield), {:class => options[:right] ? 'right' : nil}, false
       end
    end
    
@@ -221,37 +209,34 @@ images/icons/actions directory of the current theme.
       
       # Creates a tab inside of the ajax_tabs
       def tab(&block)
-        @view.safe_concat("<tr #{'style="display:none;"' unless @tab_num  == @selected}><td class='content' colspan='#{@tab_cnt+1}' >")
+        column = @view.content_tag :td, @view.capture(&block), {:class => 'content', :colspan => @tab_cnt+1}, false
         @tab_num +=1;
-        yield block
-        @view.safe_concat("</td></tr>")
+        @view.content_tag :tr, column, {:style => @tab_num  == @selected ? nil : 'display:none;'}, false
       end
 
       # Creates a tab inside of ajax_tabs and wraps the content of that tab in a table
       # Useful for cms_form_for and tabled_form_for
       def tabled_tab(&block)
-        @view.safe_concat("<tr #{'style="display:none;"' unless @tab_num  == @selected}><td class='content' colspan='#{@tab_cnt+1}' ><table>")
+        table = @view.content_tag :table, @view.capture(&block), {}, false
+        column = @view.content_tag :td, table, {:class => 'content', :colspan => @tab_cnt+1}, false
         @tab_num +=1;
-        yield block
-        @view.safe_concat("</table></td></tr>")
+        @view.content_tag :tr, column, {:style => @tab_num  == @selected ? nil : 'display:none;'}, false
       end
       
       # Adds a block that initially appears visible regardless of the selected tab
       # (once a tab is clicked it will act like a normal tab)
       def visible(&block)
-        @view.safe_concat("<tr><td class='content' colspan='#{@tab_cnt+2}' >")
+        column = @view.content_tag :td, @view.capture(&block), {:class => 'content', :colspan => @tab_cnt+2}, false
         @tab_num +=1;
-        yield block
-        @view.safe_concat("</tr></td>")
+        @view.content_tag :tr, column, {}, false
       end
     end
    
    # Same as ajax_tabs except everything is put
    # inside and existing table (useful for tabled_form_for, cms_form_for)
    def tabled_ajax_tabs(options,selected,&block)
-    safe_concat("<tr><td colspan='2'>")
-    ajax_tabs(options,selected,&block)
-    safe_concat("</td></tr>")
+     column = content_tag :td, ajax_tabs(options,selected,&block), {:colspan => 2}, false
+     content_tag :tr, column, {}, false
    end
    
 =begin rdoc
@@ -290,7 +275,7 @@ is clicked, so any sort of preload code will need to do it's own checking to ver
 content isn't already loaded.
 =end   
    def ajax_tabs(options,selected,&block)   # :yields: ActionTabBuilder.new
-     safe_concat("<table class='ajax_tabs' cellpadding='0' cellspacing='0'><tr>")
+     output = "<table class='ajax_tabs' cellpadding='0' cellspacing='0'><tr>"
      selected_id = nil
      options.each_with_index do |opt,idx|
        js= '' 
@@ -300,11 +285,12 @@ content isn't already loaded.
        end
        selected_id = idx if opt == selected
        
-       safe_concat("<td #{opt==selected ? 'class="selected"' : 'class="normal"'}> <a class='ajax_link' onclick='SCMS.select_tab(this); #{js}' href='javascript:void(0);'>#{opt.t}</a></td>")
+       output << "<td #{opt==selected ? 'class="selected"' : 'class="normal"'}> <a class='ajax_link' onclick='SCMS.select_tab(this); #{js}' href='javascript:void(0);'>#{opt.t}</a></td>"
      end
-     safe_concat("<td class='extra'> &nbsp; </td>	</tr>")
-     yield AjaxTabBuilder.new(self,options.length,selected_id) if block_given?
-     safe_concat("</table>")
+     output << "<td class='extra'> &nbsp; </td>	</tr>"
+     output << capture(AjaxTabBuilder.new(self,options.length,selected_id), &block) if block_given?
+     output << "</table>"
+     output.html_safe
    end
    
    class StatViewer # :nodoc:all
@@ -315,17 +301,17 @@ content isn't already loaded.
       end
     
      def row(label,stat,options = {})
-        "<tr><td class='label'  valign='baseline' nowrap='1'>#{h label.t}:</td><td  class='stat' #{"align='#{options[:align]}'" if options[:align]} >#{h stat}</td></tr>"
+        "<tr><td class='label'  valign='baseline' nowrap='1'>#{h label.t}:</td><td  class='stat' #{"align='#{options[:align]}'" if options[:align]} >#{h stat}</td></tr>".html_safe
      end  
      
      def raw(label,stat,options = {})
-        "<tr><td  class='label' valign='baseline' nowrap='1'>#{h label.t}:</td><td  class='stat' #{"align='#{options[:align]}'" if options[:align]}>#{stat}</td></tr>"
+        "<tr><td  class='label' valign='baseline' nowrap='1'>#{h label.t}:</td><td  class='stat' #{"align='#{options[:align]}'" if options[:align]}>#{stat}</td></tr>".html_safe
      end
      
      def header(label)
       @headers += 1
       "#{'<tr><td class=\'spacer\' colspan=\'2\'></td></tr>' if @headers > 1}
-      <tr><td class='header' colspan='2'><b>#{h label.t}</b></td></tr>"
+      <tr><td class='header' colspan='2'><b>#{h label.t}</b></td></tr>".html_safe
      end
    
    end
@@ -346,9 +332,7 @@ Usage:
 
 =end
    def stat_view(options={},&block) # :yields: StatViewer.new
-     safe_concat("<table cellspacing='0' cellpadding='0' class='stat_viewer #{options[:class]}'>")
-    yield StatViewer.new
-    safe_concat("</table>")
+     content_tag :table, capture(StatViewer.new, &block), {:cellspacing => 0, :cellpadding => 0, :class => "stat_viewer #{options[:class]}"}, false
    end
    
 
@@ -358,30 +342,30 @@ Usage:
     row = options.delete(:row)
     end_row = options.delete(:end_row)
     
-    safe_concat("<table cellpadding='0' cellspacing='0' #{options.collect { |key,val| "#{key}='#{h(val)}'" }.join(' ')}><thead><tr>")
+    output = "<table cellpadding='0' cellspacing='0' #{options.collect { |key,val| "#{key}='#{h(val)}'" }.join(' ')}><thead><tr>"
     columns.each do |col|
       if col.empty?
-        safe_concat("<th class='empty'></th>")
+        output << "<th class='empty'></th>"
       else
-        safe_concat("<th #{"class='first'" if col==columns.first}>#{col.t}</th>")
+        output << "<th #{"class='first'" if col==columns.first}>#{col.t}</th>"
       end
     end 
-    safe_concat('</tr></thead><tbody>')
+    output << '</tr></thead><tbody>'
     
     objects.each do |obj|
-      safe_concat(row) if row
-      yield obj
-      safe_concat(end_row) if end_row
+      output << row if row
+      output << capture(obj, &block)
+      output << end_row if end_row
     end 
-    
-    
-    safe_concat('</tbody></table>')
+
+    output << '</tbody></table>'
+    output.html_safe
   end 
   
   # deprecated use active_tr
   def highlight_row(elem_type,elem_id,options={}) # :nodoc:
   
-    <<-JAVASCRIPT
+    <<-JAVASCRIPT.html_safe
     id='elem_#{elem_type}_#{elem_id}_row' onmouseover='SCMS.highlightRow(this);'  onmouseout='SCMS.lowlightRow(this#{ ',"' + jh(options[:clear_callback]) + '"' if options[:clear_callback]});' onclick='SCMS.clickRow("#{elem_type}","#{elem_id}"); #{options[:callback].to_s.gsub("'",'&apos;')}'
 
     JAVASCRIPT
@@ -389,7 +373,7 @@ Usage:
 
   # deprecated use active_tr  
   def entry_checkbox(elem_type,elem_id)  # :nodoc:
-    <<-JAVASCRIPT
+    <<-JAVASCRIPT.html_safe
         <input type='checkbox' class='entry_checkbox' name='#{elem_type}[#{elem_id}]' value='#{elem_id}' id='elem_#{elem_type}_#{elem_id}' onclick='this.checked = !this.checked;'  />    
     JAVASCRIPT
   end
@@ -402,7 +386,7 @@ Usage:
     end
 
     def checkbox
-      <<-JAVASCRIPT
+      <<-JAVASCRIPT.html_safe
         <input type='checkbox' class='entry_checkbox' name='#{@name}[#{@entry_id}]' value='#{@entry_id}' id='elem_#{@name}_#{@entry_id}' onclick='this.checked = !this.checked;'  />    
     JAVASCRIPT
     end
@@ -413,9 +397,10 @@ Usage:
   def active_tr(name,entry_id)
     builder = ActiveTableRowBuilder.new(name,entry_id)
     
-    safe_concat("<tr #{highlight_row(name,entry_id)}>")
-    yield builder
-    safe_concat("</tr>")
+    output = "<tr #{highlight_row(name,entry_id)}>"
+    output << capture(builder)
+    output << "</tr>"
+    output.html_safe
   end
 
 
@@ -470,13 +455,13 @@ Usage:
       end
       output << '</ul>'
     end
-    output
+    output.html_safe
   end
 
   # Helper method to render an active_table partial called table name
   # and wrap it in a div
   def active_table_render(table_name)
-    "<div id='#{table_name}'>#{render :partial => table_name.to_s}</div>"
+    "<div id='#{table_name}'>#{render :partial => table_name.to_s}</div>".html_safe
   end
   
 =begin rdoc
@@ -552,39 +537,39 @@ See ActiveTable for usage examples
 
     wrapper_opts = { }
     wrapper_opts[:style] = "display:block;" if options[:width]
-    safe_concat("<div  #{wrapper_opts.collect { |key,val| "#{key}='#{val}'" }.join(' ')} class='active_table_wrapper'><#{form} id='#{name}_update_form' method='post'>");
+    output = "<div  #{wrapper_opts.collect { |key,val| "#{key}='#{val}'" }.join(' ')} class='active_table_wrapper'><#{form} id='#{name}_update_form' method='post'>"
 
-    yield(nil) if(form_elements)
+    output << capture(nil, &block) if(form_elements)
     # Initial Tabl Tag     
-    safe_concat("<table cellpadding='0' cellspacing='0' #{options.collect { |key,val| "#{key}='#{val}'" }.join(' ')}><input type='hidden' id='#{name}_page' name='page'  value='#{pagination[:page]}'/>")
+    output << "<table cellpadding='0' cellspacing='0' #{options.collect { |key,val| "#{key}='#{val}'" }.join(' ')}><input type='hidden' id='#{name}_page' name='page'  value='#{pagination[:page]}'/>"
 
     # Create the Header Columns in a <thead> section
-    safe_concat("<thead><tr>")
+    output << "<thead><tr>"
     columns.each do |col|
       col.header.active_table = name
-      safe_concat(col == columns.first  ? "<th class='first' #{col.header.style} >" : "<th #{col.header.style} >")
+      output << ((col == columns.first) ? "<th class='first' #{col.header.style} >" : "<th #{col.header.style} >")
       header_txt = col.header.icon ? "<img src='#{theme_src(col.header.icon)}' align='absmiddle' />" : col.header.name.t
       if col.header.is_searchable? && col.header.is_orderable?
-        safe_concat("<a href='javascript:void(0);' onclick='ActiveTable.order(\"#{update_element}\",\"#{refresh_url}\",\"#{name}\",\"#{col.header.field_hash}\");'>#{header_txt }</a><a href='javascript:void(0);' onclick='ActiveTable.header(\"#{name}\",\"#{col.header.field_hash}\");'><img src='#{theme_src("/images/icons/find.gif")}' align='absmiddle' width='16' height='16' border='0'/></a>")
+        output << "<a href='javascript:void(0);' onclick='ActiveTable.order(\"#{update_element}\",\"#{refresh_url}\",\"#{name}\",\"#{col.header.field_hash}\");'>#{header_txt }</a><a href='javascript:void(0);' onclick='ActiveTable.header(\"#{name}\",\"#{col.header.field_hash}\");'><img src='#{theme_src("/images/icons/find.gif")}' align='absmiddle' width='16' height='16' border='0'/></a>"
       elsif col.header.is_searchable?
-        safe_concat("#{header_txt}<a href='javascript:void(0);' onclick='ActiveTable.header(\"#{name}\",\"#{col.header.field_hash}\");'><img src='#{theme_src("/images/icons/find.gif")}' align='absmiddle' width='16' height='16' border='0'/></a>")
+        output << "#{header_txt}<a href='javascript:void(0);' onclick='ActiveTable.header(\"#{name}\",\"#{col.header.field_hash}\");'><img src='#{theme_src("/images/icons/find.gif")}' align='absmiddle' width='16' height='16' border='0'/></a>"
       elsif col.header.is_orderable?
-        safe_concat("<a href='javascript:void(0);' onclick='ActiveTable.order(\"#{update_element}\",\"#{refresh_url}\",\"#{name}\",\"#{col.header.field_hash}\");'>#{header_txt }</a>")
+        output << "<a href='javascript:void(0);' onclick='ActiveTable.order(\"#{update_element}\",\"#{refresh_url}\",\"#{name}\",\"#{col.header.field_hash}\");'>#{header_txt }</a>"
       else
-        safe_concat("#{col.header.name.t}")
+        output << "#{col.header.name.t}"
       end
       if col.header.is_orderable?
         if col.order == 1
-          safe_concat(" - Up")
+          output << " - Up"
         elsif col.order == -1
-          safe_concat(" - Down")
+          output << " - Down"
         end
       end
       
-      safe_concat("</th>")
+      output << "</th>"
     end 
     
-    safe_concat('</tr></thead>')
+    output << '</tr></thead>'
 
     
     
@@ -614,27 +599,27 @@ EOF
 </tbody>
 EOF
     
-    safe_concat(search_str_start)
+    output << search_str_start
     
     
     
-    safe_concat("<input type='hidden' id='#{name.to_s}_search_cnt' value='#{search_idx}' />")
+    output << "<input type='hidden' id='#{name.to_s}_search_cnt' value='#{search_idx}' />"
     
-    safe_concat(search_str.join(' '))
-    safe_concat(search_str_end)
+    output << search_str.join(' ')
+    output << search_str_end
     
 
 
     
-    safe_concat("<tbody>")
+    output << "<tbody>"
     
     if objects.length > 0
       objects.each do |obj|
-        safe_concat(row ) if row
-        yield obj
-        safe_concat(end_row) if end_row
+        output << row if row
+        output << capture(obj, &block)
+        output << end_row if end_row
       end 
-      safe_concat('</tbody>')
+      output << '</tbody>'
       
       
       if(table_actions || more_actions)
@@ -653,47 +638,47 @@ EOF
           </tbody>
           EOF
         
-        safe_concat(table_actions_str_start)
+        output << table_actions_str_start
         if(table_actions && table_actions.length > 0)
-          safe_concat(table_actions.collect { |act|
+          output << table_actions.collect { |act|
                    if act[1] == 'js'
                      "<input class='button_link' type='submit' value='#{vh act[0].t}' onclick='if(ActiveTable.countChecked(\"#{name}\") > 0) { #{jvh act[2]}; } return false;'/>"
                    else
                      "<input class='button_link' type='submit' value='#{vh act[0].t}' onclick='ActiveTable.action(\"#{act[1]}\",\"#{act[2] ? jvh(act[2]) : ''}\", \"#{name}\", \"#{refresh_url}\",\"#{update_element}\"); return false;'/>"
                    end
-                 }.join(" "))  
+                 }.join(" ")
         end
         
         if(more_actions && more_actions.length > 0)
-          safe_concat("<script>#{name}_more_actions = [")
-          safe_concat(more_actions.collect { |act| act[2].blank? ? 'null': "'#{jvh act[2]}'" }.join(","))
-          safe_concat(" ]; </script>")
-          safe_concat(" <select onchange=' ActiveTable.action(this.value,#{name}_more_actions[this.selectedIndex-1],\"#{name}\",\"#{refresh_url}\",\"#{update_element}\");  this.selectedIndex=0; return false;'><option value=''>#{h '--More Actions--'.t}</option>")
-          safe_concat(more_actions.collect { |act|
+          output << "<script>#{name}_more_actions = ["
+          output << more_actions.collect { |act| act[2].blank? ? 'null': "'#{jvh act[2]}'" }.join(",")
+          output << " ]; </script>"
+          output << " <select onchange=' ActiveTable.action(this.value,#{name}_more_actions[this.selectedIndex-1],\"#{name}\",\"#{refresh_url}\",\"#{update_element}\");  this.selectedIndex=0; return false;'><option value=''>#{h '--More Actions--'.t}</option>"
+          output << more_actions.collect { |act|
                    "<option value='#{act[1]}' >#{h act[0].t}</option>"
-                 }.join(""))
+                 }.join("")
           
-          safe_concat("</select>")
+          output << "</select>"
           
         end
         
-        safe_concat(table_actions_str_end)
+        output << table_actions_str_end
       end
       
       
       
       
-      safe_concat("<tfoot><tr><td colspan='#{columns.length}'><div class='pagination_spacer'></div></td></tr><tr><td class='pagination_row' valign='center' colspan='#{columns.length}' align='right'>")
-      safe_concat("<div style='float:left'>#{"Showing".t} <a href='javascript:void(0);' onclick='ActiveTable.windowPopup(#{pagination[:count]},\"#{name}\",\"#{refresh_url}\",\"#{update_element}\");'>#{pagination[:from]}-#{pagination[:to]}</a> #{"Of".t} #{pagination[:count]}</div>")
+      output << "<tfoot><tr><td colspan='#{columns.length}'><div class='pagination_spacer'></div></td></tr><tr><td class='pagination_row' valign='center' colspan='#{columns.length}' align='right'>"
+      output << "<div style='float:left'>#{"Showing".t} <a href='javascript:void(0);' onclick='ActiveTable.windowPopup(#{pagination[:count]},\"#{name}\",\"#{refresh_url}\",\"#{update_element}\");'>#{pagination[:from]}-#{pagination[:to]}</a> #{"Of".t} #{pagination[:count]}</div>"
       
       if pagination[:pages_count] > 1
-        safe_concat("<ul class='pagination'>")
+        output << "<ul class='pagination'>"
         initial = true
         if(pagination[:page] > 1)
           initial = false
-          safe_concat( "<li class='first highlight'><a href='javascript:void(0);' onclick='ActiveTable.page(#{pagination[:page]-1},\"#{name}\",\"#{refresh_url}\",\"#{update_element}\");')'>#{previous_link_text}</a></li>")
+          output <<  "<li class='first highlight'><a href='javascript:void(0);' onclick='ActiveTable.page(#{pagination[:page]-1},\"#{name}\",\"#{refresh_url}\",\"#{update_element}\");')'>#{previous_link_text}</a></li>"
         end
-        safe_concat(pagination[:pages].collect  {  |number| 
+        output << pagination[:pages].collect  {  |number| 
                  first = true if initial
                  initial = false
                  if number.to_i == pagination[:page].to_i 
@@ -704,18 +689,19 @@ EOF
                    "<li class='#{first ? "first " :  ""}'><a href='javascript:void(0);' onclick='ActiveTable.page(#{number},\"#{name}\",\"#{refresh_url}\",\"#{update_element}\");')'>#{number}</a></li>"
                  end
                  
-               }.to_s )
+               }.to_s
         if(pagination[:page] < pagination[:pages_count])
-          safe_concat( "<li class='highlight'><a href='javascript:void(0);' onclick='ActiveTable.page(#{pagination[:page]+1},\"#{name}\",\"#{refresh_url}\",\"#{update_element}\");')'>#{next_link_text}</a></li>")
+          output << "<li class='highlight'><a href='javascript:void(0);' onclick='ActiveTable.page(#{pagination[:page]+1},\"#{name}\",\"#{refresh_url}\",\"#{update_element}\");')'>#{next_link_text}</a></li>"
         end
-        safe_concat('</ul>')
+        output << '</ul>'
       end
-      safe_concat('</td></tr></tfoot>')
+      output << '</td></tr></tfoot>'
     else
-      safe_concat("<tbody><tr><td colspan='#{columns.length}'><div align='center'>#{"No Entries".t}</div></td></tr></tbody>")
+      output << "<tbody><tr><td colspan='#{columns.length}'><div align='center'>#{"No Entries".t}</div></td></tr></tbody>"
     end
-    safe_concat('</table></form></div>')
-    safe_concat("<script>ActiveTable.checkAll(\"#{name}\",false);</script>")
+    output << '</table></form></div>'
+    output << "<script>ActiveTable.checkAll(\"#{name}\",false);</script>"
+    output.html_safe
   end
 
   # Display a list of subpages in a management controller,
@@ -771,12 +757,11 @@ EOF
       tag = @options[:tag] || 'span'
       css_class = @options[:class] || 'large_ajax_link_selected'
       if number == @wizard_step
-        "<#{tag} class='#{css_class}'>#{txt}</#{tag}>"
+        "<#{tag} class='#{css_class}'>#{txt}</#{tag}>".html_safe
       elsif number <= @wizard_max_step
-        
-        "<#{tag}><a href='#{url}'>#{txt}</a></#{tag}>"
+        "<#{tag}><a href='#{url}'>#{txt}</a></#{tag}>".html_safe
       else
-        "<#{tag}>#{txt}</#{tag}>"
+        "<#{tag}>#{txt}</#{tag}>".html_safe
       end
     end
     
@@ -805,7 +790,4 @@ EOF
     content_tag(:a,image_tag(theme_src('icons/actions/' + icon),:align => 'absmiddle') + text.t,
                 options.merge(:class => "button_link#{alternative}", :href => url_for(url)))
   end
-
-
- 
 end

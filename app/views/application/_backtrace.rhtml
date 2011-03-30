@@ -3,7 +3,7 @@ A <%= exception.class %> Exception occurred in <%= controller.controller_name %>
   <%= exception.message %>
   <%= backtrace.first %>
 
-* URL: <%= request.protocol %><%= host %><%= request.request_uri %>
+* URL: <%= request.protocol %><%= host %><%= request.fullpath %>
 * Parameters: <%= parameters.inspect %>
 * Rails root: <%= rails_root %>
 * User Agent: <%= request.env['HTTP_USER_AGENT'] -%>

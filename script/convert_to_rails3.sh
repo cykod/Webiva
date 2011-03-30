@@ -55,3 +55,4 @@ find . -type f -exec perl -pi -e 's/\sread_attribute (\:\w+)/self[$1]/' {} \;
 # this one is questionable
 find . -type f -exec perl -pi -e 'if(/have_tag/) { s/\:text/:content/; s/have_tag/have_selector/; }' {} \;
 
+find . -type f -exec perl -pi -e 's/request.request_uri/request.fullpath/' {} \;

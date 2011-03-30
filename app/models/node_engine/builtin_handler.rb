@@ -32,7 +32,7 @@ class NodeEngine::BuiltinHandler < NodeEngine::HandlerBase
 
         output = SiteNodeEngine::RedirectOutput.new
         output.status = 'Redirect'
-        output.redirect =  dest_http + dest_domain +  controller.request.request_uri         
+        output.redirect =  dest_http + dest_domain +  controller.request.fullpath        
         return output
       end
       
@@ -53,7 +53,7 @@ class NodeEngine::BuiltinHandler < NodeEngine::HandlerBase
           when :full
             break
           else
-            controller.session[:lock_lockout] = controller.request.request_uri
+            controller.session[:lock_lockout] = controller.request.fullpath
             permitted =false
             redirection=access
             break
