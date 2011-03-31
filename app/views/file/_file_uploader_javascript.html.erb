@@ -157,9 +157,11 @@ FileUploader = {
     var values = frm.serializeArray();
     for(var i=0; i<values.length; i++) {
       var value = values[i];
-      body += '--' + boundary + "\r\n";
-      body += "Content-Disposition: form-data; name=\"" + value.name + "\"\r\n\r\n";
-      body += value.value + "\r\n";
+      if(value.name != 'utf8') {
+        body += '--' + boundary + "\r\n";
+        body += "Content-Disposition: form-data; name=\"" + value.name + "\"\r\n\r\n";
+        body += value.value + "\r\n";
+      }
     }
 
     if(! canSendAsBinary) {
