@@ -1,6 +1,7 @@
 require "spec_helper"
 
-describe WebivaFormElements, :type => :view do
+describe WebivaFormElements do
+  include RSpec::Rails::ViewExampleGroup
   include ActionDispatch::TestProcess
   
   reset_domain_tables :site_nodes, :site_versions, :page_revisions, :page_paragraphs
@@ -15,13 +16,11 @@ describe WebivaFormElements, :type => :view do
   end
 
   def single_field_helper(field,extra='')
-
-    txt = <<-EOF
-<% cms_form_for :form, @object do |f| %>
-   <%= f.#{field} :test#{extra} %>
-<% end -%>
-EOF
-    txt
+    <<-EOF
+      <%= cms_form_for :form, @object, :url => {:controller => 'structure', :action => 'index'} do |f| %>
+        <%= f.#{field} :test#{extra} %>
+      <% end -%>
+    EOF
   end
   
   describe "file upload fields" do 
@@ -38,18 +37,18 @@ EOF
 
     it "should be able to render an upload image field " do
       render :inline => single_field_helper('upload_image')
-      response.should have_selector("input[type=file]")
+      rendered.should have_tag("input[type=file]")
     end
 
     it "should be able to render an upload document field " do
       render :inline => single_field_helper('upload_document')
-      response.should have_selector("input[type=file]")
+      rendered.should have_tag("input[type=file]")
     end
 
     it "should be able to render an image list" do
       @object.test_array = [ @df.id ]
       render :inline => single_field_helper('image_list',"_array")
-      response.should have_selector('input#form_test_array')
+      rendered.should have_tag('input#form_test_array')
     end
   end
 
@@ -57,19 +56,19 @@ EOF
     @target = EndUser.push_target('svend@karlson.com')
     @object.test = @target.id
     render :inline => single_field_helper('multi_content_selector',",EndUser")
-    response.should have_selector('div#form_test_values')
+    rendered.should have_tag('div#form_test_values')
   end
 
   it "should be able to render a content-selector" do
     @target = EndUser.push_target('svend@karlson.com')
     @object.test = @target.id
     render :inline => single_field_helper('content_selector',",EndUser")
-    response.should have_selector('input#form_test')
+    rendered.should have_tag('input#form_test')
   end
 
   it "should be able to render an unsorted selector " do
     render :inline => single_field_helper('unsorted_selector',",[['One',1],['Two',2]],[1]")
-    response.should have_selector("select")
+    rendered.should have_tag("select")
   end
 
   it "should be able to render a price range" do
@@ -83,22 +82,22 @@ EOF
     @object.test_array = {  'a' => 45, 'b' => 67 }
     
     render :inline => single_field_helper('price_classes',"_array, [['Class One','a'],['Class Two','b']] ")
-    response.should have_selector('input[value=45]')
-    response.should have_selector('input[value=67]')
+    rendered.should have_tag('input[value="45"]')
+    rendered.should have_tag('input[value="67"]')
     
   end
 
   it "should be able to render the filemanager folder selector" do
     render :inline => single_field_helper('filemanager_folder')
-    response.should have_selector('span#form_test_name')
-    response.should have_selector('input#form_test')
+    rendered.should have_tag('span#form_test_name')
+    rendered.should have_tag('input#form_test')
   end
 
   it "should be able render a end_user_selector" do
     @target = EndUser.push_target('svend@karlson.com')
     @object.test = @target.id
     render :inline => single_field_helper('end_user_selector',",:no_name => true")
-    response.should have_selector('div.autocomplete')
+    rendered.should have_tag('div.autocomplete')
   end
 
 
@@ -106,7 +105,7 @@ EOF
     @target = EndUser.push_target('svend@karlson.com')
     @object.test = @target.id
     render :inline => single_field_helper('autocomplete_field',",'/test'")
-    response.should have_selector('div.autocomplete')
+    rendered.should have_tag('div.autocomplete')
   end
 
   it "should be able to render the page selector" do
@@ -114,8 +113,8 @@ EOF
     @page2 = SiteVersion.default.root.add_subpage('tester2')
 
     render :inline => single_field_helper('page_selector')
-    response.should have_selector("option[value=#{@page.id}]")
-    response.should have_selector("option[value=#{@page2.id}]")
+    rendered.should have_tag("option[value=\"#{@page.id}\"]")
+    rendered.should have_tag("option[value=\"#{@page2.id}\"]")
    
   end
    
@@ -124,14 +123,14 @@ EOF
     @page2 = @page.add_subpage('tester2')
 
     render :inline => single_field_helper('url_selector')
-    response.should have_selector("option[value=#{@page.node_path}]")
-    response.should have_selector("option[value=#{@page2.node_path}]")
+    rendered.should have_tag("option[value=\"#{@page.node_path}\"]")
+    rendered.should have_tag("option[value=\"#{@page2.node_path}\"]")
    
   end
 
   it "should be able to render a ordered array" do
     render :inline => single_field_helper('ordered_array',"_array,[['One',1],['Two',2]]")
-    response.should have_selector("select")
+    rendered.should have_tag("select")
   end
 
   it "should be able to render a access_control" do
@@ -140,9 +139,6 @@ EOF
 
     @object.test_array = [ 1 ]
     render :inline => single_field_helper('access_control','_array')
-    response.should have_selector("select")
-    
+    rendered.should have_tag("select")
   end
-  
-
 end

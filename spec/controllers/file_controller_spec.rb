@@ -27,7 +27,7 @@ describe FileController do
 
     it "should be able to display the root folder with a couple of files and folders in it" do
       get :index
-      response.should render_template('file/index.rhtml')
+      response.should render_template('file/index')
       response.body.should include('Test Folder')
       response.body.should include('rails.png')
       response.body.should_not include('test.txt')
@@ -35,7 +35,7 @@ describe FileController do
 
     it "should be able to display a sub folder with a couple of files and folders in it" do
       get :index, :path => [@subfolder.id]
-      response.should render_template('file/index.rhtml')
+      response.should render_template('file/index')
       response.body.should include('Test Folder')
       response.body.should include('Test Sub Folder')
       response.body.should include('test.txt')
@@ -44,7 +44,7 @@ describe FileController do
 
     it "should be able to display a the parent folder of a file" do
       get :index, :path => [@testFile.id]
-      response.should render_template('file/index.rhtml')
+      response.should render_template('file/index')
       response.body.should include('Test Folder')
       response.body.should include('Test Sub Folder')
       response.body.should include('test.txt')
@@ -53,64 +53,64 @@ describe FileController do
 
     it "should load a folder" do
       get :load_folder, :path => [@subfolder.id]
-      response.should render_template('file/load_folder.rjs')
+      response.should render_template('file/load_folder')
     end
 
     it "should load a folder and specify a file" do
       get :load_folder, :path => [@subfolder.id], :file_id => @image.id
-      response.should render_template('file/load_folder.rjs')
+      response.should render_template('file/load_folder')
     end
 
     it "should update icon sizes" do
       get :update_icon_sizes, :folder_id => @subfolder.id, :file_ids => [@testFile.id], :load_request => 1, :icon_size => 140, :thumb_size => 'icon'
-      response.should render_template('file/update_icon_sizes.rjs')
+      response.should render_template('file/update_icon_sizes')
     end
 
     describe "popup tests" do
       it "should display popup window" do
 	get :popup
-	response.should render_template('file/index.rhtml')
+	response.should render_template('file/index')
       end
 
       it "should display popup window of a folder" do
 	DomainFile.should_receive(:find_by_id).once.with(@subfolder.id).and_return(@subfolder)
 	get :popup, :path => [@subfolder.id]
-	response.should render_template('file/index.rhtml')
+	response.should render_template('file/index')
       end
 
       it "should display popup window of a folder using file_id" do
 	get :popup, :file_id => @subfolder.id
-	response.should render_template('file/index.rhtml')
+	response.should render_template('file/index')
       end
 
       it "should display popup window even if folder of file is missing" do
 	get :popup, :path => [9999]
-	response.should render_template('file/index.rhtml')
+	response.should render_template('file/index')
       end
 
       it "should display popup window of a parent folder of a file" do
 	DomainFile.should_receive(:find_by_id).once.with(@testFile.id).and_return(@testFile)
 	@testFile.should_receive(:parent).once.and_return(@subfolder)
 	get :popup, :path => [@testFile.id]
-	response.should render_template('file/index.rhtml')
+	response.should render_template('file/index')
       end
 
       it "should display popup window of a parent folder of a file using file_id" do
 	get :popup, :file_id => @testFile.id
-	response.should render_template('file/index.rhtml')
+	response.should render_template('file/index')
       end
 
       it "should display popup window of the last folder seen" do
 	controller.session[:cms_last_folder_id] = @subfolder.id
 	DomainFile.should_receive(:find_by_id_and_file_type).once.with(@subfolder.id, 'fld').and_return(@subfolder)
 	get :popup
-	response.should render_template('file/index.rhtml')
+	response.should render_template('file/index')
       end
     end
 
     it "should load file details" do
       get :load_details, :file_id => @testFile.id
-      response.should render_template('file/load_details.rjs')
+      response.should render_template('file/load_details')
     end
 
     describe "file manager update tests" do
@@ -128,19 +128,19 @@ describe FileController do
       it "should render processing if upload_key is specified and file progress is not found" do
 	generate_workling 'my_uploaded_file_key', nil
 	get :file_manager_update, :upload_key => 'my_uploaded_file_key'
-	response.should render_template('file/_file_manager_processing.rjs')
+	response.should render_template('file/_file_manager_processing')
       end
 
       it "should render processing if upload_key is specified and file progress has not finished" do
 	generate_workling 'my_uploaded_file_key', {:processed => false, :uploaded_ids => [@testFile.id]}
 	get :file_manager_update, :upload_key => 'my_uploaded_file_key'
-	response.should render_template('file/_file_manager_processing.rjs')
+	response.should render_template('file/_file_manager_processing')
       end
 
       it "should render processed if upload_key is specified and file progress has finished" do
 	generate_workling 'my_uploaded_file_key', {:processed => true, :uploaded_ids => [@testFile.id]}
 	get :file_manager_update, :upload_key => 'my_uploaded_file_key'
-	response.should render_template('file/_file_manager_update.rjs')
+	response.should render_template('file/_file_manager_update')
       end
     end
 
@@ -164,7 +164,7 @@ describe FileController do
 
     it "should be able to rename a file or folder" do
       post :rename_file, :file_id => @testFile.id, :file => {:name => 'my_new_test_file.txt'}
-      response.should render_template('file/rename_file.rjs')
+      response.should render_template('file/rename_file')
       @testFile.reload
       @testFile.name.should == 'my_new_test_file.txt'
     end
@@ -189,7 +189,7 @@ describe FileController do
         DomainFile.should_receive(:find_by_id).once.with(@image.id).and_return(@image)
         @testFile.should_receive(:run_worker).once.with(:replace_file, :replace_id => @image.id)
 	post :replace_file, :file_id => @testFile.id, :replace_id => @image.id
-	response.should render_template('file/replace_file.rjs')
+	response.should render_template('file/replace_file')
       end
 
       it "should not be able replace a file with a folder" do
@@ -217,7 +217,7 @@ describe FileController do
 	@version.id.should_not be_nil
 
 	post :delete_revision, :revision_id => @version.id
-	response.should render_template('file/delete_revision.rjs')
+	response.should render_template('file/delete_revision')
 
 	@deletedVersion = DomainFileVersion.find_by_id(@version.id)
 	@deletedVersion.should be_nil
@@ -231,13 +231,13 @@ describe FileController do
         @version.should_receive(:run_worker).with(:extract_file)
 
         post :extract_revision, :revision_id => @version.id
-        response.should render_template('file/extract_revision.rjs')
+        response.should render_template('file/extract_revision')
       end
 
       it "should be able to copy a file" do
 	assert_difference 'DomainFile.count', 1 do
 	  post :copy_file, :file_id => @image.id
-	  response.should render_template('file/copy_file.rjs')
+	  response.should render_template('file/copy_file')
 	end
 
 	@file = DomainFile.find(:last)
@@ -251,7 +251,7 @@ describe FileController do
 	it "should be able to create a new folder" do
 	  assert_difference 'DomainFile.count', 1 do
 	    post :create_folder, :folder_id => @folder.id
-	    response.should render_template('file/_create_folder.rjs')
+	    response.should render_template('file/_create_folder')
 	  end
 
 	  @newFolder = DomainFile.find(:last)
@@ -309,7 +309,7 @@ describe FileController do
 
     it "should be able to make a file private" do
       post :make_private, :file_id => @image.id
-      response.should render_template('file/_update_file.rjs')
+      response.should render_template('file/_update_file')
       @image.reload
       @image.private?.should be_true
     end
@@ -320,7 +320,7 @@ describe FileController do
       @image.private?.should be_true
 
       post :make_public, :file_id => @image.id
-      response.should render_template('file/_update_file.rjs')
+      response.should render_template('file/_update_file')
 
       @image.reload
       @image.private?.should be_false
@@ -334,7 +334,7 @@ describe FileController do
     it "should be able to switch processor on a file" do
       DomainModel.should_receive(:run_worker).once.with('DomainFile',@image.id,:update_processor, {:processor => 'processing'})
       get :switch_processor, :file_id => @image.id, :file_processor => 'processing'
-      response.should render_template('file/_update_file.rjs')
+      response.should render_template('file/_update_file')
     end
 
     it "should be able to fetch a file" do
@@ -349,21 +349,21 @@ describe FileController do
 
     it "should be able to search for files" do
       post :search, :search => {:search => 'rails', :order => 'name'}
-      response.should render_template('file/_search_results.rhtml')
+      response.should render_template('file/_search_results')
       response.body.should include('rails.png')
     end
 
     describe "edit file tests" do
       it "should be able to edit the contents of a text file" do
 	post :edit_file, :file_id => @testFile.id, :contents => 'new file contents'
-	response.should render_template('file/_edited_file.rjs')
+	response.should render_template('file/_edited_file')
 	@testFile.reload
 	@testFile.contents.should == 'new file contents'
       end
 
       it "should not be able to edit an image" do
 	post :edit_file, :file_id => @image.id, :contents => 'new file contents'
-	response.should render_template('file/_edit_file.rhtml')
+	response.should render_template('file/_edit_file')
 	@image.reload
 	@testFile.contents.should_not == 'new file contents'
       end

@@ -55,7 +55,7 @@ class Manage::ClientsController < CmsController # :nodoc: all
   end
 
   def create
-    cms_page_info [ ["System",url_for(:controller => '/system',:action => 'index') ], 
+    cms_page_info [ ["System",url_for(:controller => '/manage/system',:action => 'index') ], 
                     [ "Clients", url_for(:action => 'index') ],
                     "Edit Client"
                  ],"system"

@@ -9,7 +9,8 @@ Webiva::Application.configure do
   config.webiva_defaults['default_date_format'] ||= "%m/%d/%Y"
   config.webiva_defaults['enable_beta_code'] ||= false
   config.webiva_defaults['time_zone'] ||= 'Eastern Time (US & Canada)'
-  config.webiva_defaults['editor_login'] || false
+  config.webiva_defaults['editor_login'] ||= false
+  config.webiva_defaults['use_x_send_file'] ||= false
   config.time_zone = config.webiva_defaults['time_zone']
 end
 
@@ -28,3 +29,6 @@ DEFAULT_DATE_FORMAT = Webiva::Application.config.webiva_defaults['default_date_f
 BETA_CODE = Webiva::Application.config.webiva_defaults['enable_beta_code']
 GIT_REPOSITORY = Webiva::Application.config.webiva_defaults['git_repository']
 CMS_DEFAULT_TIME_ZONE = Webiva::Application.config.webiva_defaults['time_zone']
+
+# Only use X_SEND_FILE if it's enabled and we're not in test mode
+USE_X_SEND_FILE = (Rails.env == 'test' || Rails.env == 'cucumber' || Rails.env == 'selenium') ? false : Webiva::Application.config.webiva_defaults['use_x_send_file']
