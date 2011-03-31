@@ -590,8 +590,7 @@ class SiteNode < DomainModel
   end
   
   def copy(node, opts={})
-    attrs = node.attributes
-    nd = SiteNode.new attrs
+    nd = node.clone
     nd.site_version_id = self.site_version_id
     nd.copying = true
     nd.save
