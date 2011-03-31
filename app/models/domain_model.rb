@@ -14,6 +14,12 @@ class DomainModel < ActiveRecord::Base
   
   cattr_accessor :logger
 
+  before_save { self.post_handlers(self,:pre_save) }
+  after_commit { self.post_handlers(self,:post_save) }
+  
+  before_destroy { self.post_handlers(self,:pre_destroy) }
+  after_destroy { self.post_handlers(self,:post_destroy) }
+  
   def self.not_me(id); id ? self.where('id != ?', id) : self; end
 
   def self.process_id
@@ -499,26 +505,6 @@ class DomainModel < ActiveRecord::Base
    validate Proc.new { |mdl| if !mdl.new_record?; mdl.send(meth); end }
  end
 
-
-
-  alias_method :save_active_record, :save # :nodoc:
-  
-  def save(validate=true) #:nodoc:
-    post_handlers(self,:pre_save)
-    if save_active_record(:validate => validate)
-        post_handlers(self,:post_save)
-    end
-  end
-  
-  alias_method :destroy_active_record, :destroy # :nodoc:
-  
-  def destroy #:nodoc:
-    post_handlers(self,:pre_destroy)
-    if destroy_active_record
-        post_handlers(self,:post_destroy)
-    end
-  end
-  
   def post_handlers(record,action) #:nodoc:
     DomainModel.get_handlers(:model,record.class.to_s.underscore.to_sym).each do |handler|
       if handler[1] && handler[1][:actions] && handler[1][:actions].include?(action)
@@ -739,29 +725,4 @@ class DomainModel < ActiveRecord::Base
   def expire_site
     self.class.expire_site
   end
-   
-
-  # http://gist.github.com/76868
-  # Need an after_commit for post-transaction actions
-  def save_with_after_commit(*args) #:nodoc:
-    previous_new_record = new_record?
-    if result = save_without_after_commit(*args)
-      _run_commit_callbacks
-      _run_commit_on_create_callbacks if previous_new_record
-    end
-    result
-  end
-  
-  def save_with_after_commit!(*args)#:nodoc:
-    previous_new_record = new_record?
-    if result = save_without_after_commit!(*args)
-      _run_commit_callbacks
-      _run_commit_on_create_callbacks if previous_new_record
-    end
-    result
-  end
- 
-  alias_method_chain :save, :after_commit 
-  alias_method_chain :save!, :after_commit
-  define_model_callbacks :commit, :commit_on_create, :only => :after
 end

@@ -93,6 +93,7 @@ describe PageParagraph do
         "fake_url"
       end
       def new_record?; false; end
+      def destroyed?; false; end
     end
 
     class TestCanonicalParagraphType < HashModel
