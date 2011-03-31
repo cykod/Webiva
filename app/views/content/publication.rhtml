@@ -217,7 +217,7 @@ PublicationEditor = {
   <div id='triggered_actions'>
     <%= render :partial => 'triggered_actions' %>
   </div>
-  <%= link_to "New Action".t , { :controller => '/triggered_action/index', :action => 'index', :callback => 'PublicationEditor.commitAction', :trigger => 'publication', :trigger_id => @publication.id  }, :target => 'new_action', 'data-popup' => 'height=550,width=800,scrollbars=yes', :id => 'file_link', :class => 'ajax_link'  %>
+  <%= link_to "New Action".t , { :controller => '/triggered_action', :action => 'index', :callback => 'PublicationEditor.commitAction', :trigger => 'publication', :trigger_id => @publication.id  }, :target => 'new_action', 'data-popup' => 'height=550,width=800,scrollbars=yes', :id => 'file_link', :class => 'ajax_link'  %>
 </div>
 <% end -%>
 

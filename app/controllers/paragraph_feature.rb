@@ -814,7 +814,7 @@ block is non-nil
         if obj || !block_given?
           cms_unstyled_fields_for(arg,obj,opts) do |f|
             tag.locals.send("#{frm_obj}=",f)
-            opts.delete(:code).to_s.html_safe + tag.expand
+            opts.delete(:code).to_s.html_safe + tag.expand.html_safe
           end
         else
           nil

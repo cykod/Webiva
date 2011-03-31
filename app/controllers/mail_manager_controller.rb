@@ -189,17 +189,9 @@ class MailManagerController < CmsController # :nodoc: all
     
     if @mail_template.update_attributes(params[:mail_template])
       DataCache.expire_content("Mailing")
-      @mail_template.domain_files.clear
-      if attachments.is_a?(Array)
-        attachments.each do |atch| 
-          dmn_file = DomainFile.find_by_id(atch)
-          @mail_template.domain_files << dmn_file if dmn_file
-        end
-      end
-      
       return true
     end
+
     return false
   end
-  
 end

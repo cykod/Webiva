@@ -1027,10 +1027,10 @@ HTML
   def add_page_selector(field,options={ })
 
     self.select_original("#{field}_id",SiteNode.page_options('--Add to Site Root--'.t)) +
-      " / " +
+      " / ".html_safe +
       self.text_field_original("#{field}_subpage",:size => 10, :disabled => !@object.send("#{field}_existing").blank?) + 
-    "<br/>" + 
-    self.check_boxes_original("#{field}_existing", [["Add to an existing page",true]], :single => true, :onclick => " $('#{object_name}_#{field}_subpage').disabled = this.checked")
+    "<br/>".html_safe + 
+    self.check_boxes_original("#{field}_existing", [["Add to an existing page",true]], :single => true, :onclick => " $('#{object_name}_#{field}_subpage').disabled = this.checked").html_safe
   end
 
   def inline_file_upload(field, options={})

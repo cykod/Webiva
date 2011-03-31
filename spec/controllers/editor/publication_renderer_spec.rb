@@ -166,7 +166,7 @@ describe Editor::PublicationRenderer, :type => :controller do
        
        renderer_get @rnd
        
-       @rnd.should render_paragraph(:text => '')
+       @rnd.should render_paragraph(:text => '', :template=>"renderer_test", :prefix=>"page")
     end
     
     it "should be display the create form if allowed" do
@@ -271,7 +271,7 @@ describe Editor::PublicationRenderer, :type => :controller do
     it "should render nothing if there's no entry" do 
        @rnd = generate_view_renderer(@publication, { :return_page => @view_page_node.id })
        renderer_get @rnd
-       @rnd.should render_paragraph(:text => '')
+       @rnd.should render_paragraph(:text => '', :template=>"renderer_test", :prefix=>"page")
     end
  
  end
