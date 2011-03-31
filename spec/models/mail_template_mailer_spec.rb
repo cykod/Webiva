@@ -63,7 +63,7 @@ describe MailTemplateMailer do
       create_complete_template
       @tmpl_mail = MailTemplateMailer.to_user(@user.id,3, {:email => 'your_email'}).deliver
       ActionMailer::Base.deliveries.size.should == 1  
-      @tmpl_mail.header_string("To").should == "bugsbunny@mywebiva.com"
+      @tmpl_mail.to[0].should == "bugsbunny@mywebiva.com"
     end
     it 'should not be encoded when content type is text' do
       create_complete_template
@@ -79,15 +79,16 @@ describe MailTemplateMailer do
 
   describe "handle receiving emails" do
     before(:each) do
-      @email = TMail::Mail.new
+      @email = Mail::Message.new
       @email.to = 'test@test.dev'
       @email.from = 'admin@test.dev'
-      @email['X-Webiva-Domain'] = DomainModel.active_domain_name
+      @email.headers 'X-Webiva-Domain' => DomainModel.active_domain_name, 'X-Webiva-Handler' => 'test/handler'
       @email.body = 'Test Body'
     end
 
     it "should handle incoming mail" do
       DomainModel.should_receive(:activate_domain).exactly(0)
+      @email.headers 'X-Webiva-Domain' => DomainModel.active_domain_name
       MailTemplateMailer.receive(@email.to_s)
     end
 
@@ -96,7 +97,6 @@ describe MailTemplateMailer do
       mock_handler.should_receive(:receive)
       handler_info = {:class => mock_handler}
       MailTemplateMailer.should_receive(:get_handler_info).with(:mailing, :receiver, 'test/handler', false).and_return(handler_info)
-      @email['X-Webiva-Handler'] = 'test/handler'
       MailTemplateMailer.receive(@email.to_s)
     end
 
@@ -105,14 +105,13 @@ describe MailTemplateMailer do
       mock_handler.should_receive(:receive)
       handler_info = {:class => mock_handler}
       MailTemplateMailer.should_receive(:get_handler_info).with(:mailing, :receiver, 'test/handler', false).and_return(handler_info)
-      @email['X-Webiva-Handler'] = 'test/handler'
 
-      @orginal = TMail::Mail.new
-      @orginal.set_content_type 'message', 'rfc822'
+      @orginal = Mail::Message.new
+      @orginal.content_type = 'message/rfc822'
       @orginal.body = @email.to_s
 
-      @bounce = TMail::Mail.new
-      @bounce.set_content_type 'multipart', 'report', {'report-type' => 'delivery-status', 'boundary' => 'xxxxxx'}
+      @bounce = Mail::Message.new
+      @bounce.content_type = 'multipart/report report-type=delivery-status; boundary=xxxxxx'
       @bounce.mime_version = '1.0'
       @bounce.body = "--xxxxxx\n" + @orginal.to_s
 

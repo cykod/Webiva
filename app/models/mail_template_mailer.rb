@@ -177,21 +177,18 @@ class MailTemplateMailer < ActionMailer::Base
   end
 
   def receive(email)
-    if email.content_type == 'multipart/report'
+    if email.delivery_status_report?
 
-      original_message_part = email.parts.detect do |part|
-	part.content_type == 'message/rfc822'
-      end
+      parsed_msg = Mail::Message.new(email.body.to_s.gsub("#{email.boundary}\n", ''))
+      return unless parsed_msg
 
-      return unless original_message_part
+      parsed_msg = Mail::Message.new(parsed_msg.body.to_s)
 
-      parsed_msg = TMail::Mail.parse(original_message_part.body)
-
-      handler = parsed_msg.header_string('x-webiva-handler')
-      domain_name = parsed_msg.header_string('x-webiva-domain')
+      handler = parsed_msg.header['X-Webiva-Handler'].to_s.to_s
+      domain_name = parsed_msg.header['X-Webiva-Domain'].to_s.to_s
     else
-      handler = email.header_string('x-webiva-handler')
-      domain_name = email.header_string('x-webiva-domain')
+      handler = email.header['X-Webiva-Handler'].to_s.to_s
+      domain_name = email.header['X-Webiva-Domain'].to_s.to_s
     end
 
     return unless handler && domain_name
