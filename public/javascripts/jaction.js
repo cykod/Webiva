@@ -124,26 +124,26 @@ JSetup = {
 	elem.removeAttr('j-action');
       });
 
-    $("*[data-j-action]").each(function() {
-	var elem = $(this);
+    $j("*[data-j-action]").each(function() {
+	var elem = $j(this);
 	var acts = elem.data('j-action').split(",");
 	var act_length = acts.length;
 
 	for(var i = 0;i< act_length;i++) {
 	  if(JAction[acts[i]]) {
 	    var actfield = acts[i];
-	    var sel = $(elem).data(actfield);
+	    var sel = $j(elem).data(actfield);
 	    JAction[acts[i]].call(elem,sel);
 	  } else if(JForm[acts[i]]) {
 	    var actfield = acts[i];
-	    var sel = $(elem).data(actfield);
+	    var sel = $j(elem).data(actfield);
 	    JForm[acts[i]].call(elem,sel);
 	  }
 	  else if(JClick[acts[i]]) {
 	    (function(actfield) {
-	      $(elem).click(function() {
-		  var sel = $(elem).data(actfield);
-		  JClick[actfield].apply($(sel));
+	      $j(elem).click(function() {
+		  var sel = $j(elem).data(actfield);
+		  JClick[actfield].apply($j(sel));
 		});
 	    })(acts[i]);
 	  }
@@ -151,9 +151,9 @@ JSetup = {
 	elem.removeAttr('data-j-action');
       });
 
-    $("*[data-popup]").each(function() {
-	var elem = $(this);
-	var sel = $(elem).data('popup');
+    $j("*[data-popup]").each(function() {
+	var elem = $j(this);
+	var sel = $j(elem).data('popup');
 	JAction['openwindow'].call(elem,sel);
       });
   }

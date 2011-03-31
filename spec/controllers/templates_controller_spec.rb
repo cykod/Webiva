@@ -147,7 +147,7 @@ describe TemplatesController do
   end
 
   it "should be able to load different versions" do
-    flash[:template_version_load] = 1
+    controller.should_receive(:flash).any_number_of_times.and_return(:template_version_load => 1)
     SiteTemplate.should_receive(:find).with(@template2.id).and_return(@template2)
     @template2.should_receive(:load_version).with(1)
     get 'edit', :path => [@template2.id]
@@ -296,7 +296,7 @@ describe TemplatesController do
     end
 
     it "should set the version and redirect, feature" do
-      flash[:feature_version_load] = 1
+      controller.should_receive(:flash).any_number_of_times.and_return(:feature_version_load => 1)
       get 'feature', :path => [@feature1.id]
     end
 

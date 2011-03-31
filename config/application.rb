@@ -51,7 +51,7 @@ module Webiva
     #   g.test_framework  :test_unit, :fixture => true
     # end
 
-    config.action_view.javascript_expansions[:defaults] = []
+    config.action_view.javascript_expansions[:defaults] = ['application']
     config.action_view.javascript_expansions[:legacy] = ['overlib/overlib', 'prototype', 'effects', 'dragdrop', 'controls', 'builder', 'slider', 'swfobject', 'tiny_mce/tiny_mce', 'redbox']
 
     # Configure sensitive parameters which will be filtered from the log file.

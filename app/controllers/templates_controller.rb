@@ -180,7 +180,7 @@ class TemplatesController < CmsController # :nodoc: all
       redirect_to :action => 'edit',:path => [ params[:path][0] ] 
       return
     end
-    
+
     if flash[:template_version_load]
       @site_template.load_version(flash[:template_version_load])
     end

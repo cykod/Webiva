@@ -210,8 +210,9 @@ images/icons/actions directory of the current theme.
       # Creates a tab inside of the ajax_tabs
       def tab(&block)
         column = @view.content_tag :td, @view.capture(&block), {:class => 'content', :colspan => @tab_cnt+1}, false
-        @tab_num +=1;
-        @view.content_tag :tr, column, {:style => @tab_num  == @selected ? nil : 'display:none;'}, false
+        output = @view.content_tag :tr, column, {:style => @tab_num == @selected ? nil : 'display:none;'}, false
+        @tab_num += 1;
+        output
       end
 
       # Creates a tab inside of ajax_tabs and wraps the content of that tab in a table
@@ -219,8 +220,9 @@ images/icons/actions directory of the current theme.
       def tabled_tab(&block)
         table = @view.content_tag :table, @view.capture(&block), {}, false
         column = @view.content_tag :td, table, {:class => 'content', :colspan => @tab_cnt+1}, false
-        @tab_num +=1;
-        @view.content_tag :tr, column, {:style => @tab_num  == @selected ? nil : 'display:none;'}, false
+        output = @view.content_tag :tr, column, {:style => @tab_num == @selected ? nil : 'display:none;'}, false
+        @tab_num += 1;
+        output 
       end
       
       # Adds a block that initially appears visible regardless of the selected tab
@@ -742,7 +744,7 @@ EOF
     output +=  html.map { |elm| elm[1] }.join + "</tr>"
     output += "</table><div align='center'><div class='action_icon_mouseover' id='subpage_none'><div class='action_icon_mouseover_body'></div></div>"
     output += html.map { |elm| elm[2] }.join + '</div>'
-    output
+    output.html_safe
   end
 
   class WizardSteps

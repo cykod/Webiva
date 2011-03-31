@@ -1,3 +1,4 @@
+require 'webiva/rails/routes'
 
 Webiva::Application.configure do
   config.webiva_defaults = YAML.load_file("#{Rails.root}/config/defaults.yml")
