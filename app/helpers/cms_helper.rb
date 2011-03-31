@@ -195,7 +195,7 @@ images/icons/actions directory of the current theme.
       
       # Adds a custom item to the action panel (accepts a block)
       def custom(options = {},&block )
-        content_tag :li, capture(yield), {:class => options[:right] ? 'right' : nil}, false
+        @ctrl.content_tag :li, @ctrl.capture(&block), {:class => options[:right] ? 'right' : nil}, false
       end
    end
    
