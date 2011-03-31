@@ -23,6 +23,9 @@ gem 'memcache-client', :require => 'memcache'
 gem 'resthome'
 gem "nokogiri"
 
+# Workling gems
+gem 'eventmachine'
+
 group :development, :test, :spec, :cucumber, :selenium do
   gem 'rspec-rails'
   gem 'cucumber-rails'

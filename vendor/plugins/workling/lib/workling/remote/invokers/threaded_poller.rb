@@ -24,9 +24,6 @@ module Workling
         end      
           
         def listen                
-          # Allow concurrency for our tasks
-          ActiveRecord::Base.allow_concurrency = true
-
           # Create a thread for each worker.
           Workling::Discovery.discovered.each do |clazz|
             logger.debug("Discovered listener #{clazz}")
@@ -37,10 +34,6 @@ module Workling
           @workers.list.each { |t| t.join }
 
           logger.debug("Reaped listener threads. ")
-        
-          # Clean up all the connections.
-          ActiveRecord::Base.verify_active_connections!
-          logger.debug("Cleaned up connection: out!")
         end
       
         # Check if all Worker threads have been started. 

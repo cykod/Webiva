@@ -760,8 +760,7 @@ class DomainFile < DomainModel
     style = options[:style] ? " style='#{options[:style]}'" : ''
     align = options[:align] ? " align='#{options[:align]}'" : ''
 
-    "<img src='#{url_val}' width='#{size_arr[0]}' height='#{size_arr[1]}'#{align}#{style} />"
-
+    "<img src='#{url_val}' width='#{size_arr[0]}' height='#{size_arr[1]}'#{align}#{style} />".html_safe
   end
 
   # Is this file stored locally?

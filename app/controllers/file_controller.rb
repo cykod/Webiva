@@ -3,13 +3,15 @@
 require 'mime/types' 
 
 class FileController < CmsController # :nodoc: all
-
+  include RjsHelper
+  
   permit "editor_files", :except => [:export_status, :export_file]
 
   layout "manage"
   
   before_filter :calculate_image_size
 
+  after_filter :set_rjs_content_type, :only => ['create_folder', 'file_manager_update', 'make_public', 'make_private', 'switch_processor', 'copy_file', 'delete_revision', 'extract_revision', 'load_details', 'load_folder', 'processing_file', 'rename_file', 'replace_file', 'update_icon_sizes', 'update_storage']
 
   cms_admin_paths 'files', 
     'Files' => { :action => 'index' }
@@ -149,7 +151,7 @@ class FileController < CmsController # :nodoc: all
     render :action => 'index', :layout => @mce ? 'manage_mce' : 'manage_window'
   end
   
- def load_details
+  def load_details
     @df = DomainFile.find_by_id(params[:file_id].to_i)
   end
   
@@ -423,6 +425,7 @@ class FileController < CmsController # :nodoc: all
     if(@file && params[:contents])
       @file.contents = params[:contents]
       @file.save
+      set_rjs_content_type
       render :partial => 'edited_file'
     else
       render :partial => 'edit_file'
