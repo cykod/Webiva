@@ -110,7 +110,7 @@
 <% @traffic.each_with_index do |t, index| -%>
 <td align="center">
 <div style="width:152px; padding-bottom:4px; font-weight: bold; font-size:16px; height:20px;" class="chart_wrapper">
-<span id="chart_value<%= index + 1 %>"><%= t[:total_value].to_f > 0.0 ? number_to_currency(t[:total_value]) : '&nbsp;' %></span>
+<span id="chart_value<%= index + 1 %>"><%= t[:total_value].to_f > 0.0 ? number_to_currency(t[:total_value]) : '&nbsp;'.html_safe %></span>
 </div>
 </td>
 <% end -%>

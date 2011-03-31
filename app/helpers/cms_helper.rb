@@ -182,11 +182,15 @@ images/icons/actions directory of the current theme.
       #    :no_translate
       #      Prevents the translation of the link
       def link(txt,options = {},html_options = {})
-        icon = options[:icon]
-        txt = txt.t unless options[:no_translate]
+        opts = options.clone
+        icon = opts.delete(:icon)
+        txt = txt.t unless opts.delete(:no_translate)
+        right = opts.delete(:right)
+        hidden = opts.delete(:hidden)
+        opts = opts[:url] if opts[:url]
         icon =  @ctrl.theme_icon("action","icons/#{@b_opts[:directory]}/" + icon) if icon
-        output = @ctrl.link_to icon.to_s + @ctrl.send(:h, txt), options[:url], html_options
-        @ctrl.content_tag :li, output, {:class => options[:right] ? 'right' : nil, :id => options[:id], :style => options[:hidden] ? 'display:none;' : nil}, false
+        output = @ctrl.link_to icon.to_s + @ctrl.send(:h, txt), opts, html_options
+        @ctrl.content_tag :li, output, {:class => right ? 'right' : nil, :id => options[:id], :style => hidden ? 'display:none;' : nil}, false
       end
       
       # Adds a custom item to the action panel (accepts a block)
