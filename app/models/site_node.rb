@@ -406,11 +406,13 @@ class SiteNode < DomainModel
   
   # Make a deep copy of this site node including all live revisions
   def duplicate!(parent)
-    nd = parent.clone
-    nd.lft = nil
-    nd.rgt = nil
+    atr = self.attributes
+    atr.delete('id')
+    atr.delete('lft')
+    atr.delete('rgt')
+    atr.delete('parent_id')
+    nd = SiteNode.new(atr)
     nd.title += '_copy'
-
     nd.save
     
     self.live_revisions.each do |rev|
