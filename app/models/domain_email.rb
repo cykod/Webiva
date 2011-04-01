@@ -81,7 +81,7 @@ class DomainEmail < DomainModel
                           :email_type => 'mailbox',
                           :hashed_password => 'RESET')
       email.email = 'postmaster'
-      email.save(false)
+      email.save(:validate => false)
     end
                           
     # abuse -> redirect to postmaster

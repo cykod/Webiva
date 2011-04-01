@@ -70,7 +70,7 @@ class ClientUser < SystemModel
       @end_user = EndUser.new(:first_name => username, :hashed_password => 'Invalid', :registered => true, :email => email )
       @end_user.user_class_id = UserClass.client_user_class_id
       @end_user.client_user_id = self.id
-      @end_user.save(false)
+      @end_user.save(:validate => false)
     end
     @end_user
   end

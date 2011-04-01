@@ -255,7 +255,7 @@ module ModelExtension::EndUserImportExtension
               end
 
 
-              if(entry.save(false))
+              if(entry.save(:validate => false))
                 uids << entry.id
                 entry_addresses.each do |key,adr|
                   if adr.end_user_id != entry.id 
