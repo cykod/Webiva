@@ -22,9 +22,7 @@ class SiteFeature < DomainModel
   def test_xml
     if self.validate_xml
       validator = Util::HtmlValidator.new(self.body)
-      if !validator.valid?
-        self.errors.add(:body," is not valid XML and has one or more errors:\n " + validator.errors.join(",\n "))
-      end
+      self.errors.add(:body," is not valid XML and has one or more errors:\n " + validator.errors.join(",\n ")) unless validator.valid?
     end
   end
   
