@@ -565,6 +565,19 @@ class ActionController::TestCase
   end
 end
 
+class ActionView::TestCase::TestController
+  # Webiva form elements require this functionality
+  def theme; 'standard'; end
+
+  def theme_src(img=nil) 
+    if img.to_s[0..6] == "/images"
+      "/themes/#{theme}" + img.to_s
+    else
+      "/themes/#{theme}/images/" + img.to_s
+    end
+  end
+end
+
 def assert_difference(executable, how_many = 1, &block)
   before = eval(executable)
   yield
