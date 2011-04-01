@@ -3,13 +3,11 @@ require "content_spec_helper"
 
 describe ContentController, "create a content model" do
 
-  reset_domain_tables :end_users, :roles, :user_roles, :access_tokens, :end_user_tokens, :site_modules
-
   include ContentSpecHelper
 
- render_views
+  render_views
  
- before(:all) do
+  before(:each) do
     # Need to clean out the content models and create a new content model
     # But don't want to do this before each one
     create_content_model_with_all_fields

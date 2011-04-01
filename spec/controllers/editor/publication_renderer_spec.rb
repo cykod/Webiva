@@ -3,52 +3,13 @@ require "content_spec_helper"
 
 
 describe Editor::PublicationRenderer, :type => :controller do
-  subject { PageController.new }
+  include ContentSpecHelper
   
   render_views
   
-  reset_domain_tables :content_publications, :content_publication_fields
-  
-  before(:all) do
- 
-    # Need to clean out the content models and create a new content model
-    # But don't want to do this before each one
- 
-    %w(content_models content_model_fields content_model_features content_types).each do |table|
-       DomainModel.connection.execute("TRUNCATE #{table.to_s.tableize}") 
-    end
-
-    # Switch to migrator
-    @defaults_config_file = YAML.load_file("#{Rails.root}/config/defaults.yml")
-    DomainModel.activate_domain(Domain.find(@defaults_config_file['testing_domain']).get_info,'migrator',false)    
-    
-    DomainModel.connection.reconnect!
-    # Kill the spec test table if no-go
-    ContentModel.connection.execute('DROP TABLE IF EXISTS cms_controller_spec_tests')
-
-    @cm = ContentModel.create(:name => 'controller_spec_test')
-    @cm.create_table # Create the table
-    
-    fields = Content::CoreField.fields
-      
-    cmfs = []
-    field_opts = { :options => { :options => "one;;a\ntwo;;b" },
-                  :multi_select => { :options => "option 1;;a\noption 2;;b\noption 3;;c" },
-                  :string => { :required => true }
-                 }
-      
-    fields.each do |fld|
-      cmfs << ContentModelField.new(:name => "#{fld[:name]} Field",:field_type => fld[:name], :field_module => 'content/core_field',
-                                    :field_options => field_opts[fld[:name]] || {}  ).attributes
-    end
-    
-    @cm.update_table(cmfs)
-    @cm.reload    
- end  
- 
- before(:each) do
-  @cm.content_model.delete_all
- end
+  before(:each) do
+    create_content_model_with_all_fields
+  end
  
  describe "create publication" do
  

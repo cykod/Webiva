@@ -512,7 +512,7 @@ block is non-nil
         
         t.locals.tbl = yield t
         reset_output
-        end_user_table_for(t.locals.tbl,opts) do |row|
+        output_buffer = end_user_table_for(t.locals.tbl,opts) do |row|
           t.locals.send("#{field}=",row)
           t.expand
         end

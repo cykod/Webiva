@@ -19,11 +19,14 @@ Example:
 =end
 class ContentFilter < DomainModel
 
-  class << self;
+  class Sanitizer
     include ActionView::Helpers::TagHelper
     include ActionView::Helpers::TextHelper
     include ActionView::Helpers::UrlHelper
+    extend ActionView::Helpers::SanitizeHelper::ClassMethods
   end
+
+  @@content_filter_sanitizer = Sanitizer.new
 
   @@built_in_filters = [ ['Full HTML','full_html'],
                          ['Safe HTML','safe_html'],
@@ -155,7 +158,7 @@ Options:
   end
 
   def self.safe_link(code)
-    auto_link(code,  :html => { :target => '_blank', :rel => 'nofollow' } )
+    @@content_filter_sanitizer.auto_link(code,  :html => { :target => '_blank', :rel => 'nofollow' } )
   end
   
   def self.markdown_replace_images(code,image_folder_path,live_url = false) #:nodoc:

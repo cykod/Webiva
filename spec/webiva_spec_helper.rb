@@ -35,10 +35,18 @@ class WebivaCleaner
       connection.execute("TRUNCATE TABLE #{connection.quote_table_name(table_name)};")
     end
 
+    def drop_table(table_name)
+      connection.execute("DROP TABLE IF EXISTS #{connection.quote_table_name(table_name)};")
+    end
+
     def reset
       connection.disable_referential_integrity do
         tables_to_truncate.each do |table_name|
-          truncate_table table_name
+          if table_name =~ /^cms_/
+            drop_table table_name
+          else
+            truncate_table table_name
+          end
         end
       end
     end
@@ -97,46 +105,85 @@ class WebivaSystemCleaner
   end
 end
 
+class DomainModel
+  @@skip_modified_tables = {}
+  @@modified_tables = {}
+  def self.__reset_modified_tables
+    @@modified_tables = {}
+  end
+  
+  def self.__skip_table(table)
+    @@skip_modified_tables[table] = table
+  end
+
+  def self.__clear_skip_table
+    @@skip_modified_tables = {}
+  end
+
+  def self.__add_modified_table(table)
+    @@modified_tables[table] = table
+  end
+
+  def self.__truncate_modified_tables
+    DomainModel.connection.reconnect! unless DomainModel.connection.active?
+    @@modified_tables.each do |table, val|
+      next if table == 'component_schemas'
+      next if @@skip_modified_tables[table]
+      next if table =~ /^cms_/ && ! DomainModel.connection.table_exists?(table)
+      DomainModel.connection.execute("TRUNCATE #{table}")
+    end
+    DomainModel.__reset_modified_tables
+  end
+
+  before_create do
+    DomainModel.__add_modified_table self.class.table_name
+  end
+end
+
+class SystemModel
+  @@system_tables = {
+    'clients' => [1],
+    'client_users' => [1],
+    'domain_databases' => [1],
+    'domains' => [Webiva::Application.config.webiva_defaults['testing_domain']]
+  }
+
+  @@modified_tables = {}
+  def self.__reset_modified_tables
+    @@modified_tables = {}
+  end
+  
+  def self.__add_modified_table(table)
+    @@modified_tables[table] = table
+  end
+
+  def self.__truncate_modified_tables
+    SystemModel.connection.reconnect! unless SystemModel.connection.active?
+    @@modified_tables.each do |table, val|
+      next if table == 'schema_migrations'
+      if @@system_tables[table]
+        SystemModel.connection.execute("DELETE FROM #{table} WHERE id NOT IN(#{@@system_tables[table].join(',')})")
+      else
+        SystemModel.connection.execute("TRUNCATE #{table}")
+      end
+    end
+    SystemModel.__reset_modified_tables
+  end
+
+  before_create do
+    SystemModel.__add_modified_table self.class.table_name
+  end
+end
+
 # http://gensym.org/2007/10/18/rspec-on-rails-tip-weaning-myself-off-of-fixtures
 # Wean ourselves off of fixtures
 # Call this within the description (e.g., after the describe block) to remove everything from the associated class or table
 # Changed so that we're modifying DomainModel tables
 
 def reset_domain_tables(*tables)
-  callback = lambda do 
-    DomainModel.connection.reconnect! if !DomainModel.connection.active?
-    tables.each do |table|
-      table = table.is_a?(Symbol) ? table.to_s.tableize : table
-      DomainModel.connection.execute("TRUNCATE #{table}") unless %w(component_schemas).include?(table)
-    end
-  end
-  before(:each,&callback)
-  after(:each,&callback)
 end
 
 def reset_system_tables(*tables)
-  system_tables = {
-    'clients' => [1],
-    'client_users' => [1],
-    'domain_databases' => [1],
-    'domains' => [CMS_DEFAULTS['testing_domain']]
-  }
-
-  callback = lambda do 
-    SystemModel.connection.reconnect! if !SystemModel.connection.active?
-    tables.each do |table|
-      table = table.is_a?(Symbol) ? table.to_s.tableize : table
-      next if %w(schema_migrations).include?(table.to_s)
-      if system_tables[table]
-        SystemModel.connection.execute("DELETE FROM #{table} WHERE id NOT IN(#{system_tables[table].join(',')})")
-      else
-        SystemModel.connection.execute("TRUNCATE #{table}")
-      end
-    end
-  end
-
-  before(:each,&callback)
-  after(:each,&callback)
 end
 
 def transaction_reset
@@ -594,15 +641,29 @@ RSpec.configure do |config|
   config.fixture_path = "#{Rails.root}/spec/fixtures/"
   config.mock_with :rspec
 
-#  config.before(:suite) do
-#    WebivaCleaner.cleaner.reset
-#    WebivaSystemCleaner.cleaner.reset
-#  end
+  tests_are_running_file = "#{Rails.root}/tmp/tests_are_running"
+  
+  config.before(:suite) do
+    if File.exists?(tests_are_running_file)
+      WebivaCleaner.cleaner.reset
+      WebivaSystemCleaner.cleaner.reset
+    end
+    File.open(tests_are_running_file, 'w') { |f| }
+  end
+
+  config.after(:suite) do
+    File.delete tests_are_running_file
+  end
 
   config.before(:each) do
     UserClass.create_built_in_classes
     SiteVersion.default
     DataCache.reset_local_cache
+  end
+
+  config.after(:each) do
+    DomainModel.__truncate_modified_tables
+    SystemModel.__truncate_modified_tables    
   end
 
   config.include(RspecTagMatchers)

@@ -51,13 +51,6 @@ module ContentSpecHelper
   
   
   def create_content_model_with_all_fields(opts={})
-#    connect_to_migrator_database
- 
-    %w(content_models content_model_fields content_publications content_types).each do |table|
-       DomainModel.connection.execute("TRUNCATE #{table.to_s.tableize}") 
-    end
-
-    # Kill the spec test table if no-go
     ContentModel.connection.execute('DROP TABLE IF EXISTS cms_controller_spec_tests')
 
     @cm = ContentModel.create({:name => 'controller_spec_test', :show_on_content => true}.merge(opts))
@@ -66,19 +59,20 @@ module ContentSpecHelper
     fields = Content::CoreField.fields
       
     cmfs = []
-    field_opts = { :options => { :options => "one;;a\ntwo;;b" },
-                  :multi_select => { :options => "option 1;;a\noption 2;;b\noption 3;;c" } #,
-#                  :string => { :required => true }
-                 }
+    field_opts = {
+      :options => { :options => "one;;a\ntwo;;b" },
+      :multi_select => { :options => "option 1;;a\noption 2;;b\noption 3;;c" }
+    }
       
     fields.each do |fld|
-      cmfs << ContentModelField.new(:name => "#{fld[:name]} Field",:field_type => fld[:name], :field_module => 'content/core_field',
-                                    :field_options => field_opts[fld[:name]] || {}  ).attributes
+      cmfs << ContentModelField.new(:name => "#{fld[:name]} Field",
+                                    :field_type => fld[:name],
+                                    :field_module => 'content/core_field',
+                                    :field_options => field_opts[fld[:name]] || {}
+                                    ).attributes
     end
-    
-    @cm.update_table(cmfs)
-    @cm.reload  
-  end  
-  
 
+    @cm.update_table(cmfs)
+    @cm.reload
+  end  
 end

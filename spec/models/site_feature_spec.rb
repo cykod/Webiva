@@ -2,13 +2,10 @@ require "spec_helper"
 
 describe SiteFeature do
   
-  reset_domain_tables :editor_changes,  :site_feature, :site_template
-
   before(:each) do
     @feature = SiteFeature.new
     @valid_feature = SiteFeature.new(:name => 'Test Feature',:feature_type => 'dummy_feature')
   end
-
 
   it "should require only a name and a feature_type" do
     @feature.should_not be_valid

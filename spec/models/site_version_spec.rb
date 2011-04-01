@@ -2,9 +2,8 @@ require "spec_helper"
 
 describe SiteVersion do
   
-  reset_domain_tables :site_nodes, :content_types, :content_nodes,  :site_versions, :site_node_modifiers, :page_revisions, :page_paragraphs
-
   it "should create a default site version and a home page" do
+    SiteVersion.destroy_all
     SiteVersion.count.should == 0
     version = SiteVersion.default
     SiteVersion.count.should == 1
