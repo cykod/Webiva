@@ -131,6 +131,7 @@ class DomainModel
       next if @@skip_modified_tables[table]
       next if table =~ /^cms_/ && ! DomainModel.connection.table_exists?(table)
       DomainModel.connection.execute("TRUNCATE #{table}")
+      UserClass.create_built_in_classes if table == 'user_classes'
     end
     DomainModel.__reset_modified_tables
   end
@@ -649,6 +650,7 @@ RSpec.configure do |config|
       WebivaSystemCleaner.cleaner.reset
     end
     File.open(tests_are_running_file, 'w') { |f| }
+    UserClass.create_built_in_classes
   end
 
   config.after(:suite) do
@@ -656,8 +658,6 @@ RSpec.configure do |config|
   end
 
   config.before(:each) do
-    UserClass.create_built_in_classes
-    SiteVersion.default
     DataCache.reset_local_cache
   end
 
