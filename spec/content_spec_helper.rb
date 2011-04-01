@@ -49,7 +49,6 @@ module ContentSpecHelper
       cm
    end
   
-  
   def create_content_model_with_all_fields(opts={})
     ContentModel.connection.execute('DROP TABLE IF EXISTS cms_controller_spec_tests')
 
@@ -74,5 +73,28 @@ module ContentSpecHelper
 
     @cm.update_table(cmfs)
     @cm.reload
-  end  
+  end
+  
+  def self.setup_content_model_test_with_all_fields(spec)
+    spec.before(:all) do
+      create_content_model_with_all_fields
+    
+      %w(content_models content_model_fields).each do |table|
+        DomainModel.__skip_table table
+      end
+    end
+  
+    spec.after(:all) do
+      DomainModel.__clear_skip_table
+      %w(content_models content_model_fields).each do |table|
+        DomainModel.__add_modified_table table
+      end
+      DomainModel.__truncate_modified_tables
+      ContentModel.connection.execute('DROP TABLE IF EXISTS cms_controller_spec_tests')
+    end
+
+    spec.before(:each) do
+      @cm = ContentModel.find @cm.id
+    end
+  end
 end

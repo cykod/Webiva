@@ -5,10 +5,8 @@ describe ContentPublication do
 
   include ContentSpecHelper
 
-  before(:each) do
-    create_content_model_with_all_fields
-  end
-  
+  ContentSpecHelper.setup_content_model_test_with_all_fields self
+
   describe "dynamic fields" do
   
     it "should be able to fill in the current time with a dynamic field" do

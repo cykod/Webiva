@@ -7,11 +7,9 @@ describe Editor::PublicationRenderer, :type => :controller do
   
   render_views
   
-  before(:each) do
-    create_content_model_with_all_fields
-  end
- 
- describe "create publication" do
+  ContentSpecHelper.setup_content_model_test_with_all_fields self
+
+  describe "create publication" do
  
   def generate_create_renderer(publication,data = {})
     build_renderer('/page','/editor/publication/create',data,{},:content_publication_id => publication.id)

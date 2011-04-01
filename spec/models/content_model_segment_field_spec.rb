@@ -4,10 +4,10 @@ require "content_spec_helper"
 describe ContentModelSegmentField do
   include ContentSpecHelper
 
-  reset_domain_tables :content_model, :content_model_field
-
+  ContentSpecHelper.setup_content_model_test_with_all_fields self
+  
   it "should be able to create a segment field class for a custom content model" do
-    model = create_content_model_with_all_fields
+    model = @cm
     model.id.should_not be_nil
     cmf = ContentModelField.new(:name => "User",:field_type => 'belongs_to', :field_module => 'content/core_field',
                                 :field_options => {:belongs_to => 'end_user'}  ).attributes
