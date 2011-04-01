@@ -91,7 +91,7 @@ class WebformFormResult < DomainModel
   end
 
   def send_result_to(email)
-    MailTemplateMailer.deliver_message_to_address(email, self.email_subject, :html => self.email_message_html_body, :text => self.email_message_text_body)
+    MailTemplateMailer.message_to_address(email, self.email_subject, :html => self.email_message_html_body, :text => self.email_message_text_body).deliver
   end
 
   def email_subject

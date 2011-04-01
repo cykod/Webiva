@@ -29,39 +29,16 @@ class MailTemplateMailer < ActionMailer::Base
   # Either :text or :html (or both) must be specified,
   # :from is optional and will use the default or the
   # Configuration reply to email
-  def message_to_address(email,subj,options ={})
-    subject subj
-    recipients email
-    
-    if options[:from]
-      from options[:from]
-    elsif !Configuration.mailing_from.to_s.empty?
-      from "\"#{Configuration.mailing_from}\" <#{Configuration.reply_to_email}>"
-    else
-      from Configuration.reply_to_email    
-    end
-    
-    if options[:text] && options[:html]
-      content_type "multipart/alternative"
+  def message_to_address(email, subj, options ={})
+    raise "missing email content" if options[:text].blank? && options[:html].blank?
 
-      part :content_type => 'text/plain',
-          :body => options[:text]
-      part :content_type => "text/html", :transfer_encoding => '7bit',
-          :body => options[:html]
-    elsif options[:text]
-      content_type 'text/plain'
-      body options[:text]
-    elsif options[:html]
-      content_type "text/html"
-      body options[:html]
-    else
-      raise "missing :text or :html options for message body"
-    end 
-    
-    true
+    mail(:to => email, :subject => subj, :from => get_from_address(options)) do |format|
+      format.text { render :text => options[:text] } if options[:text]
+      format.html { render :text => options[:html] } if options[:html]
+    end
   end
 
-  def to_address(email,mail_template,variables = {},queue_hash=nil) #:nodoc:
+  def to_address(email, mail_template, variables={}, queue_hash=nil) #:nodoc:
     variables = variables.clone
     variables.stringify_keys!
     
@@ -69,75 +46,22 @@ class MailTemplateMailer < ActionMailer::Base
       mail_template = MailTemplate.find(mail_template)
     end 
   
-    subject     mail_template.render_subject(variables)
-    recipients  email
+    raise "missing email content" unless mail_template.body_type.include?('text') || mail_template.body_type.include?('html')
     
-    if variables['system:from']
-      from variables['system:from']
-    elsif variables['system:from_mail_name']
-      from "\"#{variables['system:from_mail_name']}\" <#{Configuration.reply_to_email}>"
-    elsif !Configuration.mailing_from.to_s.empty?
-      from "\"#{Configuration.mailing_from}\" <#{Configuration.reply_to_email}>"
-    else
-      from Configuration.reply_to_email    
+    ((variables.delete('attachments') || []) + mail_template.attachments).each do |file|
+      file = file.is_a?(DomainFile) ? file.filename : file
+      name = File.basename(file)
+      mime_types =  MIME::Types.type_for(file)
+      content_type = mime_types[0].to_s || 'text/plain'
+      attachments[name] = { :content => File.read(file), :content_type => content_type }
     end
-    
+
     headers mail_template.additional_headers(variables)
-
-    sent_on     Time.now
-
-    attachments = variables.delete('attachments') || []
-    attachments += mail_template.attachments
-
-    if attachments.length > 0    
-      
-      if mail_template.body_type.include?('text') && mail_template.body_type.include?('html')
-        part(:content_type => "multipart/alternative") do |p|
-          p.part :content_type => 'text/plain',
-            :body => mail_template.render_text(variables)
-          p.part :content_type => "text/html", :transfer_encoding => '7bit',
-            :body => mail_template.render_html(variables)
-        end
-      elsif mail_template.body_type.include?('text')
-          part :content_type => 'text/plain',
-            :body => mail_template.render_text(variables)
-      elsif mail_template.body_type.include?('html')
-          part :content_type => "text/html",
-            :body => mail_template.render_html(variables)
-      end
-    else
-      if mail_template.body_type.include?('text') && mail_template.body_type.include?('html')
-        content_type "multipart/alternative"
-
-        part :content_type => 'text/plain',
-            :body => mail_template.render_text(variables)
-        part :content_type => "text/html", :transfer_encoding => '7bit',
-            :body => mail_template.render_html(variables)
-      elsif mail_template.body_type.include?('text')
-        content_type 'text/plain'
-        body mail_template.render_text(variables)
-      elsif mail_template.body_type.include?('html')
-          content_type "text/html"
-          body mail_template.render_html(variables)
-      end 
-
+    
+    mail(:to => email, :subject => mail_template.render_subject(variables), :from => get_from_address(variables)) do |format|
+      format.text { render :text => mail_template.render_text(variables) } if mail_template.body_type.include?('text')
+      format.html { render :text => mail_template.render_html(variables) } if mail_template.body_type.include?('html')
     end
-    
-    
-    if attachments.length > 0
-      attachments.each do |attached_file|
-        filename = attached_file.is_a?(DomainFile) ? attached_file.filename : attached_file
-        attachment_name = attached_file.is_a?(DomainFile) ? attached_file.name : File.basename(attached_file)
-        File.open(filename) do |file_obj|
-          mime_types =  MIME::Types.type_for(filename) 
-          attachment :body => file_obj.read, 
-                     :filename => attachment_name, 
-                     :content_type => mime_types[0].to_s || 'text/plain'
-        end 
-      end
-    end
-    
-    true
   end
 
   # user should have  email and name
@@ -146,7 +70,7 @@ class MailTemplateMailer < ActionMailer::Base
       user = EndUser.find(user)
     end
   
-    vars  = user.attributes.to_hash.merge(variables.to_hash)
+    vars = user.attributes.to_hash.merge(variables.to_hash)
     vars[:name] = user.name if user
       
     # Change language to the recipient if necessary
@@ -173,7 +97,6 @@ class MailTemplateMailer < ActionMailer::Base
     end
 
     to_address(user.email,mail_template,vars)
-    
   end
 
   def receive(email)
@@ -208,5 +131,21 @@ class MailTemplateMailer < ActionMailer::Base
     end
 
     handler_info[:class].receive(email)
+  end
+  
+  protected
+  
+  def get_from_address(options={})
+    if options[:from]
+      options[:from]
+    elsif options['system:from']
+      options['system:from']
+    elsif options['system:from_mail_name']
+      "\"#{options['system:from_mail_name']}\" <#{Configuration.reply_to_email}>"
+    elsif ! Configuration.mailing_from.to_s.empty?
+      "\"#{Configuration.mailing_from}\" <#{Configuration.reply_to_email}>"
+    else
+      Configuration.reply_to_email    
+    end
   end
 end

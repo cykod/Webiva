@@ -19,8 +19,8 @@ describe TriggeredAction do
                                         :email_addresses => 'test@webiva.com'
                                       ).to_hash)
 
-    MailTemplateMailer.should_receive(:deliver_message_to_address).with('test@webiva.com','Test Message Subject',{ :html => 'Test Message Body' })
-
+    email = mock :deliver => nil
+    MailTemplateMailer.should_receive(:message_to_address).with('test@webiva.com','Test Message Subject',{ :html => 'Test Message Body' }).and_return(email)
 
     @act.perform({},EndUser.new)
   end

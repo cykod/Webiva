@@ -28,7 +28,7 @@ describe MailTemplateMailer do
     it 'should send a message to an email address' do
       @direct_mail = MailTemplateMailer.message_to_address('bugsbunny@mywebiva.net','test subject', {:text => 'test text body',  :html => "<b>test html body", :from => 'admin@mywebiva.net'} ).deliver
       ActionMailer::Base.deliveries.size.should == 1  
-      @direct_mail.body.should =~ /<b>test html body/  
+      @direct_mail.html_part.to_s.should =~ /<b>test html body/  
     end
     it 'should send mail template to address if available' do
       create_complete_template
@@ -64,12 +64,6 @@ describe MailTemplateMailer do
       @tmpl_mail = MailTemplateMailer.to_user(@user.id,3, {:email => 'your_email'}).deliver
       ActionMailer::Base.deliveries.size.should == 1  
       @tmpl_mail.to[0].should == "bugsbunny@mywebiva.com"
-    end
-    it 'should not be encoded when content type is text' do
-      create_complete_template
-      @tmpl_mail = MailTemplateMailer.to_user(@user.id,3, {:email => 'your_email'}).deliver
-      ActionMailer::Base.deliveries.size.should == 1  
-      @tmpl_mail.content_transfer_encoding.should be_nil
     end
   end
 

@@ -120,7 +120,8 @@ describe Webform::PageRenderer, :type => :controller do
 
       assert_difference 'EndUser.count', 1 do
         assert_difference 'WebformFormResult.count', 1 do
-          MailTemplateMailer.should_receive(:deliver_message_to_address).with('test-form@test.dev', anything(), anything())
+          email = mock :deliver => nil
+          MailTemplateMailer.should_receive(:message_to_address).with('test-form@test.dev', anything(), anything()).and_return(email)
           param_str = 'results_' + @rnd.paragraph.id.to_s
           renderer_post @rnd, param_str => @post_data
         end
