@@ -33,6 +33,10 @@ class HashModel
 
   def persisted?; false; end
 
+  # Needs the model name for generating error messages from methods like validates_presence_of
+  @@default_model_name = ActiveModel::Name.new(self)
+  def self.model_name; @@default_model_name; end
+
   def self.defaults
     {}
   end
