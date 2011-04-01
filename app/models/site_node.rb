@@ -406,10 +406,9 @@ class SiteNode < DomainModel
   
   # Make a deep copy of this site node including all live revisions
   def duplicate!(parent)
-    atr = self.attributes
-    atr.delete(lft)
-    atr.delete(rgt)
-    nd = SiteNode.new(atr)
+    nd = parent.clone
+    nd.lft = nil
+    nd.rgt = nil
     nd.title += '_copy'
 
     nd.save
@@ -580,9 +579,9 @@ class SiteNode < DomainModel
   
   def copy_modifiers(node)
     node.site_node_modifiers.each do |mod|
-      attrs = mod.attributes
-      %w(id site_node_id position).each { |fld| attrs.delete(fld) }
-      new_mod = self.site_node_modifiers.new attrs
+      new_mod = mod.clone
+      new_mod.site_node_id = self.id
+      new_mod.position = nil
       new_mod.copying = true
       new_mod.save
       new_mod.copy_live_revisions mod
@@ -591,6 +590,7 @@ class SiteNode < DomainModel
   
   def copy(node, opts={})
     nd = node.clone
+    nd.parent_id = nil
     nd.site_version_id = self.site_version_id
     nd.copying = true
     nd.save

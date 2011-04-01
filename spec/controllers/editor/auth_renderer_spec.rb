@@ -212,7 +212,8 @@ describe Editor::AuthRenderer, :type => :controller do
     it "should send mail" do
       @email_template = MailTemplate.find_by_name('edit') || MailTemplate.create(:subject => 'Account Updated', :name => 'edit', :language => 'en')
 
-      MailTemplateMailer.should_receive(:deliver_to_user)
+      email = mock :deliver => nil
+      MailTemplateMailer.should_receive(:to_user).and_return(email)
 
       @rnd = generate_renderer(:mail_template_id => @email_template.id, :required_fields => [])
       renderer_post @rnd, :user => { :first_name => 'First' }
@@ -789,7 +790,8 @@ describe Editor::AuthRenderer, :type => :controller do
 
       @user.verification_string.should be_nil
       @rnd = generate_renderer
-      MailTemplateMailer.should_receive(:deliver_to_user)
+      message = mock :deliver => nil
+      MailTemplateMailer.should_receive(:to_user).and_return(message)
       @rnd.should_receive(:redirect_paragraph).with(:page)
       renderer_post @rnd, :missing_password => {:email => email}
 
