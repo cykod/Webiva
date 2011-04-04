@@ -100,11 +100,15 @@ class ContentNode < DomainModel
       end
     end
 
-    
-    opts.slice(:published,:sticky,:promoted,:content_url_override,:published_at).each do |key,opt|
+    opts.slice(:published,:sticky,:promoted,:content_url_override).each do |key,opt|
       val = item.resolve_argument(opt)
       val = false if val.blank?
       self.send("#{key}=",val)
+    end
+
+    if opts[:published_at]
+      val = item.resolve_argument(opts[:published_at])
+      self.published_at = val unless val.blank?
     end
 
     self.updated_at = Time.now

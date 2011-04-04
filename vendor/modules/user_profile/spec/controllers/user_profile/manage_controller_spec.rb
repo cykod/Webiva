@@ -6,16 +6,11 @@ describe UserProfile::ManageController do
 
   render_views
 
-  reset_domain_tables :user_profile_types, :user_profile_entries, :content_types,  :content_publications, :end_users, :end_user_caches, :cms_controller_spec_tests, :user_profile_type_user_classes
+  ContentSpecHelper.setup_content_model_test_with_all_fields self
 
-  before(:all) do
-    create_content_model_with_all_fields
-  end
-
-  before do
+  before(:each) do
     mock_editor
     test_activate_module('user_profile')
-    @cm = ContentModel.find(:first)
     @prof_type =  UserProfileType.create(:name => "Test profile type default",
                                          :user_classes => [ { 'id' => UserClass.default_user_class_id.to_s } ],
                                          :content_model_id => @cm.id,
@@ -39,9 +34,9 @@ describe UserProfile::ManageController do
       @profile_entry.update_attribute :published, false
       @profile_entry.reload
       @profile_entry.published.should be_false
-      assert_difference "CmsControllerSpecTest.count", 1 do 
+      expect {
         post "view", :path => [ @user.id ], :tab => 1, :profile_type_id => @prof_type.id, :entry => { :string_field => 'Yay!' }, :profile => {:published => true}
-      end
+      }.to change{ CmsControllerSpecTest.count }
       @profile_entry.reload
       @profile_entry.published.should be_true
       @profile_entry.content_model_entry.string_field.should == 'Yay!'
@@ -65,7 +60,7 @@ describe UserProfile::ManageController do
       response.should render_template('user_profile/manage/_view') 
     end
 
-    it "should update a profile" do
+    it "should update a profile also" do
       @profile_entry.update_attribute :published, false
       @profile_entry.reload
       @profile_entry.published.should be_false

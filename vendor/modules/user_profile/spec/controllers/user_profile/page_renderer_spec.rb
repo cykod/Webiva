@@ -21,13 +21,13 @@ describe UserProfile::PageRenderer, :type => :controller do
   it "should be able to display the profile page" do
     @rnd = display_profile_renderer({:profile_type_id => @prof_type.id},:user_profile => [:url,'svend-karlson'])
     renderer_get @rnd
-    response.should include_text('Svend Karlson')
+    response.body.should include('Svend Karlson')
   end
 
   it "shouldn't display display an invalid profile" do
     @rnd = display_profile_renderer({:profile_type_id => @prof_type.id},:user_profile => [:url,'testerama'])
     renderer_get @rnd
-    response.should include_text('no profile exists')
+    response.body.should include('no profile exists')
   end
 
 
@@ -43,12 +43,8 @@ describe UserProfile::PageRenderer, :type => :controller do
     @rnd = list_profiles_renderer({:profile_type_id => @prof_type.id, :profile_detail_page_id => subpage.id})
     renderer_get @rnd
 
-    response.should include_text('Svend 3')
-    response.should_not include_text('Svend Karlson')
-
-
- 
+    response.body.should include('Svend 3')
+    response.body.should_not include('Svend Karlson')
   end
-  
 end
 
