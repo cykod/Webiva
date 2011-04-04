@@ -1,30 +1,24 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 class SiteFeature < DomainModel
-  belongs_to :site_template
-  serialize :options
-  
-  validates_presence_of :name, :feature_type
-  
-  belongs_to :admin_user, :class_name => 'EndUser', :foreign_key => :admin_user_id
-  
-  belongs_to :image_folder, :class_name => 'DomainFile', :foreign_key => 'image_folder_id'
-  
-  attr_accessor :validate_xml
-  
   include SiteTemplate::ParsingMethods
   
+  attr_accessor :validate_xml
+
+  belongs_to :site_template
+  belongs_to :admin_user, :class_name => 'EndUser', :foreign_key => :admin_user_id
+  belongs_to :image_folder, :class_name => 'DomainFile', :foreign_key => 'image_folder_id'
+
+  serialize :options
+  
+  validates :name, :presence => true
+  validates :feature_type, :presence => true
+  validates :body, :xml => true, :if => lambda { self.validate_xml }
+
   track_editor_changes
   
   before_save :update_image_paths
 
-  validate do
-    if self.validate_xml
-      validator = Util::HtmlValidator.new(self.body)
-      self.errors.add(:body," is not valid XML and has one or more errors:\n " + validator.errors.join(",\n ")) unless validator.valid?
-    end
-  end
-  
   def domain_file
     self.image_folder ? self.image_folder : (self.site_template ? self.site_template.domain_file : nil )
   end
