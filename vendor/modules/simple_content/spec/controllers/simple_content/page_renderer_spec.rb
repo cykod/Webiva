@@ -45,9 +45,9 @@ EOF
 
       renderer_get @rnd
 
-      response.should have_selector('h1', :content => 'Test Site Feature')
-      response.should have_selector('b', :content => 'String Title Test')
-      response.should have_selector("img[src=#{@df.url}]")
+      response.should have_tag('h1', :content => 'Test Site Feature')
+      response.should have_tag('b', :content => 'String Title Test')
+      response.should have_tag("img[src=\"#{@df.url}\"]")
     end
 
     
