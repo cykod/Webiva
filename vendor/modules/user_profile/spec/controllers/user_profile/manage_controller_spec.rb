@@ -1,5 +1,5 @@
 require "spec_helper"
-require File.expand_path(File.dirname(__FILE__)) + "/../../../../../../spec/content_spec_helper"
+require "content_spec_helper"
 
 describe UserProfile::ManageController do
   include ContentSpecHelper

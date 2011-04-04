@@ -1,4 +1,5 @@
-require  File.expand_path(File.dirname(__FILE__)) + '/../../simple_content_spec_helper'
+require "spec_helper"
+require "simple_content_spec_helper"
 
 describe SimpleContent::PageRenderer, :type => :controller do
   subject { PageController.new }

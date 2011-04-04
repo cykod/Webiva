@@ -1,4 +1,5 @@
-require  File.expand_path(File.dirname(__FILE__)) + '/../webform_spec_helper'
+require "spec_helper"
+require "webform_spec_helper"
 
 describe WebformForm do
 

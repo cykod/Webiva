@@ -634,6 +634,13 @@ def assert_difference(executable, how_many = 1, &block)
 end
 
 RSpec.configure do |config|
+  base_dir = "#{Rails.root}/vendor/modules/"
+  Dir.glob("#{base_dir}[a-z]*").collect do |dir|
+    if File.directory?(dir) && File.exists?("#{dir}/spec")
+      $LOAD_PATH << "#{dir}/spec"
+    end
+  end
+
   # If you're not using ActiveRecord you should remove these
   # lines, delete config/database.yml and disable :active_record
   # in your config/boot.rb

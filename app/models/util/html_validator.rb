@@ -2,8 +2,6 @@
 
 #require 'tidy'
 
-require 'xml' 
-
 # Utility class to validate html (with or without cms: tags)
 #
 # Example:
