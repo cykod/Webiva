@@ -74,10 +74,6 @@ class Blog::ManageController < ModuleController
   end
             
                 
-  def generate_categories
-    @blog.blog_categories.collect { |cat| [ cat.name, cat.id ] }
-  end
-
   def post_table(display=true)
 
     active_table_action(:post) do |act,eids| 
@@ -338,5 +334,8 @@ class Blog::ManageController < ModuleController
   end
 
 
+  def generate_categories
+    @blog.blog_categories.collect { |cat| [ cat.name, cat.id ] }
+  end
 
 end

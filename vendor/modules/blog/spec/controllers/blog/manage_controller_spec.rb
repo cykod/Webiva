@@ -63,10 +63,6 @@ describe Blog::ManageController do
     get 'generate_mail_generate', :path => [@blog.id], :post_id => @post.id, :opts => {:align => 'left', :header => 'above'}
   end
 
-  it "should be able to render generate_categories" do
-    get 'generate_categories', :path => [@blog.id]
-  end
-
   it "should be able to create a mail template from a post" do
     assert_difference 'MailTemplate.count', 1 do
       post 'mail_template', :path => [@blog.id, @post.id]

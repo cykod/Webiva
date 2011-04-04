@@ -5,7 +5,8 @@ describe ContentHashModelField do
   it "should not be valid with type, module and name" do
     @field = ContentHashModelField.new nil, nil
     @field.valid?.should be_false
-    @field.errors.should have(3).errors_on(:name, :field_type, :field_module)
+    @field.should have(2).errors_on(:name)
+    @field.should have(1).errors_on(:field_type)
   end
 
   it "should be able to use string field" do
