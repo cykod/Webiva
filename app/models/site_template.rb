@@ -471,23 +471,23 @@ class SiteTemplate < DomainModel
       
       output_body = ''
       
-      re = Regexp.new("(['\"\(\>])images\/([a-zA-Z0-9_\\-\\/. ]+?)(['\"\<\)])" ,Regexp::IGNORECASE | Regexp::MULTILINE)
+      re = Regexp.new("(['\"\(\>])(images|files)\/([a-zA-Z0-9_\\-\\/. ]+?)([?#'\"\<\)])" ,Regexp::IGNORECASE | Regexp::MULTILINE)
       
       parent_folder = self.domain_file
       if parent_folder
         while mtch = re.match(body)
           output_body += mtch.pre_match
-          file_path = parent_folder.file_path + '/' + mtch[2]
+          file_path = parent_folder.file_path + '/' + mtch[3]
           img = DomainFile.find_by_file_path file_path
           if img
             url = img.url
             if self.is_a?(SiteTemplate) && self.template_type != 'site' && url[0..0] == '/'
-              output_body += mtch[1] + Configuration.domain_link(url) + mtch[3]
+              output_body += mtch[1] + Configuration.domain_link(url) + mtch[4]
             else
-              output_body += mtch[1] + url + mtch[3]
+              output_body += mtch[1] + url + mtch[4]
             end
           else
-            output_body += mtch[1] + '/images/no_image.gif' + mtch[3]
+            output_body += mtch[1] + '/images/no_image.gif' + mtch[4]
           end
           body = mtch.post_match
         end
