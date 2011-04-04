@@ -326,6 +326,15 @@ describe TemplatesController do
       @feature1.body.should_not == '<cms:logged>Failure</cms:logged_in>'
     end
 
+    it "should not be able to edit a feature if body is incorrect even if Nokogiri is used" do
+      Nokogiri::HTML '<b>Test</b>'
+
+      post 'save_feature', :para_index => 1, :path => [@feature1.id], :feature => {:body => '<cms:logged>Failure</cms:logged_in>'}
+
+      @feature1.reload
+      @feature1.body.should_not == '<cms:logged>Failure</cms:logged_in>'
+    end
+
     it "should be able to edit a feature if body is incorrect" do
       post 'save_feature', :para_index => 1, :path => [@feature1.id], :feature => {:body => '<cms:logged>Failure</cms:logged_in>'}, :ignore_xml_errors => true
 

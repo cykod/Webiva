@@ -43,6 +43,9 @@ class Util::HtmlValidator
     begin
       parser.parse
     rescue Exception => e
+      # Need to add the error to the msgs array when Nokogiri::HTML() was used.
+      # Some how it is changing the behavior of XML::Error. And using set_handler no longer works.
+      msgs << e if msgs.empty?
       @errors = msgs.map { |e| e.to_s }
       @errors = @errors.select { |err| !(err =~ /Entity \'(.*)' not defined/) }
     end
