@@ -66,7 +66,8 @@ module StyledFormBuilderGenerator #:nodoc:
 	  pre_cmd = pre.blank? ? "\"\"" : "\"#{pre}\""
 	  post_cmd = post.blank? ? "\"\"" : "\"#{post}\""
 
-          names = [ [ name, 'form_tag(options.delete(:url) || {}, options.delete(:html) || {})'] ]
+
+          names = [ [ name, "form_tag(options.delete(:url) || request.fullpath, options.delete(:html) || {})"] ]
        
           names.each do |nm|
             src = <<-END_SRC 
@@ -271,7 +272,7 @@ module EnhancedFormElements
       if options[:value]
         options[:value] || ''
       else
-        yield
+        @template.capture(&block)
       end    
     end
     
@@ -561,19 +562,16 @@ module TabledFormElements
   end 
 
 
-  def section(name=nil,options = { },&block)
-    if block_given?
-      @template.safe_concat(tag("tbody",:id => name))
-      yield
-      @template.safe_concat("</tbody>")
-    else
-      output = tag("tbody",:id => name)
-      if !options.has_key?(:display) || options[:display]
-        output << @template.render(:partial => options[:partial], :locals => options[:locals])
-      end
-      output << "</tbody>"
-      output.html_safe
-    end
+  def section(name=nil, options={}, &block)
+    output = if block_given?
+               output = @template.capture(&block)
+             elsif ! options[:display]
+               output = @template.render(:partial => options[:partial], :locals => options[:locals])
+             else
+               ''
+             end
+
+    content_tag :tbody, output, {:id => name}, false
   end
   
   def header(name,options = {})
@@ -652,7 +650,7 @@ class TabledForm < StyledForm
   end
   
   # Output a custom field that will work inside of the form
-  def custom_field(field,options={},&block)
+  def custom_field(field, options={}, &block)
     opts = options.clone
     
     label = emit_label(opts.delete(:label) || field.to_s.humanize)
@@ -669,32 +667,36 @@ class TabledForm < StyledForm
     
     required = opts.delete(:required) ? "*" : ""
     
+    output = ''
     if options[:value] || !block_given?
       text = options.delete(:value) || ''
       vals = form_options('custom',field,lambda { text },options)
       vertical = options.delete(:vertical)
       if vertical
-          description = "<tr><td colspan='#{cols+1}' class='description'>#{options[:description]}</td></tr>" if !options[:description].blank?
-        	'<tr><td class="label_vertical" colspan="#{cols+1}">' + vals[:label] + required + '</td></tr>' + error
-	        "<tr><td colspan='#{cols+1}' class='data_vertical control_#{options[:control]}'>" + vals[:output] + "</td></tr>" + description.to_s
+        output = "<tr><td colspan='#{cols+1}' class='description'>#{options[:description]}</td></tr>" if !options[:description].blank?
+                 '<tr><td class="label_vertical" colspan="#{cols+1}">' + vals[:label] + required + '</td></tr>' + error
+                 "<tr><td colspan='#{cols+1}' class='data_vertical control_#{options[:control]}'>" + vals[:output] + "</td></tr>" + description.to_s
       else
-          description = "<tr><td/><td class='description'>#{options[:description]}</td></tr>" if !options[:description].blank?
+        description = "<tr><td/><td class='description'>#{options[:description]}</td></tr>" if !options[:description].blank?
       
-	error + "<tr><td class='label'  valign='#{valign}' >" + vals[:label] + required + "</td><td valign='baseline' class='data #{options[:control]}_control' colspan='#{cols}'>" + vals[:output] + '</td></tr>' + description.to_s
+	output = error + "<tr><td class='label'  valign='#{valign}' >" + vals[:label] + required + "</td><td valign='baseline' class='data #{options[:control]}_control' colspan='#{cols}'>" + vals[:output] + '</td></tr>' + description.to_s
       end
     else
       vertical = options.delete(:vertical)
       label = options.delete(:label) || field.to_s.humanize
+      output = ''
       if vertical
-          description = "<tr><td colspan='#{cols+1}' class='description'>#{options[:description]}</td></tr>" if !options[:description].blank?
-	@template.safe_concat("<tr><td colspan='#{cols+1}' class='label_vertical'>" + emit_label(label) + required + '</td></tr>' + error + "<tr><td colspan='#{cols+1}' class='data " + options[:control].to_s + "_control'>")
+        description = "<tr><td colspan='#{cols+1}' class='description'>#{options[:description]}</td></tr>" if !options[:description].blank?
+	output << "<tr><td colspan='#{cols+1}' class='label_vertical'>" + emit_label(label) + required + '</td></tr>' + error + "<tr><td colspan='#{cols+1}' class='data " + options[:control].to_s + "_control'>"
       else
          description = "<tr><td/><td class='description' colspan='#{cols}'>#{options[:description]}</td></tr>" if !options[:description].blank?
-         @template.safe_concat(error + "<tr><td  class='label' valign='#{valign}' >" + emit_label(label) + required + "</td><td valign='baseline' class='data' colspan='#{cols}'>")
+         output << (error + "<tr><td  class='label' valign='#{valign}' >" + emit_label(label) + required + "</td><td valign='baseline' class='data' colspan='#{cols}'>")
       end
-      yield
-      @template.safe_concat("</td></tr>" + description.to_s)
+      output << @template.capture(&block)
+      output << ("</td></tr>" + description.to_s)
     end
+
+    output.html_safe
   end
 
   generate_styled_fields('form_options',
@@ -737,20 +739,21 @@ class TabledForm < StyledForm
     label = options[:label] if options[:label] && options[:label]  != ''
     label = "<label for='#{object_name}_#{options[:field]}'>#{label}</label>"
 
+    output = ''
     if options[:control] == 'label_field'
       if options[:vertical]
-        return "<tr class='vertical' ><td colspan='2' class='label_vertical'> #{label}</td></tr>#{error}<tr><td nowrap='1' colspan='2' class='data_vertical #{options[:control]}_control'>#{options[:output]}#{options[:unit]||''}#{options[:tail]}</td></tr>#{description}"
+        output = "<tr class='vertical' ><td colspan='2' class='label_vertical'> #{label}</td></tr>#{error}<tr><td nowrap='1' colspan='2' class='data_vertical #{options[:control]}_control'>#{options[:output]}#{options[:unit]||''}#{options[:tail]}</td></tr>#{description}"
       else
-        return "#{error}<tr><td class='label' valign='baseline'>#{label}</td>
+        output = "#{error}<tr><td class='label' valign='baseline'>#{label}</td>
           <td class='data #{options[:control]}_control'>#{options[:output]}#{options[:unit]||''}#{options[:tail]}</td></tr>#{description}"
       end
     elsif options[:vertical]
-      return "<tr class='vertical' ><td colspan='#{cols+1}' class='label_vertical'> #{label}#{(label && options[:required]) ? '*':''}</td></tr>#{error}<tr><td nowrap='1' colspan='#{cols+1}' class='data_vertical #{options[:control]}_control'>#{options[:output]}#{options[:unit]||''}#{options[:tail]}</td></tr>#{description}"
+      output = "<tr class='vertical' ><td colspan='#{cols+1}' class='label_vertical'> #{label}#{(label && options[:required]) ? '*':''}</td></tr>#{error}<tr><td nowrap='1' colspan='#{cols+1}' class='data_vertical #{options[:control]}_control'>#{options[:output]}#{options[:unit]||''}#{options[:tail]}</td></tr>#{description}"
     else
-      return "#{error}<tr><td nowrap='1' class='label' valign='#{valign}'>#{label}#{(label && options[:required]) ? '*':''}</td><td nowrap='1' class='data #{options[:control]}_control' colspan='#{cols}' valign='baseline'>#{options[:output]}#{options[:unit]||''}#{options[:tail]}</td></tr>#{description}"
+      output = "#{error}<tr><td nowrap='1' class='label' valign='#{valign}'>#{label}#{(label && options[:required]) ? '*':''}</td><td nowrap='1' class='data #{options[:control]}_control' colspan='#{cols}' valign='baseline'>#{options[:output]}#{options[:unit]||''}#{options[:tail]}</td></tr>#{description}"
     end
+    output.html_safe
   end
-  
 end
 
 
@@ -780,7 +783,7 @@ class TabledDisplayForm < TabledForm
   end
   
   def field(options) #:nodoc:
-    return "<tr><td #{"valign='top'" if options[:control] == 'text_area'}>#{options[:label]}: </td><td >#{options[:output]}#{options[:unit]||''}</td></tr>"
+    return "<tr><td #{"valign='top'" if options[:control] == 'text_area'}>#{options[:label]}: </td><td >#{options[:output]}#{options[:unit]||''}</td></tr>".html_safe
   end
   
   def radio_buttons(field,tag_values,options = {}) #:nodoc:

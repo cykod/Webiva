@@ -47,7 +47,7 @@ module CmsHelper
   def admin_form_for(name,obj=nil,options={},&block)
     options[:html] ||= {}
     options[:html][:class] = 'admin_form'
-    
+
     cms_form_for(name,obj,options,&block)
   end
   
@@ -400,11 +400,11 @@ Usage:
   
   # See ActiveTable 
   # Used to create a highlightable table row inside of an active table
-  def active_tr(name,entry_id)
+  def active_tr(name, entry_id, &block)
     builder = ActiveTableRowBuilder.new(name,entry_id)
     
     output = "<tr #{highlight_row(name,entry_id)}>"
-    output << capture(builder)
+    output << capture(builder, &block)
     output << "</tr>"
     output.html_safe
   end

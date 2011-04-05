@@ -3,7 +3,7 @@
 :actions => [ ['Delete','delete','Are you sure you want to delete these profiles?']] do |t| -%>
 
 
-   <% active_tr 'user_profile', t.id do |tr| %>
+   <%= active_tr 'user_profile', t.id do |tr| %>
    <td><%= tr.checkbox %></td>
    <td><%= link_to h(t.name), :action => :edit_profile_type, :path => [t.id] %></td>
     <td><%= h t.content_model ? t.content_model.name : "none" %></td>

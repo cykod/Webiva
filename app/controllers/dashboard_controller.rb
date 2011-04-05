@@ -1,6 +1,7 @@
 
 
 class DashboardController < CmsController #:nodoc:all
+  include RjsHelper
 
   permit :editor_site_management, :only => [ :site_widgets, :site_widget ]
 
@@ -8,6 +9,8 @@ class DashboardController < CmsController #:nodoc:all
     "Dashboard" => { :action => "index" },
     "Site Widgets" => {  :action =>"site_widgets"}
 
+
+  after_filter :set_rjs_content_type, :only => ['update_widget', 'widget', 'remove', 'show']
 
   def index
     cms_page_info 'Dashboard', 'dashboard',  myself.has_role?(:editor_site_management) ? 'CMSDashboard.pagePopup();' : nil
