@@ -2,6 +2,11 @@ require 'rubygems'
 
 # Set up gems listed in the Gemfile.
 gemfile = File.expand_path('../../Gemfile', __FILE__)
+
+# Create Gemfile
+require File.expand_path('../webiva_bundler', __FILE__)
+Webiva::Bundler.setup
+
 begin
   ENV['BUNDLE_GEMFILE'] = gemfile
   require 'bundler'
