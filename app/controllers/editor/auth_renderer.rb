@@ -692,7 +692,13 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
         render_paragraph :nothing => true
       else
         cookies[options.cookie_name.to_sym]= { :value => 'set', :expires => 1.year.from_now }
-        redirect_paragraph :site_node => options.splash_page_id
+        url = options.splash_page_url.to_s
+
+        if params["_source"]
+          url << "?_source=#{CGI.escape(params["_source"])}"
+        end
+
+        redirect_paragraph url
       end
     end   
   end
