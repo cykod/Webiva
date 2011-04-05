@@ -4,6 +4,7 @@ require 'maruku'
 
 # The page editor controller
 class EditController < ModuleController # :nodoc: all
+  include RjsHelper
 
   # This isn't a real module controller, it just acts like one
   skip_before_filter :validate_module
@@ -15,6 +16,8 @@ class EditController < ModuleController # :nodoc: all
 
   permit 'editor_editor'
 
+  after_filter :set_rjs_content_type, :only => ['page_info_update', 'paragraph_update', 'refresh_info', 'reload_page', 'save_changes', 'translate_done', 'update_code', 'update_triggered_actions', 'version_reload', 'save_changes_and_reload', 'save_as', 'preview', 'activate_version', 'deactivate_version', 'update_info', 'update_page_variables', 'build_translation', 'save_changes_and_build_translation', 'delete', 'delete_triggered_action']
+  
   register_permission_category :paragraph, 'Page Editor', 'Permissions relating to the webiva page editor. Must have the Editor permission to access these permissions.'
   register_permissions :paragraph, [ [:code, 'Code','Use Code Paragraphs' ],
                                      [:textile, 'Textile','Use Textile Paragraphs' ],
@@ -293,8 +296,6 @@ class EditController < ModuleController # :nodoc: all
     generate_paragraph_types
   
     render :action => 'reload_page'
-    # force a javscript content type if we're updating
-    headers['Content-Type'] = 'text/javascript; charset=utf-8'
   end
   
 
@@ -382,7 +383,7 @@ class EditController < ModuleController # :nodoc: all
                     @revision.id,
                     true)
     
-    render :action => 'save_changes',:layout => false
+    render :action => 'save_changes'
   end
   
   def save_changes_and_reload
@@ -502,7 +503,7 @@ class EditController < ModuleController # :nodoc: all
     
     expire_site
     
-    render :action => 'version_reload', :layout => false
+    render :action => 'version_reload'
   end
   
   def deactivate_version
@@ -515,7 +516,7 @@ class EditController < ModuleController # :nodoc: all
     
     expire_site
     
-    render :action => 'version_reload', :layout => false
+    render :action => 'version_reload'
   end
 
   def edit_code

@@ -50,9 +50,9 @@ JAction = {
   },
 
   openwindow: function(sel) {
-    $(this).click(function() {
-	var target = $(this).attr('target') || 'newwindow';
-	window.open($(this).attr('href'), target, sel);
+    $j(this).click(function() {
+	var target = $j(this).attr('target') || 'newwindow';
+	window.open($j(this).attr('href'), target, sel);
 	return false;
       });
   }
@@ -153,8 +153,9 @@ JSetup = {
 
     $j("*[data-popup]").each(function() {
 	var elem = $j(this);
-	var sel = $j(elem).data('popup');
+	var sel = elem.attr('data-popup');
 	JAction['openwindow'].call(elem,sel);
+	elem.removeAttr('data-popup');
       });
   }
 }

@@ -43,7 +43,7 @@ SCMS = {
 
 		overlib(txt,CAPTION,"&nbsp;" + performActionText,STICKY,loc,OFFSETX,0,OFFSETY,12,WIDTH,width,
                              FGCLASS,'cms_popup_text',BGCLASS,'cms_popup_bg',CAPTIONFONTCLASS,'cms_popup_caption',
-		                      MOUSEOFF,CLOSETEXT,'');
+	                      MOUSEOFF,CLOSETEXT,'');
                 /* FGCOLOR,'#FFFFFF',BGCOLOR,'#bababa',CLOSETEXT,'<img src="/images/site/close_gray.gif" width="16" height="16" border="0"/>');*/
 
 
@@ -509,6 +509,7 @@ SCMS = {
                onComplete: function(req) {
                   SCMS.overlay(req.responseText);
                   req.responseText.evalScripts();
+		  if(typeof JSetup != 'undefined') { JSetup.setup(); }
               }});
 
   },
@@ -525,6 +526,7 @@ SCMS = {
                  if(!(contentType && contentType.match(/^\s*(text|application)\/(x-)?(java|ecma)script(;.*)?\s*$/i))) {
                    SCMS.overlay(req.responseText);
                    req.responseText.evalScripts();
+  		   if(typeof JSetup != 'undefined') { JSetup.setup(); }
                  }
               }});
   },
@@ -894,8 +896,7 @@ if(typeof JQuery != 'undefined') {
     headers: { "X-CSRF-Token": $("meta[name='csrf-token']").attr('content') }
   });
 
-  jQuery(document).ajaxSend(function(e, xhr, options) {
-    var token = $("meta[name='csrf-token']").attr("content");
-    xhr.setRequestHeader("X-CSRF-Token", token);
+  jQuery.ajaxComplete(function() {
+    JSetup.setup();
   });
 }

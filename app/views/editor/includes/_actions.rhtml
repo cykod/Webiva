@@ -4,7 +4,7 @@
   <% @paragraph.triggered_actions.each do |act| %>
   <tr>
     <td>
-      <%= link_to act.name , { :controller => '/triggered_action/index', :action => 'index', :action_id => act.id  }, :callback => 'cmsEdit.replaceAction', :target => 'new_action', 'data-popup' => 'height=600,width=800,scrollbars=yes', :id => 'file_link', :class => 'ajax_link'  %>
+      <%= link_to act.name , { :controller => '/triggered_action', :action => 'index', :action_id => act.id  }, :callback => 'cmsEdit.replaceAction', :target => 'new_action', 'data-popup' => 'height=600,width=800,scrollbars=yes', :id => 'file_link', :class => 'ajax_link'  %>
     </td>
     <td>
     <a href='javascript:void(0);' onclick='cmsEdit.deleteAction(<%= act.id %>);' ><%= h "Delete".t %></a> 
@@ -13,4 +13,4 @@
   <% end -%>
   </table>
   <br/><br/>
-  <%= link_to "New Action".t , { :controller => '/triggered_action/index', :action => 'index', :callback => 'cmsEdit.commitAction', :trigger => 'page_paragraph', :trigger_id => @paragraph.id  }, :target => 'new_action', 'data-popup' => 'height=600,width=800,scrollbars=yes', :id => 'file_link', :class => 'ajax_link'  %>
+  <%= link_to "New Action".t , { :controller => '/triggered_action', :action => 'index', :callback => 'cmsEdit.commitAction', :trigger => 'page_paragraph', :trigger_id => @paragraph.id  }, :target => 'new_action', 'data-popup' => 'height=600,width=800,scrollbars=yes', :id => 'file_link', :class => 'ajax_link'  %>

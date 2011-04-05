@@ -6,6 +6,14 @@
       <script> var AUTH_TOKEN = "<%= form_authenticity_token.to_s %>";</script>
     <%= stylesheet_link_tag 'common' %>
     <%= theme_stylesheet_link_tag  "main" %>
+
+    <%= remote_script 'ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js' %>
+    <%= remote_script 'ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js' %>
+    <script>
+       $j = jQuery.noConflict();
+    </script>
+    <%= javascript_include_tag 'jaction' %>
+
     <%= javascript_include_tag :legacy %>
     <%= javascript_include_tag :defaults %>
     <%= javascript_include_tag "builder" %>
