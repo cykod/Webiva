@@ -88,7 +88,7 @@ class SiteNode < DomainModel
     elsif self.node_type == 'M'
       self.dispatcher.menu
     elsif self.node_type == 'G'
-      self.children
+      @child_cache || self.children
     else
       [ self ]
     end
