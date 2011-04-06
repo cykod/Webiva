@@ -1,6 +1,10 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 class MembersController < CmsController # :nodoc: all
+  # need to include 
+  include ActiveTable::Controller   
+  include MembersHelper
+  include RjsHelper
 
   permit 'editor_members', :except => [:lookup_autocomplete]
 
@@ -10,10 +14,8 @@ class MembersController < CmsController # :nodoc: all
                   "People" => { :controller => '/members' },
                   "User Lists" => { :action => 'segments' }
   
-  # need to include 
-  include ActiveTable::Controller   
-  include MembersHelper
-
+  after_filter :set_rjs_content_type, :only => ['refresh_segment_status', 'generate_vip', 'update_builder']
+  
   protected 
 
   def segmentations

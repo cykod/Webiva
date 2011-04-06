@@ -1,0 +1,34 @@
+%hr/
+
+:javascript
+  UserSegment = {
+    appendOptionsText: function(expr) {
+      if($('segment_segment_options_text').value != '') {
+        $('segment_segment_options_text').value += "\n";
+      }
+      $('segment_segment_options_text').value += expr;
+    },
+  
+    replaceOptionsText: function(expr) {
+      $('segment_segment_options_text').value = expr;
+    }
+  }
+
+= admin_form_for :segment, @segment do |f|
+  = f.text_field :name
+  = f.text_area :description, :rows => 3
+  = f.grouped_select :order_by, UserSegment.order_by_group_options
+  = f.radio_buttons :order_direction, UserSegment.order_direction_select_options
+  = f.check_boxes :main_page, [['add to quick select list', true]], :single => true
+  = f.ordered_array :fields, UserSegment.fields_group_options, :grouped => true, :label => 'Fields to Display'
+  - if @segment.segment_type == 'filtered'
+    = f.custom_field 'Filter' do
+      %div
+        %a{:href => url_for(:action => "builder", :path => @segment.id), :target => "operationBuilder", 'data-popup' => 'width=550,height=500,scrollbars=1,tollbars=1'}= @segment.id ? 'Edit filter'.t : 'Create a filter'.t
+      %div
+        = content_tag(:div, f.output_error_message('Filter', :segment_options_text), :style => 'padding: 2px 0 2px 0', :class => 'error') unless @segment.errors[:segment_options_text].empty?
+        = text_area_tag 'segment[segment_options_text]', @segment.segment_options_text, :rows => 8, :style => 'width:400px;'
+      %div{:align => "right"}
+        %a{:href => url_for(:action => "builder_help"), :target => "operationBuilderHelper", 'data-popup' => 'width=750,height=600,scrollbars=1,tollbars=1'}= 'What is a filter?'.t
+  = f.spacer
+  = f.cancel_submit_buttons 'Cancel', (@segment.id ? 'Save' : 'Create')

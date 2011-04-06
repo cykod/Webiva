@@ -1,0 +1,34 @@
+= cms_unstyled_fields_for form_id, builder do |f|
+  %tr
+    %td{:align => "center", :valign => "middle"}
+      = builder.field_builder_name
+    %td
+      %ul.arguments
+        - if builder.operation_options.length == 1
+          = f.hidden_field :operation
+        - else
+          %li
+            = f.select :operation, builder.operation_options, {}, :onchange => 'OperationBuilder.updateOperations();'
+        = render :partial => 'operation_form_arguments', :locals => {:form_id => form_id, :builder => builder}
+  %tr
+    %td.spacer{:colspan => "2"}
+  - unless builder.condition.blank?
+    %tr
+      %th{:colspan => "2"}
+        = f.select :condition, builder.condition_options, {}, :onchange => 'OperationBuilder.updateOperations();', :class => 'condition'
+        = 'Condition #%s' / (builder.index+1).to_s
+    %tr
+      %td.spacer{:colspan => "2"}
+    = render :partial => 'operation_form_child', :locals => {:builder => builder.child_field, :form_id => "#{form_id}[child]", :condition => builder.condition}
+  - else
+    %tr#new_condition_button
+      %td{:colspan => "2"}
+        %a{:href => "javascript:void(0);", :onclick => "$('new_condition_button').hide(); $('new_condition').show();"}
+          %span.inverse_blue +
+          = 'Add another condition'.t
+    %tr#new_condition{:style => "display:none;"}
+      %th{:colspan => "2"}
+        = f.select :condition, builder.condition_options, {}, :onchange => 'OperationBuilder.updateOperations();', :class => 'condition'
+        = 'Condition #%s' / (builder.index+1).to_s
+    %tr
+      %td.spacer{:colspan => "2"}
