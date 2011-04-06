@@ -1,2 +1,0 @@
-page.call('hideBox')
-page.call('updateNodeTitle',@node.id,@node.title)
