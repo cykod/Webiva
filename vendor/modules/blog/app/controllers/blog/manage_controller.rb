@@ -1,6 +1,7 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 class Blog::ManageController < ModuleController
+  include RjsHelper
   
   permit 'blog_writer', :except => [ :configure] 
 
@@ -13,6 +14,8 @@ class Blog::ManageController < ModuleController
   cms_admin_paths 'content', 
                   'Content' => { :controller => '/content' },
                   'Site Blogs' => { :action => 'list' }
+  
+  after_filter :set_rjs_content_type, :only => ['generate_mail_generate']
   
   # need to include 
    include ActiveTable::Controller   

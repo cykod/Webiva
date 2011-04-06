@@ -1,6 +1,7 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 class Media::GalleryController < ParagraphController
+  include RjsHelper
   
   # Editor for galleries
   editor_header "Gallery Paragraphs", :paragraph_gallery
@@ -15,6 +16,8 @@ class Media::GalleryController < ParagraphController
   
   user_actions  :gallery_overlay
   
+  after_filter :set_rjs_content_type, :only => ['gallery_overlay']
+
   class GalleriesOptions < HashModel
       default_options :detail_page => nil, :selected_galleries => [], :display_type => 'all', :images_per_page => 10
       
