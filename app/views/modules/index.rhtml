@@ -64,7 +64,7 @@ confirmDeactivation: function() {
       <td></td><td></td>
     <% end -%>
     <td nowrap='1'>
-       <%= t[:dependencies].map { |dep| SiteModule.module_enabled?(dep) ? dep.humanize : "<span class='error'>#{dep.humanize}</span>"}.to_sentence %>
+       <%= t[:dependencies].map { |dep| SiteModule.module_enabled?(dep) ? dep.humanize : "<span class='error'>#{dep.humanize}</span>".html_safe}.to_sentence %>
     </td>
 
     <td width='100%'><%= t[:description].t %></td>
