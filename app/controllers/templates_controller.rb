@@ -1,6 +1,8 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 class TemplatesController < CmsController # :nodoc: all
+  include RjsHelper
+  include SiteNodeEngine::Controller
 
   permit 'editor_design_templates'
 
@@ -14,9 +16,10 @@ class TemplatesController < CmsController # :nodoc: all
       "Themes" => { :controller => 'templates' },
       "Paragraph Themes" => { :action => 'features' }
 
-   include SiteNodeEngine::Controller
-  
+  after_filter :set_rjs_content_type, :only => ['save_feature', 'refresh_styles', 'feature_styles', 'update']
+
   protected
+
   def expire_site
     DataCache.expire_container('SiteNode')
     DataCache.expire_container('SiteNodeModifier')
@@ -88,6 +91,7 @@ class TemplatesController < CmsController # :nodoc: all
             page << 'RedBox.close();'
             page.redirect_to bundle.url
           end
+          set_rjs_content_type
           return
         end
       end
