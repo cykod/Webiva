@@ -3,6 +3,8 @@
 require 'csv'
 
 class ContentImportController < WizardController # :nodoc: all
+  include RjsHelper
+  
   permit 'editor_content'
   
   @@deliminators = { 'semicolon' => ';', 'comma' => ',', 'colon' => ':', 'tab' => "\t" }
@@ -13,6 +15,8 @@ class ContentImportController < WizardController # :nodoc: all
                  [ 'confirm', 'Confirm' ],
                  [ 'import', 'Import' ] ]
   
+  after_filter :set_rjs_content_type, :only => ['status']
+
   def index
     content_id = params[:path][0]
     cms_page_info([ [ 'Content', url_for(:controller => 'content', :action => 'index') ] , 
