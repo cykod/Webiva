@@ -1,11 +1,14 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 class PermissionsController < CmsController # :nodoc: all
+  include RjsHelper
+
   layout 'manage'
-  
   
   permit 'editor_permissions' 
   
+  after_filter :set_rjs_content_type, :only => ['create_user_class', 'delete_user_class', 'update_user_class']
+
   protected 
   
   def assemble_permissions
