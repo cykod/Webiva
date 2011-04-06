@@ -32,7 +32,7 @@
     
     removeFeature: function(idx) {
       $('feature_' + idx).value  = 1;
-      Element.hide($('feature_' + idx));
+      $('feature_' + idx).remove();
     }
   
   }
