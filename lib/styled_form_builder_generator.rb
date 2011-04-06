@@ -67,13 +67,25 @@ module StyledFormBuilderGenerator #:nodoc:
 	  post_cmd = post.blank? ? "\"\"" : "\"#{post}\""
 
 
-          names = [ [ name, "form_tag(options.delete(:url) || request.fullpath, options.delete(:html) || {})"] ]
+          names = [ [ name, "form_tag(url, html_options)"] ]
        
           names.each do |nm|
             src = <<-END_SRC 
               def #{nm[0]}_for(object_name,*args,&proc)
                 raise ArgumentError, "Missing block" unless block_given?
                 options = args.last.is_a?(Hash) ? args.pop : {}
+                url = options.delete(:url) || request.fullpath
+                url = url_for(url) if url.is_a?(Hash)
+                html_options = options.delete(:html) || {}
+                if options[:remote]
+                  html_options['data-j-action'] = 'submitform'
+                  html_options['data-submitform'] = url
+                  elem = options[:update]
+                  if elem
+                    elem = '#' + elem unless elem =~ /^[\.#]/
+                    html_options['data-submitform'] += ',' + elem
+                  end
+                end
                 #{nm[1]} +
                 #{pre_cmd}.html_safe +
                 fields_for(object_name, *(args << options.merge(:builder => #{class_name})), &proc) +

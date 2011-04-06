@@ -126,23 +126,23 @@ JSetup = {
 
     $j("*[data-j-action]").each(function() {
 	var elem = $j(this);
-	var acts = elem.data('j-action').split(",");
+	var acts = elem.attr('data-j-action').split(",");
 	var act_length = acts.length;
 
 	for(var i = 0;i< act_length;i++) {
 	  if(JAction[acts[i]]) {
 	    var actfield = acts[i];
-	    var sel = $j(elem).data(actfield);
+	    var sel = elem.attr('data-' + actfield);
 	    JAction[acts[i]].call(elem,sel);
 	  } else if(JForm[acts[i]]) {
 	    var actfield = acts[i];
-	    var sel = $j(elem).data(actfield);
+	    var sel = elem.attr('data-' + actfield);
 	    JForm[acts[i]].call(elem,sel);
 	  }
 	  else if(JClick[acts[i]]) {
 	    (function(actfield) {
-	      $j(elem).click(function() {
-		  var sel = $j(elem).data(actfield);
+	      elem.click(function() {
+		  var sel = elem.attr('data-' + actfield);
 		  JClick[actfield].apply($j(sel));
 		});
 	    })(acts[i]);

@@ -900,3 +900,9 @@ if(typeof JQuery != 'undefined') {
     JSetup.setup();
   });
 }
+
+Ajax.Responders.register({
+  onComplete: function() {
+    JSetup.setup();
+  }
+});
