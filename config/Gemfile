@@ -22,7 +22,6 @@ gem 'SystemTimer', :require => 'system_timer'
 gem 'memcache-client', :require => 'memcache'
 gem 'resthome'
 gem "nokogiri"
-gem "oauth2"
 
 # Workling gems
 gem 'eventmachine'
