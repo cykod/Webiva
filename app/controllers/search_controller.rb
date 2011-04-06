@@ -145,7 +145,10 @@ class SearchController < CmsController #:nodoc:all
 
   def suggestions
     search = params[:search]
-    return render :json => [search, ['Not logged in']] unless myself.id && myself.editor?
+    unless myself.id && myself.editor?
+      set_json_content_type
+      return render :json => [search, ['Not logged in']]
+    end
 
     case search
     when /^:$/
@@ -186,6 +189,7 @@ class SearchController < CmsController #:nodoc:all
       urls.push result[:url]
     end if @results
 
+    set_json_content_type
     render :json => [search, suggestions, descriptions, urls]
   end
 

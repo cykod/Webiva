@@ -198,7 +198,10 @@ class FileController < CmsController # :nodoc: all
                                             )
       @processing_key  = session[:upload_file_worker] = worker_key
 
-      return render :json => {:processing_key => @processing_key} if params[:format] == 'json'
+      if params[:format] == 'json'
+        set_json_content_type
+        return render :json => {:processing_key => @processing_key}
+      end
 
       respond_to_parent do 
         render :action => 'upload.rjs'
@@ -448,6 +451,7 @@ class FileController < CmsController # :nodoc: all
 
     session[:download_worker_key] = nil if @failed
 
+    set_json_content_type
     render :json => {:completed => @completed, :failed => @failed}
   end
 
@@ -468,6 +472,8 @@ class FileController < CmsController # :nodoc: all
     return render(:nothing => true) unless session[:import_worker_key]
 
     results = Workling.return.get session[:import_worker_key]
+
+    set_json_content_type
 
     if results
       @completed = results[:processed] || results[:completed]

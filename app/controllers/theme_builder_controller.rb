@@ -1,5 +1,7 @@
 
 class ThemeBuilderController < CmsController
+  include RjsHelper
+
   permit 'editor_design_templates'
 
   layout 'manage'
@@ -52,6 +54,7 @@ class ThemeBuilderController < CmsController
       session.delete :theme_builder_url
     end
 
+    set_json_content_type
     render :json => {:processed => processed, :successful => successful, :running => ! results.empty?, :html_file_id => html_file_id}
   end
 
