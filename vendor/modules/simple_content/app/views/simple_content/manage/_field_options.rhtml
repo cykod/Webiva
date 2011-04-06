@@ -3,7 +3,7 @@
 <% field.module_class.field_options_widgets.each do |widget| -%>
   <% case widget 
   <% when :regexp  -%>
-     <% f.custom_field :regexp, :label => '' do %>
+     <%= f.custom_field :regexp, :label => '' do %>
          <%= uf.check_boxes :regexp, [['Value must match regular expression',true]], :single => true, :label => '', :onclick => "$('field_regexp_#{field_index}').style.display = this.checked ? '' : 'none';"  %>
          <div id='field_regexp_<%= field_index %>' <%= "style='display:none;'" unless uf.object.regexp %>>
              RegExp: <%= uf.text_field :regexp_code %><br/>

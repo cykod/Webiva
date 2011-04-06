@@ -10,7 +10,7 @@
     <% when "color": -%>
       <%= f.color_field opt[0].to_sym, :label => opt[1], :description => opt[3] %>   
     <% else -%>
-      <% f.custom_field opt[0], :description => opt[3] do -%>
+      <%= f.custom_field opt[0], :description => opt[3] do -%>
         <%= opt[0] %> - <%= opt[2] %>
       <% end -%>
     <% end -%>

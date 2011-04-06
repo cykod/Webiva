@@ -1,4 +1,4 @@
-<% f.custom_field :theme, :vertical => true, :label => 'Select a theme' do |cf| %>
+<%= f.custom_field :theme, :vertical => true, :label => 'Select a theme' do |cf| %>
   <ul style="width:1200px; height: 180px; overflow-x:auto; white-space:nowrap; position:absolute;">
   <% WebivaNet::Theme.themes.each do |theme| -%>
     <li style="display:inline-block; padding: 0 5px;">

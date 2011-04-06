@@ -31,7 +31,7 @@ class Media::AdminController < ModuleController
   protected
   def self.get_galleries_info
       [
-      {:name => "Galleries",:url => { :controller => '/media/manage/galleries' } ,:permission => 'gallery_edit_galleries', :icon => 'icons/content/photogallery.gif' }
+      {:name => "Galleries",:url => { :controller => '/media/manage', :action => 'galleries' } ,:permission => 'gallery_edit_galleries', :icon => 'icons/content/photogallery.gif' }
       ]
   end
 

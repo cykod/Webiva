@@ -58,3 +58,5 @@ find . -type f -exec perl -pi -e 'if(/have_tag/) { s/\:text/:content/; s/have_ta
 find . -type f -exec perl -pi -e 's/request.request_uri/request.fullpath/' {} \;
 
 find . -type f -exec perl -pi -e 's/<% active_tr/<%= active_tr/g' {} \;
+
+find . -type f -exec perl -pi -e 's/<% f.custom_field/<%= f.custom_field/g' {} \;

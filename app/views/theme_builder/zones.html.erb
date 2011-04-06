@@ -4,7 +4,7 @@
   <%= f.text_field :theme_name, :vertical => true  %>
   <%= f.spacer %>
   <%= f.submit_tag 'Create Theme', :vertical => true %>
-  <% f.custom_field 'Select Zones', :vertical => true do %>
+  <%= f.custom_field 'Select Zones', :vertical => true do %>
     <%= render :partial => 'parser_form_html' %>
   <% end -%>
 <% end -%>

@@ -59,7 +59,7 @@
   <% end -%>
 <% end -%>
 <% if subscriptions %>
-<% f.custom_field 'Subscriptions', :vertical => opts[:vertical] do %>
+<%= f.custom_field 'Subscriptions', :vertical => opts[:vertical] do %>
   <input type='hidden' name='subscription[0]' value='1' />
   <% subscriptions.each do |sub| %>
   <% entry = user.user_subscription_entries.find_by_user_subscription_id(sub.id) %>

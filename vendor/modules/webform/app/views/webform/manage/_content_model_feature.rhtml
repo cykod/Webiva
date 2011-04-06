@@ -4,7 +4,7 @@
 </div>
 <img class='handle' style='cursor:pointer;' src='<%= theme_src('icons/paragraph_move.gif') %>' id='handle_<%= idx %>' align='absmiddle' /> 
 <%= feature.name %><br/>
-<% cms_fields_for "feature[][feature_options]", feature.options do |ff| -%>
+<%= cms_fields_for "feature[][feature_options]", feature.options do |ff| -%>
 <input type='hidden' name='feature[][feature_handler]' value='<%= feature.feature_handler %>'/>
   <%= render :partial => feature.options_partial, :locals => { :f => ff, :prefix =>  "feature[][feature_options]", :options => feature.options } %>
 <% end -%>

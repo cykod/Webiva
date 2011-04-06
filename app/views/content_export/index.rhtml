@@ -15,7 +15,7 @@ Exporter = {
 <div class='admin_content'>
 <%= cms_form_for :export, @export, :html => { :id => 'export_form' } do |f| %>
 <%= f.radio_buttons :download, [ [ 'All Entries','all' ], ['Range of Entries','range' ]], :vertical => true, :separator => '<br/>', :onchange => 'Exporter.updateForm();' %>
-<% f.custom_field 'Entry Range', :vertical => true do %>
+<%= f.custom_field 'Entry Range', :vertical => true do %>
   &nbsp;&nbsp;Entry # <input type='text' id='export_range_start' name='export[range_start]' size='4' value='1' /> to <input type='text' name='export[range_end]' size='4' id='export_range_end'  value='<%= @entry_count %>'/>
 <% end -%>
 <%= f.radio_buttons :export_format , @export_options , :vertical => true, :separator => '<br/>', :label => 'Format of downloaded file' %>

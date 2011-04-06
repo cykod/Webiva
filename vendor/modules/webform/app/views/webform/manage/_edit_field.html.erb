@@ -12,11 +12,11 @@
   <input type='hidden' name='content_model[content_model_fields][<%= field_index %>][field]' value='<%= fld.field %>' />
   <%= "Name:".t %> <input type='text' class='text_field' name='content_model[content_model_fields][<%= field_index %>][name]'  size='40' value="<%= vh fld.name %>" onchange='FieldEditor.updateName(<%= field_index %>,this.value);'  onkeyup='FieldEditor.updateName(<%= field_index %>,this.value);' />
 <br/><br/>
-  <% cms_unstyled_fields_for  "content_model[content_model_fields][#{field_index}][field_options]", fld.field_options_model do |uf| %>
-  <% cms_fields_for "content_model[content_model_fields][#{field_index}][field_options]", fld.field_options_model do |f| %>
+  <%= cms_unstyled_fields_for  "content_model[content_model_fields][#{field_index}][field_options]", fld.field_options_model do |uf| %>
+  <%= cms_fields_for "content_model[content_model_fields][#{field_index}][field_options]", fld.field_options_model do |f| %>
     <%= render :partial => fld.field_options_partial, :locals => { :f => f, :uf => uf, :field => fld, :field_index => field_index } %>
   <% end -%>
-  <% cms_fields_for "content_model[content_model_fields][#{field_index}][publication_options]", fld.publication_options_model do |f| %>
+  <%= cms_fields_for "content_model[content_model_fields][#{field_index}][publication_options]", fld.publication_options_model do |f| %>
     <%= fld.form_display_options(ContentHashModelPublicationField.new(fld), f) %>
   <% end -%>
   <% end -%>
