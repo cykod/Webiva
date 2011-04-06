@@ -3,6 +3,8 @@
 require 'csv'
 
 class MemberImportController < WizardController # :nodoc: all
+  include RjsHelper
+
   permit 'editor_members'
   
   @@deliminators = { 'semicolon' => ';', 'comma' => ',', 'colon' => ':', 'tab' => "\t" }
@@ -15,6 +17,8 @@ class MemberImportController < WizardController # :nodoc: all
   
   cms_admin_paths 'people', "People" => { :controller => 'members' }
 
+  after_filter :set_rjs_content_type, :only => ['status']
+  
   def index
     cms_page_path [ "People" ], "Member Import"
   
