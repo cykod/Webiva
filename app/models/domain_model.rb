@@ -55,8 +55,16 @@ class DomainModel < ActiveRecord::Base
     self.to_s
   end
   
+  def self.current_environment=(environment)
+    self.active_domain[:environment] = environment
+  end
+
+  def self.current_environment
+    self.active_domain[:environment]
+  end
+  
   def self.connection_name
-    self.active_domain[:connection_name] ||= 'domain_model_' + self.active_domain_id + "_" + Rails.env
+    self.active_domain["#{self.current_environment}_connection_name"] ||= 'domain_model_' + self.active_domain_id + "_" + Rails.env
   end
 
   # Allow update to all attributes via a Hash, even 
@@ -287,6 +295,8 @@ class DomainModel < ActiveRecord::Base
   end
 
   def self.activate_database(domain_info,environment = 'production',save_connection = true)
+    self.current_environment = environment
+
     if self.has_connection_handler
       self.connection_handler.verify_active_connections!
       return true

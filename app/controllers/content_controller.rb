@@ -1,7 +1,7 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 class ContentController < ModuleController #:nodoc: all
-
+  include RjsHelper
 
   # This isn't a real module controller, it just acts like one with
   # handlers and stuff
@@ -43,6 +43,8 @@ class ContentController < ModuleController #:nodoc: all
   register_handler :chart, :traffic, 'ContentNode'
   register_handler :chart, :traffic, 'SiteNode'
   register_handler :chart, :traffic, 'DomainLogReferrer'
+
+  after_filter :set_rjs_content_type, :only => ['update_triggered_actions', 'delete_triggered_action', 'update_model', 'update_publication']
 
   def index
     @content_models,@content_actions = CmsController.get_content_models_and_actions
