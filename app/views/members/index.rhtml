@@ -209,7 +209,7 @@
 <%= submit_tag 'Search'.t, :class => 'button_link' %>
 </h2>
 </form>
-<%= "<a href='#{url_for}'>Clear search</a>" if @search.terms %>
+<%= content_tag :a, 'Clear search', :href => url_for(:path => @segment ? @segment.id : nil) if @search.terms %>
 </div>
 
 
