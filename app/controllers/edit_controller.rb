@@ -424,6 +424,7 @@ class EditController < ModuleController # :nodoc: all
     save_changes_helper(false)
     get_container
 
+    set_rjs_content_type
     render :update do |page|
       page << "$('cms_saving_icon').style.visibility='hidden';"
       page << "cmsEdit.openPreviewWindow();"

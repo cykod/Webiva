@@ -713,6 +713,7 @@ class MembersController < CmsController # :nodoc: all
     if request.post? && params[:tag_note]
       if @tag_note.update_attributes( params[:tag_note])
         display_tags_table(false)
+        set_rjs_content_type
         render :update do |page|
           page << 'RedBox.close();'
           page.replace_html 'tags_table', :partial => 'tags_table'

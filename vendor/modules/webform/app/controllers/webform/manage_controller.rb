@@ -1,5 +1,7 @@
 
 class Webform::ManageController < ModuleController
+  include RjsHelper
+  
   permit 'webform_manage'
 
   component_info 'Webform'
@@ -168,6 +170,7 @@ class Webform::ManageController < ModuleController
       if @result.update_attributes(params[:result])
         @saved = true
         if @ajax
+          set_rjs_content_type
           render :update do |page|
             page << 'SCMS.closeOverlay();'
             page << "$('#{@table}').onsubmit();" if @table

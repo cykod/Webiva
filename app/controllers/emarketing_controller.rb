@@ -3,6 +3,7 @@
 class EmarketingController < CmsController # :nodoc: all
   include ActionView::Helpers::DateHelper
   include ActionView::Helpers::NumberHelper
+  include RjsHelper
 
   layout 'manage'
 
@@ -91,6 +92,7 @@ class EmarketingController < CmsController # :nodoc: all
     end
 
     if display
+      set_json_content_type
       render :json => {
         :date => @date.strftime('%F'),
         :user_levels => @traffic.collect{|t| t[:user_levels][1..-1]},
@@ -223,6 +225,7 @@ class EmarketingController < CmsController # :nodoc: all
         data[:columns] = ['Visitors', 'Hits']
         data[:data] = @stats.collect { |stat| [stat.visits, stat.hits] }
       end
+      set_json_content_type
       return render :json => data
     elsif @format == 'csv'
       report = StringIO.new
@@ -336,6 +339,8 @@ class EmarketingController < CmsController # :nodoc: all
     @entries.reverse! if from.nil?
 
     @entries << {:occurred_at => nil, :remaining => @remaining} if @remaining > 0
+
+    set_json_content_type
     render :json => [now.to_i, @entries]
   end
 
@@ -357,6 +362,7 @@ class EmarketingController < CmsController # :nodoc: all
       groups = DomainLogEntry.traffic Time.at(from), range.minutes, intervals
     end
 
-    return render :json => DomainLogGroup.traffic_chart_data(groups, :desc => true, :update_only => update_only).merge(:range => range)
+    set_json_content_type
+    render :json => DomainLogGroup.traffic_chart_data(groups, :desc => true, :update_only => update_only).merge(:range => range)
   end
 end

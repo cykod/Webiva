@@ -1,7 +1,8 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 class StructureController < CmsController  # :nodoc: all
-
+  include RjsHelper
+  
   public
   
   permit ['editor_structure','editor_structure_advanced'], :except => [ :index, :element_info, :wizards, :wizard ]
@@ -120,6 +121,7 @@ class StructureController < CmsController  # :nodoc: all
         
         if @version.id
           session[:site_version_override] = @version.id
+          set_rjs_content_type
           render(:update) { |page| page.redirect_to :action => 'index', :version => @version.id }
           return
         end
@@ -462,6 +464,7 @@ class StructureController < CmsController  # :nodoc: all
       @revision.updated_by = myself
       if @revision.update_attributes params[:revision]
         expire_site
+        set_rjs_content_type
         render :update do |page|
           page << 'RedBox.close();'
           page << 'PageEditor.refreshList();'
@@ -496,6 +499,7 @@ class StructureController < CmsController  # :nodoc: all
 
         p_element_info @container, false
 
+        set_rjs_content_type
         render :update do |page|
           page << 'RedBox.close();'
           page.replace_html 'element_info', :partial => 'page_element_info'
