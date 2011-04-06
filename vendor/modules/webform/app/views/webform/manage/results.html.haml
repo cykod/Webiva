@@ -1,0 +1,14 @@
+= action_panel do |p|
+  = p.custom do
+    %a#export_button{:href => "javascript:void(0);"}
+      = theme_image_tag('icons/title_actions/configure.gif')
+      = 'Export Results to CSV'.t
+    %span#export_button_status
+:javascript
+  new WebivaExporter({button: "#export_button",
+                      url: "#{ url_for :controller => '/webform/export', :action => 'generate_file', :path => @webform.id }"
+                     });
+%hr/
+.admin_content
+  #webform_result_table
+    = render :partial => 'webform_result_table'

@@ -1,0 +1,9 @@
+- if @ajax
+  .cms_form
+    %div{:align => "right"}
+      = link_to '[x] close', "javascript:void(0);", :onclick => "SCMS.closeOverlay();"
+    %br/
+    = render :partial => 'result_stat'
+- else
+  .admin_content
+    = render :partial => 'result_stat'

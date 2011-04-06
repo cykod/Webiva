@@ -1,0 +1,6 @@
+= action_panel do |p|
+  = p.link "Create a new Webform", :action => 'create', :icon => 'add.gif'
+%hr/
+.admin_content
+  #webform_table
+    = render :partial => 'webform_table'
