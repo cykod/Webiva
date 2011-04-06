@@ -15,7 +15,7 @@
   <%= render :partial => 'generate_post_table' %>
 </div><br/>
 <div align='left'>
-<% cms_unstyled_form_for :opts, HashObject.new(:align => 'left',:header => 'above'), :html => { :id => 'options_form' } do |of| -%>
+<%= cms_unstyled_form_for :opts, HashObject.new(:align => 'left',:header => 'above'), :html => { :id => 'options_form' } do |of| -%>
 <b>Image:</b> <%= of.radio_buttons :align, [ ['Left','left'],['Right','right'],['No Image','none']], :default => 'left' %>
 <b>Title:</b> <%= of.radio_buttons :header, [ ['Above Image','above'],['Next to Image','next_to']], :default => 'above' %>
 <% end -%>

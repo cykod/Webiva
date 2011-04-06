@@ -1,0 +1,28 @@
+.admin_form{:id => "elem_field_#{field_index}", :onmouseout => "SCMS.lowlightRow(this);", :onmouseover => "SCMS.highlightRow(this);", :style => "padding:5px;"}
+  %span{:id => "field_tools_#{field_index}", :style => "display:inline;"}
+    %a.handle{:href => "javascript:void(0);", :id => "handle_#{field_index}", :onmousedown => "FieldEditor.closeOptions(#{field_index});", :style => "cursor:move;"}= "Drag".t
+    |
+    %a{:href => "javascript:void(0);", :onclick => "FieldEditor.toggleOptions(#{field_index});"}= "Options".t
+    |
+    %a{:href => "javascript:void(0);", :onclick => "FieldEditor.deleteField(#{field_index},'#{fld.id}');"}= "Del".t
+  &nbsp;
+  &nbsp;
+  %span{:id => "field_name_#{field_index}"}= fld.name
+  (#{ContentModel.content_field(fld.field_module,fld.field_type)[:description].t})
+  %div{:id => "options_#{field_index}", :style => "#{"display:none;" unless @new_field && fld.valid?} border:1px solid #000000; padding:10px; margin-top:5px;"}
+    %input.sortable_field{:name => "content_model[content_model_fields][#{field_index}][position]", :type => "hidden", :value => field_index + 1}/
+    %input{:name => "content_model[content_model_fields][#{field_index}][field_module]", :type => "hidden", :value => fld.field_module}/
+    %input{:name => "content_model[content_model_fields][#{field_index}][field_type]", :type => "hidden", :value => fld.field_type}/
+    %input{:name => "content_model[content_model_fields][#{field_index}][field]", :type => "hidden", :value => fld.field}/
+    = "Name:".t
+    %input.text_field{:name => "content_model[content_model_fields][#{field_index}][name]", :onchange => "FieldEditor.updateName(#{field_index},this.value);", :onkeyup => "FieldEditor.updateName(#{field_index},this.value);", :size => "40", :type => "text", :value => fld.name}/
+    %br/
+    %br/
+    = cms_unstyled_fields_for  "content_model[content_model_fields][#{field_index}][field_options]", fld.field_options_model do |uf|
+      = cms_fields_for "content_model[content_model_fields][#{field_index}][field_options]", fld.field_options_model do |f|
+        = render :partial => fld.field_options_partial, :locals => { :f => f, :uf => uf, :field => fld, :field_index => field_index }
+      = cms_fields_for "content_model[content_model_fields][#{field_index}][publication_options]", fld.publication_options_model do |f|
+        = fld.form_display_options(ContentHashModelPublicationField.new(fld), f)
+
+:javascript
+  $('add_field_name').value = '';

@@ -42,7 +42,7 @@ edit_simple_content_model = function(para_index) {
     <h3><%= 'Structured View Options'.t %></h3>
 
     <% if SimpleContentModel.count > 0 %>
-      <% cms_unstyled_form_for :structured_view, @options, :html => {:id => 'structured_view_form', :onsubmit => "cmsEdit.submitParagraphData(this,'#{url_for :action => 'structured_view'}',#{@paragraph.id},#{@paragraph_index}); return false;"} do |f| -%>
+      <%= cms_unstyled_form_for :structured_view, @options, :html => {:id => 'structured_view_form', :onsubmit => "cmsEdit.submitParagraphData(this,'#{url_for :action => 'structured_view'}',#{@paragraph.id},#{@paragraph_index}); return false;"} do |f| -%>
         <table>
         <tr><td colspan="2"><h4><%= 'Select an existing simple content model'.t %></h4></td></tr>
         <tr>
@@ -54,7 +54,7 @@ edit_simple_content_model = function(para_index) {
       <br/>
     <% end -%>
 
-    <% cms_unstyled_form_for :simple_content_model, @simple_content_model, :html => {:id => 'structured_view_form', :onsubmit => "cmsEdit.submitParagraphData(this,'#{url_for :action => 'structured_view'}',#{@paragraph.id},#{@paragraph_index}); return false;"} do |f| -%>
+    <%= cms_unstyled_form_for :simple_content_model, @simple_content_model, :html => {:id => 'structured_view_form', :onsubmit => "cmsEdit.submitParagraphData(this,'#{url_for :action => 'structured_view'}',#{@paragraph.id},#{@paragraph_index}); return false;"} do |f| -%>
       <table>
       <tr><td colspan="2"><h4><%= 'Create a new simple content model'.t %></h4></td></tr>
       <% if error_message = f.output_error_message('Name',:name) -%>

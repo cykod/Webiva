@@ -17,6 +17,8 @@ class SimpleContent::ManageController < ModuleController
                   :updated_at,
                   :created_at
                 ]
+  
+  include Haml::Helpers
 
   def index
     cms_page_path ['Content'], 'Simple Content Models'

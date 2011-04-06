@@ -1,0 +1,6 @@
+= action_panel do |p|
+  = p.link "Create a new Simple Content Paragraph", :action => 'create', :icon => 'add.gif'
+%hr/
+.admin_content
+  #simple_content_table
+    = render :partial => 'simple_content_table'
