@@ -1,7 +1,6 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 class MailManagerController < CmsController # :nodoc: all
-  
   layout 'manage'
   
   permit 'editor_mailing'
@@ -10,7 +9,6 @@ class MailManagerController < CmsController # :nodoc: all
                    "Mail" =>   { :action => 'index' },
                    "Mail Templates" =>  { :controller => '/mail_manager', :action => 'templates' }
                 
-
 
   def index
     cms_page_path [], "Mail"
@@ -153,32 +151,6 @@ class MailManagerController < CmsController # :nodoc: all
     render :layout => false, :text =>   'Sent Email to %s' / params[:email]
   end
 
-
-  def update_template
-    
-    template_id = params[:template_id]
-    @mail_template = MailTemplate.find_by_id(template_id) || MailTemplate.new
-    
-    if save_template()
-      @mail_templates = MailTemplate.find(:all,:order => 'name')
-      @update_list = true
-    end
-    render :action => 'update_template'
-  end
-  
-
-  def delete_template
-    template_id = params[:template_id]
-    
-    @mail_template = MailTemplate.find(template_id)
-    
-    @mail_template.destroy
-    
-    @mail_templates = MailTemplate.find(:all,:order => 'name')
-    render :partial => 'mail_templates'
-  
-  end
-  
   private
 
   def save_template
