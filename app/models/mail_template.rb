@@ -210,7 +210,7 @@ class MailTemplate < DomainModel
     if item.is_a?(String)
       output + item
     else
-      output + (vars[item[:var]] || invalid_variable(item[:var])).to_s.gsub("\n",'<br/>')
+      output + (vars[item[:var]] || invalid_variable(item[:var])).to_s.gsub("\n","\n<br/>")
     end
   end
 
