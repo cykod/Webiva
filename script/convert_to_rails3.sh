@@ -60,3 +60,5 @@ find . -type f -exec perl -pi -e 's/request.request_uri/request.fullpath/' {} \;
 find . -type f -exec perl -pi -e 's/<% active_tr/<%= active_tr/g' {} \;
 
 find . -type f -exec perl -pi -e 's/<% f.custom_field/<%= f.custom_field/g' {} \;
+
+find . -type f -exec perl -pi -e 's/<%= form_for/<%= cms_unstyled_form_for/g' {} \;
