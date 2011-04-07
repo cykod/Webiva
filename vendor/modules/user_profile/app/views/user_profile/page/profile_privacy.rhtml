@@ -1,5 +1,5 @@
 <div class='cms_form'>
-<%  paragraph_options_form_for :profile_privacy do |f| -%>
+<%= paragraph_options_form_for :profile_privacy do |f| -%>
 
    <%= f.header 'Set profile privacy options' -%>
     <%= f.select :profile_type_id, @profile_types = [[ '-- Select User Profile Type --',nil ]] + UserProfileType.find_select_options(:all) %>

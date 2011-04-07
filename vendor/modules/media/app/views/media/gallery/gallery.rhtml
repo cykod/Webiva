@@ -1,5 +1,5 @@
 <div class='cms_form'>
-<% paragraph_options_form_for "Gallery Options", :gallery do |f| %>
+<%= paragraph_options_form_for "Gallery Options", :gallery do |f| %>
 <%= f.select :gallery_id,[['Use Page Connection'.t,'']] + Gallery.find_select_options(:all), :label => 'Gallery to Display' %>
 <%= f.select :images_per_page, (1..19).to_a + (4..10).to_a.collect { |a| [a * 5,a*5] } %>
 <%= f.page_selector :list_page %>

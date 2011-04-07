@@ -72,7 +72,7 @@ edit_simple_content_model = function(para_index) {
       <a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.closeBox();'><%= "Cancel".t %></a>
 
   <% else -%>
-    <%  paragraph_options_form_for :structured_view do |f| -%>
+    <%= paragraph_options_form_for :structured_view do |f| -%>
       <%= f.select(:simple_content_model_id, @options.class.simple_content_model_options) %>
     <% end -%>
   <% end -%>

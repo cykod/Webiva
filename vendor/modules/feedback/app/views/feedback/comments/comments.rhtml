@@ -1,5 +1,5 @@
 <div class='cms_form'>
-<% paragraph_options_form_for "Comment Options",:comments ,@options do |f| -%>
+<%= paragraph_options_form_for "Comment Options",:comments ,@options do |f| -%>
   <%= tabled_ajax_tabs ['Options','Triggered Actions'], 'Options' do |t| %>
     <% t.tabled_tab do -%>
       <%= f.select :linked_to_type, [ ['Page Connection'.t,'connection'],['Website Page'.t,'page']] %>

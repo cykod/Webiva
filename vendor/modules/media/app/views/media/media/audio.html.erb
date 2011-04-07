@@ -1,5 +1,5 @@
 <div class='cms_form'>
-<%  paragraph_options_form_for :audio do |f| -%>
+<%= paragraph_options_form_for :audio do |f| -%>
 
 <%= f.filemanager_file :media_file_id, :label => 'Audio', :vertical => true %>
 <%= f.select :align, @options.alignment_options, :label => 'Alignment', :vertical => true %>
