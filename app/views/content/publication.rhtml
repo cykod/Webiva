@@ -173,7 +173,7 @@ PublicationEditor = {
 
 <%= t.tab do %>
 <div class='admin_content admin_form'>
-  <%= form_for :add_field, :html => { :onsubmit => 'PublicationEditor.addField(); return false;', :id => 'add_field_form' } do |f| %>
+  <%= cms_unstyled_form_for :add_field, :html => { :onsubmit => 'PublicationEditor.addField(); return false;', :id => 'add_field_form' } do |f| %>
     <%= f.select :field_id, @available_fields  %>
     <input type='submit' value='<%= vh "Add Field".t  %>'/>
   <% end -%>

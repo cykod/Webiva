@@ -1,6 +1,6 @@
 <div class='cms_form'>
 <h3><%= "Create Translation".t %> - <%= @translation.language.upcase %>, <%= "Version".t %> <%= dec(@translation.revision) %> </h3>
-<%= form_for :translation, @translation, :html => { :onsubmit =>  'cmsEdit.buildTranslation(this); return false;' } do |t| -%>
+<%= cms_unstyled_form_for :translation, @translation, :html => { :onsubmit =>  'cmsEdit.buildTranslation(this); return false;' } do |t| -%>
 
   <table width="90%">
     <tr><td colspan="2">

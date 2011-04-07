@@ -7,7 +7,7 @@
         [ Anonymous ]
       <% end -%>
       </b><Br/>
-      <%= form_for :issue, issue, :url => { :action => 'update_issue', :path => issue.id } do |f| %>
+      <%= cms_unstyled_form_for :issue, issue, :url => { :action => 'update_issue', :path => issue.id } do |f| %>
         Location:<%= f.text_field :location %><input type='submit' value='Submit'>
       <% end -%>
       <h3>Behavior</h3>

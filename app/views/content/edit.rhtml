@@ -106,7 +106,7 @@ FieldEditor = {
 <%= "You can choose a longer description for forms when creating a publication.".t %>
 <%= "Field names must begin with a letter.".t %>
 </p>
-<%= form_for :add_field, :html => { :onsubmit => 'FieldEditor.addField(); return false;', :id => 'add_field_form' } do |f| %>
+<%= cms_unstyled_form_for :add_field, :html => { :onsubmit => 'FieldEditor.addField(); return false;', :id => 'add_field_form' } do |f| %>
   <%= f.select :field_type, @field_types %>  <%= "Name:".t %>
   <%= f.text_field :name %>
   <input type='submit' value='<%= "Add Field" %>'/>

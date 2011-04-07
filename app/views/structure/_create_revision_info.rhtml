@@ -1,7 +1,7 @@
 
 <% if permit?('editor_structure') %>
 
-  <%= form_for :revision_create, 
+  <%= cms_unstyled_form_for :revision_create, 
       :remote => true,
       :update => "element_info",
       :method => 'post', 

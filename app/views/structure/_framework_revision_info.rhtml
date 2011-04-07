@@ -24,7 +24,7 @@ latest = @active_revision_info[2] -%>
  <% end -%>
 
 <% else -%>
-<%= form_for :revision_create, info[1],
+<%= cms_unstyled_form_for :revision_create, info[1],
     :remote => true,
     :update => "element_info", 
     :method => 'post', 
