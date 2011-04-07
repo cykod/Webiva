@@ -19,7 +19,7 @@
             target_cache[t.target_type][t.target_id] = t.target
          end 
       -%>
-        <%= truncate(target_cache[t.target_type][t.target_id].title,35) -%>
+        <%= truncate(target_cache[t.target_type][t.target_id].title, :length => 35) -%>
     </td>
     <td align='center'><img src='<%= theme_src(t.rating_icon) %>'/></td>
     <td align='right'><%= v t.posted_ip -%></td>    

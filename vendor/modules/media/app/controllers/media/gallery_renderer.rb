@@ -67,7 +67,7 @@ class Media::GalleryRenderer < ParagraphRenderer
         if tag.locals.gallery.description.to_s.empty?
           val = nil
         else
-          val = truncate(h(tag.locals.gallery.description), tag.attr['length'].to_i || 40)
+          val = truncate(h(tag.locals.gallery.description), :length => tag.attr['length'].to_i || 40)
           tag.locals.value = val
         end
         
@@ -300,7 +300,7 @@ class Media::GalleryRenderer < ParagraphRenderer
       c.define_value_tag 'gallery:image:name' do |tag|
         name = tag.locals.image.name.to_s
         if name
-          truncate(name,(tag.attr['length'] || 15).to_i)
+          truncate(name, :length => (tag.attr['length'] || 15).to_i)
         elsif  tag.attr['no_title']
           tag.attr['no_title']
         else 

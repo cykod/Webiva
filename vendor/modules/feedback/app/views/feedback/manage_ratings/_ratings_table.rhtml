@@ -17,7 +17,7 @@
             target_cache[t.target_type][t.target_id] = t.target
          end 
       -%>
-        <%= truncate(target_cache[t.target_type][t.target_id].title,35) if target_cache[t.target_type][t.target_id] %>
+        <%= truncate(target_cache[t.target_type][t.target_id].title, :length => 35) if target_cache[t.target_type][t.target_id] %>
     </td>
     <td valign='baseline' align='center'><%= t.rating %></td>
     <td valign='baseline' nowrap='1'><%= v(t.end_user.name) if t.end_user -%></td>
