@@ -62,3 +62,6 @@ find . -type f -exec perl -pi -e 's/<% active_tr/<%= active_tr/g' {} \;
 find . -type f -exec perl -pi -e 's/<% f.custom_field/<%= f.custom_field/g' {} \;
 
 find . -type f -exec perl -pi -e 's/<%= form_for/<%= cms_unstyled_form_for/g' {} \;
+
+# make sure to fix any truncate. i.e. make sure you use :length => X
+

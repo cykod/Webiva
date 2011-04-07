@@ -1,9 +1,0 @@
-<div class='admin_content'>
-<%= tabled_form_for :site_template, @site_template, :html => {:class => 'admin_form'}  do |f| -%>
-
-  <%= f.text_field :name, :label => 'Name'  %>
-  <%= f.radio_buttons :template_type, SiteTemplate.template_type_select_options %>
-  <%= f.text_area :description %>
-  <%= f.cancel_submit_buttons 'Cancel','Submit' %>
-<% end -%>
-</div>

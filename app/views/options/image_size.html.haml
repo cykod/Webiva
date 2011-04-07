@@ -1,0 +1,80 @@
+:javascript
+  var ImageSizeEditor = {
+    nextIndex: #{ (@domain_file_size.operations || []).length + 1 },
+  
+    addOperation: function() {
+    
+      var params = { operation: $('added_operation').value,
+                     index: ImageSizeEditor.nextIndex };
+      ImageSizeEditor.nextIndex++;
+      new Ajax.Updater('operations'," url_for :action => 'add_operation' ",
+                       { parameters: params,
+                         insertion: 'bottom',
+                         onComplete: function(req) {
+                          ImageSizeEditor.recreateSortables();
+                         } });
+    },
+    
+    recreateSortables: function() {
+      Sortable.create('operations',{ tag: 'div' });
+    
+    },
+    
+    deleteOperation: function(idx) {
+      Element.remove('operation_' + idx);
+      this.recreateSortables();
+    },
+    
+    submit: function() {
+      var operations = Sortable.serialize('operations');
+      operations = operations.replace("operations[]=","");
+      $('operation_order').value = operations;
+    }
+  
+  
+  }
+
+.admin_content
+  - if @domain_file_size.id
+    %b Warning: Editing an existing image size will not affect images that have already been created unless the size name is changed
+    %br/
+    %br/
+  %table
+    %tr
+      %td{:valign => "top", :width => "600"}
+        = cms_form_for :domain_file_size,@domain_file_size, :html => { :class => 'admin_form', :onsubmit => 'ImageSizeEditor.submit();' } do |f|
+          = f.text_field :name, :description => 'Descriptive name of the image size', :required => true
+          = f.text_field :size_name, :description => 'Short name (numbers, letters and dashes only) used in site features', :required => true
+          = f.text_area :description , :cols => 40, :rows =>5, :description => 'Description of this size'
+          %tr
+            %td.label{:valign => "baseline"} Operations
+            %td
+              %select#added_operation{:name => "added_operation"}= options_for_select DomainFileSize.operation_select_options
+              %button{:onclick => "ImageSizeEditor.addOperation(); return false;"} Add Operation
+              #operations
+                - (@domain_file_size.operations || []).each_with_index do |operation,idx|
+                  = render :partial => 'operation', :locals => { :operation => operation, :idx => idx + 1}
+              %input#operation_order{:name => "operation_order", :type => "hidden", :value => ""}/
+              %br/
+              %br/
+          = f.submit_tag @domain_file_size.id ? 'Update' : 'Create'
+      %td{:valign => "top", :width => "300"}
+        %b Thumbnail
+        \- create a thumbnail of an image that will be no larger than the entered dimensions. The image will retain it's aspect ration.
+        %br/
+        %br/
+        %b Cropped Thumbnail
+        \- generate a thumbnail exactly of the requested size, but don't distort the image and crop the edges instead.
+        %br/
+        %br/
+        %b Resize
+        \- generate a image exactly the requested size. Image may be distorted but will not be cropped.
+        %br/
+        %br/
+        %b Window
+        \- crop an image to a smaller square within the entered dimensions.
+        %br/
+        %br/
+
+:javascript
+  ImageSizeEditor.recreateSortables();
