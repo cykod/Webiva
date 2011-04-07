@@ -1,0 +1,28 @@
+%br/
+#site_node_view
+  = cms_form_for :site_node, @node, :remote => true,                               |
+    :update => "element_info",                                                     |
+    :method => 'post',                                                             |
+    :url =>  { :action => 'update_site_node_options', :path => @node.id } do  |nf| |
+    - if @active_revision_info[1]
+      = cms_subfields_for :revision_edit, @active_revision_info[1] do |f|
+        = f.hidden_field_tag :revision_id, @active_revision_info[1].id
+        = f.text_field :title, :default => '[None]'
+        = f.text_field :menu_title, :default => '[None]'
+        = f.text_area :meta_keywords, :cols => 40, :rows => 4, :label => 'Keywords', :default => '[None]'
+        = f.text_area :meta_description, :cols => 40, :rows => 4, :label => 'Description', :default => '[None]'
+        = f.spacer
+        = nf.submit_tag 'Update'
+        = f.header 'Additional Page Options'
+        = f.filemanager_image :icon_id, :label => 'Page Icon'
+        = f.filemanager_image :icon_hot_id, :label => 'Page Icon Hot'
+        = f.filemanager_image :icon_disabled_id, :label => 'Page Icon Disabled'
+        = f.filemanager_image :icon_selected_id, :label => 'Page Icon Selected'
+        = f.color_field :color, :label => 'Color'
+        = f.color_field :color_selected, :label => 'Selected Color'
+        = f.color_field :color_hover, :label => 'Hover Color'
+        = f.text_field :field1, :description => 'Additional Field available in Menu Features'
+        = f.text_field :field2, :description => '2nd Additional Field available in Menu Features'
+        = f.text_area :note , :cols => 40, :rows => 4, :label => 'Notes', :default => '[None]'
+    = render :partial => 'site_node_form', :locals => { :f => nf }
+    = nf.submit_tag 'Update'

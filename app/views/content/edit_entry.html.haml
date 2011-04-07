@@ -1,0 +1,49 @@
+:javascript
+  ContentEditor = {
+    
+    addTag: function(tag_name) {
+      var cur_tags =  $('entry_tag_names').value;
+      
+      tag_name = tag_name.strip();
+      
+      var tag_arr = cur_tags.split(",");
+      var tag_exists = false;
+      var cur_tags = []
+      
+      tag_arr.each(function(tag) {
+        tag = tag.strip();
+        if(tag != '') {
+  	if(tag_name == tag)
+  	  tag_exists = true;
+  	cur_tags.push(tag);
+        }
+      });
+      
+      if(!tag_exists) {
+        cur_tags.push(tag_name);
+      }
+      else {
+        alert(tag_name + '#{ jh "tag already present".t }');
+      }
+      
+      $('entry_tag_names').value = cur_tags.join(", ");
+    }
+  }
+
+.admin_content
+  = cms_form_for :entry, @entry, :html => { :enctype => 'multipart/form-data', :class => 'admin_form' } do |f|
+    - @content_model.content_model_fields.each do |fld|
+      = fld.form_field(f,:editor => true) unless fld.options.hidden
+    - if @content_model.show_tags?
+      = f.text_area :tag_names, :cols => 60, :rows =>5, :label => 'Tags', :description => 'Comma separated list of tags for this entry'
+      %tr
+        %td
+        %td
+          = "Existing Tags".t
+          (
+          = "Click to add a tag".t
+          ):
+          - @content_model.content_model.tag_cloud(%w(12 14 16 18 20)).each do |tg|
+            %a{:href => "javascript:void(0);", :onclick => "ContentEditor.addTag('#{jvh tg[:name]}');", :style => "font-size:#{tg[:size]}px;"}= tg[:name]
+    = f.spacer 10
+    = f.cancel_submit_buttons 'Cancel',  @entry.id ? 'Update' : 'Create'

@@ -1,0 +1,21 @@
+= active_table_for :domains_table, @tbl,                                                |
+  :actions =>[                                                                          |
+  ['Make Active','activate','Activate the selected domains?'],                          |
+  ['Make Primary','primary', 'Make this domain the primary domain?']                    |
+  ],                                                                                    |
+  :more_actions => [                                                                    |
+  ['Make inactive','deactivate','Deactivate the selected domains?'],                    |
+  ['Delete','delete','Delete the selected domains? (Last domain will not be deleted)' ] |
+  ] do |t|                                                                              |
+  = active_tr 'domain', t.id do
+    %td= entry_checkbox :domain,t.id
+    %td= link_to t.name, :action =>'edit', :path => t.id
+    %td{:align => "center"}
+      = t.active? ? 'Active'.t : 'Inactive'.t
+      = t.restricted? ? '(Restricted)'.t : ''
+    %td
+      = 'SSL' if t.ssl_enabled?
+      = 'EMAIL' if t.email_enabled?
+    %td{:align => "center"}= t.www_prefix? ? 'Yes'.t : 'No'.t
+    %td{:align => "center"}= t.primary? ? "Yes".t : 'No'.t
+    %td= t.version_name

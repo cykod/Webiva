@@ -1,0 +1,9 @@
+= active_table_for :subscription_table, @active_table_output,                                             |
+  :actions => [ ['Delete','delete','Are you sure you want to delete the selected subscriptions?']] do |t| |
+  = active_tr "subscription", t.id do
+    %td
+      = entry_checkbox 'subscription', t.id
+    %td
+      = link_to t.name, :action => 'view', :path => t.id
+    %td{:align => "center"}= t.subscription_cnt
+    %td= truncate(t.description, :length => 40)

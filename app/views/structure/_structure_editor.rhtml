@@ -279,12 +279,6 @@ var StructureEditor = {
   	}
   },
     
-  editModule: function(module_id) {
-      var url = "<%= url_for(:controller => 'structure', :action =>'module_info') %>/" + module_id;
-      new Ajax.Updater('boxcontent', "url", {asynchronous:true, evalScripts:true, onComplete:function(request){showBox()}, onLoading:function(request){showLoader()}});
-  },
-  
-  
   refreshNodeView: function(nodeDiv) {
       var updateDiv = $(nodeDiv).select('.node_children')[0];
   

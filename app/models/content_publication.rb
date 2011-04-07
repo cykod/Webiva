@@ -209,8 +209,8 @@ class ContentPublication < DomainModel
       if (fld.options.filter)
         filter_vars.concat(fld.filter_variables)
       end
-    filter_vars
     end
+    filter_vars
   end
   
   def filter_form_elements(f)

@@ -1,0 +1,8 @@
+- if @client.can_add_domain?
+  = action_panel do |p|
+    = p.link 'Add a new domain to this site', :icon => 'add.png', :action => 'edit'
+  %hr/
+
+.admin_content
+  #domains_table
+    = render :partial => 'domains_table'

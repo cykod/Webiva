@@ -1,0 +1,6 @@
+= action_panel do |p|
+  = p.link 'Create Subscription',:icon => 'add.gif', :action => 'edit'
+%hr/
+.admin_content
+  #subscription_table
+    = render :partial => 'subscription_table'
