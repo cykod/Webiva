@@ -43,7 +43,7 @@ UserRegisterEditor = {
 <div class='cms_form'>
 <%= paragraph_options_form_for  'User Registration Options', :user_register, @options do |f| %>
 <%= tabled_ajax_tabs ['Options','Fields','Registration Features','Actions'],'Options' do |t| %>
-<% t.tabled_tab do %>
+<%= t.tabled_tab do %>
    <%= f.header 'Registration Control' -%>
    <%= f.radio_buttons :registration_type, [['Account','account'],['Information','info']],
    :description => 'Account registration requires a password' %>
@@ -62,7 +62,7 @@ UserRegisterEditor = {
    <%= f.country_select :country, :label => 'Default Country' %>
    <%= f.select :user_level, @options.class.user_level_options %>
 <% end -%>
-<% t.tabled_tab do %>
+<%= t.tabled_tab do %>
    <%= f.ordered_array :required_fields, @options.available_field_options, :description => "Email will always be required, password and password confirmation\n are required for account registration type" %>
   <%= f.ordered_array :optional_fields, @options.available_optional_field_options, :description => "Users fields must appear in required or optional fields\n or they will not modify the user" %>
 

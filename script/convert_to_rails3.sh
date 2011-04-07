@@ -67,6 +67,6 @@ find . -type f -exec perl -pi -e 's/<%= form_for/<%= cms_unstyled_form_for/g' {}
 
 find . -type f -exec perl -pi -e 's/<% tabled_ajax_tabs/<%= tabled_ajax_tabs/g' {} \;
 
-find . -type f -exec perl -pi -e 's/<% tabled_tab/<%= tabled_tab/g' {} \;
+find . -type f -exec perl -pi -e 's/<% t.tabled_tab/<%= t.tabled_tab/g' {} \;
 
 find . -type f -exec perl -pi -e 's/<% cms_form_for/<%= cms_form_for/g' {} \;

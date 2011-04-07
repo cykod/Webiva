@@ -43,7 +43,7 @@ UserEditEditor = {
 <div class='cms_form'>
 <%= paragraph_options_form_for  'User Edit Account Options', :user_edit_account, @options do |f| %>
 <%= tabled_ajax_tabs ['Options','Fields','Edit Features','Actions'],'Options' do |t| %>
-<% t.tabled_tab do %>
+<%= t.tabled_tab do %>
    <%= f.header 'Registration Control' -%>
    <%= f.select :mail_template_id, [['--Select Template--'.t,nil]] + MailTemplate.select_options %>
    <%= f.page_selector :success_page_id, :required => true %>
@@ -55,7 +55,7 @@ UserEditEditor = {
    <%= f.select :access_token_id, [['--Select Access Token--', nil]] + AccessToken.user_token_options %>
    <%= f.select :user_level, @options.class.user_level_options %>
 <% end -%>
-<% t.tabled_tab do %>
+<%= t.tabled_tab do %>
    <%= f.ordered_array :required_fields, @options.available_field_options %>
   <%= f.ordered_array :optional_fields, @options.available_optional_field_options, :description => "Users fields must appear in required or optional fields\n or they will not modify the user" %>
 
