@@ -1,0 +1,40 @@
+- if flash[:notice]
+  %div
+    %b= flash[:notice]
+  %br
+  %br
+
+= active_table_for :email_table, @active_table_output,                                            |
+  :refresh_url =>  url_for(:action => 'email_table_output'),                                      |
+  :class => 'active_table',                                                                       |
+  :actions => [ [ 'Delete','delete','Are you sure you want to delete the selected addreses?' ] ], |
+  :update => 'email_table' do |t|                                                                 |
+  = active_tr "email", t.id do
+    %td
+      - unless t.system_email?
+        = entry_checkbox 'email',t.id
+    %td
+      = link_to "#{t.email}@#{Configuration.domain}", :action =>'edit', :path => t.id
+    %td= h t.email_type_display
+    %td
+      - if t.system_email?
+        %img{:height => "16", :src => theme_src("icons/emails/system.gif"), :title => "System Email".t, :width => "16"}/
+      - if t.email_type == 'mailbox'
+        - if t.virus_detection?
+          %img{:height => "16", :src => theme_src("/images/icons/emails/anti_virus.gif"), :title => "Anti-Virus Enabled".t, :width => "16"}/
+        - if t.spam_detection_level == 1
+          %img{:height => "16", :src => theme_src("/images/icons/emails/anti_spam.gif"), :title => "Anti-SPAM Low: Detect".t, :width => "16"}/
+        - elsif t.spam_detection_level == 2
+          %img{:height => "16", :src => theme_src("/images/icons/emails/anti_spam_high.gif"), :title => "Anti-SPAM High: Reject".t, :width => "16"}/
+    %td
+      - case t.email_type
+      - when 'mailbox'
+        - if t.linked_account? && t.end_user
+          = sprintf("Linked to Editor  %s".t,t.end_user.name)
+        - else
+          = "Password protected mailbox".t
+      - when 'alias'
+        - @redirect_list = t.redirect_list
+        Redirecting to: #{@redirect_list.length > 0 ? @redirect_list[0..2].join(", ") : 'No Redirects'} #{sprintf("(%s More)".t,(@redirect_list.length-3).to_s)  if @redirect_list.length > 3}
+      - when 'bounce'
+        \-
