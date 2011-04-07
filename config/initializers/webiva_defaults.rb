@@ -11,6 +11,7 @@ Webiva::Application.configure do
   config.webiva_defaults['time_zone'] ||= 'Eastern Time (US & Canada)'
   config.webiva_defaults['editor_login'] ||= false
   config.webiva_defaults['use_x_send_file'] ||= false
+  config.webiva_defaults['git_repository'] ||= 'git://github.com/cykod/'
   config.time_zone = config.webiva_defaults['time_zone']
 end
 
