@@ -42,7 +42,7 @@ UserRegisterEditor = {
 
 <div class='cms_form'>
 <%= paragraph_options_form_for  'User Registration Options', :user_register, @options do |f| %>
-<% tabled_ajax_tabs ['Options','Fields','Registration Features','Actions'],'Options' do |t| %>
+<%= tabled_ajax_tabs ['Options','Fields','Registration Features','Actions'],'Options' do |t| %>
 <% t.tabled_tab do %>
    <%= f.header 'Registration Control' -%>
    <%= f.radio_buttons :registration_type, [['Account','account'],['Information','info']],
