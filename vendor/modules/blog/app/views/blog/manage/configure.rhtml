@@ -1,6 +1,6 @@
 <div class='admin_content'>
 
-<% cms_form_for :blog, @blog, :html => { :class => 'admin_form' } do |f| -%>
+<%= cms_form_for :blog, @blog, :html => { :class => 'admin_form' } do |f| -%>
 <%= f.text_field :name %>
 <%= f.select :site_template_id, @site_templates %>
 <%= f.select :content_filter, Blog::BlogBlog.filter_options, :description => 'Only the Full HTML filter uses WYSIWYG Editor' %>

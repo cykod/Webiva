@@ -58,6 +58,6 @@ class WebivaNet::Theme
 
   def thumbnail_tag
     src = self.thumbnail ? self.thumbnail['url'] : '/images/site/missing_thumb.gif'
-    "<img src=\"#{src}\" width=\"128\"/>"
+    "<img src=\"#{src}\" width=\"128\"/>".html_safe
   end
 end

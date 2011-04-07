@@ -18,7 +18,7 @@
     </div>
   <% end -%>
 
-<% cms_form_for :options, @options, :remote => true, :update => 'element_info',:html => {:id => 'feed_form', :class => 'admin_form' }, :url => { :action => 'data_output', :path => @node.id } do |f| -%>
+<%= cms_form_for :options, @options, :remote => true, :update => 'element_info',:html => {:id => 'feed_form', :class => 'admin_form' }, :url => { :action => 'data_output', :path => @node.id } do |f| -%>
   <%= f.select :data_publication_id, @data_publications, :label => 'Feed Publication' %>
   <% if @site_features %>
     <%= f.select :site_feature_id, @site_features, :label => 'Feed Feature' %>

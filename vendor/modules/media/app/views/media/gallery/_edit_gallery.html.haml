@@ -1,0 +1,16 @@
+- if gallery.id
+  = cms_unstyled_form_for :gallery, gallery, :url => '', :html => { :onsubmit => "return confirm('#{jh 'Are you sure you want to delete this gallery?'.t }');" }  do |f|
+    %div{:align => "right"}
+      %input{:name => "delete", :type => "hidden", :value => gallery.id}
+      %input{:type => 'image', :title= => 'Delete Gallery'.t, :src => '/images/site/delete.gif', :value => "Delete".t, :style => 'border:0px;'}
+%h1= "Edit Gallery".t
+- if saved_gallery
+  %b
+    = "Saved Gallery".t
+  %br/
+  %br/
+= cms_form_for :gallery, gallery, :url => '' do |f|
+  = f.text_field :name
+  = f.date_field :occurred_at
+  = f.text_area :description, :cols => 50, :rows => 8
+  = f.submit_tag gallery.id ? "Edit" : "Create"

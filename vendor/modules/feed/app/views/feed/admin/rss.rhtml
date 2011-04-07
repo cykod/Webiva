@@ -26,7 +26,7 @@
     </div>
   <% end -%>
 
-  <% cms_form_for :options, @options, :remote => true, :update => 'element_info',:html => {:id => 'feed_form', :class => 'admin_form' }, :url => { :action => 'rss', :path => @node.id } do |f| -%>
+  <%= cms_form_for :options, @options, :remote => true, :update => 'element_info',:html => {:id => 'feed_form', :class => 'admin_form' }, :url => { :action => 'rss', :path => @node.id } do |f| -%>
     <tbody>
       <%= f.text_field :feed_title, :description => 'Title of the RSS Feed.' %>
       <%= f.text_field :timeout, :label => 'Expire Feed'.t, :description => 'Number of minutes to cache a feed'.t %>
