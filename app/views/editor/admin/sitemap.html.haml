@@ -1,0 +1,12 @@
+- if permit?('editor_structure')
+  %ul.page_detail_buttons
+    %li.icon
+      %a{:href => 'javascript:void(0);', :title => 'Delete module'.t, :onclick => "StructureEditor.nodeDelete(#{@node.id},'Are you sure you want to remove this module?'); return false;"}= image_tag(theme_src('icons/header_actions/delete_page.png'))
+%h1.inpage
+  = 'Site Map Options:'.t
+  %a{:href => @node.node_path}= @node.node_path
+
+.tree_detail_body
+  - if flash[:notice]
+    .inpage_flash_notice
+      Updated Options

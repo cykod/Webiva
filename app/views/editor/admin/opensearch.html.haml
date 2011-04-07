@@ -1,0 +1,19 @@
+- if permit?('editor_structure')
+  %ul.page_detail_buttons
+    %li.icon
+      %a{:href => 'javascript:void(0);', :title => 'Delete module'.t, :onclick => "StructureEditor.nodeDelete(#{@node.id},'Are you sure you want to remove this module?'); return false;"}= image_tag(theme_src('icons/header_actions/delete_page.png'))
+
+%h1.inpage
+  = 'OpenSearch Options:'.t
+  %a{:href => @node.node_path}= @node.node_path
+.tree_detail_body
+  - if flash[:notice]
+    .inpage_flash_notice
+      Updated Options
+  = cms_form_for :options, @options, :remote => true, :update => 'element_info',:html => {:class => 'admin_form' }, :url => { :action => 'opensearch', :path => @node.id } do |f|
+    = f.page_selector :search_results_page_id, :label => 'Search Results Page'.t
+    = f.text_field :title
+    = f.text_field :description
+    = f.filemanager_file :icon_id
+    = f.filemanager_image :image_id
+    = f.submit_tag 'Update Options'
