@@ -26,8 +26,8 @@ edit_simple_content_model = function(para_index) {
     <div align="right"><a href="javascript:void(0);" onclick="edit_simple_content_model('<%= @paragraph_index %>')">edit</a></div>
   <% end -%>
 
-  <%  paragraph_options_form_for '%s Options' / @options.simple_content_model.name, :structured_view do |f| -%>
-    <% cms_subfields_for :simple_content_data, @options.data_model do |sf| -%>
+  <%= paragraph_options_form_for '%s Options' / @options.simple_content_model.name, :structured_view do |f| -%>
+    <%= cms_subfields_for :simple_content_data, @options.data_model do |sf| -%>
       <% @options.content_model.content_publication_fields.each do |field| -%>
         <%= field.form_field(sf, :editor => true) %>
       <% end -%>

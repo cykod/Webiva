@@ -8,7 +8,7 @@
 <%= f.check_boxes :autoplay, [['start playing immediately', true]], :vertical => true, :single => true %>
 <%= f.check_boxes :loop, [['automatically restart', true]], :vertical => true, :single => true %>
 
-<% cms_subfields_for 'video[handler_data]', @options.handler_options do |sf| %>
+<%= cms_subfields_for 'video[handler_data]', @options.handler_options do |sf| %>
 <%= render(:partial => @options.handler_partial, :locals => {:f => sf}) -%>
 <% end -%>
 

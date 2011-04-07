@@ -70,7 +70,7 @@
 </script>
 <div class='admin_content'>
 <%= form_tag('',:method => 'post', :class => 'admin_form full_page_form') %>
-<% cms_subfields_for :entry, @entry do |f| %>
+<%= cms_subfields_for :entry, @entry do |f| %>
 <table width='100%'>
 <tr>
   <td valign='top'>
@@ -91,7 +91,7 @@
 
     <% if @blog.content_model -%>
       <%= f.header "Custom Fields (%s)" / @blog.content_model.name %>
-      <% cms_subfields_for 'entry[data_model]', @entry.data_model do |cf| -%>
+      <%= cms_subfields_for 'entry[data_model]', @entry.data_model do |cf| -%>
         <% @blog.content_model.content_model_fields.each do |field| -%>
           <%= field.form_field(cf, :vertical => true, :editor => true) %>
         <% end -%>
