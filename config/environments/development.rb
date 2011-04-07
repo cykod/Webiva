@@ -25,4 +25,6 @@ Webiva::Application.configure do
 
   config.action_mailer.delivery_method = :test
 
+  require 'development_logger'
+  config.logger = DevelopmentLogger.new(File.expand_path("../../../log/#{Rails.env}.log", __FILE__), 0, 0)
 end
