@@ -278,7 +278,7 @@ class PageRevision < DomainModel
     unless self.active
       PageRevision.transaction do
         base_scope = PageRevision.for_language(self.language).for_container(self.revision_container_type, self.revision_container_id)
-        base_scope.where('revision != ?'. self.revision).update_all('active=0')
+        base_scope.where('revision != ?', self.revision).update_all('active=0')
         base_scope.for_revision(self.revision).update_all('active=1')
       end
     end
