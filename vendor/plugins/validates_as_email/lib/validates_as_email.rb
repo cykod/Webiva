@@ -22,7 +22,7 @@ module RFC822
     domain_ref = atom
     sub_domain = "(?:#{domain_ref}|#{domain_literal})"
     word = "(?:#{atom}|#{quoted_string})"
-    domain = "#{sub_domain}\.#{atom}(?:\\x2e#{sub_domain})"
+    domain = "#{sub_domain}(\\x2e#{sub_domain})+"
     local_part = "#{word}(?:\\x2e#{word})*"
     addr_spec = "#{local_part}\\x40#{domain}"
     pattern = /\A#{addr_spec}\z/
