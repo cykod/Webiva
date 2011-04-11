@@ -10,7 +10,7 @@ class DashboardController < CmsController #:nodoc:all
     "Site Widgets" => {  :action =>"site_widgets"}
 
 
-  after_filter :set_rjs_content_type, :only => ['update_widget', 'widget', 'remove', 'show']
+  after_filter :set_rjs_content_type, :only => ['widget', 'remove', 'show']
 
   def index
     cms_page_info 'Dashboard', 'dashboard',  myself.has_role?(:editor_site_management) ? 'CMSDashboard.pagePopup();' : nil
@@ -50,6 +50,7 @@ class DashboardController < CmsController #:nodoc:all
       @new_widget = @widget.new_record?
       if params[:commit] && @widget.update_attributes(params[:widget])
         @widget.render_widget(self,@new_widget)
+        set_rjs_content_type
         render :action => 'update_widget', :locals => { :widget => @widget }
         return
       end

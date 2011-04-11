@@ -20,7 +20,7 @@ WidgetEditor = {
   <%= admin_form_for :widget, @widget, :html => { :onsubmit => 'CMSDashboard.submitWidgetForm(Form.serialize(this)); return false;' } do |f| -%>
 <%= hidden_field_tag :widget_id, @widget.id -%>
 <%= hidden_field_tag :column, @widget.column -%>
-<% f.section do -%>
+<%= f.section do -%>
     <% if @widget.new_record? -%>
       <%= f.select :widget_identifier, @widget_modules, {}, :label => 'Widget',:onchange => 'WidgetEditor.selectWidget(this.value);' -%>
     <% else -%>
