@@ -773,8 +773,8 @@ EOF
     
   end
   
-  def wizard_steps(wizard_step,wizard_max_step,opts={}) 
-    yield WizardSteps.new(wizard_step,wizard_max_step,opts)
+  def wizard_steps(wizard_step,wizard_max_step,opts={}, &block) 
+    capture WizardSteps.new(wizard_step,wizard_max_step,opts), &block
   end
 
   # Load a remote script over http or https as necessary
