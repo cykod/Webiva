@@ -15,6 +15,7 @@
 = remote_script 'www.google.com/jsapi'
 - unless @no_legacy_cs
   = javascript_include_tag :legacy
+= javascript_include_tag 'rails'
 = javascript_include_tag 'application'
 = javascript_include_tag 'active_table'
 = javascript_include_tag 'shortcut'

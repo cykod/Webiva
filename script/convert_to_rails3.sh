@@ -14,6 +14,7 @@ find . -type f -exec perl -pi -e 's/<% cms_fields_for/<%= cms_fields_for/g' {} \
 find . -type f -exec perl -pi -e 's/<% cms_unstyled_fields_for/<%= cms_unstyled_fields_for/g' {} \;
 find . -type f -exec perl -pi -e 's/<% cms_subfields_for/<%= cms_subfields_for/g' {} \;
 find . -type f -exec perl -pi -e 's/<% admin_fields_for/<%= admin_fields_for/g' {} \;
+find . -type f -exec perl -pi -e 's/<% admin_form_for/<%= admin_form_for/g' {} \;
 
 find . -type f -exec perl -pi -e "s/named_scope/scope/" {} \;
 

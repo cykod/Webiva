@@ -28,9 +28,9 @@
       <td><%= t[:description].t %></td>
       <td>
       <% if t[:status] == 'unavailable' %>
-        <%= link_to 'Make Available', { :action => 'update_module', :path => @domain, :mod => t[:module], :access => 'available' }, { :method => :post } %>
+        <%= link_to 'Make Available', { :action => 'update_module', :path => @domain, :mod => t[:module], :access => 'available' }, :method => :post %>
       <% else %>
-        <%= link_to 'Make Unavailable', { :action => 'update_module', :path => @domain,  :mod => t[:module], :access => 'unavailable'  }, { :method => :post } %>
+        <%= link_to 'Make Unavailable', { :action => 'update_module', :path => @domain,  :mod => t[:module], :access => 'unavailable'  }, :method => :post %>
       <% end -%>
       </td>
     </tr>
