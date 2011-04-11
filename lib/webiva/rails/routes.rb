@@ -9,15 +9,19 @@ module ActionDispatch::Routing
     end
       
     def webiva_module_controllers(mod_name)
-      base_dir = webiva_module_base_dir(mod_name)
+      base_dir = webiva_module_controllers_dir(mod_name)
       ext = "_controller.rb"
       Dir.glob("#{base_dir}[a-z]*#{ext}").collect { |file| file.sub(base_dir, '').sub(ext, '') }.sort
     end
     
     def webiva_module_base_dir(mod_name)
-      "#{Rails.root}/vendor/modules/#{mod_name}/app/controllers/#{mod_name}/"
+      "#{Rails.root}/vendor/modules/#{mod_name}/"
     end
     
+    def webiva_module_controllers_dir(mod_name)
+      "#{webiva_module_base_dir(mod_name)}app/controllers/#{mod_name}/"
+    end
+
     # Each webiva module can add in their own specific routes by adding a webiva_<module name>_routes method to ActionDispatch::Routing::Mapper
     def webiva_module_routes(mod_name)
       routes_file = "#{webiva_module_base_dir(mod_name)}lib/#{mod_name}/rails/routes.rb"

@@ -6,8 +6,8 @@ def cms_import_db(config,input_file)
 end
 
 namespace "cms" do 
-	desc "Restore a Domain"
-	task :restore => [:environment] do |t|
+  desc "Restore a Domain"
+  task :restore => [:environment] do |t|
 	
     require 'active_record/schema_dumper'
     require 'logger'
@@ -32,19 +32,26 @@ namespace "cms" do
       client_id = ENV['CLIENT_ID']
       # Create the domain object
       dmn = Domain.create(:name => domain_name, :client_id => client_id, :status => 'initialized',:active => false,:www_prefix => www) 
-      dmn.database = 'webiva_' + sprintf("%03d",dmn.id) +  '_' + dmn.name.gsub(/[^a-zA-Z0-9]+/,"_")[0..20] 
+      base_name = main_db['base_webiva_db'] || "webiva"
+      base_name += '_'
+      dmn.database = base_name + sprintf("%03d",dmn.id) +  '_' + dmn.name.gsub(/[^a-zA-Z0-9]+/,"_")[0..20] 
       dmn.file_store = dmn.id
 
       # Create the site config file
       local_db_config = YAML.load_file(directory + "/domain.yml")
       
+      base_name = main_db['base_webiva_db_user'] || "cms"
+      base_name += '_'
+      user_name = base_name + dmn.id.to_s + "_user"
+      migrator_name = base_name + dmn.id.to_s + "_m"
+      
       local_db_config['migrator']['database'] = dmn.database
       local_db_config['migrator']['file_store'] = dmn.file_store
-      local_db_config['migrator']['username'] = "cms_#{dmn.id}_m"
+      local_db_config['migrator']['username'] = migrator_name
       local_db_config['migrator']['host'] = db_cfg['host']
       local_db_config['production']['database'] = dmn.database
       local_db_config['production']['file_store'] = dmn.file_store
-      local_db_config['production']['username'] = "cms_#{dmn.id}_user"
+      local_db_config['production']['username'] = user_name
       local_db_config['production']['host'] = db_cfg['host']
       
       dmn.create_domain_database :client_id => dmn.client_id, :name => dmn.database, :options => local_db_config

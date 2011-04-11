@@ -627,10 +627,9 @@ class ActionView::TestCase::TestController
 end
 
 def assert_difference(executable, how_many = 1, &block)
-  before = eval(executable)
-  yield
-  after = eval(executable)
-  after.should == before + how_many
+  expect {
+    yield
+  }.to change{ eval(executable) }.by(how_many)
 end
 
 RSpec.configure do |config|
