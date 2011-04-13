@@ -19,7 +19,7 @@ class Blog::RssHandler
     @path = path
     if @path && @options.subfeed_options.present?
       @list_by = @options.subfeed_options
-      @list_type = @path[0].downcase
+      @list_type = @path[0].to_s.downcase
     end
 
   end
