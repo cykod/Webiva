@@ -404,6 +404,7 @@ module Content
         val =  options[(field_name + "_options").to_sym]
         val  = [ val ] unless val.is_a?(Array)
         val = val.reject(&:blank?)
+        values = val.map {  |elm| "%\n- #{elm}%"}
         val.length == 0 ? nil :{ :score => "IF( " +  values.map { |elm| "(#{fld.escaped_field} LIKE #{DomainModel.quote_value(elm)})" }.join(" OR ") + ",1,0)" }
       end,
       :display => Proc.new do |field_name,fld,options|

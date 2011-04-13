@@ -42,7 +42,7 @@ class Editor::SearchRenderer < ParagraphRenderer #:nodoc:all
     @search.content_type_id = @options.content_type_id
 
     if self.update_search && @search.search?
-      @pages, @results = @search.frontend_search
+      @pages, @results = @search.frontend_search(@options.search_order)
       @pages[:path] = @options.search_results_page_url
       @pages[:path] << '?'
       @pages[:path] << [:q, :per_page, :type].map { |ele| ! params[ele].blank? ? (ele.to_s + '=' + CGI.escape(params[ele])) : nil }.compact.join('&')
