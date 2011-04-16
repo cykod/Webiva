@@ -720,7 +720,7 @@ FileEditor = {
   	
   	
   	deleteSelected: function(file_ids) {
-  	  if(confirm('<%= jh "Are you sure you want to delete the selected item(s)?" %>')) {
+  	  if(confirm('<%= jh "Are you sure you want to delete the selected item(s)?".t %>')) {
           var loadParent = null
           if(file_ids && file_ids[0] == FileEditor.nodeSelected) {
                 loadParent = SCMS.getElemNum($('node_element_' + FileEditor.nodeSelected).parentNode);
@@ -741,7 +741,7 @@ FileEditor = {
   	},
 	
       folderArchive: function(id) {
-      if(confirm('Create a zip of this folder? (This may take some time, you will need to reload this folder to view the archive)')) {
+        if(confirm('<%= vh "Create a zip of this folder? (This may take some time, you will need to reload this folder to view the archive)".t %>')) {
          new Ajax.Request("<%= url_for :action => 'folder_archive' %>", { parameters: 'folder_id=' + id });
       }
       
@@ -771,7 +771,7 @@ FileEditor = {
     },
 
     switchFileProcessor: function(file_id,processor) {
-      if(confirm("<%= 'Are you sure you want to switch the storage processor on this file?' %>")) {
+      if(confirm("<%= 'Are you sure you want to switch the storage processor on this file?'.t %>")) {
          new Ajax.Request('<%= url_for :action => "switch_processor" %>',
                         { parameters: "file_id=" + file_id + '&file_processor=' + processor }
                          );
