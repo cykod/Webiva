@@ -2,7 +2,7 @@
 module ModelExtension::HandlerExtension
   module ClassMethods
     def handler(name, component, handler_name, opts={})
-      opts[:field] ||= "#{component}_#{handler_name}_handler".to_sym
+      opts[:field] ||= "#{handler_name}_handler".to_sym
       opts[:data] ||= :data
       
       field = opts[:field]
