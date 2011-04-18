@@ -1,8 +1,8 @@
   <%= form_tag '',  :onsubmit => "FileEditor.runSearch(this); return false;"  %>
     <h2>
       <%= theme_image_tag('framework/filemanager_search.gif', :align => 'baseline') -%>    
-       Search For <input class="text_field_input" id="search_search" name="search[search]" size="15" type="text" />
-       <input class="button_link" id="search_submit" name="commit" type="submit" value="Search" />
+      <%= "Search For".t %><input class="text_field_input" id="search_search" name="search[search]" size="15" type="text" />
+      <input class="button_link" id="search_submit" name="commit" type="submit" value="<%= vh "Search".t %>" />
     </h2>
   </form>
 

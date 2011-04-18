@@ -44,7 +44,7 @@ class FileController < CmsController # :nodoc: all
                        ['Size <','file_size_desc'],
                        ['Extension >','extension' ],
                        ['Extension <','extension_desc'],
-                     ]
+                     ].map { |t| [ t[0].t, t[1] ] }
   end
 
   public

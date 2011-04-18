@@ -28,7 +28,7 @@ if @show_archived == 'hide'
 
 <div class='tree_container' id='site_structure'>
   <h2>
-     Site Structure 
+    <%= h "Site Structure".t %> 
      <%= link_to image_tag(theme_src('icons/header_actions/collapse.png')), 'javascript:StructureEditor.collapseTree();', :align => 'absmiddle' %> 
 <%= link_to image_tag(theme_src('icons/header_actions/expand.png')), 'javascript:StructureEditor.expandTree();' , :align => 'absmiddle' %> 
   <% if myself.has_role?(:editor_structure_advanced) %>
@@ -56,8 +56,8 @@ if @show_archived == 'hide'
 </div>
 
 <div class='tree_detail' id='add_elements'>
-  <h1 class='inpage'>Edit Your Site</h1>
-  <h2>Click on a page to view and edit</h2>
+  <h1 class='inpage'><%= h "Edit Your Site".t %></h1>
+  <h2><%= h "Click on a page to view and edit".t %></h2>
 
 <% if permit?('editor_structure') %>
 <div class='tree_detail_body'>

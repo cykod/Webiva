@@ -22,7 +22,7 @@ class EmarketingController < CmsController # :nodoc: all
     ]
 
     get_handler_info(:chart, :traffic).each do |handler|
-      @subpages << [handler[:name], :editor_visitors, handler[:icon] || 'traffic_page.png', handler[:url], handler[:description] || handler[:name]]
+      @subpages << [handler[:name], :editor_visitors, handler[:icon] || 'traffic_page.png', handler[:url], (handler[:description] || handler[:name]) ]
     end
 
     require_js 'protovis/protovis-r3.2'
@@ -92,12 +92,12 @@ class EmarketingController < CmsController # :nodoc: all
 
     if display
       render :json => {
-        :date => @date.strftime('%F'),
+        :date => @date.localize('%F'),
         :user_levels => @traffic.collect{|t| t[:user_levels][1..-1]},
         :sources => @traffic.collect{|t| t[:sources]},
         :total_values => @traffic.collect{|t| t[:total_value].to_f > 0.0 ? number_to_currency(t[:total_value]) : ''},
-        :days => @traffic.collect{|t| t[:started_at].strftime('%A')},
-        :dates => @traffic.collect{|t| t[:started_at].strftime('%m/%d/%Y')}
+        :days => @traffic.collect{|t| t[:started_at].localize('%A'.t)},
+        :dates => @traffic.collect{|t| t[:started_at].localize(DEFAULT_DATE_FORMAT.t)}
       }
     end
   end
@@ -324,7 +324,7 @@ class EmarketingController < CmsController # :nodoc: all
 
       { :id => entry.domain_log_session.domain_log_visitor_id || '#',
 	:occurred => entry.occurred_at.to_i,
-	:occurred_at => entry.occurred_at.strftime('%I:%M:%S %p'),
+	:occurred_at => entry.occurred_at.localize('%I:%M:%S %p'),
 	:url => entry.url,
 	:ip => entry.domain_log_session.ip_address,
 	:user => entry.user? ? entry.username : nil,

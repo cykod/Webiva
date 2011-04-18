@@ -221,7 +221,7 @@ images/icons/actions directory of the current theme.
 
    def more_action_panel(options = {},&block)
      concat("<div style='display:none;' id='more_actions_panel'>")
-     concat("<h2>More Actions <a class='title_link' href=\"javascript:void(0);\" j-action='slideup,swap' swap='#more_actions_link,#less_actions_link' slideup=\"#more_actions_panel\">(close actions)</a></h2>")
+     concat("<h2>#{h 'More Actions'.t }<a class='title_link' href=\"javascript:void(0);\" j-action='slideup,swap' swap='#more_actions_link,#less_actions_link' slideup=\"#more_actions_panel\">#{ '(close actions)'.t }</a></h2>")
      concat("<ul>")
       
       apb = ActionPanelBuilder.new(self, :directory => 'actions')
@@ -830,7 +830,7 @@ EOF
         pg_html = <<-OUTPUT
           <td class='txt'><a href='#{url_for pg[3]}'  j-action='toggler' toggler="#subpage_#{idx},#subpage_none">#{pg[0].t.gsub("\n","<br/>")}</a></td>
         OUTPUT
-        help = "<div class='action_icon_mouseover' id='subpage_#{idx}' style='display:none;'><div class='action_icon_mouseover_body'>#{h(pg[4])}</div></div>"
+        help = "<div class='action_icon_mouseover' id='subpage_#{idx}' style='display:none;'><div class='action_icon_mouseover_body'>#{h(pg[4].t)}</div></div>"
         [ icon_html, pg_html, help ]
       else 
         [ '','' ]
