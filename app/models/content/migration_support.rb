@@ -7,12 +7,14 @@ module Content::MigrationSupport  #:nodoc:
    cClass = ContentMigrator.clone
 
    if self.table_name
-     cClass.update_up(<<-CODE)
-       drop_table :#{self.table_name} do |t|
-       end
-     CODE
-    
-     cClass.migrate_domain(Domain.find(DomainModel.active_domain_id))
+     cClass.suppress_messages do
+       cClass.update_up(<<-CODE)
+         drop_table :#{self.table_name} do |t|
+         end
+       CODE
+
+       cClass.migrate_domain(Domain.find(DomainModel.active_domain_id))
+     end
    end
   end
   
@@ -35,12 +37,14 @@ module Content::MigrationSupport  #:nodoc:
     self.content_type.update_attribute(:content_type,self.table_name.classify)
     
     cClass = ContentMigrator.clone
-    cClass.update_up(<<-CODE)
-      create_table :#{table_name} do |t|
-      end
-    CODE
-    
-    cClass.migrate_domain(Domain.find(DomainModel.active_domain_id))
+    cClass.suppress_messages do
+      cClass.update_up(<<-CODE)
+        create_table :#{table_name} do |t|
+        end
+      CODE
+
+      cClass.migrate_domain(Domain.find(DomainModel.active_domain_id))
+    end
     
     self.save
   end
@@ -164,9 +168,10 @@ module Content::MigrationSupport  #:nodoc:
     #      end
     
     cClass = ContentMigrator.clone
-    cClass.update_up(migration_code)
-    cClass.migrate_domain(Domain.find(DomainModel.active_domain_id))
-    
+    cClass.suppress_messages do
+      cClass.update_up(migration_code)
+      cClass.migrate_domain(Domain.find(DomainModel.active_domain_id))
+    end
   end
   
 end

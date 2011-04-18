@@ -97,25 +97,77 @@ class WebivaSystemCleaner
   end
 end
 
-Spec::Runner.configure do |config|
-  # If you're not using ActiveRecord you should remove these
-  # lines, delete config/database.yml and disable :active_record
-  # in your config/boot.rb
-  config.use_transactional_fixtures = false # Modified for 2.3.2
-  config.use_instantiated_fixtures  = false
-  config.fixture_path = RAILS_ROOT + '/spec/fixtures/'
-
-#  config.before(:suite) do
-#    WebivaCleaner.cleaner.reset
-#    WebivaSystemCleaner.cleaner.reset
-#  end
-
-  config.before(:each) do
-    UserClass.create_built_in_classes
-    SiteVersion.default
-    DataCache.reset_local_cache
+class DomainModel
+  @@skip_modified_tables = {}
+  @@modified_tables = {}
+  def self.__reset_modified_tables
+    @@modified_tables = {}
+  end
+  
+  def self.__skip_table(table)
+    @@skip_modified_tables[table] = table
   end
 
+  def self.__clear_skip_table
+    @@skip_modified_tables = {}
+  end
+
+  def self.__add_modified_table(table)
+    @@modified_tables[table] = table
+  end
+
+  def self.__truncate_modified_tables
+    DomainModel.connection.reconnect! unless DomainModel.connection.active?
+    @@modified_tables.each do |table, val|
+      next if table == 'component_schemas'
+      next if @@skip_modified_tables[table]
+      next if table =~ /^cms_/ && ! DomainModel.connection.table_exists?(table)
+      DomainModel.connection.execute("TRUNCATE #{table}")
+      UserClass.create_built_in_classes if table == 'user_classes'
+    end
+    DomainModel.__reset_modified_tables
+  end
+
+  before_create :__add_table
+  def __add_table
+    DomainModel.__add_modified_table self.class.table_name
+  end
+end
+
+class SystemModel
+  @@system_tables = {
+    'clients' => [1],
+    'client_users' => [1],
+    'domain_databases' => [1],
+    'domains' => [CMS_DEFAULTS['testing_domain']]
+  }
+
+  @@modified_tables = {}
+  def self.__reset_modified_tables
+    @@modified_tables = {}
+  end
+  
+  def self.__add_modified_table(table)
+    @@modified_tables[table] = table
+  end
+
+  def self.__truncate_modified_tables
+    SystemModel.connection.reconnect! unless SystemModel.connection.active?
+    @@modified_tables.each do |table, val|
+      next if table == 'schema_migrations'
+      if @@system_tables[table]
+        SystemModel.connection.execute("DELETE FROM #{table} WHERE id NOT IN(#{@@system_tables[table].join(',')})")
+      else
+        SystemModel.connection.execute("TRUNCATE #{table}")
+      end
+    end
+    SystemModel.__reset_modified_tables
+  end
+
+  before_create :__add_table
+  def __add_table
+    SystemModel.__add_modified_table self.class.table_name
+  end
 end
 
 # http://gensym.org/2007/10/18/rspec-on-rails-tip-weaning-myself-off-of-fixtures
@@ -124,40 +176,9 @@ end
 # Changed so that we're modifying DomainModel tables
 
 def reset_domain_tables(*tables)
-  callback = lambda do 
-    DomainModel.connection.reconnect! if !DomainModel.connection.active?
-    tables.each do |table|
-      table = table.is_a?(Symbol) ? table.to_s.tableize : table
-      DomainModel.connection.execute("TRUNCATE #{table}") unless %w(component_schemas).include?(table)
-    end
-  end
-  before(:each,&callback)
-  after(:each,&callback)
 end
 
 def reset_system_tables(*tables)
-  system_tables = {
-    'clients' => [1],
-    'client_users' => [1],
-    'domain_databases' => [1],
-    'domains' => [CMS_DEFAULTS['testing_domain']]
-  }
-
-  callback = lambda do 
-    SystemModel.connection.reconnect! if !SystemModel.connection.active?
-    tables.each do |table|
-      table = table.is_a?(Symbol) ? table.to_s.tableize : table
-      next if %w(schema_migrations).include?(table.to_s)
-      if system_tables[table]
-        SystemModel.connection.execute("DELETE FROM #{table} WHERE id NOT IN(#{system_tables[table].join(',')})")
-      else
-        SystemModel.connection.execute("TRUNCATE #{table}")
-      end
-    end
-  end
-
-  before(:each,&callback)
-  after(:each,&callback)
 end
 
 def transaction_reset
@@ -601,4 +622,37 @@ end
 def fixture_file_upload(path, mime_type = nil, binary = false)
   fixture_path = ActionController::TestCase.send(:fixture_path) if ActionController::TestCase.respond_to?(:fixture_path)
   ActionController::TestUploadedFile.new("#{fixture_path}#{path}", mime_type, binary)
+end
+
+Spec::Runner.configure do |config|
+  # If you're not using ActiveRecord you should remove these
+  # lines, delete config/database.yml and disable :active_record
+  # in your config/boot.rb
+  config.use_transactional_fixtures = false # Modified for 2.3.2
+  config.use_instantiated_fixtures  = false
+  config.fixture_path = RAILS_ROOT + '/spec/fixtures/'
+
+  tests_are_running_file = "#{Rails.root}/tmp/tests_are_running"
+  
+  config.before(:suite) do
+    if File.exists?(tests_are_running_file)
+      WebivaCleaner.cleaner.reset
+      WebivaSystemCleaner.cleaner.reset
+    end
+    File.open(tests_are_running_file, 'w') { |f| }
+    UserClass.create_built_in_classes
+  end
+
+  config.after(:suite) do
+    File.delete tests_are_running_file
+  end
+
+  config.before(:each) do
+    DataCache.reset_local_cache
+  end
+
+  config.after(:each) do
+    DomainModel.__truncate_modified_tables
+    SystemModel.__truncate_modified_tables    
+  end
 end
