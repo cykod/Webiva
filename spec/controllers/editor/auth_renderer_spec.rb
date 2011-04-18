@@ -873,7 +873,7 @@ describe Editor::AuthRenderer, :type => :controller do
       @rnd = generate_renderer
       @cookies = {}
       @rnd.should_receive(:cookies).any_number_of_times.and_return(@cookies)
-      @rnd.should_receive(:redirect_paragraph).with(:site_node => @splash_page.id)
+      @rnd.should_receive(:redirect_paragraph).with(@splash_page.node_path)
       renderer_get @rnd
       @cookies[:splash][:value].should == 'set'
     end

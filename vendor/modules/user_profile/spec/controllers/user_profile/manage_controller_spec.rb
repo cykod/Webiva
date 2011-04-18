@@ -8,9 +8,7 @@ describe UserProfile::ManageController do
 
   reset_domain_tables :user_profile_types, :user_profile_entries, :content_types,  :content_publications, :end_users, :end_user_caches, :cms_controller_spec_tests, :user_profile_type_user_classes
 
-  before(:all) do
-    create_content_model_with_all_fields
-  end
+  ContentSpecHelper.setup_content_model_test_with_all_fields self
 
   before do
     mock_editor
