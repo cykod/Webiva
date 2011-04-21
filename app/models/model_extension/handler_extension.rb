@@ -25,7 +25,7 @@ module ModelExtension::HandlerExtension
       end
 
       define_method "#{name}_info" do
-        self.get_handler_info(component, handler_name, self[field]) if self[field]
+        self.get_handler_info(component, handler_name, self.send(field)) unless self.send(field).blank?
       end
       
       define_method "#{name}_class" do
@@ -46,7 +46,7 @@ module ModelExtension::HandlerExtension
       end
       
       define_method "validate_#{name}" do
-        if self[field]
+        unless self.send(field).blank?
           handler = self.send name
           if handler
             self.errors.add(data, 'is invalid') unless handler.valid?

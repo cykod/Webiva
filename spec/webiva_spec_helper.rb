@@ -644,7 +644,7 @@ Spec::Runner.configure do |config|
   end
 
   config.after(:suite) do
-    File.delete tests_are_running_file
+    File.delete tests_are_running_file if File.exists?(tests_are_running_file)
   end
 
   config.before(:each) do
