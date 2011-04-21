@@ -23,7 +23,7 @@ def dislay_branch(dir, server='origin')
 end
 
 webiva_dir = File.expand_path(File.dirname(__FILE__) + '/..')
-dislay_branch webiva_dir, 'core'
+dislay_branch webiva_dir
 
 Dir.glob("#{webiva_dir}/vendor/modules/*").select { |dir| File.exists?("#{dir}/.git") }.each do |dir|
   dislay_branch dir
