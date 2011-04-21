@@ -15,7 +15,7 @@ def dislay_branch(dir, server='origin')
   if status =~ /(Your branch .*)/
     branch = "#{branch} --- #{$1.sub('Your branch ', '')}"
   elsif clean
-    diff = `cd #{dir}; git diff #{server}/#{branch}`
+    diff = `cd #{dir}; git diff #{server}/#{branch} 2>&1`
     branch = "#{branch} --- need to push or fetch" unless diff.strip.empty?
   end
 
