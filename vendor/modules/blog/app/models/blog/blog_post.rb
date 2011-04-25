@@ -15,7 +15,7 @@ class Blog::BlogPost < DomainModel
   
   validates_presence_of :title
 
-  validates_length_of :permalink, :allow_nil => true, :maximum =>  64
+  validates_length_of :permalink, :allow_nil => true, :maximum => 128 
 
   validates_datetime :published_at, :allow_nil => true
    
@@ -99,7 +99,6 @@ class Blog::BlogPost < DomainModel
                               :order => 'published_at DESC',
                               :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ? AND blog_posts.blog_blog_id IN (?)",Time.now,blog_ids],
                               :per_page => items_per_page }.merge(options))
-
     else
       Blog::BlogPost.paginate(page, {
                               :include => [ :active_revision, :blog_categories ],
@@ -125,7 +124,7 @@ class Blog::BlogPost < DomainModel
         
         self.permalink = permalink_try
       elsif 
-        self.permalink = self.permalink.to_s.gsub(/[^a-z+0-9\-]/,"")[0..63]
+        self.permalink = self.permalink.to_s.gsub(/[^a-z+0-9\-]/,"")[0..127]
       end
   end
 
@@ -224,7 +223,6 @@ class Blog::BlogPost < DomainModel
     self.blog_post_revision_id = @revision.id
     self.generate_permalink!
   end
-
   def after_create
     @revision.update_attribute(:blog_post_id,self.id)
     @revision= nil
