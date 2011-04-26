@@ -217,20 +217,25 @@ class ApplicationController < ActionController::Base
     @cms_domain_info = dmn_info
 
     response.headers['P3P'] = 'CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT"'
-    
-    # Protect against using a session from a different
-    # domain on this domain 
-    # also log users out of if the domain has it's version modified
-    if session[:domain] &&  session[:domain] != domain || session[:domain_version] != dmn_info[:iteration]
-      process_logout
-    end
-    
-    session[:domain_version] = dmn_info[:iteration]
-    session[:domain] = domain
-    
-    set_language
 
-    set_timezone
+
+    # Skip for the the PublicController to prevent touching the session and 
+    # sending back a session cookie
+    if self.class.to_s != 'PublicController' 
+      # Protect against using a session from a different
+      # domain on this domain 
+      # also log users out of if the domain has it's version modified
+      if session[:domain] &&  session[:domain] != domain || session[:domain_version] != dmn_info[:iteration]
+        process_logout
+      end
+
+      session[:domain_version] = dmn_info[:iteration]
+      session[:domain] = domain
+
+      set_language
+
+      set_timezone
+    end
 
         
     return true

@@ -12,7 +12,7 @@ class PublicController < ApplicationController  # :nodoc: all
   
   def stylesheet 
   	site_template_id = params[:path][0].to_s
-    lang = params[:path][1] || session[:cms_language] || Configuration.languages[0]
+    lang = params[:path][1] || Configuration.languages[0]
     editor = params[:editor] || false
     
     headers['Content-Type'] = 'text/css'
