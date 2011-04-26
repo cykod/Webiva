@@ -221,22 +221,19 @@ class ApplicationController < ActionController::Base
 
     # Skip for the the PublicController to prevent touching the session and 
     # sending back a session cookie
-    if self.class.to_s != 'PublicController' 
-      # Protect against using a session from a different
-      # domain on this domain 
-      # also log users out of if the domain has it's version modified
-      if session[:domain] &&  session[:domain] != domain || session[:domain_version] != dmn_info[:iteration]
-        process_logout
-      end
-
-      session[:domain_version] = dmn_info[:iteration]
-      session[:domain] = domain
-
-      set_language
-
-      set_timezone
+    # Protect against using a session from a different
+    # domain on this domain 
+    # also log users out of if the domain has it's version modified
+    if session[:domain] &&  session[:domain] != domain || session[:domain_version] != dmn_info[:iteration]
+      process_logout
     end
 
+    session[:domain_version] = dmn_info[:iteration]
+    session[:domain] = domain
+
+    set_language
+
+    set_timezone
         
     return true
   end
