@@ -33,6 +33,7 @@ module ActionController  #:nodoc:all
         # in Rails 3 the SessionHash is located in module ActionDispatch::Session::AbstractStore
         # set session.unchanged! just before call render
         def unchanged!
+          @env[ENV_SESSION_OPTIONS_KEY][:expire_after] = nil
           @loaded = false
         end
       end
