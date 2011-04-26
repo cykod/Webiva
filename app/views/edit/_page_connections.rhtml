@@ -6,7 +6,7 @@
 <br/>
 <form method='post' id='cms_page_connections' onsubmit='cmsEdit.updatePageConnections(); return false;'>
 <table>
-<% @inputs.each do |para| %>
+<% @inputs.sort{ |a,b| a[:info][:name] == b[:info][:name] ? (a[:input][0]||[])[1].to_s <=> (b[:input][0]||[])[1].to_s : a[:info][:name] <=> b[:info][:name] }.each do |para| %>
 <tr>
   <td><%= para[:info][:name].t %>: <%= (para[:input][0]||[])[1].to_s %> </td>
   <td>

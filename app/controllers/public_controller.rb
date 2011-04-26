@@ -10,6 +10,8 @@ class PublicController < ApplicationController  # :nodoc: all
  
   helper :paragraph
   
+  after_filter :remove_session_cookie
+  
   def stylesheet 
   	site_template_id = params[:path][0].to_s
     lang = params[:path][1] || session[:cms_language] || Configuration.languages[0]
@@ -41,7 +43,7 @@ class PublicController < ApplicationController  # :nodoc: all
       cls = req[0].constantize.new(self)
       @css = cls.post_process_stylesheet @css
     end
- 
+
     render :layout=> false, :text => @css
   end
   
@@ -219,5 +221,9 @@ class PublicController < ApplicationController  # :nodoc: all
     else
       render :inline => 'File not found', :status => 404
     end
+  end
+  
+  def remove_session_cookie
+    session.unchanged!
   end
 end
