@@ -229,6 +229,8 @@ class ApplicationController < ActionController::Base
     set_language
 
     set_timezone
+
+    headers["P3P"] = "policyref=\"#{Configuration.domain_link('/p3p.xml')}\", CP=\"CAO DSP CUR ADM DEV PSA CONo TAI OUR IND DEM PRE PUR NAV UNI\""
     
     return true
   end
