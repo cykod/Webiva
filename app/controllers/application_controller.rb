@@ -215,6 +215,8 @@ class ApplicationController < ActionController::Base
     end
     
     @cms_domain_info = dmn_info
+
+    response.headers['P3P'] = 'CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT"'
     
     # Protect against using a session from a different
     # domain on this domain 
@@ -230,8 +232,7 @@ class ApplicationController < ActionController::Base
 
     set_timezone
 
-    headers["P3P"] = "CP=\"CAO PSA OUR\""
-    
+        
     return true
   end
 
