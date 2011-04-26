@@ -443,7 +443,7 @@ class Content::CoreField < Content::FieldHandler
         field_opts[:separator] = '<br/>'
         f.radio_buttons field_name,available_options , field_opts.merge(options)
       else
-        f.select field_name, [['--Select--',nil]] + available_options , field_opts.merge(options)
+        f.select field_name, [['--Select--'.t,nil]] + available_options , field_opts.merge(options)
       end    
     end
     
@@ -1038,7 +1038,7 @@ class Content::CoreField < Content::FieldHandler
     
     
     def form_field(f,field_name,field_opts,options={})
-      f.select field_name, [['--Select--',nil]] + available_options , field_opts.merge(options)
+      f.select field_name, [['--Select--'.t,nil]] + available_options , field_opts.merge(options)
     end
     
     filter_setup
