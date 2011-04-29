@@ -3,6 +3,7 @@ require "spec_helper"
 require "feedback_test_helper"
 
 describe Feedback::ManageRatingsController do
+  render_views
 
   include FeedbackTestHelper
 

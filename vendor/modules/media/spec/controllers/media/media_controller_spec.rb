@@ -3,6 +3,7 @@ require "spec_helper"
 require "media_test_helper"
 
 describe Media::MediaController do
+  render_views
 
   include MediaTestHelper
 

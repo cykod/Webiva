@@ -1,6 +1,8 @@
 require "spec_helper"
 
 describe PublicController, "handling sending files" do
+  render_views
+
   include ActionDispatch::TestProcess
 
   reset_domain_tables :domain_file_sizes, :domain_files

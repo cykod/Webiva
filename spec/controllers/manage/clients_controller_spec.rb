@@ -1,6 +1,7 @@
 require "spec_helper"
 
 describe Manage::ClientsController do
+  render_views
 
   reset_system_tables :client_users, :clients, :domains, :domain_databases
   reset_domain_tables :end_users

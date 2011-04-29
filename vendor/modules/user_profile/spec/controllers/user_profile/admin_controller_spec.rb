@@ -1,6 +1,8 @@
 require "spec_helper"
 
 describe UserProfile::AdminController do
+  render_views
+  
   reset_domain_tables :user_profile_types, :configurations, :site_modules, :end_users, :end_user_addresses, :user_profile_entries
 
   before(:each) do

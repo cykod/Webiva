@@ -2,6 +2,7 @@ require "spec_helper"
 require "webform_spec_helper"
 
 describe Webform::ManageController do
+  render_views
 
   reset_domain_tables :webform_forms, :webform_form_results
 

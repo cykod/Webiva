@@ -2,7 +2,8 @@ require "spec_helper"
 require "simple_content_spec_helper"
 
 describe SimpleContent::ManageController do
-
+  render_views
+  
   reset_domain_tables :simple_content_models
 
   it "should handle table list" do 

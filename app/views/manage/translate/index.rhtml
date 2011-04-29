@@ -10,10 +10,10 @@ Select Language: <select onchange='document.location="<%= url_for :controller =>
   <% end -%>
 </select>
 <b>
-<% base_language_only do -%>
+<%= base_language_only do -%>
 <%= "Please choose a language for translation".t %>
 <% end -%>
-<% not_base_language do -%>
+<%= not_base_language do -%>
 <%= sprintf("Language: %s".t,Locale.language.native_name) %>
 <% end -%>
 </b>
@@ -22,7 +22,7 @@ Select Language: <select onchange='document.location="<%= url_for :controller =>
 <hr/>
 
 <div class='admin_content'>
-<% not_base_language do -%>
+<%= not_base_language do -%>
 <div id='view_translation_table'>
   <%= render :partial => 'view_translation_table' %>
 </div>

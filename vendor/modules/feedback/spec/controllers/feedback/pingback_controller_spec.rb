@@ -5,6 +5,7 @@ require "feedback_test_helper"
 require 'xmlrpc/client'
 
 describe Feedback::PingbackController do
+  render_views
 
   include FeedbackTestHelper
 
