@@ -241,7 +241,7 @@ class SiteNodeEngine
     end
 
     def set_page_connections(paragraph,opts={})
-      if !opts[:edit] && paragraph.connections && paragraph.connections[:inputs].is_a?(Hash)
+      if !opts[:editor] && paragraph.connections && paragraph.connections[:inputs].is_a?(Hash)
         opts[:connections] ||= {}
         paragraph.connections[:inputs].each do |input_key,input|
           if input[0].to_s == "0"
