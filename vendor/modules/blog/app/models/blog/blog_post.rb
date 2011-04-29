@@ -230,12 +230,8 @@ class Blog::BlogPost < DomainModel
     self.blog_post_revision_id = @revision.id
     self.generate_permalink!
   end
-<<<<<<< HEAD:vendor/modules/blog/app/models/blog/blog_post.rb
 
   def update_revision_post
-=======
-  def after_create
->>>>>>> b526c0663021c010aeeee9aaebf6769004b5650f:vendor/modules/blog/app/models/blog/blog_post.rb
     @revision.update_attribute(:blog_post_id,self.id)
     @revision= nil
   end
