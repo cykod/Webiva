@@ -624,6 +624,12 @@ def fixture_file_upload(path, mime_type = nil, binary = false)
   ActionController::TestUploadedFile.new("#{fixture_path}#{path}", mime_type, binary)
 end
 
+module ActionController
+  class TestSession
+    def unchanged!; end
+  end
+end
+
 Spec::Runner.configure do |config|
   # If you're not using ActiveRecord you should remove these
   # lines, delete config/database.yml and disable :active_record
