@@ -25,13 +25,12 @@ module ActionController  #:nodoc:all
       @is_bot = self.class.bots.detect { |b| agent.include?(b) } ? true : false
     end
   end
+end
 
+module ActionDispatch
   module Session
     class AbstractStore
       class SessionHash
-        # Tell Rails that the session was not changed, prevents the session cookie from being stored
-        # in Rails 3 the SessionHash is located in module ActionDispatch::Session::AbstractStore
-        # set session.unchanged! just before call render
         def unchanged!
           @env[ENV_SESSION_OPTIONS_KEY][:expire_after] = nil
           @loaded = false

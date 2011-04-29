@@ -634,6 +634,10 @@ def assert_difference(executable, how_many = 1, &block)
   }.to change{ eval(executable) }.by(how_many)
 end
 
+class ActionController::TestSession
+  def unchanged!; end
+end
+
 RSpec.configure do |config|
   base_dir = "#{Rails.root}/vendor/modules/"
   Dir.glob("#{base_dir}[a-z]*").collect do |dir|
