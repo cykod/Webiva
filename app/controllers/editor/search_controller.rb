@@ -32,7 +32,7 @@ class Editor::SearchController < ParagraphController #:nodoc:all
   end
 
   class SearchResultsOptions < HashModel
-    attributes :default_per_page => 10, :max_per_page => 50, :search_results_page_id => nil, :content_type_id => nil
+    attributes :default_per_page => 10, :max_per_page => 50, :search_results_page_id => nil, :content_type_id => nil, :search_order => 'results'
 
     integer_options :default_per_page, :max_per_page
 
@@ -41,11 +41,16 @@ class Editor::SearchController < ParagraphController #:nodoc:all
     options_form(
                  fld(:default_per_page, :select, :options => (1..50).to_a),
                  fld(:max_per_page, :select, :options => (1..50).to_a),
-                 fld(:content_type_id, :select, :options => :content_type_options)
+                 fld(:content_type_id, :select, :options => :content_type_options),
+                 fld(:search_order, :select, :options => :search_order_options)
                  )
 
     def content_type_options
       ContentNodeSearch.content_types_options
+    end
+
+    def search_order_options
+      [['By Score'.t,'score'],['By Date'.t,'date']]
     end
   end
 

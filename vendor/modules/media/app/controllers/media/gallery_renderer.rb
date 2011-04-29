@@ -404,7 +404,7 @@ class Media::GalleryRenderer < ParagraphRenderer
         end
       end
 
-      c.define_link_tag 'gallery:image:overlay' do |tag|
+      c.define_tag 'gallery:image:overlay' do |tag|
         img = tag.locals.image
         if img && img.domain_file
           url = img.domain_file.url
@@ -418,7 +418,7 @@ class Media::GalleryRenderer < ParagraphRenderer
       end
       
       c.define_image_tag('gallery:image:thumb',nil,nil,:size => :thumb) { |t| t.locals.image.domain_file  if t.locals.image}
-      c.define_image_tag('gallery:image:icon',nil,nil,:size => :icon) { |t| img = t.locals.image;   img && img.domain_file ? tag.locals.gallery.gallery_images[0] : '/images/site/missing_icon.gif' }
+      c.define_image_tag('gallery:image:icon',nil,nil,:size => :icon) { |t| img = t.locals.image;   img && img.domain_file ? t.locals.gallery.gallery_images[0] : '/images/site/missing_icon.gif' }
       define_pages_tag(c,data[:page_path],data[:page],data[:pages])
       define_position_tags(c)
    end

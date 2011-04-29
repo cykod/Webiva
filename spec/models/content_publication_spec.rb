@@ -6,7 +6,7 @@ describe ContentPublication do
   include ContentSpecHelper
 
   ContentSpecHelper.setup_content_model_test_with_all_fields self
-
+   
   describe "dynamic fields" do
   
     it "should be able to fill in the current time with a dynamic field" do

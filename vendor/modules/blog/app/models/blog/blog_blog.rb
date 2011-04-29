@@ -50,6 +50,26 @@ class Blog::BlogBlog < DomainModel
     ContentNode.all :conditions => {:node_type => 'Blog::BlogPost', :content_type_id => self.content_type.id, 'blog_posts_categories.blog_category_id' => category_id}, :joins => 'JOIN blog_posts_categories ON blog_post_id = node_id'
   end
 
+  def paginate_posts_by_date(page,date_name,items_per_page,options = {})
+    today = Time.now.at_midnight; end_time = Time.now
+    case date_name.downcase
+    when 'day':   start_time = today
+    when 'week':  start_time = today - 7.days;
+    when 'month': start_time = today.at_beginning_of_month
+    when 'last_month': start_time = (today - 1.months).at_beginning_of_month; end_time = start_time.at_end_of_month
+    when 'six_months': start_time = today - 6.months
+    else return nil,[]
+    end
+
+    Blog::BlogPost.paginate(page,
+                            { :include => [ :active_revision ],
+                            :joins => [ :blog_posts_categories ],
+                            :order => 'published_at DESC',
+                            :conditions => [ "blog_posts.status = \"published\" AND blog_posts.blog_blog_id=? and published_at BETWEEN ? and ?",self.id,start_time,end_time],
+                            :per_page => items_per_page }.merge(options))
+  end                       
+
+
   def paginate_posts_by_category(page,cat,items_per_page,options = {})
     cat = [ cat] unless cat.is_a?(Array)
 
@@ -86,7 +106,7 @@ class Blog::BlogBlog < DomainModel
       if month =~ /^([a-zA-Z]+)([0-9]+)$/
         tm = Time.parse($1 + " 1 " + $2)
       else
-        return nil,[]
+        return paginate_posts_by_date(page,month,items_per_page,options)
       end
     rescue Exception => e
       return nil,[]

@@ -140,23 +140,23 @@ images/icons/actions directory of the current theme.
      apb = ActionPanelBuilder.new(self, :directory => 'actions')
      content = capture(apb, &block)
 
-      if options[:handler]
-        handlers = get_handler_info('action_panel',options[:handler])
+     if options[:handler]
+       handlers = get_handler_info('action_panel',options[:handler])
 
-        if handlers
-          handlers.each do |handler|
-            (handler[:links] || []).each do |link|
-              opts = link.clone
-              name = opts.delete(:link)
-              role = opts.delete(:role)
+       if handlers
+         handlers.each do |handler|
+           (handler[:links] || []).each do |link|
+             opts = link.clone
+             name = opts.delete(:link)
+             role = opts.delete(:role)
 
-              if !role || myself.has_role?(role)
-                content << apb.link(name,opts)
-              end
-            end
-          end
-        end
-      end
+             if !role || myself.has_role?(role)
+               content << apb.link(name,opts)
+             end
+           end
+         end
+       end
+     end
 
 
      close_link = content_tag :a, '(close actions)', :class => 'title_link', :href => "javascript:void(0);", 'j-action' => 'slideup,swap', :swap => '#more_actions_link,#less_actions_link',  :slideup => "#more_actions_panel"
@@ -736,7 +736,7 @@ EOF
         pg_html = <<-OUTPUT
           <td class='txt'><a href='#{url_for pg[3]}'  j-action='toggler' toggler="#subpage_#{idx},#subpage_none">#{pg[0].t.gsub("\n","<br/>")}</a></td>
         OUTPUT
-        help = "<div class='action_icon_mouseover' id='subpage_#{idx}' style='display:none;'><div class='action_icon_mouseover_body'>#{h(pg[4])}</div></div>"
+        help = "<div class='action_icon_mouseover' id='subpage_#{idx}' style='display:none;'><div class='action_icon_mouseover_body'>#{h(pg[4].t)}</div></div>"
         [ icon_html, pg_html, help ]
       else 
         [ '','' ]

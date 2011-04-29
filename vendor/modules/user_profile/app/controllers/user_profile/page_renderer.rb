@@ -18,12 +18,12 @@ class UserProfile::PageRenderer < ParagraphRenderer
 
     display_string = is_myself ? 'myself' : 'other' 
 
-    result = renderer_cache(@user_profile,display_string) do |cache|
+    result = renderer_cache(@user_profile,display_string, :skip => true) do |cache|
       if @user_profile
         @profile_user = @user_profile.end_user
         @content_model = @user_profile.content_model
         @user_profile_type  = @user_profile.user_profile_type
-        cache[:full_name] = @profile_user.full_name
+        cache[:full_name] = @profile_user.full_name if @profile_user
       end
 
       @url = site_node.node_path
@@ -72,7 +72,8 @@ class UserProfile::PageRenderer < ParagraphRenderer
     else
       conn_type,url = page_connection(:user_profile)
       if url.blank? && @options.default_to_user
-        UserProfileEntry.find_by_end_user_id_and_user_profile_type_id(myself.id, @options.profile_type_id)
+        UserProfileEntry.find_by_end_user_id_and_user_profile_type_id(myself.id, @options.profile_type_id) ||
+          UserProfileEntry.fetch_first_entry(myself,@options.profile_type_id)
       else
         profile = UserProfileEntry.find_by_url_and_user_profile_type_id(url, @options.profile_type_id)
         profile && profile.published? ? profile : nil

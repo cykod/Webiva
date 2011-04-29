@@ -136,7 +136,8 @@ class DomainModel
     DomainModel.__reset_modified_tables
   end
 
-  before_create do
+  before_create :__add_table
+  def __add_table
     DomainModel.__add_modified_table self.class.table_name
   end
 end
@@ -171,7 +172,8 @@ class SystemModel
     SystemModel.__reset_modified_tables
   end
 
-  before_create do
+  before_create :__add_table
+  def __add_table
     SystemModel.__add_modified_table self.class.table_name
   end
 end
@@ -660,7 +662,7 @@ RSpec.configure do |config|
   end
 
   config.after(:suite) do
-    File.delete tests_are_running_file
+    File.delete tests_are_running_file if File.exists?(tests_are_running_file)
   end
 
   config.before(:each) do
@@ -678,4 +680,3 @@ RSpec.configure do |config|
     :file_path => /_feature_spec/
   }
 end
-

@@ -20,11 +20,11 @@
   <% if @popup && file.file_type_match(@select) && !(@mce && !file.private? && file.image?) -%>
     <button  class='button_link' onclick='FileEditor.callbackFile(<%= file.id %>);'>Select</button>
   <% end -%>
-  <button  class='button_link'  onclick='FileEditor.copyFile(<%= file.id %>)'>Copy File</button>
+  <button  class='button_link'  onclick='FileEditor.copyFile(<%= file.id %>)'><%= h "Copy File".t %></button>
   <% if file.private? -%>
-    <button class='button_link'  onclick='FileEditor.makeFilePublic(<%= file.id %>)'>Make Public</button>
+    <button class='button_link'  onclick='FileEditor.makeFilePublic(<%= file.id %>)'><%= h "Make Public".t %></button>
   <% else -%>
-    <button  class='button_link' onclick='FileEditor.makeFilePrivate(<%= file.id %>)'>Make Private</button>
+    <button  class='button_link' onclick='FileEditor.makeFilePrivate(<%= file.id %>)'><%= h "Make Private".t %></button>
   <% end -%>
 
   <% if(file.processor_status == 'ok')  -%>
@@ -39,9 +39,9 @@
  <% end -%>  
 
   <% if !@popup && file.editable? -%>
-    <button class='button_link' onclick='FileEditor.editFile(<%= file.id %>);'>Edit File</button>
+    <button class='button_link' onclick='FileEditor.editFile(<%= file.id %>);'><%= h "Edit File".t %></button>
   <% end -%>
-  <button class='button_link last' onclick='FileEditor.deleteSelected([<%= file.id  %>]);'>Delete</button>
+  <button class='button_link last' onclick='FileEditor.deleteSelected([<%= file.id  %>]);'><%= h "Delete".t %></button>
   <div style='clear:both;'></div>
 </div>
 

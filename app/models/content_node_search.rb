@@ -74,7 +74,7 @@ class ContentNodeSearch < HashModel
     self.content_type.container.content_category_nodes(self.category_id).collect(&:id)
   end
 
-  def frontend_search
+  def frontend_search(order_by = nil)
     return [@pages, @results] if @results
 
     conditions = {:search_result => 1}
@@ -88,7 +88,8 @@ class ContentNodeSearch < HashModel
     @results, @total_results = ContentNode.search(self.language, self.terms,
 						  :conditions => conditions,
 						  :limit => self.per_page,
-						  :offset => offset
+						  :offset => offset,
+              :order => order_by.to_s == 'date' ? 'published_at DESC' : nil
 						  )
     @results = @results.map do |node|
       content_description =  node.content_description(language)

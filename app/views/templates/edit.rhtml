@@ -263,7 +263,7 @@
 <hr/>
 <div class='admin_tabbed_content tab_container'>
 <form action='' id='site_template_form' onsubmit='return false;' method='post'>
-<%= ajax_tabs(@tabs.map { |elm| elm.humanize.t },@display_view == 'advanced' ? 'Edit' : 'Options') do |t| -%>
+<%= ajax_tabs(@tabs.map { |elm| elm.humanize.t },@display_view == 'advanced' ? 'Edit'.t  : 'Options'.t) do |t| -%>
 
 
 <%= t.tab do -%>

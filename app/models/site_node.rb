@@ -102,7 +102,7 @@ class SiteNode < DomainModel
     elsif self.node_type == 'M'
       self.dispatcher.menu
     elsif self.node_type == 'G'
-      self.children
+      @child_cache || self.children
     else
       [ self ]
     end
@@ -458,7 +458,13 @@ class SiteNode < DomainModel
 
     content_type_ids = ContentType.where(:detail_site_node_url => self.node_path).select('id').all.map(&:id)
 
-    @page_content = ContentNode.where(:content_type_id => content_type_ids).includes(:node).order('created_at DESC').limit(limit).all
+    begin
+      @page_content = ContentNode.where(:content_type_id => content_type_ids).includes(:node).order('created_at DESC').limit(limit).all
+    rescue Exception => e
+      @page_content = ContentNode.where(:content_type_id => content_type_ids).order('created_at DESC').limit(limit).all
+    end
+
+    @page_content
   end
   
   def can_index?

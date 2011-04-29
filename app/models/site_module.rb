@@ -269,7 +269,11 @@ class SiteModule < DomainModel
     available = DomainModule.module_info(domain,name) 
     if available && (available[:status] == 'available' || opts[:force])
       available[:dependencies].each do |depend|
-        return nil if !SiteModule.module_enabled?(depend)
+        if opts[:force]
+          SiteModule.activate_module domain, depend, opts
+        else
+          return nil unless SiteModule.module_enabled?(depend)
+        end
       end
       mod.status = 'initializing'
       return mod if mod.save

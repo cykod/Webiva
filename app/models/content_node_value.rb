@@ -39,7 +39,7 @@ class ContentNodeValue < DomainModel
     values = []
     total_results = 0
     with_scope(:find => {
-               :conditions => ["language = ? AND content_nodes.published=1 AND MATCH (title,body) AGAINST (?)",language,query],
+               :conditions => ["language = ? AND content_nodes.published=1 AND MATCH (title,body) AGAINST (? IN BOOLEAN MODE)",language,query],
 		 :include => [:content_node, :content_type],
 		 :order => ["MATCH (title) AGAINST (",self.quote_value(query), ") DESC, MATCH (title,body) AGAINST (",self.quote_value(query), ") DESC"].join
 	       }) do

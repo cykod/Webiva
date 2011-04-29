@@ -27,6 +27,12 @@ Please re-enter the URL, no profile exists for the name entered
       c.expansion_tag('logged_in') { |t| myself.id }
       c.expansion_tag('user:published') { |t| data[:user_profile].published? }
       c.expansion_tag('user:protected') { |t| data[:user_profile].protected? } 
+      c.loop_tag('user:tag') { |t| t.locals.user.tags_array }
+      c.h_tag('user:tag:tag_name') { |t| t.locals.tag }
+      c.expansion_tag('user:tagged') { |t| t.locals.user.tags_array.include?(t.attr['tag'].to_s.titleize) }
+      c.loop_tag('user:access_token') { |t| t.locals.user.access_tokens }
+      c.h_tag('user:access_token:token') { |t| t.locals.access_token.name }
+      c.expansion_tag('user:has_token') { |t| t.locals.user.access_tokens.detect { |token| token.name == t.attr['token'].to_s } }
       c.content_model_fields_value_tags('user:profile', data[:user_profile_type].display_content_model_fields) if data[:content_model]
     end 
   end

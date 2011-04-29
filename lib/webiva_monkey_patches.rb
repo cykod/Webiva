@@ -25,6 +25,20 @@ module ActionController  #:nodoc:all
       @is_bot = self.class.bots.detect { |b| agent.include?(b) } ? true : false
     end
   end
+
+  module Session
+    class AbstractStore
+      class SessionHash
+        # Tell Rails that the session was not changed, prevents the session cookie from being stored
+        # in Rails 3 the SessionHash is located in module ActionDispatch::Session::AbstractStore
+        # set session.unchanged! just before call render
+        def unchanged!
+          @env[ENV_SESSION_OPTIONS_KEY][:expire_after] = nil
+          @loaded = false
+        end
+      end
+    end
+  end
 end
 
 ActionView::Base.field_error_proc = Proc.new{ |html_tag, instance| html_tag.match(/type=(\'|\")radio(\'|\")/i) ? "<span class=\"radioWithErrors\">#{html_tag}</span>" : "<span class=\"fieldWithErrors\">#{html_tag}</span

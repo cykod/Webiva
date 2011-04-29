@@ -615,6 +615,17 @@ class EndUser < DomainModel
     end
     target
   end
+
+
+  def anonymous_tracking_information
+    self.attributes.symbolize_keys.slice(:source_user_id,:referrer,:tag_names)
+
+  end
+
+  def anonymous_tracking_information=(val)
+    self.attributes = val.symbolize_keys.slice(:source_user_id,:referrer,:tag_names)
+  end
+
   
 =begin rdoc
 This is the easiest way to create an EndUser, for example:
@@ -639,18 +650,19 @@ Use the Hash#slice method to only select the fields you actually want to let in,
 Not doing so could allow a user to change their user profile (for example) and elevate their permissions.
 
 =end
-  def self.push_target(email,options = {})
+  def self.push_target(email,options = {},tracking_options = {})
     opts = options.clone
     opts.symbolize_keys!
 
     user_class_id = opts.delete(:user_class_id) || UserClass.default_user_class_id
     target = self.find_target(email, :user_class_id => user_class_id, :no_create => true, :source => opts.delete(:source))
 
+    target.anonymous_tracking_information = tracking_options
+
     # Don't mess with registered users if no_register is set    
     no_register = opts.delete(:no_register)
     return if no_register && target.registered?
-    
-  
+
     address_fields = %w(phone fax address address_2 city state zip country)
     adr_values = {}
     address_fields.each do |fld|

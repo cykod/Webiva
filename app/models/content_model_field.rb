@@ -260,7 +260,7 @@ class ContentModelField < DomainModel
   end
 
   def add_has_many_relationship
-    return if self.relation_name == 'end_user' || self.relation_name == 'other'
+    return if self.relation_name == 'end_user' || self.relation_name == 'other' || self.relation_class == 'Other'
 
     table_name = self.content_model.table_name
     plural_name = "#{self.field.sub(/_id$/,'')}_#{table_name.sub(/^cms_/, '')}"
