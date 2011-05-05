@@ -117,11 +117,35 @@ class Blog::BlogBlog < DomainModel
   end
 
   def paginate_posts(page,items_per_page,options = {})
-    Blog::BlogPost.paginate(page, {
-                            :include => [ :active_revision ], 
-                            :order => 'published_at DESC',
-                            :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ?  AND blog_blog_id=?",Time.now,self.id],
-                            :per_page => items_per_page }.merge(options))          
+    opts = options.symbolize_keys
+
+    post_options = {  :include => [ :active_revision ], 
+                      :order => 'published_at DESC',
+                      :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ?  AND blog_blog_id=?",Time.now,self.id],
+                      :per_page => items_per_page }
+
+    if tag = opts.delete(:tag_filter)
+      tag = [ tag ] unless tag.is_a?(Array)
+
+      tag_ids = ContentTag.find(:all,:conditions => { :name => tag },:select => 'id').map(&:id)
+      tag_ids = [ 0 ] if tag_ids.length == 0
+
+      post_options[:include] << :content_tag_tags
+      post_options[:conditions][0] += "  AND content_tag_tags.content_tag_id in (?)"
+      post_options[:conditions] << tag_ids
+    end
+
+    if cat = opts.delete(:category_filter)
+      cat = [ cat] unless cat.is_a?(Array)
+      category_ids = self.blog_categories.find(:all,:conditions => { :name => cat },:select=>'id').map(&:id)
+
+      category_ids = [ 0] if category_ids.length == 0
+     post_options[:include] << :blog_posts_categories
+      post_options[:conditions][0] += "  AND blog_posts_categories.blog_category_id in (?)"
+      post_options[:conditions] << category_ids
+    end
+
+    Blog::BlogPost.paginate(page,post_options.merge(opts))          
 
   end
 

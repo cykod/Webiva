@@ -157,7 +157,7 @@ class Blog::PageFeature < ParagraphFeature
     c.value_tag('entry:categories:category:escaped_name') { |t| CGI::escape(t.locals.category) }
 
     c.value_tag('entry:tags') do |tag|
-      tags = tag.locals.entry.content_tags(true)
+      tags = tag.locals.entry.content_tags
       if tags.length > 0
 	tags.collect {|tg| "<a href='#{SiteNode.link(data[:list_page], 'tag', h(tg.name))}'>#{h tg.name}</a>" }.join(", ")
       else

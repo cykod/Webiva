@@ -36,32 +36,39 @@ class Blog::PageRenderer < ParagraphRenderer
     list_connection_type,list_type = page_connection(:type)
     list_connection_detail,list_type_identifier  = page_connection(:identifier)
 
+    if list_connection_type == 'category'
+      list_connection_detail,category_filter  = page_connection(:identifier)
+    elsif list_connection_type == 'tag'
+      list_connection_detail,tag_filter = page_connection(:identifier)
+    end
+
+    list_connection_detail, category_filter = page_connection(:category) if page_connection(:category)
+    tag_type, tag_filter =  page_connection(:tag) if page_connection(:tag)
+
     if list_type && ! editor?
       list_type = list_type.downcase unless list_type.blank?
       unless (['category','tag','archive'].include?(list_type.to_s))
-	raise SiteNodeEngine::MissingPageException.new(site_node, language) if list_type_identifier && site_node.id == @options.detail_page_id
+        raise SiteNodeEngine::MissingPageException.new(site_node, language) if list_type_identifier && site_node.id == @options.detail_page_id
         set_page_connection(:category, nil)
-	return render_paragraph :text => ''
+        return render_paragraph :text => ''
       end
     end
 
-    if list_type == 'category'
+    if category_filter
       list_type_identifier = list_type_identifier.to_s.gsub("+"," ")
-      set_page_connection(:category, list_type_identifier)
+      set_page_connection(:category, category_filter)
     else
       set_page_connection(:category, nil)
     end
 
-    type_hash = DomainModel.hexdigest("#{list_type}_#{list_type_identifier}")
+    type_hash = DomainModel.hexdigest("#{category_filter}_#{tag_filter}")
     display_string = "#{page}_#{type_hash}"
 
     result = renderer_cache(Blog::BlogPost, display_string) do |cache|
       if !@options.category.blank? && @options.limit_by == "category"
-        list_type ='category'
-        list_type_identifier = @options.category.split(",").map(&:strip).reject(&:blank?)
+        category_filter = @options.category.split(",").map(&:strip).reject(&:blank?)
       elsif !@options.category.blank? && @options.limit_by == "tag"
-        list_type = 'tag'
-        list_type_identifier = @options.category.split(",").map(&:strip).reject(&:blank?)
+        tag_filter = @options.category.split(",").map(&:strip).reject(&:blank?)
       end
 
       blog = get_blog
@@ -74,15 +81,10 @@ class Blog::PageRenderer < ParagraphRenderer
       pages = {}
   
       if blog
-        case list_type.to_s
-        when 'category':
-          pages,entries =  blog.paginate_posts_by_category(page,list_type_identifier,items_per_page,:large => @options.skip_total)
-        when 'tag':
-          pages,entries = blog.paginate_posts_by_tag(page,list_type_identifier,items_per_page,:large => @options.skip_total)
-        when 'archive':
+        if list_type.to_s == 'archive'
           pages,entries = blog.paginate_posts_by_month(page,list_type_identifier,items_per_page,:large => @options.skip_total)
         else
-          pages,entries = blog.paginate_posts(page,items_per_page,:large => @options.skip_total)
+          pages,entries = blog.paginate_posts(@options.skip_page ? 1 : page,items_per_page,:large => @options.skip_total, :category_filter => category_filter, :tag_filter => tag_filter)
         end
       else
         pages,entries = Blog::BlogPost.paginate_published(page,items_per_page,@options.blog_ids,:large => @options.skip_total)
