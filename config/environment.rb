@@ -37,6 +37,7 @@ require 'yaml'
   
   DEFAULT_DATETIME_FORMAT = defaults_config_file['default_datetime_format'] || "%m/%d/%Y %I:%M %p"
   DEFAULT_DATE_FORMAT = defaults_config_file['default_date_format'] || "%m/%d/%Y"
+  DEFAULT_TIME_FORMAT = defaults_config_file['default_time_format'] || "%I:%M %p"
   
   BETA_CODE = defaults_config_file['enable_beta_code'] || false
   

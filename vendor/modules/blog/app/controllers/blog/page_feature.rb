@@ -235,7 +235,7 @@ class Blog::PageFeature < ParagraphFeature
 	"#{SiteNode.link(data[:list_page], 'archive', formatted)}"
       end
 
-      c.date_tag('archive:date',DEFAULT_DATETIME_FORMAT.t) { |tag| tag.locals.archive[:date] }
+      c.datetime_tag('archive:date') { |tag| tag.locals.archive[:date] }
 
       c.define_value_tag "archives:archive:count" do |tag|
 	tag.locals.archive[:cnt]

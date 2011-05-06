@@ -189,12 +189,13 @@ module ActiveRecord
         # This enhanced write method will automatically convert the time passed to it to the zone stored in Time.zone.
         def define_write_method_for_time_zone_conversion(attr_name)
           method_body = <<-EOV
-            def #{attr_name}=(time)
+            def #{attr_name}=(original_time)
+              time = original_time && original_time.dup
               unless time.acts_like?(:time)
                 time = time.is_a?(String) ? Time.zone.parse(time) : time.to_time rescue time
               end
               time = time.in_time_zone rescue nil if time
-              write_attribute(:#{attr_name}, time)
+              write_attribute(:#{attr_name}, time || original_time)
             end
           EOV
           evaluate_attribute_method attr_name, method_body, "#{attr_name}="

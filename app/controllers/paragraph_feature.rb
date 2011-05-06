@@ -476,7 +476,7 @@ block is non-nil
     #
     #     c.date_tag('current_time') { |t| Time.now }
     #
-    def define_date_tag(name,default_format = '%m/%d/%Y',&block)
+    def define_date_tag(name,default_format = nil,&block)
       define_value_tag(name) do |tag|
         val = yield(tag)
         if !val.is_a?(Time)
@@ -486,9 +486,31 @@ block is non-nil
             #
           end
         end
-        val.localize(tag.attr['format'] || default_format) if val
+        val.localize(tag.attr['format'] || default_format || Configuration.date_format) if val
       end
     end
+
+    # Creates a tag that expects a date or time object to be returned by the yielded block.
+    #
+    # For example:
+    #
+    #     c.datetime_tag('current_time') { |t| Time.now }
+    #
+    def define_datetime_tag(name,default_format = nil,&block)
+      define_value_tag(name) do |tag|
+        val = yield(tag)
+        if !val.is_a?(Time)
+          begin 
+            val = Time.parse(val)
+          rescue Exception => e
+            #
+          end
+        end
+        val.localize(tag.attr['format'] || default_format || Configuration.datetime_format) if val
+      end
+    end
+
+
 
     def reset_output #:nodoc:
       @output_buffer = ""

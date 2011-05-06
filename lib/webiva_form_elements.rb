@@ -162,7 +162,7 @@ module WebivaFormElements
     if date_value.is_a?(String)
       date_txt = date_value
     elsif date_value || !options.delete(:blank)
-      date_txt = (date_value || Time.now).localize("%m/%d/%Y".t)
+      date_txt = (date_value || Time.now).localize(Configuration.date_format)
     else
       date_txt = ''
     end
@@ -185,7 +185,7 @@ module WebivaFormElements
     if date_value.is_a?(String)
       date_txt = date_value
     elsif date_value || !options.delete(:blank)
-      date_txt = (date_value || Time.now).localize("%m/%d/%Y %H:%M".t)
+      date_txt = (date_value || Time.now).localize(Configuration.datetime_format)
     else
       date_txt = ''
     end

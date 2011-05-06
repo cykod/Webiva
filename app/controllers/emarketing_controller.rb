@@ -97,7 +97,7 @@ class EmarketingController < CmsController # :nodoc: all
         :sources => @traffic.collect{|t| t[:sources]},
         :total_values => @traffic.collect{|t| t[:total_value].to_f > 0.0 ? number_to_currency(t[:total_value]) : ''},
         :days => @traffic.collect{|t| t[:started_at].localize('%A'.t)},
-        :dates => @traffic.collect{|t| t[:started_at].localize(DEFAULT_DATE_FORMAT.t)}
+        :dates => @traffic.collect{|t| t[:started_at].localize(Configuration.date_format)}
       }
     end
   end

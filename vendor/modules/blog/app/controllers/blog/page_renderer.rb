@@ -34,12 +34,13 @@ class Blog::PageRenderer < ParagraphRenderer
     # .../category/something
     # list_type = category, list_type_identifier = something
     list_connection_type,list_type = page_connection(:type)
+
     list_connection_detail,list_type_identifier  = page_connection(:identifier)
 
-    if list_connection_type == 'category'
-      list_connection_detail,category_filter  = page_connection(:identifier)
-    elsif list_connection_type == 'tag'
-      list_connection_detail,tag_filter = page_connection(:identifier)
+    if list_type == 'category'
+      category_filter  = list_type_identifier
+    elsif list_type == 'tag'
+      tag_filter = list_type_identifier
     end
 
     list_connection_detail, category_filter = page_connection(:category) if page_connection(:category)

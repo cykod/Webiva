@@ -1,5 +1,5 @@
 <% stat_view do |t| -%>
-  <%= t.raw 'On', note.created_at.strftime(DEFAULT_DATETIME_FORMAT.t) %>
+  <%= t.raw 'On', note.created_at.strftime(Configuration.datetime_format.t) %>
   <%= t.raw 'By', note.admin_user ? note.admin_user.name : 'Anonymous'.t %>
   <%= t.row 'Note', note.note %>
 <% end -%>

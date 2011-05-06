@@ -54,7 +54,7 @@
     <%= v.raw 'File', link_to(file.name, file.url,:target => 'blank') %>
     <%= v.row 'File Size', number_to_human_size(file.file_size) %>
     <%= v.row 'Dimensions', "#{file.width}x#{file.height}" if file.image? %>
-    <%= v.row 'Uploaded', file.created_at.localize(DEFAULT_DATETIME_FORMAT.t) if file.created_at %>
+    <%= v.row 'Uploaded', file.created_at.localize(Configuration.datetime_format) if file.created_at %>
     <%= v.raw 'Uploaded By', file.creator ? link_to(file.creator.name, :controller => '/members',:action=>'view',:path => [ file.creator_id ]) : h('<Unknown>') %>
   <% end -%>
 

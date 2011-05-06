@@ -541,7 +541,7 @@ class Content::CoreField < Content::FieldHandler
     
     def content_display(entry,size=:full,options = {})
       dt = entry.send(@model_field.field)
-      dt ? dt.localize(options[:format] || DEFAULT_DATE_FORMAT) : ''
+      dt ? dt.localize(options[:format] || Configuration.date_format) : ''
     end
     
     
@@ -568,7 +568,7 @@ class Content::CoreField < Content::FieldHandler
     def content_display(entry,size=:full,options = {})
       dt = entry.send(@model_field.field)
       begin
-        dt ? dt.localize(options[:format] || DEFAULT_DATETIME_FORMAT) : ''
+        dt ? dt.localize(options[:format] || Configuration.datetime_format) : ''
       rescue Exception => e
         ''
       end

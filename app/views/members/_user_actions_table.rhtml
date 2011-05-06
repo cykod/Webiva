@@ -6,7 +6,7 @@
   <td><%= t.identifier %></td>
   <td><%= t.renderer %></td>
   <td><%= t.action %></td>
-  <td><%= t.action_at.strftime(DEFAULT_DATETIME_FORMAT.t) %></td>
+  <td><%= t.action_at.strftime(Configuration.datetime_format) %></td>
   <td><%= t.admin_user ? t.admin_user.name : '' %></td>
 </tr>
 <% end -%>
