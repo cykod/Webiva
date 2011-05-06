@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + "/../domain_log_spec_helper"
 
 describe DomainLogSource do
 
-  reset_domain_tables :domain_log_session, :domain_log_visitor, :domain_log_referrer, :domain_log_source
+  reset_domain_tables :domain_log_sessions, :domain_log_visitors, :domain_log_referrers, :domain_log_sources
 
   queue_session_klass = nil
   begin
@@ -16,6 +16,7 @@ describe DomainLogSource do
   end
 
   before(:each) do
+    DomainLogSource.delete_all
     setup_domain_log_sources
   end
 
