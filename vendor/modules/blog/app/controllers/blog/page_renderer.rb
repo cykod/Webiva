@@ -62,7 +62,7 @@ class Blog::PageRenderer < ParagraphRenderer
       set_page_connection(:category, nil)
     end
 
-    type_hash = DomainModel.hexdigest("#{category_filter}_#{tag_filter}")
+    type_hash = DomainModel.hexdigest("#{list_type}_#{list_type_identifier}_#{category_filter}_#{tag_filter}")
     display_string = "#{page}_#{type_hash}"
 
     result = renderer_cache(Blog::BlogPost, display_string) do |cache|
