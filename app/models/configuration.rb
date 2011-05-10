@@ -140,9 +140,9 @@ class Configuration < DomainModel
     end
   end
 
-  def self.date_format; self.options.default_date_format || DEFAULT_DATE_FORMAT.t; end
-  def self.time_format; self.options.default_time_format || DEFAULT_TIME_FORMAT.t; end
-  def self.datetime_format; self.options.default_datetime_format || DEFAULT_DATETIME_FORMAT.t; end
+  def self.date_format; self.options.default_date_format.present? ? self.options.default_date_format : DEFAULT_DATE_FORMAT.t; end
+  def self.time_format; self.options.default_time_format.present? ? self.options.default_time_format : DEFAULT_TIME_FORMAT.t; end
+  def self.datetime_format; self.options.default_datetime_format.present? ? self.options.default_datetime_format :  DEFAULT_DATETIME_FORMAT.t; end
   
   # Return the list of available image sizes
   def self.images_sizes
