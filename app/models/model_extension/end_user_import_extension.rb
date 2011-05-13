@@ -288,7 +288,7 @@ module ModelExtension::EndUserImportExtension
                 end
               end
             else
-              entry_errors << [idx, entry.email]
+              entry_errors << [idx, entry.email.to_s + ":" + entry.errors.full_messages.join(",")]
             end
           end
         else
