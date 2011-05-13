@@ -56,7 +56,7 @@ class Blog::PageRenderer < ParagraphRenderer
     end
 
     if category_filter
-      list_type_identifier = list_type_identifier.to_s.gsub("+"," ")
+      category_filter = category_filter.to_s.gsub("+"," ")
       set_page_connection(:category, category_filter)
     else
       set_page_connection(:category, nil)
