@@ -23,6 +23,7 @@ class EditController < ModuleController # :nodoc: all
                                      [:navigation, 'Navigation','Use Navigation Paragraphs' ],
                                      [:member, 'Member','Use Member Paragraphs' ],
                                      [:media, 'Media','Use Media Paragraphs' ],
+                                     [:action, 'System','Use System Paragraphs' ],
                                      [:module, 'Module Paragraphs','Use any module paragraphs' ],
                                      [:content, 'Publication','Use Publication paragraphs' ]
                                  ]
