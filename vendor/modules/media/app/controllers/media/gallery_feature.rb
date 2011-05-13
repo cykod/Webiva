@@ -328,7 +328,7 @@ class Media::GalleryFeature < ParagraphFeature
           url = img.domain_file.url
           size = img.domain_file.image_size
           <<-IMAGE
-            href='#{url}' target='_blank' onclick='CmsGallery.overlayDisplay(#{data[:gallery].id},#{tag.locals.index + data[:offset]}); return false;'
+            href='#{url}' target='_blank' onclick='CmsGallery.overlayDisplay(#{data[:gallery].id},#{tag.locals.index + (data[:pages][:page] - 1) * data[:pages][:per_page]}); return false;'
         IMAGE
         else
           ''
