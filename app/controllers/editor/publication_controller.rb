@@ -8,7 +8,9 @@ class Editor::PublicationController < ParagraphController #:nodoc:all
 
 #                                                         
    editor_for :create, :name => 'Entry Create Form', :features => ['publication_entry_create_form'], :hidden => true,
-             :inputs =>  [ [ :entry_id, 'Entry Identifier', :integer ] ]
+             :inputs =>  { :input => [ [ :entry_id, 'Entry Identifier', :integer ] ],
+                            :content => [ [ :content_id, "Content Identifier", :content ],
+                                          [ :target_id, "Content Target", :target ]] }
    editor_for :view, :name => 'Entry Display Form', :features => ['publication_entry_display_form'], :hidden => true,
               :inputs =>  [ [ :entry_id, 'Entry Identifier', :integer ], [:entry_offset, 'Entry Offset', :integer ]],
               :outputs => [[:content_id, 'Content Identifier', :content]]
