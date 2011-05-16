@@ -77,6 +77,7 @@ class EndUser < DomainModel
   has_one :end_user_cache, :dependent => :delete, :class_name => 'EndUserCache'
 
   has_many :end_user_cookies, :dependent => :delete_all, :class_name => 'EndUserCookie'
+  has_many :api_tokens, :class_name => 'EndUserCookie', :conditions => 'valid_until IS NULL'
 
   has_many :end_user_actions, :dependent => :delete_all
 
@@ -167,6 +168,15 @@ class EndUser < DomainModel
 
   def update_verification_string! #:nodoc:
     self.update_attribute(:verification_string, Digest::SHA1.hexdigest(Time.now.to_s + rand(1000000000000).to_s)[0..12])
+  end
+
+  def self.find_by_api_token(api_token)
+    token = EndUserCookie.find_by_cookie(api_token, :conditions => { :valid_until => nil })
+    token.end_user if token
+  end
+
+  def api_token
+    @api_token ||= (self.api_tokens[0] && self.api_tokens[0].cookie) || EndUserCookie.generate_api_key(self)
   end
 
   # Is this a administrative ClientUser

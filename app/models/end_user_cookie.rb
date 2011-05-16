@@ -12,6 +12,11 @@ class EndUserCookie < DomainModel
     ck = self.create(:end_user_id => usr.id,:valid_until => valid_until || 2.weeks.from_now,:cookie => DomainModel.generate_hash)
     ck.cookie
   end
+
+  def self.generate_api_key(usr)
+    ck = self.create(:end_user_id => usr.id,:valid_until => nil,:cookie => DomainModel.generate_hash)
+    ck.cookie
+  end
   
   def self.use_cookie(ck)
     cookie = self.find_by_cookie(ck)
