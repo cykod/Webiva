@@ -134,6 +134,7 @@ class Blog::PageRenderer < ParagraphRenderer
 
     if result.entry_id
       set_page_connection(:content_id, ['Blog::BlogPost',result.entry_id] )
+      set_page_connection(:content_node_id, result.content_node_id )
       set_page_connection(:post, result.entry_id )
       set_page_connection(:comments_ok, result.comments_ok)
       set_title(result.title)

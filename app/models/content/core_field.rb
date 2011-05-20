@@ -491,7 +491,7 @@ class Content::CoreField < Content::FieldHandler
   
   class MultiSelectField < Content::Field #:nodoc:all
     field_options :options, :required
-    setup_model :required, :serialize do |cls,fld|
+    setup_model :required_array, :serialize do |cls,fld|
        cls.has_options fld.model_field.field.to_sym, fld.available_options
     end  
     
