@@ -98,6 +98,12 @@ class Media::GalleryFeature < ParagraphFeature
           "href='javascript:void(0);'"
         end
       end
+
+      c.h_tag 'target' do |t|
+        if t.locals.gallery.container && t.locals.gallery.container.respond_to?(:name)
+          t.locals.gallery.container.name
+        end
+      end
       
       c.define_tag 'thumb' do |tag|
         img = tag.locals.gallery.gallery_images[0]

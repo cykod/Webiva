@@ -1105,7 +1105,7 @@ class Content::CoreField < Content::FieldHandler
   def self.dynamic_content_id_value(entry,fld,state = {}) #:nodoc
     if state[:content_id]
       if state[:content_id].is_a?(Array)
-        state[:content_id][0]
+        state[:content_id][1]
       elsif state[:content_id].is_a?(DomainModel)
         state[:content_id].id
       else 

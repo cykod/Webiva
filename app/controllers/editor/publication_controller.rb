@@ -18,7 +18,8 @@ class Editor::PublicationController < ParagraphController #:nodoc:all
    
    editor_for :edit, :name => 'Entry Edit', 
               :features => ['publication_entry_edit'],
-              :inputs => [ [ :entry_id, 'Entry ID', :integer ] ],
+              :inputs =>  { :input => [ [ :entry_id, 'Entry ID', :integer ] ],
+                          :content => [ [ :content_id, "Content Identifier", :content ], [ :target_id, "Content Target", :target ]] },
               :hidden => true
               
    editor_for :admin_list, :name => 'Entry Admin List', :features => ['publication_entry_admin_list'], :hidden => true

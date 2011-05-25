@@ -184,6 +184,8 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
    
      options = {}
    
+    content_conn,content_id = page_connection(:content)
+
     if entry_id && entry_id.to_i != 0
       publication.each_page_connection_input do |filter_name,fld|
         conn_type,conn_id = page_connection(filter_name)
@@ -203,7 +205,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
       
     if request.post? && params['entry_' + publication.id.to_s]
     
-      publication.update_entry(entry,params['entry_' + publication.id.to_s],renderer_state)
+      publication.update_entry(entry,params['entry_' + publication.id.to_s],renderer_state.merge(:content_id => content_id))
       new_entry = entry.id ? false : true
       
       if entry.save
