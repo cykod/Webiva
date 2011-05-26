@@ -42,6 +42,7 @@ class UserProfileEntry < DomainModel
     if self.content_model_entry
       body += self.content_model_entry.attributes.values
     end
+    body += self.end_user.address.attributes.values if self.end_user.address
     body.select { |itm| itm.is_a?(String) }.join(" ")
   end
 
