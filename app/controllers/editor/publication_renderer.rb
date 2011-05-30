@@ -204,6 +204,11 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
     return_page = pub_options.return_page_url
       
     if request.post? && params['entry_' + publication.id.to_s]
+
+      if params['entry_' + publication.id.to_s]['delete']
+        entry.destroy
+        return redirect_paragraph(return_page)
+      end
     
       publication.update_entry(entry,params['entry_' + publication.id.to_s],renderer_state.merge(:content_id => content_id))
       new_entry = entry.id ? false : true
