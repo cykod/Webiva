@@ -51,6 +51,22 @@ class ContentModelType < DomainModel
     attribute.to_s.humanize
   end
 
+  def match_models(entry)
+    my_attr =  self.attributes
+    en_attr = entry.attributes
+
+    output = {}
+
+
+    my_attr.each do |fld,value|
+      if !(fld =~ /_id$/) && fld != 'id' && en_attr.has_key?(fld)  && en_attr[fld].blank?
+        output[fld] = value
+      end
+    end
+    output
+
+  end
+
 
   def self.identifier_field; nil; end
 
