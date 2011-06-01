@@ -55,7 +55,7 @@ class UserProfileEntry < DomainModel
     profile_type_id ? self.fetch_entry(user.id,profile_type_id) : nil
   end
 
-  @@user_fields =  %w(name image full_name first_name last_name gender dob source address billing_address work_address shipping_address salutation middle_name lead_source username cell_phone introduction suffix second_image)
+  @@user_fields =  %w(name image full_name first_name last_name gender dob source address billing_address work_address shipping_address salutation middle_name lead_source username cell_phone introduction suffix second_image username)
 
   def self.fetch_entry(user_id,profile_type_id)
     attr= { :user_profile_type_id => profile_type_id, :end_user_id => user_id } 
