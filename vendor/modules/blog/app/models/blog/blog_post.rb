@@ -30,6 +30,10 @@ class Blog::BlogPost < DomainModel
   
   has_content_tags
 
+  def first_category
+    self.blog_categories[0] || Blog::BlogCategory.new
+  end
+
   def data_model
     return @data_model if @data_model
     return nil unless self.blog_blog && self.blog_blog.content_model
