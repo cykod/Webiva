@@ -26,6 +26,10 @@ class ContentNodeValue < DomainModel
     self.content_node.author
   end
 
+  def name
+    self.title
+  end
+
 
   class << self
     include ActionView::Helpers::TextHelper
