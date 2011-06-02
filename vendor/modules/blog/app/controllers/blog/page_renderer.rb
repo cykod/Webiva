@@ -124,7 +124,6 @@ class Blog::PageRenderer < ParagraphRenderer
       cache[:content_node_id] = entry.content_node.id if entry && entry.content_node
       cache[:output] = blog_entry_detail_feature(:entry => entry,
                                                  :list_page => get_list_page(blog),
-                                                 :detail_page => site_node.node_path,
                                                  :blog => blog)
       cache[:title] = entry ? entry.title : ''
       cache[:keywords] = (entry && !entry.keywords.blank?) ? entry.keywords : nil
