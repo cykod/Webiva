@@ -228,7 +228,17 @@ module ModelExtension::EndUserImportExtension
             fields.each do |fld|
               value = row[fld[1]].to_s
               if fld[4].to_sym == :field
-                entry_values[fld[3]] = value
+                if fld[3] == 'email'
+                  if !value.blank?
+                    if value =~ RFC822::EmailAddress
+                      entry_values[fld[3]] = value unless value.blank?
+                    elsif value.split(',')[0].to_s.strip =~ RFC822::EmailAddress
+                      entry_values[fld[3]] = value.split(',')[0].strip
+                    end
+                  end
+                else
+                  entry_values[fld[3]] = value unless value.blank?
+                end
               elsif fld[4].to_sym == :address
                 process_import_address(entry,entry_addresses,fld[3],value)
               elsif fld[4].to_sym == :tags
@@ -243,6 +253,7 @@ module ModelExtension::EndUserImportExtension
             end
 
             entry.attributes = entry_values
+            entry.admin_edit = true
 
             if entry.valid?
               entry_addresses.each do |key,adr|
