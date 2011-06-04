@@ -223,16 +223,18 @@ class Blog::BlogPost < DomainModel
       self.data_model_id = self.data_model.id
     end
 
-    self.active_revision.update_attribute(:status,'old') if self.active_revision
-    @revision = @revision.clone
+    if @revision
+      self.active_revision.update_attribute(:status,'old') if self.active_revision
+      @revision = @revision.clone
 
-    @revision.status = 'active'
-    @revision.blog_blog = self.blog_blog
-    @revision.blog_post_id = self.id if self.id
-    @revision.save
+      @revision.status = 'active'
+      @revision.blog_blog = self.blog_blog
+      @revision.blog_post_id = self.id if self.id
+      @revision.save
 
-    self.blog_post_revision_id = @revision.id
-    self.generate_permalink!
+      self.blog_post_revision_id = @revision.id
+      self.generate_permalink!
+    end
   end
   def after_create
     @revision.update_attribute(:blog_post_id,self.id)

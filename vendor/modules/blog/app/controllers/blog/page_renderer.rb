@@ -85,7 +85,7 @@ class Blog::PageRenderer < ParagraphRenderer
         if list_type.to_s == 'archive'
           pages,entries = blog.paginate_posts_by_month(page,list_type_identifier,items_per_page,:large => @options.skip_total)
         else
-          pages,entries = blog.paginate_posts(@options.skip_page ? 1 : page,items_per_page,:large => @options.skip_total, :category_filter => category_filter, :tag_filter => tag_filter)
+          pages,entries = blog.paginate_posts(@options.skip_page ? 1 : page,items_per_page,:large => @options.skip_total, :category_filter => category_filter, :tag_filter => tag_filter, :order => @options.order == 'date' ? 'blog_posts.published_at DESC' : 'blog_posts.rating DESC')
         end
       else
         pages,entries = Blog::BlogPost.paginate_published(page,items_per_page,@options.blog_ids,:large => @options.skip_total)

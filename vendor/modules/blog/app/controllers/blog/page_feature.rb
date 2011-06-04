@@ -107,6 +107,9 @@ class Blog::PageFeature < ParagraphFeature
     c.value_tag('entry:embedded_media') { |tag| tag.locals.entry.embedded_media }
     
     c.media_tag('entry:media_file') { |tag| tag.locals.entry.media_file }
+
+    c.value_tag('entry:rating') { |t| (t.locals.entry.rating * (t.attr['multiplier'] || 1).to_i).floor.to_i }
+    c.value_tag('entry:rating_display') { |t| sprintf("%.1f",t.locals.entry.rating) }
     
     c.date_tag('entry:published_at',"%H:%M%p on %B %d %Y".t) { |t|  t.locals.entry.published_at }
     c.image_tag('entry:image') { |t| t.locals.entry.image }
