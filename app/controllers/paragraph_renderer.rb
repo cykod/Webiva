@@ -459,7 +459,7 @@ class ParagraphRenderer < ParagraphFeature
       js.each { |fl| require_js(fl) }
     else
       js.downcase!
-      js += ".js" unless js[-3..-1] == '.js'
+      js += ".js" unless js =~ /^https?:\/\// || js[-3..-1] == '.js'
       @includes[:js] << js
     end
   end
