@@ -1284,6 +1284,11 @@ block is non-nil
       end
     end
 
+
+    def define_domain_prefix_tag
+      define_tag("domain_prefix") { |t| (request.ssl? ? "https://" : "http://") + Configuration.full_domain }
+    end
+    
     
     def define_content_model_fields_value_tags(prefix,content_model_fields,options = {})
       c = self
@@ -1421,6 +1426,8 @@ block is non-nil
       
     end
 
+
+
     # Given the pages hash output of DomainModel#self.paginate 
     # it will display a list of pages 
     # TODO: rewrite for customization
@@ -1493,7 +1500,7 @@ block is non-nil
         
       end      
     end
-    
+
     # Defines the a list of tags that are available in a loop tag
     def define_position_tags(prefix=nil)
         prefix += ':' if prefix
@@ -1620,8 +1627,8 @@ block is non-nil
         content = yield(tag) if block_given?
         content ||= tag.expand unless tag.single?
         html_include(:head_html, content) unless content.blank?
+        nil
       end
-      nil
     end
 
     def define_meta_tag(name, options={})
@@ -1643,8 +1650,8 @@ block is non-nil
           opts['content'] = content
           html_include(:head_html, tag(:meta, opts))
         end
+        nil
       end
-      nil
     end
 
     # get versions of all the define_... methods without the define
@@ -1850,6 +1857,7 @@ block is non-nil
   if !self.documentation
      parser_context = FeatureContext.new(self) do |c| 
       c.define_position_tags  
+      c.define_domain_prefix_tag
       yield c
       
       # Get each of the handler option models
