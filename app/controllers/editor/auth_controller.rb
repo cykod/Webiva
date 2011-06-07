@@ -10,7 +10,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
   editor_for :login, :name => 'User Login', :features => ['login']
   editor_for :enter_vip, :name => 'Enter VIP #', :features => ['enter_vip'], :triggers => [['Failed VIP Login','failure'],['Successful VIP Login','success' ],['Repeat Successful VIP Login','repeat']]
 
-  editor_for :user_register, :name => 'User Registration', :feature => 'user_register', :triggers => [ ['Successful Registration','action'] ]
+  editor_for :user_register, :name => 'User Registration', :feature => 'user_register', :triggers => [ ['Successful Registration','action'] ], :inputs => { :source => [[:source, 'Source',:path]], :tag => [[:add_tag,'Tag',:path ]] }
 
   editor_for :user_activation, :name => 'User Activation', :feature => 'user_activation', :triggers => [ ['Successful Activation','action'] ]
 

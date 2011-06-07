@@ -32,6 +32,7 @@ class EditController < ModuleController # :nodoc: all
   register_action '/editor/auth/logout', :description => 'User Logged Out', :level => 2
   register_action '/editor/auth/cookie', :description => 'User Cookie Login', :level => 2
   register_action '/members/edit', :description => 'Admin account edit', :level => 2
+  register_action '/editor/auth/user_registration', :description => 'User Registered'
 
 
   private
