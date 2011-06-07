@@ -126,7 +126,7 @@ class Blog::PageFeature < ParagraphFeature
     c.value_tag('entry:permalink') { |t| t.locals.entry.permalink }
     c.value_tag('entry:body') { |tag| tag.locals.entry.body_content }
     c.value_tag('entry:preview') {  |tag| tag.locals.entry.preview_content }
-    c.value_tag('entry:content_node_id') { |t| t.locals.entry.content_node_id }
+    c.value_tag('entry:content_node_id') { |t| t.locals.entry.content_node.id }
 
     c.value_tag 'entry:preview_title' do |tag|
       h(tag.locals.entry.preview_title.blank? ? tag.locals.entry.title : tag.locals.entry.preview_title)
