@@ -466,7 +466,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       @status = 'invalid'
     end
 
-    if @user && ( (request.post? && params[:activate]) || @status == 'activated' )
+    if !editor? && @user && ( (request.post? && params[:activate]) || @status == 'activated' )
       if @status == 'activation' && params[:activate][:accept].blank?
         @acceptance_error = true
       
