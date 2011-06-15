@@ -50,9 +50,10 @@ class EndUser < DomainModel
   # Only need an email if we aren't a client user
   validates_presence_of :email, :if => Proc.new { |usr| !usr.client_user_id && !usr.admin_edit }
 
-  validates_format_of :username, :with => /^([ a-zA-Z0-9!#\$%^&*@()_\-.]+)$/,:allow_blank => true, 
-                      :message => 'can only contain numbers, letters, and the symbols: !@#$%^&()-_.'
+  validates_format_of :username, :with => /^([ a-zA-Z0-9!#\$%^&*@()_\-.]{2,32})$/,:allow_blank => true, 
+                      :message => 'must be 2-32 numbers, letters, and the symbols: !@#$%^&()-_.'
 
+  validates_length_of :password, :minimum => 4, :allow_blank => true, :message => "must be at least 4 letters long"
   # Email always needs to be unique - but can be blank if user is an client user
   validates_uniqueness_of :email,:allow_blank => true
   validates_uniqueness_of :username, :allow_blank => true
