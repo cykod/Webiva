@@ -1014,7 +1014,7 @@ class Content::CoreField < Content::FieldHandler
     filter_setup
     
     def form_field(f,field_name,field_opts,options={})
-      f.header @model_field.name, field_opts.merge(options)
+      f.header field_opts[:label] || @model_field.name, field_opts.merge(options)
     end
 
     def assign_value(entry,value)
