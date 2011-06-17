@@ -314,7 +314,7 @@ module WebivaFormElements
       <img src='/images/site/document.gif' style='width:16px;height:16px;padding:0px;margin:0px;border:0px;' />
       #{h doc_file.name}
       </a>&nbsp;
-      <a href='javascript:void(0);' onclick='document.getElementById("#{@object_name}_#{field}_clear").value="0"; document.getElementById("#{@object_name}_#{field}_file").innerHTML="";'>(Remove)</a>
+      <a href='javascript:void(0);' onclick='document.getElementById("#{@object_name}_#{field}_clear").value="0"; document.getElementById("#{@object_name}_#{field}_file").innerHTML="";'>#{"(Remove)".t}</a>
       </span><br/>
     DOC_SOURCE
    end
