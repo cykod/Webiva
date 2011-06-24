@@ -13,15 +13,43 @@ class Comment < DomainModel
 
   cached_content
 
+  attr_accessor :email, :first_name, :last_name, :zip,:required_fields 
+  validates_as_email :email, :allow_blank => true
+
   safe_content_filter({ :comment => :comment_html},:filter => :comment)
 
   validates_presence_of :name, :comment, :target_type, :target_id
+
   
   named_scope :with_rating, lambda { |r| {:conditions => ['`comments`.rating >= ?', r]} }
   named_scope :for_target, lambda { |type, id| {:conditions => ['`comments`.target_type = ? AND `comments`.target_id = ?', type, id]} }
   named_scope :order_by_posted, lambda { |order| order == 'newest' ? {:order => '`comments`.posted_at DESC'} : {:order => '`comments`.posted_at'} }
   named_scope :for_source, lambda { |type, id| {:conditions => ['`comments`.source_type = ? AND `comments`.source_id = ?', type, id]} }
   named_scope :between, lambda { |from, to| {:conditions => ['comments.posted_at >= ? AND comments.posted_at < ?', from, to]} }
+
+  def validate_on_create
+    if self.required_fields && self.end_user_id.blank?
+      self.required_fields.each do |fld|
+        if(fld.present? && self.send(fld).blank?)
+          self.errors.add(fld,"is missing")
+        end
+      end
+    end
+
+  end
+
+  def user_args
+    if self.first_name.blank? && self.name.present?
+      names = self.name.split(" ")
+      self.first_name = names[0]
+      self.last_name = names[1]
+    end
+    { 
+      :first_name => self.first_name,
+      :last_name => self.last_name,
+      :zip => self.zip
+    }
+  end
 
   def rating_icon(override=nil)
     override = rating unless override
@@ -65,4 +93,5 @@ class Comment < DomainModel
       self.commented_scope from, duration, opts
     end
   end
+
 end
