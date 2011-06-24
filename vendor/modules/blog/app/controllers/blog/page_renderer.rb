@@ -91,7 +91,7 @@ class Blog::PageRenderer < ParagraphRenderer
         pages,entries = Blog::BlogPost.paginate_published(page,items_per_page,@options.blog_ids,:large => @options.skip_total)
       end
 
-      cache[:title] = blog.name
+      cache[:title] = blog.name if blog
       cache[:output] = blog_entry_list_feature(:blog => blog,
 					       :entries => entries,
 					       :detail_page => detail_page,
@@ -101,7 +101,7 @@ class Blog::PageRenderer < ParagraphRenderer
 					       :identifier => list_type_identifier)
     end
 
-    set_title(result.title) 
+    set_title(result.title) if result.title 
     require_css('gallery')
     render_paragraph :text => result.output
   end
