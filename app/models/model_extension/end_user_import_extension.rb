@@ -197,14 +197,26 @@ module ModelExtension::EndUserImportExtension
 
     new_user_class = UserClass.find_by_id(opts[:user_class_id]) || UserClass.default_user_class
 
-    reader.each do |row|
+    finished = false
+    row = nil
+    while !finished 
+      entry_errors = []
+      begin 
+        row = reader.shift
+      rescue Exception => e
+        entry_errors << "Ignoring malformed row: " + e.to_s
+      end
+
+      if !row
+        finished = true
+        break
+      end
 
       if(row.join.blank?)
         idx+=1
         next
       end
 
-      entry_errors = []
       if !reader_offset || idx >= reader_offset
         entry = EndUser.find_by_email(row[email_field]) unless row[email_field].blank?
 
