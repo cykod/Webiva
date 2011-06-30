@@ -49,7 +49,7 @@ class Blog::RssHandler
         item = { :title => post.title,
                  :guid => post.id,
                  :published_at => post.published_at.to_s(:rfc822),
-                 :description => Util::HtmlReplacer.replace_relative_urls(@options.full ? post.body_content : post.preview)
+                 :description => Util::HtmlReplacer.replace_relative_urls(@options.full ? post.body_content : post.preview_content)
                 }
         item[:creator] = post.author unless post.author.blank?
         post.blog_categories.each do |cat|
