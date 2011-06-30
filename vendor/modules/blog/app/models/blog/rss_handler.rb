@@ -84,6 +84,8 @@ class Blog::RssHandler
     validates_presence_of :feed_identifier, :limit
     validates_numericality_of :limit
 
+
+    boolean_options :full
     integer_options :limit
     
     has_options :subfeed_options, [['None',nil],['Category','category'],['Tag','tag']]
