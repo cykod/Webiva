@@ -137,7 +137,7 @@ class UserSegment::OperationBuilder < HashModel
     arg = arg.to_s
     if arg =~ /^argument(\d+)$/
       val = self.arguments[$1.to_i]
-      val = val.strftime('%m/%d/%Y %H:%M:%S') if val.is_a?(Time)
+      val = val.strftime(Configruation.datetime_format) if val.is_a?(Time)
       val
     elsif arg =~ /^argument(\d+)=$/
       self.arguments[$1.to_i] = self.convert_to(args[0], $1.to_i) if $1.to_i < self.operation_arguments.length
