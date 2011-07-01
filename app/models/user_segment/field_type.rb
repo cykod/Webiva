@@ -191,6 +191,7 @@ class UserSegment::FieldType
     end
 
     value = value.strftime(Configuration.datetime_format) if value.is_a?(Time)
+    value = value.strftime(Configuration.date_format) if value.is_a?(Date)
     value = value.name if value.is_a?(DomainModel)
     value = 'Yes'.t if value.is_a?(TrueClass)
     value = 'No'.t if value.is_a?(FalseClass)
