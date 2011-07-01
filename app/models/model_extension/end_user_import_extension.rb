@@ -205,9 +205,10 @@ module ModelExtension::EndUserImportExtension
         row = reader.shift
       rescue Exception => e
         entry_errors << "Ignoring malformed row: " + e.to_s
+        row = []
       end
 
-      if !row
+      if !row[0]
         finished = true
         break
       end
