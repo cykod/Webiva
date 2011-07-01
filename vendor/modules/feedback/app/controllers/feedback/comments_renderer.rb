@@ -38,13 +38,14 @@ class Feedback::CommentsRenderer < ParagraphRenderer
       param_str = 'comment_' + paragraph.id.to_s
       if !@comments_closed && request.post? && params[param_str]
         if myself.id || @options.allowed_to_post == 'all'
-          @comment = Comment.new(:target_type => content_link[0],
+          args = params[param_str].slice('name','first_name','last_name','email','website','zip')
+          @comment = Comment.new({:target_type => content_link[0],
                                  :target_id => content_link[1],
                                  :posted_ip => request.remote_ip,
                                  :comment => params[param_str][:comment],
-                                 :name => params[param_str][:name],
-                                 :end_user_id => myself.id)
+                                 :end_user_id => myself.id}.merge(args) )
 
+          @comment.required_fields = @options.required_fields if @options.save_user
           @captcha.validate_object(@comment, :skip => ! @options.captcha)
           if @comment.save
             target_cls = content_link[0].constantize
@@ -52,10 +53,15 @@ class Feedback::CommentsRenderer < ParagraphRenderer
               target_cls.comment_posted(content_link[1])
             end
 
+            if !myself.id && @options.save_user
+              @usr = EndUser.push_target(@comment.email,@comment.user_args.merge(:lead_source => @options.source, :tag_names => @options.user_tags))
+              @comment.update_attribute(:end_user_id,@usr.id) if @usr.id
+            end
+
             if paragraph.update_action_count > 0
               atr = @comment.attributes.slice('name','posted_ip','posted_at','comment')
               atr['target'] = @comment.target.title if @comment.target && @comment.target.respond_to?(:title)
-              paragraph.run_triggered_actions(atr,'action',myself)
+              paragraph.run_triggered_actions(atr,'action',@usr || myself)
             end
 
 

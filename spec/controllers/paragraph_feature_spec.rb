@@ -457,17 +457,6 @@ describe ParagraphFeature, :type => :view do
     @output.should have_tag('a', :href => "?page=3", :text => '3')
   end
 
-  it "should render pages tags" do
-
-    @output = @feature.parse_inline("<cms:pages/>") do |c|
-      c.pages_tag('pages', '/test', 2, 10)
-    end
-
-    @output.should have_tag('a', :href => "/test?page=1", :text => '1')
-    @output.should have_tag('b', :text => '2')
-    @output.should have_tag('a', :href => "/test?page=3", :text => '3')
-  end
-
   it "should render a loop tag's position elements" do
     data = [mock(:first_name => 'First1', :last_name => 'Last1', :email => 'test1@test.dev'),
             mock(:first_name => 'First2', :last_name => 'Last2', :email => 'test2@test.dev'),

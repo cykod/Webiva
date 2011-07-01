@@ -806,13 +806,13 @@ block is non-nil
           end
           opts[:url] ||= ''
           frm_opts = opts.delete(:html) || { }
-          frm_opts[:method] = 'post'
+          frm_opts[:method] ||= 'post'
           html_options = html_options_for_form(options.delete(:url),frm_opts)
           html_options['action'] ||= ''
           if pch = opts.delete(:page_connection_hash)
             pch = "<input type='hidden' name='page_connection_hash' value='#{pch}' />"
           end
-          frm_tag = tag(:form,html_options,true) + "<CMS:AUTHENTICITY_TOKEN/>" + pch.to_s + opts.delete(:code).to_s
+          frm_tag = tag(:form,html_options,true) + (frm_opts[:method] == 'post' ? "<CMS:AUTHENTICITY_TOKEN/>" : '')+ pch.to_s + opts.delete(:code).to_s
           cms_unstyled_fields_for(arg,obj,opts) do |f|
             tag.locals.send("#{frm_obj}=",f)
             frm_tag + tag.expand + "</form>"

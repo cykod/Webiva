@@ -20,11 +20,7 @@ class MemberImportWorker <  Workling::Base #:nodoc:all
     file = DomainFile.find_by_id args[:csv_file]
     filename = file.filename
 
-    reader, header = open_csv(filename,args[:deliminator])
-    count = 0  
-    reader.each do |row|
-      count += 1 if !row.join.blank?
-    end
+    count = %x{wc -l #{filename}}.split.first.to_i - 1
     count = 1 if count < 1
     results[:entries] = count
     
