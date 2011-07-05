@@ -148,10 +148,10 @@ module ModelExtension::EndUserImportExtension
 
     file_fields = nil
     begin
-      reader = CSV.open(filename,"r",deliminator)
+      reader = FasterCSV.open(filename,"r",:col_sep => deliminator)
       file_fields = reader.shift
-    rescue CSV::IllegalFormatError => e
-      reader = CSV.open(filename,"r",deliminator, ?\r)
+    rescue FasterCSV::MalformedCSVError=> e
+      reader = FasterCSV.open(filename,"r",:col_sep => deliminator, :row_sep => ?\r)
       file_fields = reader.shift
     end
     fields = []
@@ -204,11 +204,12 @@ module ModelExtension::EndUserImportExtension
       begin 
         row = reader.shift
       rescue Exception => e
+        reader.readline()
         entry_errors << "Ignoring malformed row: " + e.to_s
         row = []
       end
 
-      if !row[0]
+      if !row[0] && entry_errors.length == 0
         finished = true
         break
       end
