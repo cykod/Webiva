@@ -20,11 +20,30 @@ class MemberImportWorker <  Workling::Base #:nodoc:all
     file = DomainFile.find_by_id args[:csv_file]
     filename = file.filename
 
-    count = %x{wc -l #{filename}}.split.first.to_i - 1
+    reader, header = open_csv(filename,args[:deliminator])
+    count = 0  
+    line = 0
+    errors = []
+    while !reader.eof?
+      begin 
+        while !reader.eof?
+          line += 1 
+          row = reader.shift
+          count += 1 if !row.join.blank?
+          Rails.logger.error( "(Counted #{line} lines)") if line % 5000 == 0
+        end
+      rescue Exception => e
+        Rails.logger.error( "(Parse Error line #{line} during count)")
+        errors << "(Parse Error line #{line} during count)"
+      end
+    end
+    Rails.logger.error( "(Counted #{line} lines)")
+
     count = 1 if count < 1
+
     results[:entries] = count
     
-    results[:errors] = []
+    results[:errors] = errors
     results[:initialized] = true
     results[:imported] = 0
     Workling.return.set(args[:uid],results)
@@ -42,12 +61,12 @@ class MemberImportWorker <  Workling::Base #:nodoc:all
   def open_csv(filename,deliminator = ',')
     reader = nil
     header = []
-    begin 
-      reader = CSV.open(filename,"r",deliminator)
-      header = reader.shift
-    rescue Exception => e
-      reader = CSV.open(filename,"r",deliminator,?\r)
-      header = reader.shift
+    begin
+      reader = FasterCSV.open(filename,"r",:col_sep => deliminator)
+      file_fields = reader.shift
+    rescue FasterCSV::MalformedCSVError=> e
+      reader = FasterCSV.open(filename,"r",:col_sep => deliminator, :row_sep => ?\r)
+      file_fields = reader.shift
     end
     return [ reader,header ]
   end

@@ -128,7 +128,7 @@ module ModelExtension::EndUserImportExtension
     user_opts = opts[:user_options] || {}
 
     page = options[:page].to_i
-    page_size = options[:page_size] || 50
+    page_size = options[:page_size] || 500
 
     import = options[:import] || false
 
@@ -199,20 +199,15 @@ module ModelExtension::EndUserImportExtension
 
     finished = false
     row = nil
-    while !finished 
+    while !finished && !reader.eof?
       entry_errors = []
       begin 
         row = reader.shift
       rescue Exception => e
-        reader.readline()
         entry_errors << "Ignoring malformed row: " + e.to_s
         row = []
       end
 
-      if !row[0] && entry_errors.length == 0
-        finished = true
-        break
-      end
 
       if(row.join.blank?)
         idx+=1
@@ -326,9 +321,6 @@ module ModelExtension::EndUserImportExtension
           end
         end
 
-        if block_given?
-          yield 1,entry_errors
-        end
       end
 
       # Exit if we are already over sample limit
@@ -336,6 +328,11 @@ module ModelExtension::EndUserImportExtension
         break;
       end
       idx+=1
+
+
+      if block_given?
+        yield 1,entry_errors
+      end
     end
     reader.close
 
