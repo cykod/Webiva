@@ -52,7 +52,7 @@ class Blog::EditRenderer < ParagraphRenderer
 
     end_user_table_generate(@tbl,:conditions => [ "blog_blog_id = ?",@blog.id],:order => 'blog_posts.updated_at DESC',:per_page => 20, :include => :active_revision)
   
-    edit_url = @options.edit_page_url + @target_connection_url.to_s
+    edit_url = @options.edit_page_url.to_s + @target_connection_url.to_s
     data = { :tbl => @tbl, :edit_url => edit_url }
     
     render_paragraph :text => blog_edit_list_feature(data)
