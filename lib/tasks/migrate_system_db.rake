@@ -8,9 +8,9 @@ namespace "cms" do
     version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
     
     main_db = YAML.load_file("#{Rails.root}/config/cms_migrator.yml")
-    
+
     ActiveRecord::Base.logger = Logger.new(STDOUT)
-    ActiveRecord::Base.establish_connection(main_db[ENV['RAILS_ENV']])
+    ActiveRecord::Base.establish_connection(main_db[Rails.env])
     ActiveRecord::Migrator.migrate("#{Rails.root}/db/system_migrate/",version)
 	
 	

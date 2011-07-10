@@ -22,13 +22,13 @@ class MigrationHandlerWorker < Workling::Base #:nodoc:all
     
     print "Got Action: #{action.to_s}\n"
     case action
-    when 'create_table':
+    when 'create_table'
       print "Creating Table\n"
       content.create_table
-    when 'update_table':
+    when 'update_table'
       print "Updating Table\n"
       content.update_table(args[:fields],args[:field_deletions])
-    when 'destroy_table':
+    when 'destroy_table'
       content.delete_table
       content.destroy
     end

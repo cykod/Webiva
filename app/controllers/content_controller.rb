@@ -142,11 +142,11 @@ class ContentController < ModuleController #:nodoc: all
       case act
         when 'delete'
           mdl.destroy(entry_ids)
-        when 'copy':
+        when 'copy'
           mdl.find(entry_ids).each { |entry| entry.clone.save }
-        when 'add_tags':
+        when 'add_tags'
           mdl.find(entry_ids).each { |entry| entry.add_tags(params[:added_tags])}
-        when 'remove_tags':
+        when 'remove_tags'
           mdl.find(entry_ids).each { |entry| entry.remove_tags(params[:removed_tags])}
       end
     end

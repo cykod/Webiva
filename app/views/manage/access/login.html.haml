@@ -8,13 +8,6 @@
       = f.password_field :password
       = f.spacer
       = f.submit_tag "Login"
-  :javascript
-    if (navigator.userAgent.indexOf("Firefox")==-1) {
-      $('login_box').hide();
-      document.write("");
-      document.write("Notice: the backend editor currently only officially supports the Firefox Web Browser");
-      document.write("Let me in anyway &raquo;");
-    }
     
 :javascript
   Event.observe(window, 'load', function() { $('user_username').focus(); });

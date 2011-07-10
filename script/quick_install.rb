@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'sha1'
+require 'digest/sha1'
 require 'base64'
 require 'fileutils'
 require 'yaml'

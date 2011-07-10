@@ -344,9 +344,9 @@ class SiteNode < DomainModel
   def self.page_and_group_options(include_root = false)
     SiteNode.page_and_group_node_types(include_root).order('lft').all.collect do |page|
       title = case page.node_type
-              when 'R': include_root
-              when 'P': page.node_path
-              when 'G': "#{page.node_path} (#{page.title})"
+              when 'R'; include_root
+              when 'P'; page.node_path
+              when 'G'; "#{page.node_path} (#{page.title})"
               end
       [ title, page.id ]
     end

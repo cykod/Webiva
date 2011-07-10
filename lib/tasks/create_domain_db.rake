@@ -5,7 +5,7 @@ namespace "cms" do
     domain_id = ENV['DOMAIN_ID'] || raise('Missing DOMAIN_ID=## argument')
 
     db_config_file = YAML.load_file("#{Rails.root}/config/cms_migrator.yml")
-    db_config = db_config_file[ENV['RAILS_ENV']]
+    db_config = db_config_file[Rails.env]
     db_adapter = db_config['adapter'] || 'mysql'
     db_socket = db_config['socket']
     db_encoding = db_config['encoding'] || 'utf8'

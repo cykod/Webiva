@@ -1,5 +1,4 @@
-require 'sha1'
-require 'logger'
+require 'digest/sha1'
 
 class DomainDatabase < SystemModel
   DEFAULT_MAX_FILE_STORAGE = 10.gigabytes / 1.megabyte

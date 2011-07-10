@@ -246,23 +246,23 @@ class SiteNodeEngine
         paragraph.connections[:inputs].each do |input_key,input|
           if input[0].to_s == "0"
             case input[1].to_s
-            when 'page_arg_0':
+            when 'page_arg_0'
                 paragraph.set_page_connections(input_key =>  params[:path][0])
-            when 'page_arg_1':
+            when 'page_arg_1'
                 paragraph.set_page_connections(input_key => params[:path][1])
-            when 'page_arg_2':
+            when 'page_arg_2'
                 paragraph.set_page_connections(input_key => params[:path][2])
-            when 'user_target':
+            when 'user_target'
                 paragraph.set_page_connections(input_key => myself)
-            when 'logged_in_target':
+            when 'logged_in_target'
                 paragraph.set_page_connections(input_key => myself.id ? myself : nil)
-            when 'title':
+            when 'title'
                 if opts[:connections][:title]
                   paragraph.set_page_connections(input_key =>  opts[:connections][:title])
                 elsif !opts[:edit]
                   return nil
                 end
-            when 'title_str':
+            when 'title_str'
                 if opts[:connections][:title_str]
                   paragraph.set_page_connections(input_key => opts[:connections][:title_str] )
                 elsif !opts[:edit]

@@ -872,7 +872,7 @@ class EditController < ModuleController # :nodoc: all
     @parent_revision = @revision.parent_revision
   
     case @delete_type
-    when 'edit':
+    when 'edit'
       @replacement_revision =  @page.page_revisions.find(:first,
                                   :conditions => ['revision_type IN("real","old") AND language=? AND  revision=? AND id !=?',
                                                   @revision.language,@revision.revision,@parent_revision.id ],
@@ -884,7 +884,7 @@ class EditController < ModuleController # :nodoc: all
       @revision.destroy
       
       expire_site if @revision.active?
-    when 'revision':
+    when 'revision'
     
     
       @replacement_revision = @page.page_revisions.find(:first,

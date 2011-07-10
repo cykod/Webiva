@@ -42,7 +42,7 @@ class ContentExportWorker <  Workling::Base #:nodoc:all
     Workling.return.set(args[:uid],results)
     
     case args[:export_format]
-    when 'sql':
+    when 'sql'
     
       dmn_yaml = "#{Rails.root}/config/sites/#{dmn.database}.yml"
       dmn_file = YAML.load_file(dmn_yaml)
@@ -52,17 +52,17 @@ class ContentExportWorker <  Workling::Base #:nodoc:all
       `mysqldump -u #{config['username']} --password="#{config['password']}" --host=#{config['host']} --default-character-set=utf8 --quote-names --complete-insert #{config['database']} #{content_model.table_name} > #{filename}`
       
       results[:type] = 'sql'
-    when 'xml':
+    when 'xml'
       File.open(filename,'w') do |f|
         content_model.export_xml(f,:offset => @export_offset, :limit => @export_limit)
       end
       results[:type] = 'xml'
-    when 'csv':
+    when 'csv'
       CSV.open(filename,'w') do |writer|
         content_model.export_csv(writer,:offset => @export_offset, :limit => @export_limit)
       end
       results[:type] = 'csv'
-    when 'yaml':
+    when 'yaml'
       File.open(filename,'w') do |f|
         content_model.export_yaml(f,:offset => @export_offset, :limit => @export_limit)
       end

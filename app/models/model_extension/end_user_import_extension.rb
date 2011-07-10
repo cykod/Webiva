@@ -348,17 +348,17 @@ module ModelExtension::EndUserImportExtension
  
   def process_import_field(entry,field,value) #:nodoc:
     case field
-    when 'gender':
+    when 'gender'
       if ['m','male','m'.t,'male'.t].include?(value.to_s.downcase)
         entry.gender = 'm'
       elsif ['f','female','f'.t,'female'.t].include?(value.to_s.downcase)
         entry.gender = 'f'
       end
-    when 'password':
+    when 'password'
       entry.password = value
       entry.password_confirmation = value
       entry.registered = true
-    when 'name':
+    when 'name'
       name = value.split(" ")
       if name.length > 1
         entry.last_name = name[-1]
@@ -367,7 +367,7 @@ module ModelExtension::EndUserImportExtension
         entry.first_name = ''
         entry.last_name = name[0]
       end
-    when 'dob':
+    when 'dob'
       entry.dob = value
     end
   end
@@ -375,11 +375,11 @@ module ModelExtension::EndUserImportExtension
   def process_import_address(entry,entry_addresses,field,value) #:nodoc:
     address,field = field.split("_")
     adr = case address
-      when 'work':
+      when 'work'
 	entry_addresses['work_address_id'] ||= entry.work_address || EndUserAddress.new(:address_name => 'Default Work Address'.t )
-      when 'home':
+      when 'home'
 	entry_addresses['address_id'] ||= entry.address || EndUserAddress.new(:address_name => 'Default Address'.t )
-      when 'billing':
+      when 'billing'
         entry_addresses['billing_address_id'] ||= entry.billing_address || EndUserAddress.new(:address_name => 'Default Billing Address'.t )
     end
     
