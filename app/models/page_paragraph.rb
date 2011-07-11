@@ -42,9 +42,9 @@ class PageParagraph < DomainModel
   def paragraph_filter
     if self.display_module.blank?
       case display_type
-      when 'code' : 'full_html'
-      when 'textile' : 'textile'
-      when'markdown' : 'markdown'
+      when 'code' ; 'full_html'
+      when 'textile' ; 'textile'
+      when 'markdown' ; 'markdown'
       end
     else
       nil

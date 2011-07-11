@@ -34,7 +34,7 @@ class SimpleContent::ManageController < ModuleController
   def simple_content_table(display=true)
     active_table_action 'simple_content' do |act,ids|
       case act
-      when 'delete': SimpleContentModel.delete(ids)
+      when 'delete'; SimpleContentModel.delete(ids)
       end
     end
 

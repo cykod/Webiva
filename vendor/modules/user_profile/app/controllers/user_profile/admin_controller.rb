@@ -71,7 +71,7 @@ class UserProfile::AdminController < ModuleController
   def display_user_profile_table(display=true)
     active_table_action 'user_profile' do |act,ids|
       case act
-      when 'delete': UserProfileType.destroy(ids)
+      when 'delete'; UserProfileType.destroy(ids)
       end
     end
     @tbl = user_profile_table_generate params, :include => :user_profile_type_user_classes

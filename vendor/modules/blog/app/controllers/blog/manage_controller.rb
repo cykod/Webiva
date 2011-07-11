@@ -82,10 +82,10 @@ class Blog::ManageController < ModuleController
     active_table_action(:post) do |act,eids| 
       entries = Blog::BlogPost.find(eids)
       case act
-      when 'delete': entries.map(&:destroy)
-      when 'publish': entries.map(&:publish!)
-      when 'unpublish': entries.map(&:unpublish!)
-      when 'duplicate': entries.map(&:duplicate!)
+      when 'delete'; entries.map(&:destroy)
+      when 'publish'; entries.map(&:publish!)
+      when 'unpublish'; entries.map(&:unpublish!)
+      when 'duplicate'; entries.map(&:duplicate!)
       end
     end
 
@@ -143,9 +143,9 @@ class Blog::ManageController < ModuleController
         @entry.attributes = params[:entry]
 
         case params[:update_entry][:status]
-        when 'draft':       @entry.make_draft
-        when 'publish_now': @entry.publish_now
-        when 'preview':     @entry.make_preview
+        when 'draft';       @entry.make_draft
+        when 'publish_now'; @entry.publish_now
+        when 'preview';     @entry.make_preview
         when 'post_date'
           @entry.publish(params[:entry][:published_at].blank? ? Time.now : (params[:entry][:published_at]))
         end

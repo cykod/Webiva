@@ -103,9 +103,9 @@ class MailTemplate < DomainModel
  def validate_create_type #:nodoc:
   if self.create_type
     case create_type
-    when 'master':
+    when 'master'
       errors.add(:master_template_id,'is missing') if master_template_id.blank?
-    when 'design':
+    when 'design'
       errors.add(:site_template_id,'is missing') if site_template_id.blank?
     end
   end

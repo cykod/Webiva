@@ -332,25 +332,25 @@ module Content
         start = now.at_beginning_of_year.years_ago($1.to_i)
       else
         case start_option
-        when 'now':
+        when 'now'
             start = now
-        when 'year_ago':
+        when 'year_ago'
             start = now.at_beginning_of_year.years_ago(1)
-        when 'year':
+        when 'year'
             start = now.at_beginning_of_year
-        when '0_month':
+        when '0_month'
             start = now.at_beginning_of_month
-        when '0_week':
+        when '0_week'
             start = now.at_beginning_of_week
-        when '1_week':
+        when '1_week'
             start = now.next_week
-        when '1_day':
+        when '1_day'
             start = now.tomorrow
-        when 'midnight':
+        when 'midnight'
             start = now.at_midnight
-        when '1_day_ago':
+        when '1_day_ago'
             start = now.yesterday
-        when 'next_year':
+        when 'next_year'
             start = now.at_beginning_of_year.next_year
         else
           start = now

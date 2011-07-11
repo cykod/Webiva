@@ -47,11 +47,11 @@ class MailManagerController < CmsController # :nodoc: all
     
     active_table_action 'mail_template' do |act,tids|
       case act
-        when 'delete':  MailTemplate.delete(tids)
-        when 'archive': MailTemplate.update_all('archived=1', [ 'id IN (?)',tids ])
-        when 'duplicate': MailTemplate.find(tids).each { |mt| mt = mt.clone; mt.created_at = nil; mt.update_attribute(:name,mt.name + " (COPY)") }
-        when 'unarchive': MailTemplate.update_all('archived=0', [ 'id IN (?)',tids ])
-        when 'publish': MailTemplate.update_all('published_at=NOW()', [ 'published_at is NULL and id IN (?)',tids ])
+        when 'delete';  MailTemplate.delete(tids)
+        when 'archive'; MailTemplate.update_all('archived=1', [ 'id IN (?)',tids ])
+        when 'duplicate'; MailTemplate.find(tids).each { |mt| mt = mt.clone; mt.created_at = nil; mt.update_attribute(:name,mt.name + " (COPY)") }
+        when 'unarchive'; MailTemplate.update_all('archived=0', [ 'id IN (?)',tids ])
+        when 'publish'; MailTemplate.update_all('published_at=NOW()', [ 'published_at is NULL and id IN (?)',tids ])
       end
       DataCache.expire_content("Mailing")
      

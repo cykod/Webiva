@@ -80,8 +80,8 @@ class Editor::MenuFeature < ParagraphFeature #:nodoc:all
           c.define_value_tag 'section:color' do |tag|
             color_type=nil
             case tag.attr['type']
-              when 'selected': color_type = :color_selected
-              when 'hover': color_type = :color_hover
+              when 'selected'; color_type = :color_selected
+              when 'hover'; color_type = :color_hover
               else; color_type = :color
             end
             if tag.locals.data[:rev]

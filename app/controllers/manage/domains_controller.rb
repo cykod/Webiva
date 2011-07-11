@@ -57,15 +57,15 @@ class Manage::DomainsController < CmsController # :nodoc: all
     cms_page_info [ ['System',url_for(:controller => '/manage/system')], ['Domains',url_for(:controller => '/manage/domains')], ['Edit %s',nil,@domain.name] ],'system'
 
     case @domain.status
-    when 'initializing':
+    when 'initializing'
       flash[:notice] = 'Domain is currently initializing and cannot be edited'
       redirect_to :action => 'index'
       return
-    when 'working':
+    when 'working'
       flash[:notice] = 'Domain is currently initializing and cannot be edited'
       redirect_to :action => 'index'
       return
-    when 'setup':
+    when 'setup'
       redirect_to :action => 'setup', :path => @domain.id
       return
     end
@@ -128,15 +128,15 @@ class Manage::DomainsController < CmsController # :nodoc: all
     cms_page_info [ ['System',url_for(:controller => '/manage/system')], ['Domains',url_for(:controller => '/manage/domains')], 'Domain Setup'],'system'
 
     case @domain.status
-    when 'initializing':
+    when 'initializing'
       flash[:notice] = 'Domain is currently initializing and cannot be edited'
       redirect_to :action => 'index'
       return
-    when 'working':
+    when 'working'
       flash[:notice] = 'Domain is currently initializing and cannot be edited'
       redirect_to :action => 'index'
       return
-    when 'initialized':
+    when 'initialized'
       redirect_to :action => 'edit', :path => @domain.id
       return
     end

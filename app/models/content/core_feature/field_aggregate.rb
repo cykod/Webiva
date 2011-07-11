@@ -50,9 +50,9 @@ class Content::CoreFeature::FieldAggregate <  Content::Feature #:nodoc:all
       cls.send(:before_save) do |entry|
         begin
           case opts.aggregate_type
-          when 'any': is_set  = field_list.reduce(false) { |acc,fld| acc || !entry.send(fld).blank? }
-          when 'all':  is_set  = field_list.reduce(true) { |acc,fld| acc && !entry.send(fld).blank? }
-          when 'none':  is_set  = field_list.reduce(true) { |acc,fld| acc && entry.send(fld).blank? }
+          when 'any'; is_set  = field_list.reduce(false) { |acc,fld| acc || !entry.send(fld).blank? }
+          when 'all';  is_set  = field_list.reduce(true) { |acc,fld| acc && !entry.send(fld).blank? }
+          when 'none';  is_set  = field_list.reduce(true) { |acc,fld| acc && entry.send(fld).blank? }
           end
           entry.send("#{field_name}=",is_set ? opts.full_value : opts.blank_value)
         rescue

@@ -54,7 +54,7 @@ class Feed::PageFeature < ParagraphFeature
      c.date_tag(tag_name,DEFAULT_DATE_FORMAT.t) { |t|  obj = t.locals.send(local); obj[key] if obj }
     elsif key =~ /^(.*)\_url$/
      c.link_tag(name_base_blank + ":" +  $1) {  |t| obj = t.locals.send(local); obj[key] if obj }
-    elsif key =~ /^.*\url$/
+    elsif key =~ /^.*url$/
      c.link_tag(name_base_blank) {  |t| obj = t.locals.send(local); obj[key] if obj }
     else
       c.value_tag(tag_name) { |t|  obj = t.locals.send(local); obj[key] if obj }

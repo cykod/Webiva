@@ -28,10 +28,10 @@ class ContentTypesController < CmsController # :nodoc: all
     active_table_action('content_type') do |act,cids|
       types = ContentType.find(:all,:conditions => {  :id => cids })
       atr = case act
-            when 'protect': { :protected_results => true }
-            when 'unprotect': { :protected_results => false  }
-            when 'search': {  :search_results => true }
-            when 'unsearch': {  :search_results => false}
+            when 'protect'; { :protected_results => true }
+            when 'unprotect'; { :protected_results => false  }
+            when 'search'; {  :search_results => true }
+            when 'unsearch'; {  :search_results => false}
             end
       types.each {  |ct| ct.update_attributes(atr)}
       flash.now[:notice] = "Content Models updated - changes won't take place until the indexer reruns"

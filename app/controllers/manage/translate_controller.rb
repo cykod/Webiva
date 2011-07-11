@@ -31,7 +31,7 @@ class Manage::TranslateController < CmsController # :nodoc: all
 
     if request.post?
       case params[:table_action].to_s
-      when 'delete':  
+      when 'delete';  
         if params[:trans].is_a?(Hash)
           ViewTranslation.delete(params[:trans].keys);
         end

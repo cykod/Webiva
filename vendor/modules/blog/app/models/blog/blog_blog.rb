@@ -53,11 +53,11 @@ class Blog::BlogBlog < DomainModel
   def paginate_posts_by_date(page,date_name,items_per_page,options = {})
     today = Time.now.at_midnight; end_time = Time.now
     case date_name.downcase
-    when 'day':   start_time = today
-    when 'week':  start_time = today - 7.days;
-    when 'month': start_time = today.at_beginning_of_month
-    when 'last_month': start_time = (today - 1.months).at_beginning_of_month; end_time = start_time.at_end_of_month
-    when 'six_months': start_time = today - 6.months
+    when 'day';   start_time = today
+    when 'week';  start_time = today - 7.days;
+    when 'month'; start_time = today.at_beginning_of_month
+    when 'last_month'; start_time = (today - 1.months).at_beginning_of_month; end_time = start_time.at_end_of_month
+    when 'six_months'; start_time = today - 6.months
     else return nil,[]
     end
 

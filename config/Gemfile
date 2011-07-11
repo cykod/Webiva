@@ -17,8 +17,8 @@ gem 'maruku'
 gem 'net-ssh', :require => 'net/ssh'
 gem 'rmagick', :require => 'RMagick'
 gem 'libxml-ruby', :require => 'xml'
-gem 'soap4r', :require => 'soap/soap'
-gem 'SystemTimer', :require => 'system_timer'
+# gem 'soap4r', :require => 'soap/soap'
+# gem 'SystemTimer', :require => 'system_timer'
 gem 'memcache-client', :require => 'memcache'
 gem 'resthome'
 gem "nokogiri"
@@ -38,6 +38,10 @@ group :development, :test, :spec, :cucumber, :selenium do
   gem 'fakeweb'
   gem 'ZenTest'
   gem 'rspec_tag_matchers'
+end
+
+group :development do
+  gem 'rails-dev-boost', :git => 'git://github.com/thedarkone/rails-dev-boost.git', :require => 'rails_development_boost'
 end
 
 group :selenium do

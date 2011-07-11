@@ -26,7 +26,7 @@ class ExperimentController < CmsController
     active_table_action('experiment') do |act,ids|
       experiments = Experiment.find(ids)
       case act
-      when 'delete': experiments.each { |exp| exp.destroy unless exp.is_running? }
+      when 'delete'; experiments.each { |exp| exp.destroy unless exp.is_running? }
       end
     end
 

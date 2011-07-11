@@ -254,8 +254,8 @@ class DomainLogSession < DomainModel
     def search
       return nil unless query
       terms = case self.referrer_domain
-      when 'www.google.com', 'google.com', 'www.bing.com', 'bing.com': query['q']
-      when 'www.yahoo.com', 'yahoo.com', 'search.yahoo.com': query['p']
+      when 'www.google.com', 'google.com', 'www.bing.com', 'bing.com'; query['q']
+      when 'www.yahoo.com', 'yahoo.com', 'search.yahoo.com'; query['p']
       else nil
       end
       terms ? terms[0] : nil

@@ -38,7 +38,7 @@ class Webform::ManageController < ModuleController
   def webform_table(display=true)
     active_table_action 'webform' do |act,ids|
       case act
-      when 'delete': WebformForm.destroy(ids)
+      when 'delete'; WebformForm.destroy(ids)
       end
     end
 
@@ -147,9 +147,9 @@ class Webform::ManageController < ModuleController
 
     active_table_action 'result' do |act,ids|
       case act
-      when 'delete': WebformFormResult.delete(ids)
-      when 'mark': WebformFormResult.update_all('reviewed = 1', :id => ids)
-      when 'unmark': WebformFormResult.update_all('reviewed = 0', :id => ids)
+      when 'delete'; WebformFormResult.delete(ids)
+      when 'mark'; WebformFormResult.update_all('reviewed = 1', :id => ids)
+      when 'unmark'; WebformFormResult.update_all('reviewed = 0', :id => ids)
       end
     end
 

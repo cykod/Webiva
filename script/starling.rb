@@ -19,6 +19,6 @@ end
 host = config['starling'].split(":")[0]
 port = config['starling'].split(":")[1]
 
-cmd = "starling -d -P #{path}/../tmp/pids/starling.pid -q  #{path}/../tmp/starling_#{env}/ -h #{host} -p #{port}"
+cmd = "bundle exec starling -d -P #{path}/../tmp/pids/starling.pid -q  #{path}/../tmp/starling_#{env}/ -h #{host} -p #{port}"
 puts("Running #{env}:" + cmd)
 `#{cmd}`

@@ -22,13 +22,13 @@ class DomainsController < CmsController # :nodoc: all
     active_table_action(:domain) do |act,dids|
       @domains = Domain.find(dids,:conditions => { :database =>  Configuration.domain_info.database }, :order => 'id')
       case act
-      when 'activate':
+      when 'activate'
           @domains.each { |dmn| dmn.update_attribute(:active,true) }
-      when 'deactivate':
+      when 'deactivate'
           @domains.each { |dmn| dmn.update_attribute(:active,false) }
-      when 'delete':
+      when 'delete'
           @domains.each { |dmn| dmn.destroy_domain }
-      when 'primary':
+      when 'primary'
           new_primary_domain = @domains[0]
           Domain.update_all "`primary` = 0", "`database` = \"#{Configuration.domain_info.database}\""
           new_primary_domain.reload

@@ -195,19 +195,19 @@ class DomainFileSize < DomainModel
   
   def apply_operation(image,operation)
     case operation[:type]
-    when 'thumbnail':
+    when 'thumbnail'
         image.thumbnail(op[:size].to_i) do |img|
         apply_operations(img,ops,filename)
       end
-    when 'resize':
+    when 'resize'
         image.resize(op[:width].to_i,op[:height]) do |img|
         apply_operations(img,ops,filename)
       end
-    when 'cropped_thumbnail':
+    when 'cropped_thumbnail'
         image.cropped_thumbnail(op[:size].to_i) do |img|
         apply_operations(img,ops,filename)
       end
-    when 'crop':
+    when 'crop'
         image.crop(op[:left].to_i,op[:top].to_i,op[:right].to_i,op[:bottom].to_i) do |img|
         apply_operations(img,ops,filename)
       end

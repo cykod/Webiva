@@ -334,11 +334,11 @@ block is non-nil
 
     def escape_value_helper(value,escape) #:nodoc:
       case escape
-      when 'value':
+      when 'value'
         vh(value)
-      when 'javascript':
+      when 'javascript'
         jh(value)
-      when 'javascript_value':
+      when 'javascript_value'
         jvh(value)
       else
         h(value)
@@ -644,13 +644,13 @@ block is non-nil
         field = attr.delete('field')
 
         case field
-        when 'width':
+        when 'width'
           img_tag = img_size[0].to_s
-        when 'height':
+        when 'height'
           img_tag = img_size[1].to_s
-        when 'dimensions':
+        when 'dimensions'
           img_tag =  "width='#{img_size[0].to_s}' height='#{img_size[1].to_s}'"
-        when 'src':
+        when 'src'
           img_tag = img.url(size)
         else
           if shadow

@@ -75,11 +75,11 @@ class Blog::PageRenderer < ParagraphRenderer
   
       if blog
         case list_type.to_s
-        when 'category':
+        when 'category'
           pages,entries =  blog.paginate_posts_by_category(page,list_type_identifier,items_per_page,:large => @options.skip_total)
-        when 'tag':
+        when 'tag'
           pages,entries = blog.paginate_posts_by_tag(page,list_type_identifier,items_per_page,:large => @options.skip_total)
-        when 'archive':
+        when 'archive'
           pages,entries = blog.paginate_posts_by_month(page,list_type_identifier,items_per_page,:large => @options.skip_total)
         else
           pages,entries = blog.paginate_posts(page,items_per_page,:large => @options.skip_total)

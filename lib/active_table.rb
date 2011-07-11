@@ -39,7 +39,7 @@ string and date fields if you just pass in a symbol with the column name it will
 
      active_table_action('user') do |act,user_ids|
        case act
-       when 'delete': EndUser.destroy(user_ids)
+       when 'delete'; EndUser.destroy(user_ids)
        when ...do something else...
        end
      end

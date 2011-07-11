@@ -4,7 +4,7 @@ require 'mime/types'
 require "image_size"
 require "digest/sha1"
 require "find"
-require 'ftools'
+require 'fileutils'
 require 'fileutils'
 require 'RMagick'
 require 'net/http'
@@ -345,6 +345,9 @@ class DomainFile < DomainModel
   # Regenerate built in thumbnails and optionally resave the file
   def generate_thumbnails(save_file=true)
     return if self.file_type=='fld'
+    return unless (self.file_type=='img' || self.file_type=='thm')
+
+
     info = {}
     
     info[:image_size] = {}
@@ -857,19 +860,19 @@ class DomainFile < DomainModel
   # TODO check for a handler first - folder can have special as well
   def details_partial
     case self.file_type
-    when 'img': '/file/details/file_image'
-    when 'thm': '/file/details/file_thumb'
-    when 'doc': '/file/details/file_document'
-    when 'fld': '/file/details/file_folder'
+    when 'img'; '/file/details/file_image'
+    when 'thm'; '/file/details/file_thumb'
+    when 'doc'; '/file/details/file_document'
+    when 'fld'; '/file/details/file_folder'
     end
   end
 
   # Return a file-type appropriate thumbnail-url
   def thumbnail_url(theme,size,show_stored_at=false)
     case self.file_type
-    when 'img','thm' : url(size,show_stored_at)
-    when 'doc' : thumbnail_document_icon(theme,size)
-    when 'fld' : thumbnail_folder_icon(theme,size)
+    when 'img','thm' ; url(size,show_stored_at)
+    when 'doc' ; thumbnail_document_icon(theme,size)
+    when 'fld' ; thumbnail_folder_icon(theme,size)
     end
   end
   
@@ -973,7 +976,7 @@ class DomainFile < DomainModel
   # Assume all document/folder/etc thumbnails are square  
   def thumbnail_thumb_size(size,dimension)
     case self.file_type
-    when 'img','thm' : thumb_size(size,dimension)
+    when 'img','thm' ; thumb_size(size,dimension)
     else [ dimension, dimension ]
     end
   end

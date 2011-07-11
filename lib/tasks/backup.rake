@@ -97,7 +97,7 @@ namespace "cms" do
       backup_cfg = backup_file['server']
       
       case backup_cfg['type']
-      when 'ftp':
+      when 'ftp'
         begin 
 	  Net::FTP.open(backup_cfg['host'],backup_cfg['username'],backup_cfg['password']) do |ftp|
 	    ftp.chdir(backup_cfg['directory']) if backup_cfg['directory']

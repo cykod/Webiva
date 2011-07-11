@@ -28,9 +28,9 @@ class Manage::ClientsController < CmsController # :nodoc: all
   def display_client_table(display=true)
      active_table_action('client') do |act,client_ids|
       case act
-        when 'delete': Client.destroy(client_ids)
-        when 'deactivate': Client.find(client_ids).map { |c| c.deactivate }
-        when 'activate': Client.find(client_ids).map { |c| c.activate } 
+        when 'delete'; Client.destroy(client_ids)
+        when 'deactivate'; Client.find(client_ids).map { |c| c.deactivate }
+        when 'activate'; Client.find(client_ids).map { |c| c.activate } 
         end
      end
 

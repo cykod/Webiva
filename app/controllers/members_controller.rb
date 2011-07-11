@@ -256,7 +256,7 @@ class MembersController < CmsController # :nodoc: all
   def user_segments_table(display=true)
     active_table_action 'user_segments' do |act,ids|
       case act
-      when 'delete': UserSegment.destroy(ids)
+      when 'delete'; UserSegment.destroy(ids)
       when 'add'
         UserSegment.update_all('main_page = 1', :id => ids)
       when 'remove'

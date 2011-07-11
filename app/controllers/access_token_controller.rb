@@ -28,7 +28,7 @@ class AccessTokenController < CmsController # :nodoc:all
     active_table_action('token') do |act,aids|
       tokens = AccessToken.find(aids)
       case act
-      when 'delete': tokens.map(&:destroy)
+      when 'delete'; tokens.map(&:destroy)
       end
     end
 
@@ -65,7 +65,7 @@ class AccessTokenController < CmsController # :nodoc:all
     active_table_action('token') do |act,aids|
       tokens = AccessToken.find(aids)
       case act
-      when 'delete': tokens.map(&:destroy)
+      when 'delete'; tokens.map(&:destroy)
       end
     end    
 

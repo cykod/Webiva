@@ -23,7 +23,7 @@ class Blog::CategoriesController < ModuleController
 
       if(request.post? && params[:table_action] && params[:category].is_a?(Hash)) 
         case params[:table_action]
-        when 'delete':
+        when 'delete'
           params[:category].each do |entry_id,val|
             Blog::BlogCategory.destroy(entry_id.to_i)
           end
