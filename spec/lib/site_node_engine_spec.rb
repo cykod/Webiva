@@ -6,8 +6,8 @@ describe SiteNodeEngine, :type => :controller do
   
   render_views
 
-  @@html_test_code = "<h1>Yo, Html Paragraph here!</h1>"
-  @@code_test_code = "<h1>Yo, Code Paragraph here!</h1>"
+  let(:html_test_code) { "<h1>Yo, Html Paragraph here!</h1>" }
+  let(:code_test_code) { "<h1>Yo, Code Paragraph here!</h1>" }
 
   reset_domain_tables :end_users, :site_versions, :page_revisions, :site_nodes, :site_node_modifiers, :page_paragraphs, :site_templates, :site_template_rendered_parts,  :site_template_zones
 
@@ -15,8 +15,8 @@ describe SiteNodeEngine, :type => :controller do
     @site_template = SiteTemplate.create(:name => 'Test Template',:template_html => '<div class="container"><cms:zone name="main"/></div>')
     
     @page = SiteVersion.default.root_node.add_subpage('test_page')
-    @paragraph1 =  @page.live_revisions[0].page_paragraphs.create(:display_type => 'html',:display_body => @@html_test_code,:zone_idx => 1, :position => 2)
-    @paragraph2 = @page.live_revisions[0].page_paragraphs.create(:display_type => 'code',:display_body => @@code_test_code, :zone_idx => 1, :position => 1)
+    @paragraph1 =  @page.live_revisions[0].page_paragraphs.create(:display_type => 'html',:display_body => html_test_code,:zone_idx => 1, :position => 2)
+    @paragraph2 = @page.live_revisions[0].page_paragraphs.create(:display_type => 'code',:display_body => code_test_code, :zone_idx => 1, :position => 1)
 
     @page.reload
 

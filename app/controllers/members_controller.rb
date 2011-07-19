@@ -683,7 +683,9 @@ class MembersController < CmsController # :nodoc: all
   end
   
   def remove_tags_form
-    @users = EndUser.find(:all,:conditions => [ 'end_users.id IN (' + params[:user_ids].to_a.collect { |uid| DomainModel.connection.quote(uid) }.join(",") + ")" ])
+    user_ids = params[:user_ids]
+    user_ids = [ user_ids ] unless user_ids.is_a?(Array)
+    @users = EndUser.where(:id => user_ids)
   
     @existing_tags = []
     @users.each do |usr|

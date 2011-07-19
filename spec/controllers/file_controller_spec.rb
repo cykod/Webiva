@@ -312,6 +312,7 @@ describe FileController do
       response.should render_template('file/_update_file')
       @image.reload
       @image.private?.should be_true
+      File.exists?(@image.filename).should be_true
     end
 
     it "should be able to make a file public" do
@@ -324,6 +325,7 @@ describe FileController do
 
       @image.reload
       @image.private?.should be_false
+      File.exists?(@image.filename).should be_true
     end
 
     it "should be able to archive a folder" do

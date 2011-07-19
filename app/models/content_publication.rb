@@ -75,12 +75,12 @@ class ContentPublication < DomainModel
     self.content_publication_fields.each do |fld|
       val = nil
       case fld.field_type
-      when 'dynamic':
+      when 'dynamic';
           val = fld.content_model_field.dynamic_value(fld.data[:dynamic],entry,application_state)
         fld.content_model_field.assign_value(entry,val)
-      when 'input':
+      when 'input';
           fld.content_model_field.assign(entry,values)
-      when 'preset':
+      when 'preset';
           fld.content_model_field.assign_value(entry,fld.data[:preset])
       end
     end
@@ -466,7 +466,7 @@ class ContentPublication < DomainModel
     
     return nil if entry_id.blank?
     
-    if entry_id.to_sym == :first
+    if !entry_id.is_a?(Integer) && entry_id.to_sym == :first
       filter_options[:order] = 'id' unless filter_options[:order]
       resolve_filtered_data(mdl.find(:first,filter_options),filter_options)
     else

@@ -37,9 +37,9 @@ class Content::CorePublication::ListPublication < Content::PublicationType #:nod
        tag_name = fld.content_model_field.feature_tag_name
     
       case fld.content_model_field_id
-      when -1:
+      when -1;
 	output += "\t\t<td><cms:edit_link><cms:trans>Edit</cms:trans></td>\n"
-      when -2:
+      when -2;
 	output += "\t\t<td><cms:delete_link><cms:trans>Delete</cms:trans></td>\n"
       else 
 	      if fld.data[:options] && fld.data[:options].include?('link')

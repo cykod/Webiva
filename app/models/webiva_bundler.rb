@@ -88,7 +88,7 @@ class WebivaBundler < HashModel
 
     File.open("#{dir}/MANIFEST.yml", "w") { |fd| fd.write(YAML.dump(manifest)) }
 
-    File.copy(self.thumb.filename, "#{dir}/#{self.thumb.name}") if self.thumb
+    FileUtils.copy_file(self.thumb.filename, "#{dir}/#{self.thumb.name}") if self.thumb
 
     bundle_filename = name.downcase.gsub(/[ _]+/,"_").gsub(/[^a-z+0-9_]/,"") + ".webiva"
     File.unlink("#{dir}/../#{bundle_filename}") if File.exists?("#{dir}/../#{bundle_filename}")
@@ -111,7 +111,7 @@ class WebivaBundler < HashModel
     self.creator_id ||= bundle_file.creator_id
 
     dir = DomainFile.generate_temporary_directory
-    File.copy(self.bundle_file.filename, "#{dir}/#{self.bundle_file.name}")
+    FileUtils.copy_file(self.bundle_file.filename, "#{dir}/#{self.bundle_file.name}")
     `cd #{dir}; tar zxf #{self.bundle_file.name}`
 
     manifest = YAML.load_file("#{dir}/MANIFEST.yml")
@@ -170,7 +170,7 @@ class WebivaBundler < HashModel
 
   def get_bundle_info
     dir = DomainFile.generate_temporary_directory
-    File.copy(self.bundle_file.filename, "#{dir}/#{self.bundle_file.name}")
+    FileUtils.copy_file(self.bundle_file.filename, "#{dir}/#{self.bundle_file.name}")
     `cd #{dir}; tar zxf #{self.bundle_file.name} MANIFEST.yml`
 
     unless File.exists?("#{dir}/MANIFEST.yml")

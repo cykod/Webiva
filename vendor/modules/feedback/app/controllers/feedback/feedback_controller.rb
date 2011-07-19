@@ -102,11 +102,11 @@ class Feedback::FeedbackController < ModuleController
       if request.post? && params[:table_action] && params[:comment].is_a?(Hash)
         comment_id_string = params[:comment].keys.collect { |cmt| DomainModel.connection.quote(cmt) }.join(",")
         case params[:table_action]
-        when 'approve':
+        when 'approve'
           Comment.update_all("rating=1","id IN (#{comment_id_string})")
-        when 'reject':
+        when 'reject'
           Comment.update_all("rating=-1","id IN (#{comment_id_string})")
-        when 'delete':
+        when 'delete'
           Comment.destroy_all("id IN (#{comment_id_string})")
         end
         DataCache.expire_content('Comments')

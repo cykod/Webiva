@@ -116,7 +116,7 @@ class DomainEmail < DomainModel
     
     
     case self.email_type
-    when 'bounce':
+    when 'bounce';
       # Create a transport entry & a mailbox for relaying purposes
       transport = EmailTransport.find_by_domain_id_and_domain_email_id(Configuration.domain_id,self.id) ||
 		    EmailTransport.new( :domain_id => Configuration.domain_id,
@@ -133,7 +133,7 @@ class DomainEmail < DomainModel
                                 :email => self.full_email,
                                 :password => '')
                                 
-    when 'mailbox':
+    when 'mailbox';
       # Find or create a mailbox w/ mailbox type 'mailbox' and user, email && password updated
       mailbox = EmailMailbox.find_by_domain_id_and_domain_email_id(Configuration.domain_id,self.id) ||
                   EmailMailbox.new( :domain_id => Configuration.domain_id,
@@ -144,7 +144,7 @@ class DomainEmail < DomainModel
                                 :email => self.full_email,
                                 :password => self.active_password)
       
-    when 'alias':
+    when 'alias';
       self.redirect_list.each do |adr|
         redirect = EmailAlias.find(:first, :conditions => [ 'domain_id=? AND domain_email_id=? AND alias=? AND destination=?',  
                                                           Configuration.domain_id,self.id,self.full_email,adr]) ||

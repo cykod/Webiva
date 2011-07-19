@@ -20,7 +20,7 @@ class Media::ManageController < ModuleController
   def display_galleries_table(display = true)
     active_table_action('gallery') do |act,gallery_ids|
     case act
-      when 'delete':
+      when 'delete'
         Gallery.destroy(gallery_ids)
       end
    end
@@ -75,9 +75,9 @@ class Media::ManageController < ModuleController
       @gallery = Gallery.find(params[:path][0])  
       @gal_image = @gallery.gallery_images.find_by_id(params[:image_id])
       case params[:image_action]
-        when 'delete':
+        when 'delete'
           @gal_image.destroy if @gal_image
-        when 'update':
+        when 'update'
           @gal_image.update_attribute(:name, params[:name])
       end
         

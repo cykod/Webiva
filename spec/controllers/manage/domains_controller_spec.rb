@@ -127,13 +127,19 @@ describe Manage::DomainsController do
       end
     end
 
-    it "should render the edit page" do
+   it "should render the edit page" do
       @another_domain = @another_client.domains.create :name => 'another-test-domain.dev', :status => 'initialized', :database => 'another_test'
       get 'edit', :path => [@another_domain.id]
       response.should render_template('edit')
     end
 
     it "should edit a domain" do
+      Rails.logger.error("######################################################");
+      Rails.logger.error("######################################################");
+      Rails.logger.error("######################################################");
+      Rails.logger.error("######################################################");
+      Rails.logger.error("######################################################");
+      Rails.logger.error("Pre edite");
       @another_domain = @another_client.domains.create :name => 'another-test-domain.dev', :status => 'initialized', :database => 'another_test'
 
       assert_difference 'DomainDatabase.count', 1 do
@@ -153,6 +159,12 @@ describe Manage::DomainsController do
     end
 
     it "should edit a redirect domain" do
+      Rails.logger.error("######################################################");
+      Rails.logger.error("######################################################");
+      Rails.logger.error("######################################################");
+      Rails.logger.error("######################################################");
+      Rails.logger.error("######################################################");
+      Rails.logger.error("Pre redirect");
       @another_domain = @another_client.domains.create :name => 'another-test-domain.dev', :status => 'initialized', :domain_type => 'redirect', :redirect => 'test.dev'
 
       assert_difference 'DomainDatabase.count', 0 do

@@ -236,30 +236,30 @@ block is non-nil
     include PageHelper
     include EscapeHelper
     
-    
+
     def url_for(opts) #:nodoc:
       if opts.nil?
-	nil
+        nil
       elsif opts.is_a? String
-	opts
+        opts
       else
-	super opts
+        super opts
       end
     end
-    
+
     def initialize(renderer=nil) #:nodoc:
       @renderer = renderer
       super()
     end
     
-  def method_missing(method,*args) #:nodoc:
-    if args.length > 0
-      @renderer.send(method,*args)
-    else
-      @renderer.send(method)
-    end 
-  end
-    
+    def method_missing(method,*args) #:nodoc:
+      if args.length > 0
+        @renderer.send(method,*args)
+      else
+        @renderer.send(method)
+      end 
+    end
+
   # Defines a set of tags of the form [name]:[tag_name] for each
   # element of the array tag_names making it easy to expose a number
   # of attributes in an object. For example if we had an object in
@@ -625,7 +625,7 @@ block is non-nil
       
     end
 
-    def image_tag_helper(tag,img,tag_opts) #:nodoc:
+    def image_tag_helper(t,img,tag_opts) #:nodoc:
       # Handle rollovers
       if img.is_a?(Array)
         rollover = img[1]
@@ -633,7 +633,7 @@ block is non-nil
         img = img[0]
       end
 
-      attr = tag.attr.clone
+      attr = t.attr.clone
       if img 
         icon_size = attr.delete('size') || tag_opts[:size] || nil
         size = icon_size #%w(icon thumb preview small original).include?(icon_size) ?  icon_size : nil
@@ -694,11 +694,11 @@ block is non-nil
           img_tag =  tag('img',tag_opts) + preload.to_s.html_safe
           img_tag = "<div style='float:#{shadow_align}; margin:#{border}; #{attr['style']}'><div style='width:#{img_size[0] + 12}px; float:#{shadow_align};' class='cms_gallery_shadow'><div><p>" + img_tag + "</p></div></div></div>" if img_size[0] && shadow
         end
-        if tag.single?
+        if t.single?
           img_tag
         else
-          tag.locals.value = img_tag
-          tag.expand
+          t.locals.value = img_tag
+          t.expand
         end            
       else
         nil
@@ -771,8 +771,8 @@ block is non-nil
     # custom style a form
     def define_form_for_tag(name,arg,options = {})
       frm_obj = options[:local] || 'form'
-      define_tag name do |tag|
-        obj = yield tag if block_given?
+      define_tag name do |t|
+        obj = yield t if block_given?
         if obj || !block_given?
           opts = options.clone
           opts.symbolize_keys!
@@ -792,8 +792,8 @@ block is non-nil
           end
           frm_tag = tag(:form,html_options,true) + ("<CMS:AUTHENTICITY_TOKEN/>" + pch.to_s + opts.delete(:code).to_s).html_safe
           cms_unstyled_fields_for(arg,obj,opts) do |f|
-            tag.locals.send("#{frm_obj}=",f)
-            frm_tag + tag.expand.html_safe + "</form>".html_safe
+            t.locals.send("#{frm_obj}=",f)
+            frm_tag + t.expand.html_safe + "</form>".html_safe
           end
         else
           nil
@@ -1689,7 +1689,7 @@ block is non-nil
     end
 
     # get versions of all the define_... methods without the define
-    skip_methods = %w(define_form_tag define_tag)
+    skip_methods = [:define_form_tag, :define_tag] 
     instance_methods.each do |method_name|
       if !skip_methods.include?(method_name) && method_name =~ /define\_(.*)/
         alias_method $1.to_sym, method_name.to_sym
@@ -1959,7 +1959,9 @@ block is non-nil
 
       feature_parser = Radius::Parser.new(context, :tag_prefix => 'cms')
       begin
-        feature_parser.parse(feature.body_html || feature.body)
+        feature_parser.parse(
+          feature.body_html || feature.body
+        )
       rescue  Radius::MissingEndTagError => err
         if Rails.env!='production' || myself.editor?
           "<div><b>#{'Feature Definition Contains an Error'.t}</b><br/>#{err.to_s.t}</div>"

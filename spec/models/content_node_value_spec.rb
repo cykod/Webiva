@@ -3,12 +3,13 @@ require "spec_helper"
 
 describe ContentNodeValue do
 
-  @@paragraph_body = <<-EOF
+  let(:paragraph_body) do  <<-EOF
 <h1>Title the page</h1>
 <p>
 Some additional stuff<br/>
 <b>Bolded!</b>
 EOF
+  end
 
 
   reset_domain_tables :content_types,:content_nodes,:content_node_values, :site_nodes, :page_paragraphs, :page_revisions, :site_versions
@@ -24,7 +25,7 @@ EOF
     @page3 = @version.root_node.add_subpage('my-page3')
 
     [@home_page, @page, @page2, @page3].each_with_index do |page,idx|
-      page.active_revisions[0].page_paragraphs.create(:display_type=>'html',:display_body => @@paragraph_body + "<p>This is page#{idx}!</p>" )
+      page.active_revisions[0].page_paragraphs.create(:display_type=>'html',:display_body => paragraph_body + "<p>This is page#{idx}!</p>" )
     end
     
     Configuration.put('index_last_update',nil)

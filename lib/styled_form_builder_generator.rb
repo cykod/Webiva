@@ -682,7 +682,7 @@ class TabledForm < StyledForm
     output = ''
     if options[:value] || !block_given?
       text = options.delete(:value) || ''
-      vals = form_options('custom',field,lambda { text },options)
+      vals = form_options('custom',field,lambda { |options| text },options)
       vertical = options.delete(:vertical)
       if vertical
         output = "<tr><td colspan='#{cols+1}' class='description'>#{options[:description]}</td></tr>" if !options[:description].blank?

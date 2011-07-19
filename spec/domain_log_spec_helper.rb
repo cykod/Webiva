@@ -72,5 +72,7 @@ end
 
 def setup_domain_log_sources
   # from db/migrate/20101101174337_add_has_target_entry_to_domain_log_group.rb
+  # TODO: Fixme - this isn't DRY
+  DomainLogSource.connection.execute("DELETE FROM domain_log_sources WHERE 1")
   DomainLogSource.connection.execute "INSERT INTO domain_log_sources (name, position, source_handler, options) VALUES('Affiliate', 1, 'domain_log_source/affiliate', ''), ('Email Campaign', 2, 'domain_log_source/email_campaign', ''), ('Social Network', 3, 'domain_log_source/social_network', ''), ('Search', 4, 'domain_log_source/search', ''), ('Referrer', 5, 'domain_log_source/referrer', ''), ('Type-in', 6, 'domain_log_source/type_in', '')"
 end

@@ -124,7 +124,7 @@ class PageParagraph < DomainModel
     disp.shift if disp[0] || disp[0] == ''
     
     # Get us Editor::MenuController
-    className = display_module.map { |elem| elem.camelcase }.join("::") + 'Controller' 
+    className = disp.map { |elem| elem.camelcase }.join("::") + 'Controller' 
     cls = className.constantize
   end
 

@@ -6,7 +6,7 @@ gem "rails", '3.0.5'
 gem 'mysql'
 gem 'haml', '>= 3.0.25'
 gem 'mime-types', :require => 'mime/types'
-gem 'radius'
+gem 'radius', '0.7.0.prerelease'
 gem 'RedCloth', :require => 'redcloth'
 gem 'BlueCloth', :require => 'bluecloth'
 gem 'gruff'
@@ -22,6 +22,7 @@ gem 'libxml-ruby', :require => 'xml'
 gem 'memcache-client', :require => 'memcache'
 gem 'resthome'
 gem "nokogiri"
+gem 'image_size'
 
 # Workling gems
 gem 'eventmachine'
@@ -40,7 +41,7 @@ group :development, :test, :spec, :cucumber, :selenium do
   gem 'rspec_tag_matchers'
 end
 
-group :development do
+group :development, :test do
   gem 'rails-dev-boost', :git => 'git://github.com/thedarkone/rails-dev-boost.git', :require => 'rails_development_boost'
 end
 

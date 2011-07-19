@@ -105,11 +105,11 @@ def display_feature(publication,data)
      c.value_tag('entry:score') { |t| t.locals.entry.content_score }
      publication.content_publication_fields.each do |fld|
        case fld.content_model_field_id
-       when -1:
+       when -1
            c.define_tag "entry:edit_button" do |tag|
            "<form action='#{data[:detail_page]}/#{tag.locals.entry.id}' method='get'><input type='submit' value='#{tag.expand}'/></form>"
          end
-       when -2:
+       when -2
            c.define_tag "entry:delete_button" do |tag|
            "<form onsubmit='return confirm(\"#{jh "Are you sure you want to delete this entry?".t}\");' action='#{data[:detail_page]}/#{tag.locals.entry.id}' method='get'><input type='submit' value='#{tag.expand}'/></form>"
          end

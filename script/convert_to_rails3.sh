@@ -77,5 +77,5 @@ find . -type f -exec perl -pi -e 's/RAILS_ENV/Rails.env/g' {} \;
 
 
 find . -type f -exec perl -pi -e 's/^(\s+)when (.*?): /$1when $2; /g' {} \;
-find . -type f -exec perl -pi -e 's/^(\s+)when (.*?):(\s*)^/$1when $2;$3/g' {} \;
+find . -type f -exec perl -pi -e 's/^(\s+)when (.*?):(\s*)$/$1when $2;$3/g' {} \;
 

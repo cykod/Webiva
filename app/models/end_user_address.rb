@@ -18,10 +18,10 @@ class EndUserAddress < DomainModel
   # whether the fields are required
   def validate_registration(type,required= false,display_type='us')
     case type
-    when :work:
+    when :work;
       fields = %w(company phone address city zip country)
       fields << 'state' if display_type == 'us'
-    when :home,:billing:
+    when :home,:billing;
       fields = %w(address city zip country)
       fields << 'state' if display_type == 'us'
     when :shipping

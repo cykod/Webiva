@@ -14,10 +14,10 @@ class TriggeredActionController < WizardController  # :nodoc: all
   
   def get_available_trigger(trigger_type,trigger_id)
     case trigger_type
-    when 'publication':
+    when 'publication';
       publication = ContentPublication.find(trigger_id)
       publication.triggered_actions.build
-    when 'page_paragraph':
+    when 'page_paragraph';
       paragraph = PageParagraph.find(trigger_id)
       paragraph.triggered_actions.build
     else

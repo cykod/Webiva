@@ -131,8 +131,11 @@ class DomainModel < ActiveRecord::Base
     args = args.clone.symbolize_keys!
     window_size =args.delete(:window) || 2
     
-    page_size = args.delete(:per_page).to_i
-    page_size = 20 if page_size <= 0
+    page_size = args.delete(:per_page)
+    if page_size != :all
+      page_size = page_size.to_i
+      page_size = 20 if page_size <= 0
+    end
 
     count_args = args.slice( :conditions, :joins, :include, :distinct, :having)
 

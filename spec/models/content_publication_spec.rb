@@ -123,7 +123,7 @@ describe ContentPublication do
         @publication.content_publication_fields.create(:field_type => 'value',:content_model_field_id => @cm.field(:text_field).id, :data => { :filter => 'fuzzy', :fuzzy_filter => 'a'  })
 
         
-        @paging, @data = @publication.get_list_data(1,{:filter_string_field_like => 'No', :filter_text_field_like => 'Nay!' })
+        @paging, @data = @publication.get_list_data(1,{:filter_string_field_like => 'No', :filter_text_field_like => 'Nay!',:per_page => 10 })
         @data.length.should == 3 # Should return all but the first
 
         @paging[:total].should == 3

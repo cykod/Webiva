@@ -107,12 +107,12 @@ class ContentHashModel
     self.content_publication_fields.each do |fld|
       val = nil
       case fld.field_type
-      when 'dynamic':
+      when 'dynamic';
           val = fld.content_model_field.dynamic_value(fld.data[:dynamic],entry,application_state)
         fld.content_model_field.assign_value(entry,val)
-      when 'input':
+      when 'input';
           fld.content_model_field.assign(entry,values)
-      when 'preset':
+      when 'preset';
           fld.content_model_field.assign_value(entry,fld.data[:preset])
       end
     end

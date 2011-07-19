@@ -99,7 +99,7 @@ class Feedback::ManageRatingsController < ModuleController
       if request.post? && params[:table_action] && params[:rating].is_a?(Hash)
         rating_id_string = params[:rating].keys.collect { |cmt| DomainModel.connection.quote(cmt) }.join(",")
         case params[:table_action]
-        when 'delete':
+        when 'delete'
           FeedbackEndUserRating.destroy_all("id IN (#{rating_id_string})")
         end
         DataCache.expire_content('FeedbackEndUserRatings')

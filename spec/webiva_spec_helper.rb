@@ -84,8 +84,8 @@ class WebivaSystemCleaner
     connection.execute("INSERT INTO clients (name, domain_limit, max_client_users, max_file_storage) VALUES('Webiva', 10, 10, #{100.gigabytes/1.megabyte})")
     connection.execute("INSERT INTO client_users (client_id, username, hashed_password, client_admin, system_admin) VALUES(1, 'admin', 'invalid', 1, 1)")
     database_name = @domain_database['name']
-    connection.execute("INSERT INTO domains (id, name, `database`, client_id, status, file_store, domain_database_id, created_at, updated_at) VALUES(#{CMS_DEFAULTS['testing_domain']}, '#{@domain['name']}', '#{database_name}', 1, 'initialized', 3, 1, NOW(), NOW())")
-    connection.execute("INSERT INTO domain_databases (client_id, name, `options`, max_file_storage) VALUES(1, '#{database_name}', '#{@domain_database['options']}', #{10.gigabytes/1.megabyte})")
+    connection.execute("INSERT INTO domains (id, name, `database`, client_id, status, file_store, domain_database_id, created_at, updated_at) VALUES(#{CMS_DEFAULTS['testing_domain']}, '#{@domain['name']}', '#{database_name}', 1, 'initialized', #{@domain['id']}, 1, NOW(), NOW())")
+    connection.execute("INSERT INTO domain_databases (id,client_id, name, `options`, max_file_storage) VALUES(1, 1, '#{database_name}', '#{@domain_database['options']}', #{10.gigabytes/1.megabyte})")
   end
 
   def reset
@@ -280,7 +280,7 @@ class HandleActiveTableMatcher
 
     @controller = controller
     
-    @cols = controller.send("#{@table_name}_columns",{})
+    @cols = controller.send("#{@table_name}_columns")
 
     usr = @controller.send(:myself)
     @error_msgs << "User is not an editor - use mock_editor to make handle_active_table work" if !usr.editor?
@@ -657,9 +657,9 @@ RSpec.configure do |config|
   tests_are_running_file = "#{Rails.root}/tmp/tests_are_running"
   
   config.before(:suite) do
+    WebivaSystemCleaner.cleaner.reset
     if File.exists?(tests_are_running_file)
       WebivaCleaner.cleaner.reset
-      WebivaSystemCleaner.cleaner.reset
     end
     File.open(tests_are_running_file, 'w') { |f| }
     UserClass.create_built_in_classes

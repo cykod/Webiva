@@ -51,9 +51,9 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
         end
         
         case(self.email_to)
-        when 'user_class':
+        when 'user_class';
           errors.add(:user_class,'is missing') if self.user_class.blank?
-        when 'addresses':
+        when 'addresses';
           errors.add(:email_addresses,'are missing') if self.email_addresses.strip.blank?
         end
           

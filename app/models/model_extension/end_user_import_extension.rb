@@ -148,10 +148,10 @@ module ModelExtension::EndUserImportExtension
 
     file_fields = nil
     begin
-      reader = CSV.open(filename,"r",deliminator)
+      reader = CSV.open(filename,"r",:col_sep => deliminator)
       file_fields = reader.shift
-    rescue CSV::IllegalFormatError => e
-      reader = CSV.open(filename,"r",deliminator, ?\r)
+    rescue CSV::MalformedCSVError => e
+      reader = CSV.open(filename,"r",:col_sep => deliminator, :row_sep => ?\r)
       file_fields = reader.shift
     end
     fields = []

@@ -28,7 +28,7 @@ class EditorsController < CmsController  # :nodoc: all
 
      active_table_action('user') do |act,user_ids|
       case act
-        when 'delete':
+        when 'delete'
           EndUser.destroy(user_ids)
         end
      end

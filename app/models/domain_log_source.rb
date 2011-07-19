@@ -31,7 +31,7 @@ class DomainLogSource < DomainModel
 
   def self.handler_obj(handler, options)
     return "#{handler}_options".camelize.constantize.new(options)
-    rescue NameError
+  rescue NameError
     nil
   end
 

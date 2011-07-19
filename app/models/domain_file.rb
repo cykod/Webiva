@@ -5,7 +5,6 @@ require "image_size"
 require "digest/sha1"
 require "find"
 require 'fileutils'
-require 'fileutils'
 require 'RMagick'
 require 'net/http'
 require 'net/https'
@@ -1165,7 +1164,8 @@ class DomainFile < DomainModel
       FileUtils.mkpath(@df.abs_storage_directory)
       
       # Strip off the final directory so we don't move to a subdirectory 
-      File.move(old_directory,@df.abs_storage_directory.split("/")[0..-2].join("/"))
+      Rails.logger.error([ old_directory,@df.abs_storage_directory.split("/")[0..-2].join("/") + "/" + @df.id.to_s ])
+      FileUtils.move(old_directory,@df.abs_storage_directory.split("/")[0..-2].join("/") + "/" + @df.id.to_s )
 
       if key && url
         Server.send_to_all url, :except => [Server.server_id]
@@ -1264,7 +1264,7 @@ class DomainFile < DomainModel
         FileUtils.mkpath(new_dir)
         child.children_cp(new_dir)
       else
-        File.copy(child.abs_filename,dir)
+        FileUtils.cp(child.abs_filename,dir)
       end
     end
   end

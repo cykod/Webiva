@@ -70,7 +70,7 @@ class SubscriptionController < CmsController # :nodoc: all
     
      active_table_action('entry') do |act,entry_ids|
       case act
-        when 'unsubscribe':
+        when 'unsubscribe';
           UserSubscriptionEntry.destroy(entry_ids)
         end
      end

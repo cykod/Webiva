@@ -266,6 +266,7 @@ class HashModel
   end
   
   def initialize(hsh)
+    hsh = {} if hsh.is_a?(String)
   	hsh ||= {}
     sym_hsh = {}
     hsh.each do |key,val| 

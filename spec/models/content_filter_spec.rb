@@ -20,47 +20,52 @@ describe ContentFilter do
 
   
 
-  @@full_xss_html = <<-HTML
+  let(:full_xss_html) {  <<-HTML
 <a href='javascript:XSSAttack();' onclick='XSSAttack2();'>Link...</a><br />
 <p>Lorem ipsum, dolor sic amet!</p>
 HTML
+}
 
-  @@escaped_xss_html = <<-HTML
+  let(:escaped_xss_html) { <<-HTML
 <a>Link...</a><br />
 <p>Lorem ipsum, dolor sic amet!</p>
 HTML
+  }
 
-  @@full_legit_html = <<-HTML
+  let(:full_legit_html) {  <<-HTML
 <h1>Header!</h1>
 <a href="http://www.google.com">Google</a> is a search engine<br />
 <p>Lorem ipsum, dolor sic amet!</p>
 HTML
+  }
 
-  @@full_image_html = <<-HTML
+  let(:full_image_html) { <<-HTML
 <h1>Header!</h1>
 <a href="http://www.google.com">Google</a> is a search engine<br />
 <p>Lorem ipsum, dolor sic amet!</p>
 <img src='images/folder/rails.png'/>
 HTML
+  }
 
- @@full_image_html_substibute = <<-HTML
+ let(:full_image_html_substibute) {  <<-HTML
 <h1>Header!</h1>
 <a href="http://www.google.com">Google</a> is a search engine<br />
 <p>Lorem ipsum, dolor sic amet!</p>
 <img src='IMAGE_SRC_HERE'/>
 HTML
+ }
 
   describe "Full HTML Filter" do
   
     it "should let full html through unhindered" do
-      ContentFilter.filter('full_html',@@full_xss_html).should == @@full_xss_html
+      ContentFilter.filter('full_html',full_xss_html).should == full_xss_html
     end
 
     it "should do image substitution with editor urls" do
       @folder= DomainFile.create_folder('folder')
       fdata = fixture_file_upload("files/rails.png",'image/png')
       @df = DomainFile.create(:filename => fdata,:parent_id => @folder.id)
-      ContentFilter.filter('full_html',@@full_image_html).should ==  @@full_image_html_substibute.gsub('IMAGE_SRC_HERE',@df.editor_url)
+      ContentFilter.filter('full_html',full_image_html).should ==  full_image_html_substibute.gsub('IMAGE_SRC_HERE',@df.editor_url)
       @df.destroy
     end
 
@@ -68,7 +73,7 @@ HTML
       @folder= DomainFile.create_folder('folder')
       fdata = fixture_file_upload("files/rails.png",'image/png')
       @df = DomainFile.create(:filename => fdata,:parent_id => @folder.id)
-      ContentFilter.live_filter('full_html',@@full_image_html).should ==  @@full_image_html_substibute.gsub('IMAGE_SRC_HERE',@df.url)
+      ContentFilter.live_filter('full_html',full_image_html).should ==  full_image_html_substibute.gsub('IMAGE_SRC_HERE',@df.url)
       @df.destroy
     end
 
@@ -77,17 +82,17 @@ HTML
   describe "Safe HTML Filter" do
     
     it "should escape safe html and get rid of basic XSS" do
-      ContentFilter.filter('safe_html',@@full_xss_html).should == @@escaped_xss_html
+      ContentFilter.filter('safe_html',full_xss_html).should == escaped_xss_html
     end
 
     it "should let legit html through" do
-      ContentFilter.filter('safe_html',@@full_legit_html).should == @@full_legit_html
+      ContentFilter.filter('safe_html',full_legit_html).should == full_legit_html
     end
 
     
   end
 
-  @@markdown_sample = <<-MARKDOWN
+  markdown_sample = <<-MARKDOWN
 Header One
 ==========
 
@@ -110,7 +115,7 @@ Something Else
 MARKDOWN
 
   # need to strip so we don't get a trailing \n
-  @@markdown_sample_translated_full = (<<-MARKDOWN).strip
+  markdown_sample_translated_full = (<<-MARKDOWN).strip
 <h1 id='header_one'>Header One</h1>
 
 <p>This is a test of the emergency broadcast system, this is only a test.</p>
@@ -132,7 +137,7 @@ MARKDOWN
 MARKDOWN
 
   # need to strip so we don't get a trailing \n
-  @@markdown_sample_translated_safe = (<<-MARKDOWN).strip
+  markdown_sample_translated_safe = (<<-MARKDOWN).strip
 <h1>Header One</h1>
 
 <p>This is a test of the emergency broadcast system, this is only a test.</p>
@@ -154,7 +159,7 @@ MARKDOWN
 MARKDOWN
   
   
- @@markdown_image_sample = <<-MARKDOWN
+ markdown_image_sample = <<-MARKDOWN
 This is a test of the emergency broadcast system,
 this is only a test ![My Image](images/myfolder/rails.png)
 
@@ -162,7 +167,7 @@ MARKDOWN
   describe "Markdown Filter" do
 
     it "should be able to translate basic markdown" do
-      ContentFilter.filter('markdown',@@markdown_sample).should == @@markdown_sample_translated_full
+      ContentFilter.filter('markdown',markdown_sample).should == markdown_sample_translated_full
     end
 
 
@@ -170,8 +175,9 @@ MARKDOWN
       @folder= DomainFile.create_folder('myfolder')
       fdata = fixture_file_upload("files/rails.png",'image/png')
       @df = DomainFile.create(:filename => fdata,:parent_id => @folder.id)
-      ContentFilter.filter('markdown',@@markdown_image_sample).should ==
-        "<p>This is a test of the emergency broadcast system, this is only a test <img src='#{@df.editor_url}' alt='My Image' /></p>"
+
+      val = ContentFilter.filter('markdown',markdown_image_sample)
+      val.should have_tag(:img, :src=> @df.editor_url, :alt => "My Image")
       @df.destroy
 
     end
@@ -180,12 +186,12 @@ MARKDOWN
   describe "Markdown Safe Filter" do
 
     it "should be able to translate basic markdown safely" do
-      ContentFilter.filter('markdown_safe',@@markdown_sample).should == @@markdown_sample_translated_safe
+      ContentFilter.filter('markdown_safe',markdown_sample).should == markdown_sample_translated_safe
     end
 
   end
 
-  @@comment_sample = <<-COMMENT
+  comment_sample = <<-COMMENT
 Comments should
 ignore paragraphs
 
@@ -195,7 +201,7 @@ __Italics Test__
 <a onclick='XSSExecute();' href='http://www.google.com'>XSS Link</a>
 COMMENT
 
-  @@comment_sample_escaped = <<-COMMENT
+  comment_sample_escaped = <<-COMMENT
 Comments should<br />
 ignore paragraphs<br />
 <br />
@@ -207,12 +213,12 @@ COMMENT
 
   describe "Comment Filter" do
     it "should be able to escape html syntax" do
-      ContentFilter.filter('comment',@@comment_sample).should == @@comment_sample_escaped
+      ContentFilter.filter('comment',comment_sample).should == comment_sample_escaped
     end
   end
 
 
-@@textile_sample = <<-TEXTILE
+textile_sample = <<-TEXTILE
 h1. Header
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce accumsan pellentesque arcu,
@@ -224,7 +230,7 @@ nec fringilla mi. Quisque sed sapien enim. "Google":http://www.google.com
 
 TEXTILE
 
-@@textile_translated = <<-TEXTILE
+textile_translated = <<-TEXTILE
 <h1>Header</h1>
 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce accumsan pellentesque arcu,<br />
 sit amet sollicitudin purus porttitor placerat. Curabitur aliquam, tellus eget varius semper,<br />
@@ -234,7 +240,7 @@ nec fringilla mi. Quisque sed sapien enim. <a href=\"http://www.google.com\">Goo
 <a href='javascript:XSSAttack!'>Go</a></p>
 TEXTILE
 
-@@textile_translated_safe = <<-TEXTILE
+textile_translated_safe = <<-TEXTILE
 <h1>Header</h1>
 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce accumsan pellentesque arcu,<br />
 sit amet sollicitudin purus porttitor placerat. Curabitur aliquam, tellus eget varius semper,<br />
@@ -249,11 +255,11 @@ TEXTILE
       @folder= DomainFile.create_folder('textilefolder')
       fdata = fixture_file_upload("files/rails.png",'image/png')
       @df = DomainFile.create(:filename => fdata,:parent_id => @folder.id)
-      ContentFilter.filter('textile',@@textile_sample).should == @@textile_translated.gsub("IMAGE_TAG_HERE",@df.editor_url(:thumb)).strip
+      ContentFilter.filter('textile',textile_sample).should == textile_translated.gsub("IMAGE_TAG_HERE",@df.editor_url(:thumb)).strip
     end
 
     it "should be able safely filter text" do
-        ContentFilter.filter('textile_safe',@@textile_sample).should == @@textile_translated_safe.strip
+        ContentFilter.filter('textile_safe',textile_sample).should == textile_translated_safe.strip
     end
   end
 

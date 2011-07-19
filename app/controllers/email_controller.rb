@@ -21,7 +21,7 @@ class EmailController < CmsController # :nodoc: all
   
      active_table_action('email') do |act,email_ids|
       case act
-        when 'delete':
+        when 'delete';
           email_ids.each do |email_id|
             email = DomainEmail.find_by_id_and_system_email(email_id,false)
             email.destroy if email

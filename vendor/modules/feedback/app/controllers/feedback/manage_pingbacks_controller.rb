@@ -34,11 +34,11 @@ class Feedback::ManagePingbacksController < ModuleController
     if request.post? && params[:table_action] && params[:pingback].is_a?(Hash)
       pingback_id_string = params[:pingback].keys.collect { |cmt| DomainModel.connection.quote(cmt) }.join(",")
       case params[:table_action]
-      when 'delete':
+      when 'delete'
           FeedbackPingback.destroy_all("id IN (#{pingback_id_string})")
-      when 'create':
+      when 'create'
           FeedbackPingback.create_comments(myself, params[:pingback].keys)
-      when 'remove':
+      when 'remove'
           Comment.destroy_all("source_type = 'FeedbackPingback' and source_id IN (#{pingback_id_string})")
 	  FeedbackPingback.update_all('has_comment=0', "id IN (#{pingback_id_string})")
       end

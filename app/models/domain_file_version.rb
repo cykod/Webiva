@@ -1,6 +1,7 @@
 # Copyright (C) 2009 Pascal Rettig.
 
 require "digest/sha1"
+require 'fileutils'
 
 class DomainFileVersion < DomainModel
   belongs_to :domain_file
@@ -120,7 +121,7 @@ class DomainFileVersion < DomainModel
   
   def move_version_file
     FileUtils.mkpath(self.abs_storage_directory)
-    File.mv(self.domain_file.filename,self.filename)
+    FileUtils.mv(self.domain_file.filename,self.filename)
     self.domain_file.destroy_thumbs
     self.domain_file.processor_handler.create_remote_version!(self) if self.domain_file.processor != 'local'
   end

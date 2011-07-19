@@ -12,7 +12,7 @@ describe DomainFile do
   end
   
   after(:each) do 
-    @df.destroy # Make sure we get rid of the files in the system
+    # @df.destroy # Make sure we get rid of the files in the system
   end
   
   it "should save it somewhere below the root folder" do
