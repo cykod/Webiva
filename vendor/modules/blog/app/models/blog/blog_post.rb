@@ -73,12 +73,11 @@ class Blog::BlogPost < DomainModel
   def content_node_body(language)
     body = []
     body << self.active_revision.body_html if self.active_revision
+    body << self.active_revision.author
     body << self.keywords
     body += self.blog_categories.map(&:name)
     body += self.content_tags.map(&:name)
-
-      body.join(" ")
-
+    body.join(" ")
   end
 
   def content_node_container_type
