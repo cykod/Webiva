@@ -17,6 +17,7 @@
 <% end -%>
 
 <%= render :partial => 'operation_form_arguments', :locals => {:form_id => form_id, :builder => builder} %>
+    <%= "<span class='description'>#{builder.field_builder_description}</span>" if builder.field_builder_description %>
 </ul>
 </td>
 </tr>

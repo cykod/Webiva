@@ -126,6 +126,11 @@ class UserSegment::Field < HashModel
     self.handler_class.user_segment_fields[self.field.to_sym][:builder_name] if self.handler_class && self.handler_class.user_segment_fields && self.handler_class.user_segment_fields[self.field.to_sym]
   end
 
+  def description
+    raise self.handler_class.user_segment_fields[self.field.to_sym].inspect
+    self.handler_class.user_segment_fields[self.field.to_sym][:description] if self.handler_class && self.handler_class.user_segment_fields && self.handler_class.user_segment_fields[self.field.to_sym]
+  end
+
   def type_class
     @type_class ||= self.handler_class.user_segment_fields[self.field.to_sym][:type] if self.handler_class && self.handler_class.user_segment_fields && self.handler_class.user_segment_fields[self.field.to_sym]
   end

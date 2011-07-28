@@ -97,6 +97,10 @@ class UserSegment::OperationBuilder < HashModel
     self.user_segment_field.builder_name if self.user_segment_field
   end
 
+  def field_builder_description 
+    self.user_segment_field.type_class.user_segment_field_type_operations[operation.to_sym][:description] if self.user_segment_field.type_class.user_segment_field_type_operations[operation.to_sym]
+  end
+
   def operation_options
     return @operation_options if @operation_options
     @operation_options = []
