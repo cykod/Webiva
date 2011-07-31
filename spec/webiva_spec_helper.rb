@@ -71,13 +71,8 @@ class WebivaSystemCleaner
   end
 
   def save_test_domain
-    result = connection.execute("SELECT * FROM domains WHERE id = #{CMS_DEFAULTS['testing_domain']}")
-    @domain = {}
-    result.each_hash { |row| @domain = row }
-
-    @domain_database = {}
-    result = connection.execute("SELECT * FROM domain_databases WHERE id = #{@domain['domain_database_id']}")
-    result.each_hash { |row| @domain_database = row }
+    @domain = connection.select_one("SELECT * FROM domains WHERE id = #{CMS_DEFAULTS['testing_domain']}")
+    @domain_database = connection.select_one("SELECT * FROM domain_databases WHERE id = #{@domain['domain_database_id']}")
   end
 
   def create_test_domain

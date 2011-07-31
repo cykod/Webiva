@@ -1,10 +1,10 @@
 # Edit this Gemfile to bundle your application's dependencies.
 source 'http://rubygems.org'
 
-gem "rails", '3.0.5'
+gem "rails", '3.0.9'
 
-gem 'mysql'
-gem 'haml', '>= 3.0.25'
+gem 'mysql2', "~> 0.2.0"
+gem 'haml'
 gem 'mime-types', :require => 'mime/types'
 gem 'radius', '0.7.0.prerelease'
 gem 'RedCloth', :require => 'redcloth'

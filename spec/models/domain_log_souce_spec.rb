@@ -8,7 +8,7 @@ describe DomainLogSource do
   queue_session_klass = nil
   begin
     result = DomainModel.connection.execute "show tables like 'market_campaign_queue_sessions'"
-    if result.num_rows > 0
+    if result.size > 0
       queue_session_klass = Module.const_get('MarketCampaignQueueSession')
       reset_domain_tables :market_campaign_queue_session
     end

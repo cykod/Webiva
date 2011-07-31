@@ -32,7 +32,7 @@ class AddHasTargetEntryToDomainLogGroup < ActiveRecord::Migration
 
     # email campaign
     result = self.connection.execute "show tables like 'market_campaign_queue_sessions'"
-    self.connection.execute 'UPDATE domain_log_sessions, market_campaign_queue_sessions SET domain_log_source_id = 2, `ignore` = 0 WHERE domain_log_sessions.session_id = market_campaign_queue_sessions.session_id AND domain_log_source_id IS NULL' if result.num_rows > 0
+    self.connection.execute 'UPDATE domain_log_sessions, market_campaign_queue_sessions SET domain_log_source_id = 2, `ignore` = 0 WHERE domain_log_sessions.session_id = market_campaign_queue_sessions.session_id AND domain_log_source_id IS NULL' if result.size > 0
 
     # search
     self.connection.execute 'UPDATE domain_log_sessions SET domain_log_source_id = 4, `ignore` = 0 WHERE `query` IS NOT NULL AND `query` != "" AND domain_log_source_id IS NULL'

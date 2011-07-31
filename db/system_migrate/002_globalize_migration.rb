@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'csv'
 
 class GlobalizeMigration < ActiveRecord::Migration
@@ -70,7 +71,7 @@ class GlobalizeMigration < ActiveRecord::Migration
     is_header = false
     cnx = ActiveRecord::Base.connection
     ActiveRecord::Base.silence do
-      reader = CSV::Reader.create(data) 
+      reader = CSV.new data
       
       columns = reader.shift.map {|column_name| cnx.quote_column_name(column_name) }
       column_clause = columns.join(', ')

@@ -5,6 +5,15 @@ require 'base64'
 require 'fileutils'
 require 'yaml'
 require 'rubygems'
+
+require File.expand_path('../../config/webiva_bundler', __FILE__)
+if Webiva::Bundler.create_gemfile?
+  puts "Setting up Gemfile"
+  system('gem install bundle --no-rdoc --no-ri')
+  Webiva::Bundler.setup
+  system('bundle install')
+end
+
 require 'memcache'
 
 ROOT_FOLDER = File.dirname(__FILE__) + "/.."
@@ -49,6 +58,7 @@ class WebivaQuickInstall
 
 
   def run_standalone_install
+    setup_gemfile
     get_server_name()
     get_mysql_user_and_db_name()
     create_master_database()
@@ -62,6 +72,7 @@ class WebivaQuickInstall
   end
 
   def run_master_server_install
+    setup_gemfile
     get_server_name()
     get_mysql_user_and_db_name()
     create_master_database()
@@ -76,6 +87,7 @@ class WebivaQuickInstall
   end
 
   def run_slave_server_install
+    setup_gemfile
     get_server_name()
     validate_configs_exists()
     validate_memcache_servers()
@@ -83,12 +95,18 @@ class WebivaQuickInstall
     display_success_message()
   end
 
+  def setup_gemfile
+    return unless Webiva::Bundler.create_gemfile?
+    puts "Setting up Gemfile"
+    Webiva::Bundler.setup
+    system('bundle install')
+  end
+
   def report_error(ok,msg)
     return if ok
     puts(msg);
     exit(1)
   end
-
 
   def input_value(str,default='')
     print(str)
@@ -268,7 +286,7 @@ INTRODUCTION
 
     @db_socket = `mysql_config --socket`.to_s.strip
 
-    if @db_socket.to_s == ''
+    if @db_socket.to_s == '' || !File.exists?(@db_socket.to_s)
       @db_socket = File.exists?('/var/lib/mysql/mysql.sock') ? '/var/lib/mysql/mysql.sock' : '/var/run/mysqld/mysqld.sock'
       @db_socket = File.exists?(@db_socket) ? @db_socket : '/tmp/mysql.sock'
     end
@@ -341,17 +359,6 @@ EOF
 
     report_error(ok,"Error creating initial domain database, please run 'rake --trace cms:create_domain_db DOMAIN_ID=1' manually to see errors")
     
-  end
-
-  def build_local_gems
-    print("Building local gems")
-
-    system("find #{ROOT_FOLDER}/vendor/gems '*.o' -print | xargs rm")
-    system("find #{ROOT_FOLDER}/vendor/gems '*.so' -print | xargs rm")
-    system("find #{ROOT_FOLDER}/vendor/gems '*.out' -print | xargs rm")
-
-    ok = system("rake gems:build:force")
-    report_error(ok,'building of local gems failed, please run rake --trace gems:build:force manually')
   end
 
   def display_success_message
