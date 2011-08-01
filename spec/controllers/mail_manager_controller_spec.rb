@@ -104,12 +104,6 @@ describe MailManagerController, "" do
       response.body.should include("lots o txt")
     end
 
-    it 'should delete a template' do       
-      @tmpl = MailTemplate.find(:last)
-      @tmpl.id.should_not be_nil      
-      post('delete_template',:template_id => 1)
-    end
-
     it 'should save a template' do 
       post('edit_template', :mail_template => @tmpl_post_options, :email => ['daffy2@mywebiva.net'],  :path => 1)
       response.should redirect_to("http://test.host/website/mail_manager/templates?show_campaign=1")
