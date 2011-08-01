@@ -23,8 +23,7 @@ describe Feedback::RatingsRenderer, :type => :controller do
     @test_inputs = { :input => [:content_identifier, ['TestTarget', @test_class.id]] }
     @test_target_hash = FeedbackEndUserRating.target_hash('TestTarget', @test_class.id)
 
-    @session = {}
-    @feedback_session = Feedback::RatingsRenderer::FeedbackSession.new @session
+    @feedback_session = Feedback::RatingsRenderer::FeedbackSession.new session
     @feedback_session.add( @test_target_hash, 'TestTarget', @test_class.id )
   end
 
@@ -75,24 +74,26 @@ describe Feedback::RatingsRenderer, :type => :controller do
       @feedback_session.add( target_hash, 'TestTarget', target_id )
     end
 
-    assert_difference 'FeedbackEndUserRating.count', 1 do
+    target_id = 100
+
+    expect {
       renderer_post @rnd, {:target => target_hash, :rating => 5}
 
-      @feedback_rating = FeedbackRating.find(:last)
-      @feedback_rating.should_not be_nil
+      @feedback_rating = FeedbackRating.last
+      @feedback_rating.should be_present
       @feedback_rating.target_type.should == 'TestTarget'
       @feedback_rating.target_id.should == target_id
       @feedback_rating.rating_sum.should == 5
       @feedback_rating.rating_count.should == 1
 
-      @feedback_end_user_rating = FeedbackEndUserRating.find(:last)
+      @feedback_end_user_rating = FeedbackEndUserRating.last
       @feedback_end_user_rating.should_not be_nil
       @feedback_end_user_rating.target_type.should == 'TestTarget'
       @feedback_end_user_rating.target_id.should == target_id
       @feedback_end_user_rating.rating.should == 5
 
       @feedback_session.size.should == Feedback::RatingsRenderer::FeedbackSession::MAX_SESSION_RATINGS
-    end
+    }.to change { FeedbackEndUserRating.count }
   end
 
   it "should keep computing the correct average rating" do

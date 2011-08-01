@@ -70,7 +70,7 @@ class Util::TextFormatter
   
   def self.strip_white_space(str)
     # \xC2\xA0 non-breaking space
-    str.strip.gsub("\xC2\xA0", ' ').gsub(/[ \t]+/, ' ').split("\n").map(&:strip).join("\n").gsub(/\n\n\n+/, "\n\n")
+    str.strip.gsub("\u00A0", ' ').gsub(/[ \t]+/, ' ').split("\n").map(&:strip).join("\n").gsub(/\n\n\n+/, "\n\n")
   end
 
   protected

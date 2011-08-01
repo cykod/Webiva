@@ -183,6 +183,6 @@ describe SiteNode do
     template.save
 
     news.reload
-    news.full_framework_paragraphs('en').should == [para2, para1]
+    news.full_framework_paragraphs('en').should == [para1, para2]
   end
 end

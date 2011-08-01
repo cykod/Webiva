@@ -184,5 +184,4 @@ describe DomainFile do
 
     @df.destroy
   end
-  
 end

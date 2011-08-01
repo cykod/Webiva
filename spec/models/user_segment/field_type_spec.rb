@@ -54,8 +54,7 @@ describe UserSegment::FieldType do
     UserSegment::FieldType.convert_to(false, :datetime).should be_nil
     UserSegment::FieldType.convert_to(true, :datetime).should be_nil
     UserSegment::FieldType.convert_to(1.2, :datetime).should be_nil
-    time = Time.parse 'not a time'
-    UserSegment::FieldType.convert_to('not a time', :datetime).to_s.should == time.to_s
+    UserSegment::FieldType.convert_to('not a time', :datetime).to_s.should == ""
   end
 
   it "should convert value to boolean" do

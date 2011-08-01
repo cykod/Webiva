@@ -500,7 +500,7 @@ class ParagraphOutputMatcher
     else
       if output.is_a?(ParagraphRenderer::ParagraphOutput)
         @output_args = output.render_args.clone
-        @output_args.delete(:locals) if !@args[:locals]
+        @output_args.delete(:locals) if @args.is_a?(Hash) && !@args[:locals]
         if @output_type == 'render'
           @output_args == @args
         else

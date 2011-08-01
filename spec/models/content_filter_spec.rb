@@ -207,8 +207,8 @@ ignore paragraphs<br />
 <br />
 <i>Italics Test</i><br />
 <strong>Bold Test</strong>*<br />
-&lt;a href='<a href=\"http://www.google.com'&gt;Google\" rel=\"nofollow\" target=\"_blank\">http://www.google.com'&gt;Google</a> Link&lt;/a&gt;<br />
-&lt;a onclick='XSSExecute();' href='<a href=\"http://www.google.com'&gt\" rel=\"nofollow\" target=\"_blank\">http://www.google.com'&gt</a>;<span class=\"caps\">XSS</span> Link&lt;/a&gt;<br />
+&lt;a href='<a href=\"http://www.google.com'&amp;gt;Google\" rel=\"nofollow\" target=\"_blank\">http://www.google.com'&amp;gt;Google</a> Link&lt;/a&gt;<br />
+&lt;a onclick='XSSExecute();' href='<a href=\"http://www.google.com'&amp;gt\" rel=\"nofollow\" target=\"_blank\">http://www.google.com'&amp;gt</a>;<span class=\"caps\">XSS</span> Link&lt;/a&gt;<br />
 COMMENT
 
   describe "Comment Filter" do

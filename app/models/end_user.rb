@@ -537,9 +537,8 @@ class EndUser < DomainModel
 
   def self.fetch_user_level(end_user_id)
     end_user_id = end_user_id.to_i
-    results = self.connection.execute "SELECT user_level FROM end_users WHERE id = #{self.connection.quote end_user_id}"
-    results.each { |row| return row['user_level'].to_i }
-    nil
+    results = self.connection.select_one "SELECT user_level FROM end_users WHERE id = #{self.connection.quote end_user_id}"
+    results ? results['user_level'] : nil
   end
 
   def elevate_user_level(level)
