@@ -22,6 +22,10 @@ class Editor::PublicationFeature < ParagraphFeature #:nodoc:all
         data[:submitted] ? nil : data[:entry]
       end
 
+      if publication.publication_type == 'edit'
+        c.define_button_tag('form:delete',:name => "entry_#{publication.id}[delete]", :value => 'Delete')
+      end
+
       c.expansion_tag('submitted') { |t|  data[:submitted] }
       c.value_tag('submitted:success_text') { |t| data[:options].success_text}
 

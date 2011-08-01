@@ -15,7 +15,7 @@
 </a>
 </td>
 <td nowrap='1' align='right'>
-  <%= t.created_at.strftime(DEFAULT_DATETIME_FORMAT.t) %>
+  <%= t.created_at.strftime(Configuration.datetime_format) %>
 </td>
 <td nowrap='1' align='right'>
 <%= t.last_session.page_count  if t.last_session%>

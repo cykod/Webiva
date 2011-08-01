@@ -29,6 +29,15 @@ class UserProfileEntry < DomainModel
 
   end
 
+  def content_node_body(language)
+    body = self.attributes.values.map { |atr| [1] } + self.end_user.attributes.slice(*@@user_fields).values
+    if self.content_model_entry
+      body += self.content_model_entry.attributes.values
+    end
+    body += self.end_user.address.attributes.values if self.end_user.address
+    body.select { |itm| itm.is_a?(String) }.join(" ")
+  end
+
   def self.fetch_first_entry(user,profile_type_id=nil)
     if profile_type_id == nil
       type_ids = UserProfileType.match_classes(user.user_class_id) 
@@ -37,6 +46,8 @@ class UserProfileEntry < DomainModel
     end
     profile_type_id ? self.fetch_entry(user.id,profile_type_id) : nil
   end
+
+  @@user_fields =  %w(name image full_name first_name last_name gender dob source address billing_address work_address shipping_address salutation middle_name lead_source username cell_phone introduction suffix second_image username)
 
   def self.fetch_entry(user_id,profile_type_id)
     attr= { :user_profile_type_id => profile_type_id, :end_user_id => user_id } 
@@ -47,7 +58,7 @@ class UserProfileEntry < DomainModel
     entry
   end
   
-  %w(name image full_name first_name last_name gender dob source address billing_address work_address shipping_address salutation middle_name lead_source username cell_phone introduction suffix second_image).each do |fld|
+ @@user_fields.each do |fld|
     class_eval <<-METHOD
       def #{fld}; self.end_user.#{fld}; end
     METHOD

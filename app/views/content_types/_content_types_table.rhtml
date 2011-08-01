@@ -15,6 +15,6 @@
   <% end -%>
   <td><%= t.search_results? ? 'Yes' : 'No' %>
   <td><%= t.protected_results? ? 'Yes' : 'No' %>
-  <td><%= v t.created_at.localize(DEFAULT_DATETIME_FORMAT.t) %></td>
+  <td><%= v t.created_at.localize(Configuration.datetime_format) %></td>
 </tr>
 <% end -%>

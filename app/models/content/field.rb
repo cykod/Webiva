@@ -123,6 +123,7 @@ module Content
     
     @@setup_model_procs = {
       :required => Proc.new { |cls,fld|  cls.validates_presence_of fld.model_field.field if fld.model_field.field_options['required'] },
+      :required_array => Proc.new { |cls,fld| cls.validate { |mdl| mdl.errors.add(fld.model_field.field, 'is missing') if fld.model_field.field_options['required'] && mdl.send(fld.model_field.field) && mdl.send(fld.model_field.field).reject(&:blank?).length == 0 } },
       :unique =>  Proc.new { |cls,fld|  cls.validates_uniqueness_of fld.model_field.field, :allow_blank => true if fld.model_field.field_options['unique'] },
       :regexp => Proc.new { |cls,fld| cls.validates_format_of fld.model_field.field, :with => Regexp.new(fld.model_field.field_options['regexp_code']), :message => fld.model_field.field_options['regexp_message'].to_s, :allow_blank => true if fld.model_field.field_options['regexp'] },
       :validates_as_email => Proc.new { |cls,fld| cls.validates_as_email fld.model_field.field },

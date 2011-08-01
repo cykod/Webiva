@@ -35,6 +35,15 @@ class ContentNodeValue < DomainModel
     self.content_node.author
   end
 
+  def name
+    self.title
+  end
+
+
+  class << self
+    include ActionView::Helpers::TextHelper
+  end
+
   def self.search(language, query, options)
     values = []
     total_results = 0

@@ -62,8 +62,8 @@ FEATURE
       end
 
       if data[:options].publication
-        c.fields_for_tag('register:publication',:model) { |t|  data[:model] }
-        c.publication_field_tags("register:publication",data[:options].publication)
+        c.fields_for_tag('register:publication',:model,:local => 'pub') { |t|  data[:model] }
+        c.publication_field_tags("register:publication",data[:options].publication, :local => 'pub')
       else
         c.expansion_tag('register:publication') { |t| nil }
       end

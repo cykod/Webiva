@@ -4,7 +4,7 @@
 <tr <%= highlight_row 'entry',t.id %> >
   <td><%= entry_checkbox 'entry', t.id %></td>
   <td><%= t.end_user.email %></td>
-  <td><%= t.subscribed_at.strftime(DEFAULT_DATETIME_FORMAT.t) %></td>
+  <td><%= t.subscribed_at.strftime(Configuration.datetime_format) %></td>
   <td><%= t.subscription_type_display %></td>
 </tr>
 <% end -%>

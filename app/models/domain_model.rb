@@ -125,7 +125,8 @@ class DomainModel < ActiveRecord::Base
   #   Number of entries per page
   # [:window_size]
   #   Size of page window - passed through to pagination hash (used by CmsHelper#admin_pagination for example
-  def self.paginate(page,args = {})
+  def self.paginate(page,args = {},scope_by = nil)
+    scope_by ||= self
     page = page.to_i
     page = 1 if page < 1
     args = args.clone.symbolize_keys!
@@ -162,9 +163,9 @@ class DomainModel < ActiveRecord::Base
       end
 
       if count_by
-        total_count = self.count(count_by,count_args)
+        total_count = scope_by.count(count_by,count_args)
       else
-        total_count = self.count(count_args)
+        total_count = scope_by.count(count_args)
       end
       pages = (total_count.to_f / (page_size || 10)).ceil
       pages = 1 if pages < 1
@@ -175,14 +176,14 @@ class DomainModel < ActiveRecord::Base
       args[:offset] = offset
       args[:limit] = page_size
 
-      items = self.find(:all,args)
+      items = scope_by.find(:all,args)
     else
       offset = 0
       total_count = 0
       page = 1
       pages = 1
 
-      items = self.find(:all,args)
+      items = scope_by.find(:all,args)
     end
 
    

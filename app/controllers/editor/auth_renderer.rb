@@ -107,7 +107,10 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       @failed = true unless all_valid
 
       if all_valid 
+        set_source_conn, set_source_val = page_connection(:source)
+
         @usr.lead_source = @options.source unless @options.source.blank?
+        @usr.lead_source = set_source_val if set_source_val.present?
 
         if params[:address]
           @address.save
@@ -130,6 +133,15 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
           self.elevate_user_level @usr, @options.user_level
 
           @usr.tag_names_add(@options.add_tags) unless @options.add_tags.blank?
+
+          add_tags_conn, add_tags_ids = page_connection(:tag)
+          if add_tags_ids.present?
+            @usr.tag_names_add(add_tags_ids)
+            paragraph_action(@usr.action('/editor/auth/registration_tag',:identifier => add_tags_ids))
+          end
+
+
+
 
           session[:user_tracking] = nil
 
@@ -454,7 +466,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       @status = 'invalid'
     end
 
-    if @user && ( (request.post? && params[:activate]) || @status == 'activated' )
+    if !editor? && @user && ( (request.post? && params[:activate]) || @status == 'activated' )
       if @status == 'activation' && params[:activate][:accept].blank?
         @acceptance_error = true
       

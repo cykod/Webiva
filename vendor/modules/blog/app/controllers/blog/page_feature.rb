@@ -107,6 +107,9 @@ class Blog::PageFeature < ParagraphFeature
     c.value_tag('entry:embedded_media') { |tag| tag.locals.entry.embedded_media }
     
     c.media_tag('entry:media_file') { |tag| tag.locals.entry.media_file }
+
+    c.value_tag('entry:rating') { |t| (t.locals.entry.rating * (t.attr['multiplier'] || 1).to_i).floor.to_i }
+    c.value_tag('entry:rating_display') { |t| sprintf("%.1f",t.locals.entry.rating) }
     
     c.date_tag('entry:published_at',"%H:%M%p on %B %d %Y".t) { |t|  t.locals.entry.published_at }
     c.image_tag('entry:image') { |t| t.locals.entry.image }
@@ -123,7 +126,7 @@ class Blog::PageFeature < ParagraphFeature
     c.value_tag('entry:permalink') { |t| t.locals.entry.permalink }
     c.value_tag('entry:body') { |tag| tag.locals.entry.body_content }
     c.value_tag('entry:preview') {  |tag| tag.locals.entry.preview_content }
-    c.value_tag('entry:content_node_id') { |t| t.locals.entry.content_node_id }
+    c.value_tag('entry:content_node_id') { |t| t.locals.entry.content_node.id }
 
     c.value_tag 'entry:preview_title' do |tag|
       h(tag.locals.entry.preview_title.blank? ? tag.locals.entry.title : tag.locals.entry.preview_title)
@@ -157,7 +160,7 @@ class Blog::PageFeature < ParagraphFeature
     c.value_tag('entry:categories:category:escaped_name') { |t| CGI::escape(t.locals.category) }
 
     c.value_tag('entry:tags') do |tag|
-      tags = tag.locals.entry.content_tags(true)
+      tags = tag.locals.entry.content_tags
       if tags.length > 0
 	tags.collect {|tg| "<a href='#{SiteNode.link(data[:list_page], 'tag', h(tg.name))}'>#{h tg.name}</a>" }.join(", ")
       else
@@ -235,7 +238,7 @@ class Blog::PageFeature < ParagraphFeature
 	"#{SiteNode.link(data[:list_page], 'archive', formatted)}"
       end
 
-      c.date_tag('archive:date',DEFAULT_DATETIME_FORMAT.t) { |tag| tag.locals.archive[:date] }
+      c.datetime_tag('archive:date') { |tag| tag.locals.archive[:date] }
 
       c.define_value_tag "archives:archive:count" do |tag|
 	tag.locals.archive[:cnt]

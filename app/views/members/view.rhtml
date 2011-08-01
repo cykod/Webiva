@@ -35,7 +35,7 @@ MemberViewer = {
       <%= f.row('Gender',@user.gender == 'm' ? 'Male'.t : 'Female'.t) if @user.gender %>
       <%= f.row 'Email',@user.email %>
       <%= f.row('Language',@user.language.upcase) if @user.language %>
-      <%= f.row('Date of Birth',@user.dob.strftime("%m/%d/%Y".t)) if @user.dob %>
+      <%= f.row('Date of Birth',@user.dob.strftime(Configuration.date_format)) if @user.dob %>
       <%= f.row('VIP Number',@user.vip_number) unless @user.vip_number.blank? %>
 
       <%= f.header "Access Information" %>
@@ -48,9 +48,9 @@ MemberViewer = {
       <%= f.row('Referrer',@user.referrer) unless @user.referrer.blank? %>
 
       <%= f.header "Account Dates" %>
-      <%= f.row 'Created',@user.created_at.strftime(DEFAULT_DATETIME_FORMAT.t) if @user.created_at %>
-      <%= f.row 'Updated',@user.updated_at.strftime(DEFAULT_DATETIME_FORMAT.t) if @user.updated_at %>
-      <%= f.row 'Registered',@user.registered_at.strftime(DEFAULT_DATETIME_FORMAT.t) if @user.registered_at %>
+      <%= f.row 'Created',@user.created_at.strftime(Configuration.datetime_format) if @user.created_at %>
+      <%= f.row 'Updated',@user.updated_at.strftime(Configuration.datetime_format) if @user.updated_at %>
+      <%= f.row 'Registered',@user.registered_at.strftime(Configuration.datetime_format) if @user.registered_at %>
     <% end -%>
     
     </div>

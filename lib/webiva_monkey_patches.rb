@@ -127,10 +127,11 @@ class Time  #:nodoc:all
                 rescue NameError
                 nil
         end
+
         
         def self.parse_date(str)
           return nil unless str
-          val = Date.strptime(str,"%m/%d/%Y".t)
+          val = Date.strptime(str,Configuration.date_format)
           return val.to_time
         end
         
@@ -138,7 +139,7 @@ class Time  #:nodoc:all
           return nil unless str
           val = nil
           begin 
-            val = DateTime.strptime(str,DEFAULT_DATETIME_FORMAT.t)
+            val = DateTime.strptime(str,Configuration.datetime_format)
           rescue 
             begin
               val = DateTime.strptime(str,"%m/%d/%Y %H:%M".t)
@@ -160,6 +161,7 @@ class Date  #:nodoc:all
         def to_time
                 Time.local(year,month,day)
         end
+
 end 
 
 

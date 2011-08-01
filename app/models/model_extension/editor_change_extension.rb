@@ -39,7 +39,7 @@ module ModelExtension::EditorChangeExtension #:nodoc:
     
     # Return a select-friendly list of options
     def version_list_options(limit = 30)
-      self.version_list.map { |elm| [ "Saved #{elm.created_at.localize(DEFAULT_DATETIME_FORMAT.t)} by #{elm.admin_user ? elm.admin_user.name : 'Unknown'}", elm.id ] }
+      self.version_list.map { |elm| [ "Saved #{elm.created_at.localize(Configuration.datetime_format)} by #{elm.admin_user ? elm.admin_user.name : 'Unknown'}", elm.id ] }
     end
     
     # Load a specific version into this object 

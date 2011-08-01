@@ -459,7 +459,7 @@ class ParagraphRenderer < ParagraphFeature
       js.each { |fl| require_js(fl) }
     else
       js.downcase!
-      js += ".js" unless js[-3..-1] == '.js'
+      js += ".js" unless js =~ /^https?:\/\// || js[-3..-1] == '.js'
       @includes[:js] << js
     end
   end
@@ -943,13 +943,6 @@ an integer representing the number of seconds to keep the element in the cache.
     end
   end
 
-
-
-  # Helper for displaying pages in a renderer
-  def define_pages_tag(c,path,page,pages,options = {})  #:nodoc:
-    c.define_pages_tag('pages',path,page,pages,options = {})
-  end
-  
  
   def run_triggered_actions(trigger_name, data, user=nil)
     user ||= myself

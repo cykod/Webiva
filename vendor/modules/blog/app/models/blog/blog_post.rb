@@ -36,6 +36,10 @@ class Blog::BlogPost < DomainModel
 
   def self.for_permalink(permalink); self.where(:permalink => permalink); end
 
+  def first_category
+    self.blog_categories[0] || Blog::BlogCategory.new
+  end
+
   def data_model
     return @data_model if @data_model
     return nil unless self.blog_blog && self.blog_blog.content_model
@@ -75,7 +79,14 @@ class Blog::BlogPost < DomainModel
   end
 
   def content_node_body(language)
-    self.active_revision.body_html if self.active_revision
+    body = []
+    body << self.active_revision.body_html if self.active_revision
+    body << self.keywords
+    body += self.blog_categories.map(&:name)
+    body += self.content_tags.map(&:name)
+
+      body.join(" ")
+
   end
 
   def content_node_container_type
@@ -219,16 +230,18 @@ class Blog::BlogPost < DomainModel
       self.data_model_id = self.data_model.id
     end
 
-    self.active_revision.update_attribute(:status,'old') if self.active_revision
-    @revision = @revision.clone
+    if @revision
+      self.active_revision.update_attribute(:status,'old') if self.active_revision
+      @revision = @revision.clone
 
-    @revision.status = 'active'
-    @revision.blog_blog = self.blog_blog
-    @revision.blog_post_id = self.id if self.id
-    @revision.save
+      @revision.status = 'active'
+      @revision.blog_blog = self.blog_blog
+      @revision.blog_post_id = self.id if self.id
+      @revision.save
 
-    self.blog_post_revision_id = @revision.id
-    self.generate_permalink!
+      self.blog_post_revision_id = @revision.id
+      self.generate_permalink!
+    end
   end
 
   def update_revision_post

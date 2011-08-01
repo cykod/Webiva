@@ -7,6 +7,8 @@ class Blog::PageController < ParagraphController
   editor_for :entry_list, :name => 'Blog Entry List', :features => ['blog_entry_list'],
                        :inputs => { :type =>       [[:list_type, 'List Type (Category,Tags,Archive)', :path]],
                                     :identifier => [[:list_type_identifier, 'Type Identifier - Category, Tag, or Month name', :path]],
+                                    :category => [[:category, 'Category Name', :path ]],
+                                    :tag => [[:tag, "Tag Name", :path ]],
                                     :blog =>       [[:container, 'Blog Target', :target],
                                                     [:blog_id,'Blog ID',:path]]
                                   },
@@ -19,6 +21,7 @@ class Blog::PageController < ParagraphController
                                   },
                        :outputs => [[:content_id, 'Content Identifier', :content],
                                     [:comments_ok, 'Allow Commenting', :boolean ],
+                                    [:content_node_id, 'Content Node', :content_node_id ],
                                     [:post, 'Blog Post', :post_id ]]
                                   
   editor_for :targeted_entry_detail, :name => "Targeted Blog Entry Detail",  :features => ['blog_entry_detail'],
@@ -36,11 +39,11 @@ class Blog::PageController < ParagraphController
                         :inputs => [[:category, 'Selected Category', :blog_category_id]]
  
   class EntryListOptions < HashModel
-    attributes :blog_id => 0, :items_per_page => 10, :detail_page => nil, :list_page_id => nil, :include_in_path => nil,:blog_target_id => nil, :category => nil, :limit_by => 'category', :blog_ids => [], :skip_total => false
+    attributes :blog_id => 0, :items_per_page => 10, :detail_page => nil, :list_page_id => nil, :include_in_path => nil,:blog_target_id => nil, :category => nil, :limit_by => 'category', :blog_ids => [], :skip_total => false, :skip_page => false, :order => 'date'
 
     integer_array_options :blog_ids
 
-    boolean_options :skip_total
+    boolean_options :skip_total, :skip_page
 
     def detail_page_id
       self.detail_page
@@ -56,9 +59,12 @@ class Blog::PageController < ParagraphController
      fld('Advanced Options',:header),
      fld(:blog_target_id, :select, :options => :blog_target_options, :description => 'Advanced use only'),
      fld(:blog_ids, :ordered_array, :options => :blog_name_options, :label => 'For multiple blogs',:description => 'Leave blank to show all blogs'),
+     fld(:order,:select,:options => [['Newest','date'],['Rating','rating']]),
      fld(:limit_by,:radio_buttons,:label => 'Limit to',:options => [[ 'Categories','category'],['Tags','tag']]),
      fld(:category,:text_field,:label => "Limit to",:description => "Comma separated list of categories or tags"),
-     fld(:skip_total, :yes_no, :description => "Set to yes for paragraphs without pagination or for blogs\n with a large number (>1000) of posts to speed rendering")
+     fld(:skip_total, :yes_no, :description => "Set to yes for paragraphs without pagination or for blogs\n with a large number (>1000) of posts to speed rendering"),
+     fld(:skip_page, :yes_no, :description => "Set to yes to skip looking at the current page number\nuseful for framework paragraphs")
+    
 		 )
 
     def blog_target_options; Blog::BlogTarget.select_options_with_nil; end

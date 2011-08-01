@@ -23,6 +23,7 @@ class Content::CoreField < Content::FieldHandler
   :email => 'User Email',
   :user_identifier => 'User Identifier',
   :user_id => 'User ID',
+  :content_id => 'Page Connection Content ID',
   :city => 'City',
   :state => 'State',
   :page_connection => 'Page Connection',
@@ -108,7 +109,7 @@ class Content::CoreField < Content::FieldHandler
                          :description => 'Belongs to Relationship',
                          :representation => :integer,
                          :relation => true,
-                         :dynamic_fields => [:user_id ],
+                         :dynamic_fields => [:user_id, :content_id],
                          :index => true,
                        },
                        { :name => :has_many,
@@ -490,7 +491,7 @@ class Content::CoreField < Content::FieldHandler
   
   class MultiSelectField < Content::Field #:nodoc:all
     field_options :options, :required
-    setup_model :required, :serialize do |cls,fld|
+    setup_model :required_array, :serialize do |cls,fld|
        cls.has_options fld.model_field.field.to_sym, fld.available_options
     end  
     
@@ -541,7 +542,7 @@ class Content::CoreField < Content::FieldHandler
     
     def content_display(entry,size=:full,options = {})
       dt = entry.send(@model_field.field)
-      dt ? dt.localize(options[:format] || DEFAULT_DATE_FORMAT) : ''
+      dt ? dt.localize(options[:format] || Configuration.date_format) : ''
     end
     
     
@@ -568,7 +569,7 @@ class Content::CoreField < Content::FieldHandler
     def content_display(entry,size=:full,options = {})
       dt = entry.send(@model_field.field)
       begin
-        dt ? dt.localize(options[:format] || DEFAULT_DATETIME_FORMAT) : ''
+        dt ? dt.localize(options[:format] || Configuration.datetime_format) : ''
       rescue Exception => e
         ''
       end
@@ -593,7 +594,11 @@ class Content::CoreField < Content::FieldHandler
 
     
     def available_options(atr={ })
-      opts = @available_opts ||=  @model_field.relation_class.select_options(:limit => 100)
+      if  @model_field.relation_class
+        opts = @available_opts ||=  @model_field.relation_class.select_options(:limit => 100)
+      else
+        []
+      end
     end
 
     def form_field(f,field_name,field_opts,options={})
@@ -672,7 +677,7 @@ class Content::CoreField < Content::FieldHandler
           end
         end
         c.user_tags("#{name_base}:#{tag_name}",:local => :user)
-      else
+      elsif  @model_field.relation_class
         sub_local = "sub_#{local}"
 
         c.define_tag("#{name_base}:#{tag_name}") do |t|
@@ -1094,6 +1099,18 @@ class Content::CoreField < Content::FieldHandler
   def self.dynamic_user_id_value(entry,fld,state={}) #:nodoc:
     if state[:user]
       state[:user].id
+    end
+  end
+
+  def self.dynamic_content_id_value(entry,fld,state = {}) #:nodoc
+    if state[:content_id]
+      if state[:content_id].is_a?(Array)
+        state[:content_id][1]
+      elsif state[:content_id].is_a?(DomainModel)
+        state[:content_id].id
+      else 
+        state[:content_id]
+      end
     end
   end
   

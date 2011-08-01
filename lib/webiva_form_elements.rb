@@ -4,6 +4,7 @@
 module WebivaFormElements
 
   include ActionView::Helpers::UrlHelper
+  include PageHelper
   
   # Displays a File manager selection widget (admin only)
   # that lets a user select an image from the file manager
@@ -162,7 +163,7 @@ module WebivaFormElements
     if date_value.is_a?(String)
       date_txt = date_value
     elsif date_value || !options.delete(:blank)
-      date_txt = (date_value || Time.now).localize("%m/%d/%Y".t)
+      date_txt = (date_value || Time.now).localize(Configuration.date_format)
     else
       date_txt = ''
     end
@@ -185,7 +186,7 @@ module WebivaFormElements
     if date_value.is_a?(String)
       date_txt = date_value
     elsif date_value || !options.delete(:blank)
-      date_txt = (date_value || Time.now).localize("%m/%d/%Y %H:%M".t)
+      date_txt = (date_value || Time.now).localize(Configuration.datetime_format)
     else
       date_txt = ''
     end
@@ -737,6 +738,17 @@ module WebivaFormElements
   # Selector that lets you pick a page by url
  def url_selector(field,opts = {})
     self.select(field,[['--Select Page--'.t,nil]] + SiteNode.page_options.map {  |elm| [elm[0],elm[0]] },opts)
+  end
+
+
+  def rating_field(field,opts = {})
+    rating = @object ? @object.send(field) : 0
+    field_id = "#{@object_name}_#{field}"
+
+    active_rating_widget(rating,:callback => "setRating#{field_id}(",
+                          :icon => '/themes/standard/images/icons/star_unselected.gif',
+                          :selected => '/themes/standard/images/icons/star_selected.gif') + self.hidden_field(field) + 
+      "<script> function setRating#{field_id}(num) { document.getElementById('#{field_id}').value = num; }</script>"
   end
 
   # Ordered array selector that lets elements be added and sorted.

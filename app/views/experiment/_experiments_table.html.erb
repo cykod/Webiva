@@ -9,9 +9,9 @@
   <td align='center'><%= t.page_title ? t.page_title : '-' %></td>
   <td align='center'><%= t.conversion_title ? t.conversion_title : '-' %></td>
   <td align='center'><%= t.note %></td>
-  <td align='center'><%= t.started_at ? t.started_at.localize(DEFAULT_DATETIME_FORMAT.t) : '-' %></td>
-  <td align='center'><%= t.ended_at ? t.ended_at.localize(DEFAULT_DATETIME_FORMAT.t) : '-' %></td>
-  <td align='center'><%= t.created_at ? t.created_at.localize(DEFAULT_DATETIME_FORMAT.t) : '-' %></td>
+  <td align='center'><%= t.started_at ? t.started_at.localize(Configuration.datetime_format.t) : '-' %></td>
+  <td align='center'><%= t.ended_at ? t.ended_at.localize(Configuration.datetime_format.t) : '-' %></td>
+  <td align='center'><%= t.created_at ? t.created_at.localize(Configuration.datetime_format.t) : '-' %></td>
 </tr>
 
 <% end -%>
