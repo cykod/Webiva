@@ -26,6 +26,7 @@ gem 'image_size'
 
 # Workling gems
 gem 'eventmachine'
+gem 'starling'
 
 group :development, :test, :spec, :cucumber, :selenium do
   gem 'rspec-rails'

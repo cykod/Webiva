@@ -15,7 +15,7 @@
 module Workling
   class Base
     cattr_accessor :logger
-    @@logger ||= ::RAILS_DEFAULT_LOGGER
+    @@logger ||= ::Rails.logger
     
     def self.inherited(subclass)
       Workling::Discovery.discovered << subclass
