@@ -15,7 +15,7 @@
         - # Paragraph needs to be numbered by an index, not an id, so that we can save changes -> create a new page revision
     - unless blk[:locked]
       .cms_add_paragraph_zone{:id => "cms_add_paragraph_zone_#{blk[:zone_idx]}", :onclick => "cmsEdit.createParagraph(#{blk[:zone_idx]});", :style => "display:none;"}
-        = "-- Add to %s Zone --" / ("<b>" + h(blk[:zone_name]) + "</b>")
+        != "-- Add to %s Zone --" / ("<b>" + h(blk[:zone_name]) + "</b>")
 :javascript
   cmsEdit.recreateSortables();
   cmsEdit.setParagraphIndex(#{para_index});
