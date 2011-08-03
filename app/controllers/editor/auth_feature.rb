@@ -173,7 +173,7 @@ FEATURE
       req = required_fields.include? fld[0].to_s
       content_tag("label",
                   t.locals.send(fields_name)[1][0] + (req ? "<em>*</em>" : ""),
-                 :for => "#{frm.object_name}_#{fld[1[2]]}")
+                  {:for => "#{frm.object_name}_#{fld[1[2]]}"}, false)
     end
     c.value_tag("#{prefix}:#{fields_name}:control") do |t|
       frm = t.locals.form
