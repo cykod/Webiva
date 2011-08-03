@@ -327,4 +327,21 @@ describe EndUser do
     @user.source.should == 'referral'
     @user.source_user_id.should == @referral_user.id
   end
+
+  it "should be able to set specific times from a string" do
+    expect {
+      @user = EndUser.push_target('test@test.dev', :registered_at => '3/21/1976 04:43:30', :dob => '3/21/1976')
+    }.to change { EndUser.count }
+
+    @user.dob.should be_present
+    @user.dob.year.should == 1976
+    @user.dob.month.should == 3
+    @user.dob.day.should == 21
+
+    @user.registered_at.should be_present
+    @user.registered_at.year.should == 1976
+    @user.registered_at.month.should == 3
+    @user.registered_at.day.should == 21
+    @user.registered_at.hour.should == 4
+  end
 end
