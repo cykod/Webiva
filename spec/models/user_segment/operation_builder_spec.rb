@@ -105,9 +105,9 @@ describe UserSegment::OperationBuilder do
 
   it "should handle Time arguments" do
     build(:field => 'created', :operation => 'between', :argument0 => '1/2/2010', :argument1 => '2/2/2010').valid?.should be_true
-    @builder.argument0.should == '02/01/2010 00:00:00'
+    @builder.argument0.should == '01/02/2010 00:00:00'
     @builder.argument1.should == '02/02/2010 00:00:00'
-    @builder.to_expr.should == 'created.between("02/01/2010 00:00:00", "02/02/2010 00:00:00")'
+    @builder.to_expr.should == 'created.between("01/02/2010 00:00:00", "02/02/2010 00:00:00")'
     segment.valid?.should be_true
   end
 
