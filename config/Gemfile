@@ -28,7 +28,7 @@ gem 'image_size'
 gem 'eventmachine'
 gem 'starling'
 
-group :development, :test, :spec, :cucumber, :selenium do
+group :test, :spec, :cucumber, :selenium do
   gem 'rspec-rails'
   gem 'cucumber-rails'
   gem 'capybara'
