@@ -186,8 +186,11 @@ class FileController < CmsController # :nodoc: all
       filenames = params[:upload_file][:filename]
       filenames = [filenames] unless filenames.is_a?(Array)
 
+      config = Configuration.file_types
+      processor = config.default
+
       domain_file_ids = filenames.collect do |filename|
-        @upload_file = DomainFile.create(:filename => filename, :parent_id => folder.id, :encoding => encoding, :creator_id => myself.id, :process_immediately => Configuration.file_types.default != 'local')
+        @upload_file = DomainFile.create(:filename => filename, :parent_id => folder.id, :encoding => encoding, :creator_id => myself.id, :processor => processor, :process_immediately => true)
         @upload_file.id
       end.compact
     
