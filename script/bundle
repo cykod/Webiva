@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require File.expand_path('../../config/webiva_bundler', __FILE__)
+Webiva::Bundler.setup
+
