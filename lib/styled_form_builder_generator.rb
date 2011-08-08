@@ -509,8 +509,8 @@ module EnhancedFormElements
         errs = errs.uniq
         return errs.collect do |msg|
           msg = @object.errors.generate_message(field,msg) if msg.is_a?(Symbol)
-          label + " " + emit_label(msg) + "<br/>"
-        end
+          label + " " + emit_label(msg)
+        end.join("<br/>")
 #      elsif errs
 #        label = label.gsub(/\:$/,'') # get rid of ending : if there
 #        errs = @object.errors.generate_message(field,errs) if errs.is_a?(Symbol)
