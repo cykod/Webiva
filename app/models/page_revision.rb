@@ -209,10 +209,12 @@ class PageRevision < DomainModel
     container = self.revision_container
     
     PageRevision.transaction do 
-      real_rev = container.page_revisions.find(:all,:conditions => [ 'revision_type="real" AND revision=? AND language=? AND id != ?', self.revision,self.language,self.id] )
-      real_rev.each do |rev|
-        rev.update_attributes(:revision_type => 'old' )
-        DomainFileInstance.clear_targets('PageParagraph',rev.page_paragraph_ids)
+      real_rev = container.page_revisions.find(:all,:conditions => [ 'revision_type="real" AND revision=? AND language=? AND id != ?', self.revision,self.language,self.id] ) if container
+      if real_rev
+        real_rev.each do |rev|
+          rev.update_attributes(:revision_type => 'old' )
+          DomainFileInstance.clear_targets('PageParagraph',rev.page_paragraph_ids)
+        end
       end
       self.update_attributes( :created_at => Time.now,
                               :revision_type => 'real')
