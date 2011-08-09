@@ -912,7 +912,7 @@ class DomainFile < DomainModel
   
   # Return the text contents of this file
   def contents
-    File.open(self.filename,'r') do |f|
+    File.open(self.filename,'rb') do |f|
       return f.read
     end
   end
@@ -942,7 +942,7 @@ class DomainFile < DomainModel
   end
 
   def self.save_temporary_file(file, opts={})
-    file = File.open(file) if file.is_a?(String)
+    file = File.open(file, 'rb') if file.is_a?(String)
     DomainFile.create opts.merge(:filename => file, :parent_id => self.temporary_folder.id, :private => 1, :processor => 'local', :special => 'temp')
   end
 
@@ -1248,7 +1248,7 @@ class DomainFile < DomainModel
     `cd #{dir}; zip -r ../#{dest_filename} *`
     
     df = nil
-    File.open(dir + "/../" + dest_filename) do |fp|
+    File.open(dir + "/../" + dest_filename, 'rb') do |fp|
       df = DomainFile.create(:filename => fp,:parent_id => self.parent_id,:process_immediately => true,:private => true)
     end
     
@@ -1325,7 +1325,7 @@ class DomainFile < DomainModel
           # Open the file
           # Create a new domain file and save it
           begin     
-            File.open(file) do |filename|
+            File.open(file, 'rb') do |filename|
               df = DomainFile.new(:filename => filename,:parent_id => parent_id)
               df.save
               

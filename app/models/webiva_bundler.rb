@@ -94,7 +94,7 @@ class WebivaBundler < HashModel
     File.unlink("#{dir}/../#{bundle_filename}") if File.exists?("#{dir}/../#{bundle_filename}")
     `cd #{dir}; tar zcf ../#{bundle_filename} *`
 
-    File.open("#{dir}/../#{bundle_filename}") do |fd|
+    File.open("#{dir}/../#{bundle_filename}", 'rb') do |fd|
       bundle = DomainFile.create :filename => fd, :parent_id => DomainFile.themes_folder.id, :process_immediately => true, :private => true, :creator_id => self.creator_id
       self.bundle_file_id = bundle.id
     end
@@ -188,7 +188,7 @@ class WebivaBundler < HashModel
     if ! manifest['thumb'].blank? && self.thumb.nil?
       thumbnail_folder = DomainFile.find(:first,:conditions => "name = 'Thumbnails' and parent_id = #{DomainFile.themes_folder.id}") || DomainFile.create(:name => 'Thumbnails', :parent_id => DomainFile.themes_folder.id, :file_type => 'fld')
       `cd #{dir}; tar zxf #{self.bundle_file.name} #{manifest['thumb']}`
-      File.open("#{dir}/#{manifest['thumb']}", "r") do |fd|
+      File.open("#{dir}/#{manifest['thumb']}", "rb") do |fd|
         self.thumb_id = DomainFile.create(:filename => fd, :parent_id => thumbnail_folder.id, :process_immediately => true).id
       end
     end
