@@ -23,4 +23,5 @@ Webiva::Application.configure do
   config.action_mailer.perform_deliveries = true
   config.action_mailer.default_charset = 'utf-8'
 
+  config.active_support.deprecation :notify
 end
