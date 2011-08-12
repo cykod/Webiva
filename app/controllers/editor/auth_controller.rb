@@ -20,7 +20,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
   
   editor_for :email_list, :name => 'Email List Signup', :triggers => [ ['Signed Up','action']], :features => ['email_list'], :inputs => [ [:source,"Source URL",:path ]] 
   editor_for :splash, :name => 'Splash Page'
-  editor_for :view_account, :name => 'View Account', :no_options => true
+  editor_for :view_account, :name => 'View Account', :no_options => true, :feature => :view_account
   
   class UserRegisterOptions < HashModel
     
