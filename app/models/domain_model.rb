@@ -64,7 +64,7 @@ class DomainModel < ActiveRecord::Base
   end
   
   def self.connection_name
-    self.active_domain["#{self.current_environment}_connection_name"] ||= 'domain_model_' + self.active_domain_id + "_" + Rails.env
+    self.active_domain["#{self.current_environment}_connection_name"] ||= "domain_model_#{self.current_environment}_#{self.active_domain_id}_#{Rails.env}"
   end
 
   # Allow update to all attributes via a Hash, even 
