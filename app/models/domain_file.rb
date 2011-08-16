@@ -1085,7 +1085,7 @@ class DomainFile < DomainModel
       end
     end
     
-   self.update_attributes(:processor => 'local',:processor_status => 'ok')
+   self.update_attributes(:processor => 'local',:processor_status => 'ok', :server_id => Server.server_id)
   end
     
   # LocalProcess is the default File processor - it stores
