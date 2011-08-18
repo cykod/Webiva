@@ -146,8 +146,8 @@ INTRODUCTION
     @pw = input_value("Mysql Admin User password ([blank]):",'')
     @db_name = input_value("Master database name (webiva):",'webiva')
     @db_name_short = @db_name[0..12] # Max mysql user name is 16 char and we add a suffix
-    @db_host = 'localhost'
-    @db_port = 3306
+    @db_host = input_value("Master database host (localhost):", 'localhost')
+    @db_port = input_value("Master database port (3306)", 3306)
     if @server_type == 'master'
       @db_host = input_value("Mysql host (#{@server_name}):",@server_name)
       report_error @db_host != 'localhost', "Mysql host can not be localhost for the master server"
