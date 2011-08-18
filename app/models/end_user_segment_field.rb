@@ -29,6 +29,7 @@ class EndUserSegmentField < UserSegment::FieldHandler
   register_field :username, UserSegment::CoreType::StringType, :name => 'Username', :sortable => true
   register_field :introduction, UserSegment::CoreType::StringType, :name => 'Introduction', :sortable => true
   register_field :suffix, UserSegment::CoreType::StringType, :name => 'Suffix', :sortable => true
+  register_field :cell_phone, UserSegment::CoreType::StringType, :name => 'Cell Phone', :sortable => true
   register_field :profile, EndUserSegmentType::UserClassType, :field => :user_class_id, :name => 'User Profile', :sortable => true
 
   def self.sort_scope(order_by, direction)
