@@ -71,12 +71,12 @@ describe Webform::PageRenderer, :type => :controller do
       options = {:webform_form_id => @model.id, :destination_page_id => nil, :email_to => nil, :captcha => nil}
       @rnd = generate_page_renderer('form', options)
 
-      assert_difference 'EndUser.count', 1 do
-        assert_difference 'WebformFormResult.count', 1 do
+      expect {
+        expect {
           param_str = 'results_' + @rnd.paragraph.id.to_s
-          renderer_post @rnd, param_str => @post_data
-        end
-      end
+          renderer_post @rnd, param_str.to_sym => @post_data
+        }.to change { WebformFormResult.count }
+      }.to change { EndUser.count }
 
       @rnd.should_not redirect_paragraph(@destination_page.node_path)
 
@@ -119,14 +119,14 @@ describe Webform::PageRenderer, :type => :controller do
       options = {:webform_form_id => @model.id, :destination_page_id => nil, :email_to => 'test-form@test.dev', :captcha => nil}
       @rnd = generate_page_renderer('form', options)
 
-      assert_difference 'EndUser.count', 1 do
-        assert_difference 'WebformFormResult.count', 1 do
+      expect {
+        expect {
           email = mock :deliver => nil
           MailTemplateMailer.should_receive(:message_to_address).with('test-form@test.dev', anything(), anything()).and_return(email)
           param_str = 'results_' + @rnd.paragraph.id.to_s
-          renderer_post @rnd, param_str => @post_data
-        end
-      end
+          renderer_post @rnd, param_str.to_sym => @post_data
+        }.to change { WebformFormResult.count }
+      }.to change { EndUser.count }
 
       @rnd.should_not redirect_paragraph(@destination_page.node_path)
 

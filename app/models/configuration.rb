@@ -139,6 +139,10 @@ class Configuration < DomainModel
       DataCache.put_local_cache('configuration_domain_options',DomainOptions.new(self.get(:options, { } )))
     end
   end
+
+  def self.date_format; self.options.default_date_format.present? ? self.options.default_date_format : DEFAULT_DATE_FORMAT.t; end
+  def self.time_format; self.options.default_time_format.present? ? self.options.default_time_format : DEFAULT_TIME_FORMAT.t; end
+  def self.datetime_format; self.options.default_datetime_format.present? ? self.options.default_datetime_format :  DEFAULT_DATETIME_FORMAT.t; end
   
   # Return the list of available image sizes
   def self.images_sizes
@@ -266,7 +270,10 @@ class Configuration < DomainModel
     :search_stats_handler => nil,
     :site_timezone => nil,
     :captcha_handler => nil,
-    :skip_default_feature_css => false
+    :skip_default_feature_css => false,
+    :default_date_format => nil,
+    :default_datetime_format => nil,
+    :default_time_format => nil
 
     integer_options :default_image_location, :gallery_folder,:user_image_folder, :missing_image_id, :missing_male_image_id, :missing_female_image_id
 

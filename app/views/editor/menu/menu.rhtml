@@ -5,7 +5,7 @@
 <div class='cms_form' style='width:600px;'>
 <h3><%= "Edit Links Menu".t %></h3>
 <p><%= 'Create a new link by entering a link name and pressing [Enter].'.t %></p>
-<p><%= 'Click on <img src="%s" /> to select a link. Use the arrow keys to position.' / theme_src("/images/icons/paragraph_move.gif") %></p>
+<p><%= ('Click on <img src="%s" /> to select a link. Use the arrow keys to position.' / theme_src("/images/icons/paragraph_move.gif")).html_safe %></p>
 <br/>
 <div style='height:300px; overflow:auto;' >
 <div id='cms_menu_entries' >
@@ -62,7 +62,7 @@
 </form>
 </div>
 <hr/>
-<a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsMenuEdit.save();'><%= "Update &amp; Close".t %></a>
+<a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsMenuEdit.save();'><%= "Update &amp; Close".t.html_safe %></a>
 <a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.closeBox();'><%= "Cancel".t %></a>
 
 

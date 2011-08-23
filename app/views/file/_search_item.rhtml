@@ -9,7 +9,7 @@
     <%= details = []
        details << "#{file.width}x#{file.height}" if file.image? 
        details << number_to_human_size(file.file_size) if file.file_size
-       details << "Created " + file.created_at.localize(DEFAULT_DATETIME_FORMAT.t) if file.created_at 
+       details << "Created " + file.created_at.localize(Configuration.datetime_format) if file.created_at 
        details.join(", ")
      -%>  
       </div>

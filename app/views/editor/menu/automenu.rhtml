@@ -79,7 +79,7 @@ cmsAutoMenuEdit = {
 <%= render :partial => 'automenu_preview' %>
 </div>
 <hr/>
-<a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsAutoMenuEdit.saveMenu();'><%= "Update &amp; Close".t %></a>
+<a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsAutoMenuEdit.saveMenu();'><%= "Update &amp; Close".t.html_safe %></a>
 <a class='cms_ajax_link' href='javascript:void(0);' onclick='cmsEdit.closeBox();'><%= "Cancel".t %></a>
 </div>
 <script>

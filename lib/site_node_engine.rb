@@ -363,8 +363,7 @@ EOF
 
     def webiva_post_process_paragraph(txt) #:nodoc:
       @post_process_form_token_str ||= "<input name='authenticity_token' type='hidden' value='#{ form_authenticity_token.to_s}' />"
-      txt.gsub!("<CMS:AUTHENTICITY_TOKEN/>",@post_process_form_token_str)
-      txt
+      txt.gsub("<CMS:AUTHENTICITY_TOKEN/>",@post_process_form_token_str)
     end
 
 

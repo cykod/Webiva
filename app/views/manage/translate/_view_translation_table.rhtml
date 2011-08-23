@@ -26,6 +26,6 @@
       <% end -%>
   </td>
   <td nowrap='1'>
-    <%= tr.updated_at.blank? ? "-" : tr.updated_at.localize(DEFAULT_DATETIME_FORMAT.t) %>
+    <%= tr.updated_at.blank? ? "-" : tr.updated_at.localize(Configuration.datetime_format) %>
   </td>
 <% end -%>

@@ -208,7 +208,7 @@ Event.observe(document.onresize ? document : window, "resize",FeatureEditor.kill
           <b>Click on a tag to insert it, Ctrl-click to insert a block</b>
           <% @doc.each_with_index do |tg,idx| -%>          
             <div class='template_style' id="cms_feature_<%= idx %>" >
-            <%= "&nbsp;&nbsp;" * (tg[1].split(":").length) %>&lt;cms:<%= tg[1] %>&gt; - <%= tg[0].humanize %><br/>
+            <%= ("&nbsp;&nbsp;" * (tg[1].split(":").length)).html_safe %>&lt;cms:<%= tg[1] %>&gt; - <%= tg[0].humanize %><br/>
           </div>
           <script>
             $('cms_feature_<%= idx %>').observe('click',function(e) { return FeatureEditor.insertFeature(e,"<%= jh tg[1] %>","<%= jh tg[0] %>"); });

@@ -33,7 +33,7 @@
           <%= stylesheet_link_tag css %>
         <% end -%>
     <% end -%>
-    <%= strip_script_tags(@output.head) unless @output.head.blank? -%>
+    <%= strip_script_tags(@output.head).html_safe unless @output.head.blank? -%>
 <script type="text/javascript">
 
 cmsEdit.setText({ deleteText: "<%= jh('Are you sure you want to delete this paragraph?'.t) %>",

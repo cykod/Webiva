@@ -509,8 +509,8 @@ module EnhancedFormElements
         errs = errs.uniq
         return errs.collect do |msg|
           msg = @object.errors.generate_message(field,msg) if msg.is_a?(Symbol)
-          label + " " + emit_label(msg) + "<br/>"
-        end
+          label + " " + emit_label(msg)
+        end.join("<br/>")
 #      elsif errs
 #        label = label.gsub(/\:$/,'') # get rid of ending : if there
 #        errs = @object.errors.generate_message(field,errs) if errs.is_a?(Symbol)
@@ -845,7 +845,7 @@ class CmsForm < TabledForm
 
   include WebivaFormElements
   generate_styled_fields('form_options',
-                         %w(add_page_selector access_control filemanager_image filemanager_folder filemanager_file price_classes price_range color_field date_field time_zone_select datetime_field upload_image upload_document unsorted_selector content_selector multi_content_selector image_list end_user_selector autocomplete_field ordered_selection_list ordered_array captcha)) do 
+                         %w(add_page_selector access_control filemanager_image filemanager_folder filemanager_file price_classes price_range color_field date_field time_zone_select datetime_field upload_image upload_document unsorted_selector content_selector multi_content_selector image_list end_user_selector autocomplete_field ordered_selection_list ordered_array captcha rating_field)) do 
                           field(@options)
                           end
 

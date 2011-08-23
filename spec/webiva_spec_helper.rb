@@ -71,13 +71,8 @@ class WebivaSystemCleaner
   end
 
   def save_test_domain
-    result = connection.execute("SELECT * FROM domains WHERE id = #{CMS_DEFAULTS['testing_domain']}")
-    @domain = {}
-    result.each_hash { |row| @domain = row }
-
-    @domain_database = {}
-    result = connection.execute("SELECT * FROM domain_databases WHERE id = #{@domain['domain_database_id']}")
-    result.each_hash { |row| @domain_database = row }
+    @domain = connection.select_one("SELECT * FROM domains WHERE id = #{CMS_DEFAULTS['testing_domain']}")
+    @domain_database = connection.select_one("SELECT * FROM domain_databases WHERE id = #{@domain['domain_database_id']}")
   end
 
   def create_test_domain
@@ -505,7 +500,7 @@ class ParagraphOutputMatcher
     else
       if output.is_a?(ParagraphRenderer::ParagraphOutput)
         @output_args = output.render_args.clone
-        @output_args.delete(:locals) if !@args[:locals]
+        @output_args.delete(:locals) if @args.is_a?(Hash) && !@args[:locals]
         if @output_type == 'render'
           @output_args == @args
         else

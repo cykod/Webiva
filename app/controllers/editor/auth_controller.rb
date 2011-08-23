@@ -10,7 +10,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
   editor_for :login, :name => 'User Login', :features => ['login']
   editor_for :enter_vip, :name => 'Enter VIP #', :features => ['enter_vip'], :triggers => [['Failed VIP Login','failure'],['Successful VIP Login','success' ],['Repeat Successful VIP Login','repeat']]
 
-  editor_for :user_register, :name => 'User Registration', :feature => 'user_register', :triggers => [ ['Successful Registration','action'] ]
+  editor_for :user_register, :name => 'User Registration', :feature => 'user_register', :triggers => [ ['Successful Registration','action'] ], :inputs => { :source => [[:source, 'Source',:path]], :tag => [[:add_tag,'Tag',:path ]] }
 
   editor_for :user_activation, :name => 'User Activation', :feature => 'user_activation', :triggers => [ ['Successful Activation','action'] ]
 
@@ -20,7 +20,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
   
   editor_for :email_list, :name => 'Email List Signup', :triggers => [ ['Signed Up','action']], :features => ['email_list'], :inputs => [ [:source,"Source URL",:path ]] 
   editor_for :splash, :name => 'Splash Page'
-  editor_for :view_account, :name => 'View Account', :no_options => true
+  editor_for :view_account, :name => 'View Account', :no_options => true, :feature => :view_account
   
   class UserRegisterOptions < HashModel
     
@@ -69,6 +69,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
         :password_confirmation => [ 'Confirm Password'.t, :password_field, :password_confirmation ],
         :first_name => ['First Name'.t,:text_field,:first_name],
         :middle_name => ['Middle Name'.t,:text_field,:middle_name],
+        :dob => [ 'Date of Birth'.t,:text_field,:dob],
         :last_name => ['Last Name'.t,:text_field,:last_name],
         :gender => ['Gender'.t, :radio_buttons, :gender, { :options => [ ['Male'.t,'m'],['Female'.t,'f' ] ] } ],
         :introduction => ['Introduction'.t, :radio_buttons, :introduction, { :options => [ ['Mr.'.t,'Mr.'],['Mrs.'.t,'Mrs.' ], ['Ms.'.t, 'Ms.'] ] } ],
@@ -133,7 +134,8 @@ class Editor::AuthController < ParagraphController #:nodoc:all
         :address => [ 'Address'.t, :text_field,:address],
         :address_2 => [ 'Address (Line 2)'.t, :text_field,:address_2],
         :city => [ 'City'.t, :text_field,:city],
-        :state => [ 'State'.t, :select,:state,{ :options => ContentModel.state_select_options } ],
+        :state => (self.country == 'United States' ? [ 'State'.t, :select,:state,{ :options => ContentModel.state_select_options } ] :
+                                                [ 'State'.t, :text_field,:state] ),
         :zip => [ 'Zip Code'.t, :text_field,:zip],
 	:country => [ 'Country'.t, :country_select, :country]
       }

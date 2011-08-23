@@ -11,6 +11,6 @@ else
   if @completed
     page << '$("wizard_next").disabled = false;'
   else
-    page << 'setTimeout(ImportStatus.monitor,1000);'
+    page << 'setTimeout(ImportStatus.monitor,5000);'
   end
 end

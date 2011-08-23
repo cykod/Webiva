@@ -9,6 +9,6 @@ namespace "cms" do
       raise "USAGE: rake cms:install_module MODULE=mod_name"
     end
     
-    `cd #{RAILS_ROOT}/vendor/modules; git clone #{GIT_REPOSITORY}/Webiva-#{ENV['MODULE']}.git #{ENV['MODULE']}`
+    `cd #{Rails.root}/vendor/modules; git clone #{GIT_REPOSITORY}/Webiva-#{ENV['MODULE']}.git #{ENV['MODULE']}`
   end
 end

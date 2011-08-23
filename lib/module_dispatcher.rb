@@ -65,12 +65,12 @@ class ModuleDispatcher
                             :node_path => node_path,
                             :module_name => @site_node.module_name,
                             :node_level => level,
-                            :title => (page[3] || page[2]).t,
-                            :children => [])
+                            :title => (page[3] || page[2]).t
+                            )
         node.id = 1000000 + page_num
         levels[level-1] ||= [] unless levels[level-1] # To Catch any errors
         levels[level-1] << node
-        levels[level] = node.children
+        levels[level] = node.child_cache
       end
     
     end

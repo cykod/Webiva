@@ -3,12 +3,12 @@ require "domain_log_spec_helper"
 
 describe DomainLogSource do
 
-  reset_domain_tables :domain_log_session, :domain_log_visitor, :domain_log_referrer, :domain_log_source
+  reset_domain_tables :domain_log_sessions, :domain_log_visitors, :domain_log_referrers, :domain_log_sources
 
   queue_session_klass = nil
   begin
     result = DomainModel.connection.execute "show tables like 'market_campaign_queue_sessions'"
-    if result.num_rows > 0
+    if result.size > 0
       queue_session_klass = Module.const_get('MarketCampaignQueueSession')
       reset_domain_tables :market_campaign_queue_session
     end
@@ -16,6 +16,7 @@ describe DomainLogSource do
   end
 
   before(:each) do
+    DomainLogSource.delete_all
     setup_domain_log_sources
   end
 

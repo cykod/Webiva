@@ -175,3 +175,32 @@ ActiveTable = function() {
   } 
   
 }();
+
+ActiveTableOverlay = (function() {
+  var that = this;
+  
+  this.table_name = null;
+  this.active_table_name = null;
+  this.refresh_url = null;
+
+  this.overlay = function(url) {
+    SCMS.remoteOverlay(url);
+  };
+
+  this.refresh = function() {
+    ActiveTable.refresh(that.table_name, that.refresh_url, that.table_name, null);
+    RedBox.close();
+  };
+
+  this.action = function(action, args) {
+    this.tableAction(action, args);
+    RedBox.close();
+  };
+
+  this.tableAction = function(action, args) {
+    var name = that.active_table_name || that.table_name;
+    ActiveTable.action(action, null, name, that.refresh_url, that.table_name, args);
+  };
+
+  return this;
+})();

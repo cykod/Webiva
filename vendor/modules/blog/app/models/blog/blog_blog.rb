@@ -18,6 +18,8 @@ class Blog::BlogBlog < DomainModel
   has_many :blog_posts, :dependent => :destroy, :include => :active_revision
   has_many :blog_categories, :class_name => 'Blog::BlogCategory', :dependent => :destroy, :order => 'blog_categories.name'
 
+  serialize :options_data
+
   cached_content # Add cached content support 
 
   attr_accessor :add_to_site
@@ -121,11 +123,35 @@ class Blog::BlogBlog < DomainModel
   end
 
   def paginate_posts(page,items_per_page,options = {})
-    Blog::BlogPost.paginate(page, {
-                            :include => [ :active_revision ], 
-                            :order => 'published_at DESC',
-                            :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ?  AND blog_blog_id=?",Time.now,self.id],
-                            :per_page => items_per_page }.merge(options))          
+    opts = options.symbolize_keys
+
+    post_options = {  :include => [ :active_revision ], 
+                      :order => 'published_at DESC',
+                      :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ?  AND blog_blog_id=?",Time.now,self.id],
+                      :per_page => items_per_page }
+
+    if tag = opts.delete(:tag_filter)
+      tag = [ tag ] unless tag.is_a?(Array)
+
+      tag_ids = ContentTag.find(:all,:conditions => { :name => tag },:select => 'id').map(&:id)
+      tag_ids = [ 0 ] if tag_ids.length == 0
+
+      post_options[:include] << :content_tag_tags
+      post_options[:conditions][0] += "  AND content_tag_tags.content_tag_id in (?)"
+      post_options[:conditions] << tag_ids
+    end
+
+    if cat = opts.delete(:category_filter)
+      cat = [ cat] unless cat.is_a?(Array)
+      category_ids = self.blog_categories.find(:all,:conditions => { :name => cat },:select=>'id').map(&:id)
+
+      category_ids = [ 0] if category_ids.length == 0
+     post_options[:include] << :blog_posts_categories
+      post_options[:conditions][0] += "  AND blog_posts_categories.blog_category_id in (?)"
+      post_options[:conditions] << category_ids
+    end
+
+    Blog::BlogPost.paginate(page,post_options.merge(opts))          
 
   end
 
@@ -156,6 +182,29 @@ class Blog::BlogBlog < DomainModel
   def send_pingbacks(post)
     return unless self.trackback? && post.published?
     post.run_pingbacks(post.active_revision.body_html)
+  end
+
+  def content_detail_link_url(path,obj)
+    if self.blog_options.category_override
+      "#{path}/#{obj.first_category.permalink}/#{obj.permalink}"
+    else 
+      "#{path}/#{obj.permalink}"
+    end
+  end
+
+  def blog_options(val=nil)
+    @options_cache = nil if val
+    @options_cache ||= BlogOptions.new(val || self.options_data)
+    @options_cache
+  end
+
+  def blog_options=(val)
+    self.options_data = blog_options(val).to_hash
+  end
+
+  class BlogOptions < HashModel
+    attributes :category_override => false
+    boolean_options :category_override
   end
 
   @@import_fields  = %w(title permalink author published_at preview body embedded_media).map(&:to_sym)

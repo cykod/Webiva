@@ -5,10 +5,8 @@
     <div class='upload_popup'>
     <div class='upload_popup_header'><%= "Upload Image".t %></div>
     <div class='upload_popup_content'>
-    <% tabled_form_for :gallery_upload, @upload, :url => '', :html => { :enctype => 'multipart/form-data' } do |f| %>
-      <%= f.custom_field 'Select Image' do %>
-        <%= file_column_field 'gallery_upload', 'file' %>
-      <% end -%>
+    <%= tabled_form_for :gallery_upload, @upload, :url => '', :html => { :enctype => 'multipart/form-data' } do |f| %>
+      <%= f.file_field 'file',:label => 'Select Image' %>
       <%= f.text_field :description, :label => options.description_string %>
       <%= f.submit_cancel_tags 'Upload','Cancel', {}, { :onclick => 'CmsGallery.cancelUpload(); return false;' } %>
     <% end -%>
