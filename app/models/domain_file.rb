@@ -1161,11 +1161,12 @@ class DomainFile < DomainModel
 
       old_directory = @df.abs_storage_directory
       @df.update_attributes(:private => value, :server_id => Server.server_id)
-      FileUtils.mkpath(@df.abs_storage_directory)
-      
+
       # Strip off the final directory so we don't move to a subdirectory 
-      Rails.logger.error([ old_directory,@df.abs_storage_directory.split("/")[0..-2].join("/") + "/" + @df.id.to_s ])
-      FileUtils.move(old_directory,@df.abs_storage_directory.split("/")[0..-2].join("/") + "/" + @df.id.to_s )
+      destination_directory = @df.abs_storage_directory.split("/")[0..-2].join("/")
+      FileUtils.mkpath(destination_directory)
+      
+      FileUtils.move(old_directory,destination_directory)
 
       if key && url
         Server.send_to_all url, :except => [Server.server_id]
