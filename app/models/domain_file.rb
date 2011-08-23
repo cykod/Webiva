@@ -757,6 +757,7 @@ class DomainFile < DomainModel
   # Return an image tag for a file
   def image_tag(size=nil,options = {})
      size_arr = image_size(size)
+     size_arr ||= []
      url_val = url(size)
      url_val << "?" + self.stored_at.to_i.to_s if self.local?
      
