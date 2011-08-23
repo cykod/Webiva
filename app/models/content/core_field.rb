@@ -495,6 +495,12 @@ class Content::CoreField < Content::FieldHandler
        cls.has_options fld.model_field.field.to_sym, fld.available_options
     end  
     
+    def content_import(entry,value)
+      unless value.blank?
+        entry.send("#{@model_field.field}=",value.split(",").map(&:strip).reject(&:blank?))
+      end
+    end
+
     def active_table_header
       ActiveTable::OptionHeader.new(@model_field.field, :label => @model_field.name, :options => available_options)
     end    
