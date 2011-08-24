@@ -97,6 +97,10 @@ class UserSegment::OperationBuilder < HashModel
     self.user_segment_field.builder_name if self.user_segment_field
   end
 
+  def field_builder_description 
+    self.user_segment_field.type_class.user_segment_field_type_operations[operation.to_sym][:description] if self.user_segment_field.type_class.user_segment_field_type_operations[operation.to_sym]
+  end
+
   def operation_options
     return @operation_options if @operation_options
     @operation_options = []
@@ -137,7 +141,7 @@ class UserSegment::OperationBuilder < HashModel
     arg = arg.to_s
     if arg =~ /^argument(\d+)$/
       val = self.arguments[$1.to_i]
-      val = val.strftime('%m/%d/%Y %H:%M:%S') if val.is_a?(Time)
+      val = val.strftime(Configuration.datetime_format) if val.is_a?(Time)
       val
     elsif arg =~ /^argument(\d+)=$/
       self.arguments[$1.to_i] = self.convert_to(args[0], $1.to_i) if $1.to_i < self.operation_arguments.length

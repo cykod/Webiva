@@ -63,7 +63,9 @@ class Blog::BlogPost < DomainModel
   end
   
   content_node :container_type => :content_node_container_type,  :container_field => Proc.new { |post| post.content_node_container_id },
-  :preview_feature => '/blog/page_feature/blog_post_preview', :push_value => true, :published_at => :published_at
+  :preview_feature => '/blog/page_feature/blog_post_preview', :push_value => true, :published_at => :published_at, :published => Proc.new { |post| post.published? }
+
+
 
   def revision
     @revision ||= self.active_revision ? self.active_revision.clone : Blog::BlogPostRevision.new
@@ -81,16 +83,15 @@ class Blog::BlogPost < DomainModel
   def content_node_body(language)
     body = []
     body << self.active_revision.body_html if self.active_revision
+    body << self.active_revision.author
     body << self.keywords
     body += self.blog_categories.map(&:name)
     body += self.content_tags.map(&:name)
-
-      body.join(" ")
-
+    body.join(" ")
   end
 
   def content_node_container_type
-    self.blog_blog.is_user_blog? ? "Blog::BlogTarget" : 'Blog::BlogBlog'
+    self.blog_blog && self.blog_blog.is_user_blog? ? "Blog::BlogTarget" : 'Blog::BlogBlog'
   end
 
   def content_node_container_id

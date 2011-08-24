@@ -13,11 +13,15 @@ class Comment < DomainModel
 
   cached_content
 
+  attr_accessor :email, :first_name, :last_name, :zip,:required_fields 
+  validates_as_email :email, :allow_blank => true
+
   safe_content_filter({ :comment => :comment_html},:filter => :comment)
 
   before_validation :set_name, :on => :create
 
   validates_presence_of :name, :comment, :target_type, :target_id
+
   
   def self.with_rating(r); self.where('comments.rating >= ?', r); end
   def self.for_target(type, id); self.where('comments.target_type = ? AND comments.target_id = ?', type, id); end
@@ -26,6 +30,30 @@ class Comment < DomainModel
   def self.between(from, to); self.where(:posted_at => from..to); end
 
   before_save :update_posted_at
+
+  def validate_on_create
+    if self.required_fields && self.end_user_id.blank?
+      self.required_fields.each do |fld|
+        if(fld.present? && self.send(fld).blank?)
+          self.errors.add(fld,"is missing")
+        end
+      end
+    end
+
+  end
+
+  def user_args
+    if self.first_name.blank? && self.name.present?
+      names = self.name.split(" ")
+      self.first_name = names[0]
+      self.last_name = names[1]
+    end
+    { 
+      :first_name => self.first_name,
+      :last_name => self.last_name,
+      :zip => self.zip
+    }
+  end
 
   def rating_icon(override=nil)
     override = rating unless override
@@ -68,4 +96,5 @@ class Comment < DomainModel
       self.commented_scope from, duration, opts
     end
   end
+
 end

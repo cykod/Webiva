@@ -806,13 +806,13 @@ block is non-nil
           end
           opts[:url] ||= ''
           frm_opts = opts.delete(:html) || { }
-          frm_opts[:method] = 'post'
+          frm_opts[:method] ||= 'post'
           html_options = html_options_for_form(options.delete(:url),frm_opts)
           html_options['action'] ||= ''
           if pch = opts.delete(:page_connection_hash)
             pch = "<input type='hidden' name='page_connection_hash' value='#{pch}' />"
           end
-          frm_tag = tag(:form,html_options,true) + ("<CMS:AUTHENTICITY_TOKEN/>" + pch.to_s + opts.delete(:code).to_s).html_safe
+          frm_tag = tag(:form,html_options,true) + ((frm_opts[:method] == 'post' ? "<CMS:AUTHENTICITY_TOKEN/>" : '')+ pch.to_s + opts.delete(:code).to_s).html_safe
           cms_unstyled_fields_for(arg,obj,opts) do |f|
             t.locals.send("#{frm_obj}=",f)
             frm_tag + t.expand.html_safe + "</form>".html_safe
@@ -1324,6 +1324,16 @@ block is non-nil
               fld.form_field(t.locals.send(frm_obj),opts)
             end
 
+            c.define_tag("#{prefix}:#{tag_name}_label") do |t|
+              req = fld.required? ? "<em>*</em>" : ""
+              req = '' if t.attr['no_required']
+              label =fld.label
+              frm = t.locals.send(frm_obj)
+              object_id = fld.content_model_field.field
+              "<label for='#{frm.object_name}_#{object_id}'>#{t.single? ? (label.to_s + req) : t.expand }</label>"
+            end
+
+
             c.value_tag "#{prefix}:#{tag_name}_value" do |t|
               fld.content_value(t.locals.send(frm_obj).object)
             end
@@ -1789,6 +1799,7 @@ block is non-nil
             define_form_field_tag "#{prefix}:#{tag_name}"
             value_tag "#{prefix}:#{tag_name}_value"
             value_tag "#{prefix}:#{tag_name}_display"
+            value_tag "#{prefix}:#{tag_name}_label"
             define_form_field_error_tag "#{prefix}:#{tag_name}_error"
           elsif fld.field_type == 'value'
             fld.content_model_field.site_feature_value_tags(c,prefix,:full,:local => local)

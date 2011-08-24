@@ -104,6 +104,7 @@ class UserSegment::CoreType
     end
   end
 
+
   class BooleanType < UserSegment::FieldType
     register_operation :is, [['Boolean', :boolean]]
 

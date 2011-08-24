@@ -77,9 +77,15 @@ namespace "cms" do
       if ENV['COPY_LOCAL']
         # Copy all the files locally
         dmn.execute do
-          DomainFile.find_in_batches(:conditions => 'file_type != "fld"') { |files| files.each { |file| file.filename } }
+          DomainFile.find_in_batches(:conditions => 'file_type != "fld"') do |files|
+            files.each do |file| 
+              file.filename
+              if file.file_type == 'thm' || file.file_type == 'img'
+                file.thumb_size_names.keys.each { |k| file.filename(k) }
+              end
+            end
+          end
         end
-
       end
 
       cms_backup_file_store(dmn.file_store,domain_dir) unless ENV['SKIP_FILES']

@@ -478,6 +478,52 @@ module Content
       end
     }
 
+
+    @@filter_procs[:between] = {
+      :variables => Proc.new { |field_name,fld| [ (field_name + '_between_less').to_sym, (field_name + '_between_greater').to_sym  ]  },
+      :options => Proc.new do |field_name,fld,f,attr|
+        less_label_name = fld.model_field.name + " Less Than".t
+        greater_label_name = fld.model_field.name + " Greater Than".t
+        f.text_field(field_name + "_between_less", {:size => 40, :label => less_label_name}) +
+        f.text_field(field_name + "_between_greater", {:size => 40, :label => greater_label_name}) 
+      end,
+      :fuzzy => Proc.new do |field_name,fld,options|
+        less_val =  options[(field_name + "_between_less").to_sym]
+        greater_val =options[(field_name + "_between_greater").to_sym]
+
+        if less_val.present? && greater_val.present?
+          { :score => "IF(#{fld.escaped_field} < #{DomainModel.quote_value(less_val)} AND #{fld.escaped_field} > #{DomainModel.quote_value(greater_val)},1,0) " }
+        elsif less_val.present?
+          { :score => "IF(#{fld.escaped_field} < #{DomainModel.quote_value(less_val)},1,0)" }
+        elsif greater_val.present?
+          { :score => "IF(#{fld.escaped_field} > #{DomainModel.quote_value(greater_val)},1,0)" }
+        else 
+          nil
+        end
+      end,
+      :conditions => Proc.new do |field_name,fld,options|
+        less_val =  options[(field_name + "_between_less").to_sym]
+        greater_val =options[(field_name + "_between_greater").to_sym]
+
+        if less_val.present? && greater_val.present?
+          { :conditions => "#{fld.escaped_field} BETWEEN ? AND ?", :values => [ greater_val,less_val ] }
+        elsif less_val.present?
+          { :conditions => "#{fld.escaped_field} <  ?", :values => less_val }
+        elsif greater_val.present?
+          { :conditions => "#{fld.escaped_field} > ?", :values => greater_val }
+        else 
+          nil
+        end
+      end,
+      :display => Proc.new do |field_name,fld,options|
+        val = options[(field_name + "_between_less").to_sym].to_s.strip
+        val = val.empty? ? nil :  "Less than \"#{val}\"" 
+
+
+      end
+    }
+
+
     @@filter_procs[:equal] = {
       :variables => Proc.new { |field_name,fld| [ (field_name + '_equal').to_sym  ]  },
       :options => Proc.new do |field_name,fld,f,attr|

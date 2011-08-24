@@ -241,11 +241,15 @@ class MemberImportController < WizardController # :nodoc: all
     reader = nil
     header = []
     begin 
-      reader = CSV.open(filename,"r",deliminator)
-      header = reader.shift
+      begin 
+        reader = CSV.open(filename,"r",deliminator)
+        header = reader.shift
+      rescue Exception => e
+        reader = CSV.open(filename,"r",deliminator,?\r)
+        header = reader.shift
+      end
     rescue Exception => e
-      reader = CSV.open(filename,"r",deliminator,?\r)
-      header = reader.shift
+      return nil
     end
     return [ reader,header ]
   end

@@ -19,7 +19,7 @@ class Webform::PageRenderer < ParagraphRenderer
           @result.assign_entry(params[param_str])
         end
 
-        if request.post? && ! editor?
+        if params[param_str] && request.post? && ! editor?
           @captcha.validate_object(@result, :skip => ! @options.captcha)
           if @result.save
             @options.deliver_webform_results(@result)
