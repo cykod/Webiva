@@ -8,17 +8,13 @@ gem 'haml'
 gem 'mime-types', :require => 'mime/types'
 gem 'radius', '0.7.0.prerelease'
 gem 'RedCloth', :require => 'redcloth'
-# gem 'BlueCloth', :require => 'bluecloth'
 gem 'gruff'
-# gem 'slave'
 gem 'hpricot'
 gem 'daemons'
 gem 'maruku'
 gem 'net-ssh', :require => 'net/ssh'
 gem 'rmagick', :require => 'RMagick'
 gem 'libxml-ruby', :require => 'xml'
-# gem 'soap4r', :require => 'soap/soap'
-# gem 'SystemTimer', :require => 'system_timer'
 gem 'memcache-client', :require => 'memcache'
 gem 'resthome'
 gem "nokogiri"
@@ -43,7 +39,7 @@ group :test, :spec, :cucumber, :selenium do
 end
 
 group :development, :test do
-#  gem 'rails-dev-boost', :git => 'git://github.com/thedarkone/rails-dev-boost.git', :require => 'rails_development_boost'
+  gem 'rails-dev-boost', :git => 'git://github.com/thedarkone/rails-dev-boost.git', :require => 'rails_development_boost'
 end
 
 group :selenium do
