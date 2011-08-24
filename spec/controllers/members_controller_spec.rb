@@ -25,7 +25,7 @@ describe MembersController do
     it "should handle user list" do
       # Test all the permutations of an active table
       controller.should handle_active_table(:email_targets_table) do |args|
-	post 'display_targets_table', args
+        post 'display_targets_table', args
       end
     end
 
@@ -36,141 +36,141 @@ describe MembersController do
 
     describe "lookup_autocomplete tests:" do
       it "should render nothing" do
-	get 'lookup_autocomplete'
+        get 'lookup_autocomplete'
         response.body.should be_blank
       end
 
       it "should render nothing with empty string" do
-	get 'lookup_autocomplete', :member => ''
+        get 'lookup_autocomplete', :member => ''
         response.body.should be_blank
       end
 
       it "should lookup by first_name" do
-	@output = get 'lookup_autocomplete', :member => 'user'
-	@output.status.should == 200
-	@output.body.should include('User1')
+        @output = get 'lookup_autocomplete', :member => 'user'
+        @output.status.should == 200
+        @output.body.should include('User1')
       end
 
       it "should lookup by last_name" do
-	@output = get 'lookup_autocomplete', :member => 'last2, user'
-	@output.status.should == 200
-	@output.body.should include('User2')
+        @output = get 'lookup_autocomplete', :member => 'last2, user'
+        @output.status.should == 200
+        @output.body.should include('User2')
       end
 
       it "should lookup by membership_id" do
-	@output = get 'lookup_autocomplete', :member => 'number5'
-	@output.status.should == 200
-	@output.body.should include('User5')
+        @output = get 'lookup_autocomplete', :member => 'number5'
+        @output.status.should == 200
+        @output.body.should include('User5')
       end
     end
 
     describe "create end_user tests:" do
       it "should render create page" do
         expect {
-	  get 'create'
+          get 'create'
         }.to change{ EndUser.count }.by(0)
         response.status.should == 200
       end
 
       it "should create a new user" do
-	assert_difference 'EndUser.count', 1 do
-	  @output = post 'create', :commit => true, :user_options => {:email => 'test@test.dev', :user_class_id => UserClass.domain_user_class_id, :tag_names => 'create'}
-	end
+        assert_difference 'EndUser.count', 1 do
+          @output = post 'create', :commit => true, :user_options => {:email => 'test@test.dev', :user_class_id => UserClass.domain_user_class_id, :tag_names => 'create'}
+        end
 
-	@user = EndUser.find_by_email('test@test.dev')
-	@user.should_not be_nil
-	@user.user_class_id.should == UserClass.domain_user_class_id
+        @user = EndUser.find_by_email('test@test.dev')
+        @user.should_not be_nil
+        @user.user_class_id.should == UserClass.domain_user_class_id
       end
 
       it "should not create a new user if not committing" do
-	assert_difference 'EndUser.count', 0 do
-	  @output = post 'create', :commit => false, :user_options => {:email => 'test@test.dev', :user_class_id => UserClass.domain_user_class_id}
-	end
+        assert_difference 'EndUser.count', 0 do
+          @output = post 'create', :commit => false, :user_options => {:email => 'test@test.dev', :user_class_id => UserClass.domain_user_class_id}
+        end
 
-	@user = EndUser.find_by_email('test@test.dev')
-	@user.should be_nil
+        @user = EndUser.find_by_email('test@test.dev')
+        @user.should be_nil
       end
 
       it "should create a new user and subscribe" do
-	assert_difference 'EndUser.count', 1 do
-	  @output = post 'create', :commit => true, :user_options => {:email => 'test@test.dev'}, :subscription => {'0' => 1, @subscription.id.to_s => 'on'}
-	end
+        assert_difference 'EndUser.count', 1 do
+          @output = post 'create', :commit => true, :user_options => {:email => 'test@test.dev'}, :subscription => {'0' => 1, @subscription.id.to_s => 'on'}
+        end
 
-	@user = EndUser.find_by_email('test@test.dev')
-	@user.should_not be_nil
-	@user.user_class_id.should == UserClass.default_user_class_id
+        @user = EndUser.find_by_email('test@test.dev')
+        @user.should_not be_nil
+        @user.user_class_id.should == UserClass.default_user_class_id
 
-	@entry = UserSubscriptionEntry.find_by_end_user_id_and_user_subscription_id(@user.id, @subscription.id)
-	@entry.should_not be_nil
+        @entry = UserSubscriptionEntry.find_by_end_user_id_and_user_subscription_id(@user.id, @subscription.id)
+        @entry.should_not be_nil
       end
     end
 
     describe "edit end_user tests:" do
       it "should render edit page" do
-	assert_difference 'EndUser.count', 0 do
-	  @output = get 'edit', :path => [@user1.id]
-	  @output.status.should == 200
-	end
+        assert_difference 'EndUser.count', 0 do
+          @output = get 'edit', :path => [@user1.id]
+          @output.status.should == 200
+        end
       end
 
       it "should edit a user data" do
-	assert_difference 'EndUser.count', 0 do
-	  @output = post 'edit', :path => [@user1.id], :commit => true, :user_options => {:first_name => 'EditedFirstName'}, :address => {}, :work_address => {}, :billing_address => {}, :shipping_address => {}
-	end
-	@user1.reload
-	@user1.first_name.should == 'EditedFirstName'
+        assert_difference 'EndUser.count', 0 do
+          @output = post 'edit', :path => [@user1.id], :commit => true, :user_options => {:first_name => 'EditedFirstName'}, :address => {}, :work_address => {}, :billing_address => {}, :shipping_address => {}
+        end
+        @user1.reload
+        @user1.first_name.should == 'EditedFirstName'
       end
 
       it "should not edit a user if not committing" do
-	assert_difference 'EndUser.count', 0 do
-	  @output = post 'edit', :path => [@user1.id], :commit => false, :user_options => {:first_name => 'EditedFirstName'}, :address => {}, :work_address => {}, :billing_address => {}, :shipping_address => {}
-	end
-	@user1.reload
-	@user1.first_name.should == 'User1'
+        assert_difference 'EndUser.count', 0 do
+          @output = post 'edit', :path => [@user1.id], :commit => false, :user_options => {:first_name => 'EditedFirstName'}, :address => {}, :work_address => {}, :billing_address => {}, :shipping_address => {}
+        end
+        @user1.reload
+        @user1.first_name.should == 'User1'
       end
 
       it "should edit a user data and address" do
-	assert_difference 'EndUserAddress.count', 1 do
-	  @output = post 'edit', :path => [@user1.id], :commit => true, :user_options => {:first_name => 'EditedFirstName'}, :address => {:zip => '55555'}, :work_address => {}, :billing_address => {}, :shipping_address => {}
-	end
-	@user1.reload
-	@user1.first_name.should == 'EditedFirstName'
-	@user1.address.zip.should == '55555'
+        assert_difference 'EndUserAddress.count', 1 do
+          @output = post 'edit', :path => [@user1.id], :commit => true, :user_options => {:first_name => 'EditedFirstName'}, :address => {:zip => '55555'}, :work_address => {}, :billing_address => {}, :shipping_address => {}
+        end
+        @user1.reload
+        @user1.first_name.should == 'EditedFirstName'
+        @user1.address.zip.should == '55555'
       end
 
       it "should edit a user and subscribe" do
-	assert_difference 'UserSubscriptionEntry.count', 1 do
-	  @output = post 'edit', :path => [@user1.id], :commit => true, :user_options => {:first_name => 'EditedFirstName'}, :address => {}, :work_address => {}, :billing_address => {}, :shipping_address => {}, :subscription => {'0' => 1, @subscription.id.to_s => 'on'}
-	end
-	@user1.reload
-	@user1.first_name.should == 'EditedFirstName'
+        assert_difference 'UserSubscriptionEntry.count', 1 do
+          @output = post 'edit', :path => [@user1.id], :commit => true, :user_options => {:first_name => 'EditedFirstName'}, :address => {}, :work_address => {}, :billing_address => {}, :shipping_address => {}, :subscription => {'0' => 1, @subscription.id.to_s => 'on'}
+        end
+        @user1.reload
+        @user1.first_name.should == 'EditedFirstName'
 
-	@entry = UserSubscriptionEntry.find_by_end_user_id_and_user_subscription_id(@user1.id, @subscription.id)
-	@entry.should_not be_nil
+        @entry = UserSubscriptionEntry.find_by_end_user_id_and_user_subscription_id(@user1.id, @subscription.id)
+        @entry.should_not be_nil
       end
 
       it "should edit a user and unsubscribe" do
-	@subscription.subscribe_user @user1
+        @subscription.subscribe_user @user1
 
-	@entry = UserSubscriptionEntry.find_by_end_user_id_and_user_subscription_id(@user1.id, @subscription.id)
-	@entry.should_not be_nil
+        @entry = UserSubscriptionEntry.find_by_end_user_id_and_user_subscription_id(@user1.id, @subscription.id)
+        @entry.should_not be_nil
 
-	assert_difference 'UserSubscriptionEntry.count', -1 do
-	  @output = post 'edit', :path => [@user1.id], :commit => true, :user_options => {:first_name => 'EditedFirstName'}, :address => {}, :work_address => {}, :billing_address => {}, :shipping_address => {}, :subscription => {'0' => 1}
-	end
-	@user1.reload
-	@user1.first_name.should == 'EditedFirstName'
+        assert_difference 'UserSubscriptionEntry.count', -1 do
+          @output = post 'edit', :path => [@user1.id], :commit => true, :user_options => {:first_name => 'EditedFirstName'}, :address => {}, :work_address => {}, :billing_address => {}, :shipping_address => {}, :subscription => {'0' => 1}
+        end
+        @user1.reload
+        @user1.first_name.should == 'EditedFirstName'
 
-	@entry = UserSubscriptionEntry.find_by_end_user_id_and_user_subscription_id(@user1.id, @subscription.id)
-	@entry.should be_nil
+        @entry = UserSubscriptionEntry.find_by_end_user_id_and_user_subscription_id(@user1.id, @subscription.id)
+        @entry.should be_nil
       end
     end
 
     it "should handle user actions list" do
       # Test all the permutations of an active table
       controller.should handle_active_table(:user_actions_table) do |args|
-	args[:path] = [@user1.id]
-	post 'display_user_actions_table', args
+        args[:path] = [@user1.id]
+        post 'display_user_actions_table', args
       end
     end
 
@@ -202,20 +202,20 @@ describe MembersController do
     it "should handle display tags list" do
       # Test all the permutations of an active table
       controller.should handle_active_table(:tags_table) do |args|
-	post 'display_tags_table'
+        post 'display_tags_table'
       end
     end
 
     it "should render tags page and create tag notes" do
       TagNote.delete_all
       assert_difference 'TagNote.count', Tag.count do
-	@output = get 'tags'
-	@output.status.should == 200
+        @output = get 'tags'
+        @output.status.should == 200
       end
     end
 
     it "should render tag_details page" do
-      @output = get 'tag_details', :path => [1]
+      @output = get 'tag_details', :path => [TagNote.first.id]
       @output.status.should == 200
     end
 
@@ -230,33 +230,33 @@ describe MembersController do
 
     describe "handle end_user table actions" do
       it "should be able to delete a user" do
-	@output = post 'display_targets_table', :table_action => 'delete', :user => {@user1.id => @user1.id}
-	@deleted_user = EndUser.find_by_id @user1.id
-	@deleted_user.should be_nil
+        @output = post 'display_targets_table', :table_action => 'delete', :user => {@user1.id => @user1.id}
+        @deleted_user = EndUser.find_by_id @user1.id
+        @deleted_user.should be_nil
       end
 
       it "should be able to add tags to users" do
-	@output = post 'display_targets_table', :table_action => 'add_tags', :user => {@user1.id => @user1.id}, :added_tags => 'new_tag'
-	@user1.reload
-	@user1.tag_names.include?('New_tag').should be_true
+        @output = post 'display_targets_table', :table_action => 'add_tags', :user => {@user1.id => @user1.id}, :added_tags => 'new_tag'
+        @user1.reload
+        @user1.tag_names.include?('New_tag').should be_true
       end
 
       it "should be able to remove tags to users" do
-	@user1.tag(['new_tag'])
-	@user1.reload
-	@user1.tag_names.include?('New_tag').should be_true
-	@output = post 'display_targets_table', :table_action => 'remove_tags', :user => {@user1.id => @user1.id}, :removed_tags => 'new_tag'
-	@user1.reload
-	@user1.tag_names.include?('New_tag').should_not be_true
+        @user1.tag(['new_tag'])
+        @user1.reload
+        @user1.tag_names.include?('New_tag').should be_true
+        @output = post 'display_targets_table', :table_action => 'remove_tags', :user => {@user1.id => @user1.id}, :removed_tags => 'new_tag'
+        @user1.reload
+        @user1.tag_names.include?('New_tag').should_not be_true
       end
 
       it "should be able to clear tags to users" do
-	@user1.tag(['new_tag'])
-	@user1.reload
-	@user1.tag_names.include?('New_tag').should be_true
-	post 'display_targets_table', :table_action => 'clear_tags', :user => {@user1.id => @user1.id}
-	@user1.reload
-	@user1.tag_names.blank?.should be_true
+        @user1.tag(['new_tag'])
+        @user1.reload
+        @user1.tag_names.include?('New_tag').should be_true
+        post 'display_targets_table', :table_action => 'clear_tags', :user => {@user1.id => @user1.id}
+        @user1.reload
+        @user1.tag_names.blank?.should be_true
       end
     end
 
@@ -314,7 +314,7 @@ describe MembersController do
     it "should handle user list" do
       # Test all the permutations of an active table
       controller.should handle_active_table(:user_segments_table) do |args|
-	post 'user_segments_table', args
+        post 'user_segments_table', args
       end
     end
 
