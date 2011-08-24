@@ -15,7 +15,7 @@ namespace "cms" do
     raise 'Params DIR=directory [DOMAIN=domain_to_restore CLIENT_ID=client_id] OR [DOMAIN_ID=domain_id_to_replace]' unless ENV['DIR'] && ((ENV['DOMAIN'] && ENV['CLIENT_ID']) || ENV['DOMAIN_ID'])
     
     main_db = YAML.load_file("#{Rails.root}/config/cms_migrator.yml")
-    db_cfg = main_db[ENV['RAILS_ENV']]
+    db_cfg = main_db[Rails.env]
     
     
     directory = ENV['DIR']
