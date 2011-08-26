@@ -47,7 +47,7 @@
       - if @google_analytics && @google_analytics[:enabled] == 'enabled'
         :javascript
           var _gaq = _gaq || [];
-          _gaq.push(['_setAccount', ' @google_analytics[:code] ']);
+          _gaq.push(['_setAccount', '#{@google_analytics[:code]}']);
           _gaq.push(['_trackPageview']);
     
           (function() {
