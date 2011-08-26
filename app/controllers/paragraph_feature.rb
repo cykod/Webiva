@@ -1665,7 +1665,7 @@ block is non-nil
     end
 
     # get versions of all the define_... methods without the define
-    skip_methods = [:define_form_tag, :define_tag] 
+    skip_methods = %w(define_form_tag define_tag) 
     instance_methods.each do |method_name|
       if !skip_methods.include?(method_name) && method_name =~ /define\_(.*)/
         alias_method $1.to_sym, method_name.to_sym
