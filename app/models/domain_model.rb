@@ -721,7 +721,7 @@ class DomainModel < ActiveRecord::Base
   # Generats a url-friendly string from value and assigns it to field if field is blank
   # if the field is not blank, returns the value
   def generate_url(field,value)
-    permalink_try_partial = value.to_s.downcase.gsub(/[ _]+/,"-").gsub(/[^a-z+0-9\-]/,"")
+    permalink_try_partial = value.to_s.mb_chars.normalize(:kd).to_s.downcase.gsub(/[ _]+/,"-").gsub(/[^a-z+0-9\-]/,"")
     idx = 2
     permalink_try = permalink_try_partial[0..60]
     

@@ -304,7 +304,7 @@ class DomainFile < DomainModel
      if @file_data
        # Write the filename so we know where to save it (and make sure this file validates)
        begin
-         current_file_name =File.basename(DomainFile.sanitize_filename(@file_data.original_filename.to_s.downcase))
+         current_file_name =File.basename(DomainFile.sanitize_filename(@file_data.original_filename.to_s))
          self.write_attribute(:filename,current_file_name)
        rescue Exception => e
          self.write_attribute(:filename,nil)
@@ -1484,7 +1484,7 @@ class DomainFile < DomainModel
   # White list to make sure filename is ok
   def self.sanitize_filename(filename)  # :nodoc:
     filename = File.basename(filename.gsub("\\", "/")) # work-around for IE
-    filename.gsub!(/[^a-zA-Z0-9\.\-\+_]/,"_")
+    filename = filename.mb_chars.normalize(:kd).to_s.gsub(/[ _]+/,"_").gsub(/[^a-z+0-9_.\-]/i,"")
     filename = "_#{filename}" if filename =~ /^\.+$/
     filename = "unnamed" if filename.size == 0
     filename
