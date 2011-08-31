@@ -83,7 +83,7 @@ class Blog::BlogPost < DomainModel
   end
 
   def content_node_container_type
-    self.blog_blog.is_user_blog? ? "Blog::BlogTarget" : 'Blog::BlogBlog'
+    self.blog_blog && self.blog_blog.is_user_blog? ? "Blog::BlogTarget" : 'Blog::BlogBlog'
   end
 
   def content_node_container_id
