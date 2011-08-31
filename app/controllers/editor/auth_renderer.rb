@@ -36,6 +36,11 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
 
       end
 
+      if !request.post? && session[:captured_user_info]
+        @usr.attributes = session[:captured_user_info]
+        session[:captured_user_info] = nil
+      end
+
       if @options.publication
         @model = @options.publication.content_model.content_model.new
       end
@@ -55,6 +60,9 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
         # If user is registered we need to create a new user
         @usr = EndUser.new(:source => 'website')
       end
+
+      # Save any tracking information we have already
+      @usr.anonymous_tracking_information = myself.anonymous_tracking_information
       
       # Assign a slice of params to the user
       @usr.attributes = params[:user].slice(*(@options.required_fields + @options.optional_fields + @options.always_required_fields).uniq)
@@ -99,13 +107,10 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       @failed = true unless all_valid
 
       if all_valid 
-      
-        # Set a source if we have one        
-        if session[:user_referrer]
-          @usr.referrer = session[:user_referrer]
-        end
+        set_source_conn, set_source_val = page_connection(:source)
 
         @usr.lead_source = @options.source unless @options.source.blank?
+        @usr.lead_source = set_source_val if set_source_val.present?
 
         if params[:address]
           @address.save
@@ -128,10 +133,17 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
           self.elevate_user_level @usr, @options.user_level
 
           @usr.tag_names_add(@options.add_tags) unless @options.add_tags.blank?
-          @usr.tag_names_add(session[:user_tags]) if session[:user_tags]
 
-          session[:user_tags] = nil
-          session[:user_source] = nil
+          add_tags_conn, add_tags_ids = page_connection(:tag)
+          if add_tags_ids.present?
+            @usr.tag_names_add(add_tags_ids)
+            paragraph_action(@usr.action('/editor/auth/registration_tag',:identifier => add_tags_ids))
+          end
+
+
+
+
+          session[:user_tracking] = nil
 
           @address.update_attribute(:end_user_id,@usr.id) if @address.id
           @business.update_attribute(:end_user_id,@usr.id) if @business.id
@@ -454,7 +466,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       @status = 'invalid'
     end
 
-    if @user && ( (request.post? && params[:activate]) || @status == 'activated' )
+    if !editor? && @user && ( (request.post? && params[:activate]) || @status == 'activated' )
       if @status == 'activation' && params[:activate][:accept].blank?
         @acceptance_error = true
       
@@ -556,14 +568,11 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
     if params[:verification]
       user = EndUser.login_by_verification(params[:verification])
       if user
-	user_tags = session[:user_tags]
-	process_login user
-	
-	myself.tag_names_add(user_tags) if user_tags
-	
-	flash['reset_password'] = true
-	redirect_paragraph SiteNode.get_node_path(options.reset_password_page,'#')
-	return
+        process_login user
+
+        flash['reset_password'] = true
+        redirect_paragraph SiteNode.get_node_path(options.reset_password_page,'#')
+        return
       else
         @invalid_verification = true
       end
@@ -577,11 +586,11 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       end
 
       email_template = MailTemplate.find(options.email_template)
-      
+
       if usr && email_template
         vars = { :verification => Configuration.domain_link(site_node.node_path + "?verification=" + usr.verification_string) }
-	
-	MailTemplateMailer.deliver_to_user(usr,email_template,vars)
+
+        MailTemplateMailer.deliver_to_user(usr,email_template,vars)
       end
 
       flash['template_sent'] = true
@@ -612,6 +621,7 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       if @user.errors.empty?
         @target = EndUser.find_target(@user.email, :source => 'website')
         if !@target.registered?
+          @target.anonymous_tracking_information = myself.anonymous_tracking_information
           @target.first_name = @user.first_name if !@user.first_name.blank? && @options.first_name != 'off'
           @target.last_name = @user.last_name if !@user.last_name.blank? && @options.last_name != 'off'
           if @target.lead_source.blank?
@@ -694,7 +704,13 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
         render_paragraph :nothing => true
       else
         cookies[options.cookie_name.to_sym]= { :value => 'set', :expires => 1.year.from_now }
-        redirect_paragraph :site_node => options.splash_page_id
+        url = options.splash_page_url.to_s
+
+        if params["_source"]
+          url << "?_source=#{CGI.escape(params["_source"])}"
+        end
+
+        redirect_paragraph url
       end
     end   
   end

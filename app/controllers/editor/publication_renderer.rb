@@ -33,12 +33,14 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
     if !editor?
       if request.post? && params['entry_' + publication.id.to_s] && !params['partial_form']
         pc,pc_id = page_connection
+
+        content_conn,content_id = page_connection(:content)
   
 
         entry = publication.content_model.content_model.new()
 
 
-        publication.update_entry(entry,params['entry_' + publication.id.to_s],renderer_state)
+        publication.update_entry(entry,params['entry_' + publication.id.to_s],renderer_state.merge(:content_id => content_id))
         
         if entry.errors.length == 0 && entry.save
           expire_content(publication.content_model_id)
@@ -63,7 +65,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
         end
       else
         if publication.view_action_count > 0
-          publication.run_triggered_actions(entry,'view',myself)
+          publication.run_triggered_actions(myself,'view',myself)
         end
       end
     end
@@ -124,8 +126,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
       elsif entry_id.to_i == -5 && content_connection && content_connection.to_sym == :entry_id
         fld = publication.content_model.content_model_fields.find_by_id(pub_options.url_field)
         if fld
-          options[:conditions] = " `#{publication.content_model.table_name}`.`#{fld.field}` = ? "
-          options[:values] = [ connection_entry_id ]
+          options[:conditions] = [ " `#{publication.content_model.table_name}`.`#{fld.field}` = ? ", connection_entry_id ]
           entry = publication.get_filtered_entry(:first,options)
         end
       else
@@ -179,6 +180,8 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
    
      options = {}
    
+    content_conn,content_id = page_connection(:content)
+
     if entry_id && entry_id.to_i != 0
       publication.each_page_connection_input do |filter_name,fld|
         conn_type,conn_id = page_connection(filter_name)
@@ -197,8 +200,13 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
     return_page = pub_options.return_page_url
       
     if request.post? && params['entry_' + publication.id.to_s]
+
+      if params['entry_' + publication.id.to_s]['delete']
+        entry.destroy
+        return redirect_paragraph(return_page)
+      end
     
-      publication.update_entry(entry,params['entry_' + publication.id.to_s],renderer_state)
+      publication.update_entry(entry,params['entry_' + publication.id.to_s],renderer_state.merge(:content_id => content_id))
       new_entry = entry.id ? false : true
       
       if entry.save
@@ -234,10 +242,21 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
   
   def admin_list
     publication = paragraph.content_publication
-    
+    if publication.view_action_count > 0
+    	publication.run_triggered_actions(myself,'view',myself) 
+    end
+
     options = paragraph.data || {}
-    detail_page =  SiteNode.get_node_path(options[:edit_page],'#')
-    
+    detail_page =  SiteNode.get_node_path(options[:detail_page],'#')
+
+    if request.post? &&  params["filter_#{paragraph.id}"] && !params["clear_filter_#{paragraph.id}"]
+      filter_data = DefaultsHashObject.new(params["filter_#{paragraph.id}"])
+      searching =  params["filter_#{paragraph.id}"].values.detect { |fld| !fld.blank? }
+    else
+      filter_data = DefaultsHashObject.new({})
+      searching = false
+    end
+
     if request.post? && params['delete']
       entry = publication.content_model.content_model.find_by_id(params['delete'])
       if entry
@@ -249,17 +268,25 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
       end
     else
       if publication.view_action_count > 0
-    	  publication.run_triggered_actions(entry,'view',myself) 
+    	  publication.run_triggered_actions(myself,'view',myself) 
       end
     end
     
+
+
+    publication.each_page_connection_input do |filter_name,fld|
+      conn_type,conn_id = page_connection(filter_name)
+      options[conn_type] = conn_id.is_a?(Array) ? conn_id[1] : conn_id unless conn_id.blank?
+    end
+
+    
+    entries = publication.get_list_data(params[:page],options,filter_data.to_hash)
   
-    entries = publication.get_list_data(params[:page]) #content_model.content_model.find(:all)
+    require_css('gallery')
   
-    render_paragraph :partial => '/editor/publication/list',
-                      :locals => { :publication => publication,
-                                    :entries => entries,
-                                    :detail_page => detail_page }
+    data ={ :detail_page => detail_page, :entries => entries[1], :pages => entries[0], :filter => filter_data, :searching => searching  } 
+    render_paragraph :text => list_feature(publication,data) 
+
   end
   
   
@@ -267,7 +294,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
   
     publication = paragraph.content_publication
     if publication.view_action_count > 0
-    	publication.run_triggered_actions(entry,'view',myself) 
+    	publication.run_triggered_actions(myself,'view',myself) 
     end
 
     options = paragraph.data || {}
@@ -283,7 +310,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
 
     publication.each_page_connection_input do |filter_name,fld|
       conn_type,conn_id = page_connection(filter_name)
-      options[conn_type] = conn_id unless conn_id.blank?
+      options[conn_type] = conn_id.is_a?(Array) ? conn_id[1] : conn_id unless conn_id.blank?
     end
 
     
@@ -311,7 +338,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
       
     end
     if publication && publication.view_action_count > 0
-	    publication.run_triggered_actions(entry,'view',myself) 
+	    publication.run_triggered_actions(myself,'view',myself) 
     end
     
     target_string = publication.content_model_id.to_s

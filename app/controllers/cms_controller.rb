@@ -61,7 +61,7 @@ class CmsController < ApplicationController
         menu.item(10,'content',nil,:controller => '/content')
         menu.item(20,'files',['editor_files'],:controller => '/file')
         menu.item(30,'people',['editor_members'],:controller => '/members')
-        menu.item(40,'marketing',['editor_visitors','editor_content','editor_mailing'],:controller => '/emarketing')
+        menu.item(40,'marketing',['editor_visitors'],:controller => '/emarketing')
         menu.item(50,'mail',['editor_mailing'],:controller => '/mail_manager')
         menu.item(60,'options',['editor_design_templates','editor_permissions','editor_site_management','editor_editors','editor_emails'],:controller => '/options')
         menu.item(100,'system',['system_admin','client_admin'],:controller => '/manage/system') 
@@ -85,6 +85,9 @@ class CmsController < ApplicationController
       end
       if exception.is_a?(ActiveRecord::RecordNotFound)
         @error_message = "The record you were looking for could not be found"
+      elsif exception.is_a?(ActionController::InvalidAuthenticityToken)
+        @error_message = 'The form you submitted expired, reloading page'
+        headers['Refresh'] = '3; URL=' + request.url
       else
         super
         @error_message = 'There was a problem processing your request'
@@ -98,7 +101,6 @@ class CmsController < ApplicationController
     rescue Exception => e
       render :text => 'There was an error processing your request', :status => 500
     end
-    
   end
   
      

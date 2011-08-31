@@ -6,16 +6,21 @@ class Util::TextFormatter
 
   # Generate formatted text from html
   def  self.text_formatted_generator(html)
-   full_sanitizer = HTML::FullSanitizer.new 
-   full_sanitizer.sanitize(CGI::unescapeHTML(html.to_s.gsub(/\<\/(p|br|div)\>/," </\\1>\n ").gsub(/\<(h1|h2|h3|h4)\>(.*?)<\/(h1|h2|h3|h4)\>/) do |mtch|
-        "\n#{$2}\n#{'=' * $2.length}\n\n"
-    end.gsub("<br/>","\n")).gsub("&nbsp;"," "))
+    sanitizer = HTML::FullSanitizer.new
+    html = self.unescape_html html
+    html = html.gsub(/<(h[1-5]).*?>(.*?)<\/\1>/mi) do |mtch|
+      str = self.strip_white_space(sanitizer.sanitize($2).gsub("\n", ' '))
+      "\n#{str}\n#{'=' * str.length}\n\n"
+    end
+    html = sanitizer.sanitize html
+    self.strip_white_space html
   end
 
   # Generate plan text from html
   def self.text_plain_generator(html)
-     full_sanitizer = HTML::FullSanitizer.new 
-   full_sanitizer.sanitize(CGI::unescapeHTML(html.to_s.gsub(/\<\/(p|br|div)\>/," </\\1>\n ").gsub("<br/>","\n")).gsub("&nbsp;"," "))
+    html = self.unescape_html html
+    html = HTML::FullSanitizer.new.sanitize html
+    self.strip_white_space html
   end
 
   # Return a fixed-width text friendly table
@@ -58,8 +63,17 @@ class Util::TextFormatter
     
     output
   end
+
+  def self.unescape_html(html)
+    CGI::unescapeHTML html.to_s.gsub(/<\/(p|div)>/i," </\\1>\n ").gsub(/<br.*?>/i,"\n").gsub(/&nbsp;/i," ")
+  end
   
-  protected 
+  def self.strip_white_space(str)
+    # \xC2\xA0 non-breaking space
+    str.strip.gsub("\xC2\xA0", ' ').gsub(/[ \t]+/, ' ').split("\n").map(&:strip).join("\n").gsub(/\n\n\n+/, "\n\n")
+  end
+
+  protected
   
   def self.text_table_row(column_widths,columns) #:nodoc: 
     extra_row = nil

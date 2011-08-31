@@ -63,6 +63,7 @@ module Content
         belongs_class_name = options[:belongs_to]
         if ContentModel.relationship_classes.detect { |cls| cls[1] == belongs_class_name }
           field_opts['relation_class'] = belongs_class_name.camelcase
+          field_opts['add_has_many'] = options[:add_has_many].blank? ? false : true
         else
           field_opts['relation_class'] = nil
         end 
@@ -122,6 +123,7 @@ module Content
     
     @@setup_model_procs = {
       :required => Proc.new { |cls,fld|  cls.validates_presence_of fld.model_field.field if fld.model_field.field_options['required'] },
+      :required_array => Proc.new { |cls,fld| cls.validate { |mdl| mdl.errors.add(fld.model_field.field, 'is missing') if fld.model_field.field_options['required'] && mdl.send(fld.model_field.field) && mdl.send(fld.model_field.field).reject(&:blank?).length == 0 } },
       :unique =>  Proc.new { |cls,fld|  cls.validates_uniqueness_of fld.model_field.field, :allow_blank => true if fld.model_field.field_options['unique'] },
       :regexp => Proc.new { |cls,fld| cls.validates_format_of fld.model_field.field, :with => Regexp.new(fld.model_field.field_options['regexp_code']), :message => fld.model_field.field_options['regexp_message'].to_s, :allow_blank => true if fld.model_field.field_options['regexp'] },
       :validates_as_email => Proc.new { |cls,fld| cls.validates_as_email fld.model_field.field },
@@ -403,6 +405,7 @@ module Content
         val =  options[(field_name + "_options").to_sym]
         val  = [ val ] unless val.is_a?(Array)
         val = val.reject(&:blank?)
+        values = val.map {  |elm| "%\n- #{elm}%"}
         val.length == 0 ? nil :{ :score => "IF( " +  values.map { |elm| "(#{fld.escaped_field} LIKE #{DomainModel.quote_value(elm)})" }.join(" OR ") + ",1,0)" }
       end,
       :display => Proc.new do |field_name,fld,options|
@@ -474,6 +477,52 @@ module Content
         val.empty? ? nil :  "\"#{val}\"" 
       end
     }
+
+
+    @@filter_procs[:between] = {
+      :variables => Proc.new { |field_name,fld| [ (field_name + '_between_less').to_sym, (field_name + '_between_greater').to_sym  ]  },
+      :options => Proc.new do |field_name,fld,f,attr|
+        less_label_name = fld.model_field.name + " Less Than".t
+        greater_label_name = fld.model_field.name + " Greater Than".t
+        f.text_field(field_name + "_between_less", {:size => 40, :label => less_label_name}) +
+        f.text_field(field_name + "_between_greater", {:size => 40, :label => greater_label_name}) 
+      end,
+      :fuzzy => Proc.new do |field_name,fld,options|
+        less_val =  options[(field_name + "_between_less").to_sym]
+        greater_val =options[(field_name + "_between_greater").to_sym]
+
+        if less_val.present? && greater_val.present?
+          { :score => "IF(#{fld.escaped_field} < #{DomainModel.quote_value(less_val)} AND #{fld.escaped_field} > #{DomainModel.quote_value(greater_val)},1,0) " }
+        elsif less_val.present?
+          { :score => "IF(#{fld.escaped_field} < #{DomainModel.quote_value(less_val)},1,0)" }
+        elsif greater_val.present?
+          { :score => "IF(#{fld.escaped_field} > #{DomainModel.quote_value(greater_val)},1,0)" }
+        else 
+          nil
+        end
+      end,
+      :conditions => Proc.new do |field_name,fld,options|
+        less_val =  options[(field_name + "_between_less").to_sym]
+        greater_val =options[(field_name + "_between_greater").to_sym]
+
+        if less_val.present? && greater_val.present?
+          { :conditions => "#{fld.escaped_field} BETWEEN ? AND ?", :values => [ greater_val,less_val ] }
+        elsif less_val.present?
+          { :conditions => "#{fld.escaped_field} <  ?", :values => less_val }
+        elsif greater_val.present?
+          { :conditions => "#{fld.escaped_field} > ?", :values => greater_val }
+        else 
+          nil
+        end
+      end,
+      :display => Proc.new do |field_name,fld,options|
+        val = options[(field_name + "_between_less").to_sym].to_s.strip
+        val = val.empty? ? nil :  "Less than \"#{val}\"" 
+
+
+      end
+    }
+
 
     @@filter_procs[:equal] = {
       :variables => Proc.new { |field_name,fld| [ (field_name + '_equal').to_sym  ]  },
@@ -644,7 +693,9 @@ module Content
         conditions.length > 0 ? { :conditions => conditions.join(" AND "), :values => values } : nil
 
       end                
-    }    
+    }   
+
+    def filter_variables; []; end
     
     
     # Sets up filter methods compatible with this field. 
@@ -886,9 +937,9 @@ module Content
   end
   
   class FieldOptions < HashModel #:nodoc:all
-    attributes :required => false, :options => [], :relation_class => nil, :unique => false, :regexp => false, :regexp_code => '', :regexp_message => 'is not formatted correctly', :on => '', :off => '', :on_description => '', :hidden => false, :exclude => false, :relation_name => nil, :relation_singular => nil, :folder_id => nil
+    attributes :required => false, :options => [], :relation_class => nil, :unique => false, :regexp => false, :regexp_code => '', :regexp_message => 'is not formatted correctly', :on => '', :off => '', :on_description => '', :hidden => false, :exclude => false, :relation_name => nil, :relation_singular => nil, :folder_id => nil, :add_has_many => false, :foreign_key => nil
     
-    boolean_options :required, :unique, :regexp, :hidden, :exclude
+    boolean_options :required, :unique, :regexp, :hidden, :exclude, :add_has_many
 
     def validate
       if !self.regexp_code.blank?

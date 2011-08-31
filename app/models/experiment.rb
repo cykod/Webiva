@@ -11,6 +11,8 @@ class Experiment < DomainModel
   validates_presence_of :experiment_container_type
   validates_presence_of :experiment_container_id
 
+  serialize :data
+
   def num_versions
     @num_versions ||= self.min_versions
   end
@@ -21,8 +23,8 @@ class Experiment < DomainModel
 
   def min_versions
     return @min_versions if @min_versions
-    @min_versions = self.started? ? self.versions.size : 2
-    @min_versions = 2 if @min_versions < 2
+    @min_versions = self.started? ? self.versions.size : 1
+    @min_versions = 1 if @min_versions < 1
     @min_versions
   end
 
@@ -47,6 +49,10 @@ class Experiment < DomainModel
 
   def active?
     self.experiment_container && self.id && self.experiment_container.experiment_id == self.id
+  end
+
+  def same_page?
+    self.experiment_container && self.experiment_container == self.conversion_site_node
   end
 
   def display_status
@@ -141,6 +147,22 @@ class Experiment < DomainModel
     @versions
   end
 
+  def options
+    @options ||= Experiment::Options.new self.data
+  end
+
+  def webform_conversion
+    self.options.webform_conversion
+  end
+
+  def webform_conversion=(wc)
+    self.options.webform_conversion = wc
+  end
+
+  def before_save
+    self.data = self.options.to_h
+  end
+
   def after_save
     if @versions && self.language
 
@@ -165,17 +187,19 @@ class Experiment < DomainModel
       end
 
       @versions = nil
+    else
+      self.experiment_versions.collect(&:save)
     end
 
     if @old_conversion_site_node_id
       old_site_node = SiteNode.find_by_id @old_conversion_site_node_id
-      self.remove_experiment_conversion_paragraph old_site_node if old_site_node
+      self.remove_experiment_conversion_paragraph old_site_node if old_site_node != self.experiment_container
     end
 
-    if self.conversion_site_node
+    if self.conversion_site_node && ! self.same_page?
       if self.finished?
         self.remove_experiment_conversion_paragraph self.conversion_site_node
-      elsif self.started?
+      else
         self.add_experiment_conversion_paragraph self.conversion_site_node
       end
     end
@@ -258,5 +282,11 @@ class Experiment < DomainModel
     site_node.live_revisions.first.page_paragraphs.find(:all, :conditions => {:display_type => 'experiment', :display_module => '/editor/action'}).find do |para|
       para.data[:experiment_id] == self.id
     end
+  end
+
+  class Options < HashModel
+    attributes :webform_conversion => false
+
+    boolean_options :webform_conversion
   end
 end

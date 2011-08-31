@@ -28,6 +28,10 @@ class WebformFormResult < DomainModel
     self.webform_form.name
   end
 
+  def triggered_attributes
+    self.data_model.to_hash
+  end
+
   def self.content_admin_url(node_id)
     node = self.find_by_id(node_id)
     node.content_admin_url if node

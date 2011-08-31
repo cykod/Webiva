@@ -37,6 +37,7 @@ require 'yaml'
   
   DEFAULT_DATETIME_FORMAT = defaults_config_file['default_datetime_format'] || "%m/%d/%Y %I:%M %p"
   DEFAULT_DATE_FORMAT = defaults_config_file['default_date_format'] || "%m/%d/%Y"
+  DEFAULT_TIME_FORMAT = defaults_config_file['default_time_format'] || "%I:%M %p"
   
   BETA_CODE = defaults_config_file['enable_beta_code'] || false
   
@@ -83,6 +84,34 @@ Rails::Initializer.run do |config|
  #  File.directory?(lib = "#{dir}/lib") ? lib : dir
  #end
   
+  config.gem 'mysql'
+  config.gem 'mime-types', :lib => 'mime/types'
+  config.gem 'radius'
+  config.gem 'RedCloth', :lib => 'redcloth'
+  config.gem 'BlueCloth', :lib => 'bluecloth'
+  config.gem 'gruff'
+  config.gem 'slave'
+  config.gem 'hpricot'
+  config.gem 'daemons'
+  config.gem 'maruku'
+  config.gem 'net-ssh', :lib => 'net/ssh'
+  config.gem 'rmagick', :lib => 'RMagick'
+  config.gem 'libxml-ruby', :lib => 'xml'
+  config.gem 'soap4r', :lib => 'soap/soap'
+  config.gem "json"
+  config.gem "httparty"
+  config.gem "fastercsv"
+  config.gem "httparty"
+  config.gem "resthome", '>= 7.1.0'
+
+  if RAILS_ENV == 'test'
+    config.gem 'factory_girl',:source => 'http://gemcutter.org'
+  end  
+
+  if CMS_CACHE_ACTIVE
+    config.gem 'memcache-client', :lib => 'memcache'
+  end
+
 end
 
 memcache_options = {
@@ -123,16 +152,17 @@ ActionMailer::Base.logger = nil unless Rails.env == 'development'
 
 # Copy Assets over
 
+old_dir = Dir.pwd
+Dir.chdir "#{RAILS_ROOT}/public/components"
 Dir.glob("#{RAILS_ROOT}/vendor/modules/[a-z]*") do |file|
-  if file =~ /\/([a-z_-]+)\/{0,1}$/
+  if file =~ /\/([a-z0-9_-]+)\/{0,1}$/
     mod_name = $1
-    if File.directory?(file + "/public")
-      FileUtils.mkpath("#{RAILS_ROOT}/public/components/#{mod_name}")
-      FileUtils.cp_r(Dir.glob(file + "/public/*"),"#{RAILS_ROOT}/public/components/#{mod_name}/")
+    if File.directory?(file + "/public") && ! File.exists?(mod_name)
+      FileUtils.symlink("../../vendor/modules/#{mod_name}/public", mod_name)
     end
   end
 end
-
+Dir.chdir old_dir
 
 ActionMailer::Base.logger = nil unless Rails.env == 'development'
 

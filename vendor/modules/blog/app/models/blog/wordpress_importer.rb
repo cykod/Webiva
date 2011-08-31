@@ -1,3 +1,4 @@
+require 'nokogiri'
 
 class Blog::WordpressImporter
   attr_accessor :xml, :blog, :images, :folder, :error, :import_comments, :import_pages
@@ -37,49 +38,62 @@ class Blog::WordpressImporter
     true
   end
 
-  def parse
-    begin
-      Hash.from_xml self.xml.gsub('excerpt:encoded>', 'excerpt>').gsub(/<category domain="tag"(.*?)<\/category>/, '<tag\1</tag>').gsub(/<\/?atom:.*?>/, '')
-    rescue
+  def escape_xml!(xml)
+    xml.gsub!('excerpt:encoded>', 'excerpt>')
+    xml.gsub!(/<category domain="tag"(.*?)<\/category>/, '<tag\1</tag>')
+    xml.gsub!(/<\/?atom:.*?>/, '')
+    xml.gsub!("& ","&amp; ")
+    xml.gsub!(/<wp:postmeta>.*?<\/wp:postmeta>/m, '')
+    xml.gsub!(/\/\/\s*<!\[CDATA\[(.*?)\/\/\s*\]\]/m, '\1')
+  end
+
+  def rss_header
+    @rss_header ||= '<?xml version="1.0" encoding="UTF-8"?>' + self.xml.match(/(<rss.*?>)/m).to_s
+  end
+
+  def rss_footer
+    '</rss>'
+  end
+
+  def blog_posts
+    self.xml.scan /<item>.*?<\/item>/m do |item|
+      item = item.to_s
+      escape_xml! item
+      item = Hash.from_xml "#{self.rss_header}#{item}#{self.rss_footer}"
+      item = item['rss'] && item['rss']['item'] ? item['rss']['item'] : nil
+      yield item if item
+    end
+  end
+
+  def blog_categories
+    self.xml.scan /<wp:category>.*?<\/wp:category>/m do |category|
+      category = category.to_s
+      escape_xml! category
+      category = Hash.from_xml "#{self.rss_header}#{category}#{self.rss_footer}"
+      category = category['rss'] && category['rss']['category'] ? category['rss']['category'] : nil
+      yield category if category
     end
   end
 
   def import
-    xml_data = self.parse
-    unless xml_data
-      self.error = 'WordPress file is invalid'
-      return false
-    end
-
-    unless xml_data['rss'] && xml_data['rss']['channel']
+    unless self.xml.include?('<channel>')
       self.error = 'WordPress file is invalid'
       return false
     end
 
     categories = {}
-    blog_categories = xml_data['rss']['channel']['category']
-    if blog_categories
-      blog_categories = [blog_categories] unless blog_categories.is_a?(Array)
-      blog_categories.each do |category|
-        cat = self.push_category(category)
-        next unless cat
-        categories[category['cat_name']] = cat
-      end
+    self.blog_categories do |category|
+      cat = self.push_category(category)
+      next unless cat
+      categories[category['cat_name']] = cat
     end
 
-    items = xml_data['rss']['channel']['item']
-    if items
-      items = [items] unless items.is_a?(Array)
-      items.each do |item|
-        if item['post_type'] == 'post'
-          self.create_post categories, item
-        elsif item['post_type'] == 'page'
-          self.create_page item
-        end
+    self.blog_posts do |item|
+      if item['post_type'] == 'post'
+        self.create_post categories, item
+      elsif item['post_type'] == 'page'
+        self.create_page item
       end
-    else
-      self.error = 'WordPress file has no posts to import'
-      return false
     end
 
     true
@@ -109,7 +123,7 @@ class Blog::WordpressImporter
       quote = $1
       src = $2
       file = nil
-      file = self.folder.add(src) if src =~ /^http/
+      file = self.folder.add(src) if src =~ /^http/ && src.length < 200
       if file
         self.images[src] = file
         "src=#{quote}#{file.editor_url}#{quote}"
@@ -186,7 +200,7 @@ class Blog::WordpressImporter
     rescue
     end
 
-    Comment.create :target => post, :end_user_id => user ? user.id : nil, :posted_at => posted_at, :posted_ip => comment['comment_author_IP'], :name => comment['comment_author'], :email => comment['comment_author_email'], :comment => comment['comment_content'], :rating => rating
+    Comment.create :target => post, :end_user_id => user ? user.id : nil, :posted_at => posted_at, :posted_ip => comment['comment_author_IP'], :name => comment['comment_author'], :email => comment['comment_author_email'], :comment => comment['comment_content'], :rating => rating, :website => comment['comment_author_url']
   end
 
   def create_page(item)
@@ -198,12 +212,13 @@ class Blog::WordpressImporter
     begin
       uri = URI.parse(item['link'])
       path = uri.path.sub(/^\//, '').sub(/\/$/, '')
+      path = SiteNode.generate_node_path(item['title']) if path.blank? && uri.query.include?('page_id')
     rescue
     end
 
     return unless path
 
-    node_path = nil
+    node_path = ''
     parent = SiteVersion.current.root_node
     path.split('/').each do |node_path|
       node_path = '' if node_path == 'home'
@@ -215,6 +230,14 @@ class Blog::WordpressImporter
       # Basic Paragraph
       rv.push_paragraph(nil, 'html') do |para|
         para.display_body = self.parse_body(body)
+      end
+
+      comments = item['comment']
+      if comments
+        comments = [comments] unless comments.is_a?(Array)
+        comments.each do |comment|
+          self.create_comment nd, comment
+        end
       end
     end
   end

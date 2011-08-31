@@ -64,14 +64,14 @@ function mceEventCallback(e) {
   if(e.type =='focus') {
      cmsEdit.unselectParagraph();
   }
-  mceResizeEditorBox(tinyMCE.activeEditor);
+  //mceResizeEditorBox(tinyMCE.activeEditor);
   //tinyMCE.selectedInstance.resizeToContent();
   return true;
 }
 
 function mceInitInstance(editor) {
   //editor.resizeToContent();
-  mceResizeEditorBox(editor);
+ // mceResizeEditorBox(editor);
 
 }
 

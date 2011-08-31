@@ -23,7 +23,7 @@ class Editor::ContentFeature < ParagraphFeature #:nodoc:all
     c.h_tag(prefix + ':category') { |t| t.locals.content.content_type.type_description if t.locals.content.content_type }
     c.h_tag(prefix + ':type') { |t| t.locals.content.content_type.content_name if t.locals.content.content_type }
     c.link_tag(prefix + ':content') { |t| t.locals.content.link }
-    c.date_tag(prefix + ':updated_at',DEFAULT_DATETIME_FORMAT.t) { |t| t.locals.content.updated_at }
-    c.date_tag(prefix + ':created_at',DEFAULT_DATETIME_FORMAT.t) { |t| t.locals.content.created_at }
+    c.datetime_tag(prefix + ':updated_at') { |t| t.locals.content.updated_at }
+    c.datetime_tag(prefix + ':created_at') { |t| t.locals.content.created_at }
   end
 end

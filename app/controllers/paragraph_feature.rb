@@ -476,7 +476,7 @@ block is non-nil
     #
     #     c.date_tag('current_time') { |t| Time.now }
     #
-    def define_date_tag(name,default_format = '%m/%d/%Y',&block)
+    def define_date_tag(name,default_format = nil,&block)
       define_value_tag(name) do |tag|
         val = yield(tag)
         if !val.is_a?(Time)
@@ -486,9 +486,31 @@ block is non-nil
             #
           end
         end
-        val.localize(tag.attr['format'] || default_format) if val
+        val.localize(tag.attr['format'] || default_format || Configuration.date_format) if val
       end
     end
+
+    # Creates a tag that expects a date or time object to be returned by the yielded block.
+    #
+    # For example:
+    #
+    #     c.datetime_tag('current_time') { |t| Time.now }
+    #
+    def define_datetime_tag(name,default_format = nil,&block)
+      define_value_tag(name) do |tag|
+        val = yield(tag)
+        if !val.is_a?(Time)
+          begin 
+            val = Time.parse(val)
+          rescue Exception => e
+            #
+          end
+        end
+        val.localize(tag.attr['format'] || default_format || Configuration.datetime_format) if val
+      end
+    end
+
+
 
     def reset_output #:nodoc:
       @output_buffer = ""
@@ -784,13 +806,13 @@ block is non-nil
           end
           opts[:url] ||= ''
           frm_opts = opts.delete(:html) || { }
-          frm_opts[:method] = 'post'
+          frm_opts[:method] ||= 'post'
           html_options = html_options_for_form(options.delete(:url),frm_opts)
           html_options['action'] ||= ''
           if pch = opts.delete(:page_connection_hash)
             pch = "<input type='hidden' name='page_connection_hash' value='#{pch}' />"
           end
-          frm_tag = tag(:form,html_options,true) + "<CMS:AUTHENTICITY_TOKEN/>" + pch.to_s + opts.delete(:code).to_s
+          frm_tag = tag(:form,html_options,true) + (frm_opts[:method] == 'post' ? "<CMS:AUTHENTICITY_TOKEN/>" : '')+ pch.to_s + opts.delete(:code).to_s
           cms_unstyled_fields_for(arg,obj,opts) do |f|
             tag.locals.send("#{frm_obj}=",f)
             frm_tag + tag.expand + "</form>"
@@ -1262,6 +1284,11 @@ block is non-nil
       end
     end
 
+
+    def define_domain_prefix_tag
+      define_tag("domain_prefix") { |t| (request.ssl? ? "https://" : "http://") + Configuration.full_domain }
+    end
+    
     
     def define_content_model_fields_value_tags(prefix,content_model_fields,options = {})
       c = self
@@ -1296,6 +1323,16 @@ block is non-nil
               opts.symbolize_keys!
               fld.form_field(t.locals.send(frm_obj),opts)
             end
+
+            c.define_tag("#{prefix}:#{tag_name}_label") do |t|
+              req = fld.required? ? "<em>*</em>" : ""
+              req = '' if t.attr['no_required']
+              label =fld.label
+              frm = t.locals.send(frm_obj)
+              object_id = fld.content_model_field.field
+              "<label for='#{frm.object_name}_#{object_id}'>#{t.single? ? (label.to_s + req) : t.expand }</label>"
+            end
+
 
             c.value_tag "#{prefix}:#{tag_name}_value" do |t|
               fld.content_value(t.locals.send(frm_obj).object)
@@ -1399,6 +1436,8 @@ block is non-nil
       
     end
 
+
+
     # Given the pages hash output of DomainModel#self.paginate 
     # it will display a list of pages 
     # TODO: rewrite for customization
@@ -1471,70 +1510,7 @@ block is non-nil
         
       end      
     end
-    
-    
-    def define_pages_tag(tag_name,path,page,pages,options = {}) #:nodoc:
-      page ||= 1
-      # Display the page tags
-      
-      # get the field to use default to page (e.g. ?page )
-      # but check if there are already get args or we need a different var
-      field = (path.to_s.include?("?") ? '&' : '?') + (options[:field] || 'page')
-      self.define_tag tag_name do |tag|
-        display_pages = options[:pages_to_display] || 2
-        
-        last_page = tag.attr['last'] || "&lt; &lt;"
-        next_page = tag.attr['next'] || "&gt; &gt;"
-        
-        result = ''
-        
-        if pages > 1
-          
-          # Show back button
-          if page > 1
-            result += "<a href='#{path}#{field}=#{page-1}'>#{last_page}</a> &nbsp;&nbsp;"
-          end
-          # Find out the first page to show
-          start_page = (page - display_pages) > 1 ? (page - display_pages) : 1
-          end_page = (start_page + (display_pages*2))
-          if end_page > pages
-            start_page -= end_page - pages - 1
-            start_page = 1 if start_page < 1 
-            
-            end_page = pages
-          end
-          
-          if start_page == 2
-            result += " <a href='#{path}#{field}=1'> 1 </a> "
-          elsif start_page > 2
-            result += " <a href='#{path}#{field}=1'> 1 </a> .. "
-          end
-          
-          (start_page..end_page).each do |pg|
-            if pg == page
-              result += " <b> #{pg} </b> "
-            else
-              result += " <a href='#{path}#{field}=#{pg}'> #{pg} </a> "
-            end
-          end
-          
-          if end_page == pages - 1
-            result += " <a href='#{path}#{field}=#{pages}'> #{pages} </a> "
-          elsif end_page < pages - 1
-            result += " .. <a href='#{path}#{field}=#{pages}'> #{pages} </a> "
-          
-          end
-          
-          # Next Button
-          if page < pages
-            result += " &nbsp;&nbsp;<a href='#{path}#{field}=#{page+1}'>#{next_page}</a> "
-          end
-        end
-        
-        result
-      end
-    end
-    
+
     # Defines the a list of tags that are available in a loop tag
     def define_position_tags(prefix=nil)
         prefix += ':' if prefix
@@ -1551,7 +1527,8 @@ block is non-nil
         define_tag(prefix + 'middle') { |tag| ( !tag.locals.first && !tag.locals.last ) ? tag.expand : '' }
         define_tag(prefix + 'not_middle') { |tag| (tag.locals.first || tag.locals.last)  ? tag.expand : '' }
         define_tag(prefix + 'multiple') { |tag| ( (tag.locals.index + (tag.attr['offset'] || 0).to_i ) % (tag.attr['value'] || 2).to_i ) == 0 ? tag.expand : '' }
-  
+        define_tag(prefix + 'before') { |tag| (tag.locals.index < tag.attr['index'].to_i)  ? tag.expand : '' }
+        define_tag(prefix + 'after') { |tag| (tag.locals.index > tag.attr['index'].to_i)  ? tag.expand : '' }
     end    
     
     # Called inside of a loop_tag for a customized iteratation over a list
@@ -1660,8 +1637,8 @@ block is non-nil
         content = yield(tag) if block_given?
         content ||= tag.expand unless tag.single?
         html_include(:head_html, content) unless content.blank?
+        nil
       end
-      nil
     end
 
     def define_meta_tag(name, options={})
@@ -1683,8 +1660,8 @@ block is non-nil
           opts['content'] = content
           html_include(:head_html, tag(:meta, opts))
         end
+        nil
       end
-      nil
     end
 
     # get versions of all the define_... methods without the define
@@ -1788,7 +1765,7 @@ block is non-nil
     def define_content_model_fields_value_tags(prefix,content_model_fields,options = {})
       c = self
       content_model_fields.each do |fld|
-        fld.site_feature_value_tags(c,prefix,:full,:local => local)
+        fld.site_feature_value_tags(c,prefix,:full,:local => 'entry')
       end
     end
 
@@ -1822,6 +1799,7 @@ block is non-nil
             define_form_field_tag "#{prefix}:#{tag_name}"
             value_tag "#{prefix}:#{tag_name}_value"
             value_tag "#{prefix}:#{tag_name}_display"
+            value_tag "#{prefix}:#{tag_name}_label"
             define_form_field_error_tag "#{prefix}:#{tag_name}_error"
           elsif fld.field_type == 'value'
             fld.content_model_field.site_feature_value_tags(c,prefix,:full,:local => local)
@@ -1890,6 +1868,7 @@ block is non-nil
   if !self.documentation
      parser_context = FeatureContext.new(self) do |c| 
       c.define_position_tags  
+      c.define_domain_prefix_tag
       yield c
       
       # Get each of the handler option models

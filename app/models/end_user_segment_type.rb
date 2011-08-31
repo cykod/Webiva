@@ -21,7 +21,7 @@ class EndUserSegmentType
     register_operation :is, [['User Profile', :model, {:class => EndUserSegmentType::UserClassType}]]
 
     def self.is(cls, group_field, field, user_class_id)
-      cls.scoped(:conditions => ["#{user_class_id} = ?", user_class_id])
+      cls.scoped(:conditions => ["#{field} = ?", user_class_id])
     end
   end
 

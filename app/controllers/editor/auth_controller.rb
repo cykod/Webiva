@@ -10,7 +10,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
   editor_for :login, :name => 'User Login', :features => ['login']
   editor_for :enter_vip, :name => 'Enter VIP #', :features => ['enter_vip'], :triggers => [['Failed VIP Login','failure'],['Successful VIP Login','success' ],['Repeat Successful VIP Login','repeat']]
 
-  editor_for :user_register, :name => 'User Registration', :feature => 'user_register', :triggers => [ ['Successful Registration','action'] ]
+  editor_for :user_register, :name => 'User Registration', :feature => 'user_register', :triggers => [ ['Successful Registration','action'] ], :inputs => { :source => [[:source, 'Source',:path]], :tag => [[:add_tag,'Tag',:path ]] }
 
   editor_for :user_activation, :name => 'User Activation', :feature => 'user_activation', :triggers => [ ['Successful Activation','action'] ]
 
@@ -69,12 +69,14 @@ class Editor::AuthController < ParagraphController #:nodoc:all
         :password_confirmation => [ 'Confirm Password'.t, :password_field, :password_confirmation ],
         :first_name => ['First Name'.t,:text_field,:first_name],
         :middle_name => ['Middle Name'.t,:text_field,:middle_name],
+        :dob => [ 'Date of Birth'.t,:text_field,:dob],
         :last_name => ['Last Name'.t,:text_field,:last_name],
         :gender => ['Gender'.t, :radio_buttons, :gender, { :options => [ ['Male'.t,'m'],['Female'.t,'f' ] ] } ],
         :introduction => ['Introduction'.t, :radio_buttons, :introduction, { :options => [ ['Mr.'.t,'Mr.'],['Mrs.'.t,'Mrs.' ], ['Ms.'.t, 'Ms.'] ] } ],
         :username => [ 'Username'.t,:text_field, :username ],
         :salutation => [ 'Salutation'.t,:text_field, :salutation ],
-        :image => [ 'Profile Image'.t,:upload_image, :domain_file_id ]
+        :image => [ 'Profile Image'.t,:upload_image, :domain_file_id ],
+        :referral => ['Referral'.t, :text_field, :referral]
       }
     end
 
@@ -132,7 +134,8 @@ class Editor::AuthController < ParagraphController #:nodoc:all
         :address => [ 'Address'.t, :text_field,:address],
         :address_2 => [ 'Address (Line 2)'.t, :text_field,:address_2],
         :city => [ 'City'.t, :text_field,:city],
-        :state => [ 'State'.t, :select,:state,{ :options => ContentModel.state_select_options } ],
+        :state => (self.country == 'United States' ? [ 'State'.t, :select,:state,{ :options => ContentModel.state_select_options } ] :
+                                                [ 'State'.t, :text_field,:state] ),
         :zip => [ 'Zip Code'.t, :text_field,:zip],
 	:country => [ 'Country'.t, :country_select, :country]
       }
@@ -387,8 +390,9 @@ class Editor::AuthController < ParagraphController #:nodoc:all
 
     default_options :login_type => 'email',:success_page => nil, :forward_login => 'no',:failure_page => nil, :features => []
     integer_options :success_page, :failure_page
+    page_options :success_page, :failure_page
     validates_presence_of :forward_login
-
+    
     options_form(fld(:login_type, :select, :options => :login_type_options),
 		 fld(:success_page, :select, :options => :page_options, :label => 'Destination Page'),
 		 fld(:failure_page, :select, :options => :page_options, :label => 'Failure Page'),
@@ -451,11 +455,11 @@ class Editor::AuthController < ParagraphController #:nodoc:all
   
   class EnterVipOptions < HashModel
     default_options :success_page => nil, :already_registered_page => nil, :login_even_if_registered => false, :add_tags => ''
-    
     validates_presence_of :success_page, :login_even_if_registered
 
     integer_options :success_page
     boolean_options :login_even_if_registered
+    page_options :success_page
   end
 
   def missing_password
@@ -471,6 +475,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
     default_options :email_template => nil, :reset_password_page => nil
     
     integer_options :email_template, :reset_password_page
+    page_options :reset_password_page
     
     validates_presence_of :email_template, :reset_password_page
   end
@@ -491,6 +496,7 @@ class Editor::AuthController < ParagraphController #:nodoc:all
          :success_message => 'Thank you, your email has been added to our list', :partial_post => 'yes'
     
     integer_options :user_subscription_id, :destination_page_id
+    page_options :destination_page_id
   end
   
   class SplashOptions < HashModel
@@ -498,7 +504,8 @@ class Editor::AuthController < ParagraphController #:nodoc:all
     validates_presence_of :splash_page_id, :cookie_name 
     
     integer_options :splash_page_id
-
+    page_options :splash_page_id
+    
     options_form(fld(:splash_page_id, :select, :options => :page_options),
 		 fld(:cookie_name, :text_field, :description => 'Name of the splash page cooke (should be different for each splash page')
 		 )

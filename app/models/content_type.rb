@@ -88,7 +88,7 @@ class ContentType < DomainModel
         self.container.content_detail_link_url(path,obj)
       else
         val = obj.send(url_field).to_s
-        "#{path}/#{val}"
+        SiteNode.link(path,val)
       end
     elsif !(path = self.list_site_node_url).blank?
       path

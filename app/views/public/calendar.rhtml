@@ -28,10 +28,10 @@ CmsCalendar = {
 
     if(opt.show_time) {
       cal.showsTime = true;
-      cal.setDateFormat('<%= "%m/%d/%Y %H:%M".t %>');
+      cal.setDateFormat('<%= Configuration.datetime_format %>');
     }
     else {
-      cal.setDateFormat('<%= "%m/%d/%Y".t %>');
+      cal.setDateFormat('<%= Configuration.date_format %>');
     }
     cal.create($('calendar_container'));
     cal.parseDate(opt.date);

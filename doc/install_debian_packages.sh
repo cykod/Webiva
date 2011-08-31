@@ -130,7 +130,7 @@ if [ ! -f /usr/bin/gem ]; then
     exit
 fi
 
-/usr/bin/gem install starling fastthread daemons
+/usr/bin/gem install starling fastthread daemons httparty fastercsv resthome --no-rdoc --no-ri
 
 /etc/init.d/memcached start
 

@@ -5,7 +5,7 @@
 <div class='cms_form' style='width:600px;'>
 <h3><%= "Edit Links Menu".t %></h3>
 <p><%= 'Create a new link by entering a link name and pressing [Enter].'.t %></p>
-<p><%= 'Click on <img src="%s" /> to select a link. Use the arrow keys to position.' / theme_src("/images/icons/menu_entry.gif") %></p>
+<p><%= 'Click on <img src="%s" /> to select a link. Use the arrow keys to position.' / theme_src("/images/icons/paragraph_move.gif") %></p>
 <br/>
 <div style='height:300px; overflow:auto;' >
 <div id='cms_menu_entries' >
@@ -76,7 +76,7 @@ function cmsMenuEditRun() {
   cmsMenuEdit.initialize(<%= @item_index %>,cmsMenuEntries);
   cmsMenuEdit.setParagraph(<%= @paragraph.id %>,<%= @paragraph_index %>);
   cmsMenuEdit.setSaveUrl("<%= url_for :action => 'menu_save' %>");
-  cmsMenuEdit.themeSrc = "<%= theme_src("/images/icons/menu_entry.gif") %>";
+  cmsMenuEdit.themeSrc = "<%= theme_src("/images/icons/paragraph_move.gif") %>";
   SCMS.setKeyHandler(cmsMenuEdit.moveKey);
 }
 </script>

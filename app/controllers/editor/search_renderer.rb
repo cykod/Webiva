@@ -26,8 +26,7 @@ class Editor::SearchRenderer < ParagraphRenderer #:nodoc:all
 
   def search_results
     @options = paragraph_options(:search_results)
-
-    return render_paragraph :inline => 'Search results page not set' unless @options.search_results_page_url
+    @options.search_results_page_id = site_node.id
 
     if editor?
       @search = self.content_search_node
@@ -43,11 +42,12 @@ class Editor::SearchRenderer < ParagraphRenderer #:nodoc:all
     @search.content_type_id = @options.content_type_id
 
     if self.update_search && @search.search?
-      @pages, @results = @search.frontend_search
+      @pages, @results = @search.frontend_search(@options.search_order)
       @pages[:path] = @options.search_results_page_url
       @pages[:path] << '?'
       @pages[:path] << [:q, :per_page, :type].map { |ele| ! params[ele].blank? ? (ele.to_s + '=' + CGI.escape(params[ele])) : nil }.compact.join('&')
 
+      self.update_search_stats
     end
 
     render_paragraph :feature => :search_page_search_results
@@ -101,7 +101,7 @@ class Editor::SearchRenderer < ParagraphRenderer #:nodoc:all
 
   def content_search_node
     return @search if @search
-    @search = ContentNodeSearch.new :per_page => @options.default_per_page, :max_per_page => @options.max_per_page, :page => 1
+    @search = ContentNodeSearch.new :per_page => @options.default_per_page, :max_per_page => @options.max_per_page, :page => 1, :content_type_id => @options.content_type_id
     @search.set_protected_result myself
     @search
   end
@@ -115,12 +115,29 @@ class Editor::SearchRenderer < ParagraphRenderer #:nodoc:all
     return false unless self.searched
 
     @search.terms = params[:q]
-    @search.page = params[:page] if params[:page]
-    @search.per_page = params[:per_page] if params[:per_page]
+    @search.page = params[:page].to_i if params[:page]
+    @search.per_page = params[:per_page].to_i if params[:per_page]
+    @search.category_id = params[:category].to_i unless params[:category].blank?
     if @search.content_type_id.nil?
-      @search.content_type_id = params[:type] if params[:type]
+      @search.content_type_id = params[:type].to_i if params[:type]
     end
-
+    @search.published_after = params[:published_after]
+    @search.published_before = params[:published_before]
     @search.valid?
+  end
+
+  def update_search_stats
+    return unless @search.page == 1
+    return if @search.terms.blank?
+
+    return unless session[:domain_log_visitor] && session[:domain_log_visitor][:id]
+    return if params[:skip]
+    return if Configuration.options.search_stats_handler.blank?
+
+    handler_info = get_handler_info(:webiva, :search_stats, Configuration.options.search_stats_handler)
+    return unless handler_info
+
+    visitor = DomainLogVisitor.find_by_id session[:domain_log_visitor][:id]
+    handler_info[:class].update_search_stats(myself, visitor, @search)
   end
 end

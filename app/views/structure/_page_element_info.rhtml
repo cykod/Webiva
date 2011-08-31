@@ -6,9 +6,12 @@
       <%= link_to info[0],'javascript:void(0);',
       :onclick => "StructureEditor.showPageLanguage(#{@node.id},'#{info[0]}');" %></li>
   <% end -%>
+<% if  permit?('editor_structure') || permit?('editor_structure_advanced') %>
 
   <li class='icon'><a href='javascript:void(0);' onclick='StructureEditor.copyPage(<%= @node.parent_id %>,<%= @node.id %>,"<%= jh "Duplicate this page?" .t %>");' title='<%= vh 'Duplicate Page'.t%>' ><%=image_tag(theme_src('icons/header_actions/duplicate_page.png'))  %></a></li>
   <li class='icon'><a href='javascript:void(0);'  title='<%= vh 'Delete Page'.t%>' onclick='StructureEditor.nodeDelete(<%= @node.id %>,"<%= jh "Are you sure you want to delete this page?" .t %>");'><%= image_tag(theme_src('icons/header_actions/delete_page.png')) %></a></li>
+<% end -%>
+
 </ul>  
 
 <h1 class='inpage'><%= "Page:".t %> <a href='<%= @node.node_path %>'><%= @node.node_path == '/' ? 'Home Page'.t : @node.node_path %></a></h1>
@@ -35,10 +38,12 @@
 <% end %>
 
 <% else -%>
-<div class='tree_detail_body'>
+  <div class='tree_detail_body' class='clearfix'>
+    <table><tr><td>
     <%= render :partial => @active_revision_info[1]  ? 'revision_info' : 'create_revision_info' %>
     <%= render :partial => 'page_element_chart', :locals => {:node => @node} %>
     <%= render :partial => 'page_element_content_info' %>
     <%= render :partial => 'page_element_images', :locals => { :revision => @active_revision_info[1] } %>
+</td></tr></table>
 </div>
 <% end-%>

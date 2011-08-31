@@ -7,12 +7,14 @@ module Content::MigrationSupport  #:nodoc:
    cClass = ContentMigrator.clone
 
    if self.table_name
-     cClass.update_up(<<-CODE)
-       drop_table :#{self.table_name} do |t|
-       end
-     CODE
-    
-     cClass.migrate_domain(Domain.find(DomainModel.active_domain_id))
+     cClass.suppress_messages do
+       cClass.update_up(<<-CODE)
+         drop_table :#{self.table_name} do |t|
+         end
+       CODE
+
+       cClass.migrate_domain(Domain.find(DomainModel.active_domain_id))
+     end
    end
   end
   
@@ -35,12 +37,14 @@ module Content::MigrationSupport  #:nodoc:
     self.content_type.update_attribute(:content_type,self.table_name.classify)
     
     cClass = ContentMigrator.clone
-    cClass.update_up(<<-CODE)
-      create_table :#{table_name} do |t|
-      end
-    CODE
-    
-    cClass.migrate_domain(Domain.find(DomainModel.active_domain_id))
+    cClass.suppress_messages do
+      cClass.update_up(<<-CODE)
+        create_table :#{table_name} do |t|
+        end
+      CODE
+
+      cClass.migrate_domain(Domain.find(DomainModel.active_domain_id))
+    end
     
     self.save
   end
@@ -102,8 +106,10 @@ module Content::MigrationSupport  #:nodoc:
         field_name_prefix = field[:name].downcase.gsub(/[^a-z0-9]+/,"_")[0..20].singularize
         # use an index if necessary, (e.g. blog_2, etc if necessary )
         field_name_index = 1
-        if field_name_prefix == 'id'
-          field_name_prefix = 'fld_id'
+
+        @reserved_names ||= %w(id accept callback categorie action attributes application connection database dispatcher display drive errors format host key layout load link new, notify open public quote render request records responses save scope send session system template test timeout to_s type visits)
+        if @reserved_names.include?(field_name_prefix)
+          field_name_prefix = "fld_#{field_name_prefix}"
         end
         field_name_try = field_name_prefix
         
@@ -162,9 +168,10 @@ module Content::MigrationSupport  #:nodoc:
     #      end
     
     cClass = ContentMigrator.clone
-    cClass.update_up(migration_code)
-    cClass.migrate_domain(Domain.find(DomainModel.active_domain_id))
-    
+    cClass.suppress_messages do
+      cClass.update_up(migration_code)
+      cClass.migrate_domain(Domain.find(DomainModel.active_domain_id))
+    end
   end
   
 end

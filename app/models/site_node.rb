@@ -42,7 +42,7 @@ class SiteNode < DomainModel
 
   named_scope :with_type, lambda { |type| {:conditions => {:node_type => type}} }
 
-  attr_accessor :created_by_id
+  attr_accessor :created_by_id, :copying
 
   # Expires the entire site when save or deleted
   expires_site
@@ -88,7 +88,7 @@ class SiteNode < DomainModel
     elsif self.node_type == 'M'
       self.dispatcher.menu
     elsif self.node_type == 'G'
-      self.children
+      @child_cache || self.children
     else
       [ self ]
     end
@@ -463,7 +463,14 @@ class SiteNode < DomainModel
 
     content_type_ids = ContentType.find(:all,:select => 'id', :conditions => { :detail_site_node_url => self.node_path }).map(&:id)
 
-    @page_content = ContentNode.find(:all,:conditions => { :content_type_id => content_type_ids },:include => :node, :order => 'created_at DESC', :limit => limit )
+    begin
+      @page_content = ContentNode.find(:all,:conditions => { :content_type_id => content_type_ids },:include => :node, :order => 'created_at DESC', :limit => limit )
+    rescue Exception => e
+      @page_content = ContentNode.find(:all,:conditions => { :content_type_id => content_type_ids }, :order => 'created_at DESC', :limit => limit )
+
+    end
+
+    @page_content
   end
   
   def can_index?
@@ -479,6 +486,8 @@ class SiteNode < DomainModel
   protected
   
   def after_create #:nodoc:
+    return if @copying
+
     if self.node_type == 'P'
       self.page_revisions.create( :language => Configuration.languages[0], :revision => '0.01', :active => 1, :created_by_id => self.created_by_id )
       self.page_revisions[0].page_paragraphs.create(:display_type => 'html', :zone_idx => 1 )
@@ -580,5 +589,47 @@ class SiteNode < DomainModel
 
   def self.domain_link(*paths)
     Configuration.domain_link(SiteNode.link(*paths))
+  end
+  
+  def copy_modifiers(node)
+    node.site_node_modifiers.each do |mod|
+      attrs = mod.attributes
+      %w(id site_node_id position).each { |fld| attrs.delete(fld) }
+      new_mod = self.site_node_modifiers.new attrs
+      new_mod.copying = true
+      new_mod.save
+      new_mod.copy_live_revisions mod
+    end
+  end
+  
+  def copy(node, opts={})
+    attrs = node.attributes
+    nd = SiteNode.new attrs
+    nd.site_version_id = self.site_version_id
+    nd.copying = true
+    nd.save
+    
+    nd.copy_modifiers node
+
+    node.live_revisions.each do |rev|
+      tmp_rev = rev.create_temporary
+      tmp_rev.revision_container = nd
+      tmp_rev.save
+      tmp_rev.make_real
+    end
+
+    nd.move_to_child_of(self)
+    
+    nd.save
+    
+    node.children.each { |child| nd.copy(child, opts) } if opts[:children]
+    
+    nd
+  end
+  
+  def fix_paragraph_options(from_version, opts={})
+    self.live_revisions.each { |rev| rev.fix_paragraph_options(from_version, self.site_version, opts) }
+    self.site_node_modifiers.each { |mod| mod.fix_paragraph_options(from_version, self.site_version, opts) }
+    self.children.each { |child| child.fix_paragraph_options(from_version, opts) } if opts[:children]
   end
 end

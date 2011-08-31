@@ -2,11 +2,14 @@
 
 class Editor::ActionRenderer < ParagraphRenderer #:nodoc:all
 
+  features '/editor/action_feature'
+
   paragraph :triggered_action
   paragraph :html_headers, :cache => true
   paragraph :experiment
   paragraph :robots
   paragraph :sitemap
+  paragraph :server_error
 
   def robots
     return render_paragraph :text => 'Reconfigure Data Output' unless paragraph.data
@@ -91,6 +94,7 @@ class Editor::ActionRenderer < ParagraphRenderer #:nodoc:all
 
       return render_paragraph :nothing => true unless session[:domain_log_visitor] && session[:cms_language]
       return render_paragraph :nothing => true if @options.type == 'manual'
+      return render_paragraph :nothing => true unless @options.experiment
 
       @exp_user = @options.experiment.get_user session
 
@@ -144,5 +148,15 @@ class Editor::ActionRenderer < ParagraphRenderer #:nodoc:all
 
   end
 
- 
+  def server_error
+    @request_url = request.url
+    if !editor?
+      @server_error = self.controller.server_error
+      return render_paragraph :feature => :editor_action_server_error if editor?
+      return render_paragraph :nothing => true unless @server_error
+      render_paragraph :feature => :editor_action_server_error, :status => 500
+    else
+      render_paragraph :text => 'Server Error Paragraph'
+    end
+  end
 end

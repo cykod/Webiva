@@ -7,7 +7,7 @@
   <%= t.raw 'First Name'.t,  @user.first_name %>
   <%= t.raw 'Last Name'.t,  @user.last_name %>
   <%= t.raw 'Email'.t, @user.email %>
-  <%= t.raw 'Last Visit'.t, @user.last_log_entry.occurred_at ? @user.last_log_entry.occurred_at.strftime(DEFAULT_DATETIME_FORMAT.t) : 'Never'.t %>
+  <%= t.raw 'Last Visit'.t, @user.last_log_entry.occurred_at ? @user.last_log_entry.occurred_at.strftime(Configuration.datetime_format.t) : 'Never'.t %>
 <% end -%>
 
 <% if @user.last_session -%>

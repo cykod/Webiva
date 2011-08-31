@@ -7,17 +7,8 @@ describe ContentPublication do
 
   reset_domain_tables :content_publications,:content_publication_fields, :content_model_features, :content_tags,:content_tag_tags
 
- 
-   before(:all) do
-      # Need to clean out the content models and create a new content model
-      # But don't want to do this before each one
-      create_content_model_with_all_fields
-   end
+  ContentSpecHelper.setup_content_model_test_with_all_fields self
    
-   before(:each) do
-     @cm.content_model.delete_all
-   end
-  
   describe "dynamic fields" do
   
     it "should be able to fill in the current time with a dynamic field" do

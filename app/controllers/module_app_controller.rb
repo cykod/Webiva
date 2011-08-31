@@ -26,6 +26,7 @@ class ModuleAppController < ApplicationController
   helper :page
   helper :module_app
 
+  skip_before_filter :verify_authenticity_token
 
   before_filter :handle_page
   
@@ -35,8 +36,9 @@ class ModuleAppController < ApplicationController
   before_filter :nocache
   include SiteNodeEngine::Controller
 
+  attr_accessor :visiting_end_user_id, :server_error
 
-  attr_accessor :visiting_end_user_id
+  hide_action :server_error, :visiting_end_user_id
 
   # Specifies actions that shouldn't use the CMS for authentication layout or login
   # (Often used for ajax actions)
@@ -116,9 +118,12 @@ class ModuleAppController < ApplicationController
     # if we made it here - need to jump over to the application
     get_handlers(:page,:before_request).each do |req|
       cls = req[0].constantize.new(self)
-      return false if(!cls.before_request)
+      return false unless cls.before_request
     end
 
+    self.request_forgery_protection_token ||= :authenticity_token
+    verify_authenticity_token
+    
     if params['__VER__']
       @preview = true
       @revision = @page.page_revisions.find_by_identifier_hash(params['__VER__'])
@@ -275,8 +280,9 @@ class ModuleAppController < ApplicationController
   def rescue_action_in_public(exception) #:nodoc:
     super
     begin
-      page,path_args = find_page_from_path(["500"],DomainModel.active_domain[:site_version_id])
-      engine = SiteNodeEngine.new(page,:display => session[:cms_language], :path => path_args)
+      @server_error = exception
+      @page,path_args = find_page_from_path(["500"],DomainModel.active_domain[:site_version_id])
+      engine = SiteNodeEngine.new(@page,:display => session[:cms_language], :path => path_args)
       @output = engine.run(self,myself,:error_page => true)
       set_robots!
       render :template => '/page/index', :layout => 'page', :status => 500

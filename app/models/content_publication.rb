@@ -177,6 +177,8 @@ class ContentPublication < DomainModel
           end
           info[:inputs][fld.content_model_field.field.to_sym] <<
             [ "filter_#{fld.content_model_field.field}".to_sym, "#{fld.content_model_field.relation_name} ID", :path]
+          info[:inputs][fld.content_model_field.field.to_sym] <<
+            [ "filter_content_#{fld.content_model_field.field}".to_sym, "#{fld.content_model_field.relation_name} Content", :content]
         else
           fld.filter_variables.each do |filter_var|
             info[:inputs][fld.content_model_field.field.to_sym] <<

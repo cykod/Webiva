@@ -51,6 +51,22 @@ class ContentModelType < DomainModel
     attribute.to_s.humanize
   end
 
+  def match_models(entry)
+    my_attr =  self.attributes
+    en_attr = entry.attributes
+
+    output = {}
+
+
+    my_attr.each do |fld,value|
+      if !(fld =~ /_id$/) && fld != 'id' && en_attr.has_key?(fld)  && en_attr[fld].blank?
+        output[fld] = value
+      end
+    end
+    output
+
+  end
+
 
   def self.identifier_field; nil; end
 
@@ -100,7 +116,7 @@ class ContentModelType < DomainModel
 
     def #{target_relation_name}
       if  @#{relations_name}_cache
-        #{class_name}.find(:all,:conditions => { :id => @#{relations_name}_cache }  )
+        "#{class_name}".constantize.find(:all,:conditions => { :id => @#{relations_name}_cache }  )
       else
          #{target_relation_name}_dbs
       end
@@ -121,6 +137,8 @@ class ContentModelType < DomainModel
     def #{target_relation_name}_after_save
       if @#{relations_name}_cache 
         set_content_through_collection(#{model_field.content_model_id},#{model_field.id},"#{class_name}",:"#{relations_name}", @#{relations_name}_cache)
+         @#{relations_name}_cache = nil
+        #{target_relation_name}_dbs.reload
       end
     end
 EOF

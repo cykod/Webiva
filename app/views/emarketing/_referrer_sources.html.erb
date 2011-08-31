@@ -73,27 +73,27 @@
 }
 </style>
 
-<div style="padding-right:15px; display:inline-block;">
+<div style="width:338px; padding-right:15px; display:inline-block;">
 <%= render :partial => 'site_traffic', :locals => {:site_traffic => @site_traffic} %>
 </div>
 
 <div class="chart_table_wrapper">
-<h1>Traffic Breakdown</h1>
+  <h1><%= h "Traffic Breakdown".t %></h1>
 <table cellpadding='0' cellspacing='0' class="chart_table">
 <tr>
 <th class="first" colspan="2"></th>
 <th>
-<span id="chart_day1"><%= @traffic[0][:started_at].strftime('%A') %></span>
+<span id="chart_day1"><%= @traffic[0][:started_at].localize('%A') %></span>
 <div style="float:left;"><a href="javascript:void(0);" onclick="SourcesCharts.prev()"><%= theme_image_tag('icons/actions/left.png', :align=> 'absmiddle') %></a></div>
 </th>
 
 <th>
-<span id="chart_day2"><%= @traffic[1][:started_at].strftime('%A') %></span>
+<span id="chart_day2"><%= @traffic[1][:started_at].localize('%A') %></span>
 </th>
 
 <th>
 <div id="chart_next_day_button" style="display:none; float:right;"><a href="javascript:void(0);" onclick="SourcesCharts.next()"><%= theme_image_tag('icons/actions/right.png', :align=> 'absmiddle') %></a></div>
-<span id="chart_day3">&#9734; <%= @traffic[2][:started_at].strftime('%A') %></span>
+<span id="chart_day3">&#9734; <%= @traffic[2][:started_at].localize('%A') %></span>
 </th>
 
 <th></th>
@@ -141,7 +141,7 @@
 <tr>
 <td colspan="2"></td>
 <% @traffic.each_with_index do |t, index| -%>
-<td class="date" align="center"><span id="chart_date<%= index + 1 %>"><%= t[:started_at].strftime('%m/%d/%Y') %></span></td>
+<td class="date" align="center"><span id="chart_date<%= index + 1 %>"><%= t[:started_at].localize(DEFAULT_DATE_FORMAT.t) %></span></td>
 <% end -%>
 </tr>
 
@@ -152,10 +152,10 @@
 
 SourcesCharts.chart = WebivaStatsChart(
 {
-user_level_types: ['Subscribers', 'Leads', 'Conversions'],
+user_level_types: ['<%= jh "Conversions".t %>', '<%= jh "Leads".t %>', '<%= jh "Subscribers".t %>'],
 user_level_colors: ['#BE1E2D', '#754C28', '#C7CB2D'],
 
-source_types: <%= @sources.collect{ |s| s[:name] }.to_json %>,
+source_types: <%= @sources.collect{ |s| s[:name].t }.to_json %>,
 source_colors: ["#00B591", "#F9A11B", "#915FA7", "#00BCDC", "#F5D20D", "#A6A8AB"],
 
 sources: <%= @traffic.collect { |t| t[:sources] }.to_json %>,

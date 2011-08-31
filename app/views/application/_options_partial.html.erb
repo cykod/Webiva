@@ -12,7 +12,18 @@
         elsif opts.is_a?(Proc)
           opts = opts.call
         end
-        f.send(field.field_type,field.name,opts,field_options) -%>
+        if field.field_type.to_s == 'select'
+          html_options = field_options.delete(:html)
+          if html_options
+            f.send(field.field_type,field.name,opts,field_options,html_options)
+          else
+            f.send(field.field_type,field.name,opts,field_options)
+          end
+
+        else
+          f.send(field.field_type,field.name,opts,field_options) 
+        end
+        -%>
   <% else -%>
     <%= f.send(field.field_type,field.name,field_options) -%>
   <% end -%>

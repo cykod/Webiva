@@ -4,6 +4,6 @@
   <td>
     <%= link_to v(t.name), :action => 'index', :path => [ t.id ] %>
   </td>
-  <td><%= t.created_at.localize(DEFAULT_DATE_FORMAT) %></td>
+  <td><%= t.created_at.localize(Configuration.date_format) %></td>
 </tr>
 <% end -%>

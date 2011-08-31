@@ -119,6 +119,7 @@ MemberEditor = {
   <%= f.select :user_level, EndUser.user_level_select_options %>
   <%= f.text_field :lead_source %>
   <%= f.text_field :referrer %>
+  <%= f.end_user_selector :source_user_id, :no_name => true %>
   <%= f.select :language, Configuration.languages.collect { |lang| [ lang.upcase, lang ] } %>
   <%= f.text_field :vip_number, :disabled => !@user.vip_number.blank? %>
   <% f.custom_field '' do %>

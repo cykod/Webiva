@@ -33,7 +33,14 @@ class Feed::RssRenderer < ParagraphRenderer
     @options = handler_options_class.new(paragraph_data)
     @handler = @handler_info[:class].new(@options)
 
-    results = renderer_cache(nil,site_node.id.to_s, :skip => @options.timeout <= 0, :expires => @options.timeout*60) do |cache|
+    @cache_id = site_node.id.to_s
+
+    if @handler.respond_to?(:set_path)
+      @handler.set_path(params[:path]) 
+      @cache_id += DomainModel.hexdigest(params[:path].join("/"))
+    end
+
+    results = renderer_cache(nil,@cache_id, :skip => @options.timeout <= 0, :expires => @options.timeout*60) do |cache|
       data = @handler.get_feed
       data[:self_link] = Configuration.domain_link site_node.node_path
       if @handler_info[:custom]

@@ -50,9 +50,14 @@ class Feedback::CommentsFeature < ParagraphFeature
           :page_connection_hash => data[:cached_connection_hash] } : nil
       end
         c.form_error_tag('add_comment:errors')
+        c.expansion_tag('user') { |t| myself.id }
         c.field_tag('add_comment:email')
         c.field_tag('add_comment:website')
         c.field_tag('add_comment:name')
+        c.field_tag('add_comment:first_name')
+        c.field_tag('add_comment:last_name')
+        c.field_tag('add_comment:email')
+        c.field_tag('add_comment:zip')
         c.field_tag('add_comment:comment',:control => 'text_area', :rows => 6, :cols => 50)
         c.captcha_tag('add_comment:captcha') { |t| data[:captcha] if data[:options].captcha }
 

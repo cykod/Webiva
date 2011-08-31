@@ -50,11 +50,12 @@ class ApplicationController < ActionController::Base
         return response.data[:user]
       end
     end
-    
+
+    session[:user_tracking] ||= {}
+
     if session[:user_id].blank? || session[:user_model].blank? 
       response.data[:user] = EndUser.default_user 
-      response.data[:user].tag_names_add(session[:user_tags]) if session[:user_tags]
-      response.data[:user].referrer = session[:user_referrer] if session[:user_referrer]
+      response.data[:user].anonymous_tracking_information = session[:user_tracking]
     else
       begin
         userModel = session[:user_model].constantize
@@ -73,7 +74,7 @@ class ApplicationController < ActionController::Base
     end
     
   end   
-  
+
   hide_action :theme_src
   helper_method :theme_src
   # Returns a relative link for an image using the currently active theme
@@ -144,11 +145,9 @@ class ApplicationController < ActionController::Base
   
   def save_anonymous_tags #:nodoc:
     if !session[:user_id] 
-      session[:user_tags] = myself.tag_cache_tmp unless myself.tag_cache_tmp.blank?
-      session[:user_referrer] = myself.referrer unless myself.referrer.blank?
+      session[:user_tracking] = myself.anonymous_tracking_information
     else 
-      session[:user_tags] = nil
-      session[:user_referrer] = nil
+      session.delete(:user_tracking)
     end
     
   end
@@ -216,21 +215,26 @@ class ApplicationController < ActionController::Base
     end
     
     @cms_domain_info = dmn_info
-    
+
+    response.headers['P3P'] = 'CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT"'
+
+
+    # Skip for the the PublicController to prevent touching the session and 
+    # sending back a session cookie
     # Protect against using a session from a different
     # domain on this domain 
     # also log users out of if the domain has it's version modified
     if session[:domain] &&  session[:domain] != domain || session[:domain_version] != dmn_info[:iteration]
       process_logout
     end
-    
+
     session[:domain_version] = dmn_info[:iteration]
     session[:domain] = domain
-    
+
     set_language
 
     set_timezone
-    
+        
     return true
   end
 
@@ -392,7 +396,9 @@ class ApplicationController < ActionController::Base
 
   
   def rescue_action_in_public(exception,display = true) # :nodoc:
-    
+    return  render(:text => 'Page not found', :status => :not_found) if exception.is_a?(ActionController::RoutingError)
+    return if exception.is_a?(ActionController::InvalidAuthenticityToken)
+
     deliverer = self.class.read_inheritable_attribute(:exception_data)
     data = case deliverer
            when nil then {}
@@ -535,5 +541,5 @@ class ApplicationController < ActionController::Base
     return @rails_root if @rails_root
     @rails_root = Pathname.new(RAILS_ROOT).cleanpath.to_s
   end  
-  
+
 end

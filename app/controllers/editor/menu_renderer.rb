@@ -12,7 +12,7 @@ class Editor::MenuRenderer < ParagraphRenderer #:nodoc:all
        page = page.nested_pages if page
     end
     return [] unless page
-    
+
     data = []
     page.child_cache.each do |page|
       page.menu.each do |pg|

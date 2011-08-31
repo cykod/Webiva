@@ -28,9 +28,9 @@ refresh_table = false
   <td><%= h(t.description ? t.description : '') %></td>
   <td align='center'><%= t.status_display %></td>
   <td align='center'><%= t.last_count %></td>
-  <td align='center'><%= t.last_ran_at.strftime(DEFAULT_DATETIME_FORMAT.t) if t.last_ran_at %></td>
-  <td align='center'><%= t.created_at.strftime(DEFAULT_DATETIME_FORMAT.t) %></td>
-  <td align='center'><%= t.updated_at.strftime(DEFAULT_DATETIME_FORMAT.t) %></td>
+  <td align='center'><%= t.last_ran_at.strftime(Configuration.datetime_format.t) if t.last_ran_at %></td>
+  <td align='center'><%= t.created_at.strftime(Configuration.datetime_format.t) %></td>
+  <td align='center'><%= t.updated_at.strftime(Configuration.datetime_format.t) %></td>
 </tr>
 <% end -%>
 

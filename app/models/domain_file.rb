@@ -37,7 +37,7 @@ class DomainFile < DomainModel
   
   @@img_file_extensions = %w(gif jpg png jpeg bmp tif)
   @@thm_file_extensions = %w(pdf)
-  @@public_file_extensions = %w(swf flv mov js htc ico mp3 css)
+  @@public_file_extensions = %w(swf flv mov js htc ico mp3 css m4v ogg)
   
   cattr_accessor :public_file_extensions
   
@@ -304,7 +304,7 @@ class DomainFile < DomainModel
      if @file_data
        # Write the filename so we know where to save it (and make sure this file validates)
        begin
-         current_file_name =File.basename(DomainFile.sanitize_filename(@file_data.original_filename.to_s.downcase))
+         current_file_name =File.basename(DomainFile.sanitize_filename(@file_data.original_filename.to_s))
          self.write_attribute(:filename,current_file_name)
        rescue Exception => e
          self.write_attribute(:filename,nil)
@@ -757,6 +757,7 @@ class DomainFile < DomainModel
   # Return an image tag for a file
   def image_tag(size=nil,options = {})
      size_arr = image_size(size)
+     size_arr ||= []
      url_val = url(size)
      url_val << "?" + self.stored_at.to_i.to_s if self.local?
      
@@ -800,7 +801,8 @@ class DomainFile < DomainModel
     
   # Return the size of the actual image
   def image_size(size=nil) 
-    return nil unless self.file_type == 'img' || self.file_type == 'thm'
+    return nil unless (self.file_type == 'img' || self.file_type == 'thm')
+    size = nil if size.blank?
     size=size.to_sym if size
     size = nil unless size && (@@image_sizes[size] || DomainFileSize.custom_sizes[size])
     size ||= :original
@@ -1084,7 +1086,7 @@ class DomainFile < DomainModel
       end
     end
     
-   self.update_attributes(:processor => 'local',:processor_status => 'ok')
+   self.update_attributes(:processor => 'local',:processor_status => 'ok', :server_id => Server.server_id)
   end
     
   # LocalProcess is the default File processor - it stores
@@ -1416,15 +1418,12 @@ class DomainFile < DomainModel
 
   def self.download_response(uri)
     uri = URI.parse(uri) if uri.is_a?(String)
-    if uri.scheme == 'https'
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = true
-      http.start do |http|
-        request = Net::HTTP::Get.new(uri.path)
-        http.request(request)
-      end
-    else
-      Net::HTTP.get_response(uri)
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = uri.scheme == 'https'
+    http.start do |http|
+      request = Net::HTTP::Get.new(uri.request_uri)
+      request.initialize_http_header({"User-Agent" => "Webiva"})
+      http.request(request)
     end
   end
 
@@ -1485,7 +1484,7 @@ class DomainFile < DomainModel
   # White list to make sure filename is ok
   def self.sanitize_filename(filename)  # :nodoc:
     filename = File.basename(filename.gsub("\\", "/")) # work-around for IE
-    filename.gsub!(/[^a-zA-Z0-9\.\-\+_]/,"_")
+    filename = filename.mb_chars.normalize(:kd).to_s.gsub(/[ _]+/,"_").gsub(/[^a-z+0-9_.\-]/i,"")
     filename = "_#{filename}" if filename =~ /^\.+$/
     filename = "unnamed" if filename.size == 0
     filename
@@ -1560,5 +1559,93 @@ class DomainFile < DomainModel
     def content_type
       self.response ? self.response['content-type'] : nil
     end
+  end
+  
+  def self.export_to_csv(obj, opts={})
+    tmp_path = "#{RAILS_ROOT}/tmp/export/"
+    FileUtils.mkpath(tmp_path)
+    filename  = "#{tmp_path}#{DomainModel.active_domain_id.to_s}_#{obj.class.to_s.underscore}.csv"
+
+    entries = 0
+    CSV.open(filename,'w') do |writer|
+      entries = yield writer
+    end
+    entries = 0 unless entries.is_a?(Integer)
+
+    file_type = opts[:file_type] || obj.class.to_s
+    domain_file = DomainFile.save_temporary_file filename, :name => sprintf("%s-%s_%s.%s",file_type,obj.name,Time.now.strftime("%Y_%m_%d"),'csv')
+
+    { :filename => filename,
+      :domain_file_id => domain_file.id,
+      :type => 'text/csv',
+      :entries => entries,
+      :completed => 1
+    }
+  end
+  
+  class ImportException < Exception
+  end
+  
+  def self.import_from_csv(filename, opts={})
+    filename = filename.filename if filename.is_a?(DomainFile)
+    delimiter = opts[:delimiter] || ','
+    uid = opts[:uid]
+    skip_header = opts[:skip_header] || true
+    validate = opts[:validate]
+    
+    results = uid ? Workling.return.get(uid) : {}
+
+    results[:initialized] = false
+    results[:imported] = 0
+    results[:entries] = -1
+    results[:valid] = true
+    Workling.return.set(uid, results) if uid
+
+    count = 0
+    reader = CSV.open(filename, "r", delimiter)
+    reader.shift if skip_header
+    reader.each_with_index do |row, idx|
+      next if row.join.blank?
+
+      if validate
+        begin
+          yield row, :validate => true
+        rescue ImportException => e
+          results[:row] = skip_header ? idx + 2 : idx + 1
+          results[:error] = e.message
+          results[:valid] = false
+          Workling.return.set(uid, results) if uid
+          return results
+        end
+      end
+
+      count += 1
+    end
+    count = 1 if count < 1
+
+    results[:initialized] = true
+    results[:entries] = count
+    Workling.return.set(uid, results) if uid
+
+    reader = CSV.open(filename, "r", delimiter)
+    reader.shift if skip_header
+    reader.each_with_index do |row, idx|
+      next if row.join.blank?
+
+      begin
+        yield row, :validate => false
+      rescue ImportException => e
+        results[:row] = skip_header ? idx + 2 : idx + 1
+        results[:error] = e.message
+        results[:valid] = false
+        Workling.return.set(uid, results) if uid
+        return results
+      end  
+
+      results[:imported] += 1
+      Workling.return.set(uid, results) if uid && (results[:imported] % 10) == 0
+    end
+
+    results
   end
 end

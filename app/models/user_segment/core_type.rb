@@ -27,6 +27,14 @@ class UserSegment::CoreType
     def self.between(cls, group_field, field, from, to)
       cls.scoped(:conditions => ["#{field} between ? and ?", from, to])
     end
+
+    register_operation :range, [['Starts', :option, {:options => Content::Field.relative_date_start_options}], ['Ends', :option, {:options => Content::Field.relative_date_end_options}]], :default => true
+
+    def self.range(cls, group_field, field, start_option, end_option)
+      from = Content::Field.calculate_filter_start_date start_option
+      to = Content::Field.calculate_filter_end_date from, end_option
+      cls.scoped(:conditions => ["#{field} between ? and ?", from, to])
+    end
   end
 
   @@number_type_operators = [['Greater than', '>'], ['Greater than or equal to', '>='], ['Equal to', '='], ['Less than or equal to', '<='], ['Lest than', '<']]
@@ -95,6 +103,7 @@ class UserSegment::CoreType
       cls.scoped(:conditions => ["#{field} = ?", string])
     end
   end
+
 
   class BooleanType < UserSegment::FieldType
     register_operation :is, [['Boolean', :boolean]]

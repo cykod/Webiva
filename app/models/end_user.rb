@@ -15,7 +15,7 @@ require 'digest/sha1'
 # Sources:
 # website
 # import
-# referrel
+# referral
 
 =begin rdoc
 EndUser's are the primary user class inside of Webiva and 
@@ -50,9 +50,10 @@ class EndUser < DomainModel
   # Only need an email if we aren't a client user
   validates_presence_of :email, :if => Proc.new { |usr| !usr.client_user_id && !usr.admin_edit }
 
-  validates_format_of :username, :with => /^([a-zA-Z0-9!#\$%^&*@()_\-.]+)$/,:allow_blank => true, 
-                      :message => 'can only contain numbers, letters, and the symbols: !@#$%^&()-_.'
+  validates_format_of :username, :with => /^([ a-zA-Z0-9!#\$%^&*@()_\-.]{2,32})$/,:allow_blank => true, 
+                      :message => 'must be 2-32 numbers, letters, and the symbols: !@#$%^&()-_.'
 
+  validates_length_of :password, :minimum => 4, :allow_blank => true, :message => "must be at least 4 letters long"
   # Email always needs to be unique - but can be blank if user is an client user
   validates_uniqueness_of :email,:allow_blank => true
   validates_uniqueness_of :username, :allow_blank => true
@@ -77,6 +78,7 @@ class EndUser < DomainModel
   has_one :end_user_cache, :dependent => :delete, :class_name => 'EndUserCache'
 
   has_many :end_user_cookies, :dependent => :delete_all, :class_name => 'EndUserCookie'
+  has_many :api_tokens, :class_name => 'EndUserCookie', :conditions => 'valid_until IS NULL'
 
   has_many :end_user_actions, :dependent => :delete_all
 
@@ -130,10 +132,10 @@ class EndUser < DomainModel
      ['6 - High-value',     UserLevel::HIGH_VALUE]
     ]
 
-  # Referred to as  Origin
+  # Referred to as Origin
   has_options :source, [ [ 'Website', 'website' ],
                          [ 'Import', 'import' ],
-                         [ 'Referrel', 'referrel' ] ]
+                         [ 'Referral', 'referral' ] ]
 
   if CMS_EDITOR_LOGIN_SUPPORT 
    after_save :update_editor_login
@@ -156,7 +158,9 @@ class EndUser < DomainModel
   def validate #:nodoc:
     if self.registered? && !self.hashed_password && (!self.password || self.password.empty?)
       errors.add(:password, 'is missing')
-    end  
+    end
+
+    self.errors.add(:referral, 'is invalid') if @referral && ! self.source_user
   end
 
   def validate_password(pw) #:nodoc:
@@ -165,6 +169,15 @@ class EndUser < DomainModel
 
   def update_verification_string! #:nodoc:
     self.update_attribute(:verification_string, Digest::SHA1.hexdigest(Time.now.to_s + rand(1000000000000).to_s)[0..12])
+  end
+
+  def self.find_by_api_token(api_token)
+    token = EndUserCookie.find_by_cookie(api_token, :conditions => { :valid_until => nil })
+    token.end_user if token
+  end
+
+  def api_token
+    @api_token ||= (self.api_tokens[0] && self.api_tokens[0].cookie) || EndUserCookie.generate_api_key(self)
   end
 
   # Is this a administrative ClientUser
@@ -224,7 +237,7 @@ class EndUser < DomainModel
   # [:valid_at]
   #   Date this token will start being valid
   def add_token!(tkn,options = { }) 
-    eut = self.end_user_tokens.find_by_access_token_id(tkn) ||
+    eut = self.end_user_tokens.find_by_access_token_id(tkn.id) ||
       self.end_user_tokens.create(:access_token_id => tkn.id)
 
     # If we are setting any additional options,
@@ -525,7 +538,8 @@ class EndUser < DomainModel
   end
 
   def self.fetch_user_level(end_user_id)
-    results = self.connection.execute "SELECT user_level FROM end_users WHERE id = #{end_user_id.to_i}"
+    end_user_id = end_user_id.to_i
+    results = self.connection.execute "SELECT user_level FROM end_users WHERE id = #{self.connection.quote end_user_id}"
     results.each_hash { |row| return row['user_level'].to_i }
     nil
   end
@@ -535,8 +549,13 @@ class EndUser < DomainModel
   end
 
   def self.elevate_user_level(end_user_id, user_level)
-    if self.fetch_user_level(end_user_id) < user_level
-      self.connection.execute "UPDATE end_users SET acknowledged = 0, user_level = #{user_level} WHERE id = #{end_user_id} AND user_level < #{user_level}"
+    return unless end_user_id
+
+    end_user_id = end_user_id.to_i
+    user_level = user_level.to_i
+    level = self.fetch_user_level(end_user_id)
+    if level && level < user_level
+      self.connection.execute "UPDATE end_users SET acknowledged = 0, user_level = #{self.connection.quote user_level} WHERE id = #{self.connection.quote end_user_id} AND user_level < #{self.connection.quote user_level}"
       true
     else
       false
@@ -548,8 +567,9 @@ class EndUser < DomainModel
   end
 
   def self.unsubscribe(end_user_id)
+    end_user_id = end_user_id.to_i
     if self.fetch_user_level(end_user_id) > 0
-      self.connection.execute "UPDATE end_users SET acknowledged = 0, user_level = 0 WHERE id = #{end_user_id} AND user_level > 0"
+      self.connection.execute "UPDATE end_users SET acknowledged = 0, user_level = 0 WHERE id = #{self.connection.quote end_user_id} AND user_level > 0"
       true
     else
       false
@@ -561,7 +581,9 @@ class EndUser < DomainModel
   end
 
   def self.update_user_value(end_user_id, val)
-    self.connection.execute "UPDATE end_users SET `value` = `value` + #{val} WHERE id = #{end_user_id}"
+    end_user_id = end_user_id.to_i
+    val = val.to_i
+    self.connection.execute "UPDATE end_users SET `value` = `value` + #{self.connection.quote val} WHERE id = #{self.connection.quote end_user_id}"
   end
 
   def update_editor_login #:nodoc:
@@ -595,6 +617,17 @@ class EndUser < DomainModel
     end
     target
   end
+
+
+  def anonymous_tracking_information
+    self.attributes.symbolize_keys.slice(:source_user_id,:referrer,:tag_names)
+
+  end
+
+  def anonymous_tracking_information=(val)
+    self.attributes = val.symbolize_keys.slice(:source_user_id,:referrer,:tag_names)
+  end
+
   
 =begin rdoc
 This is the easiest way to create an EndUser, for example:
@@ -619,18 +652,19 @@ Use the Hash#slice method to only select the fields you actually want to let in,
 Not doing so could allow a user to change their user profile (for example) and elevate their permissions.
 
 =end
-  def self.push_target(email,options = {})
+  def self.push_target(email,options = {},tracking_options = {})
     opts = options.clone
     opts.symbolize_keys!
 
     user_class_id = opts.delete(:user_class_id) || UserClass.default_user_class_id
     target = self.find_target(email, :user_class_id => user_class_id, :no_create => true, :source => opts.delete(:source))
 
+    target.anonymous_tracking_information = tracking_options
+
     # Don't mess with registered users if no_register is set    
     no_register = opts.delete(:no_register)
     return if no_register && target.registered?
-    
-  
+
     address_fields = %w(phone fax address address_2 city state zip country)
     adr_values = {}
     address_fields.each do |fld|
@@ -887,5 +921,19 @@ Not doing so could allow a user to change their user profile (for example) and e
 
   def last_session
     self.last_log_entry.domain_log_session
+  end
+
+  def referral
+    @referral
+  end
+
+  def referral=(ref)
+    ref = ref.to_s.strip
+    return if ref.blank?
+    @referral = ref
+    self.source_user = EndUser.find_by_membership_id @referral
+    self.source_user ||= EndUser.find_by_username @referral
+    self.source_user ||= EndUser.find_by_email @referral
+    self.source = 'referral' if self.source_user
   end
 end

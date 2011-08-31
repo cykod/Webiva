@@ -15,7 +15,7 @@ class Blog::BlogPost < DomainModel
   
   validates_presence_of :title
 
-  validates_length_of :permalink, :allow_nil => true, :maximum =>  64
+  validates_length_of :permalink, :allow_nil => true, :maximum => 128 
 
   validates_datetime :published_at, :allow_nil => true
    
@@ -29,6 +29,10 @@ class Blog::BlogPost < DomainModel
   # Add cached content support, but make sure we update the blog cache element
   
   has_content_tags
+
+  def first_category
+    self.blog_categories[0] || Blog::BlogCategory.new
+  end
 
   def data_model
     return @data_model if @data_model
@@ -51,7 +55,9 @@ class Blog::BlogPost < DomainModel
   end
   
   content_node :container_type => :content_node_container_type,  :container_field => Proc.new { |post| post.content_node_container_id },
-  :preview_feature => '/blog/page_feature/blog_post_preview', :push_value => true
+  :preview_feature => '/blog/page_feature/blog_post_preview', :push_value => true, :published_at => :published_at, :published => Proc.new { |post| post.published? }
+
+
 
   def revision
     @revision ||= self.active_revision ? self.active_revision.clone : Blog::BlogPostRevision.new
@@ -67,11 +73,17 @@ class Blog::BlogPost < DomainModel
   end
 
   def content_node_body(language)
-    self.active_revision.body_html if self.active_revision
+    body = []
+    body << self.active_revision.body_html if self.active_revision
+    body << self.active_revision.author
+    body << self.keywords
+    body += self.blog_categories.map(&:name)
+    body += self.content_tags.map(&:name)
+    body.join(" ")
   end
 
   def content_node_container_type
-    self.blog_blog.is_user_blog? ? "Blog::BlogTarget" : 'Blog::BlogBlog'
+    self.blog_blog && self.blog_blog.is_user_blog? ? "Blog::BlogTarget" : 'Blog::BlogBlog'
   end
 
   def content_node_container_id
@@ -92,20 +104,19 @@ class Blog::BlogPost < DomainModel
     @approved_comments_count ||= self.comments.with_rating(1).count
   end
 
-  def self.paginate_published(page,items_per_page,blog_ids = [])
+  def self.paginate_published(page,items_per_page,blog_ids = [],options = {})
     if blog_ids.length > 0
-      Blog::BlogPost.paginate(page,
+      Blog::BlogPost.paginate(page, {
                               :include => [ :active_revision, :blog_categories ],
                               :order => 'published_at DESC',
                               :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ? AND blog_posts.blog_blog_id IN (?)",Time.now,blog_ids],
-                              :per_page => items_per_page)
-
+                              :per_page => items_per_page }.merge(options))
     else
-      Blog::BlogPost.paginate(page,
+      Blog::BlogPost.paginate(page, {
                               :include => [ :active_revision, :blog_categories ],
                               :order => 'published_at DESC',
                               :conditions => ["blog_posts.status = \"published\" AND blog_posts.published_at < ?",Time.now],
-                              :per_page => items_per_page)
+                              :per_page => items_per_page }.merge(options))
     end
     
   end
@@ -125,7 +136,7 @@ class Blog::BlogPost < DomainModel
         
         self.permalink = permalink_try
       elsif 
-        self.permalink = self.permalink.to_s.gsub(/[^a-z+0-9\-]/,"")[0..63]
+        self.permalink = self.permalink.to_s.gsub(/[^a-z+0-9\-]/,"")[0..127]
       end
   end
 
@@ -213,18 +224,19 @@ class Blog::BlogPost < DomainModel
       self.data_model_id = self.data_model.id
     end
 
-    self.active_revision.update_attribute(:status,'old') if self.active_revision
-    @revision = @revision.clone
+    if @revision
+      self.active_revision.update_attribute(:status,'old') if self.active_revision
+      @revision = @revision.clone
 
-    @revision.status = 'active'
-    @revision.blog_blog = self.blog_blog
-    @revision.blog_post_id = self.id if self.id
-    @revision.save
+      @revision.status = 'active'
+      @revision.blog_blog = self.blog_blog
+      @revision.blog_post_id = self.id if self.id
+      @revision.save
 
-    self.blog_post_revision_id = @revision.id
-    self.generate_permalink!
+      self.blog_post_revision_id = @revision.id
+      self.generate_permalink!
+    end
   end
-
   def after_create
     @revision.update_attribute(:blog_post_id,self.id)
     @revision= nil

@@ -25,7 +25,7 @@ describe ContentModel do
 
     it "should correctly generate valid table names" do
       cm = ContentModel.create(:name => 'This---is a test of the emergency broadcast system')
-      migrator_mock = mock("ContentMigrator",:update_up => nil, :migrate_domain => nil)
+      migrator_mock = mock("ContentMigrator",:update_up => nil, :migrate_domain => nil, :suppress_messages => nil)
       ContentMigrator.should_receive(:clone).at_least(:once).and_return(migrator_mock)
       cm.create_table # Should create a table
 

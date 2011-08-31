@@ -34,8 +34,8 @@ describe EndUser do
     @user1 = EndUser.push_target("test1@webiva.com")
     @user1.update_attributes( :first_name=> 'User', :user_level => 1, :last_name => '2', :language => 'en' ,:registered => 1)
 
-    @validation = @user1.validate
-    @validation.should have_at_least(1).error_on(:password)
+    @user1.valid?
+    @user1.should have(1).error_on(:password)
 
   end
   it 'should update verification string on initial password set' do
@@ -306,5 +306,23 @@ describe EndUser do
 
     @user1 = EndUser.find_by_email("test1@webiva.com")
     @user1.user_level.should == 0
+  end
+
+  it "should be able to set referral" do
+    @referral_user = EndUser.push_target("test1@webiva.com", :username => "test1", :membership_id => '222222')
+
+    @user = EndUser.push_target("test2@test.dev", :referral => @referral_user.membership_id)
+    @user.source.should == 'referral'
+    @user.source_user_id.should == @referral_user.id
+    @user.referral.should == '222222'
+
+    @user = EndUser.push_target("test3@test.dev", :referral => @referral_user.username)
+    @user.source.should == 'referral'
+    @user.source_user_id.should == @referral_user.id
+    @user.referral.should == 'test1'
+
+    @user = EndUser.push_target("test4@test.dev", :referral => @referral_user.email)
+    @user.source.should == 'referral'
+    @user.source_user_id.should == @referral_user.id
   end
 end

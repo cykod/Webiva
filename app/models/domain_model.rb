@@ -105,7 +105,10 @@ class DomainModel < ActiveRecord::Base
   #   Number of entries per page
   # [:window_size]
   #   Size of page window - passed through to pagination hash (used by CmsHelper#admin_pagination for example
-  def self.paginate(page,args = {})
+  def self.paginate(page,args = {},scope_by = nil)
+    scope_by ||= self
+    page = page.to_i
+    page = 1 if page < 1
     args = args.clone.symbolize_keys!
     window_size =args.delete(:window) || 2
     
@@ -113,8 +116,23 @@ class DomainModel < ActiveRecord::Base
     page_size = 20 if page_size <= 0
 
     count_args = args.slice( :conditions, :joins, :include, :distinct, :having)
-    
-    if page_size.is_a?(Integer)
+
+    if args.delete(:large)
+      offset = args[:offset] = page_size * (page-1)
+      args[:limit] = page_size + 1
+
+      items = self.find(:all,args)
+
+
+      if items.length == page_size + 1
+        pages = page + 1
+        total = pages * page_size
+        items = items[0..page_size-1]
+      else
+        pages = page
+        total = pages * page_size
+      end
+    elsif page_size.is_a?(Integer)
       
       if args[:group]
         count_by = args[:group]
@@ -122,9 +140,9 @@ class DomainModel < ActiveRecord::Base
       end
 
       if count_by
-        total_count = self.count(count_by,count_args)
+        total_count = scope_by.count(count_by,count_args)
       else
-        total_count = self.count(count_args)
+        total_count = scope_by.count(count_args)
       end
       pages = (total_count.to_f / (page_size || 10)).ceil
       pages = 1 if pages < 1
@@ -134,14 +152,18 @@ class DomainModel < ActiveRecord::Base
       
       args[:offset] = offset
       args[:limit] = page_size
+
+      items = scope_by.find(:all,args)
     else
+      offset = 0
       total_count = 0
       page = 1
       pages = 1
+
+      items = scope_by.find(:all,args)
     end
 
-    items = self.find(:all,args)
-
+   
     [ { :pages => pages, 
         :page => page, 
         :window_size => window_size, 
@@ -168,18 +190,17 @@ class DomainModel < ActiveRecord::Base
   # which will run all the triggered actions associated with this object
   def self.has_triggered_actions
     has_many :triggered_actions, :as => :trigger, :conditions => 'comitted = 1', :dependent => :destroy
-    
-    self.module_eval(<<-SRC)
-    def run_triggered_actions(data = {},trigger_name = nil,user = nil)
-      if (trigger_name.to_s == 'view' && self.view_action_count > 0) || (trigger_name.to_s != 'view' && self.update_action_count > 0)
-        actions = trigger_name ?  self.triggered_actions.find(:all,:conditions => ['action_trigger=?',trigger_name]) :  self.triggered_actions
-        actions.each do |act|
-          act.perform(data,user)
-        end
-      end
-    end    
-    SRC
   end
+
+  def run_triggered_actions(data = {},trigger_name = nil,user = nil,session = nil)
+    if (trigger_name.to_s == 'view' && self.view_action_count > 0) || (trigger_name.to_s != 'view' && self.update_action_count > 0)
+      actions = trigger_name ?  self.triggered_actions.find(:all,:conditions => ['action_trigger=?',trigger_name]) :  self.triggered_actions
+      actions.each do |act|
+        act.perform(data,user,session)
+      end
+    end
+  end    
+
 
   # Activates a specific domain as the active domain 
   # 
@@ -700,7 +721,7 @@ class DomainModel < ActiveRecord::Base
   # Generats a url-friendly string from value and assigns it to field if field is blank
   # if the field is not blank, returns the value
   def generate_url(field,value)
-    permalink_try_partial = value.to_s.downcase.gsub(/[ _]+/,"-").gsub(/[^a-z+0-9\-]/,"")
+    permalink_try_partial = value.to_s.mb_chars.normalize(:kd).to_s.downcase.gsub(/[ _]+/,"-").gsub(/[^a-z+0-9\-]/,"")
     idx = 2
     permalink_try = permalink_try_partial[0..60]
     

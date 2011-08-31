@@ -8,7 +8,10 @@ latest = @active_revision_info[2] -%>
    <h2>
      <%= "Title:".t %> 
      <span class='header_value'><%= h revision.title.blank? ? '[No Title]'.t : revision.title %></span> 
-     <a class='small' href='javascript:void(0);' onclick='SCMS.select_tab_num(2);'>(edit)</a>
+
+     <% if  permit?('editor_structure') || permit?('editor_structure_advanced') %>
+       <a class='small' href='javascript:void(0);' onclick='SCMS.select_tab_num(2);'>(edit)</a>
+     <% end -%>
    </h2>
  </li>
 
@@ -56,8 +59,11 @@ latest = @active_revision_info[2] -%>
    <% end -%>
  <% end -%>
 
+
+<% if  permit?('editor_structure') || permit?('editor_structure_advanced') %>
  <% if @node.experiment -%>
    <% @node.experiment.language = @view_language -%>
    <%= render(:partial => 'experiment_info', :locals => {:experiment => @node.experiment}) if @node.experiment.versions.size > 0 %>
+ <% end -%>
  <% end -%>
  </div>

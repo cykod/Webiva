@@ -17,7 +17,7 @@ class EndUserSegmentField < UserSegment::FieldHandler
 
   register_field :acknowledged, UserSegment::CoreType::BooleanType, :name => 'Acknowledged', :sortable => true, :builder_name => 'Show acknowledged accounts?'
   register_field :user_level, EndUserSegmentType::UserLevelType, :name => 'User Level', :sortable => true
-  register_field :user_value, EndUserSegmentType::UserLevelType, :field => :value, :name => 'User Value', :sortable => true
+  register_field :user_value, UserSegment::CoreType::SimpleNumberType, :field => :value, :name => 'User Value', :sortable => true
   register_field :dob, UserSegment::CoreType::DateTimeType, :name => 'DOB', :sortable => true
   register_field :last_name, UserSegment::CoreType::StringType, :name => 'Last Name', :sortable => true
   register_field :first_name, UserSegment::CoreType::StringType, :name => 'First Name', :sortable => true
@@ -29,6 +29,7 @@ class EndUserSegmentField < UserSegment::FieldHandler
   register_field :username, UserSegment::CoreType::StringType, :name => 'Username', :sortable => true
   register_field :introduction, UserSegment::CoreType::StringType, :name => 'Introduction', :sortable => true
   register_field :suffix, UserSegment::CoreType::StringType, :name => 'Suffix', :sortable => true
+  register_field :cell_phone, UserSegment::CoreType::StringType, :name => 'Cell Phone', :sortable => true
   register_field :profile, EndUserSegmentType::UserClassType, :field => :user_class_id, :name => 'User Profile', :sortable => true
 
   def self.sort_scope(order_by, direction)

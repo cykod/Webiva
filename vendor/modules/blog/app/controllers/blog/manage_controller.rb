@@ -6,7 +6,7 @@ class Blog::ManageController < ModuleController
 
   permit 'blog_config', :only => [ :configure, :delete, :import ]
 
-  before_filter :check_view_permission, :except => [ :configure, :delete, :display_blog_list_table, :list, :generate_mail, :generate_mail_generate, :import ]
+  before_filter :check_view_permission, :except => [ :configure, :delete, :display_blog_list_table, :list, :generate_mail, :generate_mail_generate, :display_generate_post_table, :import ]
 
   component_info 'Blog'
   

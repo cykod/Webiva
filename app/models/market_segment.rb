@@ -61,7 +61,7 @@ class MarketSegment < DomainModel
         [ 'Email'.t,'email', [ 'email','e-mail','e mail' ] ],
         [ 'Name'.t, 'name', [ 'name', 'name'.t ] ]
       ]
-    when 'user_segment'
+    when 'user_segment', 'everyone'
       vars = [
         [ 'Email'.t,'email', [ 'email','e-mail','e mail' ] ],
         [ 'Full Name'.t, 'name', [ 'name', 'name'.t, 'full name'.t  ] ],

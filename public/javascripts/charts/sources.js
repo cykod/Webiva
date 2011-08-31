@@ -91,7 +91,7 @@ WebivaStatsChart = function(opts) {
   function legend(vis, x, y, colors, labels, callback) {
     vis.add(pv.Bar)
       .data(labels)
-      .top(function() (labels.length - 1 - this.index) * (fonts.check.size + fonts.check.spacing) + y)
+      .top(function() {return (labels.length - 1 - this.index) * (fonts.check.size + fonts.check.spacing) + y;})
       .width(fonts.check.size)
       .height(fonts.check.size)
       .left(x)
@@ -106,7 +106,7 @@ WebivaStatsChart = function(opts) {
       .textAlign("left")
       .font(fonts.legend.font)
       .textStyle(fonts.legend.color)
-      .text(function() labels[this.index])
+      .text(function() {return labels[this.index];})
       .events("all")
       .event("click", function() { if(callback) { callback(this.index, true);} });
   }
@@ -124,7 +124,7 @@ WebivaStatsChart = function(opts) {
     .data(data)
     .bottom(0)
     .height(y)
-    .left(function() (data.length - this.index - 1) * x.range().band + left + dimensions.conversions.spacing / 2)
+    .left(function() {return (data.length - this.index - 1) * x.range().band + left + dimensions.conversions.spacing / 2;})
     .width(dimensions.conversions.width)
     .fillStyle(colors.by(pv.index))
     .anchor("top").add(pv.Label)
@@ -132,7 +132,7 @@ WebivaStatsChart = function(opts) {
     .textMargin(5)
     .font(fonts.numbers.font)
     .textStyle(fonts.numbers.color)
-    .text(function(d) y(d) > 12 ? d : '');
+    .text(function(d) {return y(d) > 12 ? d : '';});
 
     var numTicks = 5;
     if(numTicks > maxUserLevel) {
@@ -143,7 +143,7 @@ WebivaStatsChart = function(opts) {
     vis.add(pv.Rule)
     .data(y.ticks(numTicks))
     .bottom(y)
-    .strokeStyle(function(d) d ? "rgba(255,255,255,.5)" : null);
+    .strokeStyle(function(d) {return d ? "rgba(255,255,255,.5)" : null;});
   }
 
   function drawSources(index, canvas) {
@@ -192,11 +192,11 @@ WebivaStatsChart = function(opts) {
     .layer.add(pv.Bar)
     .width(dimensions.bar.width)
     .fillStyle(colors.by(pv.parent))
-    .title(function(d) d)
+    .title(function(d) {return d;})
     .anchor("center").add(pv.Label)
     .font(fonts.numbers.font)
     .textStyle(fonts.numbers.color)
-    .text(function(d) y(d) > 12 ? d : '');
+    .text(function(d) {return y(d) > 12 ? d : '';});
 
     var numTicks = 5;
     if(numTicks > maxVisits) {
@@ -208,7 +208,7 @@ WebivaStatsChart = function(opts) {
     .data(y.ticks(numTicks))
     .bottom(y)
     //.width(dimensions.width)
-    .strokeStyle(function(d) d ? "rgba(255,255,255,.18)" : null);
+    .strokeStyle(function(d) {return d ? "rgba(255,255,255,.18)" : null;});
 
     vis.render();
   }
@@ -296,7 +296,7 @@ WebivaStatsChart = function(opts) {
 
 
     vis.add(pv.Panel)
-      .top(function() source_types.length * (fonts.check.size + fonts.check.spacing) + 2)
+      .top(function() {return source_types.length * (fonts.check.size + fonts.check.spacing) + 2;})
       .width(fonts.check.size)
       .height(fonts.check.size)
       .left(0)

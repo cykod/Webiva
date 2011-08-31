@@ -36,4 +36,8 @@ class WebivaNet::ThemesController < ModuleController
     @theme.install
     redirect_to :controller => '/templates', :action => 'import_bundle', :bundler => {:bundle_file_id => @theme.bundle_file.id}, :select => 1
   end
+
+  def welcome
+    render :partial => 'welcome'
+  end
 end

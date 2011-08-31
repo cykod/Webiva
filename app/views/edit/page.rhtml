@@ -47,7 +47,7 @@ tinyMCE.init({
           theme_advanced_layout_manager: "SimpleLayout",
           mode : "none",
           valid_elements: "*[*]",
-          plugins: 'table,filemanager,advimage,advlink,paste',
+          plugins: 'table,filemanager,advimage,advlink,paste,autoresize',
           extend_valid_elements: 'a[name|href|target|title|onclick]',
           theme_advanced_buttons1 : "bold,italic,underline,separator,strikethrough,justifyleft,justifycenter,justifyright,justifyfull,bullist,numlist,undo,redo,pastetext,pasteword,anchor,link,unlink,image,<%= 'filemanager,' if  myself.has_role?('editor_files') %>hr,forecolor,backcolor,formatselect,styleselect,tablecontrols,code",
           theme_advanced_blockformats: "p,div,h1,h2,h3,h4,h5,h6,blockquote,dt,dd,code,samp",

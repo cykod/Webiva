@@ -192,7 +192,7 @@
 <br/>
 <% if @segment && @segment.last_ran_at -%>
 <span id="user_segment_info" style="font-size:11px;">
-<%= "%d users found, " / @segment.last_count %><%= 'last updated on %s' / @segment.last_ran_at.strftime(DEFAULT_DATETIME_FORMAT.t) %>
+<%= "%d users found, " / @segment.last_count %><%= 'last updated on %s' / @segment.last_ran_at.strftime(Configuration.datetime_format) %>
 </span> | 
 <% end -%>
 <a href="<%= url_for :action => 'create_segment' %>">Create a User List</a>

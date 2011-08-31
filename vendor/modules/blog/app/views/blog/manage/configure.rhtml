@@ -10,6 +10,9 @@
 <%= f.check_boxes :trackback, [['Send pingbacks when a post is published.', true]], :label => 'Pingbacks', :single => true %>
 <%= f.select :content_model_id, ContentModel.select_options_with_nil %>
 <%= f.select :content_publication_id, @blog.content_model ? @blog.content_model.content_publications.select_options_with_nil : [["--Select %s--" / 'Content publication', nil]] %>
+<% cms_subfields_for "blog[blog_options]", @blog.blog_options do |sf| %>
+  <%= sf.yes_no :category_override %>
+<% end -%>
 <%= f.spacer %>
 <%= f.submit_tag 'Update' %>
 <% end -%>

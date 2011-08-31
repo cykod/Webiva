@@ -91,7 +91,7 @@ class DomainLogGroup < DomainModel
       :duration => duration.to_i
     }
 
-    attributes[:expires_at] = 5.minutes.since if (started_at + duration) > Time.now
+    attributes[:expires_at] = 15.minutes.since if (started_at + duration) > Time.now
     group = DomainLogGroup.create attributes
 
     results.each do |result|
@@ -109,10 +109,11 @@ class DomainLogGroup < DomainModel
   end
 
   def self.traffic_chart_data(groups, opts={})
+
     to = groups[0].started_at
     from = groups[-1].ended_at
 
-    opts[:label] ||= '%I:%M'
+    opts[:label] ||= '%I:%M'.t
 
     groups = groups.sort { |a,b| b.started_at <=> a.started_at } if opts[:desc]
 
@@ -128,11 +129,11 @@ class DomainLogGroup < DomainModel
         uniques << 0
         hits << 0
       end
-      labels << group.ended_at.strftime(opts[:label])
+      labels << group.ended_at.localize(opts[:label])
       break if opts[:update_only]
     end
 
-    format = opts[:format] || '%b %e, %Y %I:%M%P'
+    format = opts[:format] || '%b %e, %Y %I:%M%P'.t
     data = { :from => from.strftime(format), :to => to.strftime(format), :uniques => uniques, :visits => uniques, :hits => hits, :labels => labels }
   end
 end

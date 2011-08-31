@@ -128,7 +128,7 @@ module ModelExtension::EndUserImportExtension
     user_opts = opts[:user_options] || {}
 
     page = options[:page].to_i
-    page_size = options[:page_size] || 50
+    page_size = options[:page_size] || 500
 
     import = options[:import] || false
 
@@ -144,8 +144,16 @@ module ModelExtension::EndUserImportExtension
     entry_errors = []
 
     email_field = nil
-    reader = CSV.open(filename,"r",deliminator)
-    file_fields = reader.shift
+    reader = nil
+
+    file_fields = nil
+    begin
+      reader = FasterCSV.open(filename,"r",:col_sep => deliminator)
+      file_fields = reader.shift
+    rescue FasterCSV::MalformedCSVError=> e
+      reader = FasterCSV.open(filename,"r",:col_sep => deliminator, :row_sep => ?\r)
+      file_fields = reader.shift
+    end
     fields = []
 
     user_fields = EndUser.import_fields
@@ -189,14 +197,23 @@ module ModelExtension::EndUserImportExtension
 
     new_user_class = UserClass.find_by_id(opts[:user_class_id]) || UserClass.default_user_class
 
-    reader.each do |row|
+    finished = false
+    row = nil
+    while !finished && !reader.eof?
+      entry_errors = []
+      begin 
+        row = reader.shift
+      rescue Exception => e
+        entry_errors << "Ignoring malformed row: " + e.to_s
+        row = []
+      end
+
 
       if(row.join.blank?)
         idx+=1
         next
       end
 
-      entry_errors = []
       if !reader_offset || idx >= reader_offset
         entry = EndUser.find_by_email(row[email_field]) unless row[email_field].blank?
 
@@ -220,7 +237,17 @@ module ModelExtension::EndUserImportExtension
             fields.each do |fld|
               value = row[fld[1]].to_s
               if fld[4].to_sym == :field
-                entry_values[fld[3]] = value
+                if fld[3] == 'email'
+                  if !value.blank?
+                    if value =~ RFC822::EmailAddress
+                      entry_values[fld[3]] = value unless value.blank?
+                    elsif value.split(',')[0].to_s.strip =~ RFC822::EmailAddress
+                      entry_values[fld[3]] = value.split(',')[0].strip
+                    end
+                  end
+                else
+                  entry_values[fld[3]] = value unless value.blank?
+                end
               elsif fld[4].to_sym == :address
                 process_import_address(entry,entry_addresses,fld[3],value)
               elsif fld[4].to_sym == :tags
@@ -235,6 +262,7 @@ module ModelExtension::EndUserImportExtension
             end
 
             entry.attributes = entry_values
+            entry.admin_edit = true
 
             if entry.valid?
               entry_addresses.each do |key,adr|
@@ -280,7 +308,7 @@ module ModelExtension::EndUserImportExtension
                 end
               end
             else
-              entry_errors << [idx, entry.email]
+              entry_errors << [idx, entry.email.to_s + ":" + entry.errors.full_messages.join(",")]
             end
           end
         else
@@ -293,9 +321,6 @@ module ModelExtension::EndUserImportExtension
           end
         end
 
-        if block_given?
-          yield 1,entry_errors
-        end
       end
 
       # Exit if we are already over sample limit
@@ -303,6 +328,11 @@ module ModelExtension::EndUserImportExtension
         break;
       end
       idx+=1
+
+
+      if block_given?
+        yield 1,entry_errors
+      end
     end
     reader.close
 
@@ -319,7 +349,7 @@ module ModelExtension::EndUserImportExtension
 
   def process_profile_import(entry,entry_profiles,field,value) #:nodoc:
     return if value.blank?
-    content_model_field_cache DataCache.local_cache('end_user_import_extension:content_model_field_cache') || {}
+    content_model_field_cache = DataCache.local_cache('end_user_import_extension:content_model_field_cache') || {}
     if field =~ /user_profile_field_([0-9]+)_([0-9]+)/
       user_profile_type_id = $1.to_i
       user_profile_column_id = $2.to_i

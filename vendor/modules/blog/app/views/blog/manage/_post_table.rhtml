@@ -19,9 +19,9 @@
     <% end -%>
     <%= t.status_display %><%= " (Post Dated)" if t.published_at && t.published_at > current_time %>
   </td>
-  <td align='center'><%= t.published_at ? t.published_at.localize(DEFAULT_DATETIME_FORMAT.t) : '-' %></td>
+  <td align='center'><%= t.published_at ? t.published_at.localize(Configuration.datetime_format.t) : '-' %></td>
   <td><a href='<%= url_for :action => 'post', :path => [ @blog.id, t.id ] %>'><%= t.permalink %></a></td>
-  <td align='center'><%= t.updated_at ? t.updated_at.localize(DEFAULT_DATETIME_FORMAT.t) : '-' %></td>
+  <td align='center'><%= t.updated_at ? t.updated_at.localize(Configuration.datetime_format.t) : '-' %></td>
   <td><%= h t.blog_categories.collect(&:name).join(", ") %></td>
 </tr>
 

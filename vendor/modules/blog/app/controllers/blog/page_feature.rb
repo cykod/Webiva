@@ -9,7 +9,7 @@ class Blog::PageFeature < ParagraphFeature
       <cms:entry>
         <div class='blog_entry'>
           <cms:image align='left' border='10' size='preview' shadow='1' />
-          <h3><cms:detail_link><cms:title/></cms:detail_link></h3>
+          <h2><cms:detail_link><cms:title/></cms:detail_link></h2>
           <cms:preview/>
           <cms:more><cms:detail_link>Read More...</cms:detail_link><br/><br/></cms:more>
           <div class='blog_info'>
@@ -65,7 +65,7 @@ class Blog::PageFeature < ParagraphFeature
       <cms:entry>
         <div class='blog_entry'>
           <cms:image align='left' border='10' size='preview' shadow='1' />
-          <h3><cms:title/></h3>
+          <h1><cms:title/></h1>
           <cms:body/>
         </div>
           <cms:embedded_media>
@@ -107,6 +107,9 @@ class Blog::PageFeature < ParagraphFeature
     c.value_tag('entry:embedded_media') { |tag| tag.locals.entry.embedded_media }
     
     c.media_tag('entry:media_file') { |tag| tag.locals.entry.media_file }
+
+    c.value_tag('entry:rating') { |t| (t.locals.entry.rating * (t.attr['multiplier'] || 1).to_i).floor.to_i }
+    c.value_tag('entry:rating_display') { |t| sprintf("%.1f",t.locals.entry.rating) }
     
     c.date_tag('entry:published_at',"%H:%M%p on %B %d %Y".t) { |t|  t.locals.entry.published_at }
     c.image_tag('entry:image') { |t| t.locals.entry.image }
@@ -123,6 +126,7 @@ class Blog::PageFeature < ParagraphFeature
     c.value_tag('entry:permalink') { |t| t.locals.entry.permalink }
     c.value_tag('entry:body') { |tag| tag.locals.entry.body_content }
     c.value_tag('entry:preview') {  |tag| tag.locals.entry.preview_content }
+    c.value_tag('entry:content_node_id') { |t| t.locals.entry.content_node.id }
 
     c.value_tag 'entry:preview_title' do |tag|
       h(tag.locals.entry.preview_title.blank? ? tag.locals.entry.title : tag.locals.entry.preview_title)
@@ -142,15 +146,21 @@ class Blog::PageFeature < ParagraphFeature
       categories = tag.locals.entry.blog_categories(true).collect(&:name)
       categories = categories[0..tag.attr['limit'].to_i] if tag.attr['limit']
       if categories.length > 0
-	categories.map! { |cat| "<a href='#{SiteNode.link(data[:list_page], 'category', CGI::escape(cat))}'>#{h cat}</a>" } unless tag.attr['no_link']
-	categories.join(", ")
+        tag.locals.categories = categories
+        categories = categories.map { |cat| "<a href='#{SiteNode.link(data[:list_page], 'category', CGI::escape(cat))}'>#{h cat}</a>" } unless tag.attr['no_link']
+      	categories.join(", ")
       else 
-	nil
+      	nil
       end
     end
 
+    c.loop_tag('entry:categories:category') { |t| t.locals.categories }
+    c.link_tag('entry:categories:category:') { |t| SiteNode.link(data[:list_page], 'category', CGI::escape(t.locals.category)) }
+    c.value_tag('entry:categories:category:name') { |t| t.locals.category }
+    c.value_tag('entry:categories:category:escaped_name') { |t| CGI::escape(t.locals.category) }
+
     c.value_tag('entry:tags') do |tag|
-      tags = tag.locals.entry.content_tags(true)
+      tags = tag.locals.entry.content_tags
       if tags.length > 0
 	tags.collect {|tg| "<a href='#{SiteNode.link(data[:list_page], 'tag', h(tg.name))}'>#{h tg.name}</a>" }.join(", ")
       else
@@ -228,7 +238,7 @@ class Blog::PageFeature < ParagraphFeature
 	"#{SiteNode.link(data[:list_page], 'archive', formatted)}"
       end
 
-      c.date_tag('archive:date',DEFAULT_DATETIME_FORMAT.t) { |tag| tag.locals.archive[:date] }
+      c.datetime_tag('archive:date') { |tag| tag.locals.archive[:date] }
 
       c.define_value_tag "archives:archive:count" do |tag|
 	tag.locals.archive[:cnt]

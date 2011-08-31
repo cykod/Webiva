@@ -61,3 +61,33 @@ WebivaExporter = function(opts) {
     setTimeout(function() {status();}, 500);
   }
 };
+
+WebivaImporter = {
+  statusUrl: "/website/file/import_status",
+
+  status: function() {
+    $j.getJSON(WebivaImporter.statusUrl, function(data) {
+      if(data.initialized) {
+        if(data.failed) {
+          $j('#import_status').text("Import Error");
+          $j('#import_error').text("Row: " + data.row + ", Error: " + data.error);
+          $j('#import_close').show();
+          return;
+        } else if(data.completed) {
+          $j('#import_status').text("Import Finished");
+          $j('#import_close').show();
+          var percent = 100;
+          $j('#import_progress .progress').width(percent * 4);
+          $j('#import_progress .progress_indicator').text(percent + '%');
+          return;
+        } else {
+          $j('#import_status').text("Import In-Progress");
+          var percent = parseInt(data.imported / data.entries * 100.0);
+          $j('#import_progress .progress').width(percent * 4);
+          $j('#import_progress .progress_indicator').text(percent + '%');
+        }
+      }
+      setTimeout( function() { WebivaImporter.status(); }, 500 );
+    });
+  }
+};

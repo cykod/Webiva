@@ -9,11 +9,7 @@ describe ContentController, "create a content model" do
 
  integrate_views
  
- before(:all) do
-    # Need to clean out the content models and create a new content model
-    # But don't want to do this before each one
-    create_content_model_with_all_fields
-  end
+  ContentSpecHelper.setup_content_model_test_with_all_fields self
 
   describe "Should be able to manipulate content" do 
     

@@ -118,9 +118,16 @@ class ContentModelField < DomainModel
 
   # Return the actual class if this field has a relation
   def relation_class
+    cls = self.relation_class_name
+    cls.constantize if cls && cls.to_s.downcase != 'other'
+  end
+
+
+  # Return the actual class if this field has a relation
+  def relation_class_name
     if !self.field_options['relation_class'].blank?
       begin
-        return self.field_options['relation_class'].constantize
+        return self.field_options['relation_class']
       rescue Exception => e
         return nil
       end
@@ -242,5 +249,25 @@ class ContentModelField < DomainModel
   
   def assign(entry,values)
     self.module_class.assign(entry,values)
+  end
+
+  def after_save
+    self.add_has_many_relationship if self.field_type == 'belongs_to' && self.field_options['add_has_many']
+  end
+
+  def add_has_many_relationship
+    return if self.relation_name == 'end_user' || self.relation_name == 'other' || self.relation_class == 'Other'
+
+    table_name = self.content_model.table_name
+    plural_name = "#{self.field.sub(/_id$/,'')}_#{table_name.sub(/^cms_/, '')}"
+    singular_name = plural_name.singularize
+    field_id = "#{singular_name}_id"
+    cm = ContentModel.find_by_table_name self.relation_class.table_name
+    return if cm.content_model_fields.detect { |fld| fld.field_type == 'has_many_simple' && fld.field == field_id }
+
+    options = Content::Field::FieldOptions.new :relation_class => table_name.classify, :relation_name => plural_name, :relation_singular => singular_name, :foreign_key => self.field
+
+    next_position = cm.content_model_fields.maximum(:position) + 1
+    cm.content_model_fields.create :name => plural_name.titleize, :field => field_id, :field_type => 'has_many_simple', :field_options => options.to_h.stringify_keys, :field_module => 'content/core_field', :position => next_position
   end
 end

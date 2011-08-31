@@ -1,0 +1,14 @@
+<%
+captcha_time_id = "captcha_time_#{captcha.captcha_code}"
+-%>
+<input type="hidden" name="captcha_code" value="<%= captcha.captcha_code %>">
+<input type="hidden" id="<%= captcha_time_id %>" name="captcha_time" value="<%= captcha_time %>">
+<script>
+<%= captcha_time_id %>_update = function() {
+  var captcha_time = document.getElementById("<%= captcha_time_id %>");
+  if(captcha_time) {
+    captcha_time.value = parseInt(captcha_time.value, 10) + 5;
+  }
+}
+setTimeout(function() { <%= captcha_time_id %>_update(); }, 5000);
+</script>

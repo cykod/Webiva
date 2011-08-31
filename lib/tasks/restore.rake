@@ -92,6 +92,10 @@ namespace "cms" do
     # Delete any rendered parts
     DomainModel.connection.execute("DELETE FROM site_template_rendered_parts WHERE 1")
 
+
+    # Changed to local file storage
+    DomainFile.update_all("processor='local'","file_type != 'fld' AND processor != 'local'")
+
     begin
       # Resave update any file store
       DomainFileInstance.rebuild_all
@@ -123,14 +127,18 @@ namespace "cms" do
       DomainFile.update_all "server_hash = '#{server_hash}'", 'file_type != "fld" and server_hash IS NULL'
     end
 
+    PageRevision.find(:all,:conditions => { :active => 1, :revision_type => 'real' }, :include => :page_paragraphs).each { |rev| rev.page_paragraphs.map(&:save); rev.make_real }
+
+    # Clear out the cache for the domain
+
     begin
-      SiteTemplate.find(:all).map(&:save)
       SiteFeature.find(:all).map(&:save)
+      SiteTemplate.find(:all).map(&:save)
     rescue Exception => e
       puts("There was a problem resaving site templates and features - continuing import anyway")
     end
 
-    # Clear out the cache for the domain
+    # Resave paragraphs to fix links
     DataCache.expire_domain(dmn.database)
       
     # Make the database active again

@@ -43,7 +43,7 @@ class HashModel
       hsh.each do |atr,val|
         attr_accessor atr.to_sym
         
-        if atr.to_s =~ /_(id|number)$/ 
+        if atr.to_s =~ /_(id)$/ 
           int_opts << atr.to_sym
         end
       end
@@ -73,6 +73,7 @@ class HashModel
   end
   
   def self.current_integer_opts; []; end
+  def self.current_page_opts; []; end
   def self.current_boolean_opts; []; end
   def self.current_float_opts; []; end
   def self.current_integer_array_opts; []; end
@@ -130,6 +131,19 @@ class HashModel
     end
   end
   
+  def self.date_options(*atrs)
+    atrs.each do |atr|
+      self.class_eval <<-EOF
+      def #{atr}_date
+        begin
+          @#{atr}_date ||= Time.parse self.#{atr}
+        rescue
+        end
+      end
+      EOF
+    end
+  end
+  
   def self.page_options(*atrs)
     atrs.each do |atr|
       if atr.to_s =~ /^(.*)_id$/
@@ -146,7 +160,30 @@ class HashModel
         EOF
       end
     end
-    #self.integer_options(*atrs)
+
+    if atrs[0].is_a?(Array)
+      atrs = current_page_opts + atrs[0]
+    else
+      atrs = current_page_opts + atrs
+    end
+    atrs.uniq!
+    
+    class << self; self end.send(:define_method,"current_page_opts") do
+      atrs
+    end
+  end
+
+  def fix_page_options(to_version)
+    return false if self.class.current_page_opts.empty?
+
+    self.class.current_page_opts.each do |fld|
+      nd = SiteNode.find_by_id(send(fld))
+      next unless nd
+      new_node = to_version.site_nodes.find_by_node_path(nd.node_path)
+      self.instance_variable_set "@#{fld}", new_node ? new_node.id : nil
+    end
+
+    true
   end
 
   def self.registered_options_form_fields()
@@ -249,7 +286,7 @@ class HashModel
     
     vars.each do |key|
       val = hsh[key.to_sym]
-      if key.to_s =~ /_(id|number)$/ 
+      if key.to_s =~ /_(id)$/ 
         val = val.blank? ? nil : val.to_i
       end
       
@@ -261,8 +298,8 @@ class HashModel
     to_h.slice( *@passed_hash.keys )
   end
   
-  def to_h
-    self.valid?
+  def to_h(opts={})
+    self.valid? unless opts[:skip]
     hsh = {}
     
     self.instance_variables.each do |var|
@@ -337,8 +374,6 @@ class HashModel
       end
       self.instance_variable_set "@#{opt.to_s}",val
     end
-    
-    
   end
      
   def self.self_and_descendants_from_active_record

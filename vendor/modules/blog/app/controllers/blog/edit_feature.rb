@@ -26,7 +26,7 @@ class Blog::EditFeature < ParagraphFeature
         c.link_tag('post_table:row:edit') { |t| "#{data[:edit_url]}/#{t.locals.post.permalink}" }
         c.value_tag('post_table:row:title') { |t| h t.locals.post.title }
         c.value_tag('post_table:row:status') { |t| "#{t.locals.post.status_display} #{" (Post Dated)".t if t.locals.post.published_at && t.locals.post.published_at > Time.now}" }
-        c.date_tag('post_table:row:published_at') { |t| t.locals.post.published_at }
+        c.datetime_tag('post_table:row:published_at') { |t| t.locals.post.published_at }
     end
   end
   feature :blog_edit_write, :default_feature => <<-FEATURE

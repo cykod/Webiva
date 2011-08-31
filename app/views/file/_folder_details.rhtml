@@ -5,7 +5,7 @@
     <%= admin_pagination(Proc.new { |page| "FileEditor.loadFolder(#{folder.id},null,#{page});" },pages) -%>
   </div>
   <div style='float:right; margin-top:5px;' > 
-    Showing <%= pages[:first] -%>-<%= pages[:last] -%> of <%= pages[:total] -%> &nbsp;
+    <%= "Showing".t %> <%= pages[:first] -%>-<%= pages[:last] -%> of <%= pages[:total] -%> &nbsp;
   </div>
 </div>
 <% end -%>

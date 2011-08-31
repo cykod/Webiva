@@ -26,6 +26,10 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
         { :name => :post_back,
           :description => 'Setup a Post Back',
           :options_partial => '/triggered_action/post_back'
+        },
+        { :name => :experiment,
+          :description => 'Experiment conversion',
+          :options_partial => '/triggered_action/experiment'
         }
       ]
 
@@ -60,7 +64,7 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
     
     def perform(action_data={},user = nil)
     
-      data_vars = action_data.is_a?(DomainModel) ? action_data.triggered_attributes :  (action_data.is_a?(Hash) ? action_data : {})
+      data_vars = action_data.is_a?(DomainModel) ? action_data.triggered_attributes :  (action_data.is_a?(Hash) ? action_data : (action_data.respond_to?(:to_hash) ? action_data.to_hash : {}))
       data_vars.symbolize_keys!
     
       # Find out who we are emailing
@@ -192,6 +196,28 @@ class Trigger::CoreTrigger < Trigger::TriggeredActionHandler
         path += '?' + uri.query if uri.query
         http.request_post(path, body, 'Content-Type' => content_type)
       end
+    end
+  end
+
+  class ExperimentTrigger < Trigger::TriggerBase
+    class ExperimentOptions < HashModel
+      attributes :experiment_id => nil
+      validates_presence_of :experiment_id
+
+      options_form(
+                   fld(:experiment_id, :select, :options => :experiment_options)
+                   )
+
+      def experiment_options
+        Experiment.select_options_with_nil
+      end
+    end
+
+    options 'Experiment Options', ExperimentOptions
+
+    def perform(data={}, user=nil)
+      return unless self.session
+      Experiment.success! options.experiment_id, self.session
     end
   end
 end

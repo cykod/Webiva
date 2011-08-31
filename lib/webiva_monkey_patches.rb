@@ -25,6 +25,20 @@ module ActionController  #:nodoc:all
       @is_bot = self.class.bots.detect { |b| agent.include?(b) } ? true : false
     end
   end
+
+  module Session
+    class AbstractStore
+      class SessionHash
+        # Tell Rails that the session was not changed, prevents the session cookie from being stored
+        # in Rails 3 the SessionHash is located in module ActionDispatch::Session::AbstractStore
+        # set session.unchanged! just before call render
+        def unchanged!
+          @env[ENV_SESSION_OPTIONS_KEY][:expire_after] = nil
+          @loaded = false
+        end
+      end
+    end
+  end
 end
 
 ActionView::Base.field_error_proc = Proc.new{ |html_tag, instance| html_tag.match(/type=(\'|\")radio(\'|\")/i) ? "<span class=\"radioWithErrors\">#{html_tag}</span>" : "<span class=\"fieldWithErrors\">#{html_tag}</span
@@ -114,10 +128,11 @@ class Time  #:nodoc:all
                 rescue NameError
                 nil
         end
+
         
         def self.parse_date(str)
           return nil unless str
-          val = Date.strptime(str,"%m/%d/%Y".t)
+          val = Date.strptime(str,Configuration.date_format)
           return val.to_time
         end
         
@@ -125,7 +140,7 @@ class Time  #:nodoc:all
           return nil unless str
           val = nil
           begin 
-            val = DateTime.strptime(str,DEFAULT_DATETIME_FORMAT.t)
+            val = DateTime.strptime(str,Configuration.datetime_format)
           rescue 
             begin
               val = DateTime.strptime(str,"%m/%d/%Y %H:%M".t)
@@ -147,6 +162,7 @@ class Date  #:nodoc:all
         def to_time
                 Time.local(year,month,day)
         end
+
 end 
 
 

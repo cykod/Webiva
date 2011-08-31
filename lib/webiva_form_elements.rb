@@ -4,6 +4,7 @@
 module WebivaFormElements
 
   include ActionView::Helpers::UrlHelper
+  include PageHelper
   
   # Displays a File manager selection widget (admin only)
   # that lets a user select an image from the file manager
@@ -162,7 +163,7 @@ module WebivaFormElements
     if date_value.is_a?(String)
       date_txt = date_value
     elsif date_value || !options.delete(:blank)
-      date_txt = (date_value || Time.now).localize("%m/%d/%Y".t)
+      date_txt = (date_value || Time.now).localize(Configuration.date_format)
     else
       date_txt = ''
     end
@@ -185,7 +186,7 @@ module WebivaFormElements
     if date_value.is_a?(String)
       date_txt = date_value
     elsif date_value || !options.delete(:blank)
-      date_txt = (date_value || Time.now).localize("%m/%d/%Y %H:%M".t)
+      date_txt = (date_value || Time.now).localize(Configuration.datetime_format)
     else
       date_txt = ''
     end
@@ -313,7 +314,7 @@ module WebivaFormElements
       <img src='/images/site/document.gif' style='width:16px;height:16px;padding:0px;margin:0px;border:0px;' />
       #{h doc_file.name}
       </a>&nbsp;
-      <a href='javascript:void(0);' onclick='document.getElementById("#{@object_name}_#{field}_clear").value="0"; document.getElementById("#{@object_name}_#{field}_file").innerHTML="";'>(Remove)</a>
+      <a href='javascript:void(0);' onclick='document.getElementById("#{@object_name}_#{field}_clear").value="0"; document.getElementById("#{@object_name}_#{field}_file").innerHTML="";'>#{"(Remove)".t}</a>
       </span><br/>
     DOC_SOURCE
    end
@@ -562,7 +563,7 @@ module WebivaFormElements
     end
     
     
-    link_txt = link_to('+Add Image'.t, "/website/file/popup?select=file&callback=image_list_#{obj_name}_#{field}.attachFile&thumb_size=thumb", :popup => ['file_manager', 'height=400,width=600,resizable=yes,scrollbars=yes' ])
+    link_txt = link_to('+Add Image'.t, "/website/file/popup?select=img&callback=image_list_#{obj_name}_#{field}.attachFile&thumb_size=thumb", :popup => ['file_manager', 'height=500,width=900,resizable=yes,scrollbars=yes' ])
     
      <<-JAVASCRIPT
         <script type='text/javascript'>
@@ -730,13 +731,24 @@ module WebivaFormElements
   end
  
   # Selector that lets you pick a page by id
-  def page_selector(field,opts = {})
-    self.select(field,[['--Select Page--'.t,nil]] + SiteNode.page_options,opts)
+  def page_selector(field,opts = {}, html_options={})
+    self.select(field,[['--Select Page--'.t,nil]] + SiteNode.page_options,opts,html_options)
   end
  
   # Selector that lets you pick a page by url
  def url_selector(field,opts = {})
     self.select(field,[['--Select Page--'.t,nil]] + SiteNode.page_options.map {  |elm| [elm[0],elm[0]] },opts)
+  end
+
+
+  def rating_field(field,opts = {})
+    rating = @object ? @object.send(field) : 0
+    field_id = "#{@object_name}_#{field}"
+
+    active_rating_widget(rating,:callback => "setRating#{field_id}(",
+                          :icon => '/themes/standard/images/icons/star_unselected.gif',
+                          :selected => '/themes/standard/images/icons/star_selected.gif') + self.hidden_field(field) + 
+      "<script> function setRating#{field_id}(num) { document.getElementById('#{field_id}').value = num; }</script>"
   end
 
   # Ordered array selector that lets elements be added and sorted.

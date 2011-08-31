@@ -97,9 +97,9 @@ describe MailManagerController, "" do
     end
 
     it 'should generate the text of a template' do      
-      @tmpl_body = post('generate_text_body', :html => "<br> <br> lots o txt </br> ", 
+      @tmpl_body = post('generate_text_body', :html => "<br/> <br/> lots o txt <br/> ", 
                         :mail_template => @tmpl_post_options, :email => ['daffy1@mywebiva.net'],  :path => 1)
-      response.body.should include("  lots o txt  \n ")
+      response.body.should include("lots o txt")
     end
 
     it 'should delete a template' do       

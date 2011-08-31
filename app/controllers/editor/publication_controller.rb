@@ -8,7 +8,9 @@ class Editor::PublicationController < ParagraphController #:nodoc:all
 
 #                                                         
    editor_for :create, :name => 'Entry Create Form', :features => ['publication_entry_create_form'], :hidden => true,
-             :inputs =>  [ [ :entry_id, 'Entry Identifier', :integer ] ]
+             :inputs =>  { :input => [ [ :entry_id, 'Entry Identifier', :integer ] ],
+                            :content => [ [ :content_id, "Content Identifier", :content ],
+                                          [ :target_id, "Content Target", :target ]] }
    editor_for :view, :name => 'Entry Display Form', :features => ['publication_entry_display_form'], :hidden => true,
               :inputs =>  [ [ :entry_id, 'Entry Identifier', :integer ], [:entry_offset, 'Entry Offset', :integer ]],
               :outputs => [[:content_id, 'Content Identifier', :content]]
@@ -16,7 +18,8 @@ class Editor::PublicationController < ParagraphController #:nodoc:all
    
    editor_for :edit, :name => 'Entry Edit', 
               :features => ['publication_entry_edit'],
-              :inputs => [ [ :entry_id, 'Entry ID', :integer ] ],
+              :inputs =>  { :input => [ [ :entry_id, 'Entry ID', :integer ] ],
+                          :content => [ [ :content_id, "Content Identifier", :content ], [ :target_id, "Content Target", :target ]] },
               :hidden => true
               
    editor_for :admin_list, :name => 'Entry Admin List', :features => ['publication_entry_admin_list'], :hidden => true
@@ -35,7 +38,7 @@ class Editor::PublicationController < ParagraphController #:nodoc:all
     default_options :redirect_page_id => nil, :options => [], :success_text => nil, :redirect_page => nil, :user_level => nil
     page_options :redirect_page_id
     integer_options :user_level
-
+    
     def redirect_page_id
       (@redirect_page || @redirect_page_id).to_i
     end
@@ -113,8 +116,9 @@ class Editor::PublicationController < ParagraphController #:nodoc:all
   end
   
   class AdminListOptions < HashModel
-      default_options :edit_page => nil
-      integer_options :edit_page
+    default_options :edit_page => nil
+    integer_options :edit_page
+    page_options :edit_page
   end
   
   def list
@@ -133,7 +137,8 @@ class Editor::PublicationController < ParagraphController #:nodoc:all
     default_options :detail_page => nil, :tags => [], :per_page => nil
 
     integer_options :per_page
-      integer_options :detail_page
+    integer_options :detail_page
+    page_options :detail_page
   end
   
   

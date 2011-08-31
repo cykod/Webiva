@@ -23,6 +23,7 @@ class Content::CoreField < Content::FieldHandler
   :email => 'User Email',
   :user_identifier => 'User Identifier',
   :user_id => 'User ID',
+  :content_id => 'Page Connection Content ID',
   :city => 'City',
   :state => 'State',
   :page_connection => 'Page Connection',
@@ -108,11 +109,16 @@ class Content::CoreField < Content::FieldHandler
                          :description => 'Belongs to Relationship',
                          :representation => :integer,
                          :relation => true,
-                         :dynamic_fields => [:user_id ],
+                         :dynamic_fields => [:user_id, :content_id],
                          :index => true,
                        },
-                       { :name => :has_many, 
-                         :description => 'Has Many Relationship',
+                       { :name => :has_many,
+                         :description => 'Container',
+                         :representation => :none,
+                         :relation => :plural
+                       },
+                       { :name => :has_many_simple,
+                         :description => 'Has Many',
                          :representation => :none,
                          :relation => :plural
                        },
@@ -148,7 +154,7 @@ class Content::CoreField < Content::FieldHandler
     table_header :number
     
     content_display :text
-    filter_setup :like, :not_empty
+    filter_setup :like, :not_empty, :between
     
     def form_field(f,field_name,field_opts,options={})
       field_opts[:class] = 'field_integer_field'
@@ -438,7 +444,7 @@ class Content::CoreField < Content::FieldHandler
         field_opts[:separator] = '<br/>'
         f.radio_buttons field_name,available_options , field_opts.merge(options)
       else
-        f.select field_name, [['--Select--',nil]] + available_options , field_opts.merge(options)
+        f.select field_name, [['--Select--'.t,nil]] + available_options , field_opts.merge(options)
       end    
     end
     
@@ -485,10 +491,16 @@ class Content::CoreField < Content::FieldHandler
   
   class MultiSelectField < Content::Field #:nodoc:all
     field_options :options, :required
-    setup_model :required, :serialize do |cls,fld|
+    setup_model :required_array, :serialize do |cls,fld|
        cls.has_options fld.model_field.field.to_sym, fld.available_options
     end  
     
+    def content_import(entry,value)
+      unless value.blank?
+        entry.send("#{@model_field.field}=",value.split(",").map(&:strip).reject(&:blank?))
+      end
+    end
+
     def active_table_header
       ActiveTable::OptionHeader.new(@model_field.field, :label => @model_field.name, :options => available_options)
     end    
@@ -536,7 +548,7 @@ class Content::CoreField < Content::FieldHandler
     
     def content_display(entry,size=:full,options = {})
       dt = entry.send(@model_field.field)
-      dt ? dt.localize(options[:format] || DEFAULT_DATE_FORMAT) : ''
+      dt ? dt.localize(options[:format] || Configuration.date_format) : ''
     end
     
     
@@ -563,7 +575,7 @@ class Content::CoreField < Content::FieldHandler
     def content_display(entry,size=:full,options = {})
       dt = entry.send(@model_field.field)
       begin
-        dt ? dt.localize(options[:format] || DEFAULT_DATETIME_FORMAT) : ''
+        dt ? dt.localize(options[:format] || Configuration.datetime_format) : ''
       rescue Exception => e
         ''
       end
@@ -588,7 +600,11 @@ class Content::CoreField < Content::FieldHandler
 
     
     def available_options(atr={ })
-      opts = @available_opts ||=  @model_field.relation_class.select_options(:limit => 100)
+      if  @model_field.relation_class
+        opts = @available_opts ||=  @model_field.relation_class.select_options(:limit => 100)
+      else
+        []
+      end
     end
 
     def form_field(f,field_name,field_opts,options={})
@@ -667,7 +683,7 @@ class Content::CoreField < Content::FieldHandler
           end
         end
         c.user_tags("#{name_base}:#{tag_name}",:local => :user)
-      else
+      elsif  @model_field.relation_class
         sub_local = "sub_#{local}"
 
         c.define_tag("#{name_base}:#{tag_name}") do |t|
@@ -847,7 +863,99 @@ class Content::CoreField < Content::FieldHandler
     def site_feature_value_tags(c,name_base,size=:full,options = {})
       tag_name = @model_field.feature_tag_name
       local = options[:local] || 'entry'
+
+      c.value_tag("#{name_base}:#{tag_name}:id") { |t| entry = t.locals.send(local); entry.id if entry }
       
+      relation_name = @model_field.relation_name
+      if @model_field.relation_class == EndUser
+        c.expansion_tag("#{name_base}:#{tag_name}") do |t|
+          entry =  t.locals.send(local)
+          users =  entry.send(relation_name) if entry
+          if entry && relation
+            if t.single?
+              users.map(&:full_name).join(t.attr['separator']||", ")
+            else
+              c.each_local_value(users,t,'user')
+            end
+            t.locals.user =  t.locals.send(local).send(relation_name)
+          else
+            nil
+          end
+        end
+        c.user_details_tags("#{name_base}:#{tag_name}",:local => :user)
+      else
+        sub_local = "sub_#{local}"
+
+        c.define_tag("#{name_base}:#{tag_name}") do |t|
+          entry =  t.locals.send(local)
+          relation = entry.send(relation_name) if entry
+          if entry && relation
+            if t.single?
+              relation.map(&:identifier_name).join(t.attr['separator']||", ")
+            else
+              c.each_local_value(relation,t,sub_local)
+            end
+          end
+        end
+
+        # don't go too far down the rabbit hole
+        if !options[:subfeature]
+          if @cm_relation = @model_field.content_model_relation
+            @cm_relation.content_model_fields.each do |fld|
+              fld.site_feature_value_tags(c,"#{name_base}:#{tag_name}",:full,:local => sub_local,:subfeature => true)
+            end
+          end
+        end
+      end
+
+    end
+  end
+
+  class HasManySimpleField < Content::Field #:nodoc:all 
+    field_options
+
+    setup_model  do |cls,fld|
+      if fld.model_field.field_options['relation_name'] && fld.model_field.field_options['relation_class'] && fld.model_field.field_options['foreign_key']
+        cls.has_many fld.model_field.field_options['relation_name'], :class_name => fld.model_field.field_options['relation_class'], :foreign_key => fld.model_field.field_options['foreign_key']
+      end
+    end
+
+    #filter_setup :include
+
+    table_header :static
+
+    #display_options_variables :control, :group_by_id, :filter_by_id, :filter, :order_by_id
+
+    def form_field(f,field_name,field_opts,options={}); end
+    
+    def content_display(entry,size=:full,options={})
+      if !@model_field.field_options['relation_class'].blank?
+        begin
+          h(entry.send(@model_field.field_options['relation_name']) ? entry.send(@model_field.field_options['relation_name']).map(&:identifier_name).join(", ") : '')
+        rescue Exception => e
+          "Invalid Content Model"
+        end
+      end
+    end
+
+    def assign_value(entry,value); end
+    
+    def assign(entry,values); end
+
+    def default_field_name; end
+
+    def form_display_options(pub_field,f); end
+
+    def filter_display_options(pub_field,f)
+    end
+    
+    
+    def site_feature_value_tags(c,name_base,size=:full,options = {})
+      tag_name = @model_field.feature_tag_name
+      local = options[:local] || 'entry'
+      
+      c.value_tag("#{name_base}:#{tag_name}:id") { |t| entry = t.locals.send(local); entry.id if entry }
+
       relation_name = @model_field.relation_name
       if @model_field.relation_class == EndUser
         c.expansion_tag("#{name_base}:#{tag_name}") do |t|
@@ -912,7 +1020,7 @@ class Content::CoreField < Content::FieldHandler
     filter_setup
     
     def form_field(f,field_name,field_opts,options={})
-      f.header @model_field.name, field_opts.merge(options)
+      f.header field_opts[:label] || @model_field.name, field_opts.merge(options)
     end
 
     def assign_value(entry,value)
@@ -941,7 +1049,7 @@ class Content::CoreField < Content::FieldHandler
     
     
     def form_field(f,field_name,field_opts,options={})
-      f.select field_name, [['--Select--',nil]] + available_options , field_opts.merge(options)
+      f.select field_name, [['--Select--'.t,nil]] + available_options , field_opts.merge(options)
     end
     
     filter_setup
@@ -997,6 +1105,18 @@ class Content::CoreField < Content::FieldHandler
   def self.dynamic_user_id_value(entry,fld,state={}) #:nodoc:
     if state[:user]
       state[:user].id
+    end
+  end
+
+  def self.dynamic_content_id_value(entry,fld,state = {}) #:nodoc
+    if state[:content_id]
+      if state[:content_id].is_a?(Array)
+        state[:content_id][1]
+      elsif state[:content_id].is_a?(DomainModel)
+        state[:content_id].id
+      else 
+        state[:content_id]
+      end
     end
   end
   
