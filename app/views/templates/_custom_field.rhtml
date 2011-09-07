@@ -4,7 +4,6 @@
   else 
     case opt[2] 
     when 'string': -%>
-    <%= raise opt.inspect %>
     <%= f.text_field opt[0].to_sym, :label => opt[1], :description => opt[3] %>
     <% when "image": -%>
       <%= f.filemanager_image opt[0].to_sym, :label => opt[1], :description => opt[3] %>
