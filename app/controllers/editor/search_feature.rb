@@ -37,7 +37,11 @@ class Editor::SearchFeature < ParagraphFeature #:nodoc:all
   FEATURE
 
   def search_page_search_results_feature(data)
+debugger
     webiva_custom_feature(:search_page_search_results,data) do |c|
+
+debugger
+
       add_search_box_feature(c, data)
 
       c.expansion_tag('search') { |t| data[:searched] }

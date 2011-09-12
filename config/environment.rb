@@ -50,7 +50,16 @@ require 'yaml'
 #RAILS_ROOT = File.dirname(__FILE__) + "../" unless defined?(RAILS_ROOT)
 
 require File.join(File.dirname(__FILE__), 'boot')
-
+if Gem::VERSION >= "1.3.6" # for local system do not put in production system
+    module Rails # for local system do not put in production system
+        class GemDependency # for local system do not put in production system
+            def requirement # for local system do not put in production system
+                r = super # for local system do not put in production system
+                (r == Gem::Requirement.default) ? nil : r # for local system do not put in production system
+            end # for local system do not put in production system
+        end # for local system do not put in production system
+    end # for local system do not put in production system
+end # for local system do not put in production system
 
 class Rails::Plugin
 
@@ -103,6 +112,11 @@ Rails::Initializer.run do |config|
   config.gem "fastercsv"
   config.gem "httparty"
   config.gem "resthome", '>= 7.1.0'
+  config.gem "oauth2" # for local system do not put in production system
+  config.gem "twitter",  '>= 0.9.12' # for local system do not put in production system
+  config.gem "faraday" # ,  '>= 0.4.1' # for local system do not put in production system
+  config.gem "awesome_print"
+  config.gem "hirb"
 
   if RAILS_ENV == 'test'
     config.gem 'factory_girl',:source => 'http://gemcutter.org'

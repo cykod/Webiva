@@ -1,11 +1,13 @@
-#!/usr/bin/env ruby
+#!/Users/cmmagid/Developer/.rvm/rubies/ruby-1.8.7-p302/bin/ruby
 
-require 'sha1'
+require 'digest/sha1'
 require 'base64'
 require 'fileutils'
 require 'yaml'
 require 'rubygems'
 require 'memcache'
+
+#!/usr/bin/env ruby
 
 RAILS_ROOT = File.dirname(__FILE__) + "/.."
 
