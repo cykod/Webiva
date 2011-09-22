@@ -266,20 +266,20 @@ class DomainLogSession < DomainModel
       terms ? terms[0] : nil
     end
 
-    def affiliate(arg='affid')
-      request.parameters[arg]
+    def affiliate
+      request.parameters['affid'] || request.parameters['utm_source']
     end
 
-    def campaign(arg='c')
-      request.parameters[arg]
+    def campaign
+      request.parameters['c'] || request.parameters['utm_campaign']
     end
 
-    def origin(arg='o')
-      request.parameters[arg]
+    def origin
+      request.parameters['o'] || request.parameters['utm_medium']
     end
 
-    def affiliate_data(arg='f')
-      request.parameters[arg]
+    def affiliate_data
+      request.parameters['f'] || request.parameters['utm_content']
     end
   end
 end
