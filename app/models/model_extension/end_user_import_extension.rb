@@ -395,7 +395,10 @@ module ModelExtension::EndUserImportExtension
   end
   
   def process_import_address(entry,entry_addresses,field,value) #:nodoc:
-    address,field = field.split("_")
+     field_data = field.split("_")
+
+    address = field_data[0]
+    field = field_data[1..-1].join("_")
     adr = case address
       when 'work':
 	entry_addresses['work_address_id'] ||= entry.work_address || EndUserAddress.new(:address_name => 'Default Work Address'.t )
