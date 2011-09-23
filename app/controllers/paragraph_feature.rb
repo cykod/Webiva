@@ -314,10 +314,10 @@ block is non-nil
         eql = val.is_a?(Integer) ? t.attr['not_equals'].to_i : t.attr['not_equals']
         val != eql ? t.expand : nil
       elsif t.attr['min']
-        min = val.is_a?(Integer) ? t.attr['min'].to_i : tar.attr['min']
+        min = val.is_a?(Integer) ? t.attr['min'].to_i : t.attr['min']
         val >= min ? t.expand : nil
       elsif t.attr['max']
-        max = val.is_a?(Integer) ? t.attr['max'].to_i : tar.attr['max']
+        max = val.is_a?(Integer) ? t.attr['max'].to_i : t.attr['max']
         val <= max ? t.expand : nil
       elsif t.attr['link']
         attributes = t.attr.clone
