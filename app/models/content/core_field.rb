@@ -674,10 +674,10 @@ class Content::CoreField < Content::FieldHandler
       
       relation_name = @model_field.relation_name
       if @model_field.relation_class == EndUser
-        c.user_tags("#{name_base}:#{tag_name}",:local => :user) do
+        c.user_tags("#{name_base}:#{tag_name}",:local => :user) do |t|
           entry =  t.locals.send(local)
           if entry
-            t.locals.send(local).send(relation_name)
+            entry.send(relation_name)
           else
             nil
           end
