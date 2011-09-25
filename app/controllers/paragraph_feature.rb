@@ -578,6 +578,7 @@ block is non-nil
 
       define_expansion_tag(tag_name) { |t| block ? t.locals.send("#{local}=",block.call(t)) : t.locals.send(local) }
       define_expansion_tag(tag_name + ":logged_in") { |t| usr = t.locals.send(local); !usr.id.blank? }
+      define_h_tag(tag_name + ":email") { |t| usr = t.locals.send(local); usr.email if usr }
       define_h_tag(tag_name + ":name") { |t| usr = t.locals.send(local); usr.name if usr }
       define_h_tag(tag_name + ":username") { |t| usr = t.locals.send(local); usr.username if usr }
       define_h_tag(tag_name + ":first_name") { |t| usr = t.locals.send(local); usr.first_name if usr }
@@ -1705,6 +1706,7 @@ block is non-nil
       expansion_tag(tag_name)
       expansion_tag(tag_name + ":logged_in")
       define_value_tag(tag_name + ":name")
+      define_value_tag(tag_name + ":email")
       define_value_tag(tag_name + ":username")
       define_value_tag(tag_name + ":first_name")
       define_value_tag(tag_name + ":last_name")
