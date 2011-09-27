@@ -1,56 +1,166 @@
-workling: process with pid 65918 started.
+workling: process with pid 95393 started.
 => Loading Rails...
-workling: process with pid 66020 started.
+WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
+workling: process with pid 95496 started.
 => Loading Rails...
 WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
 ** Rails loaded.
 ** Starting Workling::Remote::Invokers::ThreadedPoller...
 ** Use CTRL-C to stop.
 ** Exiting
-workling: process with pid 14265 started.
+/Users/cmmagid/rails_projects/Webiva/vendor/rails/activerecord/lib/active_record/connection_adapters/mysql_adapter.rb:585:in `real_connect': Can't connect to local MySQL server through socket '/tmp/mysql.sock' (2) (Mysql::Error)
+	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `join'
+	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
+	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `each'
+	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
+	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/listen.rb:24
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `load'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `start_load'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:295:in `start'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/controller.rb:70:in `run'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:145:in `run'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `call'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `catch_exceptions'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:144:in `run'
+	from /Users/cmmagid/rails_projects/Webiva/script/workling_client:17
+workling: process with pid 95848 started.
 => Loading Rails...
 WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
 ** Rails loaded.
 ** Starting Workling::Remote::Invokers::ThreadedPoller...
 ** Use CTRL-C to stop.
 ** Exiting
-workling: process with pid 4462 started.
+/Users/cmmagid/rails_projects/Webiva/vendor/rails/activerecord/lib/active_record/connection_adapters/mysql_adapter.rb:585:in `real_connect': Can't connect to local MySQL server through socket '/tmp/mysql.sock' (2) (Mysql::Error)
+	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `join'
+	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
+	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `each'
+	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
+	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/listen.rb:24
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `load'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `start_load'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:295:in `start'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `fork'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `each'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `watch'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `loop'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `watch'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:84:in `start_with_pidfile'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `fork'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `start_with_pidfile'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:111:in `start'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application_group.rb:149:in `create_monitor'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:282:in `start'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/controller.rb:70:in `run'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:145:in `run'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `call'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `catch_exceptions'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:144:in `run'
+	from /Users/cmmagid/rails_projects/Webiva/script/workling_client:17
+workling: process with pid 96318 started.
 => Loading Rails...
 WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
 ** Rails loaded.
 ** Starting Workling::Remote::Invokers::ThreadedPoller...
 ** Use CTRL-C to stop.
 ** Exiting
-workling: process with pid 8114 started.
+/Users/cmmagid/rails_projects/Webiva/vendor/rails/activerecord/lib/active_record/connection_adapters/mysql_adapter.rb:585:in `real_connect': Can't connect to local MySQL server through socket '/tmp/mysql.sock' (2) (Mysql::Error)
+	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `join'
+	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
+	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `each'
+	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
+	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/listen.rb:24
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `load'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `start_load'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:295:in `start'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `fork'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `each'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `watch'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `loop'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `watch'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:84:in `start_with_pidfile'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `fork'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `start_with_pidfile'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:111:in `start'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application_group.rb:149:in `create_monitor'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:282:in `start'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/controller.rb:70:in `run'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:145:in `run'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `call'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `catch_exceptions'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:144:in `run'
+	from /Users/cmmagid/rails_projects/Webiva/script/workling_client:17
+workling: process with pid 91302 started.
 => Loading Rails...
 WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
 ** Rails loaded.
 ** Starting Workling::Remote::Invokers::ThreadedPoller...
 ** Use CTRL-C to stop.
-Got Action: create_table
-Creating Table
-Got Action: update_table
-Updating Table
-Got Action: update_table
-Updating Table
-/Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/nokogiri-1.4.4/lib/nokogiri/xml/node.rb:809: [BUG] Segmentation fault
-ruby 1.8.7 (2010-08-16 patchlevel 302) [i686-darwin10.7.0]
+** Exiting
+/Users/cmmagid/rails_projects/Webiva/vendor/rails/activerecord/lib/active_record/connection_adapters/mysql_adapter.rb:585:in `real_connect': Can't connect to local MySQL server through socket '/tmp/mysql.sock' (2) (Mysql::Error)
+	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `join'
+	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
+	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `each'
+	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
+	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/listen.rb:24
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `load'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `start_load'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:295:in `start'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `fork'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `each'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `watch'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `loop'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `watch'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:84:in `start_with_pidfile'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `fork'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `start_with_pidfile'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:111:in `start'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application_group.rb:149:in `create_monitor'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:282:in `start'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/controller.rb:70:in `run'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:145:in `run'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `call'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `catch_exceptions'
+	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:144:in `run'
+	from /Users/cmmagid/rails_projects/Webiva/script/workling_client:17
+workling: process with pid 91758 started.
+=> Loading Rails...
+WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
+** Rails loaded.
+** Starting Workling::Remote::Invokers::ThreadedPoller...
+** Use CTRL-C to stop.
+rake aborted!
+Can't connect to local MySQL server through socket 'tmp/mysql.sock' (2)
 
-workling: process with pid 62460 started.
+(See full trace by running task with --trace)
+** Exiting
+workling: process with pid 41659 started.
 => Loading Rails...
 WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
 ** Rails loaded.
 ** Starting Workling::Remote::Invokers::ThreadedPoller...
 ** Use CTRL-C to stop.
 ** Exiting
-workling: process with pid 3065 started.
+workling: process with pid 21122 started.
 => Loading Rails...
 WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
 ** Rails loaded.
 ** Starting Workling::Remote::Invokers::ThreadedPoller...
 ** Use CTRL-C to stop.
 ** Exiting
-workling: process with pid 55036 started.
+workling: process with pid 86573 started.
+=> Loading Rails...
+WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
+** Rails loaded.
+** Starting Workling::Remote::Invokers::ThreadedPoller...
+** Use CTRL-C to stop.
+** Exiting
+workling: process with pid 4013 started.
 => Loading Rails...
 WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
 ** Rails loaded.
@@ -72,42 +182,7 @@ WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically lo
 	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `catch_exceptions'
 	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:144:in `run'
 	from /Users/cmmagid/rails_projects/Webiva/script/workling_client:17
-workling: process with pid 55356 started.
-=> Loading Rails...
-WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
-** Rails loaded.
-** Starting Workling::Remote::Invokers::ThreadedPoller...
-** Use CTRL-C to stop.
-** Exiting
-/Users/cmmagid/rails_projects/Webiva/vendor/rails/activerecord/lib/active_record/connection_adapters/mysql_adapter.rb:585:in `real_connect': Can't connect to local MySQL server through socket '/tmp/mysql.sock' (2) (Mysql::Error)
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `join'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `each'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/listen.rb:24
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `load'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `start_load'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:295:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `fork'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `each'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `loop'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:84:in `start_with_pidfile'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `fork'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `start_with_pidfile'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:111:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application_group.rb:149:in `create_monitor'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:282:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/controller.rb:70:in `run'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:145:in `run'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `call'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `catch_exceptions'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:144:in `run'
-	from /Users/cmmagid/rails_projects/Webiva/script/workling_client:17
-workling: process with pid 55736 started.
+workling: process with pid 12237 started.
 => Loading Rails...
 WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
 ** Rails loaded.
@@ -142,21 +217,33 @@ WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically lo
 	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `catch_exceptions'
 	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:144:in `run'
 	from /Users/cmmagid/rails_projects/Webiva/script/workling_client:17
-workling: process with pid 56200 started.
+workling: process with pid 12710 started.
 => Loading Rails...
 WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
 ** Rails loaded.
 ** Starting Workling::Remote::Invokers::ThreadedPoller...
 ** Use CTRL-C to stop.
 ** Exiting
-workling: process with pid 93012 started.
+workling: process with pid 8061 started.
 => Loading Rails...
 WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
 ** Rails loaded.
 ** Starting Workling::Remote::Invokers::ThreadedPoller...
 ** Use CTRL-C to stop.
+Got Action: update_table
+Updating Table
+Got Action: update_table
+Updating Table
 ** Exiting
-workling: process with pid 66949 started.
+workling: process with pid 42793 started.
+=> Loading Rails...
+WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
+** Rails loaded.
+** Starting Workling::Remote::Invokers::ThreadedPoller...
+** Use CTRL-C to stop.
+workling: process with pid 74728 started.
+=> Loading Rails...
+workling: process with pid 74839 started.
 => Loading Rails...
 WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
 ** Rails loaded.
@@ -178,42 +265,7 @@ WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically lo
 	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `catch_exceptions'
 	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:144:in `run'
 	from /Users/cmmagid/rails_projects/Webiva/script/workling_client:17
-workling: process with pid 67278 started.
-=> Loading Rails...
-WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
-** Rails loaded.
-** Starting Workling::Remote::Invokers::ThreadedPoller...
-** Use CTRL-C to stop.
-** Exiting
-/Users/cmmagid/rails_projects/Webiva/vendor/rails/activerecord/lib/active_record/connection_adapters/mysql_adapter.rb:585:in `real_connect': Can't connect to local MySQL server through socket '/tmp/mysql.sock' (2) (Mysql::Error)
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `join'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `each'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/listen.rb:24
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `load'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `start_load'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:295:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `fork'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `each'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `loop'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:84:in `start_with_pidfile'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `fork'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `start_with_pidfile'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:111:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application_group.rb:149:in `create_monitor'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:282:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/controller.rb:70:in `run'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:145:in `run'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `call'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `catch_exceptions'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:144:in `run'
-	from /Users/cmmagid/rails_projects/Webiva/script/workling_client:17
-workling: process with pid 67663 started.
+workling: process with pid 75147 started.
 => Loading Rails...
 WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
 ** Rails loaded.
@@ -248,7 +300,7 @@ WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically lo
 	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `catch_exceptions'
 	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:144:in `run'
 	from /Users/cmmagid/rails_projects/Webiva/script/workling_client:17
-workling: process with pid 68059 started.
+workling: process with pid 75535 started.
 => Loading Rails...
 WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
 ** Rails loaded.
@@ -283,322 +335,31 @@ WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically lo
 	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `catch_exceptions'
 	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:144:in `run'
 	from /Users/cmmagid/rails_projects/Webiva/script/workling_client:17
-workling: process with pid 68488 started.
+workling: process with pid 75988 started.
 => Loading Rails...
 WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
 ** Rails loaded.
 ** Starting Workling::Remote::Invokers::ThreadedPoller...
 ** Use CTRL-C to stop.
 ** Exiting
-/Users/cmmagid/rails_projects/Webiva/vendor/rails/activerecord/lib/active_record/connection_adapters/mysql_adapter.rb:585:in `real_connect': Can't connect to local MySQL server through socket '/tmp/mysql.sock' (2) (Mysql::Error)
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `join'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `each'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/listen.rb:24
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `load'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `start_load'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:295:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `fork'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `each'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `loop'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:84:in `start_with_pidfile'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `fork'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `start_with_pidfile'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:111:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application_group.rb:149:in `create_monitor'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:282:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/controller.rb:70:in `run'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:145:in `run'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `call'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `catch_exceptions'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:144:in `run'
-	from /Users/cmmagid/rails_projects/Webiva/script/workling_client:17
-workling: process with pid 68861 started.
+workling: process with pid 76258 started.
 => Loading Rails...
 WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
 ** Rails loaded.
 ** Starting Workling::Remote::Invokers::ThreadedPoller...
 ** Use CTRL-C to stop.
 ** Exiting
-/Users/cmmagid/rails_projects/Webiva/vendor/rails/activerecord/lib/active_record/connection_adapters/mysql_adapter.rb:585:in `real_connect': Can't connect to local MySQL server through socket '/tmp/mysql.sock' (2) (Mysql::Error)
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `join'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `each'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/listen.rb:24
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `load'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `start_load'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:295:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `fork'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `each'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `loop'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:84:in `start_with_pidfile'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `fork'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `start_with_pidfile'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:111:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application_group.rb:149:in `create_monitor'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:282:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/controller.rb:70:in `run'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:145:in `run'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `call'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `catch_exceptions'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:144:in `run'
-	from /Users/cmmagid/rails_projects/Webiva/script/workling_client:17
-workling: process with pid 69234 started.
+workling: process with pid 11683 started.
 => Loading Rails...
 WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
 ** Rails loaded.
 ** Starting Workling::Remote::Invokers::ThreadedPoller...
 ** Use CTRL-C to stop.
 ** Exiting
-/Users/cmmagid/rails_projects/Webiva/vendor/rails/activerecord/lib/active_record/connection_adapters/mysql_adapter.rb:585:in `real_connect': Can't connect to local MySQL server through socket '/tmp/mysql.sock' (2) (Mysql::Error)
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `join'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `each'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/listen.rb:24
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `load'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `start_load'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:295:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `fork'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `each'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `loop'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:84:in `start_with_pidfile'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `fork'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `start_with_pidfile'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:111:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application_group.rb:149:in `create_monitor'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:282:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/controller.rb:70:in `run'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:145:in `run'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `call'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `catch_exceptions'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:144:in `run'
-	from /Users/cmmagid/rails_projects/Webiva/script/workling_client:17
-workling: process with pid 69614 started.
+workling: process with pid 12170 started.
 => Loading Rails...
 WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
-** Rails loaded.
-** Starting Workling::Remote::Invokers::ThreadedPoller...
-** Use CTRL-C to stop.
-** Exiting
-/Users/cmmagid/rails_projects/Webiva/vendor/rails/activerecord/lib/active_record/connection_adapters/mysql_adapter.rb:585:in `real_connect': Can't connect to local MySQL server through socket '/tmp/mysql.sock' (2) (Mysql::Error)
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `join'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `each'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/listen.rb:24
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `load'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `start_load'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:295:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `fork'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `each'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `loop'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:84:in `start_with_pidfile'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `fork'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `start_with_pidfile'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:111:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application_group.rb:149:in `create_monitor'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:282:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/controller.rb:70:in `run'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:145:in `run'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `call'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `catch_exceptions'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:144:in `run'
-	from /Users/cmmagid/rails_projects/Webiva/script/workling_client:17
-workling: process with pid 69914 started.
-=> Loading Rails...
-WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
-** Rails loaded.
-** Starting Workling::Remote::Invokers::ThreadedPoller...
-** Use CTRL-C to stop.
-** Exiting
-/Users/cmmagid/rails_projects/Webiva/vendor/rails/activerecord/lib/active_record/connection_adapters/mysql_adapter.rb:585:in `real_connect': Can't connect to local MySQL server through socket '/tmp/mysql.sock' (2) (Mysql::Error)
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `join'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `each'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/listen.rb:24
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `load'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `start_load'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:295:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `fork'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `each'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `loop'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:84:in `start_with_pidfile'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `fork'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `start_with_pidfile'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:111:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application_group.rb:149:in `create_monitor'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:282:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/controller.rb:70:in `run'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:145:in `run'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `call'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `catch_exceptions'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:144:in `run'
-	from /Users/cmmagid/rails_projects/Webiva/script/workling_client:17
-workling: process with pid 70304 started.
-=> Loading Rails...
-WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
-** Rails loaded.
-** Starting Workling::Remote::Invokers::ThreadedPoller...
-** Use CTRL-C to stop.
-** Exiting
-/Users/cmmagid/rails_projects/Webiva/vendor/rails/activerecord/lib/active_record/connection_adapters/mysql_adapter.rb:585:in `real_connect': Can't connect to local MySQL server through socket '/tmp/mysql.sock' (2) (Mysql::Error)
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `join'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `each'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/listen.rb:24
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `load'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `start_load'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:295:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `fork'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `each'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `loop'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:84:in `start_with_pidfile'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `fork'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `start_with_pidfile'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:111:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application_group.rb:149:in `create_monitor'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:282:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/controller.rb:70:in `run'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:145:in `run'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `call'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `catch_exceptions'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:144:in `run'
-	from /Users/cmmagid/rails_projects/Webiva/script/workling_client:17
-workling: process with pid 70693 started.
-=> Loading Rails...
-WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
-** Rails loaded.
-** Starting Workling::Remote::Invokers::ThreadedPoller...
-** Use CTRL-C to stop.
-** Exiting
-/Users/cmmagid/rails_projects/Webiva/vendor/rails/activerecord/lib/active_record/connection_adapters/mysql_adapter.rb:585:in `real_connect': Can't connect to local MySQL server through socket '/tmp/mysql.sock' (2) (Mysql::Error)
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `join'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `each'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/listen.rb:24
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `load'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `start_load'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:295:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `fork'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `each'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `loop'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:84:in `start_with_pidfile'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `fork'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `start_with_pidfile'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:111:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application_group.rb:149:in `create_monitor'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:282:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/controller.rb:70:in `run'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:145:in `run'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `call'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `catch_exceptions'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:144:in `run'
-	from /Users/cmmagid/rails_projects/Webiva/script/workling_client:17
-workling: process with pid 71102 started.
-=> Loading Rails...
-WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
-** Rails loaded.
-** Starting Workling::Remote::Invokers::ThreadedPoller...
-** Use CTRL-C to stop.
-** Exiting
-/Users/cmmagid/rails_projects/Webiva/vendor/rails/activerecord/lib/active_record/connection_adapters/mysql_adapter.rb:585:in `real_connect': Can't connect to local MySQL server through socket '/tmp/mysql.sock' (2) (Mysql::Error)
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `join'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `each'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/listen.rb:24
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `load'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `start_load'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:295:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `fork'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `each'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `loop'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:84:in `start_with_pidfile'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `fork'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `start_with_pidfile'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:111:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application_group.rb:149:in `create_monitor'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:282:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/controller.rb:70:in `run'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:145:in `run'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `call'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `catch_exceptions'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:144:in `run'
-	from /Users/cmmagid/rails_projects/Webiva/script/workling_client:17
-workling: process with pid 71487 started.
-=> Loading Rails...
-WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
-** Rails loaded.
-** Starting Workling::Remote::Invokers::ThreadedPoller...
-** Use CTRL-C to stop.
-** Exiting
-/Users/cmmagid/rails_projects/Webiva/vendor/rails/activerecord/lib/active_record/connection_adapters/mysql_adapter.rb:585:in `real_connect': Can't connect to local MySQL server through socket '/tmp/mysql.sock' (2) (Mysql::Error)
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `join'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `each'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/../lib/workling/remote/invokers/threaded_poller.rb:37:in `listen'
-	from /Users/cmmagid/rails_projects/Webiva/vendor/plugins/workling/script/listen.rb:24
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `load'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:202:in `start_load'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:295:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `fork'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:51:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `each'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:45:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `loop'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:44:in `watch'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:84:in `start_with_pidfile'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `fork'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:64:in `start_with_pidfile'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/monitor.rb:111:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application_group.rb:149:in `create_monitor'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/application.rb:282:in `start'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/controller.rb:70:in `run'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:145:in `run'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `call'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons/cmdline.rb:109:in `catch_exceptions'
-	from /Users/cmmagid/Developer/.rvm/gems/ruby-1.8.7-p302@rails2newwebiva/gems/daemons-1.1.3/lib/daemons.rb:144:in `run'
-	from /Users/cmmagid/rails_projects/Webiva/script/workling_client:17
-workling: process with pid 71873 started.
+workling: process with pid 12273 started.
 => Loading Rails...
 WARNING: Nokogiri was built against LibXML version 2.7.7, but has dynamically loaded 2.7.3
 ** Rails loaded.

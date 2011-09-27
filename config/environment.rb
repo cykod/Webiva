@@ -110,13 +110,15 @@ Rails::Initializer.run do |config|
   config.gem "json"
   config.gem "httparty"
   config.gem "fastercsv"
+  config.gem "ap"
+  config.gem "awesome_print", '>= 0.3.2'
   config.gem "httparty"
   config.gem "resthome", '>= 7.1.0'
   config.gem "oauth2" # for local system do not put in production system
   config.gem "twitter",  '>= 0.9.12' # for local system do not put in production system
   config.gem "faraday" # ,  '>= 0.4.1' # for local system do not put in production system
-  config.gem "awesome_print"
   config.gem "hirb"
+
 
   if RAILS_ENV == 'test'
     config.gem 'factory_girl',:source => 'http://gemcutter.org'
