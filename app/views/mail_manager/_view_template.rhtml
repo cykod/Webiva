@@ -34,7 +34,7 @@
   <% t.tab do %>
     <input type='hidden' name='mail_template[body_type][]' value='' />
     <label><input type='checkbox' id='mail_template_body_value_text'  name='mail_template[body_type][]' value='text' <%= "checked='checked'" if @mail_template.body_type.include?('text') %> /> <%= "Enable Text Body".t %></label>
-    &nbsp; <%= "Use %%Variable_Name%% to insert variables into the text template".t  %>
+    &nbsp; <%= "Use %%variable_name%% to insert variables into the text template".t  %>
     <br/>
     <textarea id='template_body_text'  name='mail_template[body_text]' style='height:300px; width:100%;' ><%= h @mail_template.body_text %></textarea>
   <% end -%>
