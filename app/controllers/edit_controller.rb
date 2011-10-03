@@ -367,6 +367,10 @@ class EditController < ModuleController # :nodoc: all
     
     @paragraph.page_revision = @revision
 
+    if @paragraph.content_publication
+      @paragraph.site_feature = @paragraph.content_publication.primary_feature
+    end
+
     if @paragraph.save
       render :partial => 'paragraph', :locals => { :para => @paragraph, :para_index => para_index }
     end
