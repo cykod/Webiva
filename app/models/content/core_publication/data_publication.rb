@@ -3,13 +3,17 @@
 class Content::CorePublication::DataPublication < Content::PublicationType #:nodoc:all
   
   class DataOptions < HashModel
-    default_options :content_type => 'text/xml',:entries_displayed => 0
+    default_options :content_type => 'text/xml',:entries_displayed => 0, :display_method => 'feature'
     integer_options :entries_displayed
     validates_presence_of :content_type
+
+
+    has_options :display_method, [["Output Feature","feature"],["Output JSON","json"],["Output XML","xml"]]
   end
   
   options_class DataOptions
   options_partial '/content/core_publication/data_publication_options'
+
   
   field_types :entry_value, :formatted_value, :dynamic_value
   
@@ -24,9 +28,8 @@ class Content::CorePublication::DataPublication < Content::PublicationType #:nod
     output += "\t<cms:entry>\n"
     output += "\t<entry>\n"
     self.content_publication_fields.each do |fld|
+      tag_name = fld.content_model_field.feature_tag_name
 
-       tag_name = %w(belongs_to document image).include?(fld.content_model_field.field_type) ? fld.content_model_field.field_options['relation_name'] :      fld.content_model_field.field
-    
         output += "\t\t<#{tag_name}><cms:#{tag_name}/></#{tag_name}>\n"
     end
     output +="\t</entry>\n"
