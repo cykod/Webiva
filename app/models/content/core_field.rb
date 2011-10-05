@@ -674,15 +674,14 @@ class Content::CoreField < Content::FieldHandler
       
       relation_name = @model_field.relation_name
       if @model_field.relation_class == EndUser
-        c.expansion_tag("#{name_base}:#{tag_name}") do |t|
+        c.user_tags("#{name_base}:#{tag_name}",:local => :user) do |t|
           entry =  t.locals.send(local)
           if entry
-            t.locals.user =  t.locals.send(local).send(relation_name)
+            entry.send(relation_name)
           else
             nil
           end
         end
-        c.user_tags("#{name_base}:#{tag_name}",:local => :user)
       elsif  @model_field.relation_class
         sub_local = "sub_#{local}"
 

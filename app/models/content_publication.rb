@@ -22,7 +22,7 @@ class ContentPublication < DomainModel
   has_many :content_publication_fields, :dependent => :destroy, :order => 'content_publication_fields.position', :include => [ :content_model_field, :content_publication ]
   
   has_many :page_paragraphs, :dependent => :destroy
-  
+
   has_triggered_actions  
 
   public
@@ -45,6 +45,10 @@ class ContentPublication < DomainModel
     type_class = self.publication_type + "_publication"
     cls = "#{self.publication_module.classify}::#{type_class.classify}".constantize
     @publication_type_class ||= cls.new(self)
+  end
+
+  def primary_feature
+    @primary_feature ||= SiteFeature.find(:first,:conditions => { :feature_type => self.feature_name },:order => "id")
   end
   
   def before_create

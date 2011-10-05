@@ -165,6 +165,7 @@ namespace "cms" do
         rescue Exception => e
           raise "Error copying files to s3: " + e.to_s
         end
+         FileUtils.rm("#{RAILS_ROOT}/backup/#{backup_dir}.tar.gz")
       else
         raise 'Invalid Backup server type'
       end

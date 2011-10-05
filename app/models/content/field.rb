@@ -614,7 +614,9 @@ module Content
       :options => Proc.new do |field_name,fld,f,attr|
         label_name = fld.model_field.name + " Filter".t
         option_attr = { :labels => attr.delete(:labels), :limit => attr.delete(:limit), :offset => attr.delete(:offset) }
-        if attr.delete(:single)
+        if attr.delete(:select)
+          f.select(field_name + "_options",[[attr.delete(:blank) || '--Select--'.t,nil]] + fld.available_options(option_attr), { :label => label_name}.merge(attr))
+        elsif attr.delete(:single)
           f.radio_buttons(field_name + "_options",fld.available_options(option_attr), { :label => label_name}.merge(attr))
         else
           f.check_boxes(field_name + "_options",fld.available_options(option_attr), { :label => label_name}.merge(attr))
