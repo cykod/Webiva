@@ -350,7 +350,7 @@ class DomainFile < DomainModel
      return if File.exists?(self.filename(size))
 
      if DomainFile.image_sizes_hash[size.to_sym]
-       self.generate_thumbnail(true)
+       self.generate_thumbnails(true)
      else
        sz = DomainFileSize.find_by_size_name(size)
        sz.execute(self) if sz
