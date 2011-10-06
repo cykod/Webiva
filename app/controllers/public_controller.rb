@@ -88,8 +88,8 @@ class PublicController < ApplicationController  # :nodoc: all
 
       # If we've created the file and we're not local, redirect to it
       if !df.local? && File.exists?(df.local_filename(size))
-        df.push_size(sz.size_name)
-        redirect_to df.url(sz.size_name)
+        df.push_size(size)
+        redirect_to df.url(size)
         return
       end
     end
