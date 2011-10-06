@@ -79,7 +79,7 @@ class PublicController < ApplicationController  # :nodoc: all
     if df
       # If it's local and the remote file exists, redirect to there
       if !df.local? && df.get_size(size)
-        redirect_to df.url(sz.size_name)
+        redirect_to df.url(size)
         return
       end
 
