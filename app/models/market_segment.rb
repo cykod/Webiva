@@ -162,19 +162,19 @@ class MarketSegment < DomainModel
    
    def content_model_target_count(options={})
      return 0 unless self.content_model
-     self.content_model.count
+     self.content_model.content_model.count
    end
    
    def content_model_target_list(options)
      return [] unless self.content_model
      email_field = self.options[:email_field]
-     self.content_model.find(:all,options).collect { |sub| [ sub.send(email_field), sub.identifier_name ] }
+     self.content_model.content_model.find(:all,options).collect { |sub| [ sub.send(email_field), sub.identifier_name ] }
    end
    
    def content_model_target_entries(options)
      return [] unless self.content_model
      email_field = self.options[:email_field]
-     self.content_model.find(:all,options).collect { |entry| [ entry.send(email_field), entry, entry.id  ] }
+     self.content_model.content_model.find(:all,options).collect { |entry| [ entry.send(email_field), entry, entry.id  ] }
    end
 
    def user_segment_target_count(options={})
