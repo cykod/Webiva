@@ -1,6 +1,6 @@
 // UK lang variables
 
-tinyMCE.addToLang('mail_field',{
+tinyMCE.addI18n('mail_field',{
 desc: 'Insert a Field',
 field: 'Field Name',
 general: 'General',
