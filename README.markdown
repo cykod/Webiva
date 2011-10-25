@@ -39,7 +39,7 @@ Please report any issues or bugs to the webiva lighthouse project page at:
 License & Copyright
 -------------------
 
-All Webiva code and images is Copyright 2009-2010 Cykod LLC. This release is licensed under the terms of the AGPLv3 see the LICENSE file for more details.
+All Webiva code and images is Copyright 2009-2010 Cykod LLC. This release is dual licensed under the terms of the MIT and BSD licenses. See the the *-LICENSE file for more details.
 
 This release of Webiva is bundled with a number MIT License and BSD licensed Plugins and Gems, please see the individual directories in /vendor/[gems rails plugins] for more information. Webiva also bundles a number of javascript libraries found in /public/javascripts/[tiny_mce overlib edit_area highlight jscalendar], each is copyright it's respective owners. TinyMCE is a product of MoxieCode and is released on the terms of the LGPL (http://tinymce.moxiecode.com/ ). JSCalendar is released under the terms of the LGPL. Overlib is released under the terms described at http://www.bosrup.com/web/overlib/. Webiva also includes the Bitstream Vera Fonts, please see data/fonts/COPYRIGHT.txt for details on the restrictions associated with those fonts. 
 
@@ -51,6 +51,8 @@ Resources
 The [Webiva.org Open-source Site](http://www.webiva.org) should have all the latest details on the open-source release of Webiva.
 The [Weibva.net Community Site](http://www.webiva.net) is your resource for documentation and community forums
 The [Webiva.com Hosted CMS](http://www.webiva.com) is a SaaS hosted version of Webiva.
+The [Cykod Boston Rails Consulting](http://www.cykod.com) the company that built Webiva.
+
 
 Contact
 -------
