@@ -32,9 +32,7 @@ The Backend of Webiva currently only supports Firefox and some parts are not com
 Bugs
 ----
 
-Please report any issues or bugs to the webiva lighthouse project page at:
-
-[http://webiva.lighthouseapp.com/](http://webiva.lighthouseapp.com)
+Please report any bugs into the GitHub Issues Page
 
 License & Copyright
 -------------------
