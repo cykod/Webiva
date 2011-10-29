@@ -101,7 +101,7 @@ class Blog::PageRenderer < ParagraphRenderer
 					       :identifier => list_type_identifier)
     end
 
-    set_title(result.title) if result.title 
+    set_title(result.title) if result.title &&  !@options.skip_page 
     require_css('gallery')
     render_paragraph :text => result.output
   end
@@ -138,7 +138,7 @@ class Blog::PageRenderer < ParagraphRenderer
       set_page_connection(:content_node_id, result.content_node_id )
       set_page_connection(:post, result.entry_id )
       set_page_connection(:comments_ok, result.comments_ok)
-      set_title(result.title)
+      set_title(result.title) 
       set_content_node(result.content_node_id)
       html_include('meta_keywords',result.keywords) if result.keywords 
     else
