@@ -159,6 +159,24 @@ class Blog::PageFeature < ParagraphFeature
     c.value_tag('entry:categories:category:name') { |t| t.locals.category }
     c.value_tag('entry:categories:category:escaped_name') { |t| CGI::escape(t.locals.category) }
 
+    c.value_tag('entry:item') do |tag|
+      tags = tag.locals.entry.content_tags
+      if tags.length > 0
+        tags.collect {|tg| "#{h tg.name}" }.join(", ")
+      else
+        nil
+      end
+    end
+
+    c.value_tag('entry:escaped_item') do |tag|
+      tags = tag.locals.entry.content_tags
+      if tags.length > 0
+        (tags.collect {|tg| "#{h tg.name}" }.join(", ")).map{|i| CGI::escape(i)}
+      else
+        nil
+      end
+    end
+
     c.value_tag('entry:tags') do |tag|
       tags = tag.locals.entry.content_tags
       if tags.length > 0

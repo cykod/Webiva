@@ -4203,3 +4203,4 @@ Content Cache Put List: Role role_cache
 Content Cache Fetch List: Role role_cache
 Content Cache Fetch List: Role role_cache
 Content Cache Put List: Role role_cache
+DEPRECATION WARNING: ActiveRecord::Base.allow_concurrency= has been deprecated and no longer has any effect. Please remove all references to allow_concurrency=.. (called from allow_concurrency= at /Users/cmmagid/rails_projects/Webiva/vendor/rails/activerecord/lib/active_record/connection_adapters/abstract/connection_specification.rb:98)

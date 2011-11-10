@@ -947,3 +947,12 @@
 [43m [0m MemberImportWorker status:[33mrunning[0m, #<Thread:0x1031aa190 sleep>
 [43m [0m MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x1031a4ce0 sleep>
 [43m [0m MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x1031c2bc8 sleep>
+[44m [0m Discovered listener ContentExportWorker
+[44m [0m Discovered listener ContentImportWorker
+[44m [0m Discovered listener DomainModelWorker
+[44m [0m Discovered listener FileWorker
+[44m [0m Discovered listener MailTemplateMailerWorker
+[44m [0m Discovered listener MemberExportWorker
+[44m [0m Discovered listener MemberImportWorker
+[44m [0m Discovered listener MigrationHandlerWorker
+[44m [0m Discovered listener WorklingStatusWoker
