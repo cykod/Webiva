@@ -9,6 +9,7 @@ class Editor::SearchRenderer < ParagraphRenderer #:nodoc:all
   paragraph :opensearch_auto_discovery
 
   def search_box
+debugger
     @options = paragraph_options(:search_box)
 
     return render_paragraph :inline => 'Search results page not set' unless @options.search_results_page_url
@@ -25,6 +26,7 @@ class Editor::SearchRenderer < ParagraphRenderer #:nodoc:all
   end
 
   def search_results
+debugger
     @options = paragraph_options(:search_results)
     @options.search_results_page_id = site_node.id
 
@@ -54,6 +56,7 @@ class Editor::SearchRenderer < ParagraphRenderer #:nodoc:all
   end
 
   def opensearch
+debugger
     return render_paragraph :text => 'Reconfigure Data Output' unless paragraph.data
     return render_paragraph :text => 'Search results page not set' if paragraph.data[:search_results_page_id].blank?
 
@@ -80,6 +83,7 @@ class Editor::SearchRenderer < ParagraphRenderer #:nodoc:all
   end
 
   def opensearch_auto_discovery
+debugger
     @options = (paragraph.data || {}).symbolize_keys
 
     if !@options[:module_node_id].blank? && @options[:module_node_id].to_i > 0
@@ -100,6 +104,7 @@ class Editor::SearchRenderer < ParagraphRenderer #:nodoc:all
   protected
 
   def content_search_node
+debugger
     return @search if @search
     @search = ContentNodeSearch.new :per_page => @options.default_per_page, :max_per_page => @options.max_per_page, :page => 1, :content_type_id => @options.content_type_id
     @search.set_protected_result myself
@@ -107,11 +112,13 @@ class Editor::SearchRenderer < ParagraphRenderer #:nodoc:all
   end
 
   def searched
+debugger
     return @searched if ! @searched.nil?
     @searched = params[:q]
   end
 
   def update_search
+debugger
     return false unless self.searched
 
     @search.terms = params[:q]
@@ -127,6 +134,7 @@ class Editor::SearchRenderer < ParagraphRenderer #:nodoc:all
   end
 
   def update_search_stats
+debugger
     return unless @search.page == 1
     return if @search.terms.blank?
 

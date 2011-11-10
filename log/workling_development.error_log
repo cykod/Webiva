@@ -1,0 +1,326 @@
+# Logfile created on Wed Sep 14 14:43:11 -0400 2011 by logger.rb/22285
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x1032e3458 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x1032f1198 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x1032ea6e0 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x1032fd830 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x1032fbd00 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x1032cfb60 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x1032e0168 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x1032dbbb8 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x1032e7f08 sleep>
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x1032e3458 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x1032f1198 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x1032ea6e0 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x1032fd830 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x1032fbd00 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x1032cfb60 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x1032e0168 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x1032dbbb8 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x1032e7f08 sleep>
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x1032e3458 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x1032f1198 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x1032ea6e0 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x1032fd830 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x1032fbd00 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x1032cfb60 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x1032e0168 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x1032dbbb8 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x1032e7f08 sleep>
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x1032e3458 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x1032f1198 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x1032ea6e0 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x1032fd830 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x1032fbd00 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x1032cfb60 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x1032e0168 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x1032dbbb8 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x1032e7f08 sleep>
+Running: SiteModule  migrate_domain_components
+Listener thread MigrationHandlerWorker failed to connect. Resetting connection.
+Listener thread DomainModelWorker failed to connect. Resetting connection.
+Listener thread WorklingStatusWoker failed to connect. Resetting connection.
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x103315188 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x1033292f0 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x103322a18 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x103355710 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x10334d2e0 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x103309e28 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x103312de8 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x10330ee00 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x10331f700 sleep>
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x103315188 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x1033292f0 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x103322a18 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x103355710 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x10334d2e0 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x103309e28 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x103312de8 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x10330ee00 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x10331f700 sleep>
+Running: UserSegment 10 cache_ids
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x103315188 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x1033292f0 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x103322a18 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x103355710 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x10334d2e0 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x103309e28 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x103312de8 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x10330ee00 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x10331f700 sleep>
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x103315188 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x1033292f0 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x103322a18 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x103355710 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x10334d2e0 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x103309e28 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x103312de8 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x10330ee00 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x10331f700 sleep>
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x10331b858 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x1033292f0 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x103322a18 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x103355710 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x10334d2e0 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x103315908 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x103319490 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x103317618 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x10331f890 sleep>
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x10331b858 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x1033292f0 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x103322a18 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x103355710 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x10334d2e0 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x103315908 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x103319490 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x103317618 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x10331f890 sleep>
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x10331b858 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x1033292f0 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x103322a18 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x103355710 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x10334d2e0 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x103315908 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x103319490 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x103317618 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x10331f890 sleep>
+Listener thread DomainModelWorker failed to connect. Resetting connection.
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x10331b830 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x103330690 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x103325420 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x103355710 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x10334d2e0 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x103300800 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x103314580 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x10330edd8 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x10331dd60 sleep>
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x10331b858 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x1033292f0 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x103322a18 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x103355710 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x10334d2e0 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x103315908 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x103319490 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x103317618 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x10331f890 sleep>
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x10331b858 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x1033292f0 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x103322a18 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x103355710 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x10334d2e0 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x103315908 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x103319490 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x103317618 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x10331f890 sleep>
+Running: Domain 34 initialize_database
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x103315188 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x1033292f0 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x103322a18 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x103355710 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x10334d2e0 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x103309e28 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x103312de8 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x10330ee00 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x10331f890 sleep>
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x103315188 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x1033292f0 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x103322a18 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x103355710 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x10334d2e0 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x103309e28 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x103312de8 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x10330ee00 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x10331f890 sleep>
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x103315188 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x1033292f0 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x103322a18 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x103355710 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x10334d2e0 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x103309e28 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x103312de8 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x10330ee00 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x10331f890 sleep>
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x103315188 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x1033292f0 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x103322a18 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x103355710 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x10334d2e0 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x103309e28 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x103312de8 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x10330ee00 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x10331f890 sleep>
+[{"matched_field"=>nil, "name"=>"Project name", "position"=>1, "content_model_id"=>3, "show_main_table"=>true, "id"=>14, "field"=>"project_name", "field_options"=>{"required"=>"true", "regexp"=>"", "exclude"=>"", "regexp_code"=>"", "unique"=>"", "hidden"=>"", "regexp_message"=>"is not formatted correctly"}, "description"=>"", "field_type"=>"string", "field_module"=>"content/core_field"}, {"matched_field"=>nil, "name"=>"Candidate name", "position"=>2, "content_model_id"=>3, "show_main_table"=>true, "id"=>21, "field"=>"candidate_name", "field_options"=>{"required"=>"", "regexp"=>"", "exclude"=>"", "regexp_code"=>"", "unique"=>"", "hidden"=>"", "regexp_message"=>"is not formatted correctly"}, "description"=>"", "field_type"=>"string", "field_module"=>"content/core_field"}, {"matched_field"=>nil, "name"=>"Client name", "position"=>3, "content_model_id"=>3, "show_main_table"=>true, "id"=>15, "field"=>"client_name", "field_options"=>{"required"=>"", "regexp"=>"", "exclude"=>"", "regexp_code"=>"", "unique"=>"", "hidden"=>"", "regexp_message"=>"is not formatted correctly"}, "description"=>"", "field_type"=>"string", "field_module"=>"content/core_field"}, {"matched_field"=>nil, "name"=>"account status", "position"=>4, "content_model_id"=>3, "show_main_table"=>true, "id"=>41, "field"=>"account_statu", "field_options"=>{"required"=>"", "exclude"=>"", "options_text"=>"open\nclosed", "hidden"=>""}, "description"=>"", "field_type"=>"options", "field_module"=>"content/core_field"}, {"matched_field"=>nil, "name"=>"site launch date", "position"=>5, "content_model_id"=>3, "show_main_table"=>true, "id"=>17, "field"=>"site_launch_date", "field_options"=>{"required"=>"", "regexp"=>"", "exclude"=>"", "regexp_code"=>"", "unique"=>"", "hidden"=>"", "regexp_message"=>"is not formatted correctly"}, "description"=>"", "field_type"=>"string", "field_module"=>"content/core_field"}, {"matched_field"=>nil, "name"=>"post launch retainer", "position"=>6, "content_model_id"=>3, "show_main_table"=>true, "id"=>18, "field"=>"retainer", "field_options"=>{"required"=>"", "regexp"=>"", "exclude"=>"", "regexp_code"=>"", "unique"=>"", "hidden"=>"", "regexp_message"=>"is not formatted correctly"}, "description"=>"", "field_type"=>"string", "field_module"=>"content/core_field"}, {"matched_field"=>nil, "name"=>"budgeted development", "position"=>7, "content_model_id"=>3, "show_main_table"=>true, "id"=>51, "field"=>"budgeted_development_", "field_options"=>{"required"=>"", "regexp"=>"", "exclude"=>"", "regexp_code"=>"", "hidden"=>"", "regexp_message"=>"is not formatted correctly"}, "description"=>"", "field_type"=>"currency", "field_module"=>"content/core_field"}, {"matched_field"=>nil, "name"=>"budgeted design", "position"=>8, "content_model_id"=>3, "show_main_table"=>true, "id"=>52, "field"=>"budgeted_design_hour", "field_options"=>{"required"=>"", "regexp"=>"", "exclude"=>"", "regexp_code"=>"", "hidden"=>"", "regexp_message"=>"is not formatted correctly"}, "description"=>"", "field_type"=>"currency", "field_module"=>"content/core_field"}, {"matched_field"=>nil, "name"=>"contract", "position"=>9, "content_model_id"=>3, "show_main_table"=>true, "id"=>19, "field"=>"contact_id", "field_options"=>{"required"=>"", "folder_id"=>"2", "exclude"=>"", "hidden"=>""}, "description"=>"", "field_type"=>"document", "field_module"=>"content/core_field"}, {"matched_field"=>nil, "name"=>"notes", "position"=>10, "content_model_id"=>3, "show_main_table"=>true, "id"=>42, "field"=>"note", "field_options"=>{"required"=>"", "regexp"=>"", "exclude"=>"", "regexp_code"=>"", "unique"=>"", "hidden"=>"", "regexp_message"=>"is not formatted correctly"}, "description"=>"", "field_type"=>"text", "field_module"=>"content/core_field"}, {"matched_field"=>nil, "name"=>"Hour Rate", "position"=>nil, "content_model_id"=>3, "show_main_table"=>true, "field"=>nil, "field_options"=>{"required"=>"", "exclude"=>"", "options_text"=>"150\n175", "hidden"=>""}, "description"=>"", "field_type"=>"options", "field_module"=>"content/core_field"}]
+FIELD ROW
+#<ContentModelField id: 14, name: "Project name", content_model_id: 3, description: "", field: "project_name", field_type: "string", field_options: {"required"=>true, "regexp"=>false, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "hidden"=>false, "regexp_message"=>"is not formatted correctly"}, position: 1, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+#<ContentModelField id: 14, name: "Project name", content_model_id: 3, description: "", field: "project_name", field_type: "string", field_options: {"required"=>true, "regexp"=>false, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "hidden"=>false, "regexp_message"=>"is not formatted correctly"}, position: 1, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+FIELD ROW
+#<ContentModelField id: 21, name: "Candidate name", content_model_id: 3, description: "", field: "candidate_name", field_type: "string", field_options: {"regexp"=>false, "required"=>false, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "regexp_message"=>"is not formatted correctly", "hidden"=>false}, position: 2, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+#<ContentModelField id: 21, name: "Candidate name", content_model_id: 3, description: "", field: "candidate_name", field_type: "string", field_options: {"regexp"=>false, "required"=>false, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "regexp_message"=>"is not formatted correctly", "hidden"=>false}, position: 2, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+FIELD ROW
+#<ContentModelField id: 15, name: "Client name", content_model_id: 3, description: "", field: "client_name", field_type: "string", field_options: {"required"=>false, "regexp"=>false, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "hidden"=>false, "regexp_message"=>"is not formatted correctly"}, position: 3, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+#<ContentModelField id: 15, name: "Client name", content_model_id: 3, description: "", field: "client_name", field_type: "string", field_options: {"required"=>false, "regexp"=>false, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "hidden"=>false, "regexp_message"=>"is not formatted correctly"}, position: 3, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+FIELD ROW
+#<ContentModelField id: 41, name: "account status", content_model_id: 3, description: "", field: "account_statu", field_type: "options", field_options: {"required"=>false, "exclude"=>false, "hidden"=>false, "options"=>["open", "closed"]}, position: 4, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+#<ContentModelField id: 41, name: "account status", content_model_id: 3, description: "", field: "account_statu", field_type: "options", field_options: {"required"=>false, "exclude"=>false, "hidden"=>false, "options"=>["open", "closed"]}, position: 4, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+FIELD ROW
+#<ContentModelField id: 17, name: "site launch date", content_model_id: 3, description: "", field: "site_launch_date", field_type: "string", field_options: {"required"=>false, "regexp"=>false, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "hidden"=>false, "regexp_message"=>"is not formatted correctly"}, position: 5, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+#<ContentModelField id: 17, name: "site launch date", content_model_id: 3, description: "", field: "site_launch_date", field_type: "string", field_options: {"required"=>false, "regexp"=>false, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "hidden"=>false, "regexp_message"=>"is not formatted correctly"}, position: 5, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+FIELD ROW
+#<ContentModelField id: 18, name: "post launch retainer", content_model_id: 3, description: "", field: "retainer", field_type: "string", field_options: {"required"=>false, "regexp"=>false, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "hidden"=>false, "regexp_message"=>"is not formatted correctly"}, position: 6, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+#<ContentModelField id: 18, name: "post launch retainer", content_model_id: 3, description: "", field: "retainer", field_type: "string", field_options: {"required"=>false, "regexp"=>false, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "hidden"=>false, "regexp_message"=>"is not formatted correctly"}, position: 6, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+FIELD ROW
+#<ContentModelField id: 51, name: "budgeted development", content_model_id: 3, description: "", field: "budgeted_development_", field_type: "currency", field_options: {"required"=>false, "regexp"=>false, "exclude"=>false, "regexp_code"=>"", "hidden"=>false, "regexp_message"=>"is not formatted correctly"}, position: 7, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+#<ContentModelField id: 51, name: "budgeted development", content_model_id: 3, description: "", field: "budgeted_development_", field_type: "currency", field_options: {"required"=>false, "regexp"=>false, "exclude"=>false, "regexp_code"=>"", "hidden"=>false, "regexp_message"=>"is not formatted correctly"}, position: 7, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+FIELD ROW
+#<ContentModelField id: 52, name: "budgeted design", content_model_id: 3, description: "", field: "budgeted_design_hour", field_type: "currency", field_options: {"required"=>false, "regexp"=>false, "exclude"=>false, "regexp_code"=>"", "hidden"=>false, "regexp_message"=>"is not formatted correctly"}, position: 8, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+#<ContentModelField id: 52, name: "budgeted design", content_model_id: 3, description: "", field: "budgeted_design_hour", field_type: "currency", field_options: {"required"=>false, "regexp"=>false, "exclude"=>false, "regexp_code"=>"", "hidden"=>false, "regexp_message"=>"is not formatted correctly"}, position: 8, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+FIELD ROW
+#<ContentModelField id: 19, name: "contract", content_model_id: 3, description: "", field: "contact_id", field_type: "document", field_options: {"required"=>false, "folder_id"=>2, "relation_name"=>"contact", "exclude"=>false, "hidden"=>false}, position: 9, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+#<ContentModelField id: 19, name: "contract", content_model_id: 3, description: "", field: "contact_id", field_type: "document", field_options: {"required"=>false, "folder_id"=>2, "relation_name"=>"contact", "exclude"=>false, "hidden"=>false}, position: 9, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+FIELD ROW
+#<ContentModelField id: 42, name: "notes", content_model_id: 3, description: "", field: "note", field_type: "text", field_options: {"regexp"=>false, "required"=>false, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "regexp_message"=>"is not formatted correctly", "hidden"=>false}, position: 10, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+#<ContentModelField id: 42, name: "notes", content_model_id: 3, description: "", field: "note", field_type: "text", field_options: {"regexp"=>false, "required"=>false, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "regexp_message"=>"is not formatted correctly", "hidden"=>false}, position: 10, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+#<ContentModelField id: 53, name: "Hour Rate", content_model_id: 3, description: "", field: "hour_rate", field_type: "options", field_options: {"required"=>false, "exclude"=>false, "hidden"=>false, "options"=>["150", "175"]}, position: 11, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+[{"matched_field"=>nil, "name"=>"Project name", "position"=>1, "content_model_id"=>3, "show_main_table"=>true, "id"=>14, "field"=>"project_name", "field_options"=>{"required"=>"true", "regexp"=>"", "exclude"=>"", "regexp_code"=>"", "unique"=>"", "hidden"=>"", "regexp_message"=>"is not formatted correctly"}, "description"=>"", "field_type"=>"string", "field_module"=>"content/core_field"}, {"matched_field"=>nil, "name"=>"Candidate name", "position"=>2, "content_model_id"=>3, "show_main_table"=>true, "id"=>21, "field"=>"candidate_name", "field_options"=>{"required"=>"", "regexp"=>"", "exclude"=>"", "regexp_code"=>"", "unique"=>"", "hidden"=>"", "regexp_message"=>"is not formatted correctly"}, "description"=>"", "field_type"=>"string", "field_module"=>"content/core_field"}, {"matched_field"=>nil, "name"=>"Client name", "position"=>3, "content_model_id"=>3, "show_main_table"=>true, "id"=>15, "field"=>"client_name", "field_options"=>{"required"=>"", "regexp"=>"", "exclude"=>"", "regexp_code"=>"", "unique"=>"", "hidden"=>"", "regexp_message"=>"is not formatted correctly"}, "description"=>"", "field_type"=>"string", "field_module"=>"content/core_field"}, {"matched_field"=>nil, "name"=>"account status", "position"=>4, "content_model_id"=>3, "show_main_table"=>true, "id"=>41, "field"=>"account_statu", "field_options"=>{"required"=>"", "exclude"=>"", "options_text"=>"open\nclosed", "hidden"=>""}, "description"=>"", "field_type"=>"options", "field_module"=>"content/core_field"}, {"matched_field"=>nil, "name"=>"site launch date", "position"=>5, "content_model_id"=>3, "show_main_table"=>true, "id"=>17, "field"=>"site_launch_date", "field_options"=>{"required"=>"", "regexp"=>"", "exclude"=>"", "regexp_code"=>"", "unique"=>"", "hidden"=>"", "regexp_message"=>"is not formatted correctly"}, "description"=>"", "field_type"=>"string", "field_module"=>"content/core_field"}, {"matched_field"=>nil, "name"=>"post launch retainer", "position"=>6, "content_model_id"=>3, "show_main_table"=>true, "id"=>18, "field"=>"retainer", "field_options"=>{"required"=>"", "regexp"=>"", "exclude"=>"", "regexp_code"=>"", "unique"=>"", "hidden"=>"", "regexp_message"=>"is not formatted correctly"}, "description"=>"", "field_type"=>"string", "field_module"=>"content/core_field"}, {"matched_field"=>nil, "name"=>"budgeted development", "position"=>7, "content_model_id"=>3, "show_main_table"=>true, "id"=>51, "field"=>"budgeted_development_", "field_options"=>{"required"=>"", "regexp"=>"", "exclude"=>"", "regexp_code"=>"", "hidden"=>"", "regexp_message"=>"is not formatted correctly"}, "description"=>"", "field_type"=>"currency", "field_module"=>"content/core_field"}, {"matched_field"=>nil, "name"=>"budgeted design", "position"=>8, "content_model_id"=>3, "show_main_table"=>true, "id"=>52, "field"=>"budgeted_design_hour", "field_options"=>{"required"=>"", "regexp"=>"", "exclude"=>"", "regexp_code"=>"", "hidden"=>"", "regexp_message"=>"is not formatted correctly"}, "description"=>"", "field_type"=>"currency", "field_module"=>"content/core_field"}, {"matched_field"=>nil, "name"=>"contract", "position"=>9, "content_model_id"=>3, "show_main_table"=>true, "id"=>19, "field"=>"contact_id", "field_options"=>{"required"=>"", "folder_id"=>"2", "exclude"=>"", "hidden"=>""}, "description"=>"", "field_type"=>"document", "field_module"=>"content/core_field"}, {"matched_field"=>nil, "name"=>"notes", "position"=>10, "content_model_id"=>3, "show_main_table"=>true, "id"=>42, "field"=>"note", "field_options"=>{"required"=>"", "regexp"=>"", "exclude"=>"", "regexp_code"=>"", "unique"=>"", "hidden"=>"", "regexp_message"=>"is not formatted correctly"}, "description"=>"", "field_type"=>"text", "field_module"=>"content/core_field"}, {"matched_field"=>nil, "name"=>"Hourly Rate", "position"=>11, "content_model_id"=>3, "show_main_table"=>true, "id"=>53, "field"=>"hour_rate", "field_options"=>{"required"=>"", "exclude"=>"", "options_text"=>"150\n175", "hidden"=>""}, "description"=>"", "field_type"=>"options", "field_module"=>"content/core_field"}]
+FIELD ROW
+#<ContentModelField id: 14, name: "Project name", content_model_id: 3, description: "", field: "project_name", field_type: "string", field_options: {"regexp"=>false, "required"=>true, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "regexp_message"=>"is not formatted correctly", "hidden"=>false}, position: 1, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+#<ContentModelField id: 14, name: "Project name", content_model_id: 3, description: "", field: "project_name", field_type: "string", field_options: {"regexp"=>false, "required"=>true, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "regexp_message"=>"is not formatted correctly", "hidden"=>false}, position: 1, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+FIELD ROW
+#<ContentModelField id: 21, name: "Candidate name", content_model_id: 3, description: "", field: "candidate_name", field_type: "string", field_options: {"required"=>false, "regexp"=>false, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "hidden"=>false, "regexp_message"=>"is not formatted correctly"}, position: 2, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+#<ContentModelField id: 21, name: "Candidate name", content_model_id: 3, description: "", field: "candidate_name", field_type: "string", field_options: {"required"=>false, "regexp"=>false, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "hidden"=>false, "regexp_message"=>"is not formatted correctly"}, position: 2, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+FIELD ROW
+#<ContentModelField id: 15, name: "Client name", content_model_id: 3, description: "", field: "client_name", field_type: "string", field_options: {"regexp"=>false, "required"=>false, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "regexp_message"=>"is not formatted correctly", "hidden"=>false}, position: 3, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+#<ContentModelField id: 15, name: "Client name", content_model_id: 3, description: "", field: "client_name", field_type: "string", field_options: {"regexp"=>false, "required"=>false, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "regexp_message"=>"is not formatted correctly", "hidden"=>false}, position: 3, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+FIELD ROW
+#<ContentModelField id: 41, name: "account status", content_model_id: 3, description: "", field: "account_statu", field_type: "options", field_options: {"required"=>false, "exclude"=>false, "options"=>["open", "closed"], "hidden"=>false}, position: 4, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+#<ContentModelField id: 41, name: "account status", content_model_id: 3, description: "", field: "account_statu", field_type: "options", field_options: {"required"=>false, "exclude"=>false, "options"=>["open", "closed"], "hidden"=>false}, position: 4, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+FIELD ROW
+#<ContentModelField id: 17, name: "site launch date", content_model_id: 3, description: "", field: "site_launch_date", field_type: "string", field_options: {"regexp"=>false, "required"=>false, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "regexp_message"=>"is not formatted correctly", "hidden"=>false}, position: 5, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+#<ContentModelField id: 17, name: "site launch date", content_model_id: 3, description: "", field: "site_launch_date", field_type: "string", field_options: {"regexp"=>false, "required"=>false, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "regexp_message"=>"is not formatted correctly", "hidden"=>false}, position: 5, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+FIELD ROW
+#<ContentModelField id: 18, name: "post launch retainer", content_model_id: 3, description: "", field: "retainer", field_type: "string", field_options: {"regexp"=>false, "required"=>false, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "regexp_message"=>"is not formatted correctly", "hidden"=>false}, position: 6, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+#<ContentModelField id: 18, name: "post launch retainer", content_model_id: 3, description: "", field: "retainer", field_type: "string", field_options: {"regexp"=>false, "required"=>false, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "regexp_message"=>"is not formatted correctly", "hidden"=>false}, position: 6, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+FIELD ROW
+#<ContentModelField id: 51, name: "budgeted development", content_model_id: 3, description: "", field: "budgeted_development_", field_type: "currency", field_options: {"regexp"=>false, "required"=>false, "exclude"=>false, "regexp_code"=>"", "regexp_message"=>"is not formatted correctly", "hidden"=>false}, position: 7, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+#<ContentModelField id: 51, name: "budgeted development", content_model_id: 3, description: "", field: "budgeted_development_", field_type: "currency", field_options: {"regexp"=>false, "required"=>false, "exclude"=>false, "regexp_code"=>"", "regexp_message"=>"is not formatted correctly", "hidden"=>false}, position: 7, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+FIELD ROW
+#<ContentModelField id: 52, name: "budgeted design", content_model_id: 3, description: "", field: "budgeted_design_hour", field_type: "currency", field_options: {"regexp"=>false, "required"=>false, "exclude"=>false, "regexp_code"=>"", "regexp_message"=>"is not formatted correctly", "hidden"=>false}, position: 8, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+#<ContentModelField id: 52, name: "budgeted design", content_model_id: 3, description: "", field: "budgeted_design_hour", field_type: "currency", field_options: {"regexp"=>false, "required"=>false, "exclude"=>false, "regexp_code"=>"", "regexp_message"=>"is not formatted correctly", "hidden"=>false}, position: 8, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+FIELD ROW
+#<ContentModelField id: 19, name: "contract", content_model_id: 3, description: "", field: "contact_id", field_type: "document", field_options: {"required"=>false, "relation_name"=>"contact", "folder_id"=>2, "exclude"=>false, "hidden"=>false}, position: 9, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+#<ContentModelField id: 19, name: "contract", content_model_id: 3, description: "", field: "contact_id", field_type: "document", field_options: {"required"=>false, "relation_name"=>"contact", "folder_id"=>2, "exclude"=>false, "hidden"=>false}, position: 9, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+FIELD ROW
+#<ContentModelField id: 42, name: "notes", content_model_id: 3, description: "", field: "note", field_type: "text", field_options: {"required"=>false, "regexp"=>false, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "hidden"=>false, "regexp_message"=>"is not formatted correctly"}, position: 10, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+#<ContentModelField id: 42, name: "notes", content_model_id: 3, description: "", field: "note", field_type: "text", field_options: {"required"=>false, "regexp"=>false, "exclude"=>false, "regexp_code"=>"", "unique"=>false, "hidden"=>false, "regexp_message"=>"is not formatted correctly"}, position: 10, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+FIELD ROW
+#<ContentModelField id: 53, name: "Hour Rate", content_model_id: 3, description: "", field: "hour_rate", field_type: "options", field_options: {"required"=>false, "exclude"=>false, "options"=>["150", "175"], "hidden"=>false}, position: 11, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+#<ContentModelField id: 53, name: "Hourly Rate", content_model_id: 3, description: "", field: "hour_rate", field_type: "options", field_options: {"required"=>false, "exclude"=>false, "options"=>["150", "175"], "hidden"=>false}, position: 11, matched_field: nil, show_main_table: true, field_module: "content/core_field">
+Listener thread FileWorker failed to connect. Resetting connection.
+Listener thread DomainModelWorker failed to connect. Resetting connection.
+Listener thread MemberImportWorker failed to connect. Resetting connection.
+Listener thread MemberExportWorker failed to connect. Resetting connection.
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x10331b560 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x10332c270 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x103327a18 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x1033441e0 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x103339420 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x1032ff298 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x10330e428 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x10330bef8 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x10331dae0 sleep>
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x10331b560 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x10332c270 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x103327a18 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x1033441e0 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x103339420 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x1032ff298 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x10330e428 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x10330bef8 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x10331dae0 sleep>
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x10331b560 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x10332c270 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x103327a18 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x1033441e0 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x103339420 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x1032ff298 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x10330e428 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x10330bef8 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x10331dae0 sleep>
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x10331b560 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x10332c270 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x103327a18 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x1033441e0 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x103339420 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x1032ff298 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x10330e428 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x10330bef8 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x10331dae0 sleep>
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x10331b560 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x10332c270 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x103327a18 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x1033441e0 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x103339420 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x1032ff298 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x10330e428 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x10330bef8 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x10331dae0 sleep>
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x1031ae308 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x1031d1510 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x1031c8910 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x1031fd318 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x1031f6720 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x1031958d0 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x1031abdd8 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x103197e28 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x1031c6340 sleep>
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x1031ae308 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x1031d1510 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x1031c8910 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x1031fd318 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x1031f6720 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x1031958d0 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x1031abdd8 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x103197e28 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x1031c6340 sleep>
+Listener thread MemberExportWorker failed to connect. Resetting connection.
+Listener thread MailTemplateMailerWorker failed to connect. Resetting connection.
+Listener thread MigrationHandlerWorker failed to connect. Resetting connection.
+Listener thread MemberImportWorker failed to connect. Resetting connection.
+Listener thread WorklingStatusWoker failed to connect. Resetting connection.
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x1031b7228 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x1031db088 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x1031cdc30 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x1031fd318 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x1031f6720 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x10318dd60 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x1031aa190 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x1031a4ce0 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x1031c2bc8 sleep>
+MemberExportWorker status:[33mrunning[0m, #<Thread:0x1031b7228 sleep>
+DomainModelWorker status:[33mrunning[0m, #<Thread:0x1031db088 sleep>
+FileWorker status:[33mrunning[0m, #<Thread:0x1031cdc30 sleep>
+ContentExportWorker status:[33mrunning[0m, #<Thread:0x1031fd318 sleep>
+ContentImportWorker status:[33mrunning[0m, #<Thread:0x1031f6720 sleep>
+WorklingStatusWoker status:[33mrunning[0m, #<Thread:0x10318dd60 run>
+MemberImportWorker status:[33mrunning[0m, #<Thread:0x1031aa190 sleep>
+MigrationHandlerWorker status:[33mrunning[0m, #<Thread:0x1031a4ce0 sleep>
+MailTemplateMailerWorker status:[33mrunning[0m, #<Thread:0x1031c2bc8 sleep>

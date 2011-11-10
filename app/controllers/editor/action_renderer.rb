@@ -47,6 +47,7 @@ class Editor::ActionRenderer < ParagraphRenderer #:nodoc:all
   end
 
   def sitemap
+debugger
     return render_paragraph :text => 'Reconfigure Data Output' unless paragraph.data
 
     data = paragraph.data
