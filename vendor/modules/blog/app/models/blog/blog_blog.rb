@@ -147,6 +147,11 @@ class Blog::BlogBlog < DomainModel
       post_options[:conditions] << category_ids
     end
 
+    if author = opts.delete(:author_filter)
+      post_options[:conditions][0] += " AND blog_post_revisions.author = ?"
+      post_options[:conditions] << author
+    end
+
     Blog::BlogPost.paginate(page,post_options.merge(opts))          
 
   end

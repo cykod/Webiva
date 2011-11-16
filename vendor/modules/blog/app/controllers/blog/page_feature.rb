@@ -162,11 +162,17 @@ class Blog::PageFeature < ParagraphFeature
     c.value_tag('entry:tags') do |tag|
       tags = tag.locals.entry.content_tags
       if tags.length > 0
+        tag.locals.tags = tags
 	tags.collect {|tg| "<a href='#{SiteNode.link(data[:list_page], 'tag', h(tg.name))}'>#{h tg.name}</a>" }.join(", ")
       else
 	nil
       end
     end
+
+    c.loop_tag('entry:tags:tag') { |t| t.locals.tags }
+    c.link_tag('entry:tags:tag:') { |t| SiteNode.link(data[:list_page], 'tag', CGI::escape(t.locals.tag.name)) }
+    c.value_tag('entry:tags:tag:name') { |t| t.locals.tag.name }
+    c.value_tag('entry:tags:tag:escaped_name') { |t| CGI::escape(t.locals.tag.name) }
 
     if data[:blog] && data[:blog].content_publication
       c.expansion_tag('entry:content') { |tag| tag.locals.form = tag.locals.entry.data_model }
