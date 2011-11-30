@@ -281,6 +281,7 @@ class DomainModel < ActiveRecord::Base
       cls.abstract_class = true
       cls.establish_connection(db_config)
 
+
       @@database_connection_pools[self.process_id] = cls
       return true
     else
@@ -311,6 +312,8 @@ class DomainModel < ActiveRecord::Base
       db_config['persistent'] = false
       cls.establish_connection(db_config)
 
+      cls.connection.update("set @@wait_timeout=30")
+
       @@database_connection_pools[self.process_id] = cls
       return true
     else
@@ -318,6 +321,7 @@ class DomainModel < ActiveRecord::Base
       @@mutex.synchronize do 
 
         @@database_connection_pools[self.process_id].connection.verify!
+        @@database_connection_pools[self.process_id].connection.update("set @@wait_timeout=30")
       end
 
       return true
