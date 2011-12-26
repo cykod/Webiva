@@ -76,15 +76,27 @@ class PublicController < ApplicationController  # :nodoc: all
       end
     end
 
-    sz = DomainFileSize.find_by_size_name(size)
-    
-    if df && sz 
-      if !df.local? && df.get_size(sz.size_name)
-        redirect_to df.url(sz.size_name)
+    if df
+      # If it's local and the remote file exists, redirect to there
+      if !df.local? && df.get_size(size)
+        redirect_to df.url(size)
         return
       end
 
-      name = sz.execute(df)
+      # Do our best to get a thumbnail of the desired size
+      df.ensure_thumbnail(size)
+
+      # If we've created the file and we're not local, redirect to it
+      if !df.local? && File.exists?(df.local_filename(size))
+        df.push_size(size)
+        redirect_to df.url(size)
+        return
+      end
+    end
+
+    # If we have a file and a local file exists
+    if df && File.exists?(df.local_filename(size))
+      # Get a mime type if we can 
       if df.mime_type.blank?
         name = df.filename(sz.size_name)
         mime_types =  MIME::Types.type_for(name) 
@@ -92,41 +104,12 @@ class PublicController < ApplicationController  # :nodoc: all
       else
         mime_type = df.mime_type
       end
-
-      # Push the size to the remote server
-      if !df.local?
-        df.push_size(sz.size_name)
-        redirect_to df.url(sz.size_name)
-        return
-      end
-      
       render :nothing => true if RAILS_ENV == 'test'
       if USE_X_SEND_FILE
-        x_send_file(name,:type => mime_type,:disposition => 'inline',:filename => df.name)    
+        x_send_file(df.local_filename(size),:type => mime_type,:disposition => 'inline',:filename => df.name)    
       else
-        send_file(name,:type => mime_type,:disposition => 'inline',:filename => df.name)    
+        send_file(df.local_filename(size),:type => mime_type,:disposition => 'inline',:filename => df.name)    
       end
-    elsif df && DomainFile.image_sizes_hash[size.to_sym]
-      df.generate_thumbnails(true)
-      name = df.filename(size)
-      mime_types =  MIME::Types.type_for(name) 
-      mime_type = mime_types[0] ? mime_types[0].to_s : 'application/octet-stream'
-
-       if USE_X_SEND_FILE
-         x_send_file(name,:type => mime_type,:disposition => 'inline',:filename => df.name)    
-       else
-         send_file(name,:type => mime_type,:disposition => 'inline',:filename => df.name)    
-       end
-    elsif df
-      name = df.filename
-      mime_types =  MIME::Types.type_for(name) 
-      mime_type = mime_types[0] ? mime_types[0].to_s : 'application/octet-stream'
-
-       if USE_X_SEND_FILE
-         x_send_file(name,:type => mime_type,:disposition => 'inline',:filename => df.name)    
-       else
-         send_file(name,:type => mime_type,:disposition => 'inline',:filename => df.name)    
-       end
     else
       render :inline => 'File not found', :status => 404
     end    

@@ -77,6 +77,7 @@ ContentEditor = {
 <%= f.header "Model Information" %>
 <%= f.label_field :table_name, :description => 'This cannot be changed once the model is create' %>
 <%= f.custom_field 'Field Names', :value => @content_model.content_model_fields.collect(&:feature_tag_name).join(", "), :description => 'Field names are used in site feature' %>
+<%= f.custom_field 'Filter Names', :value => @content_model.content_model_fields.inject([]) { |a,b| b.filter_variables + a }.join(", "), :description => "Dependent per publication, must be exposed" %>
 
 
 

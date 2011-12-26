@@ -1,6 +1,6 @@
 // UK lang variables
 
-tinyMCE.addToLang('advimage',{
+tinyMCE.addI18n('advimage',{
 desc: 'File Manager',
 tab_general : 'General',
 tab_appearance : 'Appearance',

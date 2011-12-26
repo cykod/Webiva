@@ -345,6 +345,18 @@ class DomainFile < DomainModel
      
    end
 
+   def ensure_thumbnail(size)
+     return unless self.file_type == 'thm' || self.file_type == 'img'
+     return if File.exists?(self.filename(size))
+
+     if DomainFile.image_sizes_hash[size.to_sym]
+       self.generate_thumbnails(true)
+     else
+       sz = DomainFileSize.find_by_size_name(size)
+       sz.execute(self) if sz
+     end
+   end
+
    # Regenerate built in thumbnails and optionally resave the file
    def generate_thumbnails(save_file=true)
      return if self.file_type=='fld'

@@ -341,22 +341,33 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
 	    publication.run_triggered_actions(myself,'view',myself) 
     end
     
-    target_string = publication.content_model_id.to_s
-    display_string = publication.id.to_s + '-' + paragraph.site_feature_id.to_s
-    feature_output,content_type = DataCache.get_content("ContentModel",target_string,display_string)
+    filter_data = params
+
+    #target_string = publication.content_model_id.to_s
+    #display_string = publication.id.to_s + '-' + paragraph.site_feature_id.to_s + Digest::SHA1.hexdigest(filter_data.to_hash.to_a.flatten.to_sentence)
+    #feature_output,content_type = DataCache.get_content("ContentModel",target_string,display_string)
     
-    if !feature_output
+#   if !feature_output
+    
       pub_opts = publication.options
 
       options = paragraph.data || {}
 
-      entries = publication.get_list_data(nil,options)
+      entries = publication.get_list_data(nil,options,filter_data.to_hash)
+
       data ={ :entries => entries[1], :pages => entries[0] }
-      
+
+
+      if pub_opts.display_method == 'json'
+        return data_paragraph :text => entries[1].to_json, :type => 'text/json'
+      elsif pub_opts.display_method == 'xml'
+        return data_paragraph :text => entries[1].to_xml, :type => 'text/xml'
+      end
+
       content_type = pub_opts.content_type || 'text'
       feature_output = data_feature(publication,data)
-      DataCache.put_content("ContentModel",target_string,display_string,[feature_output,content_type])
-    end
+      #DataCache.put_content("ContentModel",target_string,display_string,[feature_output,content_type])
+  #  end
     data_paragraph :data => feature_output,
                     :type => content_type,
                     :disposition => 'inline'

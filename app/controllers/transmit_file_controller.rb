@@ -14,6 +14,10 @@ class TransmitFileController < ApplicationController
     end
 
     filename = @domain_file.filename params[:size]
+
+    if !File.exists?(filename)
+      @domain_file.ensure_thumbnail(params[:size])
+    end
     mime_types =  MIME::Types.type_for(filename) 
     send_file(filename,
               :type => mime_types[0] ? mime_types[0].to_s : 'text/plain',
