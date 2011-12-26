@@ -1,6 +1,13 @@
 # Don't change this file!
 # Configure your app in config/environment.rb and config/environments/*.rb
 
+# Recent versions of RubyGems fail with Rails 2.3.5 with the following error:
+# 
+# uninitialized constant ActiveSupport::Dependencies::Mutex
+# 
+# The following line prevents this:
+require 'thread'
+
 RAILS_ROOT = "#{File.dirname(__FILE__)}/.." unless defined?(RAILS_ROOT)
 
 module Rails

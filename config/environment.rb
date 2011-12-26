@@ -70,6 +70,26 @@ class Rails::Plugin
 
 end
 
+
+# We had a problem with Rails 2.3.5 and newer versions of rubygems failing on
+# rake tasks with the following error:
+#
+# undefined local variable or method `version_requirements' for #<Rails::GemDependency:0x...>
+#
+# A post by Phillip Koebbe suggested the following hack, since we don't want to 
+# upgrade Rails to 2.3.11 yet.
+if Gem::VERSION >= "1.3.6" 
+  module Rails
+    class GemDependency
+      def requirement
+        r = super
+        (r == Gem::Requirement.default) ? nil : r
+      end
+    end
+  end
+end
+
+
 Rails::Initializer.run do |config|
 
   # not actually used
