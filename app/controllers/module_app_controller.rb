@@ -267,10 +267,10 @@ class ModuleAppController < ApplicationController
 
   
   def display_missing_page #:nodoc:
-    page,path_args = find_page_from_path(["404"],DomainModel.active_domain[:site_version_id])
+    @page,path_args = find_page_from_path(["404"],DomainModel.active_domain[:site_version_id])
     begin
-      raise SiteNodeEngine::MissingPageException.new(nil,nil) unless page
-      engine = SiteNodeEngine.new(page,:display => session[:cms_language], :path => path_args)
+      raise SiteNodeEngine::MissingPageException.new(nil,nil) unless @page
+      engine = SiteNodeEngine.new(@page,:display => session[:cms_language], :path => path_args)
       @output = engine.run(self,myself,:error_page => true)
       raise SiteNodeEngine::MissingPageException.new(nil,nil) unless @output.page?
       set_robots!
