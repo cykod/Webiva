@@ -173,7 +173,8 @@ class Media::GalleryRenderer < ParagraphRenderer
       
       pages,images = GalleryImage.paginate(params[:page], 
                                             :conditions => { :gallery_id => current_gallery.id },
-                                                :per_page => @options.page_size,
+                                                :per_page => @options.images_per_page,
+                                                :order => 'position',
                                                 :include => :domain_file)
     
     

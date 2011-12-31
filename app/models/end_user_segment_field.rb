@@ -9,6 +9,7 @@ class EndUserSegmentField < UserSegment::FieldHandler
     }
   end
 
+  register_field :id_modulus, UserSegment::CoreType::MultipleOfType, :name => 'User Offset', :sortable => false, :search_only => true, :field => :id
   register_field :email, UserSegment::CoreType::StringType, :name => 'Email', :sortable => true, :search_only => true
   register_field :gender, EndUserSegmentType::GenderType, :name => 'Gender', :sortable => true
   register_field :created, UserSegment::CoreType::DateTimeType, :field => :created_at, :name => 'Created', :sortable => true, :builder_name => 'Created when?'

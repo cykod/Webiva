@@ -122,7 +122,12 @@ class ModuleAppController < ApplicationController
     end
 
     self.request_forgery_protection_token ||= :authenticity_token
-    verify_authenticity_token
+    begin 
+      verify_authenticity_token unless @skip_authenticity_token
+    rescue
+      Rails.logger.error("Invalid Token")
+      process_logout
+    end
     
     if params['__VER__']
       @preview = true

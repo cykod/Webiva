@@ -65,7 +65,7 @@ class Blog::PageRenderer < ParagraphRenderer
     type_hash = DomainModel.hexdigest("#{list_type}_#{list_type_identifier}_#{category_filter}_#{tag_filter}")
     display_string = "#{page}_#{type_hash}"
 
-    result = renderer_cache(Blog::BlogPost, display_string) do |cache|
+    result = renderer_cache(Blog::BlogPost, display_string, :expires => 600) do |cache|
       if !@options.category.blank? && @options.limit_by == "category"
         category_filter = @options.category.split(",").map(&:strip).reject(&:blank?)
       elsif !@options.category.blank? && @options.limit_by == "tag"
@@ -115,7 +115,7 @@ class Blog::PageRenderer < ParagraphRenderer
     conn_type, conn_id = page_connection()
     display_string = "#{conn_type}_#{conn_id}_#{myself.user_class_id}"
 
-    result = renderer_cache(blog, display_string) do |cache|
+    result = renderer_cache(blog, display_string, :expires => 600) do |cache|
       entry = nil
       if editor?
         entry = blog.blog_posts.find(:first,:conditions => ['blog_posts.status = "published" AND blog_blog_id=? ',blog.id])

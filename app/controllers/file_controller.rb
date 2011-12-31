@@ -422,6 +422,7 @@ class FileController < CmsController # :nodoc: all
     
     if(@file && params[:contents])
       @file.contents = params[:contents]
+      @file.server_id = Server.server_id
       @file.save
       render :partial => 'edited_file'
     else

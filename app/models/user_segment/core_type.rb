@@ -50,6 +50,15 @@ class UserSegment::CoreType
     end
   end
 
+
+  class MultipleOfType < UserSegment::FieldType
+    register_operation :is, [['Multiple Of', :integer], ["Offset", :integer ]], :description => 'First number is the number of sections you want to break the group into, second is the offset (starting from 0) - 2, 0 will select even users, 2, 1 will select odd users'
+
+    def self.is(cls, group_field, field, modulus, remainder)
+      cls.scoped(:conditions => ["MOD(#{field},?) = ?",modulus, remainder])
+    end
+  end
+
   class NumberType < UserSegment::FieldType
     register_operation :is, [['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]]
 

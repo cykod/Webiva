@@ -41,6 +41,11 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
         session[:captured_user_info] = nil
       end
 
+      if !request.post? && session[:captured_address_info]
+        @address.attributes = session[:captured_address_info]
+        session[:captured_address_info] = nil
+      end
+
       if @options.publication
         @model = @options.publication.content_model.content_model.new
       end
