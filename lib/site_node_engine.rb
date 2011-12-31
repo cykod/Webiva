@@ -54,13 +54,17 @@ class SiteNodeEngine
       page = nil
       search_path = "/" + path_elems.join("/")
       loop do
-        page = SiteNode.find(:first,
-                            :conditions => ['node_path = ? AND node_type IN ("P","M","D","J") AND site_version_id=?',search_path,site_version_id],
-                            :order => 'position DESC')
-        break if page || path_elems.length == 0
+        begin
+          page = SiteNode.find(:first,
+                               :conditions => ['node_path = ? AND node_type IN ("P","M","D","J") AND site_version_id=?',search_path,site_version_id],
+                               :order => 'position DESC')
+          break if page || path_elems.length == 0
         
-        path_args.unshift(path_elems.slice!(-1))
-        search_path = "/" + path_elems.join('/')
+          path_args.unshift(path_elems.slice!(-1))
+          search_path = "/" + path_elems.join('/')
+        rescue Exception => e
+          return nil,[]
+        end
       end
 
       return page,path_args
