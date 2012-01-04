@@ -97,6 +97,15 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
       all_valid = false unless assign_entry(@business, params[:business], @options.available_address_field_list.keys, @options.work_address_required_fields)
 
       if @model
+        field = @options.content_publication_user_field
+        model_class = @options.publication.content_model.model_class
+
+        if field
+          # Reassign model if the user has an idea
+          @model = model_class.find(:first, :conditions => {field.to_sym => @usr.id}) if @usr.id
+          @model ||= model_class.new
+        end
+
         @options.publication.assign_entry(@model,params[:model],renderer_state)
         all_valid = false unless @model.errors.length == 0
       end
@@ -170,6 +179,9 @@ class Editor::AuthRenderer < ParagraphRenderer #:nodoc:all
           if @model
             # Re-update entry as we now have a user object
             @options.publication.assign_entry(@model,params[:model],renderer_state(:user => @usr))
+            if field
+              @model.attributes = { field => @usr.id }
+            end
             @model.save
           end
 

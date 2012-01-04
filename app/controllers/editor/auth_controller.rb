@@ -37,7 +37,9 @@ class Editor::AuthController < ParagraphController #:nodoc:all
     :address_required_fields => [],
     :content_publication_id => nil, :source => nil, :lockout_redirect => false,
     :require_activation => false, :activation_page_id => nil,
-    :features => [], :require_captcha => false, :user_level => 4
+    :features => [], :require_captcha => false, :user_level => 4,
+    :content_publication_user_field => nil
+
 
     boolean_options :lockout_redirect, :require_activation, :require_captcha
 
@@ -170,6 +172,21 @@ class Editor::AuthController < ParagraphController #:nodoc:all
     def publication
       @pub ||= ContentPublication.find_by_id(self.content_publication_id)
     end
+
+    def publication_options
+      content_model_ids = ContentModelField.find(:all, :conditions => "field_type = 'belongs_to' AND field_module = 'content/core_field'").collect { |fld| fld.content_model_id if fld.relation_class == EndUser }.uniq.compact
+
+      if  content_model_ids.empty?
+        []
+      else
+        ContentPublication.select_options_with_nil('Publication',:conditions => { :publication_type => 'create', :publication_module => 'content/core_publication', :content_model_id => content_model_ids }) unless content_model_ids.empty?
+      end
+    end
+
+    def publication_field_options
+      self.publication.content_model.content_model_fields.find(:all, :conditions => "field_type = 'belongs_to' AND field_module = 'content/core_field'").collect { |elm| [elm.name, elm.field] } if self.publication
+    end
+
     
     def available_features
       [['--Select a feature to add--','']] + get_handler_options(:editor,:auth_user_register_feature)
