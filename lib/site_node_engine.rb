@@ -54,13 +54,17 @@ class SiteNodeEngine
       page = nil
       search_path = "/" + path_elems.join("/")
       loop do
-        page = SiteNode.find(:first,
-                            :conditions => ['node_path = ? AND node_type IN ("P","M","D","J") AND site_version_id=?',search_path,site_version_id],
-                            :order => 'position DESC')
-        break if page || path_elems.length == 0
+        begin
+          page = SiteNode.find(:first,
+                               :conditions => ['node_path = ? AND node_type IN ("P","M","D","J") AND site_version_id=?',search_path,site_version_id],
+                               :order => 'position DESC')
+          break if page || path_elems.length == 0
         
-        path_args.unshift(path_elems.slice!(-1))
-        search_path = "/" + path_elems.join('/')
+          path_args.unshift(path_elems.slice!(-1))
+          search_path = "/" + path_elems.join('/')
+        rescue Exception => e
+          return nil,[]
+        end
       end
 
       return page,path_args
@@ -343,7 +347,7 @@ EOF
         # Add on the Site Feature CSS only if we're in edit mode, otherwise it'll come in on an include
         if opts[:edit]
           str = strip_script_tags(str)
-          raise str.inspect if str.include?('<script')
+          # raise str.inspect if str.include?('<script')
         end
         str = "<style>#{css}</style>" + str if opts[:edit] && css
         return str
@@ -599,7 +603,8 @@ EOF
     nd = generate_page_information(controller,user)
 
     if !paragraph.info[:ajax] && (@mode != 'edit')
-      raise 'Not an ajax paragraph'
+      return nil
+      # raise 'Not an ajax paragraph'
     end
 
     @result = controller.compile_paragraph(@container.is_a?(SiteNode) ? @container : @container.site_node, 
