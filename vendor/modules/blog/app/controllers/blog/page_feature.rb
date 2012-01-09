@@ -116,6 +116,7 @@ class Blog::PageFeature < ParagraphFeature
     c.expansion_tag('entry:comments') { |t| t.locals.entry.comments_count > 0 }
     c.value_tag('entry:comment_count') { |t| t.locals.entry.comments_count }
     c.value_tag('entry:approved_comment_count') { |t| t.locals.entry.approved_comments_count }
+    c.expansion_tag('entry:allow_comments') { |t| !t.locals.entry.disallow_comments? }
     
     
     %w(title author).each do |elem|
@@ -158,6 +159,7 @@ class Blog::PageFeature < ParagraphFeature
     c.link_tag('entry:categories:category:') { |t| SiteNode.link(data[:list_page], 'category', CGI::escape(t.locals.category)) }
     c.value_tag('entry:categories:category:name') { |t| t.locals.category }
     c.value_tag('entry:categories:category:escaped_name') { |t| CGI::escape(t.locals.category) }
+    c.expansion_tag('entry:categories:has_category') { |t| t.locals.categories.include?(t.attr['category']) }
 
     c.value_tag('entry:tags') do |tag|
       tags = tag.locals.entry.content_tags
