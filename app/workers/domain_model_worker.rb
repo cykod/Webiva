@@ -21,6 +21,8 @@ class DomainModelWorker <  Workling::Base #:nodoc:all
       language = args[:language]
       Locale.set(language)
     end
+
+    Time.zone  = Configuration.time_zone
     
     class_name = args[:class_name]
     cls = class_name.constantize
