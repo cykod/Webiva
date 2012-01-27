@@ -67,7 +67,7 @@ class PublicController < ApplicationController  # :nodoc: all
     prefix.pop if DomainFileSize.valid_size?(size)
     prefix = prefix.join('/')
 
-    df = DomainFile.find_by_prefix(prefix)
+    df = DomainFile.find_by_prefix(prefix) rescue ActiveRecord::StatementInvalid 
 
     # Special case for thumbs
     if df && df.name != filename

@@ -99,12 +99,14 @@ class SiteNodeEngine
         return
       # If we have a domain file, send that
       elsif output.domain_file?
-	domain_file = output.domain_file
+        domain_file = output.domain_file
+        raise MissingPageException.new(page,@output.language) unless domain_file
         filename = domain_file.filename
         name = domain_file.name
       # Otherwise we have a document node (domain file), that needs to be sent
       else
         domain_file = page.domain_file
+        raise MissingPageException.new(page,@output.language) unless domain_file
         if domain_file.folder?
           args = "/" + output.path_args.join("/").to_s.strip
           domain_file = DomainFile.find_by_file_path(domain_file.file_path + args)
@@ -647,7 +649,7 @@ EOF
     # If we are rendering a document node, return it
     if @container.is_a?(SiteNode) && @container.node_type=='D'
       doc =  DocumentOutput.new(:path_args => @path_args, :language => @language )
-      doc.paction = user.action("/document/download",:identifier => @container.domain_file.file_path)
+      doc.paction = user.action("/document/download",:identifier => @container.domain_file.file_path) if @container.domain_file 
       return doc
     end
 
@@ -718,7 +720,6 @@ EOF
                     # if we just have data, we need to do a direct output
                     return DocumentOutput.new(result.render_args)
                   end
-
 
                   if result.is_a?(ParagraphRenderer::ParagraphOutput)
                     @page_information[:user_level] = result.user_level if result.user_level && result.user_level > @page_information[:user_level].to_i
