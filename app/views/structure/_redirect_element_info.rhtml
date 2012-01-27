@@ -47,7 +47,7 @@ redirectSelectFunc = function() {
      :html => { :class => 'admin_form' } do  |f| -%>
   
   <%= f.radio_buttons :redirect_type, RedirectDetail.redirect_type_select_options, :label => 'Redirect To', :onclick => 'redirectSelectFunc();' %>
-  <%= f.select :redirect_site_node_id, @available_pages, { :default => 'No Page Selected', :label => 'Redirect Page' }, { :disabled =>  ( @redirect_details.redirect_type == 'external' ) } %>
+  <%= f.select :redirect_site_node_id, @available_pages, { :default => 'No Page Selected', :label => 'Redirect Page' }, { :disabled =>  ( @redirect_details.redirect_type == 'external' ), :onchange => 'jQuery(this).parent().submit()'} %>
   <%= f.text_field :redirect_url, { :label => 'External Redirect URL', :disabled => ( @redirect_details.redirect_type == 'site_node' )} %>
   <%= f.cancel_submit_buttons 'Cancel', 'Submit', {:onclick =>  'Element.hide("redirect_edit_fields"); Element.show("redirect_display_fields"); return false; ' }, {} %>
   <% end -%>

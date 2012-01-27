@@ -7,7 +7,7 @@ class RedirectDetail < DomainModel
   def destination
     if self.redirect_type == 'external'
       self.redirect_url
-    elsif self.site_node
+    elsif self.redirect_site_node
       self.redirect_site_node.node_path
     else
       '/'
