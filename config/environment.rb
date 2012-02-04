@@ -130,6 +130,19 @@ cache_servers = CMS_DEFAULTS['memcache_servers'] || ['localhost:11211']
 cache_servers = [cache_servers] unless cache_servers.is_a?(Array)
 CACHE.servers =  cache_servers
 
+# this is where you deal with passenger's forking
+begin
+   PhusionPassenger.on_event(:starting_worker_process) do |forked|
+     if forked
+       # We're in smart spawning mode, so...
+       # Close duplicated memcached connections - they will open themselves
+       CACHE.reset
+     end
+   end
+   # In case you're not running under Passenger (i.e. devmode with mongrel)
+rescue NameError => error
+end
+
 ActionController::Base.session_options[:expires] = 10800 unless Rails.env == 'development'
 ActionController::Base.session_options[:cache] = CACHE
 
