@@ -79,7 +79,7 @@ class Feedback::CommentsRenderer < ParagraphRenderer
         end
       end
 
-      @comments = Comment.with_rating(@options.show).for_target(content_link[0],content_link[1]).order_by_posted(@options.order.to_s).find(:all)
+      @comments = Comment.with_rating(@options.show).for_target(content_link[0],content_link[1]).order_by_posted(@options.order.to_s).limit(@options.limit).find(:all)
       @posted_comment = flash[:posted_comment]
       cache[:output] = comments_page_comments_feature
     end
