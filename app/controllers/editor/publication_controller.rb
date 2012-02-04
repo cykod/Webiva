@@ -35,8 +35,9 @@ class Editor::PublicationController < ParagraphController #:nodoc:all
   end
   
   class CreateOptions < HashModel
-    default_options :redirect_page_id => nil, :options => [], :success_text => nil, :redirect_page => nil, :user_level => nil
+    default_options :redirect_page_id => nil, :options => [], :success_text => nil, :redirect_page => nil, :user_level => nil, :captcha => false
     page_options :redirect_page_id
+    boolean_options :captcha
     integer_options :user_level
     
     def redirect_page_id
