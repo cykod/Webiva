@@ -768,7 +768,7 @@ class Content::CoreField < Content::FieldHandler
         else
           opts = { :conditions => conditions,:order => order_by }
           opt_hsh = cls.hash_hash(opts)
-          available_options = cls.cache_fetch_list(opt_hsh + 'select_options')
+          available_options = cls.cache_fetch_list(opt_hsh + 'select_options') if cls.respond_to?(:cache_fetch_list)
           
           if !available_options
             available_options = cls.select_options(opts)
@@ -776,7 +776,7 @@ class Content::CoreField < Content::FieldHandler
               available_options.sort! { |a,b| a[0].downcase <=> b[0].downcase }
             end
 
-            cls.cache_put_list(opt_hsh + 'select_options',available_options)
+            cls.cache_put_list(opt_hsh + 'select_options',available_options) if cls.respond_to?(:cache_put_list)
           end
 
 

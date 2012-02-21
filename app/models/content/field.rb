@@ -240,10 +240,14 @@ module Content
 
     def self.number_value(val,size,options={})
       options.symbolize_keys!
-      if options[:precision]
+      if !val.present?
+        ''
+      elsif options[:precision]
         val.to_f.round(options[:precision].to_i)
-      else
+      elsif val.is_a?(Fixnum)
         val.to_i
+      else
+        val.to_f.round(2)
       end
 
     end
