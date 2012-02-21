@@ -242,12 +242,12 @@ module Content
       options.symbolize_keys!
       if !val.present?
         ''
-      elsif options[:precision]
-        val.to_f.round(options[:precision].to_i)
+      elsif options[:precision] || options[:padding]
+        sprintf("%#{options[:padding].to_i || 0}.#{options[:precision].to_i}",val)
       elsif val.is_a?(Fixnum)
         val.to_i
       else
-        val.to_f.round(2)
+        sprintf("%0.2f", val.to_f)
       end
 
     end
