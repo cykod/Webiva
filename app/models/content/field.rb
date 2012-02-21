@@ -243,7 +243,7 @@ module Content
       if !val.present?
         ''
       elsif options[:precision] || options[:padding]
-        sprintf("%#{options[:padding].to_i || 0}.#{options[:precision].to_i}",val)
+        sprintf("%#{options[:padding].to_i || 0}.#{options[:precision].to_i || 0}f",val)
       elsif val.is_a?(Fixnum)
         val.to_i
       else
