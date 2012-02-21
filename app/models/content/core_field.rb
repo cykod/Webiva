@@ -153,7 +153,7 @@ class Content::CoreField < Content::FieldHandler
     setup_model :required, :validates_numericality, :regexp
     table_header :number
     
-    content_display :text
+    content_display :number
     filter_setup :like, :not_empty, :between
     
     def form_field(f,field_name,field_opts,options={})

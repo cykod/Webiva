@@ -189,6 +189,7 @@ module Content
 
     @@content_display_methods = {
       :text => "Content::Field.text_value(entry.send(@model_field.field),size,options)",
+      :number => "Content::Field.number_value(entry.send(@model_field.field),size,options)",
       :html => "Content::Field.html_value(entry.send(@model_field.field),size,options)",
       :code => "Content::Field.code_value(entry.send(@model_field.field),size,options)"
     }
@@ -235,6 +236,16 @@ module Content
       else
         val
       end
+    end
+
+    def self.number_value(val,size,options={})
+      options.symbolize_keys!
+      if options[:precision]
+        val.to_f.round(options[:precision].to_i)
+      else
+        val.to_i
+      end
+
     end
     
     # Helper method for escaping an html value
