@@ -244,6 +244,23 @@ class Blog::PageFeature < ParagraphFeature
 	tag.locals.archive[:cnt]
       end
 
+
+      c.loop_tag('author') do |tag|
+        Blog::BlogPost.find(:all, 
+                            :include => ['active_revision'],
+                            :conditions => {'blog_posts.status' => 'published', 
+                                            'blog_post_revisions.status' => 'active',
+                                            :blog_blog_id => data[:blog_id]},
+                            :order => 'blog_post_revisions.author', 
+                            :group => 'blog_post_revisions.author')
+      end
+
+      c.link_tag('author:author') do |tag|
+        SiteNode.link(data[:list_page], 'author', CGI::escape(tag.locals.author.author))
+      end
+
+      c.value_tag('author:name') { |tag| tag.locals.author.author }
+
       c.link_tag('list_page') { |tag| data[:list_page] }
     end
   end
