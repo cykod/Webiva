@@ -41,6 +41,8 @@ class Blog::PageRenderer < ParagraphRenderer
       category_filter  = list_type_identifier
     elsif list_type == 'tag'
       tag_filter = list_type_identifier
+    elsif list_type == 'author'
+      author_filter = CGI.unescape(list_type_identifier) # Author name
     end
 
     list_connection_detail, category_filter = page_connection(:category) if page_connection(:category)
@@ -48,7 +50,7 @@ class Blog::PageRenderer < ParagraphRenderer
 
     if list_type && ! editor?
       list_type = list_type.downcase unless list_type.blank?
-      unless (['category','tag','archive'].include?(list_type.to_s))
+      unless (['author','category','tag','archive'].include?(list_type.to_s))
         raise SiteNodeEngine::MissingPageException.new(site_node, language) if list_type_identifier && site_node.id == @options.detail_page_id
         set_page_connection(:category, nil)
         return render_paragraph :text => ''
@@ -84,6 +86,8 @@ class Blog::PageRenderer < ParagraphRenderer
       if blog
         if list_type.to_s == 'archive'
           pages,entries = blog.paginate_posts_by_month(page,list_type_identifier,items_per_page,:large => @options.skip_total)
+        elsif list_type.to_s == 'author'
+          pages,entries = blog.paginate_posts_by_author(page,author_filter,items_per_page,:large => @options.skip_total)
         else
           pages,entries = blog.paginate_posts(@options.skip_page ? 1 : page,items_per_page,:large => @options.skip_total, :category_filter => category_filter, :tag_filter => tag_filter, :order => @options.order == 'date' ? 'blog_posts.published_at DESC' : 'blog_posts.rating DESC')
         end
