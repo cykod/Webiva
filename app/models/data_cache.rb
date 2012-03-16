@@ -76,8 +76,14 @@ class DataCache
     begin
       ret_val = CACHE.get_multi(container_string,version_string)
       val = ret_val[version_string]
-    rescue MemCache::MemCacheError => e
-      return nil
+    rescue 
+      begin
+        CACHE.reset
+        ret_val = CACHE.get_multi(container_string,version_string)
+        val = ret_val[version_string]
+      rescue
+        return nil
+      end
     end
     return nil unless val 
     # Find out when the page was last expired
@@ -93,10 +99,24 @@ class DataCache
   
   def self.set_domain_info(domain,values) #:nodoc:
     CACHE.set("Domain:#{domain}",values)
+  rescue
+    begin
+      CACHE.reset
+      CACHE.set("Domain:#{domain}",values)
+    rescue
+      values
+    end
   end
 
   def self.get_domain_info(domain) #:nodoc:
     CACHE.get("Domain:#{domain}")
+  rescue
+    begin
+      CACHE.reset
+      CACHE.get("Domain:#{domain}")
+    rescue
+      return nil
+    end
   end
   
   # Return a container from the remote cached, store it in
@@ -122,12 +142,28 @@ class DataCache
       version = container.id.to_s + ":" + version
       container = container.class.to_s
     end
-    CACHE.set("#{DomainModel.active_domain_db}::#{container}:#{version}",[ Time.now.to_f,  data ],expiration )
+    begin
+      CACHE.set("#{DomainModel.active_domain_db}::#{container}:#{version}",[ Time.now.to_f,  data ],expiration )
+    rescue 
+      begin
+        CACHE.reset
+        CACHE.set("#{DomainModel.active_domain_db}::#{container}:#{version}",[ Time.now.to_f,  data ],expiration )
+      rescue
+        [ Time.now.to_f, data ]
+      end
+    end
   end
   
   # Expire all versions of a container
   def self.expire_container(container_class)
     CACHE.set("#{DomainModel.active_domain_db}::" + container_class,Time.now.to_f)
+  rescue
+    begin
+      CACHE.reset
+      CACHE.set("#{DomainModel.active_domain_db}::" + container_class,Time.now.to_f)
+    rescue
+      nil
+    end
   end
   
   # Put a piece of content into the remote cache. See
@@ -143,6 +179,13 @@ class DataCache
       CACHE.set("#{DomainModel.active_domain_db}::Content::#{content_type}::#{content_target}::#{display_location}",[ Time.now.to_f,  data ],expiration )
     rescue ArgumentError => e
       # chomp
+    rescue Exception => e
+      begin 
+        CACHE.reset
+        CACHE.set("#{DomainModel.active_domain_db}::Content::#{content_type}::#{content_target}::#{display_location}",[ Time.now.to_f,  data ],expiration )
+      rescue 
+        nil
+      end
     end
   end
 
@@ -222,7 +265,17 @@ def self.get_remote(content_type,content_target,display_location)
     content_target_string = content_type_string  + "::" + content_target
     display_location_string= content_target_string + "::" + display_location.to_s
     
-    ret_val = CACHE.get_multi(container_string,content_type_string,content_target_string,display_location_string)
+    ret_val = nil
+    begin
+      ret_val = CACHE.get_multi(container_string,content_type_string,content_target_string,display_location_string)
+    rescue
+      begin
+        CACHE.reset
+        ret_val = CACHE.get_multi(container_string,content_type_string,content_target_string,display_location_string)
+      rescue
+        ret_val = nil
+      end
+    end
 
     val = ret_val[display_location_string]
     return nil unless val
@@ -251,6 +304,13 @@ def self.get_remote(content_type,content_target,display_location)
   # display_location = the specific display instance (like a paragraph / etc )
   def self.put_remote(content_type,content_target,display_location,data,expiration = 0) 
     CACHE.set("#{DomainModel.active_domain_db}::Remote::#{content_type}::#{content_target}::#{display_location}",[ Time.now.to_f,  data ],expiration )
+  rescue
+    begin
+      CACHE.reset
+      CACHE.set("#{DomainModel.active_domain_db}::Remote::#{content_type}::#{content_target}::#{display_location}",[ Time.now.to_f,  data ],expiration )
+    rescue
+      nil
+    end
   end
 
  def self.logger
@@ -269,11 +329,15 @@ def self.get_remote(content_type,content_target,display_location)
  end
 
  # Expires the cache for an entire site - domain database must be specified
- def self.expire_domain(db)
+ def self.expire_domain(db,limit=2)
+   return unless limit > 0
    CACHE.set("#{db}::Content", Time.now.to_f)
    %w(SiteNode Handlers SiteNodeModifier Modules).each do |container_class|
      CACHE.set("#{db}::" + container_class,Time.now.to_f) 
    end
+ rescue
+   CACHE.reset
+   self.expire_domain(db,limit-1)
  end
 
 end
