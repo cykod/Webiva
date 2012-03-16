@@ -4,9 +4,9 @@ set :repository, "git://github.com/westarete/Webiva.git"
 
 set :module_repository, "git://github.com/cykod/"
 
-role :web, "production.westarete.com"
-role :app, "production.westarete.com"
-role :db,  "production.westarete.com"
+role :web, "shiitake.westarete.com", "alexander.westarete.com"
+role :app, "shiitake.westarete.com", "alexander.westarete.com"
+role :db,  "shiitake.westarete.com", "alexander.westarete.com"
 
 set :deploy_to, "/var/www/domains/webiva.production.westarete.com"
 
