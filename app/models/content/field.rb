@@ -189,6 +189,7 @@ module Content
 
     @@content_display_methods = {
       :text => "Content::Field.text_value(entry.send(@model_field.field),size,options)",
+      :number => "Content::Field.number_value(entry.send(@model_field.field),size,options)",
       :html => "Content::Field.html_value(entry.send(@model_field.field),size,options)",
       :code => "Content::Field.code_value(entry.send(@model_field.field),size,options)"
     }
@@ -235,6 +236,20 @@ module Content
       else
         val
       end
+    end
+
+    def self.number_value(val,size,options={})
+      options.symbolize_keys!
+      if !val.present?
+        ''
+      elsif options[:precision] || options[:padding]
+        sprintf("%#{options[:padding].to_i || 0}.#{options[:precision].to_i || 0}f",val)
+      elsif val.is_a?(Fixnum)
+        val.to_i
+      else
+        sprintf("%0.2f", val.to_f)
+      end
+
     end
     
     # Helper method for escaping an html value

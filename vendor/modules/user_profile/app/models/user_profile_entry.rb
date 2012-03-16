@@ -118,7 +118,8 @@ class UserProfileEntry < DomainModel
     if !self.end_user.username.blank?
       url_try =  "#{self.end_user.username.downcase}" 
     else
-      url_try = "#{self.end_user.first_name.to_s.downcase}-#{self.end_user.last_name.to_s.downcase}" 
+      url_try = "#{self.end_user.first_name.to_s.downcase}"
+      url_try += "-#{self.end_user.last_name.to_s.downcase}" unless self.end_user.last_name.blank?
     end
     url_try = url_try.to_s.downcase.gsub(/[ _]+/,"-").gsub(/[^a-z+0-9\-]/,"")
     url_base = url_try

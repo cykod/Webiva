@@ -225,7 +225,8 @@ module ModelExtension::EndUserImportExtension
           entry_method = :update
           unless entry
             entry_method = :new
-            entry = EndUser.new(:user_class_id => new_user_class.id, :source => 'import')
+            entry = EndUser.new(:source => 'import')
+            entry.user_class_id = new_user_class.id
           end
 
           extra_tags = nil

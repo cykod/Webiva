@@ -28,7 +28,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
   def create
     publication = paragraph.content_publication
     @options = paragraph_options(:create)
-    
+    @captcha = WebivaCaptcha.new(self)
 
     if !editor?
       if request.post? && params['entry_' + publication.id.to_s] && !params['partial_form']
@@ -42,6 +42,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
 
         publication.update_entry(entry,params['entry_' + publication.id.to_s],renderer_state.merge(:content_id => content_id))
         
+        @captcha.validate_object(entry, :skip => ! @options.captcha)
         if entry.errors.length == 0 && entry.save
           expire_content(publication.content_model_id)
   
@@ -88,7 +89,7 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
         pub_class = publication_options[:form_class].blank? ? nil : publication_options[:form_class]
       multipart  =   publication.content_publication_fields.detect { |fld| fld.content_model_field.field_type == 'image' || fld.content_model_field.field_type == 'document' }
 
-        paragraph_output = form_feature(publication,{:entry => entry, :multipart => multipart,:publication => publication})
+        paragraph_output = form_feature(publication,{:entry => entry, :multipart => multipart,:publication => publication, :options => @options, :captcha => @captcha})
 
       
         # TO DO - reactivate caching and expand to whole content / publication controller

@@ -51,13 +51,13 @@ class UserProfile::PageRenderer < ParagraphRenderer
   def list_profiles
     @options = paragraph_options(:list_profiles)
 
-    result = renderer_cache(UserProfileEntry) do |cache|
+    result = renderer_cache(UserProfileEntry,params[:page].to_s,:expires => 600) do |cache|
       @user_profile_type = UserProfileType.find_by_id(@options.profile_type_id)   
 
       return render_paragraph :text => 'Configure Paragraph'.t if !@user_profile_type
 
       order_by = @@profile_order_by_options[@options.order_by]
-      @pages,@users = @user_profile_type.paginate_users(params[:page],:order => order_by, :registered => @options.registered_only)
+      @pages,@users = @user_profile_type.paginate_users(params[:page],:order => order_by, :per_page => @options.per_page, :registered => @options.registered_only)
       @content_model = @user_profile_type.content_model
 
       cache[:output] = user_profile_page_list_profiles_feature

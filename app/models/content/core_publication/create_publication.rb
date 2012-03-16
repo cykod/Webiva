@@ -49,6 +49,12 @@ class Content::CorePublication::CreatePublication < Content::PublicationType #:n
         end
       end
     end 
+    output += "<cms:captcha_error><tr>\n"
+    output += "  <td colspan='2' class='error'><cms:value/></td>\n"
+    output += "</tr></cms:captcha_error>\n"
+    output += "<tr>\n"
+    output += "  <td colspan='2'><cms:captcha/></td>\n"
+    output += "</tr>\n"
     output += "<tr>\n"
     output += "  <td colspan='2' align='right'><cms:create_butt/></td>\n"
     output += "</tr>\n"

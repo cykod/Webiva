@@ -20,7 +20,8 @@ class Feedback::CommentsController < ParagraphController
   end
   
   class CommentsOptions < HashModel
-    attributes :allowed_to_post => 'members', :linked_to_type => 'connection', :order => 'newest', :show => 1, :captcha => false, :required_fields => [ 'name'], :save_user => false, :source => '', :user_tags => ''
+    attributes :allowed_to_post => 'members', :linked_to_type => 'connection', :order => 'newest', :show => 1, :captcha => false, :required_fields => [ 'name'], :save_user => false, :source => '', :user_tags => '', :limit => 20
+    integer_options :limit
     
     boolean_options :captcha, :save_user
 

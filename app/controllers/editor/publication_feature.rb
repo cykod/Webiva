@@ -24,6 +24,8 @@ class Editor::PublicationFeature < ParagraphFeature #:nodoc:all
 
       if publication.publication_type == 'edit'
         c.define_button_tag('form:delete',:name => "entry_#{publication.id}[delete]", :value => 'Delete')
+      else
+        c.captcha_tag('form:captcha') { |t| data[:captcha] if data[:options].captcha }
       end
 
       c.expansion_tag('submitted') { |t|  data[:submitted] }
