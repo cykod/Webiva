@@ -312,7 +312,7 @@ class DomainModel < ActiveRecord::Base
       db_config['persistent'] = false
       cls.establish_connection(db_config)
 
-      cls.connection.update("set @@wait_timeout=30")
+      cls.connection.update("set @@wait_timeout=600")
 
       @@database_connection_pools[self.process_id] = cls
       return true

@@ -17,6 +17,7 @@ class DomainModelWorker <  Workling::Base #:nodoc:all
     logger.warn("Running: #{args[:class_name]} #{args[:entry_id]} #{args[:method]}")
     # Don't Save connection
     DomainModel.activate_domain(domain.get_info,'production',false)
+    DomainModel.connection.update("set @@wait_timeout=2000")
     if(args[:language]) 
       language = args[:language]
       Locale.set(language)
