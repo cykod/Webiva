@@ -213,6 +213,13 @@ class DataCache
       ret_val = CACHE.get_multi(container_string,content_type_string,content_target_string,display_location_string)
     rescue ArgumentError => e
       ret_val = { }
+    rescue
+      begin
+        CACHE.reset
+        ret_val = CACHE.get_multi(container_string,content_type_string,content_target_string,display_location_string)
+      rescue
+        ret_val = {}
+      end
     end
 
     val = ret_val[display_location_string]
