@@ -321,7 +321,7 @@ class DomainModel < ActiveRecord::Base
       @@mutex.synchronize do 
 
         @@database_connection_pools[self.process_id].connection.verify!
-        @@database_connection_pools[self.process_id].connection.update("set @@wait_timeout=30")
+        @@database_connection_pools[self.process_id].connection.update("set @@wait_timeout=600")
       end
 
       return true
