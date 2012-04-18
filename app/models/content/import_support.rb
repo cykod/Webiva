@@ -170,6 +170,7 @@ def export_xml(output,options = {})
          ['Referrer','end_user.referrer'],
          ['Salutation','end_user.salutation'],
          ['Username','end_user.username'],
+         ['Source User ID','end_user.source_user_id'],
          ['Membership ID','end_user.membership_id'],
          ['Phone','address.phone'],
          ['Address - Street Number','address.address'],
