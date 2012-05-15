@@ -249,6 +249,7 @@ class EndUser < DomainModel
 
   # Return a list of select options of all users
   def self.select_options(editor=false)
+    editor = false if editor.is_a?(Hash)
     self.find(:all, :order => 'last_name, first_name',:include => :user_class,
               :conditions => [ 'user_classes.editor = ?',editor ] ).collect { |usr| [ "#{usr.last_name}, #{usr.first_name} (##{usr.id})", usr.id ] } 
   end
@@ -680,7 +681,7 @@ Not doing so could allow a user to change their user profile (for example) and e
       adr.attributes = adr_values
       adr.end_user_id  = target.id
       adr.save
-      target.address_id = adr
+      target.address_id = adr.id
     end
     
     target.attributes = opts
