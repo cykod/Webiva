@@ -95,6 +95,7 @@ def display_feature(publication,data)
    webiva_custom_feature(publication.feature_name) do |c|
      c.define_loop_tag('entry','entries') { data[:entries] }
 
+     c.value_tag('entry:id') { |t| t.locals.entry.id }
      publication.content_publication_fields.each do |fld|
        fld.content_model_field.site_feature_value_tags(c,'entry',:full)
      end
