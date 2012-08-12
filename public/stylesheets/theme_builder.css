@@ -102,8 +102,9 @@ ul#webiva-theme-builder-zones li {
   background-color:#f3e380 ! important; 
   color:#3b648c ! important;
   text-align:center ! important;
- -moz-border-radius: 5px ! important;
- -webkit-border-radius: 5px ! important;
+  -moz-border-radius: 5px ! important;
+  -webkit-border-radius: 5px ! important;
+  border-radius: 5px !important;
 }
 
 .fixed_secondary_header {

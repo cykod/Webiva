@@ -16,6 +16,8 @@
  background-color:#AAAAAA;
  -moz-border-radius-topleft: 10px;
  -moz-border-radius-bottomleft: 10px;
+ border-top-left-radius: 10px;
+ border-bottom-left-radius: 10px;
 }
 
 

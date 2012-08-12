@@ -24,6 +24,7 @@ header.fixed_header {
        height:68px;
        -moz-border-radius: 34px;
        -webkit-border-radius: 34px;
+       border-radius: 34px;
    }
    nav li .menu_image_website  { background:url(../images/framework/menu_icons.png) 0px 0px no-repeat #00b591; }
    nav li .menu_image_content  { background:url(../images/framework/menu_icons.png) -68px 0px no-repeat #f9a11b; }
@@ -52,6 +53,8 @@ header.fixed_header {
      -moz-border-radius-bottomleft: 10px;
      -webkit-border-bottom-left-radius: 10px;
      -webkit-border-bottom-right-radius: 10px;
+     border-bottom-right-radius: 10px;
+     border-bottom-left-radius: 10px;
     }
     #cms_header_return { padding:11px 10px; color: #c7cb2d; }
     #cms_header_return a { color: #c7cb2d; text-decoration:none; }
@@ -78,6 +81,7 @@ h1.inpage { float:none; padding-left:0px;  }
   background-color:#00bcdc; 
   -moz-border-radius: 10px;
   -webkit-border-radius: 10px;
+  border-radius: 10px;
   text-decoration:none; 
 }
 .action_panel li.right { float:right; }
@@ -160,6 +164,7 @@ hr { clear:both; border:0px; color:white; background-color:white; height:10px; }
   width:325px; background-color:#cce5e9; padding:20px 6px 10px 6px; 
   -moz-border-radius: 10px;
   -webkit-border-radius: 10px;
+  border-radius: 10px;
   float:left;
   margin-right:10px;
  
@@ -173,6 +178,7 @@ hr { clear:both; border:0px; color:white; background-color:white; height:10px; }
   padding:12px 0px 12px 8px;
   -moz-border-radius: 10px;
   -webkit-border-radius: 10px;
+  border-radius: 10px;
   overflow:hidden;
  }
 
@@ -181,7 +187,7 @@ hr { clear:both; border:0px; color:white; background-color:white; height:10px; }
  .add_elements_fixed { position:fixed !important; top:35px; left:30px; }
 
  .add_elements_button_fixed { position:fixed; top:95px; left:-60px; -webkit-transform: rotate(-90deg); 
--moz-transform: rotate(-90deg);	} 
+-moz-transform: rotate(-90deg); transform: rotate(-90deg);	}
 
  .tree_detail { 
    margin:0 0 0 360px;
@@ -189,6 +195,7 @@ hr { clear:both; border:0px; color:white; background-color:white; height:10px; }
    background-color:#cce5e9; padding:20px 10px 10px 10px; 
   -moz-border-radius: 10px;
   -webkit-border-radius: 10px;
+  border-radius: 10px;
   z-index:500;
  }
 
@@ -208,6 +215,7 @@ hr { clear:both; border:0px; color:white; background-color:white; height:10px; }
   padding:12px;
   -moz-border-radius: 10px;
   -webkit-border-radius: 10px;
+  border-radius: 10px;
   margin:0px 0px 15px 0px;
    color:#754c28;
    line-height:1.4em;
@@ -294,7 +302,8 @@ hr { clear:both; border:0px; color:white; background-color:white; height:10px; }
     color:#cce5e9;
     background-color:#8a5d3b; display:inline-block; padding:5px; 
     -moz-border-radius: 5px;
-   -webkit-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
    }
    .page_detail_buttons li a.image_icon_selected { background-color:#a46f46; }
    .page_detail_buttons li.icon a { padding: 2px 5px; }
@@ -480,13 +489,14 @@ div.file_manager_directory { margin:5px; }
   background-color:#00b591;
   border:0px;
   -moz-border-radius: 5px;
-   -webkit-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
   padding:5px 3px;
 }
 #folder_order select:active {
   outline:none;
 }
-fm_image_img {
+.fm_image_img {
   background-color:#DDDDDD;
 }
 
@@ -511,7 +521,8 @@ fm_image_img {
 .file_manager_icon .fm_cover { 
   width:100%; height:100%; position:absolute; top:-10px;
   -moz-border-radius: 10%;
- -webkit-border-radius:5px;
+  -webkit-border-radius:5px;
+  border-radius: 10%;
 }
 
 #file_upload_area {
@@ -659,6 +670,7 @@ fm_image_img {
  text-align:left;
  -moz-border-radius: 5px;
  -webkit-border-radius: 5px;
+ border-radius: 5px;
  background-color:#23c1dc;
  border:1px solid #46c9e0; 
  height:24px;
@@ -790,6 +802,7 @@ background: -webkit-gradient(
 
  -moz-border-radius: 25px;
  -webkit-border-radius: 25px;
+ border-radius: 25px;
  padding:5px;
  margin:0px;
  -moz-box-shadow: 20px 20px 20px #666;
@@ -820,10 +833,9 @@ background: -webkit-gradient(
 .cms_form { 
   padding:20px;
   background-color:white;
- -moz-border-radius: 25px;
- -webkit-border-radius: 25px;
-
-
+  -moz-border-radius: 25px;
+  -webkit-border-radius: 25px;
+  border-radius: 25px;
 }
 
 
@@ -945,7 +957,7 @@ background: -webkit-gradient(
   -moz-border-radius-topright: 4px;
   border-top-left-radius: 4px;
   border-top-right-radius: 4px;
-   padding:5px 10px 6px 10px;
+  padding:5px 10px 6px 10px;
   position:relative;
   
 
@@ -1205,7 +1217,7 @@ table.display_table td.field {
   -moz-border-radius-topright: 10px;
   border-bottom-left-radius: 10px;
   border-bottom-right-radius: 10px;
-  border-radius-topright: 10px;
+  border-top-right-radius: 10px;
   overflow:hidden;
 }
 
