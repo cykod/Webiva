@@ -70,10 +70,6 @@ class Editor::PublicationRenderer < ParagraphRenderer #:nodoc:all
       end
     end
     
-    require_js('prototype')
-    require_js('overlib/overlib')
-    require_js('user_application')
-    
     content_type = "ContentModel" + publication.content_model_id.to_s
     content_target = "New"
     target_display = "#{paragraph.id}_#{myself.user_class_id}"

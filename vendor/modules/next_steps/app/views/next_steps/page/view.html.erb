@@ -1,0 +1,9 @@
+<div class='cms_form'>
+  <%  paragraph_options_form_for :view do |f| -%>
+    <%= f.text_field :title %>
+    <%= f.select :step_1, NextStepsStep.all.collect{|s| [s.to_s, s.id] }, {:include_blank => true, :selected => @options.step_1.to_i } %>
+    <%= f.select :step_2, NextStepsStep.all.collect{|s| [s.to_s, s.id] }, {:include_blank => true, :selected => @options.step_2.to_i } %>
+    <%= f.select :step_3, NextStepsStep.all.collect{|s| [s.to_s, s.id] }, {:include_blank => true, :selected => @options.step_3.to_i } %>
+    
+  <% end -%>
+</div>

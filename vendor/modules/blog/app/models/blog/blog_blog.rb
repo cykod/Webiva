@@ -118,6 +118,18 @@ class Blog::BlogBlog < DomainModel
 
   end
 
+  def paginate_posts_by_author(page,author,items_per_page,options={})
+    Blog::BlogPost.paginate(page, {
+          :include => [ :active_revision, :blog_categories ],
+          :order => 'published_at DESC',
+          :conditions => ["blog_posts.status = \"published\" AND 
+                           blog_posts.published_at < ? AND 
+                           blog_posts.blog_blog_id = ? AND 
+                           blog_post_revisions.author = ?",
+                           Time.now, self.id, author],
+          :per_page => items_per_page }.merge(options))
+  end
+
   def paginate_posts(page,items_per_page,options = {})
     opts = options.symbolize_keys
 

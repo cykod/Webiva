@@ -1,0 +1,11 @@
+<% active_table_for :steps_table, @table,
+     :actions => [['Delete','delete','Delete the selected steps?']] do |step| -%>
+  <% active_tr 'steps', step.id do |tr| -%>
+   <td><%= tr.checkbox -%></td>
+   <td><%= link_to h(step.action_text), :action => 'edit', :path => [ step.id ] -%></td>
+   <td><%= link_to h(step.description_text), :action => 'edit', :path => [ step.id ] -%></td>
+    <td><%= link_to step.page, step.page -%></td>
+    <td><%= link_to step.document.name, step.document.url if step.document -%></td>
+    <td><%= step.created_at.to_s(:short) -%></td>
+  <% end -%>
+<% end -%>

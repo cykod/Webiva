@@ -129,6 +129,8 @@ p.header {
      -moz-border-radius-topright: 6px;
      -webkit-border-radius-topleft: 6px;
      -webkit-border-radius-topright: 6px;
+     border-top-right-radius: 6px;
+     border-top-left-radius: 6px;
      font-family: 'Droid Sans', arial, serif; 
      }
     .ajax_tabs > tbody > tr > td.selected > a { color:#603b17; background-color:white; }
@@ -149,6 +151,9 @@ p.header {
      -webkit-border-radius-topright: 10px;
      -webkit-border-radius-bottomright: 10px;
      -webkit-border-radius-bottomleft: 10px;
+     border-top-right-radius: 10px;
+     border-bottom-left-radius: 10px;
+     border-bottom-right-radius: 10px;
  
     }
 
@@ -170,6 +175,7 @@ button.button_link {
   background-color: #00bcdc; 
   -moz-border-radius: 8px;
   -webkit-border-radius: 8px;
+  border-radius: 8px;
   text-decoration:none; 
   border:0px;
   display:inline-block;
@@ -189,7 +195,7 @@ button.button_link {
 /* Form */
 
 #RB_window .admin_form { background-color:white;   -moz-border-radius: 25px;
-  -webkit-border-radius: 25px;
+  -webkit-border-radius: 25px; border-radius: 25px;
  }
 
 form {
@@ -205,7 +211,7 @@ form td {
 }
 
 form td.label {
- padding-top:10px;
+ padding-top:14px;
  text-align:right;
  font-weight:bold;
  color:#3b648c;
@@ -214,15 +220,14 @@ form td.label {
 }
 
 form td.data {
- padding-top:10px;
+ padding-top:14px;
 
 }
 
 form td.description, form td.description_vertical {
   padding-bottom:2px;
+  padding-top: 2px;
   color:#999999;
-  font-size:10px;
-
 }
 
 
@@ -304,6 +309,7 @@ form input:focus, form textarea:focus  {
 .active_table_wrapper {
   -moz-border-radius: 8px;
   -webkit-border-radius: 8px;
+  border-radius: 8px;
   background-color:#cce5e9; 
   padding:0px 8px 8px 8px;
   display:inline-block;
@@ -416,6 +422,7 @@ table td .highlighted_col {
     margin:0px 2px;
     -moz-border-radius: 4px;
     -webkit-border-radius: 4px;
+    border-radius: 4px;
   }
   
    ul.pagination li.first {
@@ -604,6 +611,7 @@ table td .highlighted_col {
 .stat_table_wrapper {
   -moz-border-radius: 8px;
   -webkit-border-radius: 8px;
+  border-radius: 8px;
   background-color:#f2f7e3;
   padding:0px 8px 8px 8px;
   display:inline-block;

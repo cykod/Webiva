@@ -1,3 +1,9 @@
 !.gitignore
-*.yml
 apache
+cms.yml
+cms_migrator.yml
+cucumber.yml
+defaults.yml
+server.yml
+workling.yml
+

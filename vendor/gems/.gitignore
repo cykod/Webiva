@@ -1,9 +1,0 @@
-*.o
-*.so
-*.out
-*.bundle
-mkmf.log
-extconf.h
-Makefile
-mysql.c
-conftest.dSYM

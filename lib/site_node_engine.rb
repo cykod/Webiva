@@ -1080,11 +1080,7 @@ EOF
     skip = false
     if !para.display_module
       if !para.display_body.blank? && para.display_body != ''
-        if @page_information.lightweight
-          body = para.display
-        else
-          body = "<div class='#{para.display_type}_paragraph'>" +  para.display + "</div>"
-        end
+        body = para.display
       else
         skip=true
       end

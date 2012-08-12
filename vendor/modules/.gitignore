@@ -1,4 +1,3 @@
-/*
 !.gitignore
 !blog
 !example
@@ -8,3 +7,4 @@
 !webform
 !simple_content
 !user_profile
+poll_demo
