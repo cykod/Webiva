@@ -211,7 +211,7 @@ form td {
 }
 
 form td.label {
- padding-top:10px;
+ padding-top:14px;
  text-align:right;
  font-weight:bold;
  color:#3b648c;
@@ -220,15 +220,14 @@ form td.label {
 }
 
 form td.data {
- padding-top:10px;
+ padding-top:14px;
 
 }
 
 form td.description, form td.description_vertical {
   padding-bottom:2px;
+  padding-top: 2px;
   color:#999999;
-  font-size:10px;
-
 }
 
 
