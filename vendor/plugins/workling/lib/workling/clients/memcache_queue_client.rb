@@ -54,8 +54,13 @@ module Workling
         begin
           get(key)
         rescue MemCache::MemCacheError => e
-          # failed to enqueue, raise a workling error so that it propagates upwards
-          raise Workling::WorklingError.new("#{e.class.to_s} - #{e.message}")        
+          begin 
+            self.connection.reset
+            get(key)
+          rescue MemCache::MemCacheError => e
+            # failed to enqueue, raise a workling error so that it propagates upwards
+            raise Workling::WorklingError.new("#{e.class.to_s} - #{e.message}")        
+          end
         end
       end
             
@@ -65,7 +70,12 @@ module Workling
           begin 
             self.connection.stats
           rescue
-            raise Workling::QueueserverNotFoundError.new
+            begin
+              self.connection.reset
+              self.connection.stats
+            rescue
+              raise Workling::QueueserverNotFoundError.new
+            end
           end
         end
         
@@ -74,7 +84,12 @@ module Workling
           begin
             self.connection.send(method, *args)
           rescue MemCache::MemCacheError => e
-            raise Workling::WorklingConnectionError.new("#{e.class.to_s} - #{e.message}")        
+            begin
+              self.connection.reset
+              self.connection.send(method, *args)
+            rescue MemCache::MemCacheError => e
+              raise Workling::WorklingConnectionError.new("#{e.class.to_s} - #{e.message}")        
+            end
           end
         end
     end
