@@ -13515,7 +13515,7 @@ tinymce.create('tinymce.ui.Toolbar:tinymce.ui.Container', {
 		},
 
 		hide : function() {
-			var self = this, doc = t.getDoc();
+			var self = this, doc = this.getDoc();
 
 			// Fixed bug where IE has a blinking cursor left from the editor
 			if (isIE && doc)
