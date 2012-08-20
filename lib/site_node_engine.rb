@@ -922,7 +922,7 @@ EOF
       replacement_page_path = nil
       site_node.children.each do |page|
         if page.node_type == 'J'
-         replacement_page_path = page.redirect_detail.destination
+         replacement_page_path = page.redirect_detail.destination if page.redirect_detail
          break;
         else
          rev = page.page_revisions.find(:first,
