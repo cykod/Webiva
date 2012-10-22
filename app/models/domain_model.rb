@@ -331,6 +331,7 @@ class DomainModel < ActiveRecord::Base
   # Run a worker on a specific DomainModel
   # see DomainModel#run_worker if you already have the ActiveRecord object
   def self.run_worker(class_name,entry_id,method,parameters = {})
+    begin
      DomainModelWorker.async_do_work(
                                      :class_name => class_name,
                                      :entry_id => entry_id,
@@ -339,7 +340,10 @@ class DomainModel < ActiveRecord::Base
                                      :method => method,
                                      :language => Locale.language_code  
 					  )
+    rescue Exception => e
+      Rails.logger.error("Error running worker: #{class_name} #{entry_id} #{method}")
 
+    end
   end
 
   def self.run_class_worker(method,parameters = { })
