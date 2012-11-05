@@ -5,6 +5,8 @@ class ContentModelType < DomainModel
 
   attr_accessor :content_score_a,:content_score_b,:content_score_c
 
+  include WebivaCaptcha::ModelSupport
+
   attr_accessor :connected_end_user
 
   def content_score
