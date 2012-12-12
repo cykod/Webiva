@@ -24,10 +24,13 @@ namespace "cms" do
     db_cfg = main_db[ENV['RAILS_ENV']]
     
     domain_id = ENV['DOMAIN_ID']
+    domain_name = ENV['DOMAIN']
     webiva_db = false
 
     if domain_id 
       domains = [ Domain.find_by_id(domain_id) ]
+    elsif domain_name
+      domains = [ Domain.find_by_name(domain_name) ]
     else
       domains = Domain.find(:all,:group => '`database`',:conditions => 'domain_type = "domain"')
       webiva_db = true
