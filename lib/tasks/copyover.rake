@@ -61,12 +61,48 @@ namespace "cms" do
     puts "###############################################################"
      `rm -r '#{RAILS_ROOT}/backup/backupfile/'`
 
-     `mv #{RAILS_ROOT}/backup/backupfile.tar.gz #{RAILS_ROOT}/backup/restored_#{Time.now.strftime("%Y-%m-%d")}_#{ENV['RESTORE'] || ENV['RESTORE']}.tar.gz`
+     `mv #{RAILS_ROOT}/backup/backupfile.tar.gz #{RAILS_ROOT}/backup/restored_#{Time.now.strftime("%Y-%m-%d")}_#{restore || restore_id}.tar.gz`
 
     puts "###############################################################"
     puts "Done........."
     puts "###############################################################"
 
   end
+
+	desc "Copyover a domain from another server"
+	task :copyonly => [:environment] do |t|
+
+    server = ENV['SERVER']
+    domain = ENV['SOURCE']
+
+    if !server || !domain 
+      raise 'Params SERVER=source_server.com SOURCE=source_domain.com'
+    end
+
+
+    puts "###############################################################"
+    puts "Running Backup on Remote Server........."
+    puts "###############################################################"
+    puts `ssh -t webiva@#{server} 'cd current; rake cms:backup DOMAIN=#{domain} FILENAME=backupfile NO_COPY=1'`
+
+    puts "###############################################################"
+    puts "Copying to Local........."
+    puts "###############################################################"
+    puts `scp webiva@#{server}:~/current/backup/backupfile.tar.gz #{RAILS_ROOT}/backup/` 
+    `ssh -t webiva@#{server} 'cd current; rm backup/backupfile.tar.gz'`
+
+    final_file = "#{RAILS_ROOT}/backup/copied_#{Time.now.strftime("%Y-%m-%d")}_#{domain}.tar.gz"
+    `mv #{RAILS_ROOT}/backup/backupfile.tar.gz #{final_file}`
+
+    puts "###############################################################"
+    puts "Done........."
+    puts "###############################################################"
+  
+    puts "File is: #{final_file}"
+
+  end
+
+
+
 end
 
