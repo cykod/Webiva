@@ -31,13 +31,15 @@ class ContentExportWorker <  Workling::Base #:nodoc:all
     
     total_entries = mdl.count
     
+    export_offset = 0
+    export_limit = nil
     if args[:export_download] == 'range'
-      @export_offset = args[:range_start].to_i 
-      @export_limit = args[:range_end].to_i - args[:range_start].to_i
-      @export_limit = 0 if @export_limit < 0
+      export_offset = args[:range_start].to_i 
+      export_limit = args[:range_end].to_i - args[:range_start].to_i
+      export_limit = 0 if export_limit < 0
     end
     
-    results[:entries] = @export_limit || total_entries
+    results[:entries] = export_limit || total_entries
 
     Workling.return.set(args[:uid],results)
     
@@ -54,17 +56,17 @@ class ContentExportWorker <  Workling::Base #:nodoc:all
       results[:type] = 'sql'
     when 'xml':
       File.open(filename,'w') do |f|
-        content_model.export_xml(f,:offset => @export_offset, :limit => @export_limit)
+        content_model.export_xml(f,:offset => export_offset, :limit => export_limit)
       end
       results[:type] = 'xml'
     when 'csv':
       CSV.open(filename,'w') do |writer|
-        content_model.export_csv(writer,:offset => @export_offset, :limit => @export_limit)
+        content_model.export_csv(writer,:offset => export_offset, :limit => export_limit)
       end
       results[:type] = 'csv'
     when 'yaml':
       File.open(filename,'w') do |f|
-        content_model.export_yaml(f,:offset => @export_offset, :limit => @export_limit)
+        content_model.export_yaml(f,:offset => export_offset, :limit => export_limit)
       end
       results[:type] = 'yaml'
     end
