@@ -25,6 +25,7 @@ namespace "cms" do
     
     domain_id = ENV['DOMAIN_ID']
     domain_name = ENV['DOMAIN']
+    file_name = ENV['FILENAME']
     webiva_db = false
 
     if domain_id 
@@ -37,7 +38,9 @@ namespace "cms" do
     end
 
     # create a backup directory
-    if domain_id
+    if file_name
+      backup_dir = file_name
+    elsif domain_id || domain_name
       backup_dir = Time.now.strftime('%Y-%b%d-%H%M%S-') + domains[0].database
     else
       backup_dir =  Time.now.strftime('%Y%m%d%H%M%S')
