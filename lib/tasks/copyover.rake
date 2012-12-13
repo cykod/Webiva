@@ -83,11 +83,15 @@ namespace "cms" do
       raise 'Params SERVER=source_server.com SOURCE=source_domain.com'
     end
 
+    copy_local = nil 
+    if ENV['COPY_LOCAL'] 
+      copy_local = 'COPY_LOCAL=1' 
+    end 
 
     puts "###############################################################"
     puts "Running Backup on Remote Server........."
     puts "###############################################################"
-    puts `ssh -t webiva@#{server} 'cd current; rake cms:backup DOMAIN=#{domain} FILENAME=backupfile NO_COPY=1'`
+    puts `ssh -t webiva@#{server} 'cd current; rake cms:backup DOMAIN=#{domain} FILENAME=backupfile NO_COPY=1 #{copy_local}'`
 
     puts "###############################################################"
     puts "Copying to Local........."
