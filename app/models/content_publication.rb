@@ -10,7 +10,7 @@ class ContentPublication < DomainModel
                            [ 'Entry Display', 'view' ],
                            [ 'Entry List', 'list' ],
                            [ 'Entry Edit Form', 'edit' ],
-                           [ 'Admin List', 'admin_list' ],
+                           [ 'Admin List', 'Admin_list' ],
                            [ 'Data Output', 'data' ] ]
   
   belongs_to :content_model
@@ -162,7 +162,7 @@ class ContentPublication < DomainModel
 
   def each_page_connection_input
     self.content_publication_fields.each do |fld|
-      yield fld.content_model_field.field.to_sym,fld if fld.content_model_field
+      yield fld.content_model_field.field.to_sym,fld
     end
   end
 

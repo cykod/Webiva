@@ -165,7 +165,7 @@ class Blog::BlogPost < DomainModel
       categories_to_add << cat_id unless categories_to_keep.include?(cat_id)
     end
 
-    self.blog_posts_categories.each { |pc| pc.destroy if categories_to_delete.include?(pc.id) }
+    self.blog_posts_categories.each { |pc| pc.destroy }
     categories_to_add.each do |cat_id|
        self.blog_posts_categories.create(:blog_category_id => cat_id)
     end

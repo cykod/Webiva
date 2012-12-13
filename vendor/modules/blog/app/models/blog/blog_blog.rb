@@ -211,7 +211,7 @@ class Blog::BlogBlog < DomainModel
     boolean_options :category_override
   end
 
-  @@import_fields  = %w(title permalink author published_at preview body embedded_media keywords domain_file_id categories tags).map(&:to_sym)
+  @@import_fields  = %w(title permalink author published_at preview body embedded_media).map(&:to_sym)
 
   def import_file(domain_file,user)
      filename = domain_file.filename
@@ -223,25 +223,12 @@ class Blog::BlogBlog < DomainModel
 
        post = self.blog_posts.find_by_permalink(args[:permalink]) if !args[:permalink].blank?
 
-       #args[:author] = user.name if args[:author].blank?
+       args[:author] = user.name if args[:author].blank?
        post ||= self.blog_posts.build
 
-       categories = args.delete(:categories)
-       tags = args.delete(:tags)
        post.attributes = args
-       if(!tags.blank?)
-          post.tag_names =  tags.split(";;").join(",")
-       end
        post.publish(args[:published_at])  if !args[:published_at].blank?
        post.save
-
-       if(!categories.blank?)
-         cat_ids = Blog::BlogCategory.find(:all,:conditions => { :name => categories.split(";;") }).map(&:id).reject(&:blank?)
-         post.set_categories!(cat_ids) if (cat_ids.length > 0)
-       end
-
-
-
      end
   end
 
