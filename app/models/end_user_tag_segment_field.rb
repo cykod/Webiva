@@ -10,6 +10,7 @@ class EndUserTagSegmentField < UserSegment::FieldHandler
 
   class EndUserTagType < UserSegment::FieldType
     register_operation :is, [['Tag', :model, {:class => EndUserTagSegmentField::EndUserTagType}]]
+    register_operation :contains, [['Tag Matches', :string ]], :name => "Contains"
 
     def self.select_options
       Tag.find(:all, :select => 'name').collect(&:name).sort.collect { |name| [name, name] }
@@ -20,7 +21,15 @@ class EndUserTagSegmentField < UserSegment::FieldHandler
       id = tg ? tg.id : 0
       cls.scoped(:conditions => ["#{field} = ?", id])
     end
+
+    def self.contains(cls, group_field, field, name)
+      tg = Tag.find(:all,:conditions => ["name like ?", "%#{name}%"])
+      ids = tg.length == 0 ? [ 0 ] : tg.map(&:id)
+      cls.scoped(:conditions => ["#{field} in (?)", ids] )
+    end
+
   end
+
 
   register_field :tag, EndUserTagSegmentField::EndUserTagType, :field => :tag_id, :name => 'Tag', :sortable => true, :display_field => :tag
   register_field :num_tags, UserSegment::CoreType::CountType, :field => :end_user_id, :name => '# Tags', :display_method => 'count', :sort_method => 'count', :sortable => true

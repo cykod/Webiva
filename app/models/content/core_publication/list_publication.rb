@@ -34,13 +34,13 @@ class Content::CorePublication::ListPublication < Content::PublicationType #:nod
     output +="\t<tr>\n"
     self.content_publication_fields.each do |fld|
 
-       tag_name = fld.content_model_field.feature_tag_name
+       tag_name = fld.content_model_field.feature_tag_name if fld.content_model_field
     
       case fld.content_model_field_id
       when -1:
-	output += "\t\t<td><cms:edit_link><cms:trans>Edit</cms:trans></td>\n"
+	output += "\t\t<td><cms:edit_button><cms:trans>Edit</cms:trans></cms:edit_button></td>\n"
       when -2:
-	output += "\t\t<td><cms:delete_link><cms:trans>Delete</cms:trans></td>\n"
+	output += "\t\t<td><cms:delete_button><cms:trans>Delete</cms:trans></cms:delete_button></td>\n"
       else 
 	      if fld.data[:options] && fld.data[:options].include?('link')
 	        output += "\t\t<td><cms:detail_link><cms:#{tag_name}/></cms:detail_link></td>\n"

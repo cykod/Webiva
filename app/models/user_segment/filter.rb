@@ -1,5 +1,3 @@
-require 'treetop'
-
 class UserSegment::Filter
 
   def end_user_ids

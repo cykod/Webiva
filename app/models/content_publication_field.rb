@@ -62,7 +62,7 @@ class ContentPublicationField < DomainModel
     return @field_options if @field_options && !vars
     @field_options = self.content_publication.field_options(vars || self.data)
 
-    @field_options.additional_vars(self.content_model_field.display_options_variables)
+    @field_options.additional_vars(self.content_model_field.display_options_variables) if self.content_model_field
 
     @field_options
   end

@@ -456,7 +456,7 @@ FEATURE
       
       c.define_button_tag('form:button')
       
-      c.expansion_tag('submitted') { |t| data[:submitted] }
+      c.value_tag('submitted') { |t| data[:submitted] }
     end
   end
   

@@ -1,0 +1,9 @@
+domains = Domain.find(:all,:group => '`database`',:conditions => 'domain_type = "domain"')
+
+domains.each do |d|
+ activate_domain!(d.name)
+ df = DomainFile.find(:all,:conditions => { :server_id =>  [ 3,4 ] })
+ df.each { |f| f.update_attribute(:server_id, 1) }
+end
+
+
