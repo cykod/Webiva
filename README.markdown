@@ -1,6 +1,8 @@
 Webiva Content Management System
 ===================================
 
+**Important Note: The Open Source Version of Webiva is no longer under active development and we don't recommend new users use it as a Rails CMS**
+
 Webiva is a Web 2.0 (whatever that means) open-source website building system that allows you to build custom websites that look and operate the way you want them to.  We like to call Webiva a WBS (Website Building System) as opposed to a CMS (Content Management System) because Webiva's focus is on the look and structure of your entire website rather than just letting you dump in content. Based on the idea of simplicity first - features later, Webiva was built as tool for us as web developers to build websites more easily - every feature that has been added was added in response to a specific requirement that arose as we've been using the system for the past 4 years. 
 
 Webiva is built on the Ruby-on-rails framework and from a software perspective does it's best to build on the concepts and methodologies that Rails creates. It also has an extensible module system that allows additional functionality to easily be dropped into the system so the sky's the limit in what you can do.
