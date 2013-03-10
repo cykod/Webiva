@@ -5,6 +5,12 @@
   <%= f.radio_buttons :private_gallery, [['Public',false],['Private',true]], :label => 'Access', :description => 'Private Galleries Disable XML and other data feeds' %>
   <%= f.datetime_field :occurred_at, :label => 'Gallery Date' %>
   <%= f.content_selector :owner_id, EndUser, :label => 'Gallery Owner', :content_name => 'Gallery Owner' %>
+
+  <% if SiteModule.module_enabled?('social') -%>
+    <% if @gallery.container.blank? || @gallery.container.is_a?(SocialUnit) -%>
+      <%= f.select :container_id, SocialUnit.select_options_with_nil("Group") %>
+    <% end -%>
+  <% end -%>
   <%= f.submit_tag @gallery.id ? 'Edit Gallery' : 'Create Gallery' %>
 <% end -%>
 </div>

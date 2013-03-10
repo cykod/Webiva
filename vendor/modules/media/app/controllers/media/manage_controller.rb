@@ -41,6 +41,9 @@ class Media::ManageController < ModuleController
     @gallery = Gallery.find_by_id(params[:path][0]) || Gallery.new
     
     cms_page_path ['Content','Galleries'], @gallery.id  ? [  'Edit %s', nil, @gallery.name ]  : 'Create Gallery'
+    if params[:gallery] && params[:gallery][:container_id].present?
+      params[:gallery][:container_type] = "SocialUnit"
+    end
     if request.post? && params[:gallery] && @gallery.update_attributes(params[:gallery])
       redirect_to :action => 'gallery', :path => @gallery.id
     end
