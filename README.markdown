@@ -39,7 +39,7 @@ Please report any bugs into the GitHub Issues Page
 License & Copyright
 -------------------
 
-All Webiva code and images is Copyright 2009-2010 Cykod LLC. This release is dual licensed under the terms of the MIT and BSD licenses. See the the *-LICENSE file for more details.
+All Webiva code and images is Copyright 2009-2010 Cykod LLC. This release is dual licensed under the terms of the MIT and BSD licenses. See the *-LICENSE file for more details.
 
 This release of Webiva is bundled with a number MIT License and BSD licensed Plugins and Gems, please see the individual directories in /vendor/[gems rails plugins] for more information. Webiva also bundles a number of javascript libraries found in /public/javascripts/[tiny_mce overlib edit_area highlight jscalendar], each is copyright it's respective owners. TinyMCE is a product of MoxieCode and is released on the terms of the LGPL (http://tinymce.moxiecode.com/ ). JSCalendar is released under the terms of the LGPL. Overlib is released under the terms described at http://www.bosrup.com/web/overlib/. Webiva also includes the Bitstream Vera Fonts, please see data/fonts/COPYRIGHT.txt for details on the restrictions associated with those fonts. 
 
